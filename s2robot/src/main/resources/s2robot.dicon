@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components>
+    <include path="s2robot_dbflute.dicon"/>
+    <include path="s2robot_httpclient.dicon"/>
+    <include path="s2robot_rule.dicon"/>
+    <include path="s2robot_filter.dicon"/>
+    <include path="s2robot_interval.dicon"/>
+
+	<!-- S2Robot -->
+	<component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >
+	</component>
+    
+    <!-- Service -->
+	<component name="urlQueueService" class="org.seasar.robot.service.UrlQueueService" instance="prototype" >
+		<aspect pointcut="insert.*,delete.*,offer.*,poll.*,isNewUrl">
+			s2robot_j2ee.requiredTx
+		</aspect>
+	</component>
+	<component name="dataService" class="org.seasar.robot.service.DataService" instance="prototype" >
+		<aspect pointcut="store.*,get.*,delete.*">
+			s2robot_j2ee.requiredTx
+		</aspect>
+	</component>
+
+
+</components>

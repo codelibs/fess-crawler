@@ -134,8 +134,6 @@ public class UrlQueueService {
             return false;
         }
 
-   
-
         // cache
         if (getVisitedUrlCache().containsKey(url)) {
             if (logger.isDebugEnabled()) {
@@ -192,19 +190,20 @@ public class UrlQueueService {
                 cb.paging(cacheSize, 1);
                 cb.query().setSessionId_Equal(sessionId);
                 List<UrlQueue> uqList = urlQueueBhv.selectPage(cb);
-                urlQueueList.addAll(uqList);
+                if (!uqList.isEmpty()) {
+                    urlQueueList.addAll(uqList);
 
-                List<Long> idList = new ArrayList<Long>(cacheSize);
-                for (UrlQueue uq : uqList) {
-                    idList.add(uq.getId());
+                    List<Long> idList = new ArrayList<Long>(cacheSize);
+                    for (UrlQueue uq : uqList) {
+                        idList.add(uq.getId());
+                    }
+                    cb = new UrlQueueCB();
+                    cb.query().setId_InScope(idList);
+                    urlQueueBhv.queryDelete(cb);
                 }
-                cb=new UrlQueueCB();
-                cb.query().setId_InScope(idList);
-                urlQueueBhv.queryDelete(cb);
             }
 
             return urlQueueList.poll();
         }
     }
-
 }

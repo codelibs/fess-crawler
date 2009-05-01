@@ -24,7 +24,7 @@ import org.seasar.robot.rule.RuleManager;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class RuleManagerImpl implements RuleManager {
 
@@ -40,14 +40,14 @@ public class RuleManagerImpl implements RuleManager {
         ruleList.add(rule);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.rule.RuleManager#getRule(org.seasar.robot.entity.ResponseData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @seeorg.seasar.robot.rule.RuleManager#getRule(org.seasar.robot.entity.ResponseData)
      */
     public Rule getRule(ResponseData responseData) {
-        String url = responseData.getUrl();
-        String contentType = responseData.getMimeType();
         for (Rule rule : ruleList) {
-            if (rule.match(url, contentType)) {
+            if (rule.match(responseData)) {
                 return rule;
             }
         }

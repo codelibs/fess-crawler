@@ -9,8 +9,14 @@ import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
 public class UrlQueueNss {
 
     protected UrlQueueCQ _query;
-    public UrlQueueNss(UrlQueueCQ query) { _query = query; }
-    public boolean hasConditionQuery() { return _query != null; }
+
+    public UrlQueueNss(UrlQueueCQ query) {
+        _query = query;
+    }
+
+    public boolean hasConditionQuery() {
+        return _query != null;
+    }
 
     // ===================================================================================
     //                                                           With Nested Foreign Table

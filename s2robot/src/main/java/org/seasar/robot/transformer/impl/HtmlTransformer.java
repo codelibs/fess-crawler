@@ -69,6 +69,8 @@ public class HtmlTransformer extends AbstractTransformer {
     @Binding(bindingType = BindingType.MAY)
     public String defaultEncoding;
 
+    private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
+
     public ResultData transform(ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotSystemException("No response body.");
@@ -83,6 +85,10 @@ public class HtmlTransformer extends AbstractTransformer {
             fos = new FileOutputStream(tempFile);
             StreamUtil.drain(is, fos);
         } catch (Exception e) {
+            // clean up
+            if (tempFile != null && !tempFile.delete()) {
+                logger.warn("Could not delete a temp file: " + tempFile);
+            }
             throw new RobotSystemException("Could not read a response body.", e);
         } finally {
             IOUtils.closeQuietly(is);
@@ -97,8 +103,16 @@ public class HtmlTransformer extends AbstractTransformer {
             responseData.setResponseBody(fis);
             updateCharset(responseData);
         } catch (RobotSystemException e) {
+            // clean up
+            if (!tempFile.delete()) {
+                logger.warn("Could not delete a temp file: " + tempFile);
+            }
             throw e;
         } catch (Exception e) {
+            // clean up
+            if (!tempFile.delete()) {
+                logger.warn("Could not delete a temp file: " + tempFile);
+            }
             throw new RobotSystemException(
                     "Could not load a charset in a response.", e);
         } finally {
@@ -114,31 +128,58 @@ public class HtmlTransformer extends AbstractTransformer {
             responseData.setResponseBody(fis);
             storeData(responseData, resultData);
         } catch (RobotSystemException e) {
+            // clean up
+            if (!tempFile.delete()) {
+                logger.warn("Could not delete a temp file: " + tempFile);
+            }
             throw e;
         } catch (Exception e) {
+            // clean up
+            if (!tempFile.delete()) {
+                logger.warn("Could not delete a temp file: " + tempFile);
+            }
             throw new RobotSystemException("Could not store data.", e);
         } finally {
             IOUtils.closeQuietly(fis);
         }
 
-        // urls
-        try {
-            fis = new FileInputStream(tempFile);
-            responseData.setResponseBody(fis);
-            storeChildUrls(responseData, resultData);
-        } catch (RobotSystemException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RobotSystemException("Could not store data.", e);
-        } finally {
-            IOUtils.closeQuietly(fis);
+        if (isHtml(responseData)) {
+            // urls
+            try {
+                fis = new FileInputStream(tempFile);
+                responseData.setResponseBody(fis);
+                storeChildUrls(responseData, resultData);
+            } catch (RobotSystemException e) {
+                // clean up
+                if (!tempFile.delete()) {
+                    logger.warn("Could not delete a temp file: " + tempFile);
+                }
+                throw e;
+            } catch (Exception e) {
+                // clean up
+                if (!tempFile.delete()) {
+                    logger.warn("Could not delete a temp file: " + tempFile);
+                }
+                throw new RobotSystemException("Could not store data.", e);
+            } finally {
+                IOUtils.closeQuietly(fis);
+            }
+
             // clean up
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
         }
-
         return resultData;
+    }
+
+    protected boolean isHtml(ResponseData responseData) {
+        String mimeType = responseData.getMimeType();
+        if ("text/html".equals(mimeType)
+                || "application/xhtml+xml".equals(mimeType)) {
+            return true;
+        }
+        return false;
     }
 
     public void addChildUrlRule(String tagName, String attrName) {
@@ -146,8 +187,6 @@ public class HtmlTransformer extends AbstractTransformer {
             childUrlRuleMap.put(tagName, attrName);
         }
     }
-
-    private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
 
     private CachedXPathAPI getXPathAPI() {
         CachedXPathAPI cachedXPathAPI = xpathAPI.get();
@@ -302,7 +341,7 @@ public class HtmlTransformer extends AbstractTransformer {
                         if (logger.isDebugEnabled()) {
                             logger.debug(attrValue + " -> " + childUrl);
                         }
-                        urlList.add(childUrl.toString());
+                        urlList.add(normalizeUrl(childUrl.toString()));
                     } catch (MalformedURLException e) {
                         logger.warn("Malformed URL: " + attrValue, e);
                     }
@@ -312,6 +351,17 @@ public class HtmlTransformer extends AbstractTransformer {
             logger.warn("Could not get urls: (" + xpath + ", " + attr + ")", e);
         }
         return urlList;
+    }
+
+    protected String normalizeUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+        int idx = url.indexOf("#");
+        if (idx >= 0) {
+            return url.substring(0, idx);
+        }
+        return url;
     }
 
     private boolean isValidPath(String path) {

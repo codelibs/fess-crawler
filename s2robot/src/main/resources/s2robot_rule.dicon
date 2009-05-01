@@ -6,12 +6,12 @@
     
 	<component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="singleton">
 		<initMethod name="addRule">
-			<arg>htmlRule</arg>
+			<arg>fileRule</arg>
 		</initMethod>
 	</component>
 	
-	<component name="htmlRule" class="org.seasar.robot.rule.Rule" >
-		<property name="mimeType">"text/html"</property>
-		<property name="transformer">htmlOnlyTransformer</property>
+	<component name="fileRule" class="org.seasar.robot.rule.Rule" >
+		<property name="defaultRule">true</property>
+		<property name="transformer">fileTransformer</property>
 	</component>
 </components>

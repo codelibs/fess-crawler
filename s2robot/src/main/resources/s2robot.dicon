@@ -19,7 +19,7 @@
 		</aspect>
 	</component>
 	<component name="dataService" class="org.seasar.robot.service.DataService" instance="prototype" >
-		<aspect pointcut="store.*,get.*,delete.*">
+		<aspect pointcut="store.*,getCount,getAccessResult.*,delete.*">
 			s2robot_j2ee.requiredTx
 		</aspect>
 	</component>

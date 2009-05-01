@@ -2,15 +2,19 @@ package org.seasar.robot.db.cbean.cq.bs;
 
 import java.util.Collection;
 
-import org.seasar.dbflute.cbean.*;
-import org.seasar.dbflute.cbean.ckey.*;
-import org.seasar.dbflute.cbean.coption.*;
+import org.seasar.dbflute.cbean.AbstractConditionQuery;
+import org.seasar.dbflute.cbean.ConditionQuery;
+import org.seasar.dbflute.cbean.SubQuery;
+import org.seasar.dbflute.cbean.ckey.ConditionKey;
+import org.seasar.dbflute.cbean.coption.DateFromToOption;
+import org.seasar.dbflute.cbean.coption.FromToOption;
+import org.seasar.dbflute.cbean.coption.LikeSearchOption;
 import org.seasar.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.dbflute.dbmeta.DBMetaProvider;
-import org.seasar.robot.db.allcommon.*;
-import org.seasar.robot.db.cbean.*;
-import org.seasar.robot.db.cbean.cq.*;
+import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
+import org.seasar.robot.db.cbean.UrlQueueCB;
+import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
 
 /**
  * The abstract condition-query of URL_QUEUE.
@@ -26,7 +30,8 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public AbstractBsUrlQueueCQ(ConditionQuery childQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
+    public AbstractBsUrlQueueCQ(ConditionQuery childQuery, SqlClause sqlClause,
+            String aliasName, int nestLevel) {
         super(childQuery, sqlClause, aliasName, nestLevel);
     }
 
@@ -44,7 +49,7 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
     public String getTableDbName() {
         return "URL_QUEUE";
     }
-    
+
     public String getTableSqlName() {
         return "URL_QUEUE";
     }
@@ -52,7 +57,7 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
     // ===================================================================================
     //                                                                               Query
     //                                                                               =====
-    
+
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. {PK : ID : NotNull : BIGINT}
      * @param id The value of id as equal.
@@ -120,14 +125,21 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
     /**
      * IsNull(is null). And OnlyOnceRegistered.
      */
-    public void setId_IsNull() { regId(CK_ISN, DOBJ); }
+    public void setId_IsNull() {
+        regId(CK_ISN, DOBJ);
+    }
 
     /**
      * IsNotNull(is not null). And OnlyOnceRegistered.
      */
-    public void setId_IsNotNull() { regId(CK_ISNN, DOBJ); }
+    public void setId_IsNotNull() {
+        regId(CK_ISNN, DOBJ);
+    }
 
-    protected void regId(ConditionKey k, Object v) { regQ(k, v, getCValueId(), "ID"); }
+    protected void regId(ConditionKey k, Object v) {
+        regQ(k, v, getCValueId(), "ID");
+    }
+
     abstract protected ConditionValue getCValueId();
 
     /**
@@ -207,8 +219,10 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param sessionId The value of sessionId as likeSearch.
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setSessionId_LikeSearch(String sessionId, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(sessionId), getCValueSessionId(), "SESSION_ID", likeSearchOption);
+    public void setSessionId_LikeSearch(String sessionId,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(sessionId), getCValueSessionId(), "SESSION_ID",
+                likeSearchOption);
     }
 
     /**
@@ -216,11 +230,16 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param sessionId The value of sessionId as notLikeSearch.
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setSessionId_NotLikeSearch(String sessionId, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(sessionId), getCValueSessionId(), "SESSION_ID", likeSearchOption);
+    public void setSessionId_NotLikeSearch(String sessionId,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(sessionId), getCValueSessionId(), "SESSION_ID",
+                likeSearchOption);
     }
 
-    protected void regSessionId(ConditionKey k, Object v) { regQ(k, v, getCValueSessionId(), "SESSION_ID"); }
+    protected void regSessionId(ConditionKey k, Object v) {
+        regQ(k, v, getCValueSessionId(), "SESSION_ID");
+    }
+
     abstract protected ConditionValue getCValueSessionId();
 
     /**
@@ -300,8 +319,10 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param method The value of method as likeSearch.
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setMethod_LikeSearch(String method, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(method), getCValueMethod(), "METHOD", likeSearchOption);
+    public void setMethod_LikeSearch(String method,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(method), getCValueMethod(), "METHOD",
+                likeSearchOption);
     }
 
     /**
@@ -309,11 +330,16 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param method The value of method as notLikeSearch.
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setMethod_NotLikeSearch(String method, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(method), getCValueMethod(), "METHOD", likeSearchOption);
+    public void setMethod_NotLikeSearch(String method,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(method), getCValueMethod(), "METHOD",
+                likeSearchOption);
     }
 
-    protected void regMethod(ConditionKey k, Object v) { regQ(k, v, getCValueMethod(), "METHOD"); }
+    protected void regMethod(ConditionKey k, Object v) {
+        regQ(k, v, getCValueMethod(), "METHOD");
+    }
+
     abstract protected ConditionValue getCValueMethod();
 
     /**
@@ -402,11 +428,15 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param url The value of url as notLikeSearch.
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setUrl_NotLikeSearch(String url, LikeSearchOption likeSearchOption) {
+    public void setUrl_NotLikeSearch(String url,
+            LikeSearchOption likeSearchOption) {
         regLSQ(CK_NLS, fRES(url), getCValueUrl(), "URL", likeSearchOption);
     }
 
-    protected void regUrl(ConditionKey k, Object v) { regQ(k, v, getCValueUrl(), "URL"); }
+    protected void regUrl(ConditionKey k, Object v) {
+        regQ(k, v, getCValueUrl(), "URL");
+    }
+
     abstract protected ConditionValue getCValueUrl();
 
     /**
@@ -486,8 +516,10 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param parentUrl The value of parentUrl as likeSearch.
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setParentUrl_LikeSearch(String parentUrl, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(parentUrl), getCValueParentUrl(), "PARENT_URL", likeSearchOption);
+    public void setParentUrl_LikeSearch(String parentUrl,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(parentUrl), getCValueParentUrl(), "PARENT_URL",
+                likeSearchOption);
     }
 
     /**
@@ -495,23 +527,32 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param parentUrl The value of parentUrl as notLikeSearch.
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setParentUrl_NotLikeSearch(String parentUrl, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(parentUrl), getCValueParentUrl(), "PARENT_URL", likeSearchOption);
+    public void setParentUrl_NotLikeSearch(String parentUrl,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(parentUrl), getCValueParentUrl(), "PARENT_URL",
+                likeSearchOption);
     }
 
     /**
      * IsNull(is null). And OnlyOnceRegistered.
      */
-    public void setParentUrl_IsNull() { regParentUrl(CK_ISN, DOBJ); }
+    public void setParentUrl_IsNull() {
+        regParentUrl(CK_ISN, DOBJ);
+    }
 
     /**
      * IsNotNull(is not null). And OnlyOnceRegistered.
      */
-    public void setParentUrl_IsNotNull() { regParentUrl(CK_ISNN, DOBJ); }
+    public void setParentUrl_IsNotNull() {
+        regParentUrl(CK_ISNN, DOBJ);
+    }
 
-    protected void regParentUrl(ConditionKey k, Object v) { regQ(k, v, getCValueParentUrl(), "PARENT_URL"); }
+    protected void regParentUrl(ConditionKey k, Object v) {
+        regQ(k, v, getCValueParentUrl(), "PARENT_URL");
+    }
+
     abstract protected ConditionValue getCValueParentUrl();
-    
+
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : INTEGER}
      * @param depth The value of depth as equal.
@@ -576,9 +617,12 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
         regINS(CK_NINS, cTL(depthList), getCValueDepth(), "DEPTH");
     }
 
-    protected void regDepth(ConditionKey k, Object v) { regQ(k, v, getCValueDepth(), "DEPTH"); }
+    protected void regDepth(ConditionKey k, Object v) {
+        regQ(k, v, getCValueDepth(), "DEPTH");
+    }
+
     abstract protected ConditionValue getCValueDepth();
-    
+
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
      * @param createTime The value of createTime as equal.
@@ -625,8 +669,12 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param toDate The to-date of createTime. (Nullable)
      * @param fromToOption The option of from-to. (NotNull)
      */
-    public void setCreateTime_FromTo(java.util.Date fromDate, java.util.Date toDate, FromToOption fromToOption) {
-        regFTQ((fromDate != null ? new java.sql.Timestamp(fromDate.getTime()) : null), (toDate != null ? new java.sql.Timestamp(toDate.getTime()) : null), getCValueCreateTime(), "CREATE_TIME", fromToOption);
+    public void setCreateTime_FromTo(java.util.Date fromDate,
+            java.util.Date toDate, FromToOption fromToOption) {
+        regFTQ((fromDate != null ? new java.sql.Timestamp(fromDate.getTime())
+                : null), (toDate != null ? new java.sql.Timestamp(toDate
+                .getTime()) : null), getCValueCreateTime(), "CREATE_TIME",
+                fromToOption);
     }
 
     /**
@@ -634,11 +682,15 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      * @param fromDate The from-date of createTime. (Nullable)
      * @param toDate The to-date of createTime. (Nullable)
      */
-    public void setCreateTime_DateFromTo(java.util.Date fromDate, java.util.Date toDate) {
+    public void setCreateTime_DateFromTo(java.util.Date fromDate,
+            java.util.Date toDate) {
         setCreateTime_FromTo(fromDate, toDate, new DateFromToOption());
     }
 
-    protected void regCreateTime(ConditionKey k, Object v) { regQ(k, v, getCValueCreateTime(), "CREATE_TIME"); }
+    protected void regCreateTime(ConditionKey k, Object v) {
+        regQ(k, v, getCValueCreateTime(), "CREATE_TIME");
+    }
+
     abstract protected ConditionValue getCValueCreateTime();
 
     // ===================================================================================
@@ -659,11 +711,11 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
     public SSQFunction<UrlQueueCB> scalar_LessEqual() {
         return xcreateSSQFunction("<=");
     }
-    
+
     public SSQFunction<UrlQueueCB> scalar_LessThan() {
         return xcreateSSQFunction("<");
     }
-    
+
     protected SSQFunction<UrlQueueCB> xcreateSSQFunction(final String operand) {
         return new SSQFunction<UrlQueueCB>(new SSQSetupper<UrlQueueCB>() {
             public void setup(String function, SubQuery<UrlQueueCB> subQuery) {
@@ -672,12 +724,17 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
         });
     }
 
-    protected void xscalarSubQuery(String function, SubQuery<UrlQueueCB> subQuery, String operand) {
+    protected void xscalarSubQuery(String function,
+            SubQuery<UrlQueueCB> subQuery, String operand) {
         assertObjectNotNull("subQuery<UrlQueueCB>", subQuery);
-        UrlQueueCB cb = new UrlQueueCB(); cb.xsetupForScalarSubQuery(); subQuery.query(cb);
+        UrlQueueCB cb = new UrlQueueCB();
+        cb.xsetupForScalarSubQuery();
+        subQuery.query(cb);
         String subQueryPropertyName = keepScalarSubQuery(cb.query()); // for saving query-value.
-        registerScalarSubQuery(function, cb.query(), subQueryPropertyName, operand);
+        registerScalarSubQuery(function, cb.query(), subQueryPropertyName,
+                operand);
     }
+
     public abstract String keepScalarSubQuery(UrlQueueCQ subQuery);
 
     // ===================================================================================
@@ -689,17 +746,28 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
      */
     public void myselfInScope(SubQuery<UrlQueueCB> subQuery) {
         assertObjectNotNull("subQuery<UrlQueueCB>", subQuery);
-        UrlQueueCB cb = new UrlQueueCB(); cb.xsetupForInScopeSubQuery(); subQuery.query(cb);
+        UrlQueueCB cb = new UrlQueueCB();
+        cb.xsetupForInScopeSubQuery();
+        subQuery.query(cb);
         String subQueryPropertyName = keepMyselfInScopeSubQuery(cb.query()); // for saving query-value.
         registerInScopeSubQuery(cb.query(), "ID", "ID", subQueryPropertyName);
     }
+
     public abstract String keepMyselfInScopeSubQuery(UrlQueueCQ subQuery);
 
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
     // Very Internal (for Suppressing Warn about 'Not Use Import')
-    String xCB() { return UrlQueueCB.class.getName(); }
-    String xCQ() { return UrlQueueCQ.class.getName(); }
-    String xLSO() { return LikeSearchOption.class.getName(); }
+    String xCB() {
+        return UrlQueueCB.class.getName();
+    }
+
+    String xCQ() {
+        return UrlQueueCQ.class.getName();
+    }
+
+    String xLSO() {
+        return LikeSearchOption.class.getName();
+    }
 }

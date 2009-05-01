@@ -1,12 +1,12 @@
 package org.seasar.robot.db.bsentity;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Set;
 
-import org.seasar.dbflute.dbmeta.DBMeta;
 import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
-import org.seasar.robot.db.exentity.*;
+import org.seasar.robot.db.exentity.AccessResultData;
 
 /**
  * The entity of ACCESS_RESULT that the type is TABLE. <br />
@@ -89,7 +89,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     //                                              --------
     /** The attribute of entity modified properties. (for S2Dao) */
     protected EntityModifiedProperties _modifiedProperties = newEntityModifiedProperties();
-    
+
     // ===================================================================================
     //                                                                          Table Name
     //                                                                          ==========
@@ -146,7 +146,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
     //                                                                       Determination
     //                                                                       =============
     public boolean hasPrimaryKeyValue() {
-        if (_id == null) { return false; }
+        if (_id == null) {
+            return false;
+        }
         return true;
     }
 
@@ -178,14 +180,20 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * @return Comparing result.
      */
     public boolean equals(Object other) {
-        if (other == null || !(other instanceof BsAccessResult)) { return false; }
-        BsAccessResult otherEntity = (BsAccessResult)other;
-        if (!helpComparingValue(getId(), otherEntity.getId())) { return false; }
+        if (other == null || !(other instanceof BsAccessResult)) {
+            return false;
+        }
+        BsAccessResult otherEntity = (BsAccessResult) other;
+        if (!helpComparingValue(getId(), otherEntity.getId())) {
+            return false;
+        }
         return true;
     }
 
     protected boolean helpComparingValue(Object value1, Object value2) {
-        if (value1 == null && value2 == null) { return true; }
+        if (value1 == null && value2 == null) {
+            return true;
+        }
         return value1 != null && value2 != null && value1.equals(value2);
     }
 
@@ -195,7 +203,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
      */
     public int hashCode() {
         int result = 17;
-        if (getId() != null) { result = (31*result) + getId().hashCode(); }
+        if (getId() != null) {
+            result = (31 * result) + getId().hashCode();
+        }
         return result;
     }
 
@@ -215,7 +225,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
         sb.append(delimiter).append(getMethod());
         sb.append(delimiter).append(getMimeType());
         sb.append(delimiter).append(getCreateTime());
-        if (sb.length() > 0) { sb.delete(0, delimiter.length()); }
+        if (sb.length() > 0) {
+            sb.delete(0, delimiter.length());
+        }
         sb.insert(0, "{").append("}");
         return sb.toString();
     }

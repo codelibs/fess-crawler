@@ -51,7 +51,7 @@ public class HtmlTransformerTest extends S2TestCase {
 
     public void test_transform_null() {
         try {
-          htmlTransformer.transform(null);
+            htmlTransformer.transform(null);
             fail();
         } catch (RobotSystemException e) {
         }
@@ -88,5 +88,20 @@ public class HtmlTransformerTest extends S2TestCase {
         url = "http://hoge/";
         assertEquals("http://hoge", htmlTransformer.getDuplicateUrl(url));
 
+    }
+
+    public void test_normalizeUrl() {
+        String url;
+
+        url = "http://hoge/index.html";
+        assertEquals(url, htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html#hoge";
+        assertEquals("http://hoge/index.html", htmlTransformer
+                .normalizeUrl(url));
+
+        url = "http://hoge/index.html#";
+        assertEquals("http://hoge/index.html", htmlTransformer
+                .normalizeUrl(url));
     }
 }

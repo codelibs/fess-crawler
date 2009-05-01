@@ -7,7 +7,8 @@ import org.seasar.dbflute.bhv.core.CommonColumnAutoSetupper;
  * The basic implementation of the auto set-upper of common column.
  * @author DBFlute(AutoGenerator)
  */
-public class ImplementedCommonColumnAutoSetupper implements CommonColumnAutoSetupper {
+public class ImplementedCommonColumnAutoSetupper implements
+        CommonColumnAutoSetupper {
 
     // =====================================================================================
     //                                                                                Set up

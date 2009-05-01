@@ -18,13 +18,16 @@ package org.seasar.robot.rule;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.transformer.Transformer;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class Rule {
+    public boolean defaultRule = false;
+
     protected String ruleId;
 
     protected Pattern urlPattern;
@@ -37,7 +40,15 @@ public class Rule {
 
     }
 
-    public boolean match(String url, String mimeType) {
+    public boolean match(ResponseData responseData) {
+
+        if (defaultRule) {
+            return true;
+        }
+
+        String url = responseData.getUrl();
+        String contentType = responseData.getMimeType();
+
         if (urlPattern != null && url != null) {
             Matcher matcher = urlPattern.matcher(url);
             if (matcher.matches()) {

@@ -11,14 +11,13 @@ import org.seasar.dbflute.jdbc.DataSourceHandler;
 import org.seasar.dbflute.jdbc.DataSourceWrapper;
 import org.seasar.dbflute.jdbc.StatementFactory;
 import org.seasar.dbflute.resource.ResourceParameter;
-import org.seasar.extension.jdbc.types.ValueTypes;
 import org.seasar.dbflute.s2dao.beans.factory.TnBeanDescFactory;
 import org.seasar.dbflute.s2dao.extension.TnBeanMetaDataFactoryExtension;
 import org.seasar.dbflute.s2dao.jdbc.TnStatementFactoryImpl;
 import org.seasar.dbflute.s2dao.metadata.TnBeanMetaDataFactory;
 import org.seasar.dbflute.s2dao.valuetype.TnValueTypeFactory;
 import org.seasar.dbflute.s2dao.valuetype.impl.TnValueTypeFactoryImpl;
-
+import org.seasar.extension.jdbc.types.ValueTypes;
 import org.seasar.framework.util.Disposable;
 import org.seasar.framework.util.DisposableUtil;
 
@@ -31,13 +30,19 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     //                                                                           Attribute
     //                                                                           =========
     protected BehaviorCommandInvoker _behaviorCommandInvoker;
+
     protected DataSource _dataSource;
+
     protected DBMetaProvider _dbmetaProvider;
+
     protected SqlClauseCreator _sqlClauseCreator;
+
     protected StatementFactory _statementFactory;
+
     protected TnBeanMetaDataFactory _beanMetaDataFactory;
+
     protected TnValueTypeFactory _valueTypeFactory;
-    
+
     protected boolean _disposable;
 
     // ===================================================================================
@@ -48,7 +53,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     public DataSource assistDataSource() {
-        DataSourceHandler dataSourceHandler = DBFluteConfig.getInstance().getDataSourceHandler();
+        DataSourceHandler dataSourceHandler = DBFluteConfig.getInstance()
+                .getDataSourceHandler();
         if (dataSourceHandler != null) {
             return new DataSourceWrapper(_dataSource, dataSourceHandler);
         }
@@ -89,7 +95,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
 
     protected StatementFactory createStatementFactory() {
         final TnStatementFactoryImpl factory = new TnStatementFactoryImpl();
-        factory.setDefaultStatementConfig(DBFluteConfig.getInstance().getDefaultStatementConfig());
+        factory.setDefaultStatementConfig(DBFluteConfig.getInstance()
+                .getDefaultStatementConfig());
         factory.setInternalDebug(DBFluteConfig.getInstance().isInternalDebug());
         return factory;
     }
@@ -108,7 +115,7 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         factory.setValueTypeFactory(assistValueTypeFactory());
         return factory;
     }
-    
+
     public TnValueTypeFactory assistValueTypeFactory() {
         if (_valueTypeFactory != null) {
             return _valueTypeFactory;
@@ -123,9 +130,12 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
 
     public ResourceParameter assistResourceParameter() {
         ResourceParameter resourceParameter = new ResourceParameter();
-        resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance().getOutsideSqlPackage());
-        resourceParameter.setLogDateFormat(DBFluteConfig.getInstance().getLogDateFormat());
-        resourceParameter.setLogTimestampFormat(DBFluteConfig.getInstance().getLogTimestampFormat());
+        resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance()
+                .getOutsideSqlPackage());
+        resourceParameter.setLogDateFormat(DBFluteConfig.getInstance()
+                .getLogDateFormat());
+        resourceParameter.setLogTimestampFormat(DBFluteConfig.getInstance()
+                .getLogTimestampFormat());
         return resourceParameter;
     }
 
@@ -184,7 +194,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
-    public void setBehaviorCommandInvoker(BehaviorCommandInvoker behaviorCommandInvoker) {
+    public void setBehaviorCommandInvoker(
+            BehaviorCommandInvoker behaviorCommandInvoker) {
         _behaviorCommandInvoker = behaviorCommandInvoker;
     }
 

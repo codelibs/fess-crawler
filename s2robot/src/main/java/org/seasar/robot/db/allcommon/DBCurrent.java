@@ -28,7 +28,7 @@ public class DBCurrent {
             _currentDBDef = DBDef.Unknown;
         }
     }
-	
+
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
@@ -53,13 +53,13 @@ public class DBCurrent {
     //                                                                       Current DBDef
     //                                                                       =============
     public void initializeCurrentDBDef(DBDef currentDBDef) {
-	    if (_log.isInfoEnabled()) {
-		    _log.info("...Setting currentDBDef: " + currentDBDef);
-		}
-		if (currentDBDef == null) {
-		    String msg = "The argument 'currentDBDef' should not be null!";
-		    throw new IllegalArgumentException(msg);
-		}
+        if (_log.isInfoEnabled()) {
+            _log.info("...Setting currentDBDef: " + currentDBDef);
+        }
+        if (currentDBDef == null) {
+            String msg = "The argument 'currentDBDef' should not be null!";
+            throw new IllegalArgumentException(msg);
+        }
         _currentDBDef = currentDBDef;
     }
 
@@ -68,6 +68,6 @@ public class DBCurrent {
     }
 
     public boolean isCurrentDBDef(DBDef currentDBDef) {
-	    return _currentDBDef.equals(currentDBDef);
+        return _currentDBDef.equals(currentDBDef);
     }
 }

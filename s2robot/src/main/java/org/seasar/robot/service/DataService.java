@@ -89,7 +89,7 @@ public class DataService {
         return accessResultBhv.selectEntity(cb);
     }
 
-    public List<AccessResult> getAccessResult(String url, boolean hasData) {
+    public List<AccessResult> getAccessResultList(String url, boolean hasData) {
         AccessResultCB cb = new AccessResultCB();
         if (hasData) {
             cb.setupSelect_AccessResultDataAsOne();

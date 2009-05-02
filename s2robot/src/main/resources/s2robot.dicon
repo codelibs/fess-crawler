@@ -7,6 +7,7 @@
     <include path="s2robot_rule.dicon"/>
     <include path="s2robot_filter.dicon"/>
     <include path="s2robot_interval.dicon"/>
+    <include path="s2robot_config.dicon"/>
 
 	<!-- S2Robot -->
 	<component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >

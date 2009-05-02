@@ -26,8 +26,8 @@ public class S2RobotTest extends S2TestCase {
         file.deleteOnExit();
         fileTransformer.path = file.getAbsolutePath();
         s2Robot.addUrl("http://www.n2sm.net/");
-        s2Robot.setMaxAccessCount(50);
-        s2Robot.setNumOfThread(10);
+        s2Robot.robotConfig.setMaxAccessCount(50);
+        s2Robot.robotConfig.setNumOfThread(10);
         s2Robot.urlFilter.addInclude("http://www.n2sm.net/.*");
         String sessionId = s2Robot.execute();
         assertEquals(50, dataService.getCount(sessionId));

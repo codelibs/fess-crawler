@@ -61,6 +61,8 @@ public class S2Robot {
 
     private Object accessCountLock = new Object();
 
+    private volatile boolean running = false;
+
     public S2Robot() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         sessionId = sdf.format(new Date());
@@ -91,6 +93,7 @@ public class S2Robot {
         }
 
         // run
+        running = true;
         for (int i = 0; i < robotConfig.getNumOfThread(); i++) {
             threads[i].start();
         }
@@ -103,6 +106,7 @@ public class S2Robot {
                 logger.warn("Could not join " + threads[i].getName());
             }
         }
+        running = false;
 
         urlQueueService.saveSession(sessionId);
 
@@ -153,6 +157,10 @@ public class S2Robot {
         return robotConfig;
     }
 
+    public void stop() {
+        running = false;
+    }
+
     protected class S2RobotThread implements Runnable {
 
         protected void startCrawling() {
@@ -196,7 +204,7 @@ public class S2Robot {
          */
         public void run() {
             int threadCheckCount = 0;
-            while (isContinue(threadCheckCount)) {
+            while (running && isContinue(threadCheckCount)) {
                 UrlQueue urlQueue = urlQueueService.poll(sessionId);
                 if (isValid(urlQueue)) {
                     try {

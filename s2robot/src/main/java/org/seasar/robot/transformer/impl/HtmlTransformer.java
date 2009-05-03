@@ -369,7 +369,8 @@ public class HtmlTransformer extends AbstractTransformer {
             return false;
         }
 
-        if (path.startsWith("javascript:") || path.startsWith("mailto:")) {
+        if (path.startsWith("javascript:") || path.startsWith("mailto:")
+                || path.startsWith("irc:")) {
             return false;
         }
 

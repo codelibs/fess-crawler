@@ -104,7 +104,15 @@ public class S2Robot {
             }
         }
 
+        urlQueueService.saveSession(sessionId);
+
         return sessionId;
+    }
+
+    public void cleanup(String sessionId) {
+        // TODO transaction?
+        urlQueueService.delete(sessionId);
+        dataService.delete(sessionId);
     }
 
     protected boolean isValid(UrlQueue urlQueue) {
@@ -117,7 +125,7 @@ public class S2Robot {
         }
 
         if (robotConfig.getMaxDepth() >= 0
-                && urlQueue.getDepth() >= robotConfig.getMaxDepth()) {
+                && urlQueue.getDepth() > robotConfig.getMaxDepth()) {
             return false;
         }
 
@@ -139,6 +147,10 @@ public class S2Robot {
         if (StringUtil.isNotBlank(regexp)) {
             urlFilter.addExclude(regexp);
         }
+    }
+
+    public S2RobotConfig getRobotConfig() {
+        return robotConfig;
     }
 
     protected class S2RobotThread implements Runnable {
@@ -190,11 +202,6 @@ public class S2Robot {
                     try {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Starting " + urlQueue.getUrl());
-                        }
-
-                        // TODO debug
-                        if (urlQueue.getUrl().indexOf("inquiry.html") > 0) {
-                            System.out.println(urlQueue.getUrl());
                         }
 
                         startCrawling();

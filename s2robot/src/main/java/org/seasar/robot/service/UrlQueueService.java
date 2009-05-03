@@ -15,7 +15,9 @@
  */
 package org.seasar.robot.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,9 +84,11 @@ public class UrlQueueService {
         LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             UrlQueue urlQueue = new UrlQueue();
+            urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
             urlQueue.setUrl(url);
             urlQueue.setDepth(0);
+            urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
             urlQueueList.add(urlQueue);
         }
     }
@@ -204,6 +208,18 @@ public class UrlQueueService {
             }
 
             return urlQueueList.poll();
+        }
+    }
+
+    public void saveSession(String sessionId) {
+        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
+        synchronized (urlQueueList) {
+            for (UrlQueue urlQueue : urlQueueList) {
+                // clear id
+                urlQueue.setId(null);
+            }
+            urlQueueBhv.batchInsert(urlQueueList);
+            urlQueueList.clear();
         }
     }
 }

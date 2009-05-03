@@ -15,7 +15,7 @@
     
     <!-- Service -->
 	<component name="urlQueueService" class="org.seasar.robot.service.UrlQueueService" instance="prototype" >
-		<aspect pointcut="insert.*,delete.*,offer.*,poll.*,isNewUrl">
+		<aspect pointcut="insert.*,delete.*,offer.*,poll.*,isNewUrl,save.*">
 			s2robot_j2ee.requiredTx
 		</aspect>
 	</component>

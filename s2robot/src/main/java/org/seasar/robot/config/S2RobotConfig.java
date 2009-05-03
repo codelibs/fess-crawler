@@ -23,7 +23,7 @@ public class S2RobotConfig {
     /** The number of a thread */
     protected int numOfThread = 10;
 
-    protected int maxThreadCheckCount = 30;
+    protected int maxThreadCheckCount = 20;
 
     protected int threadCheckInterval = 500;
 
@@ -72,6 +72,5 @@ public class S2RobotConfig {
     public void setMaxAccessCount(long maxAccessCount) {
         this.maxAccessCount = maxAccessCount;
     }
-
 
 }

@@ -19,8 +19,10 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.seasar.dbflute.cbean.EntityRowHandler;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.db.AccessResultCallback;
 import org.seasar.robot.db.cbean.AccessResultCB;
 import org.seasar.robot.db.cbean.AccessResultDataCB;
 import org.seasar.robot.db.exbhv.AccessResultBhv;
@@ -99,5 +101,16 @@ public class DataService {
         return accessResultBhv.selectList(cb);
     }
 
-    // TODO callback get
+    public void iterate(String sessionId,
+            final AccessResultCallback accessResultCallback) {
+        AccessResultCB cb = new AccessResultCB();
+        cb.setupSelect_AccessResultDataAsOne();
+        cb.query().setSessionId_Equal(sessionId);
+        cb.query().addOrderBy_CreateTime_Asc();
+        accessResultBhv.selectCursor(cb, new EntityRowHandler<AccessResult>() {
+            public void handle(AccessResult entity) {
+                accessResultCallback.iterate(entity);
+            }
+        });
+    }
 }

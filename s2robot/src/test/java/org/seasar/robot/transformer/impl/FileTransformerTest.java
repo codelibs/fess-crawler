@@ -39,39 +39,19 @@ public class FileTransformerTest extends S2TestCase {
         assertEquals("fileTransformer", fileTransformer.getName());
     }
 
-    public void test_getFilePath_unix() {
+    public void test_getFilePath() {
         String url;
 
-        fileTransformer.fileSeparator = "/";
-
-        url = "http://www.n2sm.net/";
-        assertEquals("http_CLN_/www.n2sm.net/index.html", fileTransformer
+        url = "http://www.example.com/";
+        assertEquals("http_CLN_/www.example.com/index.html", fileTransformer
                 .getFilePath(url));
 
-        url = "http://www.n2sm.net/action?a=1";
-        assertEquals("http_CLN_/www.n2sm.net/action_QUEST_a=1", fileTransformer
-                .getFilePath(url));
-
-        url = "http://www.n2sm.net/action?a=1&b=2";
-        assertEquals("http_CLN_/www.n2sm.net/action_QUEST_a=1_AMP_b=2",
-                fileTransformer.getFilePath(url));
-    }
-
-    public void test_getFilePath_windows() {
-        String url;
-
-        fileTransformer.fileSeparator = "\\";
-
-        url = "http://www.n2sm.net/";
-        assertEquals("http_CLN_\\www.n2sm.net\\index.html", fileTransformer
-                .getFilePath(url));
-
-        url = "http://www.n2sm.net/action?a=1";
-        assertEquals("http_CLN_\\www.n2sm.net\\action_QUEST_a=1",
+        url = "http://www.example.com/action?a=1";
+        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1",
                 fileTransformer.getFilePath(url));
 
-        url = "http://www.n2sm.net/action?a=1&b=2";
-        assertEquals("http_CLN_\\www.n2sm.net\\action_QUEST_a=1_AMP_b=2",
+        url = "http://www.example.com/action?a=1&b=2";
+        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1_AMP_b=2",
                 fileTransformer.getFilePath(url));
     }
 
@@ -79,17 +59,78 @@ public class FileTransformerTest extends S2TestCase {
         byte[] data = new String("xyz").getBytes();
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         ResponseData responseData = new ResponseData();
-        responseData.setUrl("http://www.hoge.com/submit?a=1&b=2");
+        responseData.setUrl("http://www.example.com/submit?a=1&b=2");
         responseData.setResponseBody(bais);
         fileTransformer.baseDir = File.createTempFile("s2robot-", "");
         fileTransformer.baseDir.delete();
         fileTransformer.baseDir.mkdirs();
         fileTransformer.baseDir.deleteOnExit();
         ResultData resultData = fileTransformer.transform(responseData);
-        assertEquals("http_CLN_" + File.separator + "www.hoge.com"
-                + File.separator + "submit_QUEST_a=1_AMP_b=2", resultData
-                .getData());
+        assertEquals("http_CLN_/www.example.com/submit_QUEST_a=1_AMP_b=2",
+                resultData.getData());
         File file = new File(fileTransformer.baseDir, resultData.getData());
         assertEquals("xyz", new String(FileUtil.getBytes(file)));
+    }
+
+    public void test_createFile() throws Exception {
+        fileTransformer.baseDir = File.createTempFile("s2robot-", "");
+        fileTransformer.baseDir.delete();
+        fileTransformer.baseDir.mkdirs();
+        fileTransformer.baseDir.deleteOnExit();
+
+        String path;
+        File file;
+        File resultFile;
+
+        path = "hoge.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, path);
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+
+        path = "foo1/hoge.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, path);
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+
+        path = "foo1/foo2/hoge.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, path);
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+
+        path = "hoge.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, path + "_0");
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+
+        path = "hoge.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, path + "_1");
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+
+        path = "hoge.html/hoge2.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
+                + File.separator + "hoge2.html");
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+
+        path = "hoge.html/hoge3.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
+                + File.separator + "hoge3.html");
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+
+        path = "hoge.html/hoge2.html";
+        file = fileTransformer.createFile(path);
+        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
+                + File.separator + "hoge2.html_0");
+        assertEquals(resultFile, file);
+        FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
     }
 }

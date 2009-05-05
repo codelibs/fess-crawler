@@ -13,9 +13,9 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.db;
+package org.seasar.robot.util;
 
-import org.seasar.robot.db.exentity.AccessResult;
+import org.seasar.robot.entity.AccessResult;
 
 /**
  * @author shinsuke

@@ -9,12 +9,13 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.seasar.framework.container.S2Container;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.config.S2RobotConfig;
-import org.seasar.robot.db.exentity.AccessResult;
-import org.seasar.robot.db.exentity.UrlQueue;
+import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
+import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.filter.UrlFilter;
 import org.seasar.robot.http.HttpClient;
 import org.seasar.robot.interval.IntervalGenerator;
@@ -50,6 +51,9 @@ public class S2Robot {
 
     @Resource
     protected S2RobotConfig robotConfig;
+
+    @Resource
+    protected S2Container container;
 
     protected String sessionId;
 
@@ -173,11 +177,6 @@ public class S2Robot {
             synchronized (activeThreadCountLock) {
                 activeThreadCount--;
             }
-            if (robotConfig.getMaxAccessCount() > 0) {
-                synchronized (accessCountLock) {
-                    accessCount++;
-                }
-            }
         }
 
         protected boolean isContinue(int tcCount) {
@@ -229,21 +228,35 @@ public class S2Robot {
                                 ResultData resultData = transformer
                                         .transform(responseData);
                                 if (resultData != null) {
-                                    AccessResult accessResult = new AccessResult(
-                                            responseData, resultData);
+                                    AccessResult accessResult = (AccessResult) container
+                                            .getComponent(AccessResult.class);
+                                    accessResult.init(responseData, resultData);
 
-                                    if (checkAccessCount()) {
-                                        //  store
-                                        dataService.store(accessResult);
+                                    synchronized (accessCountLock) {
+                                        if (checkAccessCount()) {
+                                            //  store
+                                            dataService.store(accessResult);
+
+                                            //  add url and filter 
+                                            storeChildUrls(
+                                                    resultData.getChildUrlSet(),
+                                                    urlQueue.getUrl(),
+                                                    urlQueue.getDepth() != null ? urlQueue
+                                                            .getDepth() + 1
+                                                            : 1);
+
+                                            // count up
+                                            if (robotConfig.getMaxAccessCount() > 0) {
+                                                accessCount++;
+                                            }
+                                        } else {
+                                            // cancel crawling
+                                            List<UrlQueue> newUrlQueueList = new ArrayList<UrlQueue>();
+                                            newUrlQueueList.add(urlQueue);
+                                            urlQueueService.offerAll(sessionId,
+                                                    newUrlQueueList);
+                                        }
                                     }
-
-                                    //  add url and filter 
-                                    storeChildUrls(
-                                            resultData.getChildUrlSet(),
-                                            urlQueue.getUrl(),
-                                            urlQueue.getDepth() != null ? urlQueue
-                                                    .getDepth() + 1
-                                                    : 1);
                                 } else {
                                     logger.warn("No data for ("
                                             + responseData.getUrl() + ", "
@@ -301,7 +314,8 @@ public class S2Robot {
             List<UrlQueue> childList = new ArrayList<UrlQueue>();
             for (String childUrl : childUrlList) {
                 if (urlFilter.match(childUrl)) {
-                    UrlQueue uq = new UrlQueue();
+                    UrlQueue uq = (UrlQueue) container
+                            .getComponent(UrlQueue.class);
                     uq.setCreateTime(new Timestamp(new Date().getTime()));
                     uq.setDepth(depth);
                     uq.setMethod(Constants.GET_METHOD);

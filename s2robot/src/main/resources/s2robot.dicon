@@ -2,28 +2,30 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
-    <include path="s2robot_dbflute.dicon"/>
-    <include path="s2robot_httpclient.dicon"/>
-    <include path="s2robot_rule.dicon"/>
-    <include path="s2robot_filter.dicon"/>
-    <include path="s2robot_interval.dicon"/>
-    <include path="s2robot_config.dicon"/>
+	<include path="s2robot_httpclient.dicon"/>
+	<include path="s2robot_rule.dicon"/>
+	<include path="s2robot_filter.dicon"/>
+	<include path="s2robot_interval.dicon"/>
+	<include path="s2robot_config.dicon"/>
 
 	<!-- S2Robot -->
 	<component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >
 	</component>
-    
-    <!-- Service -->
-	<component name="urlQueueService" class="org.seasar.robot.service.UrlQueueService" instance="prototype" >
-		<aspect pointcut="insert.*,delete.*,offer.*,poll.*,isNewUrl,save.*">
-			s2robot_j2ee.requiredTx
-		</aspect>
+	
+	<!-- Entity -->
+	<component name="accessResult" class="org.seasar.robot.entity.AccessResultImpl" instance="prototype" >
 	</component>
-	<component name="dataService" class="org.seasar.robot.service.DataService" instance="prototype" >
-		<aspect pointcut="store.*,getCount,getAccessResult.*,delete.*">
-			s2robot_j2ee.requiredTx
-		</aspect>
+	<component name="urlQueue" class="org.seasar.robot.entity.UrlQueueImpl" instance="prototype" >
 	</component>
 
+	<!-- Service -->
+	<component name="urlQueueService" class="org.seasar.robot.service.impl.UrlQueueServiceImpl" instance="prototype" >
+	</component>
+	<component name="dataService" class="org.seasar.robot.service.impl.DataServiceImpl" instance="prototype" >
+	</component>
+
+	<!-- Helper -->
+	<component name="dataHelper" class="org.seasar.robot.helper.MemoryDataHelper" instance="singleton" >
+	</component>
 
 </components>

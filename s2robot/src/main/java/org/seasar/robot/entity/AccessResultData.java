@@ -13,28 +13,24 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.interval.impl;
-
-import org.seasar.robot.interval.IntervalGenerator;
+package org.seasar.robot.entity;
 
 /**
  * @author shinsuke
  *
  */
-public class ConstantGenerator implements IntervalGenerator {
-    public long intervalTime = 1000; // ms
+public interface AccessResultData {
 
-    public ConstantGenerator() {
-    }
+    public abstract Long getId();
 
-    public ConstantGenerator(long value) {
-        intervalTime = value;
-    }
+    public abstract void setId(Long id);
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.interval.IntervalGenerator#getTime()
-     */
-    public long getTime() {
-        return intervalTime;
-    }
+    public abstract String getTransformerName();
+
+    public abstract void setTransformerName(String transformerName);
+
+    public abstract String getData();
+
+    public abstract void setData(String data);
+
 }

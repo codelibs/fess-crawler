@@ -19,12 +19,13 @@ public class S2RobotTest extends S2TestCase {
         return "app.dicon";
     }
 
-    public void test_executeTx() throws Exception {
+    public void test_execute() throws Exception {
         File file = File.createTempFile("s2robot-", "");
         file.delete();
         file.mkdirs();
         file.deleteOnExit();
         fileTransformer.path = file.getAbsolutePath();
+        // TODO use a local server(ex. jetty)
         s2Robot.addUrl("http://www.n2sm.net/");
         s2Robot.robotConfig.setMaxAccessCount(50);
         s2Robot.robotConfig.setNumOfThread(10);

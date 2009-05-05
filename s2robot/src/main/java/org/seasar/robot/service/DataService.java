@@ -17,100 +17,29 @@ package org.seasar.robot.service;
 
 import java.util.List;
 
-import javax.annotation.Resource;
-
-import org.seasar.dbflute.cbean.EntityRowHandler;
-import org.seasar.robot.Constants;
-import org.seasar.robot.RobotSystemException;
-import org.seasar.robot.db.AccessResultCallback;
-import org.seasar.robot.db.cbean.AccessResultCB;
-import org.seasar.robot.db.cbean.AccessResultDataCB;
-import org.seasar.robot.db.exbhv.AccessResultBhv;
-import org.seasar.robot.db.exbhv.AccessResultDataBhv;
-import org.seasar.robot.db.exentity.AccessResult;
-import org.seasar.robot.db.exentity.AccessResultData;
+import org.seasar.robot.entity.AccessResult;
+import org.seasar.robot.util.AccessResultCallback;
 
 /**
  * @author shinsuke
  *
  */
-public class DataService {
+public interface DataService {
 
-    @Resource
-    protected AccessResultBhv accessResultBhv;
+    public abstract void store(AccessResult accessResult);
 
-    @Resource
-    protected AccessResultDataBhv accessResultDataBhv;
+    public abstract long getCount(String sessionId);
 
-    public void store(AccessResult accessResult) {
-        if (accessResult == null) {
-            throw new RobotSystemException("AccessResult is null.");
-        }
+    public abstract void delete(String sessionId);
 
-        accessResultBhv.insert(accessResult);
+    public abstract void deleteAll();
 
-        AccessResultData accessResultData = accessResult
-                .getAccessResultDataAsOne();
-        if (accessResultData == null) {
-            accessResultData = new AccessResultData();
-            accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
-        }
-        accessResultData.setId(accessResult.getId());
-        accessResultDataBhv.insert(accessResultData);
-    }
+    public abstract AccessResult getAccessResult(String sessionId, String url);
 
-    public int getCount(String sessionId) {
-        AccessResultCB cb = new AccessResultCB();
-        cb.query().setSessionId_Equal(sessionId);
-        return accessResultBhv.selectCount(cb);
-    }
+    public abstract List<AccessResult> getAccessResultList(String url,
+            boolean hasData);
 
-    public void delete(String sessionId) {
-        AccessResultDataCB cb1 = new AccessResultDataCB();
-        cb1.query().queryAccessResult().setSessionId_Equal(sessionId);
-        accessResultDataBhv.queryDelete(cb1);
+    public abstract void iterate(String sessionId,
+            final AccessResultCallback accessResultCallback);
 
-        AccessResultCB cb2 = new AccessResultCB();
-        cb2.query().setSessionId_Equal(sessionId);
-        accessResultBhv.queryDelete(cb2);
-    }
-
-    public void deleteAll() {
-        AccessResultDataCB cb1 = new AccessResultDataCB();
-        accessResultDataBhv.queryDelete(cb1);
-
-        AccessResultCB cb2 = new AccessResultCB();
-        accessResultBhv.queryDelete(cb2);
-    }
-
-    public AccessResult getAccessResult(String sessionId, String url) {
-        AccessResultCB cb = new AccessResultCB();
-        cb.setupSelect_AccessResultDataAsOne();
-        cb.query().setSessionId_Equal(sessionId);
-        cb.query().setUrl_Equal(url);
-        return accessResultBhv.selectEntity(cb);
-    }
-
-    public List<AccessResult> getAccessResultList(String url, boolean hasData) {
-        AccessResultCB cb = new AccessResultCB();
-        if (hasData) {
-            cb.setupSelect_AccessResultDataAsOne();
-        }
-        cb.query().setUrl_Equal(url);
-        cb.query().addOrderBy_CreateTime_Desc();
-        return accessResultBhv.selectList(cb);
-    }
-
-    public void iterate(String sessionId,
-            final AccessResultCallback accessResultCallback) {
-        AccessResultCB cb = new AccessResultCB();
-        cb.setupSelect_AccessResultDataAsOne();
-        cb.query().setSessionId_Equal(sessionId);
-        cb.query().addOrderBy_CreateTime_Asc();
-        accessResultBhv.selectCursor(cb, new EntityRowHandler<AccessResult>() {
-            public void handle(AccessResult entity) {
-                accessResultCallback.iterate(entity);
-            }
-        });
-    }
 }

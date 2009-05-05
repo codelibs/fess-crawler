@@ -1,0 +1,71 @@
+/*
+ * Copyright 2004-2009 the Seasar Foundation and the Others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+ * either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+package org.seasar.robot.entity;
+
+/**
+ * @author shinsuke
+ *
+ */
+public class AccessResultDataImpl implements AccessResultData {
+    protected Long id;
+
+    protected String transformerName;
+
+    protected String data;
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResultData#getId()
+     */
+    public Long getId() {
+        return id;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResultData#setId(java.lang.Long)
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResultData#getTransformerName()
+     */
+    public String getTransformerName() {
+        return transformerName;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResultData#setTransformerName(java.lang.String)
+     */
+    public void setTransformerName(String transformerName) {
+        this.transformerName = transformerName;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResultData#getData()
+     */
+    public String getData() {
+        return data;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResultData#setData(java.lang.String)
+     */
+    public void setData(String data) {
+        this.data = data;
+    }
+
+}

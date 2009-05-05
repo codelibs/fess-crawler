@@ -76,9 +76,8 @@ public class DataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#getCount(java.lang.String)
      */
-    public long getCount(String sessionId) {
-        return new Integer(dataHelper.getAccessResultMap(sessionId).size())
-                .longValue();
+    public int getCount(String sessionId) {
+        return dataHelper.getAccessResultMap(sessionId).size();
     }
 
     /* (non-Javadoc)

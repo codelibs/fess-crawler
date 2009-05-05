@@ -28,7 +28,7 @@ public interface DataService {
 
     public abstract void store(AccessResult accessResult);
 
-    public abstract long getCount(String sessionId);
+    public abstract int getCount(String sessionId);
 
     public abstract void delete(String sessionId);
 

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components>
+    <include path="s2robot_dbflute.dicon"/>
+    <include path="s2robot_httpclient.dicon"/>
+    <include path="s2robot_rule.dicon"/>
+    <include path="s2robot_filter.dicon"/>
+    <include path="s2robot_interval.dicon"/>
+    <include path="s2robot_config.dicon"/>
+
+	<!-- S2Robot -->
+	<component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >
+	</component>
+
+	<!-- Entity -->
+	<component name="accessResult" class="org.seasar.robot.db.exentity.AccessResult" instance="prototype" >
+	</component>
+	<component name="urlQueue" class="org.seasar.robot.db.exentity.UrlQueue" instance="prototype" >
+	</component>
+
+    <!-- Service -->
+	<component name="urlQueueService" class="org.seasar.robot.service.impl.DBUrlQueueServiceImpl" instance="prototype" >
+		<aspect pointcut="insert.*,delete.*,offer.*,poll.*,isNewUrl,save.*">
+			s2robot_j2ee.requiredTx
+		</aspect>
+	</component>
+	<component name="dataService" class="org.seasar.robot.service.impl.DBDataServiceImpl" instance="prototype" >
+		<aspect pointcut="store.*,getCount,getAccessResult.*,delete.*">
+			s2robot_j2ee.requiredTx
+		</aspect>
+	</component>
+
+</components>

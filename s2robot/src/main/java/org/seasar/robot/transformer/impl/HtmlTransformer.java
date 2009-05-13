@@ -188,7 +188,7 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
-    private CachedXPathAPI getXPathAPI() {
+    protected CachedXPathAPI getXPathAPI() {
         CachedXPathAPI cachedXPathAPI = xpathAPI.get();
         if (cachedXPathAPI == null) {
             cachedXPathAPI = new CachedXPathAPI();

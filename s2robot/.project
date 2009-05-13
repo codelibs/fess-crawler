@@ -1,6 +1,6 @@
 <projectDescription>
   <name>s2-robot</name>
-  <comment/>
+  <comment>S2Robot is a crawler framework for Seasar2.</comment>
   <projects/>
   <buildSpec>
     <buildCommand>

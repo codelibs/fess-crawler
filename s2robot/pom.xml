@@ -5,7 +5,62 @@
   <artifactId>s2-robot</artifactId>
   <packaging>jar</packaging>
   <version>0.1.0-SNAPSHOT</version>
-  <name>s2-robot</name>
+  <name>S2Robot</name>
+  <description>S2Robot is a crawler framework for Seasar2.</description>
+  <url>http://s2robot.sandbox.seasar.org/</url>
+  <inceptionYear>2009</inceptionYear>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <organization>
+    <name>The Seasar Foundation</name>
+    <url>http://www.seasar.org/</url>
+  </organization>
+  <developers>
+    <developer>
+      <id>shinsuke</id>
+      <name>Shinsuke Sugaya</name>
+      <email>shinsuke_at_yahoo.co.jp</email>
+      <url>http://d.hatena.ne.jp/shinsuke_sugaya/</url>
+      <timezone>+9</timezone>
+    </developer>
+  </developers>
+  <issueManagement>
+    <system>JIRA</system>
+    <url><![CDATA[https://www.seasar.org/issues/browse/ROBOT]]></url>
+  </issueManagement>
+  <mailingLists>
+    <mailingList>
+      <name>Seasar-user</name>
+      <subscribe>https://www.seasar.org/mailman/listinfo/seasar-user</subscribe>
+      <unsubscribe>https://www.seasar.org/mailman/listinfo/seasar-user</unsubscribe>
+      <post>seasar-user@ml.seasar.org</post>
+      <archive>https://www.seasar.org/mailman/listinfo/seasar-user</archive>
+    </mailingList>
+    <mailingList>
+      <name>Seasar-dev</name>
+      <subscribe>https://www.seasar.org/mailman/listinfo/seasar-dev</subscribe>
+      <unsubscribe>https://www.seasar.org/mailman/listinfo/seasar-dev</unsubscribe>
+      <post>seasar-dev@ml.seasar.org</post>
+      <archive>https://www.seasar.org/mailman/listinfo/seasar-dev</archive>
+    </mailingList>
+    <mailingList>
+      <name>Seasar-user-en</name>
+      <subscribe>https://www.seasar.org/mailman/listinfo/seasar-user-en</subscribe>
+      <unsubscribe>https://www.seasar.org/mailman/listinfo/seasar-user-en</unsubscribe>
+      <post>seasar-user-en@ml.seasar.org</post>
+      <archive>http://ml.seasar.org/archives/seasar-user-en/</archive>
+    </mailingList>
+  </mailingLists>
+  <scm>
+    <connection>scm:svn:https://www.seasar.org/svn/sandbox/s2robot/trunk/s2robot/</connection>
+    <developerConnection>scm:svn:https://www.seasar.org/svn/sandbox/s2robot/trunk/s2robot/</developerConnection>
+    <url>http://svn.seasar.org/browse/?root=sandbox.s2robot</url>
+  </scm>
   <build>
     <pluginManagement>
       <plugins>
@@ -35,6 +90,14 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <configuration>
+            <locales>en,ja</locales>
+            <inputEncoding>UTF-8</inputEncoding>
+            <outputEncoding>UTF-8</outputEncoding>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -46,6 +109,34 @@
             <phase>package</phase>
             <goals>
               <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <docencoding>UTF-8</docencoding>
+          <charset>UTF-8</charset>
+          <links>
+            <link>http://java.sun.com/javaee/5/docs/api/</link>
+            <link>http://java.sun.com/j2se/1.5.0/ja/docs/ja/api/</link>
+            <link>http://aopalliance.sourceforge.net/doc/</link>
+            <link>http://www.csg.is.titech.ac.jp/~chiba/javassist/html/</link>
+            <link>http://www.ognl.org/2.6.9/Documentation/javadoc/</link>
+            <link>http://www.junit.org/junit/javadoc/4.3/</link>
+            <link>http://www.junit.org/junit/javadoc/3.8.1/</link>
+            <link>http://s2container.seasar.org/2.4/s2-framework/ja/apidocs/</link>
+            <link>http://s2container.seasar.org/2.4/s2-extension/ja/apidocs/</link>
+            <link>http://s2container.seasar.org/2.4/s2-tiger/ja/apidocs/</link>
+          </links>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>site</phase>
+            <goals>
+              <goal>javadoc</goal>
             </goals>
           </execution>
         </executions>
@@ -69,8 +160,44 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.google.code.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <version>1.4.0</version>
+        <configuration>
+          <header>http://www.seasar.org/license/header.txt</header>
+          <includes>
+            <include>src/**/*.java</include>
+          </includes>
+          <encoding>UTF-8</encoding>
+          <headerDefinitions>
+            <headerDefinition>http://www.seasar.org/license/header-definition.xml</headerDefinition>
+          </headerDefinitions>
+        </configuration>
+      </plugin>
     </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+        <version>1.0-beta-2</version>
+      </extension>
+    </extensions>
   </build>
+  <distributionManagement>
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>maven.seasar.org</id>
+      <name>The Seasar Foundation Maven2 Repository</name>
+      <url>dav:https://www.seasar.org/maven/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <uniqueVersion>true</uniqueVersion>
+      <id>maven.seasar.org</id>
+      <name>The Seasar Foundation Maven2 Snapshot Repository</name>
+      <url>dav:https://www.seasar.org/maven/maven2-snapshot</url>
+    </snapshotRepository>
+  </distributionManagement>
   <pluginRepositories>
     <pluginRepository>
       <id>maven.seasar.org</id>
@@ -135,6 +262,11 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.nekohtml</groupId>

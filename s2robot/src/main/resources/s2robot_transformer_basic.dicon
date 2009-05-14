@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components>
+	<component name="base64Transformer" class="org.seasar.robot.transformer.impl.Base64Transformer" instance="singleton">
+		<property name="name">"base64Transformer"</property>
+	</component>
+
+	<component name="defaultFeatureMap" class="java.util.LinkedHashMap">
+		<initMethod name="put">
+			<arg>"http://xml.org/sax/features/namespaces"</arg>
+			<arg>"false"</arg>
+		</initMethod>
+	</component>
+
+	<component name="defaultPropertyMap" class="java.util.LinkedHashMap">
+	</component>
+	
+	<component name="allChildUrlRuleMap" class="java.util.LinkedHashMap">
+		<initMethod name="put">
+			<arg>"//A"</arg>
+			<arg>"href"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//AREA"</arg>
+			<arg>"href"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//FRAME"</arg>
+			<arg>"src"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//IFRAME"</arg>
+			<arg>"src"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//IMG"</arg>
+			<arg>"src"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//LINK"</arg>
+			<arg>"href"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//SCRIPT"</arg>
+			<arg>"src"</arg>
+		</initMethod>
+	</component>
+	
+	<component name="htmlUrlRuleMap" class="java.util.LinkedHashMap">
+		<initMethod name="put">
+			<arg>"//A"</arg>
+			<arg>"href"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//AREA"</arg>
+			<arg>"href"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//FRAME"</arg>
+			<arg>"src"</arg>
+		</initMethod>
+		<initMethod name="put">
+			<arg>"//IFRAME"</arg>
+			<arg>"src"</arg>
+		</initMethod>
+	</component>
+	
+	<component name="fileTransformer" class="org.seasar.robot.transformer.impl.FileTransformer" instance="singleton">
+		<property name="name">"fileTransformer"</property>
+		<property name="featureMap">defaultFeatureMap</property>
+		<property name="propertyMap">defaultPropertyMap</property>
+		<property name="childUrlRuleMap">allChildUrlRuleMap</property>
+	</component>
+
+	<component name="htmlTransformer" class="org.seasar.robot.transformer.impl.HtmlTransformer" instance="singleton">
+		<property name="name">"htmlTransformer"</property>
+		<property name="featureMap">defaultFeatureMap</property>
+		<property name="propertyMap">defaultPropertyMap</property>
+		<property name="childUrlRuleMap">allChildUrlRuleMap</property>
+	</component>
+
+	<component name="htmlOnlyTransformer" class="org.seasar.robot.transformer.impl.HtmlTransformer" instance="singleton">
+		<property name="name">"htmlTransformer"</property>
+		<property name="featureMap">defaultFeatureMap</property>
+		<property name="propertyMap">defaultPropertyMap</property>
+		<property name="childUrlRuleMap">htmlUrlRuleMap</property>
+	</component>
+</components>

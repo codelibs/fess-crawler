@@ -17,10 +17,11 @@ package org.seasar.robot.transformer.impl;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.cyberneko.html.parsers.DOMParser;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ResponseData;
@@ -39,13 +40,22 @@ public class XpathTransformer extends HtmlTransformer {
     private static final Logger logger = LoggerFactory
             .getLogger(XpathTransformer.class);
 
+    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",
+            Pattern.MULTILINE);
+
     public Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
+
+    public boolean trimSpace = true;
 
     @Override
     protected void storeData(ResponseData responseData, ResultData resultData) {
         DOMParser parser = getDomParser();
         try {
-            parser.parse(new InputSource(responseData.getResponseBody()));
+            InputSource is = new InputSource(responseData.getResponseBody());
+            if (responseData.getCharSet() != null) {
+                is.setEncoding(responseData.getCharSet());
+            }
+            parser.parse(is);
         } catch (Exception e) {
             throw new RobotSystemException("Could not parse "
                     + responseData.getUrl(), e);
@@ -64,7 +74,7 @@ public class XpathTransformer extends HtmlTransformer {
                         + ":" + entry.getValue());
             }
             buf.append(getResultDataBody(entry.getKey(), value != null ? value
-                    .getNodeValue() : null));
+                    .getTextContent() : null));
         }
         buf.append(getResultDataFooter());
 
@@ -73,7 +83,7 @@ public class XpathTransformer extends HtmlTransformer {
 
     protected String getResultDataHeader() {
         // TODO support other type
-        return "<?xml version=\"1.0\"?>\n<doc>";
+        return "<?xml version=\"1.0\"?>\n<doc>\n";
     }
 
     protected String getResultDataBody(String name, String value) {
@@ -81,8 +91,9 @@ public class XpathTransformer extends HtmlTransformer {
             value = "";
         }
         // TODO support other type
-        return "<field name=\"" + escapeXml(name) + "\">" + escapeXml(value)
-                + "</field>";
+        // TODO trim(default)
+        return "<field name=\"" + escapeXml(name) + "\">"
+                + trimSpace(escapeXml(value)) + "</field>\n";
     }
 
     protected String getResultDataFooter() {
@@ -91,7 +102,22 @@ public class XpathTransformer extends HtmlTransformer {
     }
 
     protected String escapeXml(String value) {
-        return StringEscapeUtils.escapeXml(value);
+        //        return StringEscapeUtils.escapeXml(value);
+        return value//
+                .replaceAll("&", "&amp;")//
+                .replaceAll("<", "&lt;")//
+                .replaceAll(">", "&gt;")//
+                .replaceAll("\"", "&quot;")//
+                .replaceAll("\'", "&apos;")//
+        ;
+    }
+
+    protected String trimSpace(String value) {
+        if (trimSpace) {
+            Matcher matcher = SPACE_PATTERN.matcher(value);
+            return matcher.replaceAll(" ").trim();
+        }
+        return value;
     }
 
     public void addFieldRule(String name, String xpath) {

@@ -1,0 +1,56 @@
+               ------------------
+                処理ルールの設定
+               ------------------
+                Shinsuke Sugaya
+               ------------------
+                   2009-05-15
+
+処理ルールの設定方法
+
+    S2Robot では、クロールした URL をどのように処理するか定義することができます。
+
+* 設定方法
+
+    s2robot_rule.dicon を作成してそこの中で定義します。
+    デフォルトでは、以下のような s2robot_rule.dicon が適用されます。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+        "http://www.seasar.org/dtd/components24.dtd">
+<components>
+    <include path="s2robot_transformer.dicon"/>
+
+        <component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="singleton">
+                <initMethod name="addRule">
+                        <arg>fileRule</arg>
+                </initMethod>
+        </component>
+
+        <component name="fileRule" class="org.seasar.robot.rule.Rule" >
+                <property name="defaultRule">true</property>
+                <property name="transformer">fileTransformer</property>
+        </component>
+</components>
++--------------------------------------------------+
+
+    ruleManager が S2Robot 内の複数のルールを管理します。
+    addRule することで複数の処理ルールを追加することができます。
+
+    Rule クラスを登録して、そこに適用する Transformer をセットして、ruleManager に追加することで有効になります。
+    Rule クラスは、ruleManager から boolean match(ResponseData) メソッドを呼ばれ、true を返すと、その URL に適用されます。
+    (現時点では、Rule を順に確認して、先にマッチしたものだけが適用されます。将来的には複数適用予定)
+    ここでは、fileRule は defaultRule が true としているので、すべての Rule で適用されます。
+
+    例えば、コンテンツタイプ(MIMEタイプ部分)が text/html で、URL が http://www.example.com/ で始まり html で終わるようなものだけを対象にする場合は以下のようになります。
+
++--------------------------------------------------+
+<component name="htmlRule" class="org.seasar.robot.rule.Rule" >
+    <property name="ruleId">"html"</property>
+    <property name="mimeType">"text/html"</property>
+    <property name="urlPatternRegex">"http://www.example.com/.*html"</property>
+    <property name="transformer">fileTransformer</property>
+</component>
++--------------------------------------------------+
+
+

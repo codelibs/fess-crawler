@@ -39,6 +39,8 @@
     <menu name="ドキュメント">
       <item name="セットアップ" href="setup.html"/>
       <item name="使い方" href="getting-started.html"/>
+      <item name="処理ルールの設定" href="rule-guide.html"/>
+      <item name="クロール結果変換方法" href="transformer-guide.html"/>
     </menu>
     ${reports}
   </body>

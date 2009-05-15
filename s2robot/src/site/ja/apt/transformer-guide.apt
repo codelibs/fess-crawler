@@ -1,0 +1,174 @@
+               ------------------
+                Transformer の設定
+               ------------------
+                Shinsuke Sugaya
+               ------------------
+                   2009-05-15
+
+クロール結果変換方法
+
+    S2Robot では、クロールした結果を期待した形に変換することができます。
+    変換には、Transformer インターフェースを実装したコンポーネントを登録します。
+
+    標準では、以下の Transformer があります。
+
+    * Base64Transformer: ウェブコンテンツを Base64 で AccessResultData に保存します。
+    AccessResultData は文字列型を扱うため、画像などのバイナリデータを保存したい場合に便利です。
+    この Transformer が適用された場合は、この URL 以下の子 URL はクロールしません。
+
+    * FileTransformer: クロール結果をファイルとして保存します。
+    AccessResultData には保存したファイル名が登録されます。
+    クロールしたファイルが HTML の場合は、子の URL をクロールします。
+
+    * HtmlTransformer: クロールした結果を AccessResultData に保存します。
+    HTML を AccessResult の結果として扱いたい場合に利用します。
+    バイナリなどは保存できません。
+    クロールしたファイルが HTML の場合は、子の URL をクロールします。
+
+    * XpathTransformer: クロールした結果を XPath で指定した部分だけを抽出して AccessResultData に保存します。
+    クロールしたファイルが HTML の場合は、子の URL をクロールします。
+
+* 設定方法
+
+    Transformer を追加する場合は、s2robot_transformer.dicon を作成してその中で定義します。
+    s2robot_transformer.dicon は s2robot_rule.dicon で include されます。
+    標準の s2robot_transformer.dicon は以下のように s2robot_transformer_basic.dicon を include しています。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+        "http://www.seasar.org/dtd/components24.dtd">
+<components>
+        <include path="s2robot_transformer_basic.dicon"/>
+</components>
++--------------------------------------------------+
+
+    s2robot_transformer_basic.dicon は標準で利用可能な Transformer を定義しています。
+    このファイルは特に作成する必要はありません。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+        "http://www.seasar.org/dtd/components24.dtd">
+<components>
+        <component name="base64Transformer" class="org.seasar.robot.transformer.impl.Base64Transformer" instance="singleton">
+                <property name="name">"base64Transformer"</property>
+        </component>
+
+        <component name="defaultFeatureMap" class="java.util.LinkedHashMap">
+                <initMethod name="put">
+                        <arg>"http://xml.org/sax/features/namespaces"</arg>
+                        <arg>"false"</arg>
+                </initMethod>
+        </component>
+
+        <component name="defaultPropertyMap" class="java.util.LinkedHashMap">
+        </component>
+
+        <component name="allChildUrlRuleMap" class="java.util.LinkedHashMap">
+                <initMethod name="put">
+                        <arg>"//A"</arg>
+                        <arg>"href"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//AREA"</arg>
+                        <arg>"href"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//FRAME"</arg>
+                        <arg>"src"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//IFRAME"</arg>
+                        <arg>"src"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//IMG"</arg>
+                        <arg>"src"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//LINK"</arg>
+                        <arg>"href"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//SCRIPT"</arg>
+                        <arg>"src"</arg>
+                </initMethod>
+        </component>
+        <component name="htmlUrlRuleMap" class="java.util.LinkedHashMap">
+                <initMethod name="put">
+                        <arg>"//A"</arg>
+                        <arg>"href"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//AREA"</arg>
+                        <arg>"href"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//FRAME"</arg>
+                        <arg>"src"</arg>
+                </initMethod>
+                <initMethod name="put">
+                        <arg>"//IFRAME"</arg>
+                        <arg>"src"</arg>
+                </initMethod>
+        </component>
+       
+        <component name="fileTransformer" class="org.seasar.robot.transformer.impl.FileTransformer" instance="singleton">
+                <property name="name">"fileTransformer"</property>
+                <property name="featureMap">defaultFeatureMap</property>
+                <property name="propertyMap">defaultPropertyMap</property>
+                <property name="childUrlRuleMap">allChildUrlRuleMap</property>
+        </component>
+
+        <component name="htmlTransformer" class="org.seasar.robot.transformer.impl.HtmlTransformer" instance="singleton">
+                <property name="name">"htmlTransformer"</property>
+                <property name="featureMap">defaultFeatureMap</property>
+                <property name="propertyMap">defaultPropertyMap</property>
+                <property name="childUrlRuleMap">allChildUrlRuleMap</property>
+        </component>
+
+        <component name="htmlOnlyTransformer" class="org.seasar.robot.transformer.impl.HtmlTransformer" instance="singleton">
+                <property name="name">"htmlTransformer"</property>
+                <property name="featureMap">defaultFeatureMap</property>
+                <property name="propertyMap">defaultPropertyMap</property>
+                <property name="childUrlRuleMap">htmlUrlRuleMap</property>
+        </component>
+</components>
++--------------------------------------------------+
+
+    例えば、XpathTransformer を使用して、title タグと body タグ以下の内容を抽出して AccessResultData に保存したい場合は、s2robot_transformer.dicon を以下のようにします。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+        "http://www.seasar.org/dtd/components24.dtd">
+<components>
+        <include path="s2robot_transformer_basic.dicon"/>
+
+        <component name="xpathTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">
+                <property name="name">"htmlTransformer"</property>
+                <property name="featureMap">defaultFeatureMap</property>
+                <property name="propertyMap">defaultPropertyMap</property>
+                <property name="childUrlRuleMap">htmlUrlRuleMap</property>
+                <initMethod name="addFieldRule">
+                        <arg>"title"</arg>
+                        <arg>"//TITLE"</arg>
+                </initMethod>
+                <initMethod name="addFieldRule">
+                        <arg>"body"</arg>
+                        <arg>"//BODY"</arg>
+                </initMethod>
+        </component>
+</components>
++--------------------------------------------------+
+
+    AccessResultData に保存されるデータは以下のようになります。
+
++--------------------------------------------------+
+<?xml version="1.0"?>
+<doc>
+<field name="title">タイトル</field>
+<field name="body">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>
+</doc>
++--------------------------------------------------+

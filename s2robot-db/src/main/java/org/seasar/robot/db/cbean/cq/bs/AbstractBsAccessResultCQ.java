@@ -977,6 +977,79 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     abstract protected ConditionValue getCValueMimeType();
 
     /**
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : INTEGER}
+     * @param executionTime The value of executionTime as equal.
+     */
+    public void setExecutionTime_Equal(Integer executionTime) {
+        regExecutionTime(CK_EQ, executionTime);
+    }
+
+    /**
+     * NotEqual(!=). And NullIgnored, OnlyOnceRegistered.
+     * @param executionTime The value of executionTime as notEqual.
+     */
+    public void setExecutionTime_NotEqual(Integer executionTime) {
+        regExecutionTime(CK_NE, executionTime);
+    }
+
+    /**
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered.
+     * @param executionTime The value of executionTime as greaterThan.
+     */
+    public void setExecutionTime_GreaterThan(Integer executionTime) {
+        regExecutionTime(CK_GT, executionTime);
+    }
+
+    /**
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered.
+     * @param executionTime The value of executionTime as lessThan.
+     */
+    public void setExecutionTime_LessThan(Integer executionTime) {
+        regExecutionTime(CK_LT, executionTime);
+    }
+
+    /**
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered.
+     * @param executionTime The value of executionTime as greaterEqual.
+     */
+    public void setExecutionTime_GreaterEqual(Integer executionTime) {
+        regExecutionTime(CK_GE, executionTime);
+    }
+
+    /**
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered.
+     * @param executionTime The value of executionTime as lessEqual.
+     */
+    public void setExecutionTime_LessEqual(Integer executionTime) {
+        regExecutionTime(CK_LE, executionTime);
+    }
+
+    /**
+     * InScope(in (1, 2)). And NullIgnored, NullElementIgnored, SeveralRegistered.
+     * @param executionTimeList The collection of executionTime as inScope.
+     */
+    public void setExecutionTime_InScope(Collection<Integer> executionTimeList) {
+        regINS(CK_INS, cTL(executionTimeList), getCValueExecutionTime(),
+                "EXECUTION_TIME");
+    }
+
+    /**
+     * NotInScope(not in (1, 2)). And NullIgnored, NullElementIgnored, SeveralRegistered.
+     * @param executionTimeList The collection of executionTime as notInScope.
+     */
+    public void setExecutionTime_NotInScope(
+            Collection<Integer> executionTimeList) {
+        regINS(CK_NINS, cTL(executionTimeList), getCValueExecutionTime(),
+                "EXECUTION_TIME");
+    }
+
+    protected void regExecutionTime(ConditionKey k, Object v) {
+        regQ(k, v, getCValueExecutionTime(), "EXECUTION_TIME");
+    }
+
+    abstract protected ConditionValue getCValueExecutionTime();
+
+    /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
      * @param createTime The value of createTime as equal.
      */

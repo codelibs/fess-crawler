@@ -28,7 +28,7 @@ import org.seasar.robot.db.exentity.AccessResultData;
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CREATE_TIME
+ *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, EXECUTION_TIME, CREATE_TIME
  * 
  * [sequence]
  *     

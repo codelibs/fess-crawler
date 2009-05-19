@@ -15,7 +15,7 @@ import org.seasar.robot.db.exentity.AccessResultData;
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CREATE_TIME
+ *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, EXECUTION_TIME, CREATE_TIME
  * 
  * [sequence]
  *     
@@ -80,6 +80,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
 
     /** MIME_TYPE: {NotNull : VARCHAR(100)} */
     protected String _mimeType;
+
+    /** EXECUTION_TIME: {NotNull : INTEGER} */
+    protected Integer _executionTime;
 
     /** CREATE_TIME: {NotNull : TIMESTAMP} */
     protected java.sql.Timestamp _createTime;
@@ -224,6 +227,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
         sb.append(delimiter).append(getHttpStatusCode());
         sb.append(delimiter).append(getMethod());
         sb.append(delimiter).append(getMimeType());
+        sb.append(delimiter).append(getExecutionTime());
         sb.append(delimiter).append(getCreateTime());
         if (sb.length() > 0) {
             sb.delete(0, delimiter.length());
@@ -386,6 +390,23 @@ public abstract class BsAccessResult implements Entity, Serializable {
     public void setMimeType(String mimeType) {
         _modifiedProperties.addPropertyName("mimeType");
         this._mimeType = mimeType;
+    }
+
+    /**
+     * EXECUTION_TIME: {NotNull : INTEGER} <br />
+     * @return The value of the column 'EXECUTION_TIME'. (Nullable)
+     */
+    public Integer getExecutionTime() {
+        return _executionTime;
+    }
+
+    /**
+     * EXECUTION_TIME: {NotNull : INTEGER} <br />
+     * @param executionTime The value of the column 'EXECUTION_TIME'. (Nullable)
+     */
+    public void setExecutionTime(Integer executionTime) {
+        _modifiedProperties.addPropertyName("executionTime");
+        this._executionTime = executionTime;
     }
 
     /**

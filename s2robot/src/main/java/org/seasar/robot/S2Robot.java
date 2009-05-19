@@ -214,8 +214,12 @@ public class S2Robot {
                         startCrawling();
 
                         // access an url
+                        long startTime = System.currentTimeMillis();
                         ResponseData responseData = httpClient.doGet(urlQueue
                                 .getUrl());
+                        responseData.setExecutionTime(System
+                                .currentTimeMillis()
+                                - startTime);
                         responseData.setParentUrl(urlQueue.getParentUrl());
                         responseData.setSessionId(sessionId);
 

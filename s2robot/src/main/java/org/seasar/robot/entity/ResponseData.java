@@ -45,6 +45,8 @@ public class ResponseData {
 
     private String sessionId;
 
+    private long executionTime;
+
     private Map<String, String> headerMap = new LinkedHashMap<String, String>();
 
     public ResponseData() {
@@ -136,6 +138,14 @@ public class ResponseData {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public long getExecutionTime() {
+        return executionTime;
+    }
+
+    public void setExecutionTime(long executionTime) {
+        this.executionTime = executionTime;
     }
 
 }

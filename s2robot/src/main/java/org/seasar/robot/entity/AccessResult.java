@@ -64,6 +64,10 @@ public interface AccessResult {
 
     public abstract void setCreateTime(Timestamp createTime);
 
+    public abstract Integer getExecutionTime();
+
+    public abstract void setExecutionTime(Integer executionTime);
+
     public abstract AccessResultData getAccessResultData();
 
     public abstract void setAccessResultData(AccessResultData accessResultData);

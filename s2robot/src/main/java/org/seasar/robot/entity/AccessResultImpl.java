@@ -48,6 +48,8 @@ public class AccessResultImpl implements AccessResult {
 
     protected Timestamp createTime;
 
+    protected Integer executionTime;
+
     @Binding(bindingType = BindingType.NONE)
     protected AccessResultData accessResultData;
 
@@ -214,6 +216,20 @@ public class AccessResultImpl implements AccessResult {
      */
     public void setAccessResultData(AccessResultData accessResultDataAsOne) {
         this.accessResultData = accessResultDataAsOne;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResult#getExecutionTime()
+     */
+    public Integer getExecutionTime() {
+        return executionTime;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResult#setExecutionTime(java.lang.Integer)
+     */
+    public void setExecutionTime(Integer executionTime) {
+        this.executionTime = executionTime;
     }
 
 }

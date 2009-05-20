@@ -60,6 +60,8 @@ public abstract class BsAccessResultBhv extends
     //                                                                          Definition
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
+    public static final String PATH_selectListByUrlDiff = "selectListByUrlDiff";
+
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================

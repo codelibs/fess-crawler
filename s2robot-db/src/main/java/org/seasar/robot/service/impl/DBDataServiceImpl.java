@@ -15,18 +15,23 @@
  */
 package org.seasar.robot.service.impl;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.seasar.dbflute.cbean.EntityRowHandler;
+import org.seasar.framework.beans.util.Beans;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.db.cbean.AccessResultCB;
 import org.seasar.robot.db.cbean.AccessResultDataCB;
 import org.seasar.robot.db.exbhv.AccessResultBhv;
 import org.seasar.robot.db.exbhv.AccessResultDataBhv;
+import org.seasar.robot.db.exbhv.cursor.AccessResultDiffCursor;
+import org.seasar.robot.db.exbhv.cursor.AccessResultDiffCursorHandler;
+import org.seasar.robot.db.exbhv.pmbean.AccessResultPmb;
 import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.service.DataService;
@@ -145,5 +150,30 @@ public class DBDataServiceImpl implements DataService {
                                 accessResultCallback.iterate(entity);
                             }
                         });
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String, java.lang.String, org.seasar.robot.util.AccessResultCallback)
+     */
+    public void iterateUrlDiff(String oldSessionId, String newSessionId,
+            final AccessResultCallback accessResultCallback) {
+
+        AccessResultPmb pmb = new AccessResultPmb();
+        pmb.setOldSessionId(oldSessionId);
+        pmb.setNewSessionId(newSessionId);
+        final AccessResultDiffCursorHandler handler = new AccessResultDiffCursorHandler() {
+            public Object fetchCursor(AccessResultDiffCursor cursor)
+                    throws SQLException {
+                while (cursor.next()) {
+                    AccessResult accessResult = new org.seasar.robot.db.exentity.AccessResult();
+                    Beans.copy(cursor, accessResult).execute();
+                    accessResultCallback.iterate(accessResult);
+                }
+                return null;
+            }
+        };
+        accessResultBhv.outsideSql().cursorHandling().selectCursor(
+                AccessResultBhv.PATH_selectListByUrlDiff, pmb, handler);
+
     }
 }

@@ -119,4 +119,21 @@ public class DataServiceImpl implements DataService {
             accessResultCallback.iterate(entry.getValue());
         }
     }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String, java.lang.String, org.seasar.robot.util.AccessResultCallback)
+     */
+    public void iterateUrlDiff(String oldSessionId, String newSessionId,
+            AccessResultCallback accessResultCallback) {
+        Map<String, AccessResult> oldAccessResultMap = dataHelper
+                .getAccessResultMap(oldSessionId);
+        Map<String, AccessResult> newAccessResultMap = dataHelper
+                .getAccessResultMap(newSessionId);
+        for (Map.Entry<String, AccessResult> newEntry : newAccessResultMap
+                .entrySet()) {
+            if (!oldAccessResultMap.keySet().contains(newEntry.getKey())) {
+                accessResultCallback.iterate(newEntry.getValue());
+            }
+        }
+    }
 }

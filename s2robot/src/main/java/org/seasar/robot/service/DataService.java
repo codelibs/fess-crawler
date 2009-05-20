@@ -42,4 +42,7 @@ public interface DataService {
     public abstract void iterate(String sessionId,
             final AccessResultCallback accessResultCallback);
 
+    public abstract void iterateUrlDiff(String oldSessionId,
+            String newSessionId, final AccessResultCallback accessResultCallback);
+
 }

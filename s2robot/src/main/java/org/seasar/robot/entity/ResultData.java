@@ -29,15 +29,17 @@ public class ResultData implements Serializable {
 
     private String transformerName;
 
-    private String data;
+    private byte[] data;
+
+    private String encoding;
 
     private Set<String> childUrlSet = new HashSet<String>();
 
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 
@@ -67,6 +69,14 @@ public class ResultData implements Serializable {
 
     public void setChildUrlSet(Set<String> childUrlSet) {
         this.childUrlSet = childUrlSet;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 
 }

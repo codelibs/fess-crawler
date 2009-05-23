@@ -41,6 +41,7 @@
       <item name="使い方" href="getting-started.html"/>
       <item name="処理ルールの設定" href="rule-guide.html"/>
       <item name="クロール結果変換方法" href="transformer-guide.html"/>
+      <item name="JavaDoc" href="../apidocs/index.html"/>
     </menu>
     ${reports}
   </body>

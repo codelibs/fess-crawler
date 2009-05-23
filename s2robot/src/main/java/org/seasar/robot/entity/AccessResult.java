@@ -72,4 +72,8 @@ public interface AccessResult {
 
     public abstract void setAccessResultData(AccessResultData accessResultData);
 
+    public abstract Long getContentLength();
+
+    public abstract void setContentLength(Long contentLength);
+
 }

@@ -18,7 +18,9 @@ package org.seasar.robot.transformer.impl;
 import java.io.ByteArrayInputStream;
 
 import org.seasar.extension.unit.S2TestCase;
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.AccessResultDataImpl;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 
@@ -46,7 +48,7 @@ public class HtmlTransformerTest extends S2TestCase {
         responseData.setResponseBody(bais);
         responseData.setCharSet("ISO-8859-1");
         ResultData resultData = htmlTransformer.transform(responseData);
-        assertEquals("xyz", resultData.getData());
+        assertEquals("xyz", new String(resultData.getData()));
     }
 
     public void test_transform_null() {
@@ -103,5 +105,42 @@ public class HtmlTransformerTest extends S2TestCase {
         url = "http://hoge/index.html#";
         assertEquals("http://hoge/index.html", htmlTransformer
                 .normalizeUrl(url));
+    }
+
+    public void test_getData() throws Exception {
+        String value = "<html><body>hoge</body></html>";
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("htmlTransformer");
+
+        Object obj = htmlTransformer.getData(accessResultDataImpl);
+        assertEquals(value, obj);
+    }
+
+    public void test_getData_wrongName() throws Exception {
+        String value = "<html><body>hoge</body></html>";
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("transformer");
+
+        try {
+            Object obj = htmlTransformer.getData(accessResultDataImpl);
+            fail();
+        } catch (RobotSystemException e) {
+
+        }
+    }
+
+    public void test_getData_nullData() throws Exception {
+        String value = "<html><body>hoge</body></html>";
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(null);
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("htmlTransformer");
+
+        Object obj = htmlTransformer.getData(accessResultDataImpl);
+        assertNull(obj);
     }
 }

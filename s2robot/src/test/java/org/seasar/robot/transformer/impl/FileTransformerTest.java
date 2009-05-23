@@ -17,9 +17,13 @@ package org.seasar.robot.transformer.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.FileUtil;
+import org.seasar.robot.Constants;
+import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.AccessResultDataImpl;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 
@@ -33,6 +37,13 @@ public class FileTransformerTest extends S2TestCase {
     @Override
     protected String getRootDicon() throws Throwable {
         return "app.dicon";
+    }
+
+    protected void setBaseDir() throws IOException {
+        fileTransformer.baseDir = File.createTempFile("s2robot-", "");
+        fileTransformer.baseDir.delete();
+        fileTransformer.baseDir.mkdirs();
+        fileTransformer.baseDir.deleteOnExit();
     }
 
     public void test_name() {
@@ -61,14 +72,13 @@ public class FileTransformerTest extends S2TestCase {
         ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/submit?a=1&b=2");
         responseData.setResponseBody(bais);
-        fileTransformer.baseDir = File.createTempFile("s2robot-", "");
-        fileTransformer.baseDir.delete();
-        fileTransformer.baseDir.mkdirs();
-        fileTransformer.baseDir.deleteOnExit();
+        responseData.setCharSet("UTF-8");
+        setBaseDir();
         ResultData resultData = fileTransformer.transform(responseData);
         assertEquals("http_CLN_/www.example.com/submit_QUEST_a=1_AMP_b=2",
-                resultData.getData());
-        File file = new File(fileTransformer.baseDir, resultData.getData());
+                new String(resultData.getData(), "UTF-8"));
+        File file = new File(fileTransformer.baseDir, new String(resultData
+                .getData(), "UTF-8"));
         assertEquals("xyz", new String(FileUtil.getBytes(file)));
     }
 
@@ -132,5 +142,45 @@ public class FileTransformerTest extends S2TestCase {
                 + File.separator + "hoge2.html_0");
         assertEquals(resultFile, file);
         FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
+    }
+
+    public void test_getData() throws Exception {
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData("hoge.txt".getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("fileTransformer");
+
+        setBaseDir();
+
+        Object obj = fileTransformer.getData(accessResultDataImpl);
+        assertTrue(obj instanceof File);
+        assertEquals(new File(fileTransformer.baseDir, "hoge.txt"), (File) obj);
+    }
+
+    public void test_getData_wrongName() throws Exception {
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData("hoge.txt".getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("transformer");
+
+        setBaseDir();
+
+        try {
+            Object obj = fileTransformer.getData(accessResultDataImpl);
+            fail();
+        } catch (RobotSystemException e) {
+        }
+    }
+
+    public void test_getData_nullData() throws Exception {
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(null);
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("fileTransformer");
+
+        setBaseDir();
+
+        Object obj = fileTransformer.getData(accessResultDataImpl);
+        assertNull(obj);
     }
 }

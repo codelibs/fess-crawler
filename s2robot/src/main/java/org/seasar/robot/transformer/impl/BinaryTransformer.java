@@ -16,20 +16,26 @@
 package org.seasar.robot.transformer.impl;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 
 /**
+ * BinaryTransformer stores WEB data as binary data.
+ * 
  * @author shinsuke
  *
  */
-public class Base64Transformer extends AbstractTransformer {
+public class BinaryTransformer extends AbstractTransformer {
 
+    /* (non-Javadoc)
+     * @see org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity.AccessResultData)
+     */
     public ResultData transform(ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotSystemException("No response body.");
@@ -41,8 +47,8 @@ public class Base64Transformer extends AbstractTransformer {
 
         try {
             bis = new BufferedInputStream(responseData.getResponseBody());
-            resultData.setData(new String(Base64.encodeBase64(IOUtils
-                    .toByteArray(bis))));
+            resultData.setData(IOUtils.toByteArray(bis));
+            resultData.setEncoding(responseData.getCharSet());
             return resultData;
         } catch (IOException e) {
             throw new RobotSystemException(
@@ -51,5 +57,22 @@ public class Base64Transformer extends AbstractTransformer {
             IOUtils.closeQuietly(bis);
         }
 
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity.AccessResultData)
+     */
+    public Object getData(AccessResultData accessResultData) {
+        // check transformer name
+        if (!getName().equals(accessResultData.getTransformerName())) {
+            throw new RobotSystemException("Transformer is invalid. Use "
+                    + accessResultData.getTransformerName()
+                    + ". This transformer is " + getName() + ".");
+        }
+        byte[] data = accessResultData.getData();
+        if (data == null) {
+            return null;
+        }
+        return new ByteArrayInputStream(data);
     }
 }

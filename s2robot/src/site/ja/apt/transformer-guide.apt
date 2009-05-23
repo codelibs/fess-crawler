@@ -12,8 +12,8 @@
 
     標準では、以下の Transformer があります。
 
-    * Base64Transformer: ウェブコンテンツを Base64 で AccessResultData に保存します。
-    AccessResultData は文字列型を扱うため、画像などのバイナリデータを保存したい場合に便利です。
+    * BinaryTransformer: ウェブコンテンツをバイナリで AccessResultData に保存します。
+    画像などのバイナリデータを保存したい場合に便利です。
     この Transformer が適用された場合は、この URL 以下の子 URL はクロールしません。
 
     * FileTransformer: クロール結果をファイルとして保存します。
@@ -51,8 +51,8 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
         "http://www.seasar.org/dtd/components24.dtd">
 <components>
-        <component name="base64Transformer" class="org.seasar.robot.transformer.impl.Base64Transformer" instance="singleton">
-                <property name="name">"base64Transformer"</property>
+        <component name="binaryTransformer" class="org.seasar.robot.transformer.impl.BinaryTransformer" instance="singleton">
+                <property name="name">"binaryTransformer"</property>
         </component>
 
         <component name="defaultFeatureMap" class="java.util.LinkedHashMap">

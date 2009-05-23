@@ -50,6 +50,8 @@ public class AccessResultImpl implements AccessResult {
 
     protected Integer executionTime;
 
+    protected Long contentLength;
+
     @Binding(bindingType = BindingType.NONE)
     protected AccessResultData accessResultData;
 
@@ -230,6 +232,14 @@ public class AccessResultImpl implements AccessResult {
      */
     public void setExecutionTime(Integer executionTime) {
         this.executionTime = executionTime;
+    }
+
+    public Long getContentLength() {
+        return contentLength;
+    }
+
+    public void setContentLength(Long contentLength) {
+        this.contentLength = contentLength;
     }
 
 }

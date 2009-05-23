@@ -41,7 +41,9 @@ import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.framework.util.StringUtil;
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.util.StreamUtil;
@@ -53,6 +55,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
+ * HtmlTransformer stores WEB data as HTML content.
+ * 
  * @author shinsuke
  * 
  */
@@ -226,13 +230,8 @@ public class HtmlTransformer extends AbstractTransformer {
 
     protected void storeData(ResponseData responseData, ResultData resultData) {
         byte[] data = InputStreamUtil.getBytes(responseData.getResponseBody());
-        try {
-            resultData.setData(new String(data, responseData.getCharSet()));
-        } catch (UnsupportedEncodingException e) {
-            logger.warn("Unsupported encoding.", e);
-            resultData.setData(new String(data));
-        }
-
+        resultData.setData(data);
+        resultData.setEncoding(responseData.getCharSet());
     }
 
     protected void updateCharset(ResponseData responseData) {
@@ -241,7 +240,7 @@ public class HtmlTransformer extends AbstractTransformer {
             if (defaultEncoding != null) {
                 responseData.setCharSet(defaultEncoding);
             } else if (responseData.getCharSet() == null) {
-                responseData.setCharSet("UTF-8");
+                responseData.setCharSet(Constants.UTF_8);
             }
         } else {
             responseData.setCharSet(encoding);
@@ -391,5 +390,34 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         propertyMap.put(key, value);
+    }
+
+    /** 
+     * Returns data as HTML content of String.
+     * 
+     */
+    public Object getData(AccessResultData accessResultData) {
+        // check transformer name
+        if (!getName().equals(accessResultData.getTransformerName())) {
+            throw new RobotSystemException("Transformer is invalid. Use "
+                    + accessResultData.getTransformerName()
+                    + ". This transformer is " + getName() + ".");
+        }
+
+        byte[] data = accessResultData.getData();
+        if (data == null) {
+            return null;
+        }
+        String encoding = accessResultData.getEncoding();
+        try {
+            return new String(data, encoding != null ? encoding
+                    : Constants.UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            try {
+                return new String(data, Constants.UTF_8);
+            } catch (UnsupportedEncodingException e1) {
+                throw new RobotSystemException("Unexpected exception");
+            }
+        }
     }
 }

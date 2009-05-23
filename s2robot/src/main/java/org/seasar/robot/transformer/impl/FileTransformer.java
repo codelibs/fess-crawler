@@ -20,14 +20,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.io.IOUtils;
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.util.StreamUtil;
 
 /**
+ * FileTransformer stores WEB data as a file path.
+ * 
  * @author shinsuke
  * 
  */
@@ -59,6 +64,8 @@ public class FileTransformer extends HtmlTransformer {
     public String ampersandStr = "_AMP_";
 
     public int maxDuplicatedPath = 100;
+
+    public String charsetName = Constants.UTF_8;
 
     /**
      * A directory to store downloaded files.
@@ -131,8 +138,13 @@ public class FileTransformer extends HtmlTransformer {
                 IOUtils.closeQuietly(os);
             }
         }
-        resultData.setData(path);
-
+        try {
+            resultData.setData(path.getBytes(charsetName));
+        } catch (UnsupportedEncodingException e) {
+            throw new RobotSystemException("Invalid charsetName: "
+                    + charsetName, e);
+        }
+        resultData.setEncoding(charsetName);
     }
 
     private void initBaseDir() {
@@ -168,5 +180,37 @@ public class FileTransformer extends HtmlTransformer {
                 .replaceAll(";", semicolonStr)//
                 .replaceAll("&", ampersandStr)//
         ;
+    }
+
+    /**
+     * Returns data as a file path of String.
+     * 
+     */
+    @Override
+    public Object getData(AccessResultData accessResultData) {
+        // check transformer name
+        if (!getName().equals(accessResultData.getTransformerName())) {
+            throw new RobotSystemException("Transformer is invalid. Use "
+                    + accessResultData.getTransformerName()
+                    + ". This transformer is " + getName() + ".");
+        }
+
+        byte[] data = accessResultData.getData();
+        if (data == null) {
+            return null;
+        }
+        String encoding = accessResultData.getEncoding();
+        String filePath;
+        try {
+            filePath = new String(data, encoding != null ? encoding
+                    : Constants.UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            try {
+                filePath = new String(data, Constants.UTF_8);
+            } catch (UnsupportedEncodingException e1) {
+                throw new RobotSystemException("Unexpected exception.");
+            }
+        }
+        return new File(baseDir, filePath);
     }
 }

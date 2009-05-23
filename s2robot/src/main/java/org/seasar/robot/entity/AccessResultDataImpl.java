@@ -15,6 +15,12 @@
  */
 package org.seasar.robot.entity;
 
+import java.io.UnsupportedEncodingException;
+
+import org.seasar.framework.util.StringUtil;
+import org.seasar.robot.Constants;
+import org.seasar.robot.RobotSystemException;
+
 /**
  * @author shinsuke
  *
@@ -24,7 +30,9 @@ public class AccessResultDataImpl implements AccessResultData {
 
     protected String transformerName;
 
-    protected String data;
+    protected byte[] data;
+
+    protected String encoding;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.entity.AccessResultData#getId()
@@ -57,15 +65,42 @@ public class AccessResultDataImpl implements AccessResultData {
     /* (non-Javadoc)
      * @see org.seasar.robot.entity.AccessResultData#getData()
      */
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.entity.AccessResultData#setData(java.lang.String)
      */
-    public void setData(String data) {
+    public void setData(byte[] data) {
         this.data = data;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.AccessResultData#getDataAsString()
+     */
+    public String getDataAsString() {
+        if (data == null) {
+            return null;
+        }
+        try {
+            return new String(data, StringUtil.isNotBlank(encoding) ? encoding
+                    : Constants.UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            try {
+                return new String(data, Constants.UTF_8);
+            } catch (UnsupportedEncodingException e1) {
+                throw new RobotSystemException("Unexpected exception.", e1);
+            }
+        }
     }
 
 }

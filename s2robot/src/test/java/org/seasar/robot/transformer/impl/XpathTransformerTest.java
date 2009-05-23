@@ -17,6 +17,9 @@ package org.seasar.robot.transformer.impl;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
+import org.seasar.robot.Constants;
+import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.AccessResultDataImpl;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 
@@ -32,7 +35,7 @@ public class XpathTransformerTest extends S2TestCase {
         return "app.dicon";
     }
 
-    public void test_storeData() {
+    public void test_storeData() throws Exception {
         String result = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
@@ -42,9 +45,60 @@ public class XpathTransformerTest extends S2TestCase {
         ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
                 .getResourceAsStream("html/test1.html"));
-        responseData.setCharSet("UTF-8");
+        responseData.setCharSet(Constants.UTF_8);
         ResultData resultData = new ResultData();
         xpathTransformer.storeData(responseData, resultData);
-        assertEquals(result, resultData.getData());
+        assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    public void test_getData() throws Exception {
+        String value = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
+        ;
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("htmlTransformer");
+
+        Object obj = xpathTransformer.getData(accessResultDataImpl);
+        assertEquals(value, obj);
+    }
+
+    public void test_getData_wrongName() throws Exception {
+        String value = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
+        ;
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("transformer");
+
+        try {
+            Object obj = xpathTransformer.getData(accessResultDataImpl);
+            fail();
+        } catch (RobotSystemException e) {
+        }
+    }
+
+    public void test_getData_nullData() throws Exception {
+        String value = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
+        ;
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(null);
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("htmlTransformer");
+
+        Object obj = xpathTransformer.getData(accessResultDataImpl);
+        assertNull(obj);
     }
 }

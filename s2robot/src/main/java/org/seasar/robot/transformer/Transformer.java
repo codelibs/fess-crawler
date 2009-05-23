@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.transformer;
 
+import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 
@@ -25,6 +26,8 @@ import org.seasar.robot.entity.ResultData;
 public interface Transformer {
 
     public ResultData transform(ResponseData responseData);
+
+    public Object getData(AccessResultData accessResultData);
 
     public String getName();
 

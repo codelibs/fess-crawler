@@ -29,8 +29,14 @@ public interface AccessResultData {
 
     public abstract void setTransformerName(String transformerName);
 
-    public abstract String getData();
+    public abstract byte[] getData();
 
-    public abstract void setData(String data);
+    public abstract String getDataAsString();
+
+    public abstract void setData(byte[] data);
+
+    public String getEncoding();
+
+    public void setEncoding(String encoding);
 
 }

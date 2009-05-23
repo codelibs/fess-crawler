@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.transformer.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -24,7 +25,9 @@ import javax.xml.transform.TransformerException;
 
 import org.cyberneko.html.parsers.DOMParser;
 import org.seasar.framework.util.StringUtil;
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.slf4j.Logger;
@@ -34,6 +37,8 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
+ * XpathTransformer stores WEB data as XML content.
+ * 
  * @author shinsuke
  *
  */
@@ -47,6 +52,8 @@ public class XpathTransformer extends HtmlTransformer {
     public Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
 
     public boolean trimSpace = true;
+
+    public String charsetName = Constants.UTF_8;
 
     @Override
     protected void storeData(ResponseData responseData, ResultData resultData) {
@@ -79,7 +86,13 @@ public class XpathTransformer extends HtmlTransformer {
         }
         buf.append(getResultDataFooter());
 
-        resultData.setData(buf.toString());
+        try {
+            resultData.setData(buf.toString().getBytes(charsetName));
+        } catch (UnsupportedEncodingException e) {
+            throw new RobotSystemException("Invalid charsetName: "
+                    + charsetName, e);
+        }
+        resultData.setEncoding(charsetName);
     }
 
     protected String getResultDataHeader() {
@@ -142,5 +155,13 @@ public class XpathTransformer extends HtmlTransformer {
 
     public void addFieldRule(String name, String xpath) {
         fieldRuleMap.put(name, xpath);
+    }
+
+    /**
+     * Returns data as XML content of String.
+     */
+    @Override
+    public Object getData(AccessResultData accessResultData) {
+        return super.getData(accessResultData);
     }
 }

@@ -28,7 +28,7 @@ import org.seasar.robot.db.exentity.AccessResultData;
  *     ID
  * 
  * [column]
- *     ID, TRANSFORMER_NAME, DATA
+ *     ID, TRANSFORMER_NAME, DATA, ENCODING
  * 
  * [sequence]
  *     

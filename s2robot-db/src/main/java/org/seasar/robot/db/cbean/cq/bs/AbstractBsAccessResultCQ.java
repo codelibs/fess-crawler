@@ -977,6 +977,78 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     abstract protected ConditionValue getCValueMimeType();
 
     /**
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : BIGINT}
+     * @param contentLength The value of contentLength as equal.
+     */
+    public void setContentLength_Equal(Long contentLength) {
+        regContentLength(CK_EQ, contentLength);
+    }
+
+    /**
+     * NotEqual(!=). And NullIgnored, OnlyOnceRegistered.
+     * @param contentLength The value of contentLength as notEqual.
+     */
+    public void setContentLength_NotEqual(Long contentLength) {
+        regContentLength(CK_NE, contentLength);
+    }
+
+    /**
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered.
+     * @param contentLength The value of contentLength as greaterThan.
+     */
+    public void setContentLength_GreaterThan(Long contentLength) {
+        regContentLength(CK_GT, contentLength);
+    }
+
+    /**
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered.
+     * @param contentLength The value of contentLength as lessThan.
+     */
+    public void setContentLength_LessThan(Long contentLength) {
+        regContentLength(CK_LT, contentLength);
+    }
+
+    /**
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered.
+     * @param contentLength The value of contentLength as greaterEqual.
+     */
+    public void setContentLength_GreaterEqual(Long contentLength) {
+        regContentLength(CK_GE, contentLength);
+    }
+
+    /**
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered.
+     * @param contentLength The value of contentLength as lessEqual.
+     */
+    public void setContentLength_LessEqual(Long contentLength) {
+        regContentLength(CK_LE, contentLength);
+    }
+
+    /**
+     * InScope(in (1, 2)). And NullIgnored, NullElementIgnored, SeveralRegistered.
+     * @param contentLengthList The collection of contentLength as inScope.
+     */
+    public void setContentLength_InScope(Collection<Long> contentLengthList) {
+        regINS(CK_INS, cTL(contentLengthList), getCValueContentLength(),
+                "CONTENT_LENGTH");
+    }
+
+    /**
+     * NotInScope(not in (1, 2)). And NullIgnored, NullElementIgnored, SeveralRegistered.
+     * @param contentLengthList The collection of contentLength as notInScope.
+     */
+    public void setContentLength_NotInScope(Collection<Long> contentLengthList) {
+        regINS(CK_NINS, cTL(contentLengthList), getCValueContentLength(),
+                "CONTENT_LENGTH");
+    }
+
+    protected void regContentLength(ConditionKey k, Object v) {
+        regQ(k, v, getCValueContentLength(), "CONTENT_LENGTH");
+    }
+
+    abstract protected ConditionValue getCValueContentLength();
+
+    /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : INTEGER}
      * @param executionTime The value of executionTime as equal.
      */

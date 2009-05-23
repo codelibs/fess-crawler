@@ -15,7 +15,7 @@ import org.seasar.robot.db.exentity.AccessResult;
  *     ID
  * 
  * [column]
- *     ID, TRANSFORMER_NAME, DATA
+ *     ID, TRANSFORMER_NAME, DATA, ENCODING
  * 
  * [sequence]
  *     
@@ -60,8 +60,11 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     /** TRANSFORMER_NAME: {NotNull : VARCHAR(255)} */
     protected String _transformerName;
 
-    /** DATA: {CLOB} */
-    protected String _data;
+    /** DATA: {BLOB} */
+    protected byte[] _data;
+
+    /** ENCODING: {VARCHAR(20)} */
+    protected String _encoding;
 
     // -----------------------------------------------------
     //                                              Internal
@@ -197,6 +200,7 @@ public abstract class BsAccessResultData implements Entity, Serializable {
         sb.append(delimiter).append(getId());
         sb.append(delimiter).append(getTransformerName());
         sb.append(delimiter).append(getData());
+        sb.append(delimiter).append(getEncoding());
         if (sb.length() > 0) {
             sb.delete(0, delimiter.length());
         }
@@ -242,19 +246,36 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     /**
-     * DATA: {CLOB} <br />
+     * DATA: {BLOB} <br />
      * @return The value of the column 'DATA'. (Nullable)
      */
-    public String getData() {
+    public byte[] getData() {
         return _data;
     }
 
     /**
-     * DATA: {CLOB} <br />
+     * DATA: {BLOB} <br />
      * @param data The value of the column 'DATA'. (Nullable)
      */
-    public void setData(String data) {
+    public void setData(byte[] data) {
         _modifiedProperties.addPropertyName("data");
         this._data = data;
+    }
+
+    /**
+     * ENCODING: {VARCHAR(20)} <br />
+     * @return The value of the column 'ENCODING'. (Nullable)
+     */
+    public String getEncoding() {
+        return _encoding;
+    }
+
+    /**
+     * ENCODING: {VARCHAR(20)} <br />
+     * @param encoding The value of the column 'ENCODING'. (Nullable)
+     */
+    public void setEncoding(String encoding) {
+        _modifiedProperties.addPropertyName("encoding");
+        this._encoding = encoding;
     }
 }

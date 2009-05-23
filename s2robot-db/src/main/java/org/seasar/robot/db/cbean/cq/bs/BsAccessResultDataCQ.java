@@ -150,6 +150,29 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
         return this;
     }
 
+    protected ConditionValue _encoding;
+
+    public ConditionValue getEncoding() {
+        if (_encoding == null) {
+            _encoding = nCV();
+        }
+        return _encoding;
+    }
+
+    protected ConditionValue getCValueEncoding() {
+        return getEncoding();
+    }
+
+    public BsAccessResultDataCQ addOrderBy_Encoding_Asc() {
+        regOBA("ENCODING");
+        return this;
+    }
+
+    public BsAccessResultDataCQ addOrderBy_Encoding_Desc() {
+        regOBD("ENCODING");
+        return this;
+    }
+
     // ===================================================================================
     //                                                           Specified Derived OrderBy
     //                                                           =========================

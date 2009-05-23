@@ -139,6 +139,10 @@ public class AccessResultCIQ extends AbstractBsAccessResultCQ {
         return _myCQ.getMimeType();
     }
 
+    protected ConditionValue getCValueContentLength() {
+        return _myCQ.getContentLength();
+    }
+
     protected ConditionValue getCValueExecutionTime() {
         return _myCQ.getExecutionTime();
     }

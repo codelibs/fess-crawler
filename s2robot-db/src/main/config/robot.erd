@@ -273,6 +273,22 @@
           <defaultValue></defaultValue>
         </net.java.amateras.db.visual.model.ColumnModel>
         <net.java.amateras.db.visual.model.ColumnModel>
+          <columnName>CONTENT_LENGTH</columnName>
+          <logicalName>Content Length</logicalName>
+          <columnType class="net.java.amateras.db.dialect.ColumnType">
+            <name>BIGINT</name>
+            <logicalName>Integer</logicalName>
+            <supportSize>false</supportSize>
+            <type>-5</type>
+          </columnType>
+          <size>10</size>
+          <notNull>true</notNull>
+          <primaryKey>false</primaryKey>
+          <description></description>
+          <autoIncrement>false</autoIncrement>
+          <defaultValue></defaultValue>
+        </net.java.amateras.db.visual.model.ColumnModel>
+        <net.java.amateras.db.visual.model.ColumnModel>
           <columnName>EXECUTION_TIME</columnName>
           <logicalName>Execution Time</logicalName>
           <columnType class="net.java.amateras.db.dialect.ColumnType">
@@ -385,12 +401,28 @@
                 <columnName>DATA</columnName>
                 <logicalName>Data</logicalName>
                 <columnType class="net.java.amateras.db.dialect.ColumnType">
-                  <name>CLOB</name>
-                  <logicalName>String</logicalName>
-                  <supportSize>true</supportSize>
-                  <type>2005</type>
+                  <name>BLOB</name>
+                  <logicalName>Binary</logicalName>
+                  <supportSize>false</supportSize>
+                  <type>2004</type>
                 </columnType>
                 <size></size>
+                <notNull>false</notNull>
+                <primaryKey>false</primaryKey>
+                <description></description>
+                <autoIncrement>false</autoIncrement>
+                <defaultValue></defaultValue>
+              </net.java.amateras.db.visual.model.ColumnModel>
+              <net.java.amateras.db.visual.model.ColumnModel>
+                <columnName>ENCODING</columnName>
+                <logicalName>Encoding</logicalName>
+                <columnType class="net.java.amateras.db.dialect.ColumnType">
+                  <name>VARCHAR</name>
+                  <logicalName>String</logicalName>
+                  <supportSize>true</supportSize>
+                  <type>12</type>
+                </columnType>
+                <size>20</size>
                 <notNull>false</notNull>
                 <primaryKey>false</primaryKey>
                 <description></description>

@@ -340,6 +340,29 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
         return this;
     }
 
+    protected ConditionValue _contentLength;
+
+    public ConditionValue getContentLength() {
+        if (_contentLength == null) {
+            _contentLength = nCV();
+        }
+        return _contentLength;
+    }
+
+    protected ConditionValue getCValueContentLength() {
+        return getContentLength();
+    }
+
+    public BsAccessResultCQ addOrderBy_ContentLength_Asc() {
+        regOBA("CONTENT_LENGTH");
+        return this;
+    }
+
+    public BsAccessResultCQ addOrderBy_ContentLength_Desc() {
+        regOBD("CONTENT_LENGTH");
+        return this;
+    }
+
     protected ConditionValue _executionTime;
 
     public ConditionValue getExecutionTime() {

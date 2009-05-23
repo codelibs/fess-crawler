@@ -53,8 +53,11 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     protected ColumnInfo _columnTransformerName = cci("TRANSFORMER_NAME", null,
             "transformerName", String.class, false, false, 255, 0);
 
-    protected ColumnInfo _columnData = cci("DATA", null, "data", String.class,
+    protected ColumnInfo _columnData = cci("DATA", null, "data", byte[].class,
             false, false, null, null);
+
+    protected ColumnInfo _columnEncoding = cci("ENCODING", null, "encoding",
+            String.class, false, false, 20, 0);
 
     public ColumnInfo columnId() {
         return _columnId;
@@ -66,6 +69,10 @@ public class AccessResultDataDbm extends AbstractDBMeta {
 
     public ColumnInfo columnData() {
         return _columnData;
+    }
+
+    public ColumnInfo columnEncoding() {
+        return _columnEncoding;
     }
 
     {
@@ -227,6 +234,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         setupEps(_epsMap, new EpsId(), columnId());
         setupEps(_epsMap, new EpsTransformerName(), columnTransformerName());
         setupEps(_epsMap, new EpsData(), columnData());
+        setupEps(_epsMap, new EpsEncoding(), columnEncoding());
     }
 
     public boolean hasEntityPropertySetupper(String propertyName) {
@@ -252,7 +260,13 @@ public class AccessResultDataDbm extends AbstractDBMeta {
 
     public static class EpsData implements Eps<AccessResultData> {
         public void setup(AccessResultData e, Object v) {
-            e.setData((String) v);
+            e.setData((byte[]) v);
+        }
+    }
+
+    public static class EpsEncoding implements Eps<AccessResultData> {
+        public void setup(AccessResultData e, Object v) {
+            e.setEncoding((String) v);
         }
     }
 }

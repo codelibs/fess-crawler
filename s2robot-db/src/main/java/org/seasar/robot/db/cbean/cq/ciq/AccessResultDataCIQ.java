@@ -97,6 +97,10 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
         return _myCQ.getData();
     }
 
+    protected ConditionValue getCValueEncoding() {
+        return _myCQ.getEncoding();
+    }
+
     // ===================================================================================
     //                                                                     Scalar SubQuery
     //                                                                     ===============

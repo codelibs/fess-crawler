@@ -47,6 +47,7 @@ public class DBDataServiceImplTest extends S2TestCase {
         accessResult1a.setMimeType("text/html");
         accessResult1a.setRuleId("html");
         accessResult1a.setStatus(Constants.OK_STATUS);
+        accessResult1a.setContentLength(100L);
         dataService.store(accessResult1a);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult1b = new org.seasar.robot.db.exentity.AccessResult();

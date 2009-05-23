@@ -15,7 +15,7 @@ import org.seasar.robot.db.exentity.AccessResultData;
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, EXECUTION_TIME, CREATE_TIME
+ *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, CREATE_TIME
  * 
  * [sequence]
  *     
@@ -80,6 +80,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
 
     /** MIME_TYPE: {NotNull : VARCHAR(100)} */
     protected String _mimeType;
+
+    /** CONTENT_LENGTH: {NotNull : BIGINT} */
+    protected Long _contentLength;
 
     /** EXECUTION_TIME: {NotNull : INTEGER} */
     protected Integer _executionTime;
@@ -227,6 +230,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
         sb.append(delimiter).append(getHttpStatusCode());
         sb.append(delimiter).append(getMethod());
         sb.append(delimiter).append(getMimeType());
+        sb.append(delimiter).append(getContentLength());
         sb.append(delimiter).append(getExecutionTime());
         sb.append(delimiter).append(getCreateTime());
         if (sb.length() > 0) {
@@ -390,6 +394,23 @@ public abstract class BsAccessResult implements Entity, Serializable {
     public void setMimeType(String mimeType) {
         _modifiedProperties.addPropertyName("mimeType");
         this._mimeType = mimeType;
+    }
+
+    /**
+     * CONTENT_LENGTH: {NotNull : BIGINT} <br />
+     * @return The value of the column 'CONTENT_LENGTH'. (Nullable)
+     */
+    public Long getContentLength() {
+        return _contentLength;
+    }
+
+    /**
+     * CONTENT_LENGTH: {NotNull : BIGINT} <br />
+     * @param contentLength The value of the column 'CONTENT_LENGTH'. (Nullable)
+     */
+    public void setContentLength(Long contentLength) {
+        _modifiedProperties.addPropertyName("contentLength");
+        this._contentLength = contentLength;
     }
 
     /**

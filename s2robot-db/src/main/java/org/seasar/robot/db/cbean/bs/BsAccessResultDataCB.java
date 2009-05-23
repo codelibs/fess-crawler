@@ -229,6 +229,10 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
             doColumn("DATA");
         }
 
+        public void columnEncoding() {
+            doColumn("ENCODING");
+        }
+
         protected void doSpecifyRequiredColumn() {
             columnId();// PK
             if (_myQyCall.qy().hasConditionQueryAccessResult()) {

@@ -261,98 +261,6 @@ public abstract class AbstractBsAccessResultDataCQ extends
     abstract protected ConditionValue getCValueTransformerName();
 
     /**
-     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. {CLOB}
-     * @param data The value of data as equal.
-     */
-    public void setData_Equal(String data) {
-        regData(CK_EQ, fRES(data));
-    }
-
-    /**
-     * NotEqual(!=). And NullOrEmptyIgnored, OnlyOnceRegistered.
-     * @param data The value of data as notEqual.
-     */
-    public void setData_NotEqual(String data) {
-        regData(CK_NE, fRES(data));
-    }
-
-    /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
-     * @param data The value of data as greaterThan.
-     */
-    public void setData_GreaterThan(String data) {
-        regData(CK_GT, fRES(data));
-    }
-
-    /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
-     * @param data The value of data as lessThan.
-     */
-    public void setData_LessThan(String data) {
-        regData(CK_LT, fRES(data));
-    }
-
-    /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
-     * @param data The value of data as greaterEqual.
-     */
-    public void setData_GreaterEqual(String data) {
-        regData(CK_GE, fRES(data));
-    }
-
-    /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
-     * @param data The value of data as lessEqual.
-     */
-    public void setData_LessEqual(String data) {
-        regData(CK_LE, fRES(data));
-    }
-
-    /**
-     * PrefixSearch(like 'xxx%' escape ...). And NullOrEmptyIgnored, SeveralRegistered.
-     * @param data The value of data as prefixSearch.
-     */
-    public void setData_PrefixSearch(String data) {
-        setData_LikeSearch(data, cLSOP());
-    }
-
-    /**
-     * InScope(in ('a', 'b')). And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered.
-     * @param dataList The collection of data as inScope.
-     */
-    public void setData_InScope(Collection<String> dataList) {
-        regINS(CK_INS, cTL(dataList), getCValueData(), "DATA");
-    }
-
-    /**
-     * NotInScope(not in ('a', 'b')). And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered.
-     * @param dataList The collection of data as notInScope.
-     */
-    public void setData_NotInScope(Collection<String> dataList) {
-        regINS(CK_NINS, cTL(dataList), getCValueData(), "DATA");
-    }
-
-    /**
-     * LikeSearch(like 'xxx%' escape ...). And NullOrEmptyIgnored, SeveralRegistered.
-     * @param data The value of data as likeSearch.
-     * @param likeSearchOption The option of like-search. (NotNull)
-     */
-    public void setData_LikeSearch(String data,
-            LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(data), getCValueData(), "DATA", likeSearchOption);
-    }
-
-    /**
-     * NotLikeSearch(not like 'xxx%' escape ...). And NullOrEmptyIgnored, SeveralRegistered.
-     * @param data The value of data as notLikeSearch.
-     * @param likeSearchOption The option of not-like-search. (NotNull)
-     */
-    public void setData_NotLikeSearch(String data,
-            LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(data), getCValueData(), "DATA", likeSearchOption);
-    }
-
-    /**
      * IsNull(is null). And OnlyOnceRegistered.
      */
     public void setData_IsNull() {
@@ -371,6 +279,120 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     abstract protected ConditionValue getCValueData();
+
+    /**
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. {VARCHAR(20)}
+     * @param encoding The value of encoding as equal.
+     */
+    public void setEncoding_Equal(String encoding) {
+        regEncoding(CK_EQ, fRES(encoding));
+    }
+
+    /**
+     * NotEqual(!=). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * @param encoding The value of encoding as notEqual.
+     */
+    public void setEncoding_NotEqual(String encoding) {
+        regEncoding(CK_NE, fRES(encoding));
+    }
+
+    /**
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * @param encoding The value of encoding as greaterThan.
+     */
+    public void setEncoding_GreaterThan(String encoding) {
+        regEncoding(CK_GT, fRES(encoding));
+    }
+
+    /**
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * @param encoding The value of encoding as lessThan.
+     */
+    public void setEncoding_LessThan(String encoding) {
+        regEncoding(CK_LT, fRES(encoding));
+    }
+
+    /**
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * @param encoding The value of encoding as greaterEqual.
+     */
+    public void setEncoding_GreaterEqual(String encoding) {
+        regEncoding(CK_GE, fRES(encoding));
+    }
+
+    /**
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * @param encoding The value of encoding as lessEqual.
+     */
+    public void setEncoding_LessEqual(String encoding) {
+        regEncoding(CK_LE, fRES(encoding));
+    }
+
+    /**
+     * PrefixSearch(like 'xxx%' escape ...). And NullOrEmptyIgnored, SeveralRegistered.
+     * @param encoding The value of encoding as prefixSearch.
+     */
+    public void setEncoding_PrefixSearch(String encoding) {
+        setEncoding_LikeSearch(encoding, cLSOP());
+    }
+
+    /**
+     * InScope(in ('a', 'b')). And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered.
+     * @param encodingList The collection of encoding as inScope.
+     */
+    public void setEncoding_InScope(Collection<String> encodingList) {
+        regINS(CK_INS, cTL(encodingList), getCValueEncoding(), "ENCODING");
+    }
+
+    /**
+     * NotInScope(not in ('a', 'b')). And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered.
+     * @param encodingList The collection of encoding as notInScope.
+     */
+    public void setEncoding_NotInScope(Collection<String> encodingList) {
+        regINS(CK_NINS, cTL(encodingList), getCValueEncoding(), "ENCODING");
+    }
+
+    /**
+     * LikeSearch(like 'xxx%' escape ...). And NullOrEmptyIgnored, SeveralRegistered.
+     * @param encoding The value of encoding as likeSearch.
+     * @param likeSearchOption The option of like-search. (NotNull)
+     */
+    public void setEncoding_LikeSearch(String encoding,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(encoding), getCValueEncoding(), "ENCODING",
+                likeSearchOption);
+    }
+
+    /**
+     * NotLikeSearch(not like 'xxx%' escape ...). And NullOrEmptyIgnored, SeveralRegistered.
+     * @param encoding The value of encoding as notLikeSearch.
+     * @param likeSearchOption The option of not-like-search. (NotNull)
+     */
+    public void setEncoding_NotLikeSearch(String encoding,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(encoding), getCValueEncoding(), "ENCODING",
+                likeSearchOption);
+    }
+
+    /**
+     * IsNull(is null). And OnlyOnceRegistered.
+     */
+    public void setEncoding_IsNull() {
+        regEncoding(CK_ISN, DOBJ);
+    }
+
+    /**
+     * IsNotNull(is not null). And OnlyOnceRegistered.
+     */
+    public void setEncoding_IsNotNull() {
+        regEncoding(CK_ISNN, DOBJ);
+    }
+
+    protected void regEncoding(ConditionKey k, Object v) {
+        regQ(k, v, getCValueEncoding(), "ENCODING");
+    }
+
+    abstract protected ConditionValue getCValueEncoding();
 
     // ===================================================================================
     //                                                                     Scalar SubQuery

@@ -256,6 +256,10 @@ public class BsAccessResultCB extends AbstractConditionBean {
             doColumn("MIME_TYPE");
         }
 
+        public void columnContentLength() {
+            doColumn("CONTENT_LENGTH");
+        }
+
         public void columnExecutionTime() {
             doColumn("EXECUTION_TIME");
         }

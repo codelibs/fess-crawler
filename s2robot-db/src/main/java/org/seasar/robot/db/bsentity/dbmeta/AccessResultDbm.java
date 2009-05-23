@@ -74,6 +74,9 @@ public class AccessResultDbm extends AbstractDBMeta {
     protected ColumnInfo _columnMimeType = cci("MIME_TYPE", null, "mimeType",
             String.class, false, false, 100, 0);
 
+    protected ColumnInfo _columnContentLength = cci("CONTENT_LENGTH", null,
+            "contentLength", Long.class, false, false, null, null);
+
     protected ColumnInfo _columnExecutionTime = cci("EXECUTION_TIME", null,
             "executionTime", Integer.class, false, false, null, null);
 
@@ -114,6 +117,10 @@ public class AccessResultDbm extends AbstractDBMeta {
 
     public ColumnInfo columnMimeType() {
         return _columnMimeType;
+    }
+
+    public ColumnInfo columnContentLength() {
+        return _columnContentLength;
     }
 
     public ColumnInfo columnExecutionTime() {
@@ -291,6 +298,7 @@ public class AccessResultDbm extends AbstractDBMeta {
         setupEps(_epsMap, new EpsHttpStatusCode(), columnHttpStatusCode());
         setupEps(_epsMap, new EpsMethod(), columnMethod());
         setupEps(_epsMap, new EpsMimeType(), columnMimeType());
+        setupEps(_epsMap, new EpsContentLength(), columnContentLength());
         setupEps(_epsMap, new EpsExecutionTime(), columnExecutionTime());
         setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
     }
@@ -355,6 +363,12 @@ public class AccessResultDbm extends AbstractDBMeta {
     public static class EpsMimeType implements Eps<AccessResult> {
         public void setup(AccessResult e, Object v) {
             e.setMimeType((String) v);
+        }
+    }
+
+    public static class EpsContentLength implements Eps<AccessResult> {
+        public void setup(AccessResult e, Object v) {
+            e.setContentLength((Long) v);
         }
     }
 

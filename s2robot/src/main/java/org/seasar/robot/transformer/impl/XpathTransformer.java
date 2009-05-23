@@ -15,15 +15,20 @@
  */
 package org.seasar.robot.transformer.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.TransformerException;
 
 import org.cyberneko.html.parsers.DOMParser;
+import org.seasar.framework.beans.util.Beans;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
@@ -34,7 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * XpathTransformer stores WEB data as XML content.
@@ -51,9 +58,13 @@ public class XpathTransformer extends HtmlTransformer {
 
     public Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
 
+    /** a flag to trim a space characters. */
     public boolean trimSpace = true;
 
     public String charsetName = Constants.UTF_8;
+
+    /** Class type returned by getData() method. The default is null(XML content of String). */
+    public Class dataClass = null;
 
     @Override
     protected void storeData(ResponseData responseData, ResultData resultData) {
@@ -159,9 +170,96 @@ public class XpathTransformer extends HtmlTransformer {
 
     /**
      * Returns data as XML content of String.
+     * 
+     * @return XML content of String.
      */
     @Override
     public Object getData(AccessResultData accessResultData) {
-        return super.getData(accessResultData);
+        if (dataClass == null) {
+            return super.getData(accessResultData);
+        }
+
+        Map<String, String> dataMap = getDataMap(accessResultData);
+        if (Map.class.equals(dataClass)) {
+            return dataMap;
+        }
+
+        try {
+            Object obj = dataClass.newInstance();
+            Beans.copy(dataMap, obj).execute();
+            return obj;
+        } catch (Exception e) {
+            throw new RobotSystemException(
+                    "Could not create/copy a data map to " + dataClass, e);
+        }
+    }
+
+    protected Map<String, String> getDataMap(AccessResultData accessResultData) {
+        // create input source
+        InputSource is = new InputSource(new ByteArrayInputStream(
+                accessResultData.getData()));
+        if (StringUtil.isNotBlank(accessResultData.getEncoding())) {
+            is.setEncoding(accessResultData.getEncoding());
+        }
+
+        // create handler
+        DocHandler handler = new DocHandler();
+
+        // create a sax instance
+        SAXParserFactory spfactory = SAXParserFactory.newInstance();
+        try {
+            // create a sax parser
+            SAXParser parser = spfactory.newSAXParser();
+            // parse a content
+            parser.parse(is, handler);
+
+            return handler.getDataMap();
+        } catch (Exception e) {
+            throw new RobotSystemException(
+                    "Could not create a data map from XML content.", e);
+        }
+    }
+
+    protected static class DocHandler extends DefaultHandler {
+        private Map<String, String> dataMap = new HashMap<String, String>();
+
+        private String fieldName;
+
+        public void startDocument() {
+            dataMap.clear();
+        }
+
+        public void startElement(String uri, String localName, String qName,
+                Attributes attributes) {
+            System.out.println("要素開始:" + qName);
+            if ("field".equals(qName)) {
+                fieldName = attributes.getValue("name");
+            }
+        }
+
+        public void characters(char[] ch, int offset, int length) {
+            if (fieldName != null) {
+                String value = dataMap.get(fieldName);
+                if (value != null) {
+                    dataMap.put(fieldName, value
+                            + new String(ch, offset, length));
+                } else {
+                    dataMap.put(fieldName, new String(ch, offset, length));
+                }
+            }
+        }
+
+        public void endElement(String uri, String localName, String qName) {
+            if ("field".equals(qName)) {
+                fieldName = null;
+            }
+        }
+
+        public void endDocument() {
+        }
+
+        public Map<String, String> getDataMap() {
+            return dataMap;
+        }
     }
 }

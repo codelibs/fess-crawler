@@ -5,10 +5,42 @@
 	<include path="s2robot_transformer_basic.dicon"/>
 
 	<component name="xpathTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">
-		<property name="name">"htmlTransformer"</property>
+		<property name="name">"xpathTransformer"</property>
 		<property name="featureMap">defaultFeatureMap</property>
 		<property name="propertyMap">defaultPropertyMap</property>
 		<property name="childUrlRuleMap">htmlUrlRuleMap</property>
+		<initMethod name="addFieldRule">
+			<arg>"title"</arg>
+			<arg>"//TITLE"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"body"</arg>
+			<arg>"//BODY"</arg>
+		</initMethod>
+	</component>
+
+	<component name="xpathMapTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">
+		<property name="name">"xpathMapTransformer"</property>
+		<property name="featureMap">defaultFeatureMap</property>
+		<property name="propertyMap">defaultPropertyMap</property>
+		<property name="childUrlRuleMap">htmlUrlRuleMap</property>
+		<property name="dataClass">@java.util.Map@class</property>
+		<initMethod name="addFieldRule">
+			<arg>"title"</arg>
+			<arg>"//TITLE"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"body"</arg>
+			<arg>"//BODY"</arg>
+		</initMethod>
+	</component>
+
+	<component name="xpathEntityTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">
+		<property name="name">"xpathEntityTransformer"</property>
+		<property name="featureMap">defaultFeatureMap</property>
+		<property name="propertyMap">defaultPropertyMap</property>
+		<property name="childUrlRuleMap">htmlUrlRuleMap</property>
+		<property name="dataClass">@org.seasar.robot.entity.TestEntity@class</property>
 		<initMethod name="addFieldRule">
 			<arg>"title"</arg>
 			<arg>"//TITLE"</arg>

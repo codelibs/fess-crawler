@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.transformer.impl;
 
+import java.util.Map;
+
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.Constants;
@@ -22,6 +24,7 @@ import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultDataImpl;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
+import org.seasar.robot.entity.TestEntity;
 
 /**
  * @author shinsuke
@@ -29,6 +32,10 @@ import org.seasar.robot.entity.ResultData;
  */
 public class XpathTransformerTest extends S2TestCase {
     public XpathTransformer xpathTransformer;
+
+    public XpathTransformer xpathMapTransformer;
+
+    public XpathTransformer xpathEntityTransformer;
 
     @Override
     protected String getRootDicon() throws Throwable {
@@ -61,7 +68,7 @@ public class XpathTransformerTest extends S2TestCase {
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
-        accessResultDataImpl.setTransformerName("htmlTransformer");
+        accessResultDataImpl.setTransformerName("xpathTransformer");
 
         Object obj = xpathTransformer.getData(accessResultDataImpl);
         assertEquals(value, obj);
@@ -96,9 +103,52 @@ public class XpathTransformerTest extends S2TestCase {
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
-        accessResultDataImpl.setTransformerName("htmlTransformer");
+        accessResultDataImpl.setTransformerName("xpathTransformer");
 
         Object obj = xpathTransformer.getData(accessResultDataImpl);
         assertNull(obj);
+    }
+
+    public void test_dataClass() {
+        assertNull(xpathTransformer.dataClass);
+        assertEquals(Map.class, xpathMapTransformer.dataClass);
+    }
+
+    public void test_getData_dataMap() throws Exception {
+        String value = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
+        ;
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("xpathMapTransformer");
+
+        Object obj = xpathMapTransformer.getData(accessResultDataImpl);
+        assertTrue(obj instanceof Map);
+        Map<String, String> map = (Map) obj;
+        assertEquals("タイトル", map.get("title"));
+        assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", map.get("body"));
+    }
+
+    public void test_getData_dataMap_entity() throws Exception {
+        String value = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
+        ;
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("xpathEntityTransformer");
+
+        Object obj = xpathEntityTransformer.getData(accessResultDataImpl);
+        assertTrue(obj instanceof TestEntity);
+        TestEntity entity = (TestEntity) obj;
+        assertEquals("タイトル", entity.getTitle());
+        assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", entity.getBody());
     }
 }

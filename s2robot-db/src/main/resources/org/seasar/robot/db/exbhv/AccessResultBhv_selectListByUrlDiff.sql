@@ -15,6 +15,7 @@ select
     ar1.HTTP_STATUS_CODE,
     ar1.METHOD,
     ar1.MIME_TYPE,
+    ar1.CONTENT_LENGTH,
     ar1.EXECUTION_TIME,
     ar1.CREATE_TIME
 from

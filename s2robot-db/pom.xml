@@ -82,6 +82,21 @@
           <databaseUrl>jdbc:h2:file:${basedir}/src/main/db/robot</databaseUrl>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>com.google.code.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <version>1.4.0</version>
+        <configuration>
+          <header>http://www.seasar.org/license/header.txt</header>
+          <includes>
+            <include>src/**/*.java</include>
+          </includes>
+          <encoding>UTF-8</encoding>
+          <headerDefinitions>
+            <headerDefinition>http://www.seasar.org/license/header-definition.xml</headerDefinition>
+          </headerDefinitions>
+        </configuration>
+      </plugin>
     </plugins>
     <extensions>
       <extension>

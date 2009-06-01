@@ -1,0 +1,94 @@
+               ------------------
+                 S2Robot-example
+               ------------------
+                  Takaaki SONE
+               ------------------
+                   2009-05-27
+
+S2Robot-example の実行方法
+
+    S2Robot-example の動作方法を示します。
+    S2Robot-example は、対象URLのリンクをたどり保存する、クローラの例となっています。
+
+* 前提
+
+    S2Robot をビルドするためには {{{http://maven.apache.org/}Maven 2}} が必要になります。
+
+    また、S2Robot-example を実行するためには、S2Robot が必要です。
+    S2Robot の jar ファイルはビルド時に Seasar 2 のリポジトリより自動で取得されます。
+    最新の S2Robot を利用するためには、以下の手順で、インストールすることも可能です。
+
++--------------------------------------------------+
+$ svn co https://www.seasar.org/svn/sandbox/s2robot/trunk/s2robot/ s2robot
+$ cd s2robot
+$ mvn install
++--------------------------------------------------+
+
+* チェックアウト
+
+    SVNリポジトリからチェックアウトします。
+
++--------------------------------------------------+
+$ svn co https://www.seasar.org/svn/sandbox/s2robot/trunk/s2robot-example/ s2robot-example
+$ cd s2robot-example
++--------------------------------------------------+
+
+* ビルド
+
+    ビルドは Maven 2 で以下のコマンドを実行します。
+
++--------------------------------------------------+
+$ mvn install
++--------------------------------------------------+
+
+* 実行
+
+    run.sh を実行することで、クロールが開始されます。
+    第一引数が、クロール対象の URL、第二引数がクロールの深さになります。
+
+    第二引数は省略可能で、省略した場合、0になります。
+
++--------------------------------------------------+
+$ chmod 755 run.sh
+$ ./run.sh http://example.com/ 1
++--------------------------------------------------+
+
+
+* DB を利用しない場合
+
+    S2Robot のデータの保存先に DBを使わずに、動作させる場合は以下の変更を加えます。
+    デフォルトで s2robot-example は DB を利用しています。
+
+    以下が変更点です。pom.xml と app.dicon に変更を加えます。
+
++--------------------------------------------------+
+$ svn diff pom.xml
+Index: pom.xml
+===================================================================
+--- pom.xml     (リビジョン 52)
++++ pom.xml     (作業コピー)
+@@ -96,7 +96,7 @@
+     </dependency>
+     <dependency>
+       <groupId>org.seasar.robot</groupId>
+-      <artifactId>s2-robot-db</artifactId>
++      <artifactId>s2-robot</artifactId>
+       <version>0.1.0-SNAPSHOT</version>
+     </dependency>
+     <dependency>
+$ svn diff src/main/resources/app.dicon
+Index: src/main/resources/app.dicon
+===================================================================
+--- src/main/resources/app.dicon        (リビジョン 52)
++++ src/main/resources/app.dicon        (作業コピー)
+@@ -3,5 +3,5 @@
+        "http://www.seasar.org/dtd/components24.dtd">
+ <components>
+        <include path="aop.dicon"/>
+-    <include path="s2robot_db.dicon"/>
++    <include path="s2robot.dicon"/>
+ </components>
++--------------------------------------------------+
+
+    上記の変更をしたあと、ビルドします。
+

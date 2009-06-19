@@ -46,13 +46,13 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     private static final Logger logger = LoggerFactory
             .getLogger(DBUrlQueueServiceImpl.class);
 
+    protected static volatile Map<String, LinkedList<UrlQueue>> URL_QUEUE_MAP = new HashMap<String, LinkedList<UrlQueue>>();
+
+    private static LruHashMap VISITED_URL_CACHE;
+
     public int cacheSize = 100;
 
-    protected Map<String, LinkedList<UrlQueue>> urlQueueMap;
-
     public int visitedUrlCacheSize = 1000;
-
-    private LruHashMap visitedUrlCache;
 
     @Resource
     protected UrlQueueBhv urlQueueBhv;
@@ -60,15 +60,16 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     @Resource
     protected AccessResultBhv accessResultBhv;
 
-    public DBUrlQueueServiceImpl() {
-        urlQueueMap = new HashMap<String, LinkedList<UrlQueue>>();
-    }
-
     private LinkedList<UrlQueue> getUrlQueueList(String sessionId) {
-        LinkedList<UrlQueue> urlQueueList = urlQueueMap.get(sessionId);
+        LinkedList<UrlQueue> urlQueueList = URL_QUEUE_MAP.get(sessionId);
         if (urlQueueList == null) {
-            urlQueueList = new LinkedList<UrlQueue>();
-            urlQueueMap.put(sessionId, urlQueueList);
+            synchronized (URL_QUEUE_MAP) {
+                urlQueueList = URL_QUEUE_MAP.get(sessionId);
+                if (urlQueueList == null) {
+                    urlQueueList = new LinkedList<UrlQueue>();
+                    URL_QUEUE_MAP.put(sessionId, urlQueueList);
+                }
+            }
         }
         return urlQueueList;
     }
@@ -80,8 +81,8 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         // not MT-safe
         LinkedList<UrlQueue> urlQueueList = getUrlQueueList(oldSessionId);
         // overwrite
-        urlQueueMap.put(newSessionId, urlQueueList);
-        urlQueueMap.remove(oldSessionId);
+        URL_QUEUE_MAP.put(newSessionId, urlQueueList);
+        URL_QUEUE_MAP.remove(oldSessionId);
     }
 
     /* (non-Javadoc)
@@ -114,6 +115,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         UrlQueueCB cb = new UrlQueueCB();
         cb.query().setSessionId_Equal(sessionId);
         urlQueueBhv.queryDelete(cb);
+
+        // clear cache
+        URL_QUEUE_MAP.remove(sessionId);
+        VISITED_URL_CACHE = null;
     }
 
     /* (non-Javadoc)
@@ -122,6 +127,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     public void deleteAll() {
         UrlQueueCB cb = new UrlQueueCB();
         urlQueueBhv.queryDelete(cb);
+
+        // clear cache
+        URL_QUEUE_MAP.clear();
+        VISITED_URL_CACHE = null;
     }
 
     /* (non-Javadoc)
@@ -132,7 +141,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         synchronized (urlQueueList) {
             List<org.seasar.robot.db.exentity.UrlQueue> targetList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
             for (UrlQueue urlQueue : newUrlQueueList) {
-                if (isNewUrl(urlQueue, urlQueueList)) {
+                if (isNewUrl(urlQueue, urlQueueList, true)) {
                     targetList
                             .add((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
                 }
@@ -142,13 +151,14 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     }
 
     private LruHashMap getVisitedUrlCache() {
-        if (visitedUrlCache == null) {
-            visitedUrlCache = new LruHashMap(visitedUrlCacheSize);
+        if (VISITED_URL_CACHE == null) {
+            VISITED_URL_CACHE = new LruHashMap(visitedUrlCacheSize);
         }
-        return visitedUrlCache;
+        return VISITED_URL_CACHE;
     }
 
-    protected boolean isNewUrl(UrlQueue urlQueue, List<UrlQueue> urlQueueList) {
+    protected boolean isNewUrl(UrlQueue urlQueue, List<UrlQueue> urlQueueList,
+            boolean cache) {
 
         String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
@@ -158,15 +168,16 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
             return false;
         }
 
-        // cache
-        if (getVisitedUrlCache().containsKey(url)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("URL exists in a cache: " + url);
+        if (cache) {
+            // cache
+            if (getVisitedUrlCache().containsKey(url)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("URL exists in a cache: " + url);
+                }
+                return false;
             }
-            return false;
+            getVisitedUrlCache().put(urlQueue.getUrl(), "");
         }
-
-        getVisitedUrlCache().put(url, "");
 
         // check it in queue
         for (UrlQueue urlInQueue : urlQueueList) {
@@ -250,6 +261,17 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
             }
             urlQueueBhv.batchInsert(targetUrlQueueList);
             urlQueueList.clear();
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.UrlQueueService#visited(UrlQueue)
+     */
+    public boolean visited(UrlQueue urlQueue) {
+        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(urlQueue
+                .getSessionId());
+        synchronized (urlQueueList) {
+            return !isNewUrl(urlQueue, urlQueueList, false);
         }
     }
 }

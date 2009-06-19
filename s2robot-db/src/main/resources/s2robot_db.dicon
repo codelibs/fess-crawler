@@ -13,6 +13,10 @@
 	<component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >
 	</component>
 
+	<!-- Robot Thread -->
+	<component name="robotThread" class="org.seasar.robot.S2RobotThread" instance="prototype" >
+	</component>
+
 	<!-- Entity -->
 	<component name="accessResult" class="org.seasar.robot.db.exentity.AccessResult" instance="prototype" >
 	</component>

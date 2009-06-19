@@ -20,13 +20,7 @@ select
     ar1.CREATE_TIME
 from
     ACCESS_RESULT ar1
-inner join
-    ACCESS_RESULT ar2
-on
-    ar1.URL = ar2.URL
-/*BEGIN*/where
-    /*IF pmb.newSessionId != null*/ar1.SESSION_ID = /*pmb.newSessionId*/'123'/*END*/
-    /*IF pmb.oldSessionId != null*/and ar2.SESSION_ID = /*pmb.oldSessionId*/'456'/*END*/
-    and ar2.URL is NULL
-/*END*/
+where 
+	ar1.URL not in (select ar2.URL from ACCESS_RESULT ar2 where /*IF pmb.oldSessionId != null*/ar2.SESSION_ID = /*pmb.oldSessionId*/'456'/*END*/)
+    /*IF pmb.newSessionId != null*/and ar1.SESSION_ID = /*pmb.newSessionId*/'123'/*END*/
 order by ar1.URL

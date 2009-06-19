@@ -37,33 +37,35 @@ public class DBDataServiceImplTest extends S2TestCase {
     }
 
     public void test_iterateUrlDiffTx() {
+        final org.seasar.robot.db.exentity.AccessResult accessResult = new org.seasar.robot.db.exentity.AccessResult();
+        accessResult.setSessionId("1");
+        accessResult.setUrl("http://www.example.com/a");
+        accessResult.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        accessResult.setExecutionTime(10);
+        accessResult.setHttpStatusCode(200);
+        accessResult.setMethod(Constants.GET_METHOD);
+        accessResult.setMimeType("text/html");
+        accessResult.setRuleId("html");
+        accessResult.setStatus(Constants.OK_STATUS);
+        accessResult.setContentLength(100L);
+        dataService.store(accessResult);
+
         final org.seasar.robot.db.exentity.AccessResult accessResult1a = new org.seasar.robot.db.exentity.AccessResult();
-        accessResult1a.setSessionId("1");
-        accessResult1a.setUrl("http://www.example.com/a");
-        accessResult1a.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        accessResult1a.setExecutionTime(10);
-        accessResult1a.setHttpStatusCode(200);
-        accessResult1a.setMethod(Constants.GET_METHOD);
-        accessResult1a.setMimeType("text/html");
-        accessResult1a.setRuleId("html");
-        accessResult1a.setStatus(Constants.OK_STATUS);
-        accessResult1a.setContentLength(100L);
+        Beans.copy(accessResult, accessResult1a).execute();
         dataService.store(accessResult1a);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult1b = new org.seasar.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult1a, accessResult1b).execute();
-        accessResult1b.setSessionId("1");
+        Beans.copy(accessResult, accessResult1b).execute();
         accessResult1b.setUrl("http://www.example.com/b");
         dataService.store(accessResult1b);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult2a = new org.seasar.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult1a, accessResult2a).execute();
+        Beans.copy(accessResult, accessResult2a).execute();
         accessResult2a.setSessionId("2");
-        accessResult2a.setUrl("http://www.example.com/a");
         dataService.store(accessResult2a);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult2c = new org.seasar.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult1a, accessResult2c).execute();
+        Beans.copy(accessResult, accessResult2c).execute();
         accessResult2c.setSessionId("2");
         accessResult2c.setUrl("http://www.example.com/c");
         dataService.store(accessResult2c);

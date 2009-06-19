@@ -81,7 +81,7 @@ public class XpathTransformer extends HtmlTransformer {
         }
         Document document = parser.getDocument();
 
-        StringBuilder buf = new StringBuilder();
+        StringBuilder buf = new StringBuilder(1000);
         buf.append(getResultDataHeader());
         for (Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
             Node value = null;
@@ -95,6 +95,7 @@ public class XpathTransformer extends HtmlTransformer {
             buf.append(getResultDataBody(entry.getKey(), value != null ? value
                     .getTextContent() : null));
         }
+        buf.append(getAdditionalData(responseData));
         buf.append(getResultDataFooter());
 
         try {
@@ -119,6 +120,10 @@ public class XpathTransformer extends HtmlTransformer {
         // TODO trim(default)
         return "<field name=\"" + escapeXml(name) + "\">"
                 + trimSpace(escapeXml(value)) + "</field>\n";
+    }
+
+    protected String getAdditionalData(ResponseData responseData) {
+        return "";
     }
 
     protected String getResultDataFooter() {

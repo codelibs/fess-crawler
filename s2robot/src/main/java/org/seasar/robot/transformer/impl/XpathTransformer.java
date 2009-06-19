@@ -236,7 +236,6 @@ public class XpathTransformer extends HtmlTransformer {
 
         public void startElement(String uri, String localName, String qName,
                 Attributes attributes) {
-            System.out.println("要素開始:" + qName);
             if ("field".equals(qName)) {
                 fieldName = attributes.getValue("name");
             }

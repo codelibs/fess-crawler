@@ -47,6 +47,8 @@ public class ResponseData {
 
     private long executionTime;
 
+    private String redirectLocation;
+
     private Map<String, String> headerMap = new LinkedHashMap<String, String>();
 
     public ResponseData() {
@@ -146,6 +148,14 @@ public class ResponseData {
 
     public void setExecutionTime(long executionTime) {
         this.executionTime = executionTime;
+    }
+
+    public String getRedirectLocation() {
+        return redirectLocation;
+    }
+
+    public void setRedirectLocation(String redirectLocation) {
+        this.redirectLocation = redirectLocation;
     }
 
 }

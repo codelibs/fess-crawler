@@ -102,10 +102,6 @@ public class CommonsHttpClient implements HttpClient {
         httpClient = new org.apache.commons.httpclient.HttpClient(
                 connectionManager);
 
-        // user agent
-        httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
-                userAgent);
-
         // proxy
         if (proxyHost != null && proxyPort != null) {
             httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort);
@@ -129,12 +125,32 @@ public class CommonsHttpClient implements HttpClient {
         }
 
         GetMethod getMethod = new GetMethod(url);
+
+        // cookie
         if (cookiePolicy != null) {
             getMethod.getParams().setCookiePolicy(cookiePolicy);
         }
-        // getMethod.addRequestHeader(new Header("User-Agent", userAgent));
+
+        // user agent
+        httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
+                userAgent);
+
         try {
+            // get a content 
             httpClient.executeMethod(getMethod);
+
+            int httpStatusCode = getMethod.getStatusCode();
+            // redirect
+            if (httpStatusCode >= 300 && httpStatusCode < 400) {
+                Header locationHeader = getMethod.getResponseHeader("location");
+                if (locationHeader != null) {
+                    ResponseData responseData = new ResponseData();
+                    responseData.setRedirectLocation(locationHeader.getValue());
+                    return responseData;
+                } else {
+                    logger.warn("Invalid redirect location at " + url);
+                }
+            }
 
             File outputFile = File.createTempFile("s2robot-", ".out");
             outputFile.deleteOnExit();
@@ -154,7 +170,7 @@ public class CommonsHttpClient implements HttpClient {
             responseData.setCharSet(getMethod.getResponseCharSet());
             responseData.setContentLength(getMethod.getResponseContentLength());
             responseData.setResponseBody(inputStream);
-            responseData.setHttpStatusCode(getMethod.getStatusCode());
+            responseData.setHttpStatusCode(httpStatusCode);
             for (Header header : getMethod.getResponseHeaders()) {
                 responseData.addHeader(header.getName(), header.getValue());
             }

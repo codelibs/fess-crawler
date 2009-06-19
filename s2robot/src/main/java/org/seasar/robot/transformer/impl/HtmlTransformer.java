@@ -379,7 +379,7 @@ public class HtmlTransformer extends AbstractTransformer {
             }
             return null;
         }
-        
+
         return url;
     }
 

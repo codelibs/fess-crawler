@@ -128,60 +128,17 @@ public class S2RobotThread implements Runnable {
                     responseData.setParentUrl(urlQueue.getParentUrl());
                     responseData.setSessionId(robotContext.sessionId);
 
-                    // get a rule
-                    Rule rule = robotContext.ruleManager.getRule(responseData);
-                    if (rule != null) {
-                        responseData.setRuleId(rule.getRuleId());
-                        Transformer transformer = rule.getTransformer();
-                        if (transformer != null) {
-                            ResultData resultData = transformer
-                                    .transform(responseData);
-                            if (resultData != null) {
-                                AccessResult accessResult = (AccessResult) container
-                                        .getComponent(AccessResult.class);
-                                accessResult.init(responseData, resultData);
-
-                                synchronized (robotContext.accessCountLock) {
-                                    if (!urlQueueService.visited(urlQueue)) {
-                                        if (checkAccessCount()) {
-                                            //  store
-                                            dataService.store(accessResult);
-
-                                            //  add url and filter 
-                                            storeChildUrls(
-                                                    resultData.getChildUrlSet(),
-                                                    urlQueue.getUrl(),
-                                                    urlQueue.getDepth() != null ? urlQueue
-                                                            .getDepth() + 1
-                                                            : 1);
-
-                                            // count up
-                                            if (robotConfig.maxAccessCount > 0) {
-                                                robotContext.accessCount++;
-                                            }
-                                        } else {
-                                            // cancel crawling
-                                            List<UrlQueue> newUrlQueueList = new ArrayList<UrlQueue>();
-                                            newUrlQueueList.add(urlQueue);
-                                            urlQueueService.offerAll(
-                                                    robotContext.sessionId,
-                                                    newUrlQueueList);
-                                        }
-                                    }
-                                }
-                            } else {
-                                logger.warn("No data for ("
-                                        + responseData.getUrl() + ", "
-                                        + responseData.getMimeType() + ")");
-                            }
-                        } else {
-                            logger.warn("No transformer for ("
-                                    + responseData.getUrl() + ", "
-                                    + responseData.getMimeType() + ")");
+                    if (responseData.getRedirectLocation() != null) {
+                        // redirect
+                        synchronized (robotContext.accessCountLock) {
+                            //  add an url
+                            storeChildUrl(responseData.getRedirectLocation(),
+                                    urlQueue.getUrl(),
+                                    urlQueue.getDepth() != null ? urlQueue
+                                            .getDepth() + 1 : 1);
                         }
                     } else {
-                        logger.warn("No rule for (" + responseData.getUrl()
-                                + ", " + responseData.getMimeType() + ")");
+                        processResponse(urlQueue, responseData);
                     }
 
                     if (logger.isDebugEnabled()) {
@@ -220,6 +177,64 @@ public class S2RobotThread implements Runnable {
         }
     }
 
+    protected void processResponse(UrlQueue urlQueue, ResponseData responseData) {
+        // get a rule
+        Rule rule = robotContext.ruleManager.getRule(responseData);
+        if (rule != null) {
+            responseData.setRuleId(rule.getRuleId());
+            Transformer transformer = rule.getTransformer();
+            if (transformer != null) {
+                ResultData resultData = transformer.transform(responseData);
+                if (resultData != null) {
+                    processResult(urlQueue, responseData, resultData);
+                } else {
+                    logger.warn("No data for (" + responseData.getUrl() + ", "
+                            + responseData.getMimeType() + ")");
+                }
+            } else {
+                logger.warn("No transformer for (" + responseData.getUrl()
+                        + ", " + responseData.getMimeType() + ")");
+            }
+        } else {
+            logger.warn("No rule for (" + responseData.getUrl() + ", "
+                    + responseData.getMimeType() + ")");
+        }
+
+    }
+
+    protected void processResult(UrlQueue urlQueue, ResponseData responseData,
+            ResultData resultData) {
+        AccessResult accessResult = (AccessResult) container
+                .getComponent(AccessResult.class);
+        accessResult.init(responseData, resultData);
+
+        synchronized (robotContext.accessCountLock) {
+            if (!urlQueueService.visited(urlQueue)) {
+                if (checkAccessCount()) {
+                    //  store
+                    dataService.store(accessResult);
+
+                    //  add and filter urls 
+                    storeChildUrls(resultData.getChildUrlSet(), urlQueue
+                            .getUrl(), urlQueue.getDepth() != null ? urlQueue
+                            .getDepth() + 1 : 1);
+
+                    // count up
+                    if (robotConfig.maxAccessCount > 0) {
+                        robotContext.accessCount++;
+                    }
+                } else {
+                    // cancel crawling
+                    List<UrlQueue> newUrlQueueList = new ArrayList<UrlQueue>();
+                    newUrlQueueList.add(urlQueue);
+                    urlQueueService.offerAll(robotContext.sessionId,
+                            newUrlQueueList);
+                }
+            }
+        }
+
+    }
+
     private void storeChildUrls(Set<String> childUrlList, String url, int depth) {
         //  add url and filter 
         List<UrlQueue> childList = new ArrayList<UrlQueue>();
@@ -236,6 +251,22 @@ public class S2RobotThread implements Runnable {
             }
         }
         urlQueueService.offerAll(robotContext.sessionId, childList);
+    }
+
+    private void storeChildUrl(String childUrl, String url, int depth) {
+        //  add url and filter 
+        if (robotContext.urlFilter.match(childUrl)) {
+            List<UrlQueue> childList = new ArrayList<UrlQueue>(1);
+            UrlQueue uq = (UrlQueue) container.getComponent(UrlQueue.class);
+            uq.setCreateTime(new Timestamp(new Date().getTime()));
+            uq.setDepth(depth);
+            uq.setMethod(Constants.GET_METHOD);
+            uq.setParentUrl(url);
+            uq.setSessionId(robotContext.sessionId);
+            uq.setUrl(childUrl);
+            childList.add(uq);
+            urlQueueService.offerAll(robotContext.sessionId, childList);
+        }
     }
 
     protected boolean isValid(UrlQueue urlQueue) {

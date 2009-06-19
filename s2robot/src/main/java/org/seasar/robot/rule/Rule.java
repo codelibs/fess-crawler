@@ -47,7 +47,7 @@ public class Rule {
         }
 
         String url = responseData.getUrl();
-        String contentType = responseData.getMimeType();
+        String mimeType = responseData.getMimeType();
 
         if (urlPattern != null && url != null) {
             Matcher matcher = urlPattern.matcher(url);

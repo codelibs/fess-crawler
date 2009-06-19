@@ -35,7 +35,7 @@ import org.seasar.robot.util.AccessResultCallback;
  */
 public class DataServiceImpl implements DataService {
 
-    protected static volatile long idCount;
+    protected static volatile long ID_COUNT = 0L;
 
     private static Object idCountLock = new Object();
 
@@ -43,7 +43,6 @@ public class DataServiceImpl implements DataService {
     protected MemoryDataHelper dataHelper;
 
     public DataServiceImpl() {
-        idCount = 0L;
     }
 
     /* (non-Javadoc)
@@ -55,8 +54,8 @@ public class DataServiceImpl implements DataService {
         }
 
         synchronized (idCountLock) {
-            idCount++;
-            accessResult.setId(idCount);
+            ID_COUNT++;
+            accessResult.setId(ID_COUNT);
             AccessResultData accessResultData = accessResult
                     .getAccessResultData();
             if (accessResultData == null) {

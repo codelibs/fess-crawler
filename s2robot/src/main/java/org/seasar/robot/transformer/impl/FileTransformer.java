@@ -86,13 +86,20 @@ public class FileTransformer extends HtmlTransformer {
                                 break;
                             }
                         } else {
-                            file.mkdirs();
+                            if (!file.mkdirs()) {
+                                throw new RobotSystemException(
+                                        "Could not create "
+                                                + file.getAbsolutePath());
+                            }
                             break;
                         }
                     }
                 }
             } else {
-                file.mkdirs();
+                if (!file.mkdirs()) {
+                    throw new RobotSystemException("Could not create "
+                            + file.getAbsolutePath());
+                }
             }
             targetFile = file;
         }

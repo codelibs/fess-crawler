@@ -118,7 +118,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
 
         // clear cache
         URL_QUEUE_MAP.remove(sessionId);
-        VISITED_URL_CACHE = null;
+        VISITED_URL_CACHE.clear();
     }
 
     /* (non-Javadoc)
@@ -130,7 +130,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
 
         // clear cache
         URL_QUEUE_MAP.clear();
-        VISITED_URL_CACHE = null;
+        VISITED_URL_CACHE.clear();
     }
 
     /* (non-Javadoc)

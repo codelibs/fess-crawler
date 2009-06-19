@@ -58,7 +58,7 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
 
     protected TnValueTypeFactory _valueTypeFactory;
 
-    protected boolean _disposable;
+    protected volatile boolean _disposable;
 
     // ===================================================================================
     //                                                                 Assistant Main Work

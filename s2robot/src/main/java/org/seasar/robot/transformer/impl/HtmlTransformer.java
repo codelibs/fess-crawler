@@ -337,10 +337,16 @@ public class HtmlTransformer extends AbstractTransformer {
                 if (isValidPath(attrValue)) {
                     try {
                         URL childUrl = new URL(url, attrValue);
+                        String u = normalizeUrl(childUrl.toString());
                         if (logger.isDebugEnabled()) {
-                            logger.debug(attrValue + " -> " + childUrl);
+                            logger.debug(attrValue + " -> " + u);
                         }
-                        urlList.add(normalizeUrl(childUrl.toString()));
+                        if (StringUtil.isNotBlank(u)) {
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("ADD: " + u);
+                            }
+                            urlList.add(u);
+                        }
                     } catch (MalformedURLException e) {
                         logger.warn("Malformed URL: " + attrValue, e);
                     }
@@ -358,8 +364,22 @@ public class HtmlTransformer extends AbstractTransformer {
         }
         int idx = url.indexOf("#");
         if (idx >= 0) {
-            return url.substring(0, idx);
+            url = url.substring(0, idx);
         }
+
+        idx = url.indexOf(";jsessionid");
+        if (idx >= 0) {
+            url = url.substring(0, idx);
+        }
+
+        if (url.indexOf("/../") >= 0) {
+            // invalid URL
+            if (logger.isDebugEnabled()) {
+                logger.debug("INVALID: " + url);
+            }
+            return null;
+        }
+        
         return url;
     }
 

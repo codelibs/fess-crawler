@@ -23,4 +23,6 @@ public interface IntervalGenerator {
 
     public abstract long getTime();
 
+    public abstract void setTime(long time);
+
 }

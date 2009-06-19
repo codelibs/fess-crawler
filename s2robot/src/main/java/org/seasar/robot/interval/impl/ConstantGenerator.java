@@ -37,4 +37,11 @@ public class ConstantGenerator implements IntervalGenerator {
     public long getTime() {
         return intervalTime;
     }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.interval.IntervalGenerator#setTime(long)
+     */
+    public void setTime(long time) {
+        intervalTime = time;
+    }
 }

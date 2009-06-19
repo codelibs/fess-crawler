@@ -35,9 +35,9 @@ import org.seasar.robot.util.AccessResultCallback;
  */
 public class DataServiceImpl implements DataService {
 
-    protected long idCount;
+    protected static volatile long idCount;
 
-    private Object idCountLock = new Object();
+    private static Object idCountLock = new Object();
 
     @Resource
     protected MemoryDataHelper dataHelper;
@@ -68,6 +68,9 @@ public class DataServiceImpl implements DataService {
 
             Map<String, AccessResult> arMap = dataHelper
                     .getAccessResultMap(accessResult.getSessionId());
+            if (arMap.containsKey(accessResult.getUrl())) {
+                throw new RuntimeException("hoge");
+            }
             arMap.put(accessResult.getUrl(), accessResult);
         }
 

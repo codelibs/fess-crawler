@@ -4,7 +4,7 @@
 <components>
     <include path="s2robot_transformer.dicon"/>
     
-	<component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="singleton">
+	<component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="prototype">
 		<initMethod name="addRule">
 			<arg>fileRule</arg>
 		</initMethod>

@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.UrlQueue;
@@ -29,12 +30,17 @@ import org.seasar.robot.entity.UrlQueue;
  *
  */
 public class MemoryDataHelper {
-    protected volatile Map<String, LinkedList<UrlQueue>> urlQueueMap = new HashMap<String, LinkedList<UrlQueue>>();
+    protected volatile Map<String, Queue<UrlQueue>> urlQueueMap = new HashMap<String, Queue<UrlQueue>>();
 
     protected volatile Map<String, Map<String, AccessResult>> sessionMap = new HashMap<String, Map<String, AccessResult>>();
 
-    public synchronized LinkedList<UrlQueue> getUrlQueueList(String sessionId) {
-        LinkedList<UrlQueue> urlQueueList = urlQueueMap.get(sessionId);
+    public void clear() {
+        urlQueueMap.clear();
+        sessionMap.clear();
+    }
+
+    public synchronized Queue<UrlQueue> getUrlQueueList(String sessionId) {
+        Queue<UrlQueue> urlQueueList = urlQueueMap.get(sessionId);
         if (urlQueueList == null) {
             urlQueueList = new LinkedList<UrlQueue>();
             urlQueueMap.put(sessionId, urlQueueList);
@@ -43,7 +49,7 @@ public class MemoryDataHelper {
     }
 
     public synchronized void addUrlQueueList(String sessionId,
-            LinkedList<UrlQueue> urlQueueList) {
+            Queue<UrlQueue> urlQueueList) {
         urlQueueMap.put(sessionId, urlQueueList);
     }
 

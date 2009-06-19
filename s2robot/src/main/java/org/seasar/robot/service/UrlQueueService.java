@@ -43,4 +43,6 @@ public interface UrlQueueService {
 
     public abstract void saveSession(String sessionId);
 
+    public abstract boolean visited(UrlQueue urlQueue);
+
 }

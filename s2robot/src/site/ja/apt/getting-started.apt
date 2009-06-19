@@ -44,7 +44,7 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
     "http://www.seasar.org/dtd/components24.dtd">
 <components>
-  <component name="robotConfig" class="org.seasar.robot.config.S2RobotConfig" >
+  <component name="robotConfig" class="org.seasar.robot.S2RobotConfig" >
     <property name="numOfThread">10</property>
     <property name="maxThreadCheckCount">20</property>
     <property name="threadCheckInterval">500</property>

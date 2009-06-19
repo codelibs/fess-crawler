@@ -2,6 +2,6 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
-	<component name="urlFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="singleton">
+	<component name="urlFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
 	</component>
 </components>

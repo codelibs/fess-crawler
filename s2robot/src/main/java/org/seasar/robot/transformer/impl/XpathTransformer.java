@@ -95,7 +95,7 @@ public class XpathTransformer extends HtmlTransformer {
             buf.append(getResultDataBody(entry.getKey(), value != null ? value
                     .getTextContent() : null));
         }
-        buf.append(getAdditionalData(responseData));
+        buf.append(getAdditionalData(responseData, document));
         buf.append(getResultDataFooter());
 
         try {
@@ -122,7 +122,8 @@ public class XpathTransformer extends HtmlTransformer {
                 + trimSpace(escapeXml(value)) + "</field>\n";
     }
 
-    protected String getAdditionalData(ResponseData responseData) {
+    protected String getAdditionalData(ResponseData responseData,
+            Document document) {
         return "";
     }
 

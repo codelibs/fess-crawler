@@ -39,21 +39,12 @@ public class DBFluteInitializer {
      * Constructor. And initialize various components.
      */
     public DBFluteInitializer() {
+        _log.info("...Initializing DBFlute components!");
         handleSqlLogRegistry();
         loadCoolClasses();
         DBFluteConfig.getInstance().lock();
     }
 
-    // ===================================================================================
-    //                                                                        Cool Classes
-    //                                                                        ============
-    protected void loadCoolClasses() { // for S2Container basically 
-        ConditionBeanContext.loadCoolClasses(); // Against the ClassLoader Headache!
-    }
-
-    // ===================================================================================
-    //                                                                    SQL Log Registry
-    //                                                                    ================
     protected void handleSqlLogRegistry() {
         if (DBFluteConfig.getInstance().isUseSqlLogRegistry()) {
             final StringBuilder sb = new StringBuilder();
@@ -78,6 +69,10 @@ public class DBFluteInitializer {
                 TnSqlLogRegistry.closeRegistration();
             }
         }
+    }
+
+    protected void loadCoolClasses() { // for S2Container basically 
+        ConditionBeanContext.loadCoolClasses(); // Against the ClassLoader Headache!
     }
 
     // ===================================================================================

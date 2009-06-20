@@ -30,7 +30,7 @@ import org.seasar.robot.db.exentity.AccessResultData;
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, CREATE_TIME
+ *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, LAST_MODIFIED, CREATE_TIME
  * 
  * [sequence]
  *     
@@ -101,6 +101,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
 
     /** EXECUTION_TIME: {NotNull : INTEGER} */
     protected Integer _executionTime;
+
+    /** LAST_MODIFIED: {NotNull : TIMESTAMP} */
+    protected java.sql.Timestamp _lastModified;
 
     /** CREATE_TIME: {NotNull : TIMESTAMP} */
     protected java.sql.Timestamp _createTime;
@@ -247,6 +250,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
         sb.append(delimiter).append(getMimeType());
         sb.append(delimiter).append(getContentLength());
         sb.append(delimiter).append(getExecutionTime());
+        sb.append(delimiter).append(getLastModified());
         sb.append(delimiter).append(getCreateTime());
         if (sb.length() > 0) {
             sb.delete(0, delimiter.length());
@@ -443,6 +447,23 @@ public abstract class BsAccessResult implements Entity, Serializable {
     public void setExecutionTime(Integer executionTime) {
         _modifiedProperties.addPropertyName("executionTime");
         this._executionTime = executionTime;
+    }
+
+    /**
+     * LAST_MODIFIED: {NotNull : TIMESTAMP} <br />
+     * @return The value of the column 'LAST_MODIFIED'. (Nullable)
+     */
+    public java.sql.Timestamp getLastModified() {
+        return _lastModified;
+    }
+
+    /**
+     * LAST_MODIFIED: {NotNull : TIMESTAMP} <br />
+     * @param lastModified The value of the column 'LAST_MODIFIED'. (Nullable)
+     */
+    public void setLastModified(java.sql.Timestamp lastModified) {
+        _modifiedProperties.addPropertyName("lastModified");
+        this._lastModified = lastModified;
     }
 
     /**

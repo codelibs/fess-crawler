@@ -1138,6 +1138,76 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
+     * @param lastModified The value of lastModified as equal.
+     */
+    public void setLastModified_Equal(java.sql.Timestamp lastModified) {
+        regLastModified(CK_EQ, lastModified);
+    }
+
+    /**
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered.
+     * @param lastModified The value of lastModified as greaterThan.
+     */
+    public void setLastModified_GreaterThan(java.sql.Timestamp lastModified) {
+        regLastModified(CK_GT, lastModified);
+    }
+
+    /**
+     * LessThan(&gt;). And NullIgnored, OnlyOnceRegistered.
+     * @param lastModified The value of lastModified as lessThan.
+     */
+    public void setLastModified_LessThan(java.sql.Timestamp lastModified) {
+        regLastModified(CK_LT, lastModified);
+    }
+
+    /**
+     * GreaterEqual(&gt;). And NullIgnored, OnlyOnceRegistered.
+     * @param lastModified The value of lastModified as greaterEqual.
+     */
+    public void setLastModified_GreaterEqual(java.sql.Timestamp lastModified) {
+        regLastModified(CK_GE, lastModified);
+    }
+
+    /**
+     * LessEqual(&gt;). And NullIgnored, OnlyOnceRegistered.
+     * @param lastModified The value of lastModified as lessEqual.
+     */
+    public void setLastModified_LessEqual(java.sql.Timestamp lastModified) {
+        regLastModified(CK_LE, lastModified);
+    }
+
+    /**
+     * FromTo($fromDate &lt;= COLUMN_NAME &lt;= $toDate). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
+     * @param fromDate The from-date of lastModified. (Nullable)
+     * @param toDate The to-date of lastModified. (Nullable)
+     * @param fromToOption The option of from-to. (NotNull)
+     */
+    public void setLastModified_FromTo(java.util.Date fromDate,
+            java.util.Date toDate, FromToOption fromToOption) {
+        regFTQ((fromDate != null ? new java.sql.Timestamp(fromDate.getTime())
+                : null), (toDate != null ? new java.sql.Timestamp(toDate
+                .getTime()) : null), getCValueLastModified(), "LAST_MODIFIED",
+                fromToOption);
+    }
+
+    /**
+     * FromTo($fromDate &lt;= COLUMN_NAME &lt; $toDate + 1). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
+     * @param fromDate The from-date of lastModified. (Nullable)
+     * @param toDate The to-date of lastModified. (Nullable)
+     */
+    public void setLastModified_DateFromTo(java.util.Date fromDate,
+            java.util.Date toDate) {
+        setLastModified_FromTo(fromDate, toDate, new DateFromToOption());
+    }
+
+    protected void regLastModified(ConditionKey k, Object v) {
+        regQ(k, v, getCValueLastModified(), "LAST_MODIFIED");
+    }
+
+    abstract protected ConditionValue getCValueLastModified();
+
+    /**
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
      * @param createTime The value of createTime as equal.
      */
     public void setCreateTime_Equal(java.sql.Timestamp createTime) {

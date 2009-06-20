@@ -162,6 +162,10 @@ public class AccessResultCIQ extends AbstractBsAccessResultCQ {
         return _myCQ.getExecutionTime();
     }
 
+    protected ConditionValue getCValueLastModified() {
+        return _myCQ.getLastModified();
+    }
+
     protected ConditionValue getCValueCreateTime() {
         return _myCQ.getCreateTime();
     }

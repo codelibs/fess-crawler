@@ -16,6 +16,7 @@
 package org.seasar.robot.service.impl;
 
 import java.sql.Timestamp;
+import java.util.Date;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.beans.util.Beans;
@@ -48,6 +49,7 @@ public class DBDataServiceImplTest extends S2TestCase {
         accessResult.setRuleId("html");
         accessResult.setStatus(Constants.OK_STATUS);
         accessResult.setContentLength(100L);
+        accessResult.setLastModified(new Timestamp(new Date().getTime()));
         dataService.store(accessResult);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult1a = new org.seasar.robot.db.exentity.AccessResult();

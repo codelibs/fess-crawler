@@ -23,7 +23,7 @@ import org.seasar.dbflute.bhv.core.InvokerAssistant;
 import org.seasar.dbflute.cbean.sqlclause.SqlClauseCreator;
 import org.seasar.dbflute.dbmeta.DBMetaProvider;
 import org.seasar.dbflute.jdbc.DataSourceHandler;
-import org.seasar.dbflute.jdbc.DataSourceWrapper;
+import org.seasar.dbflute.jdbc.HandlingDataSourceWrapper;
 import org.seasar.dbflute.jdbc.StatementFactory;
 import org.seasar.dbflute.resource.ResourceParameter;
 import org.seasar.dbflute.s2dao.beans.factory.TnBeanDescFactory;
@@ -58,7 +58,7 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
 
     protected TnValueTypeFactory _valueTypeFactory;
 
-    protected volatile boolean _disposable;
+    protected boolean _disposable;
 
     // ===================================================================================
     //                                                                 Assistant Main Work
@@ -71,7 +71,7 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         DataSourceHandler dataSourceHandler = DBFluteConfig.getInstance()
                 .getDataSourceHandler();
         if (dataSourceHandler != null) {
-            return new DataSourceWrapper(_dataSource, dataSourceHandler);
+            return new HandlingDataSourceWrapper(_dataSource, dataSourceHandler);
         }
         return _dataSource;
     }

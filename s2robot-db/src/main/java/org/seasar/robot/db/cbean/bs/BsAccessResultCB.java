@@ -279,6 +279,10 @@ public class BsAccessResultCB extends AbstractConditionBean {
             doColumn("EXECUTION_TIME");
         }
 
+        public void columnLastModified() {
+            doColumn("LAST_MODIFIED");
+        }
+
         public void columnCreateTime() {
             doColumn("CREATE_TIME");
         }

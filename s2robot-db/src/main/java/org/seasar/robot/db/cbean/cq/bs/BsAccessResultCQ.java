@@ -401,6 +401,29 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
         return this;
     }
 
+    protected ConditionValue _lastModified;
+
+    public ConditionValue getLastModified() {
+        if (_lastModified == null) {
+            _lastModified = nCV();
+        }
+        return _lastModified;
+    }
+
+    protected ConditionValue getCValueLastModified() {
+        return getLastModified();
+    }
+
+    public BsAccessResultCQ addOrderBy_LastModified_Asc() {
+        regOBA("LAST_MODIFIED");
+        return this;
+    }
+
+    public BsAccessResultCQ addOrderBy_LastModified_Desc() {
+        regOBD("LAST_MODIFIED");
+        return this;
+    }
+
     protected ConditionValue _createTime;
 
     public ConditionValue getCreateTime() {

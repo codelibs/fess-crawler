@@ -18,7 +18,8 @@ package org.seasar.robot.db.bsbhv.cursor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.seasar.dbflute.util.DfTypeUtil;
+import org.seasar.dbflute.jdbc.ValueType;
+import org.seasar.dbflute.s2dao.valuetype.TnValueTypes;
 
 /**
  * The cursor of AccessResultDiff.
@@ -74,6 +75,34 @@ public class BsAccessResultDiffCursor {
     /** Wrapped result set. */
     protected ResultSet _rs;
 
+    protected ValueType _vtId = vt(Long.class);
+
+    protected ValueType _vtSessionId = vt(String.class);
+
+    protected ValueType _vtRuleId = vt(String.class);
+
+    protected ValueType _vtUrl = vt(String.class);
+
+    protected ValueType _vtParentUrl = vt(String.class);
+
+    protected ValueType _vtStatus = vt(Integer.class);
+
+    protected ValueType _vtHttpStatusCode = vt(Integer.class);
+
+    protected ValueType _vtMethod = vt(String.class);
+
+    protected ValueType _vtMimeType = vt(String.class);
+
+    protected ValueType _vtContentLength = vt(Long.class);
+
+    protected ValueType _vtExecutionTime = vt(Integer.class);
+
+    protected ValueType _vtCreateTime = vt(java.sql.Timestamp.class);
+
+    protected ValueType vt(Class<?> type) {
+        return TnValueTypes.getValueType(type);
+    }
+
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
@@ -123,7 +152,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Long getId() throws SQLException {
-        return (Long) extractValueAsNumber(Long.class, "ID");
+        return (Long) _vtId.getValue(_rs, DB_NAME_ID);
     }
 
     /**
@@ -132,7 +161,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getSessionId() throws SQLException {
-        return extractValueAsString("SESSION_ID");
+        return (String) _vtSessionId.getValue(_rs, DB_NAME_SESSION_ID);
     }
 
     /**
@@ -141,7 +170,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getRuleId() throws SQLException {
-        return extractValueAsString("RULE_ID");
+        return (String) _vtRuleId.getValue(_rs, DB_NAME_RULE_ID);
     }
 
     /**
@@ -150,7 +179,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getUrl() throws SQLException {
-        return extractValueAsString("URL");
+        return (String) _vtUrl.getValue(_rs, DB_NAME_URL);
     }
 
     /**
@@ -159,7 +188,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getParentUrl() throws SQLException {
-        return extractValueAsString("PARENT_URL");
+        return (String) _vtParentUrl.getValue(_rs, DB_NAME_PARENT_URL);
     }
 
     /**
@@ -168,7 +197,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Integer getStatus() throws SQLException {
-        return (Integer) extractValueAsNumber(Integer.class, "STATUS");
+        return (Integer) _vtStatus.getValue(_rs, DB_NAME_STATUS);
     }
 
     /**
@@ -177,7 +206,8 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Integer getHttpStatusCode() throws SQLException {
-        return (Integer) extractValueAsNumber(Integer.class, "HTTP_STATUS_CODE");
+        return (Integer) _vtHttpStatusCode.getValue(_rs,
+                DB_NAME_HTTP_STATUS_CODE);
     }
 
     /**
@@ -186,7 +216,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getMethod() throws SQLException {
-        return extractValueAsString("METHOD");
+        return (String) _vtMethod.getValue(_rs, DB_NAME_METHOD);
     }
 
     /**
@@ -195,7 +225,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getMimeType() throws SQLException {
-        return extractValueAsString("MIME_TYPE");
+        return (String) _vtMimeType.getValue(_rs, DB_NAME_MIME_TYPE);
     }
 
     /**
@@ -204,7 +234,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Long getContentLength() throws SQLException {
-        return (Long) extractValueAsNumber(Long.class, "CONTENT_LENGTH");
+        return (Long) _vtContentLength.getValue(_rs, DB_NAME_CONTENT_LENGTH);
     }
 
     /**
@@ -213,7 +243,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Integer getExecutionTime() throws SQLException {
-        return (Integer) extractValueAsNumber(Integer.class, "EXECUTION_TIME");
+        return (Integer) _vtExecutionTime.getValue(_rs, DB_NAME_EXECUTION_TIME);
     }
 
     /**
@@ -222,44 +252,8 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public java.sql.Timestamp getCreateTime() throws SQLException {
-        return (java.sql.Timestamp) extractValueAsDate(
-                java.sql.Timestamp.class, "CREATE_TIME");
+        return (java.sql.Timestamp) _vtCreateTime.getValue(_rs,
+                DB_NAME_CREATE_TIME);
     }
 
-    // ===================================================================================
-    //                                                                       Assist Helper
-    //                                                                       =============
-    protected String extractValueAsString(String name) throws SQLException {
-        return _rs.getString(name);
-    }
-
-    protected Boolean extractValueAsBoolean(String name) throws SQLException {
-        return _rs.getBoolean(name);
-    }
-
-    protected Object extractValueAsNumber(Class<?> type, String name)
-            throws SQLException {
-        return DfTypeUtil.toNumber(type, extractValueAsObject(name));
-    }
-
-    protected Object extractValueAsDate(Class<?> type, String name)
-            throws SQLException {
-        if (type.isAssignableFrom(java.sql.Timestamp.class)) {
-            return _rs.getTimestamp(name);
-        } else if (type.isAssignableFrom(java.sql.Date.class)) {
-            return _rs.getDate(name);
-        } else if (type.isAssignableFrom(java.util.Date.class)) {
-            return toDate(_rs.getTimestamp(name));
-        } else {
-            return toDate(extractValueAsObject(name));
-        }
-    }
-
-    protected java.util.Date toDate(Object object) {
-        return DfTypeUtil.toDate(object);
-    }
-
-    protected Object extractValueAsObject(String name) throws SQLException {
-        return _rs.getObject(name);
-    }
 }

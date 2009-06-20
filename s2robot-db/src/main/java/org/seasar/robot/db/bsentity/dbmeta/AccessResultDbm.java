@@ -95,6 +95,9 @@ public class AccessResultDbm extends AbstractDBMeta {
     protected ColumnInfo _columnExecutionTime = cci("EXECUTION_TIME", null,
             "executionTime", Integer.class, false, false, null, null);
 
+    protected ColumnInfo _columnLastModified = cci("LAST_MODIFIED", null,
+            "lastModified", java.sql.Timestamp.class, false, false, null, null);
+
     protected ColumnInfo _columnCreateTime = cci("CREATE_TIME", null,
             "createTime", java.sql.Timestamp.class, false, false, null, null);
 
@@ -140,6 +143,10 @@ public class AccessResultDbm extends AbstractDBMeta {
 
     public ColumnInfo columnExecutionTime() {
         return _columnExecutionTime;
+    }
+
+    public ColumnInfo columnLastModified() {
+        return _columnLastModified;
     }
 
     public ColumnInfo columnCreateTime() {
@@ -315,6 +322,7 @@ public class AccessResultDbm extends AbstractDBMeta {
         setupEps(_epsMap, new EpsMimeType(), columnMimeType());
         setupEps(_epsMap, new EpsContentLength(), columnContentLength());
         setupEps(_epsMap, new EpsExecutionTime(), columnExecutionTime());
+        setupEps(_epsMap, new EpsLastModified(), columnLastModified());
         setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
     }
 
@@ -390,6 +398,12 @@ public class AccessResultDbm extends AbstractDBMeta {
     public static class EpsExecutionTime implements Eps<AccessResult> {
         public void setup(AccessResult e, Object v) {
             e.setExecutionTime((Integer) v);
+        }
+    }
+
+    public static class EpsLastModified implements Eps<AccessResult> {
+        public void setup(AccessResult e, Object v) {
+            e.setLastModified((java.sql.Timestamp) v);
         }
     }
 

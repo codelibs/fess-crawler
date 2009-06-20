@@ -21,6 +21,8 @@ import org.seasar.dbflute.QLog;
 import org.seasar.dbflute.XLog;
 import org.seasar.dbflute.jdbc.DataSourceHandler;
 import org.seasar.dbflute.jdbc.StatementConfig;
+import org.seasar.dbflute.jdbc.ValueType;
+import org.seasar.dbflute.s2dao.valuetype.TnValueTypes;
 
 /**
  * @author DBFlute(AutoGenerator)
@@ -45,6 +47,9 @@ public class DBFluteConfig {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
+    // -----------------------------------------------------
+    //                                         Configuration
+    //                                         -------------
     protected StatementConfig _defaultStatementConfig;
 
     protected boolean _queryLogLevelInfo;
@@ -65,6 +70,13 @@ public class DBFluteConfig {
 
     protected boolean _internalDebug;
 
+    // -----------------------------------------------------
+    //                                   Database Dependency
+    //                                   -------------------
+
+    // -----------------------------------------------------
+    //                                                  Lock
+    //                                                  ----
     protected boolean _locked = true;
 
     // ===================================================================================
@@ -246,6 +258,30 @@ public class DBFluteConfig {
         }
         _internalDebug = internalDebug;
     }
+
+    // ===================================================================================
+    //                                                                          Value Type
+    //                                                                          ==========
+    public void registerValueType(Class<?> keyType, ValueType valueType) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Registering valueType: keyType=" + keyType
+                    + " valueType=" + valueType);
+        }
+        TnValueTypes.registerValueType(keyType, valueType);
+    }
+
+    public void removeValueType(Class<?> keyType) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Removing valueType: keyType=" + keyType);
+        }
+        TnValueTypes.unregisterValueType(keyType);
+    }
+
+    // ===================================================================================
+    //                                                                 Database Dependency
+    //                                                                 ===================
 
     // ===================================================================================
     //                                                                  Configuration Lock

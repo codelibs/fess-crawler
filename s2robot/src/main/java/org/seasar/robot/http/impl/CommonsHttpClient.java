@@ -18,6 +18,10 @@ package org.seasar.robot.http.impl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
@@ -29,6 +33,7 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
+import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ResponseData;
@@ -126,6 +131,9 @@ public class CommonsHttpClient implements HttpClient {
 
         GetMethod getMethod = new GetMethod(url);
 
+        // do not redirect
+        getMethod.setFollowRedirects(false);
+
         // cookie
         if (cookiePolicy != null) {
             getMethod.getParams().setCookiePolicy(cookiePolicy);
@@ -184,6 +192,32 @@ public class CommonsHttpClient implements HttpClient {
                 }
                 responseData.setMimeType(contentType);
             }
+            Header contentLengthHeader = getMethod
+                    .getResponseHeader("Content-Length");
+            if (contentLengthHeader != null) {
+                String value = contentLengthHeader.getValue();
+                try {
+                    responseData.setContentLength(Long.parseLong(value));
+                } catch (Exception e) {
+                    responseData.setContentLength(-1);
+                }
+            } else {
+                responseData.setContentLength(-1);
+            }
+            Header lastModifiedHeader = getMethod
+                    .getResponseHeader("Last-Modified");
+            if (lastModifiedHeader != null) {
+                String value = lastModifiedHeader.getValue();
+                if (StringUtil.isNotBlank(value)) {
+                    Date d = parseLastModified(value);
+                    if (d != null) {
+                        responseData.setLastModified(d);
+                    } else {
+                        responseData.setLastModified(new Date()); //set current time
+                    }
+                }
+            }
+
             return responseData;
         } catch (Exception e) {
             throw new RobotSystemException("Failed to access " + url, e);
@@ -193,4 +227,13 @@ public class CommonsHttpClient implements HttpClient {
 
     }
 
+    protected Date parseLastModified(String value) {
+        SimpleDateFormat sdf = new SimpleDateFormat(
+                "EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+        try {
+            return sdf.parse(value);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
 }

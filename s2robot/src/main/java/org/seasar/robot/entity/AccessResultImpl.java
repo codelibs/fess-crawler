@@ -52,12 +52,14 @@ public class AccessResultImpl implements AccessResult {
 
     protected Long contentLength;
 
+    protected Timestamp lastModified;
+
     @Binding(bindingType = BindingType.NONE)
     protected AccessResultData accessResultData;
 
     public void init(ResponseData responseData, ResultData resultData) {
 
-        setCreateTime(new Timestamp(new Date().getTime())); // TODO response time
+        setCreateTime(new Timestamp(new Date().getTime()));
         Beans.copy(responseData, this).execute();
         setStatus(Constants.OK_STATUS);
 
@@ -240,6 +242,14 @@ public class AccessResultImpl implements AccessResult {
 
     public void setContentLength(Long contentLength) {
         this.contentLength = contentLength;
+    }
+
+    public Timestamp getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(Timestamp lastModified) {
+        this.lastModified = lastModified;
     }
 
 }

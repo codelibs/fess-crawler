@@ -76,4 +76,7 @@ public interface AccessResult {
 
     public abstract void setContentLength(Long contentLength);
 
+    public abstract Timestamp getLastModified();
+
+    public abstract void setLastModified(Timestamp lastModified);
 }

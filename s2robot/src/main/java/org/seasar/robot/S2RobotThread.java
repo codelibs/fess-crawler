@@ -127,6 +127,7 @@ public class S2RobotThread implements Runnable {
                             - startTime);
                     responseData.setParentUrl(urlQueue.getParentUrl());
                     responseData.setSessionId(robotContext.sessionId);
+                    // TODO
 
                     if (responseData.getRedirectLocation() != null) {
                         // redirect

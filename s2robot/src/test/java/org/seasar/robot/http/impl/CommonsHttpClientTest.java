@@ -15,16 +15,17 @@
  */
 package org.seasar.robot.http.impl;
 
+import java.util.Date;
+
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.entity.ResponseData;
-import org.seasar.robot.http.HttpClient;
 
 /**
  * @author shinsuke
  *
  */
 public class CommonsHttpClientTest extends S2TestCase {
-    public HttpClient httpClient;
+    public CommonsHttpClient httpClient;
 
     @Override
     protected String getRootDicon() throws Throwable {
@@ -32,7 +33,14 @@ public class CommonsHttpClientTest extends S2TestCase {
     }
 
     public void test_doGet() {
-        ResponseData responseData = httpClient.doGet("http://www.yahoo.co.jp/");
+        String url = "http://s2robot.sandbox.seasar.org/";
+        ResponseData responseData = httpClient.doGet(url);
         assertEquals(200, responseData.getHttpStatusCode());
+    }
+
+    public void test_parseLastModified() {
+        String value = "Mon, 01 Jun 2009 21:02:45 GMT";
+        Date date = httpClient.parseLastModified(value);
+        assertNotNull(date);
     }
 }

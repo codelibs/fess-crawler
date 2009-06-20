@@ -16,6 +16,7 @@
 package org.seasar.robot.entity;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -46,6 +47,8 @@ public class ResponseData {
     private String sessionId;
 
     private long executionTime;
+
+    private Date lastModified;
 
     private String redirectLocation;
 
@@ -156,6 +159,14 @@ public class ResponseData {
 
     public void setRedirectLocation(String redirectLocation) {
         this.redirectLocation = redirectLocation;
+    }
+
+    public Date getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(Date lastModified) {
+        this.lastModified = lastModified;
     }
 
 }

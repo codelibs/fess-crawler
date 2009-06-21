@@ -387,7 +387,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return url;
     }
 
-    private boolean isValidPath(String path) {
+    protected boolean isValidPath(String path) {
         if (StringUtil.isBlank(path)) {
             return false;
         }

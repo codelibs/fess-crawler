@@ -216,6 +216,8 @@ public class CommonsHttpClient implements HttpClient {
                         responseData.setLastModified(new Date()); //set current time
                     }
                 }
+            } else {
+                responseData.setLastModified(new Date()); //set current time
             }
 
             return responseData;

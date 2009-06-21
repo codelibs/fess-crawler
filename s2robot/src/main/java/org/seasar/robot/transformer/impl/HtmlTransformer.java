@@ -362,6 +362,10 @@ public class HtmlTransformer extends AbstractTransformer {
         if (url == null) {
             return null;
         }
+
+        // trim
+        url = url.trim();
+
         int idx = url.indexOf("#");
         if (idx >= 0) {
             url = url.substring(0, idx);
@@ -372,10 +376,10 @@ public class HtmlTransformer extends AbstractTransformer {
             url = url.substring(0, idx);
         }
 
-        if (url.indexOf("/../") >= 0) {
+        if (url.indexOf("/../") >= 0 || url.indexOf(" ") >= 0) {
             // invalid URL
             if (logger.isDebugEnabled()) {
-                logger.debug("INVALID: " + url);
+                logger.debug("INVALID URL: " + url);
             }
             return null;
         }

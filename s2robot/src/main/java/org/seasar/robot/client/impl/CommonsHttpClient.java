@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.http.impl;
+package org.seasar.robot.client.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -36,8 +36,8 @@ import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.entity.ResponseData;
-import org.seasar.robot.http.HttpClient;
 import org.seasar.robot.util.StreamUtil;
 import org.seasar.robot.util.TemporaryFileInputStream;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class CommonsHttpClient implements HttpClient {
+public class CommonsHttpClient implements S2RobotClient {
     private final Logger logger = LoggerFactory
             .getLogger(CommonsHttpClient.class);
 

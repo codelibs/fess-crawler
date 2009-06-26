@@ -25,11 +25,12 @@ import javax.annotation.Resource;
 
 import org.seasar.framework.container.S2Container;
 import org.seasar.framework.util.StringUtil;
+import org.seasar.robot.client.S2RobotClient;
+import org.seasar.robot.client.S2RobotClientFactory;
 import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.entity.UrlQueue;
-import org.seasar.robot.http.HttpClient;
 import org.seasar.robot.interval.IntervalGenerator;
 import org.seasar.robot.rule.Rule;
 import org.seasar.robot.service.DataService;
@@ -53,9 +54,6 @@ public class S2RobotThread implements Runnable {
     protected DataService dataService;
 
     @Resource
-    protected HttpClient httpClient;
-
-    @Resource
     protected IntervalGenerator intervalGenerator;
 
     @Resource
@@ -63,6 +61,9 @@ public class S2RobotThread implements Runnable {
 
     @Resource
     protected S2RobotConfig robotConfig;
+
+    @Resource
+    protected S2RobotClientFactory clientFactory;
 
     protected S2RobotContext robotContext;
 
@@ -117,17 +118,22 @@ public class S2RobotThread implements Runnable {
                         logger.debug("Starting " + urlQueue.getUrl());
                     }
 
+                    S2RobotClient client = getClient(urlQueue.getUrl());
+                    if (client == null) {
+                        logger.info("Unsupported path: " + urlQueue.getUrl());
+                        break;
+                    }
+
                     startCrawling();
 
                     // access an url
                     long startTime = System.currentTimeMillis();
-                    ResponseData responseData = httpClient.doGet(urlQueue
+                    ResponseData responseData = client.doGet(urlQueue
                             .getUrl());
                     responseData.setExecutionTime(System.currentTimeMillis()
                             - startTime);
                     responseData.setParentUrl(urlQueue.getParentUrl());
                     responseData.setSessionId(robotContext.sessionId);
-                    // TODO
 
                     if (responseData.getRedirectLocation() != null) {
                         // redirect
@@ -176,6 +182,10 @@ public class S2RobotThread implements Runnable {
                 }
             }
         }
+    }
+
+    protected S2RobotClient getClient(String url) {
+        return clientFactory.getClient(url);
     }
 
     protected void processResponse(UrlQueue urlQueue, ResponseData responseData) {

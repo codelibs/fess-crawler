@@ -2,7 +2,7 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
-	<include path="s2robot_httpclient.dicon"/>
+	<include path="s2robot_client.dicon"/>
 	<include path="s2robot_rule.dicon"/>
 	<include path="s2robot_filter.dicon"/>
 	<include path="s2robot_interval.dicon"/>

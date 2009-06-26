@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components>
+	<component name="httpClient" class="org.seasar.robot.client.impl.CommonsHttpClient" instance="singleton">
+		<property name="cookiePolicy">@org.apache.commons.httpclient.cookie.CookiePolicy@BROWSER_COMPATIBILITY</property>
+	</component>
+
+	<component name="clientFactory" class="org.seasar.robot.client.S2RobotClientFactory" instance="singleton">
+		<initMethod name="addClient">
+			<arg>"http:.*"</arg>
+			<arg>httpClient</arg>
+		</initMethod>
+		<initMethod name="addClient">
+			<arg>"https:.*"</arg>
+			<arg>httpClient</arg>
+		</initMethod>
+	</component>
+
+</components>

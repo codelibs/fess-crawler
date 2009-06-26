@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.http;
+package org.seasar.robot.client;
 
 import org.seasar.robot.entity.ResponseData;
 
@@ -21,7 +21,7 @@ import org.seasar.robot.entity.ResponseData;
  * @author shinsuke
  *
  */
-public interface HttpClient {
+public interface S2RobotClient {
 
     public abstract ResponseData doGet(String url);
 

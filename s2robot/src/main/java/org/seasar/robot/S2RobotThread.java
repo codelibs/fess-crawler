@@ -27,6 +27,7 @@ import org.seasar.framework.container.S2Container;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.client.S2RobotClientFactory;
+import org.seasar.robot.client.fs.ChildUrlsException;
 import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
@@ -128,8 +129,7 @@ public class S2RobotThread implements Runnable {
 
                     // access an url
                     long startTime = System.currentTimeMillis();
-                    ResponseData responseData = client.doGet(urlQueue
-                            .getUrl());
+                    ResponseData responseData = client.doGet(urlQueue.getUrl());
                     responseData.setExecutionTime(System.currentTimeMillis()
                             - startTime);
                     responseData.setParentUrl(urlQueue.getParentUrl());
@@ -150,6 +150,13 @@ public class S2RobotThread implements Runnable {
 
                     if (logger.isDebugEnabled()) {
                         logger.debug("Finished " + urlQueue.getUrl());
+                    }
+                } catch (ChildUrlsException e) {
+                    synchronized (robotContext.accessCountLock) {
+                        //  add an url
+                        storeChildUrls(e.getChildUrlList(), urlQueue.getUrl(),
+                                urlQueue.getDepth() != null ? urlQueue
+                                        .getDepth() + 1 : 1);
                     }
                 } catch (Exception e) {
                     logger.error("Crawling Exception at " + urlQueue.getUrl(),

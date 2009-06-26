@@ -18,6 +18,7 @@ package org.seasar.robot;
 import java.io.File;
 
 import org.seasar.extension.unit.S2TestCase;
+import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.transformer.impl.FileTransformer;
 
@@ -34,7 +35,7 @@ public class S2RobotTest extends S2TestCase {
         return "app.dicon";
     }
 
-    public void test_execute() throws Exception {
+    public void test_execute_web() throws Exception {
         String url = "http://s2robot.sandbox.seasar.org/";
         int maxCount = 50;
         int numOfThread = 10;
@@ -46,6 +47,28 @@ public class S2RobotTest extends S2TestCase {
         fileTransformer.path = file.getAbsolutePath();
         // TODO use a local server(ex. jetty)
         s2Robot.addUrl(url);
+        s2Robot.robotConfig.setMaxAccessCount(maxCount);
+        s2Robot.robotConfig.setNumOfThread(numOfThread);
+        s2Robot.urlFilter.addInclude(url + ".*");
+        String sessionId = s2Robot.execute();
+        assertEquals(maxCount, dataService.getCount(sessionId));
+        dataService.delete(sessionId);
+    }
+
+    public void test_execute_file() throws Exception {
+        File targetFile = ResourceUtil.getResourceAsFile("test");
+        String url = "file://" + targetFile.getAbsolutePath();
+        int maxCount = 3;
+        int numOfThread = 2;
+
+        File file = File.createTempFile("s2robot-", "");
+        file.delete();
+        file.mkdirs();
+        file.deleteOnExit();
+        fileTransformer.path = file.getAbsolutePath();
+        // TODO use a local server(ex. jetty)
+        s2Robot.addUrl(url);
+        s2Robot.robotConfig.setMaxThreadCheckCount(3);
         s2Robot.robotConfig.setMaxAccessCount(maxCount);
         s2Robot.robotConfig.setNumOfThread(numOfThread);
         s2Robot.urlFilter.addInclude(url + ".*");

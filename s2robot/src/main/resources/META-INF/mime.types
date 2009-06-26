@@ -1,0 +1,7 @@
+application/msword              doc dot wiz rtf
+application/msexcel             xls
+application/mspowerpoint        ppt
+application/x-pdf               pdf
+application/x-gzip              gz
+application/x-tar               tar
+application/zip                 zip

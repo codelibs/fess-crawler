@@ -13,11 +13,10 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.client.impl;
+package org.seasar.robot.client;
 
 import org.seasar.extension.unit.S2TestCase;
-import org.seasar.robot.client.S2RobotClient;
-import org.seasar.robot.client.S2RobotClientFactory;
+import org.seasar.robot.client.http.CommonsHttpClient;
 
 /**
  * @author shinsuke

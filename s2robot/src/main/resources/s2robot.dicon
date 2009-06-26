@@ -31,5 +31,7 @@
 	<!-- Helper -->
 	<component name="dataHelper" class="org.seasar.robot.helper.MemoryDataHelper" instance="singleton" >
 	</component>
+	<component name="mimeTypeHelper" class="org.seasar.robot.helper.MimeTypeHelper" instance="singleton" >
+	</component>
 
 </components>

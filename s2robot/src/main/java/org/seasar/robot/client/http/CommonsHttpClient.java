@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.client.impl;
+package org.seasar.robot.client.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -176,7 +176,6 @@ public class CommonsHttpClient implements S2RobotClient {
             responseData.setMethod(Constants.GET_METHOD);
             responseData.setUrl(url);
             responseData.setCharSet(getMethod.getResponseCharSet());
-            responseData.setContentLength(getMethod.getResponseContentLength());
             responseData.setResponseBody(inputStream);
             responseData.setHttpStatusCode(httpStatusCode);
             for (Header header : getMethod.getResponseHeaders()) {

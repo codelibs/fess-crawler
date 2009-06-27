@@ -38,13 +38,13 @@ public class MimeTypeHelperTest extends S2TestCase {
         assertEquals("text/html", mimeTypeHelper.getContentType("hoge.htm"));
         assertEquals("application/msword", mimeTypeHelper
                 .getContentType("hoge.doc"));
-        assertEquals("application/msexcel", mimeTypeHelper
+        assertEquals("application/vnd.ms-excel", mimeTypeHelper
                 .getContentType("hoge.xls"));
         assertEquals("image/jpeg", mimeTypeHelper.getContentType("hoge.jpg"));
         assertEquals("image/gif", mimeTypeHelper.getContentType("hoge.gif"));
-        assertEquals("application/mspowerpoint", mimeTypeHelper
+        assertEquals("application/vnd.ms-powerpoint", mimeTypeHelper
                 .getContentType("hoge.ppt"));
-        assertEquals("application/x-pdf", mimeTypeHelper
+        assertEquals("application/pdf", mimeTypeHelper
                 .getContentType("hoge.pdf"));
         assertEquals("application/x-gzip", mimeTypeHelper
                 .getContentType("hoge.tar.gz"));

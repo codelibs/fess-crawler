@@ -86,4 +86,8 @@
 		<property name="propertyMap">defaultPropertyMap</property>
 		<property name="childUrlRuleMap">htmlUrlRuleMap</property>
 	</component>
+
+	<component name="textTransformer" class="org.seasar.robot.transformer.impl.TextTransformer" instance="singleton">
+		<property name="name">"textTransformer"</property>
+	</component>
 </components>

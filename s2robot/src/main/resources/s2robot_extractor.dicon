@@ -8,6 +8,8 @@
 	<component name="msPublisherExtractor" class="org.seasar.robot.extractor.impl.MsPublisherExtractor"/>
 	<component name="msVisioExtractor" class="org.seasar.robot.extractor.impl.MsVisioExtractor"/>
 	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor"/>
+	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
+	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
 
 	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
 		<initMethod name="addExtractor">
@@ -33,6 +35,18 @@
 		<initMethod name="addExtractor">
 			<arg>"application/pdf"</arg>
 			<arg>pdfExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"text/plain"</arg>
+			<arg>textExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"text/html"</arg>
+			<arg>htmlExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/xml+xhtml"</arg>
+			<arg>htmlExtractor</arg>
 		</initMethod>
 	</component>
 

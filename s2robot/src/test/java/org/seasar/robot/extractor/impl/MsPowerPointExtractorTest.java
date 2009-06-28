@@ -17,6 +17,7 @@ package org.seasar.robot.extractor.impl;
 
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.RobotSystemException;
@@ -42,6 +43,7 @@ public class MsPowerPointExtractorTest extends S2TestCase {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/msoffice/test.ppt");
         String content = msPowerPointExtractor.getText(in);
+        IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }

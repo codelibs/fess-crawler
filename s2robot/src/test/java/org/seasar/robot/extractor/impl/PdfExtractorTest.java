@@ -17,6 +17,7 @@ package org.seasar.robot.extractor.impl;
 
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.RobotSystemException;
@@ -41,6 +42,7 @@ public class PdfExtractorTest extends S2TestCase {
     public void test_getText() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
         String content = pdfExtractor.getText(in);
+        IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }

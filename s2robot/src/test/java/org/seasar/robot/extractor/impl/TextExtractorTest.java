@@ -28,11 +28,11 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class MsWordExtractorTest extends S2TestCase {
+public class TextExtractorTest extends S2TestCase {
     private static final Logger logger = LoggerFactory
-            .getLogger(MsWordExtractorTest.class);
+            .getLogger(TextExtractorTest.class);
 
-    public MsWordExtractor msWordExtractor;
+    public TextExtractor textExtractor;
 
     @Override
     protected String getRootDicon() throws Throwable {
@@ -40,9 +40,8 @@ public class MsWordExtractorTest extends S2TestCase {
     }
 
     public void test_getText() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.doc");
-        String content = msWordExtractor.getText(in);
+        InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+        String content = textExtractor.getText(in);
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -50,7 +49,7 @@ public class MsWordExtractorTest extends S2TestCase {
 
     public void test_getText_null() {
         try {
-            msWordExtractor.getText(null);
+            textExtractor.getText(null);
             fail();
         } catch (RobotSystemException e) {
             // NOP

@@ -10,7 +10,7 @@
 		</initMethod>
 	</component>
 	
-	<component name="fileRule" class="org.seasar.robot.rule.Rule" >
+	<component name="fileRule" class="org.seasar.robot.rule.impl.RegexRule" >
 		<property name="defaultRule">true</property>
 		<property name="transformer">fileTransformer</property>
 	</component>

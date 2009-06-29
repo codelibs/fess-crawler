@@ -13,26 +13,37 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.rule;
-
-import java.io.Serializable;
+package org.seasar.robot.rule.impl;
 
 import org.seasar.robot.entity.ResponseData;
+import org.seasar.robot.rule.Rule;
 import org.seasar.robot.transformer.Transformer;
 
 /**
  * @author shinsuke
  * 
  */
-public interface Rule extends Serializable {
+public abstract class AbstractRule implements Rule {
+
+    protected String ruleId;
+
+    protected Transformer transformer;
 
     public abstract boolean match(ResponseData responseData);
 
-    public abstract String getRuleId();
+    public String getRuleId() {
+        return ruleId;
+    }
 
-    public abstract void setRuleId(String ruleId);
+    public void setRuleId(String ruleId) {
+        this.ruleId = ruleId;
+    }
 
-    public abstract Transformer getTransformer();
+    public Transformer getTransformer() {
+        return transformer;
+    }
 
-    public abstract void setTransformer(Transformer transformer);
+    public void setTransformer(Transformer transformer) {
+        this.transformer = transformer;
+    }
 }

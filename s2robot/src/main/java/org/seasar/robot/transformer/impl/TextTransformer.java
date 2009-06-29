@@ -34,7 +34,7 @@ import org.seasar.robot.extractor.ExtractorFactory;
  */
 public class TextTransformer extends AbstractTransformer {
 
-    public String encoding = Constants.UTF_8;
+    public String charsetName = Constants.UTF_8;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.transformer.impl.AbstractTransformer#transform(org.seasar.robot.entity.ResponseData)
@@ -59,12 +59,12 @@ public class TextTransformer extends AbstractTransformer {
         ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
         try {
-            resultData.setData(content.getBytes(encoding));
+            resultData.setData(content.getBytes(charsetName));
         } catch (UnsupportedEncodingException e) {
-            throw new RobotSystemException("Unsupported encoding: " + encoding,
-                    e);
+            throw new RobotSystemException("Unsupported encoding: "
+                    + charsetName, e);
         }
-        resultData.setEncoding(encoding);
+        resultData.setEncoding(charsetName);
         return resultData;
     }
 
@@ -83,10 +83,10 @@ public class TextTransformer extends AbstractTransformer {
             return null;
         }
         try {
-            return new String(data, encoding);
+            return new String(data, charsetName);
         } catch (UnsupportedEncodingException e) {
-            throw new RobotSystemException("Unsupported encoding: " + encoding,
-                    e);
+            throw new RobotSystemException("Unsupported encoding: "
+                    + charsetName, e);
         }
     }
 

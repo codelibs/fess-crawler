@@ -70,6 +70,10 @@ public class RegexRule extends AbstractRule {
         }
     }
 
+    public void addRule(String key, String regex) {
+        regexMap.put(key, Pattern.compile(regex));
+    }
+
     public void addRule(String key, Pattern pattern) {
         regexMap.put(key, pattern);
     }

@@ -68,27 +68,35 @@ public class FileSystemClient implements S2RobotClient {
                     .getComponent("mimeTypeHelper");
             responseData.setMimeType(mimeTypeHelper.getContentType(file
                     .getName()));
-            try {
-                File outputFile = File.createTempFile("s2robot-", ".out");
-                outputFile.deleteOnExit();
-                FileUtil.copy(file, outputFile);
-                responseData.setResponseBody(new TemporaryFileInputStream(
-                        outputFile));
-            } catch (Exception e) {
-                logger.warn("I/O Exception.", e);
-                responseData.setHttpStatusCode(500);
+            if (file.canRead()) {
+                try {
+                    File outputFile = File.createTempFile("s2robot-", ".out");
+                    outputFile.deleteOnExit();
+                    FileUtil.copy(file, outputFile);
+                    responseData.setResponseBody(new TemporaryFileInputStream(
+                            outputFile));
+                } catch (Exception e) {
+                    logger.warn("I/O Exception.", e);
+                    responseData.setHttpStatusCode(500);
+                }
+            } else {
+                // Forbidden
+                responseData.setHttpStatusCode(403);
             }
         } else if (file.isDirectory()) {
             Set<String> childUrlSet = new HashSet<String>();
-            for (File f : file.listFiles()) {
-                String path = f.getAbsolutePath();
-                StringBuilder buf = new StringBuilder(255);
-                buf.append("file://");
-                if (!path.startsWith("/")) {
-                    buf.append('/');
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    String path = f.getAbsolutePath();
+                    StringBuilder buf = new StringBuilder(255);
+                    buf.append("file://");
+                    if (!path.startsWith("/")) {
+                        buf.append('/');
+                    }
+                    buf.append(path);
+                    childUrlSet.add(buf.toString());
                 }
-                buf.append(path);
-                childUrlSet.add(buf.toString());
             }
             throw new ChildUrlsException(childUrlSet);
         } else {

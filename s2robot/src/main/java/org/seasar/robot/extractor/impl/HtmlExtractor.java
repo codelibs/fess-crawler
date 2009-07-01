@@ -41,9 +41,10 @@ public class HtmlExtractor implements Extractor {
 
     public String encoding = Constants.UTF_8;
 
-    public Pattern metaCharsetPattern = Pattern.compile(
-            "<meta.*content\\s*=\\s*['\"].*;\\s*charset=(.*)['\"]\\s*/?>",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    public Pattern metaCharsetPattern = Pattern
+            .compile(
+                    "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
+                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     public Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
 

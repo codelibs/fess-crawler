@@ -45,6 +45,10 @@
 			<arg>htmlExtractor</arg>
 		</initMethod>
 		<initMethod name="addExtractor">
+			<arg>"application/csv"</arg>
+			<arg>textExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
 			<arg>"application/xml+xhtml"</arg>
 			<arg>htmlExtractor</arg>
 		</initMethod>

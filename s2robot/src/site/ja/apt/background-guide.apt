@@ -1,0 +1,37 @@
+               --------------------
+              バックグラウンドで実行
+               --------------------
+                 Shinsuke Sugaya
+               ------------------
+                   2009-07-02
+
+バックグラウンドで実行方法
+
+    S2Robot は、execute() を実行すると標準ではクロールが終わるまで待ち状態になります。
+    setBackgroun() メソッドにより、execute() メソッドの実行待ちにならないようにできます。
+
+
+* 設定方法
+
+    S2Robot#setBackground(true) とすることで、execute() の実行をバックグラウンドにできます。
+
++--------------------------------------------------+
+    S2Robot s2Robot = (S2Robot) container.getComponent(S2Robot.class);
+
+    // バックグランドで実行にする
+    s2Robot.setBackground(true);
+
+    s2Robot.addUrl(url);
+    s2Robot.robotConfig.setMaxAccessCount(maxCount);
+    s2Robot.robotConfig.setNumOfThread(numOfThread);
+    s2Robot.urlFilter.addInclude(url + ".*");
+    String sessionId = s2Robot.execute();
+    :
+    // 何か処理
+    :
+    // 終了を待つ
+    s2Robot.awaitTermination();
++--------------------------------------------------+
+
+    awaitTermination() メソッドを呼び出すことにより、クロール終了を待つことができます。
+    awaitTermination(long millis) メソッドにより、待ち時間のタイムアウトを設定できます。

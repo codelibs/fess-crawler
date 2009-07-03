@@ -17,20 +17,20 @@
 +--------------------------------------------------+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
-        "http://www.seasar.org/dtd/components24.dtd">
+    "http://www.seasar.org/dtd/components24.dtd">
 <components>
     <include path="s2robot_transformer.dicon"/>
 
-        <component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="singleton">
-                <initMethod name="addRule">
-                        <arg>fileRule</arg>
-                </initMethod>
-        </component>
+    <component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="prototype">
+        <initMethod name="addRule">
+            <arg>fileRule</arg>
+        </initMethod>
+    </component>
 
-        <component name="fileRule" class="org.seasar.robot.rule.Rule" >
-                <property name="defaultRule">true</property>
-                <property name="transformer">fileTransformer</property>
-        </component>
+    <component name="fileRule" class="org.seasar.robot.rule.impl.RegexRule" >
+        <property name="defaultRule">true</property>
+        <property name="transformer">fileTransformer</property>
+    </component>
 </components>
 +--------------------------------------------------+
 
@@ -45,12 +45,21 @@
     例えば、コンテンツタイプ(MIMEタイプ部分)が text/html で、URL が http://www.example.com/ で始まり html で終わるようなものだけを対象にする場合は以下のようになります。
 
 +--------------------------------------------------+
-<component name="htmlRule" class="org.seasar.robot.rule.Rule" >
-    <property name="ruleId">"html"</property>
-    <property name="mimeType">"text/html"</property>
-    <property name="urlPatternRegex">"http://www.example.com/.*html"</property>
-    <property name="transformer">fileTransformer</property>
-</component>
+    <component name="htmlRule" class="org.seasar.robot.rule.impl.RegexRule" >
+        <property name="ruleId">"htmlRule"</property>
+        <property name="transformer">fileTransformer</property>
+        <property name="allRequired">true</property>
+        <initMethod name="addRule">
+            <arg>"url"</arg>
+            <arg>"http://www.example.com/.*html"</arg>
+        </initMethod>
+        <initMethod name="addRule">
+            <arg>"mimeType"</arg>
+            <arg>"text/html"</arg>
+        </initMethod>
+    </component>
 +--------------------------------------------------+
 
+    allRequired を true にすることで、addRule で指定した条件がすべて満たすもの (AND 条件) がマッチするようになります。
+    false にすることで OR 条件で評価されます。
 

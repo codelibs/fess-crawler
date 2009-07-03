@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components>
+	<component name="includeFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
+		<property name="includeFilteringPattern">"$1$2$3.*"</property>
+	</component>
+	<component name="excludeFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
+		<property name="excludeFilteringPattern">"$1$2$3.*"</property>
+	</component>
+	<component name="domainFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
+		<property name="includeFilteringPattern">"http://$2/.*"</property>
+		<property name="excludeFilteringPattern">"http://$2/.*"</property>
+	</component>
+</components>

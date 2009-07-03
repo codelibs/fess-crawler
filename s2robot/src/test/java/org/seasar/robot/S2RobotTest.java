@@ -19,6 +19,7 @@ import java.io.File;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
+import org.seasar.robot.filter.impl.UrlFilterImpl;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.transformer.impl.FileTransformer;
 
@@ -89,10 +90,10 @@ public class S2RobotTest extends S2TestCase {
         fileTransformer.path = file.getAbsolutePath();
         // TODO use a local server(ex. jetty)
         s2Robot.setBackground(true);
+        ((UrlFilterImpl) s2Robot.urlFilter).includeFilteringPattern = "$1$2$3.*";
         s2Robot.addUrl(url);
         s2Robot.robotConfig.setMaxAccessCount(maxCount);
         s2Robot.robotConfig.setNumOfThread(numOfThread);
-        s2Robot.urlFilter.addInclude(url + ".*");
         String sessionId = s2Robot.execute();
         Thread.sleep(3000);
         assertTrue(s2Robot.robotContext.running);

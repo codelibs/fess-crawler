@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * S2Robot manages/controls a crawling information.
+ * 
  * @author shinsuke
  *
  */
@@ -71,6 +73,7 @@ public class S2Robot implements Runnable {
 
     public void addUrl(String url) {
         urlQueueService.add(robotContext.sessionId, url);
+        urlFilter.processUrl(url);
     }
 
     public String getSessionId() {

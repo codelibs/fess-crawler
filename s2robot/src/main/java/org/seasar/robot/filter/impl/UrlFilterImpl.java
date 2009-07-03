@@ -15,42 +15,19 @@
  */
 package org.seasar.robot.filter.impl;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.seasar.framework.util.StringUtil;
-import org.seasar.robot.RobotSystemException;
-import org.seasar.robot.filter.UrlFilter;
 
 /**
  * @author shinsuke
  *
  */
-public class UrlFilterImpl implements UrlFilter {
-    public List<Pattern> includeList;
+public class UrlFilterImpl extends AbstractUrlFilter {
+    public String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
-    public List<Pattern> excludeList;
+    public String includeFilteringPattern;
 
-    public UrlFilterImpl() {
-        includeList = new ArrayList<Pattern>();
-        excludeList = new ArrayList<Pattern>();
-    }
-
-    public void addInclude(String urlPattern) {
-        if (StringUtil.isBlank(urlPattern)) {
-            throw new RobotSystemException("urlPattern is null");
-        }
-        includeList.add(Pattern.compile(urlPattern));
-    }
-
-    public void addExclude(String urlPattern) {
-        if (StringUtil.isBlank(urlPattern)) {
-            throw new RobotSystemException("urlPattern is null");
-        }
-        excludeList.add(Pattern.compile(urlPattern));
-    }
+    public String excludeFilteringPattern;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.filter.UrlFilter#match(java.lang.String)
@@ -83,5 +60,18 @@ public class UrlFilterImpl implements UrlFilter {
         }
 
         return true;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.filter.impl.AbstractUrlFilter#processUrl(java.lang.String)
+     */
+    @Override
+    public void processUrl(String url) {
+        if (includeFilteringPattern != null) {
+            addInclude(url.replaceAll(urlPattern, includeFilteringPattern));
+        }
+        if (excludeFilteringPattern != null) {
+            addExclude(url.replaceAll(urlPattern, excludeFilteringPattern));
+        }
     }
 }

@@ -16,15 +16,40 @@
 package org.seasar.robot.filter;
 
 /**
+ * UrlFilter checks if a given url is a target one.
+ * 
  * @author shinsuke
  *
  */
 public interface UrlFilter {
 
+    /**
+     * Check if a given url is a target.
+     * 
+     * @param url
+     * @return
+     */
     public abstract boolean match(String url);
 
+    /**
+     * Add an url pattern as a target.
+     * 
+     * @param urlPattern
+     */
     public abstract void addInclude(String urlPattern);
 
+    /**
+     * Add an url pattern as a non-target.
+     * 
+     * @param urlPattern
+     */
     public abstract void addExclude(String urlPattern);
+
+    /**
+     * Process an url when it's added as a seed url.
+     * 
+     * @param url
+     */
+    public abstract void processUrl(String url);
 
 }

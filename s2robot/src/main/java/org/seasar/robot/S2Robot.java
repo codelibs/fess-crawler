@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class S2Robot {
+public class S2Robot implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(S2Robot.class);
 
@@ -55,7 +55,13 @@ public class S2Robot {
     @Resource
     protected S2Container container;
 
-    private S2RobotContext robotContext;
+    protected S2RobotContext robotContext;
+
+    protected boolean background = false;
+
+    protected boolean daemon = false;
+
+    protected Thread parentThread;
 
     public S2Robot() {
         robotContext = new S2RobotContext();
@@ -80,40 +86,25 @@ public class S2Robot {
     }
 
     public String execute() {
-        // context
-        robotContext.urlFilter = urlFilter;
-        robotContext.ruleManager = ruleManager;
-
-        ThreadGroup threadGroup = new ThreadGroup("Robot-"
-                + robotContext.sessionId);
-        Thread[] threads = new Thread[robotConfig.getNumOfThread()];
-        for (int i = 0; i < robotConfig.getNumOfThread(); i++) {
-            S2RobotThread robotThread = (S2RobotThread) container
-                    .getComponent("robotThread");
-            robotThread.robotContext = robotContext;
-            threads[i] = new Thread(threadGroup, robotThread, "Robot-"
-                    + robotContext.sessionId + "-" + Integer.toString(i + 1));
+        parentThread = new Thread(this, "Robot-" + robotContext.sessionId);
+        parentThread.setDaemon(daemon);
+        parentThread.start();
+        if (!background) {
+            awaitTermination();
         }
-
-        // run
-        robotContext.running = true;
-        for (int i = 0; i < robotConfig.numOfThread; i++) {
-            threads[i].start();
-        }
-
-        // join
-        for (int i = 0; i < robotConfig.numOfThread; i++) {
-            try {
-                threads[i].join();
-            } catch (InterruptedException e) {
-                logger.warn("Could not join " + threads[i].getName());
-            }
-        }
-        robotContext.running = false;
-
-        urlQueueService.saveSession(robotContext.sessionId);
-
         return robotContext.sessionId;
+    }
+
+    public void awaitTermination() {
+        awaitTermination(0);
+    }
+
+    public void awaitTermination(long millis) {
+        try {
+            parentThread.join(millis);
+        } catch (InterruptedException e) {
+            logger.warn("Interrupted job at " + parentThread.getName());
+        }
     }
 
     public void cleanup(String sessionId) {
@@ -148,6 +139,61 @@ public class S2Robot {
 
     public RuleManager getRuleManager() {
         return ruleManager;
+    }
+
+    public boolean isBackground() {
+        return background;
+    }
+
+    public void setBackground(boolean background) {
+        this.background = background;
+    }
+
+    public boolean isDaemon() {
+        return daemon;
+    }
+
+    public void setDaemon(boolean daemon) {
+        this.daemon = daemon;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
+        // context
+        robotContext.urlFilter = urlFilter;
+        robotContext.ruleManager = ruleManager;
+
+        ThreadGroup threadGroup = new ThreadGroup("Robot-"
+                + robotContext.sessionId);
+        Thread[] threads = new Thread[robotConfig.getNumOfThread()];
+        for (int i = 0; i < robotConfig.getNumOfThread(); i++) {
+            S2RobotThread robotThread = (S2RobotThread) container
+                    .getComponent("robotThread");
+            robotThread.robotContext = robotContext;
+            threads[i] = new Thread(threadGroup, robotThread, "Robot-"
+                    + robotContext.sessionId + "-" + Integer.toString(i + 1));
+            threads[i].setDaemon(daemon);
+        }
+
+        // run
+        robotContext.running = true;
+        for (int i = 0; i < robotConfig.numOfThread; i++) {
+            threads[i].start();
+        }
+
+        // join
+        for (int i = 0; i < robotConfig.numOfThread; i++) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                logger.warn("Interrupted job at " + threads[i].getName());
+            }
+        }
+        robotContext.running = false;
+
+        urlQueueService.saveSession(robotContext.sessionId);
     }
 
 }

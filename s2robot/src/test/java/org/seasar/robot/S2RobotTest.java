@@ -76,4 +76,28 @@ public class S2RobotTest extends S2TestCase {
         assertEquals(maxCount, dataService.getCount(sessionId));
         dataService.delete(sessionId);
     }
+
+    public void test_execute_bg() throws Exception {
+        String url = "http://s2robot.sandbox.seasar.org/";
+        int maxCount = 50;
+        int numOfThread = 10;
+
+        File file = File.createTempFile("s2robot-", "");
+        file.delete();
+        file.mkdirs();
+        file.deleteOnExit();
+        fileTransformer.path = file.getAbsolutePath();
+        // TODO use a local server(ex. jetty)
+        s2Robot.setBackground(true);
+        s2Robot.addUrl(url);
+        s2Robot.robotConfig.setMaxAccessCount(maxCount);
+        s2Robot.robotConfig.setNumOfThread(numOfThread);
+        s2Robot.urlFilter.addInclude(url + ".*");
+        String sessionId = s2Robot.execute();
+        Thread.sleep(3000);
+        assertTrue(s2Robot.robotContext.running);
+        s2Robot.awaitTermination();
+        assertEquals(maxCount, dataService.getCount(sessionId));
+        dataService.delete(sessionId);
+    }
 }

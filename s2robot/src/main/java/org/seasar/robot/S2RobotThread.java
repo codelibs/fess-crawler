@@ -24,6 +24,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import org.seasar.framework.container.S2Container;
+import org.seasar.framework.container.factory.SingletonS2ContainerFactory;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.client.S2RobotClientFactory;
@@ -81,6 +82,11 @@ public class S2RobotThread implements Runnable {
     }
 
     protected boolean isContinue(int tcCount) {
+        if (SingletonS2ContainerFactory.getContainer() == null) {
+            // system shutdown
+            return false;
+        }
+
         boolean isContinue = false;
         if (tcCount < robotConfig.maxThreadCheckCount) {
             isContinue = checkAccessCount();

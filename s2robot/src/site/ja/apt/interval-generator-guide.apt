@@ -1,0 +1,31 @@
+               --------------------
+                アクセス間隔の設定
+               --------------------
+                 Shinsuke Sugaya
+               ------------------
+                   2009-07-02
+
+アクセス間隔の設定方法
+
+    S2Robot では、クロールする間隔を InvervalGenerator を実装することでカスタマイズすることができます。
+    標準では、org.seasar.robot.interval.impl.ConstantGenerator が s2robot_interval.dicon で指定されています。
+    ConstantGenerator はクロールする間隔の待ち時間 (ms) を返します(デフォルト: 1 ms)。
+
+
+* 設定方法
+
+    クロール間隔を変更したい場合は、s2robot_interval.dicon を作成して以下を記述します。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+        "http://www.seasar.org/dtd/components24.dtd">
+<components>
+        <component name="intervalGenerator" class="org.seasar.robot.interval.impl.ConstantGenerator" instance="singleton">
+		<!-- 5 秒待ち -->
+		<property name="intervalTime">5000</property>
+        </component>
+</components>
++--------------------------------------------------+
+
+    intervalTime の値をミリ秒単位で指定することができます。

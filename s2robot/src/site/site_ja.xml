@@ -39,10 +39,13 @@
     <menu name="ドキュメント">
       <item name="セットアップ" href="setup.html"/>
       <item name="使い方" href="getting-started.html"/>
-      <item name="処理ルールの設定" href="rule-guide.html"/>
-      <item name="クロール結果変換方法" href="transformer-guide.html"/>
       <item name="JavaDoc" href="../apidocs/index.html"/>
       <item name="S2Robot-example の実行方法" href="s2robot-example.html"/>
+    </menu>
+    <menu name="各種設定">
+      <item name="処理ルールの設定" href="rule-guide.html"/>
+      <item name="クロール結果変換方法" href="transformer-guide.html"/>
+      <item name="アクセス間隔の設定" href="interval-generator-guide.html"/>
     </menu>
     ${reports}
   </body>

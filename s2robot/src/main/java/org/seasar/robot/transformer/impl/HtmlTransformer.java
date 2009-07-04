@@ -84,7 +84,7 @@ public class HtmlTransformer extends AbstractTransformer {
         File tempFile = null;
         FileOutputStream fos = null;
         try {
-            tempFile = File.createTempFile("s2robot-file-", ".html");
+            tempFile = File.createTempFile("s2robot-HtmlTransformer-", ".html");
             tempFile.deleteOnExit();
             fos = new FileOutputStream(tempFile);
             StreamUtil.drain(is, fos);
@@ -168,12 +168,13 @@ public class HtmlTransformer extends AbstractTransformer {
             } finally {
                 IOUtils.closeQuietly(fis);
             }
-
-            // clean up
-            if (!tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
         }
+
+        // clean up
+        if (!tempFile.delete()) {
+            logger.warn("Could not delete a temp file: " + tempFile);
+        }
+
         return resultData;
     }
 

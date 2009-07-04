@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.io.IOUtils;
 import org.seasar.framework.container.S2Container;
 import org.seasar.framework.container.factory.SingletonS2ContainerFactory;
 import org.seasar.framework.util.StringUtil;
@@ -82,7 +83,7 @@ public class S2RobotThread implements Runnable {
     }
 
     protected boolean isContinue(int tcCount) {
-        if (SingletonS2ContainerFactory.getContainer() == null) {
+        if (!SingletonS2ContainerFactory.hasContainer()) {
             // system shutdown
             return false;
         }
@@ -120,11 +121,11 @@ public class S2RobotThread implements Runnable {
         while (robotContext.running && isContinue(threadCheckCount)) {
             UrlQueue urlQueue = urlQueueService.poll(robotContext.sessionId);
             if (isValid(urlQueue)) {
+                ResponseData responseData = null;
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Starting " + urlQueue.getUrl());
+                }
                 try {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Starting " + urlQueue.getUrl());
-                    }
-
                     S2RobotClient client = getClient(urlQueue.getUrl());
                     if (client == null) {
                         logger.info("Unsupported path: " + urlQueue.getUrl());
@@ -135,7 +136,7 @@ public class S2RobotThread implements Runnable {
 
                     // access an url
                     long startTime = System.currentTimeMillis();
-                    ResponseData responseData = client.doGet(urlQueue.getUrl());
+                    responseData = client.doGet(urlQueue.getUrl());
                     responseData.setExecutionTime(System.currentTimeMillis()
                             - startTime);
                     responseData.setParentUrl(urlQueue.getParentUrl());
@@ -168,6 +169,9 @@ public class S2RobotThread implements Runnable {
                     logger.error("Crawling Exception at " + urlQueue.getUrl(),
                             e);
                 } finally {
+                    if (responseData != null) {
+                        IOUtils.closeQuietly(responseData.getResponseBody());
+                    }
                     threadCheckCount = 0; // clear
                     finishCrawling();
                 }

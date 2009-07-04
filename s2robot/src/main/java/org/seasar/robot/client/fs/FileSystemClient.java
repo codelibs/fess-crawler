@@ -70,7 +70,8 @@ public class FileSystemClient implements S2RobotClient {
                     .getName()));
             if (file.canRead()) {
                 try {
-                    File outputFile = File.createTempFile("s2robot-", ".out");
+                    File outputFile = File.createTempFile(
+                            "s2robot-FileSystemClient-", ".out");
                     outputFile.deleteOnExit();
                     FileUtil.copy(file, outputFile);
                     responseData.setResponseBody(new TemporaryFileInputStream(

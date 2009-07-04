@@ -160,7 +160,8 @@ public class CommonsHttpClient implements S2RobotClient {
                 }
             }
 
-            File outputFile = File.createTempFile("s2robot-", ".out");
+            File outputFile = File.createTempFile("s2robot-CommonsHttpClient-",
+                    ".out");
             outputFile.deleteOnExit();
             DeferredFileOutputStream dfos = new DeferredFileOutputStream(
                     responseBodyInMemoryThresholdSize, outputFile);

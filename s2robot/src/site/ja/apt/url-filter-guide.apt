@@ -1,0 +1,59 @@
+               ------------------
+               URL フィルタの設定
+               ------------------
+                Shinsuke Sugaya
+               ------------------
+                   2009-07-03
+
+URL フィルタの設定方法
+
+    S2Robot では、URL フィルタ (UrlFilterインターフェース) により、クロール対象の URL かどうかを判定します。
+
+* 設定方法
+
+    カスタマイズする場合は、s2robot_filter.dicon を作成してそこの中で定義します。
+    デフォルトでは、以下のような s2robot_filter.dicon が適用されます。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+    "http://www.seasar.org/dtd/components24.dtd">
+<components>
+    <component name="urlFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
+    </component>
+</components>
++--------------------------------------------------+
+
+    標準では、UrlFilterImpl で何も制限はされていません。
+    対象 URL を制限するには、UrlFilter の addInclude メソッドまたは addExclude メソッドにより指定します。
+    addInclude(String) に正規表現でパターン文字列指定することで、クロール対象の URL になります。
+    addExclude(String) で指定することで、クロール対象の URL から除外されます。
+
+    実際に S2Robot のインスタンスを利用して対象 URL を制限するには、addInclude と addExclude をラップした S2Robot の addIncludeFilter と addExcludeFilter メソッドを利用することができます。
+
++--------------------------------------------------+
+    S2Robot s2Robot = (S2Robot) container.getComponent(S2Robot.class);
+
+    s2Robot.addUrl(url);
+    s2Robot.addIncludeFilter(url + ".*");
++--------------------------------------------------+
+
+** 対象 URL 追加時にフィルタを設定する
+
+    たとえば、対象 URL 以下だけをクロール対象としたい場合、includeFilteringPattern や excludeFilteringPattern を指定することで様々な制御ができます。
+    標準では、対象 URL が追加された時に urlPattern ("^(.*:/+)([^/]*)(.*)$") にマッチさせて、includeFilteringPattern と excludeFilteringPattern で得られたパターン文字列を addInclude または addExclude メソッドに渡します。
+
+    対象 URL 以下だけをクロール対象としたい場合は、s2robot_filter.dicon を作成して以下のように記述します。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+    "http://www.seasar.org/dtd/components24.dtd">
+<components>
+    <component name="urlFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
+        <property name="includeFilteringPattern">"$1$2$3.*"</property>
+    </component>
+</components>
++--------------------------------------------------+
+
+

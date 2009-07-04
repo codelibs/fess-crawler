@@ -47,6 +47,7 @@
       <item name="クロール結果変換方法" href="transformer-guide.html"/>
       <item name="アクセス間隔の設定" href="interval-generator-guide.html"/>
       <item name="バックグラウンドで実行" href="background-guide.html"/>
+      <item name="URL フィルタの設定" href="url-filter-guide.html"/>
     </menu>
     ${reports}
   </body>

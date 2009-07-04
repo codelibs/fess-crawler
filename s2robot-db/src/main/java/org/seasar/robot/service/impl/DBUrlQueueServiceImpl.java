@@ -112,25 +112,43 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.seasar.robot.service.UrlQueueService#delete(java.lang.String)
      */
     public void delete(String sessionId) {
-        UrlQueueCB cb = new UrlQueueCB();
-        cb.query().setSessionId_Equal(sessionId);
-        urlQueueBhv.queryDelete(cb);
+        //        UrlQueueCB cb = new UrlQueueCB();
+        //        cb.query().setSessionId_Equal(sessionId);
+        //        urlQueueBhv.queryDelete(cb);
+        String pmb = sessionId;
+        int count = urlQueueBhv.outsideSql().execute(
+                UrlQueueBhv.PATH_deleteBySessionId, pmb);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deleted urls in queue: " + count);
+        }
 
         // clear cache
         URL_QUEUE_MAP.remove(sessionId);
-        VISITED_URL_CACHE.clear();
+        if (VISITED_URL_CACHE != null) {
+            VISITED_URL_CACHE.clear();
+        }
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#deleteAll()
      */
     public void deleteAll() {
-        UrlQueueCB cb = new UrlQueueCB();
-        urlQueueBhv.queryDelete(cb);
+        //        UrlQueueCB cb = new UrlQueueCB();
+        //        urlQueueBhv.queryDelete(cb);
+        String pmb = null;
+        int count = urlQueueBhv.outsideSql().execute(
+                UrlQueueBhv.PATH_deleteBySessionId, pmb);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deleted urls in queue: " + count);
+        }
 
         // clear cache
         URL_QUEUE_MAP.clear();
-        VISITED_URL_CACHE.clear();
+        if (VISITED_URL_CACHE != null) {
+            VISITED_URL_CACHE.clear();
+        }
     }
 
     /* (non-Javadoc)

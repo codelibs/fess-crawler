@@ -74,6 +74,8 @@ public abstract class BsUrlQueueBhv extends
     //                                                                          Definition
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
+    public static final String PATH_deleteBySessionId = "deleteBySessionId";
+
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================

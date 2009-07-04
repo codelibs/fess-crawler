@@ -50,7 +50,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
 
     private static LruHashMap VISITED_URL_CACHE;
 
-    public int cacheSize = 100;
+    public int cacheSize = 1000;
 
     public int visitedUrlCacheSize = 1000;
 

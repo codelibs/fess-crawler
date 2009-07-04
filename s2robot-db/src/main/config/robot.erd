@@ -127,12 +127,32 @@
             <string>CREATE_TIME</string>
           </columns>
         </net.java.amateras.db.visual.model.IndexModel>
+        <net.java.amateras.db.visual.model.IndexModel>
+          <indexName>IDX_URL_QUEUE_SESSION_ID_AND_URL</indexName>
+          <indexType class="net.java.amateras.db.dialect.IndexType">
+            <name>INDEX</name>
+          </indexType>
+          <columns>
+            <string>SESSION_ID</string>
+            <string>URL</string>
+          </columns>
+        </net.java.amateras.db.visual.model.IndexModel>
+        <net.java.amateras.db.visual.model.IndexModel>
+          <indexName>IDX_URL_QUEUE_SESSION_ID</indexName>
+          <indexType class="net.java.amateras.db.dialect.IndexType">
+            <name>INDEX</name>
+          </indexType>
+          <columns>
+            <string>SESSION_ID</string>
+          </columns>
+        </net.java.amateras.db.visual.model.IndexModel>
       </indices>
       <backgroundColor>
         <red>255</red>
         <green>255</green>
         <blue>206</blue>
       </backgroundColor>
+      <sql></sql>
       <constraint>
         <x>40</x>
         <y>40</y>

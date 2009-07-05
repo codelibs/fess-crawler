@@ -22,7 +22,6 @@ import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.beans.util.Beans;
 import org.seasar.robot.Constants;
 import org.seasar.robot.entity.AccessResult;
-import org.seasar.robot.service.DataService;
 import org.seasar.robot.util.AccessResultCallback;
 
 /**
@@ -30,7 +29,7 @@ import org.seasar.robot.util.AccessResultCallback;
  *
  */
 public class DBDataServiceImplTest extends S2TestCase {
-    public DataService dataService;
+    public DBDataServiceImpl dataService;
 
     @Override
     protected String getRootDicon() throws Throwable {
@@ -83,5 +82,83 @@ public class DBDataServiceImplTest extends S2TestCase {
                 assertEquals(accessResult1b, accessResult);
             }
         });
+    }
+
+    public void test_insert_deleteTx() {
+        org.seasar.robot.db.exentity.AccessResult accessResult1 = new org.seasar.robot.db.exentity.AccessResult();
+        accessResult1.setContentLength(Long.valueOf(10));
+        accessResult1.setCreateTime(new Timestamp(new Date().getTime()));
+        accessResult1.setExecutionTime(10);
+        accessResult1.setHttpStatusCode(200);
+        accessResult1.setLastModified(new Timestamp(new Date().getTime()));
+        accessResult1.setMethod("GET");
+        accessResult1.setMimeType("text/plain");
+        accessResult1.setParentUrl("http://www.parent.com/");
+        accessResult1.setRuleId("htmlRule");
+        accessResult1.setSessionId("id1");
+        accessResult1.setStatus(200);
+        accessResult1.setUrl("http://www.id1.com/");
+
+        dataService.store(accessResult1);
+
+        AccessResult accessResult2 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
+        assertNotNull(accessResult2);
+
+        dataService.delete("id1");
+
+        AccessResult accessResult4 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
+        assertNull(accessResult4);
+    }
+
+    public void test_insert_delete_multiTx() {
+        org.seasar.robot.db.exentity.AccessResult accessResult1 = new org.seasar.robot.db.exentity.AccessResult();
+        accessResult1.setContentLength(Long.valueOf(10));
+        accessResult1.setCreateTime(new Timestamp(new Date().getTime()));
+        accessResult1.setExecutionTime(10);
+        accessResult1.setHttpStatusCode(200);
+        accessResult1.setLastModified(new Timestamp(new Date().getTime()));
+        accessResult1.setMethod("GET");
+        accessResult1.setMimeType("text/plain");
+        accessResult1.setParentUrl("http://www.parent.com/");
+        accessResult1.setRuleId("htmlRule");
+        accessResult1.setSessionId("id1");
+        accessResult1.setStatus(200);
+        accessResult1.setUrl("http://www.id1.com/");
+
+        dataService.store(accessResult1);
+
+        org.seasar.robot.db.exentity.AccessResult accessResult2 = new org.seasar.robot.db.exentity.AccessResult();
+        accessResult2.setContentLength(Long.valueOf(10));
+        accessResult2.setCreateTime(new Timestamp(new Date().getTime()));
+        accessResult2.setExecutionTime(10);
+        accessResult2.setHttpStatusCode(200);
+        accessResult2.setLastModified(new Timestamp(new Date().getTime()));
+        accessResult2.setMethod("GET");
+        accessResult2.setMimeType("text/plain");
+        accessResult2.setParentUrl("http://www.parent.com/");
+        accessResult2.setRuleId("htmlRule");
+        accessResult2.setSessionId("id2");
+        accessResult2.setStatus(200);
+        accessResult2.setUrl("http://www.id2.com/");
+
+        dataService.store(accessResult2);
+
+        assertNotNull(dataService.getAccessResult("id1", "http://www.id1.com/"));
+        assertNotNull(dataService.getAccessResult("id2", "http://www.id2.com/"));
+
+        dataService.delete("id1");
+
+        assertNull(dataService.getAccessResult("id1", "http://www.id1.com/"));
+        assertNotNull(dataService.getAccessResult("id2", "http://www.id2.com/"));
+
+        dataService.store(accessResult1);
+        assertNotNull(dataService.getAccessResult("id1", "http://www.id1.com/"));
+
+        dataService.deleteAll();
+
+        assertNull(dataService.getAccessResult("id1", "http://www.id1.com/"));
+        assertNull(dataService.getAccessResult("id2", "http://www.id2.com/"));
     }
 }

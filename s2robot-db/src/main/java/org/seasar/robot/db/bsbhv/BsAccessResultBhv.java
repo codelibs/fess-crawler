@@ -77,6 +77,8 @@ public abstract class BsAccessResultBhv extends
     /*df:BehaviorQueryPathBegin*/
     public static final String PATH_selectListByUrlDiff = "selectListByUrlDiff";
 
+    public static final String PATH_deleteBySessionId = "deleteBySessionId";
+
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================

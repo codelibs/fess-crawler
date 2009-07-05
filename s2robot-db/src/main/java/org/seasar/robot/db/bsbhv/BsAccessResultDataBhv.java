@@ -75,6 +75,8 @@ public abstract class BsAccessResultDataBhv extends
     //                                                                          Definition
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
+    public static final String PATH_deleteAll = "deleteAll";
+
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================

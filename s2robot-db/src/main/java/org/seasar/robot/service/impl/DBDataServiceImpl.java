@@ -36,12 +36,16 @@ import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.util.AccessResultCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class DBDataServiceImpl implements DataService {
+    private static final Logger logger = LoggerFactory
+            .getLogger(DBDataServiceImpl.class);
 
     @Resource
     protected AccessResultBhv accessResultBhv;
@@ -86,21 +90,53 @@ public class DBDataServiceImpl implements DataService {
         AccessResultDataCB cb1 = new AccessResultDataCB();
         cb1.query().queryAccessResult().setSessionId_Equal(sessionId);
         accessResultDataBhv.queryDelete(cb1);
+        //        String pmb = sessionId;
+        //        int count = accessResultDataBhv.outsideSql().execute(
+        //                AccessResultDataBhv.PATH_deleteBySessionId, pmb);
+        //
+        //        if (logger.isDebugEnabled()) {
+        //            logger.debug("Deleted urls in queue("
+        //                    + AccessResultDataBhv.PATH_deleteBySessionId + "): "
+        //                    + count);
+        //        }
 
-        AccessResultCB cb2 = new AccessResultCB();
-        cb2.query().setSessionId_Equal(sessionId);
-        accessResultBhv.queryDelete(cb2);
+        //        AccessResultCB cb2 = new AccessResultCB();
+        //        cb2.query().setSessionId_Equal(sessionId);
+        //        accessResultBhv.queryDelete(cb2);
+        String pmb = sessionId;
+        int count = accessResultBhv.outsideSql().execute(
+                AccessResultBhv.PATH_deleteBySessionId, pmb);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deleted urls in queue("
+                    + AccessResultBhv.PATH_deleteBySessionId + "): " + count);
+        }
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#deleteAll()
      */
     public void deleteAll() {
-        AccessResultDataCB cb1 = new AccessResultDataCB();
-        accessResultDataBhv.queryDelete(cb1);
+        //        AccessResultDataCB cb1 = new AccessResultDataCB();
+        //        accessResultDataBhv.queryDelete(cb1);
+        String pmb = null;
+        int count = accessResultDataBhv.outsideSql().execute(
+                AccessResultDataBhv.PATH_deleteAll, pmb);
 
-        AccessResultCB cb2 = new AccessResultCB();
-        accessResultBhv.queryDelete(cb2);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deleted urls in queue("
+                    + AccessResultDataBhv.PATH_deleteAll + "): " + count);
+        }
+
+        //        AccessResultCB cb2 = new AccessResultCB();
+        //        accessResultBhv.queryDelete(cb2);
+        count = accessResultBhv.outsideSql().execute(
+                AccessResultBhv.PATH_deleteBySessionId, pmb);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deleted urls in queue("
+                    + AccessResultBhv.PATH_deleteBySessionId + "): " + count);
+        }
     }
 
     /* (non-Javadoc)

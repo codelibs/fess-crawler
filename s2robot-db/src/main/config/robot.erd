@@ -359,7 +359,7 @@
       </columns>
       <indices>
         <net.java.amateras.db.visual.model.IndexModel>
-          <indexName>IDX_ROBOT_DATA_SESSION_ID_AND_TIME</indexName>
+          <indexName>IDX_ACCESS_RESULT_SESSION_ID_AND_TIME</indexName>
           <indexType class="net.java.amateras.db.dialect.IndexType">
             <name>INDEX</name>
           </indexType>
@@ -369,11 +369,20 @@
           </columns>
         </net.java.amateras.db.visual.model.IndexModel>
         <net.java.amateras.db.visual.model.IndexModel>
-          <indexName>IDX_ROBOT_DATA_SESSION_ID_AND_URL</indexName>
+          <indexName>IDX_ACCESS_RESULT_SESSION_ID_AND_URL</indexName>
           <indexType class="net.java.amateras.db.dialect.IndexType" reference="../../net.java.amateras.db.visual.model.IndexModel/indexType"/>
           <columns>
             <string>SESSION_ID</string>
             <string>URL</string>
+          </columns>
+        </net.java.amateras.db.visual.model.IndexModel>
+        <net.java.amateras.db.visual.model.IndexModel>
+          <indexName>IDX_ACCESS_RESULT_SESSION_ID</indexName>
+          <indexType class="net.java.amateras.db.dialect.IndexType">
+            <name>INDEX</name>
+          </indexType>
+          <columns>
+            <string>SESSION_ID</string>
           </columns>
         </net.java.amateras.db.visual.model.IndexModel>
       </indices>

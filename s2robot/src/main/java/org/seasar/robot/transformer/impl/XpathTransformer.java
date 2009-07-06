@@ -17,8 +17,10 @@ package org.seasar.robot.transformer.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -122,6 +124,23 @@ public class XpathTransformer extends HtmlTransformer {
                 + trimSpace(escapeXml(value)) + "</field>\n";
     }
 
+    protected String getResultDataBody(String name, List<String> values) {
+        StringBuilder buf = new StringBuilder();
+        buf.append("<list>");
+        if (values != null && !values.isEmpty()) {
+            for (String value : values) {
+                buf.append("<item>");
+                buf.append(trimSpace(escapeXml(value)));
+                buf.append("</item>");
+            }
+        }
+        buf.append("</list>");
+        // TODO support other type
+        // TODO trim(default)
+        return "<field name=\"" + escapeXml(name) + "\">" + buf.toString()
+                + "</field>\n";
+    }
+
     protected String getAdditionalData(ResponseData responseData,
             Document document) {
         return "";
@@ -185,7 +204,7 @@ public class XpathTransformer extends HtmlTransformer {
             return super.getData(accessResultData);
         }
 
-        Map<String, String> dataMap = getDataMap(accessResultData);
+        Map<String, Object> dataMap = getDataMap(accessResultData);
         if (Map.class.equals(dataClass)) {
             return dataMap;
         }
@@ -200,7 +219,7 @@ public class XpathTransformer extends HtmlTransformer {
         }
     }
 
-    protected Map<String, String> getDataMap(AccessResultData accessResultData) {
+    protected Map<String, Object> getDataMap(AccessResultData accessResultData) {
         // create input source
         InputSource is = new InputSource(new ByteArrayInputStream(
                 accessResultData.getData()));
@@ -227,9 +246,13 @@ public class XpathTransformer extends HtmlTransformer {
     }
 
     protected static class DocHandler extends DefaultHandler {
-        private Map<String, String> dataMap = new HashMap<String, String>();
+        private Map<String, Object> dataMap = new HashMap<String, Object>();
 
         private String fieldName;
+
+        private boolean listData = false;
+
+        private boolean itemData = false;
 
         public void startDocument() {
             dataMap.clear();
@@ -239,17 +262,31 @@ public class XpathTransformer extends HtmlTransformer {
                 Attributes attributes) {
             if ("field".equals(qName)) {
                 fieldName = attributes.getValue("name");
+            } else if ("list".equals(qName)) {
+                listData = true;
+                if (!dataMap.containsKey(fieldName)) {
+                    dataMap.put(fieldName, new ArrayList<String>());
+                }
+            } else if ("item".equals(qName)) {
+                itemData = true;
             }
         }
 
         public void characters(char[] ch, int offset, int length) {
             if (fieldName != null) {
-                String value = dataMap.get(fieldName);
-                if (value != null) {
-                    dataMap.put(fieldName, value
-                            + new String(ch, offset, length));
+                Object value = dataMap.get(fieldName);
+                if (listData && itemData) {
+                    if (value != null) {
+                        ((List<String>) value).add(new String(ch, offset,
+                                length));
+                    }
                 } else {
-                    dataMap.put(fieldName, new String(ch, offset, length));
+                    if (value != null) {
+                        dataMap.put(fieldName, value
+                                + new String(ch, offset, length));
+                    } else {
+                        dataMap.put(fieldName, new String(ch, offset, length));
+                    }
                 }
             }
         }
@@ -257,13 +294,17 @@ public class XpathTransformer extends HtmlTransformer {
         public void endElement(String uri, String localName, String qName) {
             if ("field".equals(qName)) {
                 fieldName = null;
+            } else if ("list".equals(qName)) {
+                listData = false;
+            } else if ("item".equals(qName)) {
+                itemData = false;
             }
         }
 
         public void endDocument() {
         }
 
-        public Map<String, String> getDataMap() {
+        public Map<String, Object> getDataMap() {
             return dataMap;
         }
     }

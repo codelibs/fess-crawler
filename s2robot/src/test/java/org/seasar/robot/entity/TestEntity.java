@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.entity;
 
+import java.util.List;
+
 /**
  * @author shinsuke
  *
@@ -23,6 +25,16 @@ public class TestEntity {
     private String title;
 
     private String body;
+
+    private List<String> list;
+
+    public List<String> getList() {
+        return list;
+    }
+
+    public void setList(List<String> list) {
+        this.list = list;
+    }
 
     public String getTitle() {
         return title;

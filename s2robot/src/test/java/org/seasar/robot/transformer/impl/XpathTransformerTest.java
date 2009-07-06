@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.transformer.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.seasar.extension.unit.S2TestCase;
@@ -63,8 +65,9 @@ public class XpathTransformerTest extends S2TestCase {
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
-        ;
+
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
@@ -80,7 +83,7 @@ public class XpathTransformerTest extends S2TestCase {
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "</doc>";
-        ;
+
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
@@ -99,7 +102,7 @@ public class XpathTransformerTest extends S2TestCase {
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "</doc>";
-        ;
+
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
@@ -119,8 +122,9 @@ public class XpathTransformerTest extends S2TestCase {
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
-        ;
+
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
@@ -131,6 +135,11 @@ public class XpathTransformerTest extends S2TestCase {
         Map<String, String> map = (Map) obj;
         assertEquals("タイトル", map.get("title"));
         assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", map.get("body"));
+        List<String> list = new ArrayList<String>();
+        list.add("リスト1");
+        list.add("リスト2");
+        list.add("リスト3");
+        assertEquals(list, map.get("list"));
     }
 
     public void test_getData_dataMap_entity() throws Exception {
@@ -138,8 +147,9 @@ public class XpathTransformerTest extends S2TestCase {
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
-        ;
+
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
@@ -150,5 +160,32 @@ public class XpathTransformerTest extends S2TestCase {
         TestEntity entity = (TestEntity) obj;
         assertEquals("タイトル", entity.getTitle());
         assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", entity.getBody());
+        List<String> list = new ArrayList<String>();
+        list.add("リスト1");
+        list.add("リスト2");
+        list.add("リスト3");
+        assertEquals(list, entity.getList());
+    }
+
+    public void test_getData_dataMap_entity_emptyList() throws Exception {
+        String value = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "<field name=\"list\"><list></list></field>\n"//
+                + "</doc>";
+
+        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setEncoding(Constants.UTF_8);
+        accessResultDataImpl.setTransformerName("xpathEntityTransformer");
+
+        Object obj = xpathEntityTransformer.getData(accessResultDataImpl);
+        assertTrue(obj instanceof TestEntity);
+        TestEntity entity = (TestEntity) obj;
+        assertEquals("タイトル", entity.getTitle());
+        assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", entity.getBody());
+        List<String> list = new ArrayList<String>();
+        assertEquals(list, entity.getList());
     }
 }

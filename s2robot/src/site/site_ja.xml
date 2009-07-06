@@ -35,6 +35,7 @@
       <item name="ホーム" href="index.html"/>
       <item name="ライセンス" href="license.html"/>
       <item name="ダウンロード" href="downloads.html"/>
+      <item name="課題報告" href="https://www.seasar.org/issues/browse/ROBOT"/>
     </menu>
     <menu name="ドキュメント">
       <item name="セットアップ" href="setup.html"/>

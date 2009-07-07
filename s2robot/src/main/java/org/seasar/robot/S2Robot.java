@@ -148,6 +148,22 @@ public class S2Robot implements Runnable {
         return ruleManager;
     }
 
+    public void setUrlFilter(UrlFilter urlFilter) {
+        this.urlFilter = urlFilter;
+    }
+
+    public void setRuleManager(RuleManager ruleManager) {
+        this.ruleManager = ruleManager;
+    }
+
+    public IntervalGenerator getIntervalGenerator() {
+        return intervalGenerator;
+    }
+
+    public void setIntervalGenerator(IntervalGenerator intervalGenerator) {
+        this.intervalGenerator = intervalGenerator;
+    }
+
     public boolean isBackground() {
         return background;
     }

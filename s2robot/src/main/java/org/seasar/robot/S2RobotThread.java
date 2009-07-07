@@ -34,7 +34,6 @@ import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.entity.UrlQueue;
-import org.seasar.robot.interval.IntervalGenerator;
 import org.seasar.robot.rule.Rule;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.service.UrlQueueService;
@@ -55,9 +54,6 @@ public class S2RobotThread implements Runnable {
 
     @Resource
     protected DataService dataService;
-
-    @Resource
-    protected IntervalGenerator intervalGenerator;
 
     @Resource
     protected S2Container container;
@@ -190,9 +186,9 @@ public class S2RobotThread implements Runnable {
             }
 
             // interval
-            if (intervalGenerator != null) {
+            if (robotContext.intervalGenerator != null) {
                 try {
-                    Thread.sleep(intervalGenerator.getTime());
+                    Thread.sleep(robotContext.intervalGenerator.getTime());
                 } catch (InterruptedException e) {
                     logger.warn("Could not sleep a thread: "
                             + Thread.currentThread().getName(), e);

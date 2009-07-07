@@ -73,7 +73,6 @@ public class S2Robot implements Runnable {
         robotContext = new S2RobotContext();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         robotContext.sessionId = sdf.format(new Date());
-        robotContext.intervalGenerator = intervalGenerator;
     }
 
     public void addUrl(String url) {
@@ -172,6 +171,7 @@ public class S2Robot implements Runnable {
         // context
         robotContext.urlFilter = urlFilter;
         robotContext.ruleManager = ruleManager;
+        robotContext.intervalGenerator = intervalGenerator;
 
         ThreadGroup threadGroup = new ThreadGroup("Robot-"
                 + robotContext.sessionId);

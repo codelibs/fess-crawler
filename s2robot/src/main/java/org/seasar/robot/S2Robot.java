@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import org.seasar.framework.container.S2Container;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.filter.UrlFilter;
+import org.seasar.robot.interval.IntervalGenerator;
 import org.seasar.robot.rule.RuleManager;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.service.UrlQueueService;
@@ -57,6 +58,9 @@ public class S2Robot implements Runnable {
     @Resource
     protected S2Container container;
 
+    @Resource
+    protected IntervalGenerator intervalGenerator;
+
     protected S2RobotContext robotContext;
 
     protected boolean background = false;
@@ -69,6 +73,7 @@ public class S2Robot implements Runnable {
         robotContext = new S2RobotContext();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         robotContext.sessionId = sdf.format(new Date());
+        robotContext.intervalGenerator = intervalGenerator;
     }
 
     public void addUrl(String url) {

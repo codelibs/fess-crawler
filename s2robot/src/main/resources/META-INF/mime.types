@@ -1,5 +1,5 @@
 # Text
-text/plain                    c cpp h sh java css js py
+text/plain                    c cpp h hpp sh java css js py pl rb
 application/xhtml+xml         xml
 # CSV
 application/csv               csv

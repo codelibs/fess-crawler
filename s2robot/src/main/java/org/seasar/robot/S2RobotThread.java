@@ -34,10 +34,12 @@ import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.entity.UrlQueue;
+import org.seasar.robot.interval.IntervalController;
 import org.seasar.robot.rule.Rule;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.service.UrlQueueService;
 import org.seasar.robot.transformer.Transformer;
+import org.seasar.robot.util.CrawlingParameterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,86 +116,125 @@ public class S2RobotThread implements Runnable {
      */
     public void run() {
         int threadCheckCount = 0;
-        while (robotContext.running && isContinue(threadCheckCount)) {
-            UrlQueue urlQueue = urlQueueService.poll(robotContext.sessionId);
-            if (isValid(urlQueue)) {
-                ResponseData responseData = null;
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Starting " + urlQueue.getUrl());
-                }
-                try {
-                    S2RobotClient client = getClient(urlQueue.getUrl());
-                    if (client == null) {
-                        logger.info("Unsupported path: " + urlQueue.getUrl());
-                        break;
+        // set urlQueue to thread
+        CrawlingParameterUtil.setRobotContext(robotContext);
+        try {
+            while (robotContext.running && isContinue(threadCheckCount)) {
+                UrlQueue urlQueue = urlQueueService
+                        .poll(robotContext.sessionId);
+                if (isValid(urlQueue)) {
+                    ResponseData responseData = null;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Starting " + urlQueue.getUrl());
                     }
+                    try {
+                        S2RobotClient client = getClient(urlQueue.getUrl());
+                        if (client == null) {
+                            logger.info("Unsupported path: "
+                                    + urlQueue.getUrl());
+                            break;
+                        }
 
-                    startCrawling();
+                        startCrawling();
 
-                    // access an url
-                    long startTime = System.currentTimeMillis();
-                    responseData = client.doGet(urlQueue.getUrl());
-                    responseData.setExecutionTime(System.currentTimeMillis()
-                            - startTime);
-                    responseData.setParentUrl(urlQueue.getParentUrl());
-                    responseData.setSessionId(robotContext.sessionId);
+                        // set urlQueue to thread
+                        CrawlingParameterUtil.setUrlQueue(urlQueue);
 
-                    if (responseData.getRedirectLocation() != null) {
-                        // redirect
+                        if (robotContext.intervalController != null) {
+                            robotContext.intervalController
+                                    .delay(IntervalController.PRE_PROCESSING);
+                        }
+
+                        // access an url
+                        long startTime = System.currentTimeMillis();
+                        responseData = client.doGet(urlQueue.getUrl());
+                        responseData.setExecutionTime(System
+                                .currentTimeMillis()
+                                - startTime);
+                        responseData.setParentUrl(urlQueue.getParentUrl());
+                        responseData.setSessionId(robotContext.sessionId);
+
+                        if (responseData.getRedirectLocation() != null) {
+                            // redirect
+                            synchronized (robotContext.accessCountLock) {
+                                //  add an url
+                                storeChildUrl(responseData
+                                        .getRedirectLocation(), urlQueue
+                                        .getUrl(),
+                                        urlQueue.getDepth() != null ? urlQueue
+                                                .getDepth() + 1 : 1);
+                            }
+                        } else {
+                            processResponse(urlQueue, responseData);
+                        }
+
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Finished " + urlQueue.getUrl());
+                        }
+                    } catch (ChildUrlsException e) {
                         synchronized (robotContext.accessCountLock) {
                             //  add an url
-                            storeChildUrl(responseData.getRedirectLocation(),
-                                    urlQueue.getUrl(),
+                            storeChildUrls(e.getChildUrlList(), urlQueue
+                                    .getUrl(),
                                     urlQueue.getDepth() != null ? urlQueue
                                             .getDepth() + 1 : 1);
                         }
-                    } else {
-                        processResponse(urlQueue, responseData);
+                    } catch (Exception e) {
+                        logger.error("Crawling Exception at "
+                                + urlQueue.getUrl(), e);
+                    } finally {
+                        if (responseData != null) {
+                            IOUtils
+                                    .closeQuietly(responseData
+                                            .getResponseBody());
+                        }
+                        if (robotContext.intervalController != null) {
+                            try {
+                                robotContext.intervalController
+                                        .delay(IntervalController.POST_PROCESSING);
+                            } catch (Exception e) {
+                                logger.warn("Could not sleep a thread: "
+                                        + Thread.currentThread().getName(), e);
+                            }
+                        }
+                        threadCheckCount = 0; // clear
+                        // remove urlQueue from thread
+                        CrawlingParameterUtil.setUrlQueue(null);
+                        finishCrawling();
                     }
-
+                } else {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Finished " + urlQueue.getUrl());
+                        logger.debug("No url in a queue. (" + threadCheckCount
+                                + ")");
                     }
-                } catch (ChildUrlsException e) {
-                    synchronized (robotContext.accessCountLock) {
-                        //  add an url
-                        storeChildUrls(e.getChildUrlList(), urlQueue.getUrl(),
-                                urlQueue.getDepth() != null ? urlQueue
-                                        .getDepth() + 1 : 1);
-                    }
-                } catch (Exception e) {
-                    logger.error("Crawling Exception at " + urlQueue.getUrl(),
-                            e);
-                } finally {
-                    if (responseData != null) {
-                        IOUtils.closeQuietly(responseData.getResponseBody());
-                    }
-                    threadCheckCount = 0; // clear
-                    finishCrawling();
-                }
-            } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("No url in a queue. (" + threadCheckCount
-                            + ")");
-                }
-                try {
-                    Thread.sleep(robotConfig.getThreadCheckInterval());
-                } catch (InterruptedException e) {
-                    logger.warn("Could not sleep a thread: "
-                            + Thread.currentThread().getName(), e);
-                }
-                threadCheckCount++;
-            }
 
-            // interval
-            if (robotContext.intervalGenerator != null) {
-                try {
-                    Thread.sleep(robotContext.intervalGenerator.getTime());
-                } catch (InterruptedException e) {
-                    logger.warn("Could not sleep a thread: "
-                            + Thread.currentThread().getName(), e);
+                    if (robotContext.intervalController != null) {
+                        try {
+                            robotContext.intervalController
+                                    .delay(IntervalController.NO_URL_IN_QUEUE);
+                        } catch (Exception e) {
+                            logger.warn("Could not sleep a thread: "
+                                    + Thread.currentThread().getName(), e);
+                        }
+                    }
+
+                    threadCheckCount++;
+                }
+
+                // interval
+                if (robotContext.intervalController != null) {
+                    try {
+                        robotContext.intervalController
+                                .delay(IntervalController.WAIT_NEW_URL);
+                    } catch (Exception e) {
+                        logger.warn("Could not sleep a thread: "
+                                + Thread.currentThread().getName(), e);
+                    }
                 }
             }
+        } finally {
+            // remove robotContext from thread
+            CrawlingParameterUtil.setRobotContext(null);
         }
     }
 

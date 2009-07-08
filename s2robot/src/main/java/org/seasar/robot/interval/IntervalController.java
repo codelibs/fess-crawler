@@ -9,20 +9,20 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 package org.seasar.robot.interval;
 
-/**
- * @author shinsuke
- *
- */
-public interface IntervalGenerator {
+public interface IntervalController {
+    public static final int PRE_PROCESSING = 1;
 
-    public abstract long getTime();
+    public static final int POST_PROCESSING = 2;
 
-    public abstract void setTime(long time);
+    public static final int NO_URL_IN_QUEUE = 4;
 
+    public static final int WAIT_NEW_URL = 8;
+
+    public abstract void delay(int type);
 }

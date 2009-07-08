@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 import org.seasar.framework.container.S2Container;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.filter.UrlFilter;
-import org.seasar.robot.interval.IntervalGenerator;
+import org.seasar.robot.interval.IntervalController;
 import org.seasar.robot.rule.RuleManager;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.service.UrlQueueService;
@@ -59,7 +59,7 @@ public class S2Robot implements Runnable {
     protected S2Container container;
 
     @Resource
-    protected IntervalGenerator intervalGenerator;
+    protected IntervalController intervalController;
 
     protected S2RobotContext robotContext;
 
@@ -156,14 +156,6 @@ public class S2Robot implements Runnable {
         this.ruleManager = ruleManager;
     }
 
-    public IntervalGenerator getIntervalGenerator() {
-        return intervalGenerator;
-    }
-
-    public void setIntervalGenerator(IntervalGenerator intervalGenerator) {
-        this.intervalGenerator = intervalGenerator;
-    }
-
     public boolean isBackground() {
         return background;
     }
@@ -187,7 +179,7 @@ public class S2Robot implements Runnable {
         // context
         robotContext.urlFilter = urlFilter;
         robotContext.ruleManager = ruleManager;
-        robotContext.intervalGenerator = intervalGenerator;
+        robotContext.intervalController = intervalController;
 
         ThreadGroup threadGroup = new ThreadGroup("Robot-"
                 + robotContext.sessionId);

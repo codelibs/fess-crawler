@@ -1,0 +1,42 @@
+               --------------------
+                アクセス間隔の設定
+               --------------------
+                 Shinsuke Sugaya
+               ------------------
+                   2009-07-02
+
+アクセス間隔の設定方法
+
+    S2Robot では、クロールする間隔を IntervalController を実装することでカスタマイズすることができます。
+    標準では、org.seasar.robot.interval.impl.DefaultIntervalController が s2robot_interval.dicon で指定されています。
+    DefaultIntervalController は各ポイントでの待ち時間 (ms) を返します。
+
+
+* 設定方法
+
+    クロール間隔を変更したい場合は、s2robot_interval.dicon を作成して以下を記述します。
+
++--------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+        "http://www.seasar.org/dtd/components24.dtd">
+<components>
+    <component name="intervalGenerator" class="org.seasar.robot.interval.impl.ConstantGenerator" instance="prototype">
+        <arg>#{
+            "delayMillisBeforeProcessing" : 0L,
+            "delayMillisAfterProcessing" : 0L,
+            "delayMillisAtNoUrlInQueue" : 500L,
+            "delayMillisForWaitingNewUrl" : 1000L
+        }</arg>
+    </component>
+</components>
++--------------------------------------------------+
+
+    * delayMillisBeforeProcessing: クロール対象の URL を取得し、処理開始前の待ち時間 (デフォルト値: 0L)
+
+    * delayMillisAfterProcessing: クロール対象を処理後待ち時間 (デフォルト値: 0L)
+
+    * delayMillisAtNoUrlInQueue: キューにクロール対象の URL がない場合の待ち時間 (デフォルト値: 500L)
+
+    * delayMillisForWaitingNewUrl: キューからクロール対象の URL を取得する前の待ち時間 (デフォルト値: 1000L)
+

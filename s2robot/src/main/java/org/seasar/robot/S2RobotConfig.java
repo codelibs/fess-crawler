@@ -25,8 +25,6 @@ public class S2RobotConfig {
 
     protected int maxThreadCheckCount = 20;
 
-    protected int threadCheckInterval = 500;
-
     /** a max depth for crawling. -1 is no depth check. */
     protected int maxDepth = -1;
 
@@ -47,14 +45,6 @@ public class S2RobotConfig {
 
     public void setMaxThreadCheckCount(int maxThreadCheckCount) {
         this.maxThreadCheckCount = maxThreadCheckCount;
-    }
-
-    public int getThreadCheckInterval() {
-        return threadCheckInterval;
-    }
-
-    public void setThreadCheckInterval(int threadCheckInterval) {
-        this.threadCheckInterval = threadCheckInterval;
     }
 
     public int getMaxDepth() {

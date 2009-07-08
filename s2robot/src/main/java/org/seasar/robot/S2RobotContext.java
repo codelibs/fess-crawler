@@ -16,7 +16,7 @@
 package org.seasar.robot;
 
 import org.seasar.robot.filter.UrlFilter;
-import org.seasar.robot.interval.IntervalGenerator;
+import org.seasar.robot.interval.IntervalController;
 import org.seasar.robot.rule.RuleManager;
 
 /**
@@ -40,5 +40,5 @@ public class S2RobotContext {
 
     protected RuleManager ruleManager;
 
-    protected IntervalGenerator intervalGenerator;
+    protected IntervalController intervalController;
 }

@@ -40,6 +40,8 @@ public class RobotsTxtHelper {
     protected static final Pattern CRAWL_DELAY = Pattern
             .compile("^Crawl-delay:\\s*([^\\s]+)\\s*$");
 
+    // TODO sitemaps
+
     public RobotsTxt parse(String text) {
         String[] lines = text.split("(\\r\\n)|\\r|\\n");
         return parse(java.util.Arrays.asList(lines));
@@ -75,7 +77,7 @@ public class RobotsTxtHelper {
                 continue;
             } else if ((value = getValue(USER_AGENT, line)) != null) {
                 String userAgent = value.toLowerCase();
-                currentDirectives = robotsTxt.getDirectives(userAgent);
+                currentDirectives = robotsTxt.getDirectives(userAgent, null);
                 if (currentDirectives == null) {
                     currentDirectives = new RobotsTxt.Directives();
                     robotsTxt.addDirectives(userAgent, currentDirectives);

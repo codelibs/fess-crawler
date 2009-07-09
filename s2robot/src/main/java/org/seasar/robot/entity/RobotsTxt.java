@@ -15,16 +15,16 @@
  */
 package org.seasar.robot.entity;
 
-import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class RobotsTxt {
     protected static final String ALL_BOTS = "*";
 
-    protected final Map<String, Directives> agentsToDirectives = new HashMap<String, Directives>();
+    protected final Map<String, Directives> agentsToDirectives = new LinkedHashMap<String, Directives>();
 
     public RobotsTxt() {
         Directives defaultDirectives = new Directives();
@@ -32,8 +32,7 @@ public class RobotsTxt {
         agentsToDirectives.put(ALL_BOTS, defaultDirectives);
     }
 
-    public boolean allows(String path, String userAgent)
-            throws MalformedURLException {
+    public boolean allows(String path, String userAgent) {
         Directives directives = getDirectives(userAgent.toLowerCase());
         if (directives == null)
             return true;
@@ -48,14 +47,23 @@ public class RobotsTxt {
     }
 
     public Directives getDirectives(String userAgent) {
+        return getDirectives(userAgent, ALL_BOTS);
+    }
+
+    public Directives getDirectives(String userAgent, String defaultUserAgent) {
         Directives directives = agentsToDirectives.get(userAgent);
-        if (directives == null)
-            directives = agentsToDirectives.get(ALL_BOTS);
+        if (directives == null && defaultUserAgent != null)
+            directives = agentsToDirectives.get(defaultUserAgent);
         return directives;
     }
 
     public void addDirectives(String userAgent, Directives directives) {
         agentsToDirectives.put(userAgent, directives);
+    }
+
+    public String[] getUserAgents() {
+        Set<String> userAgentSet = agentsToDirectives.keySet();
+        return userAgentSet.toArray(new String[userAgentSet.size()]);
     }
 
     public static class Directives {
@@ -91,6 +99,14 @@ public class RobotsTxt {
 
         public void addDisallow(String path) {
             this.disallowedPaths.add(path);
+        }
+
+        public String[] getAllows() {
+            return allowedPaths.toArray(new String[allowedPaths.size()]);
+        }
+
+        public String[] getDisallows() {
+            return disallowedPaths.toArray(new String[disallowedPaths.size()]);
         }
     }
 }

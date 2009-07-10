@@ -16,6 +16,7 @@
 package org.seasar.robot.client;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +39,21 @@ public class S2RobotClientFactory {
             throw new RobotSystemException("S2RobotClient is null.");
         }
         clientMap.put(Pattern.compile(regex), client);
+    }
+
+    public void addClient(List<String> regexList, S2RobotClient client) {
+        if (regexList == null || regexList.isEmpty()) {
+            throw new RobotSystemException(
+                    "A regular expression list is null or empty.");
+        }
+        if (client == null) {
+            throw new RobotSystemException("S2RobotClient is null.");
+        }
+        for (String regex : regexList) {
+            if (StringUtil.isNotBlank(regex)) {
+                clientMap.put(Pattern.compile(regex), client);
+            }
+        }
     }
 
     public S2RobotClient getClient(String url) {

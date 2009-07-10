@@ -14,11 +14,7 @@
 
 	<component name="clientFactory" class="org.seasar.robot.client.S2RobotClientFactory" instance="prototype">
 		<initMethod name="addClient">
-			<arg>"http:.*"</arg>
-			<arg>httpClient</arg>
-		</initMethod>
-		<initMethod name="addClient">
-			<arg>"https:.*"</arg>
+			<arg>{"http:.*", "https:.*"}</arg>
 			<arg>httpClient</arg>
 		</initMethod>
 		<initMethod name="addClient">

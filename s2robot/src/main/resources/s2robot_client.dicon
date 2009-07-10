@@ -4,15 +4,15 @@
 <components>
 	<include path="s2robot_robotstxt.dicon"/>
 
-	<component name="httpClient" class="org.seasar.robot.client.http.CommonsHttpClient" instance="singleton">
+	<component name="httpClient" class="org.seasar.robot.client.http.CommonsHttpClient" instance="prototype">
 		<property name="cookiePolicy">@org.apache.commons.httpclient.cookie.CookiePolicy@BROWSER_COMPATIBILITY</property>
 	</component>
 
-	<component name="fsClient" class="org.seasar.robot.client.fs.FileSystemClient" instance="singleton">
+	<component name="fsClient" class="org.seasar.robot.client.fs.FileSystemClient" instance="prototype">
 		<property name="charset">"UTF-8"</property>
 	</component>
 
-	<component name="clientFactory" class="org.seasar.robot.client.S2RobotClientFactory" instance="singleton">
+	<component name="clientFactory" class="org.seasar.robot.client.S2RobotClientFactory" instance="prototype">
 		<initMethod name="addClient">
 			<arg>"http:.*"</arg>
 			<arg>httpClient</arg>

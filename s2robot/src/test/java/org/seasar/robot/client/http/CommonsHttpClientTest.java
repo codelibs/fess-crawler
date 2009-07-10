@@ -18,7 +18,10 @@ package org.seasar.robot.client.http;
 import java.util.Date;
 
 import org.seasar.extension.unit.S2TestCase;
+import org.seasar.robot.S2RobotContext;
 import org.seasar.robot.entity.ResponseData;
+import org.seasar.robot.filter.UrlFilter;
+import org.seasar.robot.util.CrawlingParameterUtil;
 
 /**
  * @author shinsuke
@@ -26,6 +29,8 @@ import org.seasar.robot.entity.ResponseData;
  */
 public class CommonsHttpClientTest extends S2TestCase {
     public CommonsHttpClient httpClient;
+
+    public UrlFilter urlFilter;
 
     @Override
     protected String getRootDicon() throws Throwable {
@@ -42,5 +47,31 @@ public class CommonsHttpClientTest extends S2TestCase {
         String value = "Mon, 01 Jun 2009 21:02:45 GMT";
         Date date = httpClient.parseLastModified(value);
         assertNotNull(date);
+    }
+
+    public void test_processRobotsTxt() {
+        String url = "http://www.seasar.org/hoge/fuga.html";
+        S2RobotContext robotContext = new S2RobotContext();
+        robotContext.setUrlFilter(urlFilter);
+        CrawlingParameterUtil.setRobotContext(robotContext);
+        httpClient.init();
+        httpClient.processRobotsTxt(url);
+        assertEquals(1, robotContext.getRobotTxtUrlSet().size());
+        assertTrue(robotContext.getRobotTxtUrlSet().contains(
+                "http://www.seasar.org/robots.txt"));
+        assertFalse(urlFilter.match("http://www.seasar.org/admin/"));
+        assertFalse(urlFilter.match("http://www.seasar.org/websvn/"));
+    }
+
+    public void test_convertRobotsTxtPathPattern() {
+        assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/"));
+        assertEquals("/index\\.html$", httpClient
+                .convertRobotsTxtPathPattern("/index.html$"));
+        assertEquals(".*index\\.html$", httpClient
+                .convertRobotsTxtPathPattern("index.html$"));
+        assertEquals("/\\..*", httpClient.convertRobotsTxtPathPattern("/."));
+        assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/*"));
+        assertEquals(".*\\..*", httpClient.convertRobotsTxtPathPattern("."));
+        assertEquals(".*", httpClient.convertRobotsTxtPathPattern("*"));
     }
 }

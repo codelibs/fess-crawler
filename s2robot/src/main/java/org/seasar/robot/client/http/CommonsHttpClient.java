@@ -23,6 +23,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -36,8 +38,12 @@ import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.S2RobotContext;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.entity.ResponseData;
+import org.seasar.robot.entity.RobotsTxt;
+import org.seasar.robot.helper.RobotsTxtHelper;
+import org.seasar.robot.util.CrawlingParameterUtil;
 import org.seasar.robot.util.StreamUtil;
 import org.seasar.robot.util.TemporaryFileInputStream;
 import org.slf4j.Logger;
@@ -50,6 +56,9 @@ import org.slf4j.LoggerFactory;
 public class CommonsHttpClient implements S2RobotClient {
     private final Logger logger = LoggerFactory
             .getLogger(CommonsHttpClient.class);
+
+    @Resource
+    protected RobotsTxtHelper robotsTxtHelper;
 
     public Integer connectionTimeout;
 
@@ -64,6 +73,8 @@ public class CommonsHttpClient implements S2RobotClient {
     public String cookiePolicy;
 
     public String userAgent = "S2Robot";
+
+    public String userAgentForRobotsTxt = "S2Robot";
 
     protected volatile org.apache.commons.httpclient.HttpClient httpClient;
 
@@ -117,6 +128,94 @@ public class CommonsHttpClient implements S2RobotClient {
         }
     }
 
+    protected void processRobotsTxt(String url) {
+        if (StringUtil.isBlank(url)) {
+            throw new RobotSystemException("url is null or empty.");
+        }
+
+        if (robotsTxtHelper == null) {
+            // not support robots.txt
+            return;
+        }
+
+        // robot context
+        S2RobotContext robotContext = CrawlingParameterUtil.getRobotContext();
+        if (robotContext == null) {
+            // wrong state
+            return;
+        }
+
+        int idx = url.indexOf('/', 7);
+        String hostUrl;
+        if (idx >= 0) {
+            hostUrl = url.substring(0, idx);
+        } else {
+            hostUrl = url;
+        }
+        String robotTxtUrl = hostUrl + "/robots.txt";
+
+        // check url
+        if (robotContext.getRobotTxtUrlSet().contains(robotTxtUrl)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug(url + " is already visited.");
+            }
+            return;
+        } else {
+            // add url to a set
+            robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
+        }
+
+        GetMethod getMethod = new GetMethod(robotTxtUrl);
+
+        // cookie
+        if (cookiePolicy != null) {
+            getMethod.getParams().setCookiePolicy(cookiePolicy);
+        }
+
+        // user agent
+        httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
+                userAgentForRobotsTxt);
+
+        try { // get a content 
+            httpClient.executeMethod(getMethod);
+
+            int httpStatusCode = getMethod.getStatusCode();
+            if (httpStatusCode == 200) {
+                RobotsTxt robotsTxt = robotsTxtHelper.parse(getMethod
+                        .getResponseBodyAsStream());
+                if (robotsTxt != null) {
+                    RobotsTxt.Directives directives = robotsTxt
+                            .getDirectives(userAgentForRobotsTxt);
+                    if (directives != null) {
+                        for (String urlPattern : directives.getDisallows()) {
+                            if (StringUtil.isNotBlank(urlPattern)) {
+                                urlPattern = convertRobotsTxtPathPattern(urlPattern);
+                                robotContext.getUrlFilter().addExclude(
+                                        hostUrl + urlPattern);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not parse " + robotTxtUrl, e);
+        } finally {
+            getMethod.releaseConnection();
+        }
+    }
+
+    protected String convertRobotsTxtPathPattern(String path) {
+        String newPath = path.replaceAll("\\.", "\\\\.")
+                .replaceAll("\\*", ".*");
+        if (!newPath.startsWith("/")) {
+            newPath = ".*" + newPath;
+        }
+        if (!newPath.endsWith("$") && !newPath.endsWith(".*")) {
+            newPath = newPath + ".*";
+        }
+        return newPath.replaceAll("\\.\\*\\.\\*", ".*");
+    }
+
     /* (non-Javadoc)
      * @see org.seasar.robot.http.HttpClient#doGet(java.lang.String)
      */
@@ -128,6 +227,8 @@ public class CommonsHttpClient implements S2RobotClient {
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing " + url);
         }
+
+        processRobotsTxt(url);
 
         GetMethod getMethod = new GetMethod(url);
 

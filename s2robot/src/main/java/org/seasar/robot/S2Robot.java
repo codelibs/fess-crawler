@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 
 import org.seasar.framework.container.S2Container;
 import org.seasar.framework.util.StringUtil;
+import org.seasar.robot.client.S2RobotClientFactory;
 import org.seasar.robot.filter.UrlFilter;
 import org.seasar.robot.interval.IntervalController;
 import org.seasar.robot.rule.RuleManager;
@@ -60,6 +61,9 @@ public class S2Robot implements Runnable {
 
     @Resource
     protected IntervalController intervalController;
+
+    @Resource
+    protected S2RobotClientFactory clientFactory;
 
     protected S2RobotContext robotContext;
 
@@ -188,6 +192,7 @@ public class S2Robot implements Runnable {
             S2RobotThread robotThread = (S2RobotThread) container
                     .getComponent("robotThread");
             robotThread.robotContext = robotContext;
+            robotThread.clientFactory = clientFactory;
             threads[i] = new Thread(threadGroup, robotThread, "Robot-"
                     + robotContext.sessionId + "-" + Integer.toString(i + 1));
             threads[i].setDaemon(daemon);

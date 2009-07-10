@@ -17,12 +17,16 @@ package org.seasar.robot.helper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.RobotsTxt;
 
@@ -45,6 +49,18 @@ public class RobotsTxtHelper {
     public RobotsTxt parse(String text) {
         String[] lines = text.split("(\\r\\n)|\\r|\\n");
         return parse(java.util.Arrays.asList(lines));
+    }
+
+    public RobotsTxt parse(InputStream stream) {
+        return parse(stream, Constants.UTF_8);
+    }
+
+    public RobotsTxt parse(InputStream stream, String charsetName) {
+        try {
+            return parse(new InputStreamReader(stream, charsetName));
+        } catch (UnsupportedEncodingException e) {
+            throw new RobotSystemException(e);
+        }
     }
 
     public RobotsTxt parse(Reader reader) {

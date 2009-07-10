@@ -63,7 +63,6 @@ public class S2RobotThread implements Runnable {
     @Resource
     protected S2RobotConfig robotConfig;
 
-    @Resource
     protected S2RobotClientFactory clientFactory;
 
     protected S2RobotContext robotContext;

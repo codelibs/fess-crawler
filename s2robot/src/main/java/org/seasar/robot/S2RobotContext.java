@@ -15,6 +15,9 @@
  */
 package org.seasar.robot;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.seasar.robot.filter.UrlFilter;
 import org.seasar.robot.interval.IntervalController;
 import org.seasar.robot.rule.RuleManager;
@@ -41,4 +44,70 @@ public class S2RobotContext {
     protected RuleManager ruleManager;
 
     protected IntervalController intervalController;
+
+    protected Set<String> robotTxtUrlSet = new HashSet<String>(); // TODO size?
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public Integer getActiveThreadCount() {
+        return activeThreadCount;
+    }
+
+    public void setActiveThreadCount(Integer activeThreadCount) {
+        this.activeThreadCount = activeThreadCount;
+    }
+
+    public Long getAccessCount() {
+        return accessCount;
+    }
+
+    public void setAccessCount(Long accessCount) {
+        this.accessCount = accessCount;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public UrlFilter getUrlFilter() {
+        return urlFilter;
+    }
+
+    public void setUrlFilter(UrlFilter urlFilter) {
+        this.urlFilter = urlFilter;
+    }
+
+    public RuleManager getRuleManager() {
+        return ruleManager;
+    }
+
+    public void setRuleManager(RuleManager ruleManager) {
+        this.ruleManager = ruleManager;
+    }
+
+    public IntervalController getIntervalController() {
+        return intervalController;
+    }
+
+    public void setIntervalController(IntervalController intervalController) {
+        this.intervalController = intervalController;
+    }
+
+    public Set<String> getRobotTxtUrlSet() {
+        return robotTxtUrlSet;
+    }
+
+    public void setRobotTxtUrlSet(Set<String> robotTxtUrlSet) {
+        this.robotTxtUrlSet = robotTxtUrlSet;
+    }
 }

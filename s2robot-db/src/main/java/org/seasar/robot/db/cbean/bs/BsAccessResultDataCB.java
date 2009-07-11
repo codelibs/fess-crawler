@@ -119,7 +119,6 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
 
     /**
      * {@inheritDoc}
-     * @return The conditionQuery of the local table as interface. (NotNull)
      */
     public ConditionQuery localCQ() {
         return getConditionQuery();
@@ -249,9 +248,7 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
         }
 
         protected void doSpecifyRequiredColumn() {
-            columnId();// PK
-            if (_myQyCall.qy().hasConditionQueryAccessResult()) {
-            }
+            columnId(); // PK
         }
 
         protected String getTableDbName() {

@@ -308,7 +308,7 @@ public class AccessResultDbm extends AbstractDBMeta {
     //                                                               Entity Property Setup
     //                                                               =====================
     // It's very INTERNAL!
-    protected Map<String, Eps<AccessResult>> _epsMap = StringKeyMap
+    protected final Map<String, Eps<AccessResult>> _epsMap = StringKeyMap
             .createAsFlexibleConcurrent();
     {
         setupEps(_epsMap, new EpsId(), columnId());

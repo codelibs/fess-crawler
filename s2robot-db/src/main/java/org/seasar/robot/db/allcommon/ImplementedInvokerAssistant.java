@@ -44,30 +44,45 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
+    // -----------------------------------------------------
+    //                                          DI component
+    //                                          ------------
     protected BehaviorCommandInvoker _behaviorCommandInvoker;
 
     protected DataSource _dataSource;
 
-    protected DBMetaProvider _dbmetaProvider;
+    // -----------------------------------------------------
+    //                                        Lazy component
+    //                                        --------------
+    protected volatile DBMetaProvider _dbmetaProvider;
 
-    protected SqlClauseCreator _sqlClauseCreator;
+    protected volatile SqlClauseCreator _sqlClauseCreator;
 
-    protected StatementFactory _statementFactory;
+    protected volatile StatementFactory _statementFactory;
 
-    protected TnBeanMetaDataFactory _beanMetaDataFactory;
+    protected volatile TnBeanMetaDataFactory _beanMetaDataFactory;
 
-    protected TnValueTypeFactory _valueTypeFactory;
+    protected volatile TnValueTypeFactory _valueTypeFactory;
 
-    protected boolean _disposable;
+    // -----------------------------------------------------
+    //                                       Disposable Flag
+    //                                       ---------------
+    protected volatile boolean _disposable;
 
     // ===================================================================================
     //                                                                 Assistant Main Work
     //                                                                 ===================
+    // -----------------------------------------------------
+    //                                         Current DBDef
+    //                                         -------------
     public DBDef assistCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
-    public DataSource assistDataSource() {
+    // -----------------------------------------------------
+    //                                           Data Source
+    //                                           -----------
+    public DataSource assistDataSource() { // DI component
         DataSourceHandler dataSourceHandler = DBFluteConfig.getInstance()
                 .getDataSourceHandler();
         if (dataSourceHandler != null) {
@@ -76,11 +91,19 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         return _dataSource;
     }
 
-    public DBMetaProvider assistDBMetaProvider() {
+    // -----------------------------------------------------
+    //                                       DBMeta Provider
+    //                                       ---------------
+    public DBMetaProvider assistDBMetaProvider() { // Lazy component
         if (_dbmetaProvider != null) {
             return _dbmetaProvider;
         }
-        _dbmetaProvider = createDBMetaProvider();
+        synchronized (this) {
+            if (_dbmetaProvider != null) {
+                return _dbmetaProvider;
+            }
+            _dbmetaProvider = createDBMetaProvider();
+        }
         return _dbmetaProvider;
     }
 
@@ -88,11 +111,19 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         return new DBMetaInstanceHandler();
     }
 
-    public SqlClauseCreator assistSqlClauseCreator() {
+    // -----------------------------------------------------
+    //                                    SQL Clause Creator
+    //                                    ------------------
+    public SqlClauseCreator assistSqlClauseCreator() { // Lazy component
         if (_sqlClauseCreator != null) {
             return _sqlClauseCreator;
         }
-        _sqlClauseCreator = createSqlClauseCreator();
+        synchronized (this) {
+            if (_sqlClauseCreator != null) {
+                return _sqlClauseCreator;
+            }
+            _sqlClauseCreator = createSqlClauseCreator();
+        }
         return _sqlClauseCreator;
     }
 
@@ -100,11 +131,19 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         return new ImplementedSqlClauseCreator();
     }
 
-    public StatementFactory assistStatementFactory() {
+    // -----------------------------------------------------
+    //                                     Statement Factory
+    //                                     -----------------
+    public StatementFactory assistStatementFactory() { // Lazy component
         if (_statementFactory != null) {
             return _statementFactory;
         }
-        _statementFactory = createStatementFactory();
+        synchronized (this) {
+            if (_statementFactory != null) {
+                return _statementFactory;
+            }
+            _statementFactory = createStatementFactory();
+        }
         return _statementFactory;
     }
 
@@ -116,11 +155,19 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         return factory;
     }
 
-    public TnBeanMetaDataFactory assistBeanMetaDataFactory() {
+    // -----------------------------------------------------
+    //                                Bean Meta Data Factory
+    //                                ----------------------
+    public TnBeanMetaDataFactory assistBeanMetaDataFactory() { // Lazy component
         if (_beanMetaDataFactory != null) {
             return _beanMetaDataFactory;
         }
-        _beanMetaDataFactory = createBeanMetaDataFactory();
+        synchronized (this) {
+            if (_beanMetaDataFactory != null) {
+                return _beanMetaDataFactory;
+            }
+            _beanMetaDataFactory = createBeanMetaDataFactory();
+        }
         return _beanMetaDataFactory;
     }
 
@@ -131,11 +178,19 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         return factory;
     }
 
-    public TnValueTypeFactory assistValueTypeFactory() {
+    // -----------------------------------------------------
+    //                                    Value Type Factory
+    //                                    ------------------
+    public TnValueTypeFactory assistValueTypeFactory() { // Lazy component
         if (_valueTypeFactory != null) {
             return _valueTypeFactory;
         }
-        _valueTypeFactory = createValueTypeFactory();
+        synchronized (this) {
+            if (_valueTypeFactory != null) {
+                return _valueTypeFactory;
+            }
+            _valueTypeFactory = createValueTypeFactory();
+        }
         return _valueTypeFactory;
     }
 
@@ -143,6 +198,9 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         return new TnValueTypeFactoryImpl();
     }
 
+    // -----------------------------------------------------
+    //                                    Resource Parameter
+    //                                    ------------------
     public ResourceParameter assistResourceParameter() {
         ResourceParameter resourceParameter = new ResourceParameter();
         resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance()
@@ -154,6 +212,9 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
         return resourceParameter;
     }
 
+    // -----------------------------------------------------
+    //                                     SQL File Encoding
+    //                                     -----------------
     public String assistSqlFileEncoding() {
         return "UTF-8";
     }
@@ -162,33 +223,35 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     //                                                                             Dispose
     //                                                                             =======
     public void toBeDisposable() { // for HotDeploy
-        if (!_disposable) {
-            synchronized (this) {
-                if (!_disposable) {
-                    // Register for BehaviorCommandInvoker
-                    DisposableUtil.add(new Disposable() {
-                        public void dispose() {
-                            if (_behaviorCommandInvoker != null) {
-                                _behaviorCommandInvoker.clearExecutionCache();
-                            }
-                            _disposable = false;
-                        }
-                    });
-                    // Register for BeanDescFactory
-                    DisposableUtil.add(new Disposable() {
-                        public void dispose() {
-                            TnBeanDescFactory.clear();
-                        }
-                    });
-                    // Register for ValueTypes
-                    DisposableUtil.add(new Disposable() {
-                        public void dispose() {
-                            ValueTypes.clear();
-                        }
-                    });
-                    _disposable = true;
-                }
+        if (_disposable) {
+            return;
+        }
+        synchronized (this) {
+            if (_disposable) {
+                return;
             }
+            // Register for BehaviorCommandInvoker
+            DisposableUtil.add(new Disposable() {
+                public void dispose() {
+                    if (_behaviorCommandInvoker != null) {
+                        _behaviorCommandInvoker.clearExecutionCache();
+                    }
+                    _disposable = false;
+                }
+            });
+            // Register for BeanDescFactory
+            DisposableUtil.add(new Disposable() {
+                public void dispose() {
+                    TnBeanDescFactory.clear();
+                }
+            });
+            // Register for ValueTypes
+            DisposableUtil.add(new Disposable() {
+                public void dispose() {
+                    ValueTypes.clear();
+                }
+            });
+            _disposable = true;
         }
     }
 

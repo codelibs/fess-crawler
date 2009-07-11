@@ -679,7 +679,7 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
     }
 
     /**
-     * FromTo($fromDate &lt;= COLUMN_NAME &lt;= $toDate). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
+     * FromTo(fromDate &lt;= COLUMN_NAME &lt;= toDate). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
      * @param fromDate The from-date of createTime. (Nullable)
      * @param toDate The to-date of createTime. (Nullable)
      * @param fromToOption The option of from-to. (NotNull)
@@ -693,7 +693,7 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
     }
 
     /**
-     * FromTo($fromDate &lt;= COLUMN_NAME &lt; $toDate + 1). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
+     * FromTo(fromDate &lt;= COLUMN_NAME &lt; toDate + 1). And NullIgnored, OnlyOnceRegistered. {NotNull : TIMESTAMP}
      * @param fromDate The from-date of createTime. (Nullable)
      * @param toDate The to-date of createTime. (Nullable)
      */

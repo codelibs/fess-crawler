@@ -35,14 +35,14 @@ public class DBFluteConfig {
     /** Log instance. */
     private static final Log _log = LogFactory.getLog(DBFluteConfig.class);
 
-    /** Singleton instance. */
-    private static final DBFluteConfig _instance = new DBFluteConfig();
-
     /** The default package of outside SQL. */
     private static final String DEFAULT_OUTSIDE_SQL_PACKAGE = null;
 
     /** The default value of whether it uses SQL Log Registry. The default value is false. */
     private static final boolean DEFAULT_USE_SQL_LOG_REGISTRY = false;
+
+    /** Singleton instance. */
+    private static final DBFluteConfig _instance = new DBFluteConfig();
 
     // ===================================================================================
     //                                                                           Attribute

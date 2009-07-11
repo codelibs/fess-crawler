@@ -60,7 +60,6 @@ public class BsAccessResultPmb {
     //                                                                      ==============
     /**
      * {@inheritDoc}
-     * @return The view of properties. (NotNull)
      */
     @Override
     public String toString() {

@@ -74,7 +74,7 @@
         <artifactId>maven-dbflute-plugin</artifactId>
         <version>0.1.0</version>
         <configuration>
-          <dbfluteVersion>0.9.5</dbfluteVersion>
+          <dbfluteVersion>0.9.5.1</dbfluteVersion>
           <rootPackage>org.seasar.robot</rootPackage>
           <dbPackage>org.seasar.robot.db</dbPackage>
           <schemaName>robot</schemaName>
@@ -153,7 +153,7 @@
     <dependency>
       <groupId>org.seasar.dbflute</groupId>
       <artifactId>dbflute-runtime</artifactId>
-      <version>0.9.5</version>
+      <version>0.9.5.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>

@@ -54,9 +54,6 @@ public class S2Robot implements Runnable {
     protected RuleManager ruleManager;
 
     @Resource
-    protected S2RobotConfig robotConfig;
-
-    @Resource
     protected S2Container container;
 
     @Resource
@@ -136,10 +133,6 @@ public class S2Robot implements Runnable {
         }
     }
 
-    public S2RobotConfig getRobotConfig() {
-        return robotConfig;
-    }
-
     public void stop() {
         robotContext.running = false;
     }
@@ -199,8 +192,8 @@ public class S2Robot implements Runnable {
 
         ThreadGroup threadGroup = new ThreadGroup("Robot-"
                 + robotContext.sessionId);
-        Thread[] threads = new Thread[robotConfig.getNumOfThread()];
-        for (int i = 0; i < robotConfig.getNumOfThread(); i++) {
+        Thread[] threads = new Thread[robotContext.getNumOfThread()];
+        for (int i = 0; i < robotContext.getNumOfThread(); i++) {
             S2RobotThread robotThread = (S2RobotThread) container
                     .getComponent("robotThread");
             robotThread.robotContext = robotContext;
@@ -212,12 +205,12 @@ public class S2Robot implements Runnable {
 
         // run
         robotContext.running = true;
-        for (int i = 0; i < robotConfig.numOfThread; i++) {
+        for (int i = 0; i < robotContext.numOfThread; i++) {
             threads[i].start();
         }
 
         // join
-        for (int i = 0; i < robotConfig.numOfThread; i++) {
+        for (int i = 0; i < robotContext.numOfThread; i++) {
             try {
                 threads[i].join();
             } catch (InterruptedException e) {

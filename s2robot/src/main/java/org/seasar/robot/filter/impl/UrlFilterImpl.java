@@ -23,11 +23,11 @@ import java.util.regex.Pattern;
  *
  */
 public class UrlFilterImpl extends AbstractUrlFilter {
-    public String urlPattern = "^(.*:/+)([^/]*)(.*)$";
+    protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
-    public String includeFilteringPattern;
+    protected String includeFilteringPattern;
 
-    public String excludeFilteringPattern;
+    protected String excludeFilteringPattern;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.filter.UrlFilter#match(java.lang.String)
@@ -73,5 +73,29 @@ public class UrlFilterImpl extends AbstractUrlFilter {
         if (excludeFilteringPattern != null) {
             addExclude(url.replaceAll(urlPattern, excludeFilteringPattern));
         }
+    }
+
+    public String getUrlPattern() {
+        return urlPattern;
+    }
+
+    public void setUrlPattern(String urlPattern) {
+        this.urlPattern = urlPattern;
+    }
+
+    public String getIncludeFilteringPattern() {
+        return includeFilteringPattern;
+    }
+
+    public void setIncludeFilteringPattern(String includeFilteringPattern) {
+        this.includeFilteringPattern = includeFilteringPattern;
+    }
+
+    public String getExcludeFilteringPattern() {
+        return excludeFilteringPattern;
+    }
+
+    public void setExcludeFilteringPattern(String excludeFilteringPattern) {
+        this.excludeFilteringPattern = excludeFilteringPattern;
     }
 }

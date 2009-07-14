@@ -58,15 +58,15 @@ public class XpathTransformer extends HtmlTransformer {
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",
             Pattern.MULTILINE);
 
-    public Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
 
     /** a flag to trim a space characters. */
-    public boolean trimSpace = true;
+    protected boolean trimSpace = true;
 
-    public String charsetName = Constants.UTF_8;
+    protected String charsetName = Constants.UTF_8;
 
     /** Class type returned by getData() method. The default is null(XML content of String). */
-    public Class dataClass = null;
+    protected Class dataClass = null;
 
     @Override
     protected void storeData(ResponseData responseData, ResultData resultData) {
@@ -307,5 +307,37 @@ public class XpathTransformer extends HtmlTransformer {
         public Map<String, Object> getDataMap() {
             return dataMap;
         }
+    }
+
+    public Map<String, String> getFieldRuleMap() {
+        return fieldRuleMap;
+    }
+
+    public void setFieldRuleMap(Map<String, String> fieldRuleMap) {
+        this.fieldRuleMap = fieldRuleMap;
+    }
+
+    public boolean isTrimSpace() {
+        return trimSpace;
+    }
+
+    public void setTrimSpace(boolean trimSpace) {
+        this.trimSpace = trimSpace;
+    }
+
+    public String getCharsetName() {
+        return charsetName;
+    }
+
+    public void setCharsetName(String charsetName) {
+        this.charsetName = charsetName;
+    }
+
+    public Class getDataClass() {
+        return dataClass;
+    }
+
+    public void setDataClass(Class dataClass) {
+        this.dataClass = dataClass;
     }
 }

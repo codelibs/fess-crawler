@@ -16,8 +16,8 @@
 package org.seasar.robot.rule.impl;
 
 import org.seasar.robot.entity.ResponseData;
+import org.seasar.robot.processor.ResponseProcessor;
 import org.seasar.robot.rule.Rule;
-import org.seasar.robot.transformer.Transformer;
 
 /**
  * @author shinsuke
@@ -25,9 +25,11 @@ import org.seasar.robot.transformer.Transformer;
  */
 public abstract class AbstractRule implements Rule {
 
+    private static final long serialVersionUID = 1L;
+
     protected String ruleId;
 
-    protected Transformer transformer;
+    protected ResponseProcessor responseProcessor;
 
     public abstract boolean match(ResponseData responseData);
 
@@ -39,11 +41,12 @@ public abstract class AbstractRule implements Rule {
         this.ruleId = ruleId;
     }
 
-    public Transformer getTransformer() {
-        return transformer;
+    public ResponseProcessor getResponseProcessor() {
+        return responseProcessor;
     }
 
-    public void setTransformer(Transformer transformer) {
-        this.transformer = transformer;
+    public void setResponseProcessor(ResponseProcessor responseProcessor) {
+        this.responseProcessor = responseProcessor;
     }
+
 }

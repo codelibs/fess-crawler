@@ -12,6 +12,10 @@
 	
 	<component name="fileRule" class="org.seasar.robot.rule.impl.RegexRule" >
 		<property name="defaultRule">true</property>
-		<property name="transformer">fileTransformer</property>
+		<property name="responseProcessor">
+			<component class="org.seasar.robot.processor.impl.DefaultResponseProcessor">
+				<property name="transformer">fileTransformer</property>
+			</component>
+		</property>
 	</component>
 </components>

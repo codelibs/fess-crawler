@@ -24,6 +24,9 @@ import org.seasar.robot.RobotSystemException;
  *
  */
 public class ChildUrlsException extends RobotSystemException {
+
+    private static final long serialVersionUID = 1L;
+
     private Set<String> childUrlList;
 
     public ChildUrlsException(Set<String> childUrlList) {

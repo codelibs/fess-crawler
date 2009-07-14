@@ -47,6 +47,17 @@ public class S2RobotContext {
 
     protected Set<String> robotTxtUrlSet = new HashSet<String>(); // TODO size?
 
+    /** The number of a thread */
+    protected int numOfThread = 10;
+
+    protected int maxThreadCheckCount = 20;
+
+    /** a max depth for crawling. -1 is no depth check. */
+    protected int maxDepth = -1;
+
+    /** a max count to access urls. 0 is no limit to access it. */
+    protected long maxAccessCount = 0;
+
     public String getSessionId() {
         return sessionId;
     }
@@ -109,5 +120,45 @@ public class S2RobotContext {
 
     public void setRobotTxtUrlSet(Set<String> robotTxtUrlSet) {
         this.robotTxtUrlSet = robotTxtUrlSet;
+    }
+
+    public Object getActiveThreadCountLock() {
+        return activeThreadCountLock;
+    }
+
+    public Object getAccessCountLock() {
+        return accessCountLock;
+    }
+
+    public int getNumOfThread() {
+        return numOfThread;
+    }
+
+    public void setNumOfThread(int numOfThread) {
+        this.numOfThread = numOfThread;
+    }
+
+    public int getMaxThreadCheckCount() {
+        return maxThreadCheckCount;
+    }
+
+    public void setMaxThreadCheckCount(int maxThreadCheckCount) {
+        this.maxThreadCheckCount = maxThreadCheckCount;
+    }
+
+    public int getMaxDepth() {
+        return maxDepth;
+    }
+
+    public void setMaxDepth(int maxDepth) {
+        this.maxDepth = maxDepth;
+    }
+
+    public long getMaxAccessCount() {
+        return maxAccessCount;
+    }
+
+    public void setMaxAccessCount(long maxAccessCount) {
+        this.maxAccessCount = maxAccessCount;
     }
 }

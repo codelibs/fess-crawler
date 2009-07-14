@@ -30,15 +30,13 @@ import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.client.S2RobotClientFactory;
 import org.seasar.robot.client.fs.ChildUrlsException;
-import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.ResponseData;
-import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.interval.IntervalController;
+import org.seasar.robot.processor.ResponseProcessor;
 import org.seasar.robot.rule.Rule;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.service.UrlQueueService;
-import org.seasar.robot.transformer.Transformer;
 import org.seasar.robot.util.CrawlingParameterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,9 +57,6 @@ public class S2RobotThread implements Runnable {
 
     @Resource
     protected S2Container container;
-
-    @Resource
-    protected S2RobotConfig robotConfig;
 
     protected S2RobotClientFactory clientFactory;
 
@@ -86,7 +81,7 @@ public class S2RobotThread implements Runnable {
         }
 
         boolean isContinue = false;
-        if (tcCount < robotConfig.maxThreadCheckCount) {
+        if (tcCount < robotContext.maxThreadCheckCount) {
             isContinue = checkAccessCount();
         }
 
@@ -99,8 +94,8 @@ public class S2RobotThread implements Runnable {
     }
 
     protected boolean checkAccessCount() {
-        if (robotConfig.maxAccessCount > 0) {
-            if (robotContext.accessCount < robotConfig.maxAccessCount) {
+        if (robotContext.maxAccessCount > 0) {
+            if (robotContext.accessCount < robotContext.maxAccessCount) {
                 return true;
             } else {
                 return false;
@@ -117,6 +112,8 @@ public class S2RobotThread implements Runnable {
         int threadCheckCount = 0;
         // set urlQueue to thread
         CrawlingParameterUtil.setRobotContext(robotContext);
+        CrawlingParameterUtil.setUrlQueueService(urlQueueService);
+        CrawlingParameterUtil.setDataService(dataService);
         try {
             while (robotContext.running && isContinue(threadCheckCount)) {
                 UrlQueue urlQueue = urlQueueService
@@ -234,6 +231,8 @@ public class S2RobotThread implements Runnable {
         } finally {
             // remove robotContext from thread
             CrawlingParameterUtil.setRobotContext(null);
+            CrawlingParameterUtil.setUrlQueueService(null);
+            CrawlingParameterUtil.setDataService(null);
         }
     }
 
@@ -246,55 +245,17 @@ public class S2RobotThread implements Runnable {
         Rule rule = robotContext.ruleManager.getRule(responseData);
         if (rule != null) {
             responseData.setRuleId(rule.getRuleId());
-            Transformer transformer = rule.getTransformer();
-            if (transformer != null) {
-                ResultData resultData = transformer.transform(responseData);
-                if (resultData != null) {
-                    processResult(urlQueue, responseData, resultData);
-                } else {
-                    logger.warn("No data for (" + responseData.getUrl() + ", "
-                            + responseData.getMimeType() + ")");
-                }
+            ResponseProcessor responseProcessor = rule.getResponseProcessor();
+            if (responseProcessor != null) {
+                responseProcessor.process(responseData);
             } else {
-                logger.warn("No transformer for (" + responseData.getUrl()
-                        + ", " + responseData.getMimeType() + ")");
+                logger.warn("No ResponseProcessor for ("
+                        + responseData.getUrl() + ", "
+                        + responseData.getMimeType() + ")");
             }
         } else {
             logger.warn("No rule for (" + responseData.getUrl() + ", "
                     + responseData.getMimeType() + ")");
-        }
-
-    }
-
-    protected void processResult(UrlQueue urlQueue, ResponseData responseData,
-            ResultData resultData) {
-        AccessResult accessResult = (AccessResult) container
-                .getComponent(AccessResult.class);
-        accessResult.init(responseData, resultData);
-
-        synchronized (robotContext.accessCountLock) {
-            if (!urlQueueService.visited(urlQueue)) {
-                if (checkAccessCount()) {
-                    //  store
-                    dataService.store(accessResult);
-
-                    //  add and filter urls 
-                    storeChildUrls(resultData.getChildUrlSet(), urlQueue
-                            .getUrl(), urlQueue.getDepth() != null ? urlQueue
-                            .getDepth() + 1 : 1);
-
-                    // count up
-                    if (robotConfig.maxAccessCount > 0) {
-                        robotContext.accessCount++;
-                    }
-                } else {
-                    // cancel crawling
-                    List<UrlQueue> newUrlQueueList = new ArrayList<UrlQueue>();
-                    newUrlQueueList.add(urlQueue);
-                    urlQueueService.offerAll(robotContext.sessionId,
-                            newUrlQueueList);
-                }
-            }
         }
 
     }
@@ -342,8 +303,8 @@ public class S2RobotThread implements Runnable {
             return false;
         }
 
-        if (robotConfig.getMaxDepth() >= 0
-                && urlQueue.getDepth() > robotConfig.getMaxDepth()) {
+        if (robotContext.getMaxDepth() >= 0
+                && urlQueue.getDepth() > robotContext.getMaxDepth()) {
             return false;
         }
 

@@ -17,6 +17,8 @@ package org.seasar.robot.util;
 
 import org.seasar.robot.S2RobotContext;
 import org.seasar.robot.entity.UrlQueue;
+import org.seasar.robot.service.DataService;
+import org.seasar.robot.service.UrlQueueService;
 
 /**
  * @author shinsuke
@@ -26,6 +28,10 @@ public class CrawlingParameterUtil {
     private static ThreadLocal<UrlQueue> urlQueueThreadLocal = new ThreadLocal<UrlQueue>();
 
     private static ThreadLocal<S2RobotContext> robotContextThreadLocal = new ThreadLocal<S2RobotContext>();
+
+    private static ThreadLocal<UrlQueueService> urlQueueServiceThreadLocal = new ThreadLocal<UrlQueueService>();
+
+    private static ThreadLocal<DataService> dataServiceThreadLocal = new ThreadLocal<DataService>();
 
     public static UrlQueue getUrlQueue() {
         return urlQueueThreadLocal.get();
@@ -48,6 +54,30 @@ public class CrawlingParameterUtil {
             robotContextThreadLocal.set(robotContext);
         } else {
             robotContextThreadLocal.remove();
+        }
+    }
+
+    public static UrlQueueService getUrlQueueService() {
+        return urlQueueServiceThreadLocal.get();
+    }
+
+    public static void setUrlQueueService(UrlQueueService urlQueueService) {
+        if (urlQueueService != null) {
+            urlQueueServiceThreadLocal.set(urlQueueService);
+        } else {
+            urlQueueServiceThreadLocal.remove();
+        }
+    }
+
+    public static DataService getDataService() {
+        return dataServiceThreadLocal.get();
+    }
+
+    public static void setDataService(DataService dataService) {
+        if (dataService != null) {
+            dataServiceThreadLocal.set(dataService);
+        } else {
+            dataServiceThreadLocal.remove();
         }
     }
 

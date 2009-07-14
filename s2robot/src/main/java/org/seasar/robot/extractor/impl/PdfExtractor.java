@@ -33,7 +33,7 @@ import org.seasar.robot.extractor.Extractor;
  *
  */
 public class PdfExtractor implements Extractor {
-    public String encoding = "UTF-8";
+    protected String encoding = "UTF-8";
 
     /* (non-Javadoc)
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
@@ -53,5 +53,13 @@ public class PdfExtractor implements Extractor {
             throw new ExtractException(e);
         }
 
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 }

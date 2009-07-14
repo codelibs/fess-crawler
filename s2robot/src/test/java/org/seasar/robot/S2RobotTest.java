@@ -45,11 +45,11 @@ public class S2RobotTest extends S2TestCase {
         file.delete();
         file.mkdirs();
         file.deleteOnExit();
-        fileTransformer.path = file.getAbsolutePath();
+        fileTransformer.setPath(file.getAbsolutePath());
         // TODO use a local server(ex. jetty)
         s2Robot.addUrl(url);
-        s2Robot.robotConfig.setMaxAccessCount(maxCount);
-        s2Robot.robotConfig.setNumOfThread(numOfThread);
+        s2Robot.robotContext.setMaxAccessCount(maxCount);
+        s2Robot.robotContext.setNumOfThread(numOfThread);
         s2Robot.urlFilter.addInclude(url + ".*");
         String sessionId = s2Robot.execute();
         assertEquals(maxCount, dataService.getCount(sessionId));
@@ -66,12 +66,12 @@ public class S2RobotTest extends S2TestCase {
         file.delete();
         file.mkdirs();
         file.deleteOnExit();
-        fileTransformer.path = file.getAbsolutePath();
+        fileTransformer.setPath(file.getAbsolutePath());
         // TODO use a local server(ex. jetty)
         s2Robot.addUrl(url);
-        s2Robot.robotConfig.setMaxThreadCheckCount(3);
-        s2Robot.robotConfig.setMaxAccessCount(maxCount);
-        s2Robot.robotConfig.setNumOfThread(numOfThread);
+        s2Robot.robotContext.setMaxThreadCheckCount(3);
+        s2Robot.robotContext.setMaxAccessCount(maxCount);
+        s2Robot.robotContext.setNumOfThread(numOfThread);
         s2Robot.urlFilter.addInclude(url + ".*");
         String sessionId = s2Robot.execute();
         assertEquals(maxCount, dataService.getCount(sessionId));
@@ -87,13 +87,14 @@ public class S2RobotTest extends S2TestCase {
         file.delete();
         file.mkdirs();
         file.deleteOnExit();
-        fileTransformer.path = file.getAbsolutePath();
+        fileTransformer.setPath(file.getAbsolutePath());
         // TODO use a local server(ex. jetty)
         s2Robot.setBackground(true);
-        ((UrlFilterImpl) s2Robot.urlFilter).includeFilteringPattern = "$1$2$3.*";
+        ((UrlFilterImpl) s2Robot.urlFilter)
+                .setIncludeFilteringPattern("$1$2$3.*");
         s2Robot.addUrl(url);
-        s2Robot.robotConfig.setMaxAccessCount(maxCount);
-        s2Robot.robotConfig.setNumOfThread(numOfThread);
+        s2Robot.robotContext.setMaxAccessCount(maxCount);
+        s2Robot.robotContext.setNumOfThread(numOfThread);
         String sessionId = s2Robot.execute();
         Thread.sleep(3000);
         assertTrue(s2Robot.robotContext.running);

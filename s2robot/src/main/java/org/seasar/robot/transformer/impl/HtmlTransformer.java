@@ -64,14 +64,14 @@ public class HtmlTransformer extends AbstractTransformer {
     private static final Logger logger = LoggerFactory
             .getLogger(HtmlTransformer.class);
 
-    public Map<String, String> featureMap = new HashMap<String, String>();
+    protected Map<String, String> featureMap = new HashMap<String, String>();
 
-    public Map<String, String> propertyMap = new HashMap<String, String>();
+    protected Map<String, String> propertyMap = new HashMap<String, String>();
 
-    public Map<String, String> childUrlRuleMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> childUrlRuleMap = new LinkedHashMap<String, String>();
 
     @Binding(bindingType = BindingType.MAY)
-    public String defaultEncoding;
+    protected String defaultEncoding;
 
     private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
 
@@ -444,5 +444,37 @@ public class HtmlTransformer extends AbstractTransformer {
                 throw new RobotSystemException("Unexpected exception");
             }
         }
+    }
+
+    public Map<String, String> getFeatureMap() {
+        return featureMap;
+    }
+
+    public void setFeatureMap(Map<String, String> featureMap) {
+        this.featureMap = featureMap;
+    }
+
+    public Map<String, String> getPropertyMap() {
+        return propertyMap;
+    }
+
+    public void setPropertyMap(Map<String, String> propertyMap) {
+        this.propertyMap = propertyMap;
+    }
+
+    public Map<String, String> getChildUrlRuleMap() {
+        return childUrlRuleMap;
+    }
+
+    public void setChildUrlRuleMap(Map<String, String> childUrlRuleMap) {
+        this.childUrlRuleMap = childUrlRuleMap;
+    }
+
+    public String getDefaultEncoding() {
+        return defaultEncoding;
+    }
+
+    public void setDefaultEncoding(String defaultEncoding) {
+        this.defaultEncoding = defaultEncoding;
     }
 }

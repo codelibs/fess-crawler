@@ -29,7 +29,7 @@ import org.seasar.robot.extractor.Extractor;
  */
 public class TextExtractor implements Extractor {
 
-    public String encoding = Constants.UTF_8;
+    protected String encoding = Constants.UTF_8;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
@@ -45,7 +45,11 @@ public class TextExtractor implements Extractor {
         }
     }
 
-    protected String getEncoding() {
+    public String getEncoding() {
         return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 }

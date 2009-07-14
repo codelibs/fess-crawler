@@ -18,7 +18,7 @@ package org.seasar.robot.rule;
 import java.io.Serializable;
 
 import org.seasar.robot.entity.ResponseData;
-import org.seasar.robot.transformer.Transformer;
+import org.seasar.robot.processor.ResponseProcessor;
 
 /**
  * @author shinsuke
@@ -30,9 +30,6 @@ public interface Rule extends Serializable {
 
     public abstract String getRuleId();
 
-    public abstract void setRuleId(String ruleId);
+    public abstract ResponseProcessor getResponseProcessor();
 
-    public abstract Transformer getTransformer();
-
-    public abstract void setTransformer(Transformer transformer);
 }

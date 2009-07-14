@@ -40,7 +40,7 @@ public class FileSystemClient implements S2RobotClient {
     private final Logger logger = LoggerFactory
             .getLogger(FileSystemClient.class);
 
-    public String charset;
+    protected String charset;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
@@ -111,6 +111,14 @@ public class FileSystemClient implements S2RobotClient {
 
     protected String geCharSet(File file) {
         return charset;
+    }
+
+    public String getCharset() {
+        return charset;
+    }
+
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 
 }

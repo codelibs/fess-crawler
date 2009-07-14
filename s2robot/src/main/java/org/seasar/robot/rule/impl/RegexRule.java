@@ -28,9 +28,12 @@ import org.seasar.robot.entity.ResponseData;
  *
  */
 public class RegexRule extends AbstractRule {
-    public boolean defaultRule = false;
 
-    public boolean allRequired = true;
+    private static final long serialVersionUID = 1L;
+
+    protected boolean defaultRule = false;
+
+    protected boolean allRequired = true;
 
     protected Map<String, Pattern> regexMap = new HashMap<String, Pattern>();
 
@@ -76,5 +79,21 @@ public class RegexRule extends AbstractRule {
 
     public void addRule(String key, Pattern pattern) {
         regexMap.put(key, pattern);
+    }
+
+    public boolean isDefaultRule() {
+        return defaultRule;
+    }
+
+    public void setDefaultRule(boolean defaultRule) {
+        this.defaultRule = defaultRule;
+    }
+
+    public boolean isAllRequired() {
+        return allRequired;
+    }
+
+    public void setAllRequired(boolean allRequired) {
+        this.allRequired = allRequired;
     }
 }

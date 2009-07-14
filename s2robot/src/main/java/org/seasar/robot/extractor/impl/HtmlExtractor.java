@@ -39,14 +39,14 @@ public class HtmlExtractor implements Extractor {
     private static final Logger logger = LoggerFactory
             .getLogger(HtmlExtractor.class);
 
-    public String encoding = Constants.UTF_8;
+    protected String encoding = Constants.UTF_8;
 
-    public Pattern metaCharsetPattern = Pattern
+    protected Pattern metaCharsetPattern = Pattern
             .compile(
                     "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
                     Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
-    public Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
+    protected Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
 
     /* (non-Javadoc)
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
@@ -70,9 +70,9 @@ public class HtmlExtractor implements Extractor {
         byte[] b = new byte[512];
         try {
             bis.mark(size);
-            bis.read(b);
+            int c = bis.read(b);
 
-            String head = new String(b, encoding);
+            String head = new String(b, 0, c, encoding);
             if (StringUtil.isBlank(head)) {
                 return encoding;
             }
@@ -96,5 +96,29 @@ public class HtmlExtractor implements Extractor {
         }
 
         return encoding;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
+    public Pattern getMetaCharsetPattern() {
+        return metaCharsetPattern;
+    }
+
+    public void setMetaCharsetPattern(Pattern metaCharsetPattern) {
+        this.metaCharsetPattern = metaCharsetPattern;
+    }
+
+    public Pattern getHtmlTagPattern() {
+        return htmlTagPattern;
+    }
+
+    public void setHtmlTagPattern(Pattern htmlTagPattern) {
+        this.htmlTagPattern = htmlTagPattern;
     }
 }

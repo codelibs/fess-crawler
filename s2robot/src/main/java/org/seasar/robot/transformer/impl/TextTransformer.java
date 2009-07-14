@@ -34,7 +34,7 @@ import org.seasar.robot.extractor.ExtractorFactory;
  */
 public class TextTransformer extends AbstractTransformer {
 
-    public String charsetName = Constants.UTF_8;
+    protected String charsetName = Constants.UTF_8;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.transformer.impl.AbstractTransformer#transform(org.seasar.robot.entity.ResponseData)
@@ -88,6 +88,14 @@ public class TextTransformer extends AbstractTransformer {
             throw new RobotSystemException("Unsupported encoding: "
                     + charsetName, e);
         }
+    }
+
+    public String getCharsetName() {
+        return charsetName;
+    }
+
+    public void setCharsetName(String charsetName) {
+        this.charsetName = charsetName;
     }
 
 }

@@ -41,31 +41,31 @@ public class FileTransformer extends HtmlTransformer {
      * A path to store downloaded files. The default path is a current
      * directory.
      */
-    public String path;
+    protected String path;
 
     /**
      * A string to replace ?.
      */
-    public String questionStr = "_QUEST_";
+    protected String questionStr = "_QUEST_";
 
     /**
      * A string to replace :.
      */
-    public String colonStr = "_CLN_";
+    protected String colonStr = "_CLN_";
 
     /**
      * A string to replace ;.
      */
-    public String semicolonStr = "_SCLN_";
+    protected String semicolonStr = "_SCLN_";
 
     /**
      * A string to replace &.
      */
-    public String ampersandStr = "_AMP_";
+    protected String ampersandStr = "_AMP_";
 
-    public int maxDuplicatedPath = 100;
+    protected int maxDuplicatedPath = 100;
 
-    public String charsetName = Constants.UTF_8;
+    protected String charsetName = Constants.UTF_8;
 
     /**
      * A directory to store downloaded files.
@@ -219,5 +219,61 @@ public class FileTransformer extends HtmlTransformer {
             }
         }
         return new File(baseDir, filePath);
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getQuestionStr() {
+        return questionStr;
+    }
+
+    public void setQuestionStr(String questionStr) {
+        this.questionStr = questionStr;
+    }
+
+    public String getColonStr() {
+        return colonStr;
+    }
+
+    public void setColonStr(String colonStr) {
+        this.colonStr = colonStr;
+    }
+
+    public String getSemicolonStr() {
+        return semicolonStr;
+    }
+
+    public void setSemicolonStr(String semicolonStr) {
+        this.semicolonStr = semicolonStr;
+    }
+
+    public String getAmpersandStr() {
+        return ampersandStr;
+    }
+
+    public void setAmpersandStr(String ampersandStr) {
+        this.ampersandStr = ampersandStr;
+    }
+
+    public int getMaxDuplicatedPath() {
+        return maxDuplicatedPath;
+    }
+
+    public void setMaxDuplicatedPath(int maxDuplicatedPath) {
+        this.maxDuplicatedPath = maxDuplicatedPath;
+    }
+
+    public String getCharsetName() {
+        return charsetName;
+    }
+
+    public void setCharsetName(String charsetName) {
+        this.charsetName = charsetName;
     }
 }

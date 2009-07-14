@@ -43,11 +43,11 @@ public class S2RobotTest extends S2TestCase {
         file.delete();
         file.mkdirs();
         file.deleteOnExit();
-        fileTransformer.path = file.getAbsolutePath();
+        fileTransformer.setPath(file.getAbsolutePath());
         // TODO use a local server(ex. jetty)
         s2Robot.addUrl(url);
-        s2Robot.robotConfig.setMaxAccessCount(maxCount);
-        s2Robot.robotConfig.setNumOfThread(numOfThread);
+        s2Robot.getRobotContext().setMaxAccessCount(maxCount);
+        s2Robot.getRobotContext().setNumOfThread(numOfThread);
         s2Robot.urlFilter.addInclude(url + ".*");
         String sessionId = s2Robot.execute();
         assertEquals(maxCount, dataService.getCount(sessionId));

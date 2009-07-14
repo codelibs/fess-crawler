@@ -145,7 +145,7 @@ public class CommonsHttpClient implements S2RobotClient {
             return;
         }
 
-        int idx = url.indexOf('/', 7);
+        int idx = url.indexOf('/', url.indexOf("://") + 3);
         String hostUrl;
         if (idx >= 0) {
             hostUrl = url.substring(0, idx);

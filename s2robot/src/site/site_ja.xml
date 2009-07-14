@@ -49,6 +49,7 @@
       <item name="アクセス間隔の設定" href="interval-controller-guide.html"/>
       <item name="バックグラウンドで実行" href="background-guide.html"/>
       <item name="URL フィルタの設定" href="url-filter-guide.html"/>
+      <item name="文字列抽出" href="extractor-guide.html"/>
     </menu>
     ${reports}
   </body>

@@ -8,12 +8,14 @@
 使い方
 
     S2Robot は S2Robot のインスタンスを DI することで簡単に利用することができます。
-    S2Robot のコンポーネントの定義は、s2robot.dicon または s2robot_db.dicon に記述されています。
+    S2Robot のコンポーネントの定義は、s2robot.dicon (オンメモリ版) または s2robot_db.dicon (DB利用版) に記述されています。
 
 * 実行方法
 
     S2Robot のコンポーネントを取得して、巡回対象の URL を追加します。
-    URL は複数登録可能です。あとは、必要に応じて、巡回する深さや巡回 URL 数を指定します。execute() メソッドを実行することで、クロールを開始します。
+    URL は複数登録可能です。
+    あとは、必要に応じて、巡回する深さや巡回 URL 数を指定します。
+    execute() メソッドを実行することで、クロールを開始します。
 
 +--------------------------------------------------+
     // container から取得する場合
@@ -22,7 +24,7 @@
     // URL の追加 (この URL 以下を巡回します)
     s2Robot.addUrl(url);
     // 巡回する深さを指定
-    s2Robot.getRobotConfig().setMaxDepth(depth);
+    s2Robot.getRobotContext().setMaxDepth(depth);
 
     // クロールの実行 (実行時のセッション ID が返ります)
     String sessionId = s2Robot.execute();
@@ -31,26 +33,28 @@
     s2Robot.cleanup(sessionId);
 +--------------------------------------------------+
 
-    デフォルトの動作は、FileTransformer が適用され、カレントディレクトリに巡回した URL のファイルを保存します。
+    デフォルトの動作は、FileTransformer が適用され、カレントディレクトリに巡回した URL のコンテンツをファイルとして保存します。
     s2robot-db を利用している場合は、上記に加えて、クロール結果を DB にも保存します。
 
-* クローラの設定情報 (S2RobotConfig)
+* クローラの設定情報
 
-    S2Robot のパラメータは S2RobotConfig が保持しています。
-    値を変更する場合は、クラスパスに s2robot_config.dicon を置き、設定情報を上書きします。
+    S2Robot のパラメータは S2RobotContext が保持しています。
+    値を変更する場合は、クラスパスに s2robot.dicon を置き、設定情報を上書きします。
+    (ソースコード上でもメソッド呼出により変更可能です)
 
 +--------------------------------------------------+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
     "http://www.seasar.org/dtd/components24.dtd">
 <components>
-  <component name="robotConfig" class="org.seasar.robot.S2RobotConfig" >
+  :
+  <component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >
     <property name="numOfThread">10</property>
     <property name="maxThreadCheckCount">20</property>
-    <property name="threadCheckInterval">500</property>
     <property name="maxDepth">-1</property>
     <property name="maxAccessCount">0</property>
   </component>
+  :
 </components>
 +--------------------------------------------------+
 
@@ -58,12 +62,16 @@
 
     * maxThreadCheckCount: 他のスレッドが実行中で、巡回 URL キューが空の場合に待つ回数
 
-    * threadCheckInterval: 他のスレッドが実行中で、巡回 URL キューが空の場合に待つミリ秒数
-
     * maxDepth: 巡回する深さ
 
     * maxAccessCount: 巡回する回数
 
+* クロール結果の処理 (Rule, ResponseProcessor, Transformer)
+
+    クロール結果の処理内容を定義することができます。
+    Rule によりクロールした結果の処理方法を選択して、ResponseProcessor でクロール結果を処理することが可能です。
+    Transformer はクロールして得たレスポンス内容を別な形式に変換します。
+    これらの処理内容は dicon ファイル内で定義することができます。
 
 * クロール結果の取得 (DataService)
 

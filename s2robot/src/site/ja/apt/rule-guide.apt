@@ -27,9 +27,13 @@
         </initMethod>
     </component>
 
-    <component name="fileRule" class="org.seasar.robot.rule.impl.RegexRule" >
+    <component name="fileRule" class="org.seasar.robot.rule.impl.RegexRule">
         <property name="defaultRule">true</property>
-        <property name="transformer">fileTransformer</property>
+        <property name="responseProcessor">
+            <component class="org.seasar.robot.processor.impl.DefaultResponseProcessor">
+                <property name="transformer">fileTransformer</property>
+            </component>
+        </property>
     </component>
 </components>
 +--------------------------------------------------+
@@ -37,7 +41,7 @@
     ruleManager が S2Robot 内の複数のルールを管理します。
     addRule することで複数の処理ルールを追加することができます。
 
-    Rule クラスを登録して、そこに適用する Transformer をセットして、ruleManager に追加することで有効になります。
+    Rule クラスを登録して、そこに適用する ResponseProcessor をセットして、ruleManager に追加することで有効になります。
     Rule クラスは、ruleManager から boolean match(ResponseData) メソッドを呼ばれ、true を返すと、その URL に適用されます。
     (現時点では、Rule を順に確認して、先にマッチしたものだけが適用されます。将来的には複数適用予定)
     ここでは、fileRule は defaultRule が true としているので、すべての Rule で適用されます。
@@ -47,7 +51,6 @@
 +--------------------------------------------------+
     <component name="htmlRule" class="org.seasar.robot.rule.impl.RegexRule" >
         <property name="ruleId">"htmlRule"</property>
-        <property name="transformer">fileTransformer</property>
         <property name="allRequired">true</property>
         <initMethod name="addRule">
             <arg>"url"</arg>
@@ -57,6 +60,11 @@
             <arg>"mimeType"</arg>
             <arg>"text/html"</arg>
         </initMethod>
+        <property name="responseProcessor">
+            <component class="org.seasar.robot.processor.impl.DefaultResponseProcessor">
+                <property name="transformer">fileTransformer</property>
+            </component>
+        </property>
     </component>
 +--------------------------------------------------+
 

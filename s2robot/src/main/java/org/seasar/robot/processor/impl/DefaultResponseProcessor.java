@@ -58,6 +58,11 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 logger.warn("No data for (" + responseData.getUrl() + ", "
                         + responseData.getMimeType() + ")");
             }
+        } else {
+            if (logger.isDebugEnabled()) {
+                logger.debug("No Transformer for (" + responseData.getUrl()
+                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+            }
         }
     }
 

@@ -249,13 +249,19 @@ public class S2RobotThread implements Runnable {
             if (responseProcessor != null) {
                 responseProcessor.process(responseData);
             } else {
-                logger.warn("No ResponseProcessor for ("
-                        + responseData.getUrl() + ", "
-                        + responseData.getMimeType() + ")");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("No ResponseProcessor for ("
+                            + responseData.getUrl() + ", "
+                            + responseData.getMimeType()
+                            + "). PLEASE CHECK YOUR CONFIGURATION.");
+                }
             }
         } else {
-            logger.warn("No rule for (" + responseData.getUrl() + ", "
-                    + responseData.getMimeType() + ")");
+            if (logger.isDebugEnabled()) {
+                logger.debug("No rule for (" + responseData.getUrl() + ", "
+                        + responseData.getMimeType()
+                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+            }
         }
 
     }

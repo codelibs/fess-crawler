@@ -16,6 +16,7 @@
 package org.seasar.robot.interval.impl;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,6 +29,13 @@ import org.seasar.robot.util.CrawlingParameterUtil;
 public class HostIntervalController extends DefaultIntervalController {
 
     private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<String, AtomicLong>();
+
+    public HostIntervalController() {
+    }
+
+    public HostIntervalController(Map<String, Long> params) {
+        super(params);
+    }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.interval.impl.AbstractIntervalController#delayBeforeProcessing()

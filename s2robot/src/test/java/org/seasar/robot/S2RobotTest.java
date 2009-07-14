@@ -93,8 +93,8 @@ public class S2RobotTest extends S2TestCase {
         ((UrlFilterImpl) s2Robot.urlFilter)
                 .setIncludeFilteringPattern("$1$2$3.*");
         s2Robot.addUrl(url);
-        s2Robot.robotContext.setMaxAccessCount(maxCount);
-        s2Robot.robotContext.setNumOfThread(numOfThread);
+        s2Robot.getRobotContext().setMaxAccessCount(maxCount);
+        s2Robot.getRobotContext().setNumOfThread(numOfThread);
         String sessionId = s2Robot.execute();
         Thread.sleep(3000);
         assertTrue(s2Robot.robotContext.running);

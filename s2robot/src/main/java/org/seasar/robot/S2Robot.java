@@ -222,4 +222,23 @@ public class S2Robot implements Runnable {
         urlQueueService.saveSession(robotContext.sessionId);
     }
 
+    public S2RobotContext getRobotContext() {
+        return robotContext;
+    }
+
+    public void setNumOfThread(int numOfThread) {
+        robotContext.numOfThread = numOfThread;
+    }
+
+    public void setMaxThreadCheckCount(int maxThreadCheckCount) {
+        robotContext.maxThreadCheckCount = maxThreadCheckCount;
+    }
+
+    public void setMaxDepth(int maxDepth) {
+        robotContext.maxDepth = maxDepth;
+    }
+
+    public void setMaxAccessCount(long maxAccessCount) {
+        robotContext.maxAccessCount = maxAccessCount;
+    }
 }

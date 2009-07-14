@@ -157,10 +157,13 @@ public class CommonsHttpClient implements S2RobotClient {
         // check url
         if (robotContext.getRobotTxtUrlSet().contains(robotTxtUrl)) {
             if (logger.isDebugEnabled()) {
-                logger.debug(url + " is already visited.");
+                logger.debug(robotTxtUrl + " is already visited.");
             }
             return;
         } else {
+            if (logger.isInfoEnabled()) {
+                logger.info("parsing " + robotTxtUrl);
+            }
             // add url to a set
             robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
         }

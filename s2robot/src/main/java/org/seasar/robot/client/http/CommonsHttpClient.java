@@ -274,6 +274,10 @@ public class CommonsHttpClient implements S2RobotClient {
             InputStream inputStream = null;
             if (dfos.isInMemory()) {
                 inputStream = new ByteArrayInputStream(dfos.getData());
+                if (!outputFile.delete()) {
+                    logger.warn("Could not delete "
+                            + outputFile.getAbsolutePath());
+                }
             } else {
                 inputStream = new TemporaryFileInputStream(outputFile);
             }

@@ -126,8 +126,10 @@ public class S2RobotThread implements Runnable {
                     try {
                         S2RobotClient client = getClient(urlQueue.getUrl());
                         if (client == null) {
-                            logger.info("Unsupported path: "
-                                    + urlQueue.getUrl());
+                            if (logger.isInfoEnabled()) {
+                                logger.info("Unsupported URL: "
+                                        + urlQueue.getUrl());
+                            }
                             break;
                         }
 
@@ -139,6 +141,10 @@ public class S2RobotThread implements Runnable {
                         if (robotContext.intervalController != null) {
                             robotContext.intervalController
                                     .delay(IntervalController.PRE_PROCESSING);
+                        }
+
+                        if (logger.isInfoEnabled()) {
+                            logger.info("Crawling URL: " + urlQueue.getUrl());
                         }
 
                         // access an url

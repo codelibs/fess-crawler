@@ -59,7 +59,7 @@ public class TemporaryFileInputStream extends InputStream {
         try {
             fileInputStream.close();
         } finally {
-            if (!tempFile.delete()) {
+            if (tempFile.exists() && !tempFile.delete()) {
                 logger.warn("Could not delete a temporary file: "
                         + tempFile.getAbsolutePath());
             }

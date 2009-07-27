@@ -82,7 +82,15 @@ public class S2RobotThread implements Runnable {
 
         boolean isContinue = false;
         if (tcCount < robotContext.maxThreadCheckCount) {
-            isContinue = checkAccessCount();
+            if (robotContext.maxAccessCount > 0) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Access Count: " + robotContext.accessCount);
+                }
+                if (robotContext.accessCount >= robotContext.maxAccessCount) {
+                    return false;
+                }
+            }
+            isContinue = true;
         }
 
         if (!isContinue && robotContext.activeThreadCount > 0) {
@@ -91,18 +99,6 @@ public class S2RobotThread implements Runnable {
         }
 
         return isContinue;
-    }
-
-    protected boolean checkAccessCount() {
-        if (robotContext.maxAccessCount > 0) {
-            if (robotContext.accessCount < robotContext.maxAccessCount) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return true;
-        }
     }
 
     /* (non-Javadoc)

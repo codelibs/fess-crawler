@@ -69,8 +69,9 @@ public class FileSystemClient implements S2RobotClient {
             responseData.setMimeType(mimeTypeHelper.getContentType(file
                     .getName()));
             if (file.canRead()) {
+                File outputFile = null;
                 try {
-                    File outputFile = File.createTempFile(
+                    outputFile = File.createTempFile(
                             "s2robot-FileSystemClient-", ".out");
                     outputFile.deleteOnExit();
                     FileUtil.copy(file, outputFile);
@@ -79,6 +80,10 @@ public class FileSystemClient implements S2RobotClient {
                 } catch (Exception e) {
                     logger.warn("I/O Exception.", e);
                     responseData.setHttpStatusCode(500);
+                    if (outputFile != null && !outputFile.delete()) {
+                        logger.warn("Could not delete "
+                                + outputFile.getAbsolutePath());
+                    }
                 }
             } else {
                 // Forbidden

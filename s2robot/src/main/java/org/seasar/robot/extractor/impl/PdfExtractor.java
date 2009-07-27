@@ -16,6 +16,7 @@
 package org.seasar.robot.extractor.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -42,8 +43,9 @@ public class PdfExtractor implements Extractor {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
+        PDDocument document = null;
         try {
-            PDDocument document = PDDocument.load(in);
+            document = PDDocument.load(in);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Writer output = new OutputStreamWriter(baos, encoding);
             PDFTextStripper stripper = new PDFTextStripper();
@@ -51,8 +53,14 @@ public class PdfExtractor implements Extractor {
             return baos.toString(encoding);
         } catch (Exception e) {
             throw new ExtractException(e);
+        } finally {
+            if (document != null) {
+                try {
+                    document.close();
+                } catch (IOException e) {
+                }
+            }
         }
-
     }
 
     public String getEncoding() {

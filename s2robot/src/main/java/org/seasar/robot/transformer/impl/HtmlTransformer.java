@@ -77,6 +77,10 @@ public class HtmlTransformer extends AbstractTransformer {
     @Binding(bindingType = BindingType.MAY)
     protected int preloadSizeForCharset = 1024;
 
+    @Binding(bindingType = BindingType.MAY)
+    protected Pattern invalidUrlPattern = Pattern.compile(
+            "\\s*javascript:|\\s*mailto:|\\s*irc:", Pattern.CASE_INSENSITIVE);
+
     private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
 
     public ResultData transform(ResponseData responseData) {
@@ -341,7 +345,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 String attrValue = element.getAttribute(attr);
                 if (isValidPath(attrValue)) {
                     try {
-                        URL childUrl = new URL(url, attrValue);
+                        URL childUrl = new URL(url, attrValue.trim());
                         String u = normalizeUrl(childUrl.toString());
                         if (logger.isDebugEnabled()) {
                             logger.debug(attrValue + " -> " + u);
@@ -397,8 +401,8 @@ public class HtmlTransformer extends AbstractTransformer {
             return false;
         }
 
-        if (path.startsWith("javascript:") || path.startsWith("mailto:")
-                || path.startsWith("irc:")) {
+        Matcher matcher = invalidUrlPattern.matcher(path);
+        if (matcher.find()) {
             return false;
         }
 
@@ -480,5 +484,21 @@ public class HtmlTransformer extends AbstractTransformer {
 
     public void setDefaultEncoding(String defaultEncoding) {
         this.defaultEncoding = defaultEncoding;
+    }
+
+    public int getPreloadSizeForCharset() {
+        return preloadSizeForCharset;
+    }
+
+    public void setPreloadSizeForCharset(int preloadSizeForCharset) {
+        this.preloadSizeForCharset = preloadSizeForCharset;
+    }
+
+    public Pattern getInvalidUrlPattern() {
+        return invalidUrlPattern;
+    }
+
+    public void setInvalidUrlPattern(Pattern invalidUrlPattern) {
+        this.invalidUrlPattern = invalidUrlPattern;
     }
 }

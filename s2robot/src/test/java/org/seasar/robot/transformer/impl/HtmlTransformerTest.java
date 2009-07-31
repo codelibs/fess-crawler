@@ -147,4 +147,64 @@ public class HtmlTransformerTest extends S2TestCase {
         Object obj = htmlTransformer.getData(accessResultDataImpl);
         assertNull(obj);
     }
+
+    public void test_isValidPath_valid() {
+        String value;
+
+        value = "hoge.html";
+        assertTrue(htmlTransformer.isValidPath(value));
+
+        value = "./hoge.html";
+        assertTrue(htmlTransformer.isValidPath(value));
+
+        value = "/hoge.html";
+        assertTrue(htmlTransformer.isValidPath(value));
+
+        value = "http://www.seasar.org/hoge.html";
+        assertTrue(htmlTransformer.isValidPath(value));
+    }
+
+    public void test_isValidPath_invalid() {
+        String value;
+
+        value = "javascript:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = "mailto:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = "irc:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = " javascript:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = " mailto:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = " irc:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = "JAVASCRIPT:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = "MAILTO:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = "IRC:...";
+        assertFalse(htmlTransformer.isValidPath(value));
+    }
+
+    public void test_isValidPath_blank() {
+        String value;
+
+        value = null;
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = "";
+        assertFalse(htmlTransformer.isValidPath(value));
+
+        value = " ";
+        assertFalse(htmlTransformer.isValidPath(value));
+    }
 }

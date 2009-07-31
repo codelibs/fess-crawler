@@ -79,6 +79,10 @@ public class HtmlTransformerTest extends S2TestCase {
 
         content = "...;Charset=Shift_JIS\"...";
         assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        content = "...;charset=EUC-JP\"...";
+        assertEquals("EUC-JP", htmlTransformer.parseCharset(content));
+
     }
 
     public void test_getDuplicateUrl() {

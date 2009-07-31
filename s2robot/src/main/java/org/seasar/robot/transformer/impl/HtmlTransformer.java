@@ -73,6 +73,10 @@ public class HtmlTransformer extends AbstractTransformer {
     @Binding(bindingType = BindingType.MAY)
     protected String defaultEncoding;
 
+    // If you want to follow a html spec, use 512.
+    @Binding(bindingType = BindingType.MAY)
+    protected int preloadSizeForCharset = 1024;
+
     private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
 
     public ResultData transform(ResponseData responseData) {
@@ -252,7 +256,7 @@ public class HtmlTransformer extends AbstractTransformer {
         BufferedInputStream bis = null;
         try {
             bis = new BufferedInputStream(inputStream);
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[preloadSizeForCharset];
             int size = bis.read(buffer);
             if (size != -1) {
                 String content = new String(buffer, 0, size);

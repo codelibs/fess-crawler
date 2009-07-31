@@ -109,6 +109,14 @@ public class HtmlTransformerTest extends S2TestCase {
         url = "http://hoge/index.html#";
         assertEquals("http://hoge/index.html", htmlTransformer
                 .normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid=hoge";
+        assertEquals("http://hoge/index.html", htmlTransformer
+                .normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid";
+        assertEquals("http://hoge/index.html", htmlTransformer
+                .normalizeUrl(url));
     }
 
     public void test_getData() throws Exception {

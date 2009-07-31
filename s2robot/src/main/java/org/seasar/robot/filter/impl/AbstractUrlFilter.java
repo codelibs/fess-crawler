@@ -40,14 +40,24 @@ public abstract class AbstractUrlFilter implements UrlFilter {
         if (StringUtil.isBlank(urlPattern)) {
             throw new RobotSystemException("urlPattern is null");
         }
-        includeList.add(Pattern.compile(urlPattern));
+        synchronized (includeList) {
+            List<Pattern> list = new ArrayList<Pattern>();
+            list.addAll(includeList);
+            list.add(Pattern.compile(urlPattern));
+            includeList = list;
+        }
     }
 
     public void addExclude(String urlPattern) {
         if (StringUtil.isBlank(urlPattern)) {
             throw new RobotSystemException("urlPattern is null");
         }
-        excludeList.add(Pattern.compile(urlPattern));
+        synchronized (excludeList) {
+            List<Pattern> list = new ArrayList<Pattern>();
+            list.addAll(excludeList);
+            list.add(Pattern.compile(urlPattern));
+            excludeList = list;
+        }
     }
 
     /* (non-Javadoc)

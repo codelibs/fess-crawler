@@ -16,8 +16,8 @@
 package org.seasar.robot.client.fs;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,9 +51,8 @@ public class FileSystemClient implements S2RobotClient {
         responseData.setUrl(url);
         if (url.startsWith("file:")) {
             try {
-                URI uri = new URI(url);
-                url = uri.getPath();
-            } catch (URISyntaxException e) {
+                url = new URL(url).getPath();
+            } catch (MalformedURLException e) {
                 logger.warn("Could not parse url: " + url, e);
             }
         }

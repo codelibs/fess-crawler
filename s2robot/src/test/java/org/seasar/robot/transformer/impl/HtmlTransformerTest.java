@@ -215,4 +215,11 @@ public class HtmlTransformerTest extends S2TestCase {
         value = " ";
         assertFalse(htmlTransformer.isValidPath(value));
     }
+
+    public void test_encodeUrl_valid() {
+        String url = "http://test.com/hoge/;jsessionid?p=id&test=テスト&u=18718&v=123%3d#test";
+        String result = "http://test.com/hoge/;jsessionid?p=id&test=%E3%83%86%E3%82%B9%E3%83%88&u=18718&v=123%3d#test";
+
+        assertEquals(result, htmlTransformer.encodeUrl(url, "UTF-8"));
+    }
 }

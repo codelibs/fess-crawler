@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -35,6 +36,7 @@ import java.util.regex.Pattern;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.xpath.CachedXPathAPI;
 import org.cyberneko.html.parsers.DOMParser;
 import org.seasar.framework.container.annotation.tiger.Binding;
@@ -222,8 +224,10 @@ public class HtmlTransformer extends AbstractTransformer {
             URL url = new URL(baseHref != null ? baseHref : responseData
                     .getUrl());
             for (Map.Entry<String, String> entry : childUrlRuleMap.entrySet()) {
-                urlList.addAll(getUrlFromTagAttribute(url, document, entry
-                        .getKey(), entry.getValue()));
+                urlList
+                        .addAll(getUrlFromTagAttribute(url, document, entry
+                                .getKey(), entry.getValue(), responseData
+                                .getCharSet()));
             }
         } catch (Exception e) {
             logger.warn("Could not create child urls.", e);
@@ -333,7 +337,7 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected List<String> getUrlFromTagAttribute(URL url, Document document,
-            String xpath, String attr) {
+            String xpath, String attr, String encoding) {
         if (logger.isDebugEnabled()) {
             logger.debug("Base URL: " + url);
         }
@@ -346,15 +350,20 @@ public class HtmlTransformer extends AbstractTransformer {
                 if (isValidPath(attrValue)) {
                     try {
                         URL childUrl = new URL(url, attrValue.trim());
-                        String u = normalizeUrl(childUrl.toString());
+                        String u = encodeUrl(normalizeUrl(childUrl
+                                .toExternalForm()), encoding);
                         if (logger.isDebugEnabled()) {
                             logger.debug(attrValue + " -> " + u);
                         }
                         if (StringUtil.isNotBlank(u)) {
                             if (logger.isDebugEnabled()) {
-                                logger.debug("ADD: " + u);
+                                logger.debug("Add Child: " + u);
                             }
                             urlList.add(u);
+                        } else {
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Skip Child: " + u);
+                            }
                         }
                     } catch (MalformedURLException e) {
                         logger.warn("Malformed URL: " + attrValue, e);
@@ -365,6 +374,27 @@ public class HtmlTransformer extends AbstractTransformer {
             logger.warn("Could not get urls: (" + xpath + ", " + attr + ")", e);
         }
         return urlList;
+    }
+
+    protected String encodeUrl(String url, String enc) {
+        if (StringUtil.isBlank(url) || StringUtil.isBlank(enc)) {
+            return url;
+        }
+
+        try {
+            StringBuilder buf = new StringBuilder(url.length() + 100);
+            for (char c : url.toCharArray()) {
+                String str = String.valueOf(c);
+                if (StringUtils.isAsciiPrintable(str)) {
+                    buf.append(c);
+                } else {
+                    buf.append(URLEncoder.encode(str, enc));
+                }
+            }
+            return buf.toString();
+        } catch (UnsupportedEncodingException e) {
+            return url;
+        }
     }
 
     protected String normalizeUrl(String url) {

@@ -55,4 +55,78 @@ public class MimeTypeHelperTest extends S2TestCase {
                 .getContentType("hoge"));
 
     }
+
+    public void test_getContentType_null() {
+        MimeTypeHelper mimeTypeHelper = SingletonS2Container
+                .getComponent(MimeTypeHelper.class);
+
+        try {
+            mimeTypeHelper.getContentType(null);
+            fail();
+        } catch (MimeTypeException e) {
+        }
+        try {
+            mimeTypeHelper.getContentType("");
+            fail();
+        } catch (MimeTypeException e) {
+        }
+
+        assertEquals("application/octet-stream", mimeTypeHelper
+                .getContentType(" "));
+    }
+
+    public void test_getContentTypes() {
+        MimeTypeHelper mimeTypeHelper = SingletonS2Container
+                .getComponent(MimeTypeHelper.class);
+
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentTypes("hoge.txt")[0]);
+        assertEquals("text/html",
+                mimeTypeHelper.getContentTypes("hoge.html")[0]);
+        assertEquals("text/html", mimeTypeHelper.getContentTypes("hoge.htm")[0]);
+        assertEquals("application/msword", mimeTypeHelper
+                .getContentTypes("hoge.doc")[0]);
+        assertEquals("application/vnd.ms-excel", mimeTypeHelper
+                .getContentTypes("hoge.xls")[0]);
+        assertEquals("image/jpeg",
+                mimeTypeHelper.getContentTypes("hoge.jpg")[0]);
+        assertEquals("image/gif", mimeTypeHelper.getContentTypes("hoge.gif")[0]);
+        assertEquals("application/vnd.ms-powerpoint", mimeTypeHelper
+                .getContentTypes("hoge.ppt")[0]);
+        assertEquals("application/pdf", mimeTypeHelper
+                .getContentTypes("hoge.pdf")[0]);
+        assertEquals("application/x-gzip", mimeTypeHelper
+                .getContentTypes("hoge.tar.gz")[0]);
+        assertEquals("application/x-tar", mimeTypeHelper
+                .getContentTypes("hoge.tar.gz")[1]);
+        assertEquals("application/zip", mimeTypeHelper
+                .getContentTypes("hoge.zip")[0]);
+
+        assertEquals("application/octet-stream", mimeTypeHelper
+                .getContentTypes("hoge")[0]);
+
+    }
+
+    public void test_getContentTypes_null() {
+        MimeTypeHelper mimeTypeHelper = SingletonS2Container
+                .getComponent(MimeTypeHelper.class);
+
+        try {
+            mimeTypeHelper.getContentTypes(null);
+            fail();
+        } catch (MimeTypeException e) {
+        }
+        try {
+            mimeTypeHelper.getContentTypes("");
+            fail();
+        } catch (MimeTypeException e) {
+        }
+
+        assertEquals("application/octet-stream", mimeTypeHelper
+                .getContentTypes(" ")[0]);
+        assertEquals("application/octet-stream", mimeTypeHelper
+                .getContentTypes(".")[0]);
+        assertEquals("application/octet-stream", mimeTypeHelper
+                .getContentTypes(".bashrc")[0]);
+    }
 }

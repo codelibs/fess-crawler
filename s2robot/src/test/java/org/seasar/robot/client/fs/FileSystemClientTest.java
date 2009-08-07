@@ -22,6 +22,7 @@ import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ResponseData;
 
 /**
@@ -45,10 +46,11 @@ public class FileSystemClientTest extends S2TestCase {
             Set<String> urlSet = e.getChildUrlList();
             for (String url : urlSet.toArray(new String[urlSet.size()])) {
                 if (url.indexOf(".svn") < 0) {
-                    assertTrue(url.endsWith("test/dir1")
-                            || url.endsWith("test/dir2")
-                            || url.endsWith("test/text1.txt")
-                            || url.endsWith("test/text2.txt"));
+                    assertTrue(url.contains("test/dir1")
+                            || url.contains("test/dir2")
+                            || url.contains("test/text1.txt")
+                            || url.contains("test/text2.txt")
+                            || url.contains("test/text%203.txt"));
                 }
             }
         }
@@ -81,10 +83,43 @@ public class FileSystemClientTest extends S2TestCase {
         assertNotNull(responseData.getLastModified());
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
-        assertTrue(responseData.getUrl().endsWith("test/text 3.txt"));
+        assertTrue(responseData.getUrl().endsWith("test/text+3.txt"));
         String content = new String(InputStreamUtil.getBytes(responseData
                 .getResponseBody()), "UTF-8");
         assertEquals("test3\n", content);
     }
 
+    public void test_preprocessUri() {
+        String value;
+        String result;
+
+        value = "file://test.txt";
+        result = "file://test.txt";
+        assertEquals(result, fsClient.preprocessUri(value));
+
+        value = "file://test test.txt";
+        result = "file://test+test.txt";
+        assertEquals(result, fsClient.preprocessUri(value));
+
+        value = "file://テスト.txt";
+        result = "file://%E3%83%86%E3%82%B9%E3%83%88.txt";
+        assertEquals(result, fsClient.preprocessUri(value));
+
+        value = "test.txt";
+        result = "file://test.txt";
+        assertEquals(result, fsClient.preprocessUri(value));
+    }
+
+    public void test_preprocessUri_null() {
+        try {
+            fsClient.preprocessUri(null);
+            fail();
+        } catch (RobotSystemException e) {
+        }
+        try {
+            fsClient.preprocessUri("");
+            fail();
+        } catch (RobotSystemException e) {
+        }
+    }
 }

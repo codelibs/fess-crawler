@@ -58,7 +58,7 @@ public class S2RobotTest extends S2TestCase {
 
     public void test_execute_file() throws Exception {
         File targetFile = ResourceUtil.getResourceAsFile("test");
-        String url = "file://" + targetFile.getAbsolutePath();
+        String url = "file:" + targetFile.getAbsolutePath();
         int maxCount = 3;
         int numOfThread = 2;
 

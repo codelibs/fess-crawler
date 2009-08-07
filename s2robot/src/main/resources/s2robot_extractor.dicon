@@ -2,6 +2,9 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
+	<component name="archiveStreamFactory" class="org.apache.commons.compress.archivers.ArchiveStreamFactory"/>
+	<component name="compressorStreamFactory" class="org.apache.commons.compress.compressors.CompressorStreamFactory"/>
+
 	<component name="msWordExtractor" class="org.seasar.robot.extractor.impl.MsWordExtractor"/>
 	<component name="msExcelExtractor" class="org.seasar.robot.extractor.impl.MsExcelExtractor"/>
 	<component name="msPowerPointExtractor" class="org.seasar.robot.extractor.impl.MsPowerPointExtractor"/>
@@ -10,6 +13,9 @@
 	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor"/>
 	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
 	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
+	<component name="zipExtractor" class="org.seasar.robot.extractor.impl.ZipExtractor"/>
+	<component name="tarExtractor" class="org.seasar.robot.extractor.impl.TarExtractor"/>
+	<component name="tarGzExtractor" class="org.seasar.robot.extractor.impl.TarGzExtractor"/>
 
 	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
 		<initMethod name="addExtractor">
@@ -51,6 +57,18 @@
 		<initMethod name="addExtractor">
 			<arg>"application/xml+xhtml"</arg>
 			<arg>htmlExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/zip"</arg>
+			<arg>zipExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/x-tar"</arg>
+			<arg>tarExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/x-tar-gzip"</arg>
+			<arg>tarGzExtractor</arg>
 		</initMethod>
 	</component>
 

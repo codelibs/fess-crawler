@@ -16,15 +16,21 @@
 package org.seasar.robot.client.fs;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.util.FileUtil;
+import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.helper.MimeTypeHelper;
@@ -40,24 +46,25 @@ public class FileSystemClient implements S2RobotClient {
     private final Logger logger = LoggerFactory
             .getLogger(FileSystemClient.class);
 
-    protected String charset;
+    protected String charset = Constants.UTF_8;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
-    public ResponseData doGet(String url) {
+    public ResponseData doGet(String uri) {
         ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
-        responseData.setUrl(url);
-        if (url.startsWith("file:")) {
-            try {
-                url = new URL(url).getPath();
-            } catch (MalformedURLException e) {
-                logger.warn("Could not parse url: " + url, e);
-            }
+        uri = preprocessUri(uri);
+        responseData.setUrl(uri);
+
+        String path = null;
+        try {
+            path = new URI(uri).getPath();
+        } catch (URISyntaxException e) {
+            logger.warn("Could not parse url: " + uri, e);
         }
 
-        File file = new File(url);
+        File file = new File(decodeUri(path));
         if (file.isFile()) {
             responseData.setHttpStatusCode(200);
             responseData.setCharSet(geCharSet(file));
@@ -93,14 +100,8 @@ public class FileSystemClient implements S2RobotClient {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    String path = f.getAbsolutePath();
-                    StringBuilder buf = new StringBuilder(255);
-                    buf.append("file://");
-                    if (!path.startsWith("/")) {
-                        buf.append('/');
-                    }
-                    buf.append(path);
-                    childUrlSet.add(buf.toString());
+                    String chileUri = f.toURI().toASCIIString();
+                    childUrlSet.add(chileUri);
                 }
             }
             throw new ChildUrlsException(childUrlSet);
@@ -111,6 +112,44 @@ public class FileSystemClient implements S2RobotClient {
         }
 
         return responseData;
+    }
+
+    protected String preprocessUri(String uri) {
+        if (StringUtil.isEmpty(uri)) {
+            throw new RobotSystemException("The uri is empty.");
+        }
+
+        if (!uri.startsWith("file:")) {
+            uri = "file://" + uri;
+        }
+
+        try {
+            StringBuilder buf = new StringBuilder(uri.length() + 100);
+            for (char c : uri.toCharArray()) {
+                String str = String.valueOf(c);
+                if (StringUtils.isAsciiPrintable(str) && c != ' ') {
+                    buf.append(c);
+                } else {
+                    buf.append(URLEncoder.encode(str, charset));
+                }
+            }
+            return buf.toString();
+        } catch (UnsupportedEncodingException e) {
+            return uri;
+        }
+    }
+
+    protected String decodeUri(String uri) {
+        if (StringUtil.isBlank(uri)) {
+            return uri;
+        }
+
+        try {
+            return URLDecoder.decode(uri, charset);
+        } catch (UnsupportedEncodingException e) {
+            throw new RobotSystemException("Unsupported encoding: " + charset,
+                    e);
+        }
     }
 
     protected String geCharSet(File file) {

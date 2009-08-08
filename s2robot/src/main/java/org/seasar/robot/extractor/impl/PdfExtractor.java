@@ -20,10 +20,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Map;
 
 import org.pdfbox.pdmodel.PDDocument;
 import org.pdfbox.util.PDFTextStripper;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;
 import org.seasar.robot.extractor.Extractor;
 
@@ -37,9 +39,9 @@ public class PdfExtractor implements Extractor {
     protected String encoding = "UTF-8";
 
     /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
      */
-    public String getText(InputStream in) {
+    public ExtractData getText(InputStream in, Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
@@ -50,7 +52,7 @@ public class PdfExtractor implements Extractor {
             Writer output = new OutputStreamWriter(baos, encoding);
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.writeText(document, output);
-            return baos.toString(encoding);
+            return new ExtractData(baos.toString(encoding));
         } catch (Exception e) {
             throw new ExtractException(e);
         } finally {

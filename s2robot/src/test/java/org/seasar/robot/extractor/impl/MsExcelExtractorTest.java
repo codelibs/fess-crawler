@@ -36,13 +36,13 @@ public class MsExcelExtractorTest extends S2TestCase {
 
     @Override
     protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+        return "org/seasar/robot/extractor/extractor.dicon";
     }
 
     public void test_getText() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/msoffice/test.xls");
-        String content = msExcelExtractor.getText(in);
+        String content = msExcelExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -50,7 +50,7 @@ public class MsExcelExtractorTest extends S2TestCase {
 
     public void test_getText_null() {
         try {
-            msExcelExtractor.getText(null);
+            msExcelExtractor.getText(null, null);
             fail();
         } catch (RobotSystemException e) {
             // NOP

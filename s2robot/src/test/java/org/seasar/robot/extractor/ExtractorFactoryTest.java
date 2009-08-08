@@ -15,13 +15,14 @@
  */
 package org.seasar.robot.extractor;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.seasar.extension.unit.S2TestCase;
-import org.seasar.robot.extractor.impl.MsExcelExtractor;
-import org.seasar.robot.extractor.impl.MsPowerPointExtractor;
-import org.seasar.robot.extractor.impl.MsPublisherExtractor;
-import org.seasar.robot.extractor.impl.MsVisioExtractor;
-import org.seasar.robot.extractor.impl.MsWordExtractor;
-import org.seasar.robot.extractor.impl.PdfExtractor;
+import org.seasar.robot.entity.ExtractData;
+import org.seasar.robot.extractor.impl.TikaExtractor;
 
 /**
  * @author shinsuke
@@ -35,26 +36,56 @@ public class ExtractorFactoryTest extends S2TestCase {
         return "app.dicon";
     }
 
+    public void test_addExtractor() {
+        ExtractorFactory extractorFactory = new ExtractorFactory();
+        Extractor extractor = new Extractor() {
+            public ExtractData getText(InputStream in,
+                    Map<String, String> params) {
+                return null;
+            }
+        };
+
+        assertNull(extractorFactory.getExtractor("test"));
+        extractorFactory.addExtractor("test", extractor);
+        assertEquals(extractor, extractorFactory.getExtractor("test"));
+    }
+
+    public void test_addExtractor_list() {
+        ExtractorFactory extractorFactory = new ExtractorFactory();
+        Extractor extractor = new Extractor() {
+            public ExtractData getText(InputStream in,
+                    Map<String, String> params) {
+                return null;
+            }
+        };
+
+        assertNull(extractorFactory.getExtractor("test"));
+        List<String> list = new ArrayList<String>();
+        list.add("test");
+        extractorFactory.addExtractor(list, extractor);
+        assertEquals(extractor, extractorFactory.getExtractor("test"));
+    }
+
     public void test_getExtractor() {
         String key;
 
         key = "application/msword";
-        assertTrue(extractorFactory.getExtractor(key) instanceof MsWordExtractor);
+        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
 
         key = "application/vnd.ms-excel";
-        assertTrue(extractorFactory.getExtractor(key) instanceof MsExcelExtractor);
+        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
 
         key = "application/vnd.ms-powerpoint";
-        assertTrue(extractorFactory.getExtractor(key) instanceof MsPowerPointExtractor);
+        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
 
         key = "application/vnd.visio";
-        assertTrue(extractorFactory.getExtractor(key) instanceof MsVisioExtractor);
+        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
 
-        key = "application/vnd.ms-publisher";
-        assertTrue(extractorFactory.getExtractor(key) instanceof MsPublisherExtractor);
+        //        key = "application/vnd.ms-publisher";
+        //        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
 
         key = "application/pdf";
-        assertTrue(extractorFactory.getExtractor(key) instanceof PdfExtractor);
+        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
 
     }
 }

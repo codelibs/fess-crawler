@@ -16,6 +16,9 @@
 package org.seasar.robot.extractor;
 
 import java.io.InputStream;
+import java.util.Map;
+
+import org.seasar.robot.entity.ExtractData;
 
 /**
  * @author shinsuke
@@ -23,6 +26,7 @@ import java.io.InputStream;
  */
 public interface Extractor {
 
-    public abstract String getText(InputStream in);
+    public abstract ExtractData getText(InputStream in,
+            Map<String, String> params);
 
 }

@@ -36,12 +36,12 @@ public class PdfExtractorTest extends S2TestCase {
 
     @Override
     protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+        return "org/seasar/robot/extractor/extractor.dicon";
     }
 
     public void test_getText() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
-        String content = pdfExtractor.getText(in);
+        String content = pdfExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -49,7 +49,7 @@ public class PdfExtractorTest extends S2TestCase {
 
     public void test_getText_null() {
         try {
-            pdfExtractor.getText(null);
+            pdfExtractor.getText(null, null);
             fail();
         } catch (RobotSystemException e) {
             // NOP

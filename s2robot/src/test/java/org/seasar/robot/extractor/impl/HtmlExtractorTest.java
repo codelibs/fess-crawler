@@ -37,13 +37,13 @@ public class HtmlExtractorTest extends S2TestCase {
 
     @Override
     protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+        return "org/seasar/robot/extractor/extractor.dicon";
     }
 
     public void test_getHtml_utf8() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.html");
-        String content = htmlExtractor.getText(in);
+        String content = htmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -52,7 +52,7 @@ public class HtmlExtractorTest extends S2TestCase {
     public void test_getHtml_sjis() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.html");
-        String content = htmlExtractor.getText(in);
+        String content = htmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -78,7 +78,7 @@ public class HtmlExtractorTest extends S2TestCase {
 
     public void test_getHtml_null() {
         try {
-            htmlExtractor.getText(null);
+            htmlExtractor.getText(null, null);
             fail();
         } catch (RobotSystemException e) {
             // NOP

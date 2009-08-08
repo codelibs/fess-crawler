@@ -16,10 +16,12 @@
 package org.seasar.robot.extractor.impl;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;
 import org.seasar.robot.extractor.Extractor;
 
@@ -32,14 +34,15 @@ public class TextExtractor implements Extractor {
     protected String encoding = Constants.UTF_8;
 
     /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
      */
-    public String getText(InputStream in) {
+    public ExtractData getText(InputStream in, Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
         try {
-            return new String(InputStreamUtil.getBytes(in), getEncoding());
+            return new ExtractData(new String(InputStreamUtil.getBytes(in),
+                    getEncoding()));
         } catch (Exception e) {
             throw new ExtractException(e);
         }

@@ -17,9 +17,11 @@ package org.seasar.robot.extractor.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.apache.poi.hpbf.extractor.PublisherTextExtractor;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;
 import org.seasar.robot.extractor.Extractor;
 
@@ -32,14 +34,14 @@ import org.seasar.robot.extractor.Extractor;
 public class MsPublisherExtractor implements Extractor {
 
     /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
      */
-    public String getText(InputStream in) {
+    public ExtractData getText(InputStream in, Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
         try {
-            return new PublisherTextExtractor(in).getText();
+            return new ExtractData(new PublisherTextExtractor(in).getText());
         } catch (IOException e) {
             throw new ExtractException(e);
         }

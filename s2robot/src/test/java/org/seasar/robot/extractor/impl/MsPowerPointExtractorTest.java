@@ -36,13 +36,13 @@ public class MsPowerPointExtractorTest extends S2TestCase {
 
     @Override
     protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+        return "org/seasar/robot/extractor/extractor.dicon";
     }
 
     public void test_getText() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/msoffice/test.ppt");
-        String content = msPowerPointExtractor.getText(in);
+        String content = msPowerPointExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -50,7 +50,7 @@ public class MsPowerPointExtractorTest extends S2TestCase {
 
     public void test_getText_null() {
         try {
-            msPowerPointExtractor.getText(null);
+            msPowerPointExtractor.getText(null, null);
             fail();
         } catch (RobotSystemException e) {
             // NOP

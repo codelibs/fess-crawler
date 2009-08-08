@@ -16,6 +16,8 @@
 package org.seasar.robot.extractor.impl;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -25,6 +27,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.io.IOUtils;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;
 import org.seasar.robot.extractor.Extractor;
 import org.seasar.robot.extractor.ExtractorFactory;
@@ -45,9 +48,9 @@ public class ZipExtractor implements Extractor {
     protected ArchiveStreamFactory archiveStreamFactory;
 
     /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
      */
-    public String getText(InputStream in) {
+    public ExtractData getText(InputStream in, Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
@@ -73,14 +76,17 @@ public class ZipExtractor implements Extractor {
             ZipArchiveEntry entry = null;
             while ((entry = (ZipArchiveEntry) ais.getNextEntry()) != null) {
                 String filename = entry.getName();
-                String mimeType = mimeTypeHelper.getContentType(filename);
+                String mimeType = mimeTypeHelper.getContentType(null, filename);
                 if (mimeType != null) {
                     Extractor extractor = extractorFactory
                             .getExtractor(mimeType);
                     if (extractor != null) {
                         try {
-                            buf.append(extractor
-                                    .getText(new IgnoreCloseInputStream(ais)));
+                            Map<String, String> map = new HashMap<String, String>();
+                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
+                            buf.append(extractor.getText(
+                                    new IgnoreCloseInputStream(ais), map)
+                                    .getContent());
                             buf.append('\n');
                         } catch (Exception e) {
                             if (logger.isDebugEnabled()) {
@@ -100,6 +106,6 @@ public class ZipExtractor implements Extractor {
             IOUtils.closeQuietly(ais);
         }
 
-        return buf.toString();
+        return new ExtractData(buf.toString());
     }
 }

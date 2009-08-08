@@ -16,6 +16,8 @@
 package org.seasar.robot.client.fs;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,6 +27,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.util.FileUtil;
@@ -72,8 +75,17 @@ public class FileSystemClient implements S2RobotClient {
             responseData.setLastModified(new Date(file.lastModified()));
             MimeTypeHelper mimeTypeHelper = SingletonS2Container
                     .getComponent("mimeTypeHelper");
-            responseData.setMimeType(mimeTypeHelper.getContentType(file
-                    .getName()));
+            InputStream is = null;
+            try {
+                is = new FileInputStream(file);
+                responseData.setMimeType(mimeTypeHelper.getContentType(is, file
+                        .getName()));
+            } catch (Exception e) {
+                responseData.setMimeType(mimeTypeHelper.getContentType(null,
+                        file.getName()));
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
             if (file.canRead()) {
                 File outputFile = null;
                 try {

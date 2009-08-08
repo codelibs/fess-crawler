@@ -17,12 +17,16 @@ package org.seasar.robot.transformer.impl;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
+import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.extractor.Extractor;
@@ -53,8 +57,19 @@ public class TextTransformer extends AbstractTransformer {
         Extractor extractor = extractorFactory.getExtractor(responseData
                 .getMimeType());
         InputStream in = responseData.getResponseBody();
-        String content = extractor.getText(in);
-        IOUtils.closeQuietly(in);
+        Map<String, String> params = new HashMap<String, String>();
+        params
+                .put(ExtractData.RESOURCE_NAME_KEY,
+                        getResourceName(responseData));
+        params.put(ExtractData.CONTENT_TYPE, responseData.getMimeType());
+        String content = null;
+        try {
+            content = extractor.getText(in, params).getContent();
+        } catch (Exception e) {
+            throw new RobotSystemException("Could not extract data.", e);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
 
         ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
@@ -87,6 +102,26 @@ public class TextTransformer extends AbstractTransformer {
         } catch (UnsupportedEncodingException e) {
             throw new RobotSystemException("Unsupported encoding: "
                     + charsetName, e);
+        }
+    }
+
+    private String getResourceName(ResponseData responseData) {
+        String name = responseData.getUrl();
+        String enc = responseData.getCharSet();
+
+        if (name == null || enc == null) {
+            return null;
+        }
+
+        name = name.replaceAll("/+$", "");
+        int idx = name.lastIndexOf("/");
+        if (idx >= 0) {
+            name = name.substring(idx + 1);
+        }
+        try {
+            return URLDecoder.decode(name, enc);
+        } catch (UnsupportedEncodingException e) {
+            return name;
         }
     }
 

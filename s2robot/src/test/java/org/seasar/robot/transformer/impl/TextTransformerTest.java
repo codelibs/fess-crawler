@@ -18,6 +18,7 @@ package org.seasar.robot.transformer.impl;
 import java.io.ByteArrayInputStream;
 
 import org.seasar.extension.unit.S2TestCase;
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultDataImpl;
 import org.seasar.robot.entity.ResponseData;
@@ -43,6 +44,8 @@ public class TextTransformerTest extends S2TestCase {
         byte[] data = new String("xyz").getBytes();
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         ResponseData responseData = new ResponseData();
+        responseData.setUrl("file:/test.txt");
+        responseData.setCharSet(Constants.UTF_8);
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/plain");
         ResultData resultData = textTransformer.transform(responseData);
@@ -54,6 +57,8 @@ public class TextTransformerTest extends S2TestCase {
         byte[] data = new String("<html><body>xyz</body></html>").getBytes();
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         ResponseData responseData = new ResponseData();
+        responseData.setUrl("file:/test.html");
+        responseData.setCharSet(Constants.UTF_8);
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/html");
         ResultData resultData = textTransformer.transform(responseData);

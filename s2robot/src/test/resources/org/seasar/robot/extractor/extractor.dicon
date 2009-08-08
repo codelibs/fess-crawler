@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components>
+	<include path="s2robot_mimetype.dicon"/>
+
+	<component name="archiveStreamFactory" class="org.apache.commons.compress.archivers.ArchiveStreamFactory"/>
+	<component name="compressorStreamFactory" class="org.apache.commons.compress.compressors.CompressorStreamFactory"/>
+
+	<component name="msWordExtractor" class="org.seasar.robot.extractor.impl.MsWordExtractor"/>
+	<component name="msExcelExtractor" class="org.seasar.robot.extractor.impl.MsExcelExtractor"/>
+	<component name="msPowerPointExtractor" class="org.seasar.robot.extractor.impl.MsPowerPointExtractor"/>
+	<component name="msPublisherExtractor" class="org.seasar.robot.extractor.impl.MsPublisherExtractor"/>
+	<component name="msVisioExtractor" class="org.seasar.robot.extractor.impl.MsVisioExtractor"/>
+	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor"/>
+	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
+	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
+	<component name="zipExtractor" class="org.seasar.robot.extractor.impl.ZipExtractor"/>
+	<component name="tarExtractor" class="org.seasar.robot.extractor.impl.TarExtractor"/>
+
+	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
+		<initMethod name="addExtractor">
+			<arg>"application/msword"</arg>
+			<arg>msWordExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/vnd.ms-excel"</arg>
+			<arg>msExcelExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/vnd.ms-powerpoint"</arg>
+			<arg>msPowerPointExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/vnd.ms-publisher"</arg>
+			<arg>msPublisherExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/vnd.visio"</arg>
+			<arg>msVisioExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/pdf"</arg>
+			<arg>pdfExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"text/plain"</arg>
+			<arg>textExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"text/html"</arg>
+			<arg>htmlExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/csv"</arg>
+			<arg>textExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/xml+xhtml"</arg>
+			<arg>htmlExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/zip"</arg>
+			<arg>zipExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/x-tar"</arg>
+			<arg>tarExtractor</arg>
+		</initMethod>
+	</component>
+
+</components>

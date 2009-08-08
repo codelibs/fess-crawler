@@ -15,44 +15,16 @@
  */
 package org.seasar.robot.helper;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.activation.MimetypesFileTypeMap;
-
-import org.seasar.framework.util.StringUtil;
+import java.io.InputStream;
+import java.util.Map;
 
 /**
  * @author shinsuke
  *
  */
-public class MimeTypeHelper {
-    protected MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
+public interface MimeTypeHelper {
+    public abstract String getContentType(InputStream is, String filename);
 
-    public String getContentType(String filename) {
-        if (StringUtil.isEmpty(filename)) {
-            throw new MimeTypeException("The filename is empty.");
-        }
-
-        return mimetypesFileTypeMap.getContentType(filename);
-    }
-
-    public String[] getContentTypes(String filename) {
-        if (StringUtil.isEmpty(filename)) {
-            throw new MimeTypeException("The filename is empty.");
-        }
-
-        List<String> contentTypeList = new ArrayList<String>();
-        int pos = filename.length();
-        while (pos >= 0) {
-            try {
-                contentTypeList.add(mimetypesFileTypeMap
-                        .getContentType(filename.substring(0, pos)));
-            } catch (Exception e) {
-                // NOP
-            }
-            pos = filename.lastIndexOf('.', pos - 1);
-        }
-        return contentTypeList.toArray(new String[contentTypeList.size()]);
-    }
+    public abstract String getContentType(InputStream is,
+            Map<String, String> params);
 }

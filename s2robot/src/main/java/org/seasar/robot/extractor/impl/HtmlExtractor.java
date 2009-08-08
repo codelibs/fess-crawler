@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +27,7 @@ import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;
 import org.seasar.robot.extractor.Extractor;
 import org.slf4j.Logger;
@@ -49,9 +51,9 @@ public class HtmlExtractor implements Extractor {
     protected Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
 
     /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream)
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
      */
-    public String getText(InputStream in) {
+    public ExtractData getText(InputStream in, Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
@@ -59,7 +61,8 @@ public class HtmlExtractor implements Extractor {
             BufferedInputStream bis = new BufferedInputStream(in);
             String enc = getEncoding(bis);
             String content = new String(InputStreamUtil.getBytes(bis), enc);
-            return htmlTagPattern.matcher(content).replaceAll("");
+            return new ExtractData(htmlTagPattern.matcher(content).replaceAll(
+                    ""));
         } catch (Exception e) {
             throw new ExtractException(e);
         }

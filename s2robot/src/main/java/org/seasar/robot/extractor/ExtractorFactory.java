@@ -16,6 +16,7 @@
 package org.seasar.robot.extractor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.seasar.framework.util.StringUtil;
@@ -36,6 +37,15 @@ public class ExtractorFactory {
             throw new RobotSystemException("The extractor is null.");
         }
         extractorMap.put(key, extractor);
+    }
+
+    public void addExtractor(List<String> keyList, Extractor extractor) {
+        if (keyList == null || keyList.isEmpty()) {
+            throw new RobotSystemException("The key list is empty.");
+        }
+        for (String key : keyList) {
+            addExtractor(key, extractor);
+        }
     }
 
     public Extractor getExtractor(String key) {

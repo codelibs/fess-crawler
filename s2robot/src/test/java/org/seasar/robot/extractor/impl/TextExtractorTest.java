@@ -36,12 +36,12 @@ public class TextExtractorTest extends S2TestCase {
 
     @Override
     protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+        return "org/seasar/robot/extractor/extractor.dicon";
     }
 
     public void test_getText() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
-        String content = textExtractor.getText(in);
+        String content = textExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -49,7 +49,7 @@ public class TextExtractorTest extends S2TestCase {
 
     public void test_getText_null() {
         try {
-            textExtractor.getText(null);
+            textExtractor.getText(null, null);
             fail();
         } catch (RobotSystemException e) {
             // NOP

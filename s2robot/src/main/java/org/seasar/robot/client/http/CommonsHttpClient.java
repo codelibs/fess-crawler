@@ -42,6 +42,7 @@ import org.seasar.robot.S2RobotContext;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.RobotsTxt;
+import org.seasar.robot.helper.ContentLengthHelper;
 import org.seasar.robot.helper.RobotsTxtHelper;
 import org.seasar.robot.util.CrawlingParameterUtil;
 import org.seasar.robot.util.StreamUtil;
@@ -59,6 +60,10 @@ public class CommonsHttpClient implements S2RobotClient {
 
     @Resource
     protected RobotsTxtHelper robotsTxtHelper;
+
+    @Binding(bindingType = BindingType.MAY)
+    @Resource
+    protected ContentLengthHelper contentLengthHelper;
 
     public Integer connectionTimeout;
 
@@ -184,6 +189,32 @@ public class CommonsHttpClient implements S2RobotClient {
 
             int httpStatusCode = getMethod.getStatusCode();
             if (httpStatusCode == 200) {
+
+                // check file size
+                Header contentLengthHeader = getMethod
+                        .getResponseHeader("Content-Length");
+                if (contentLengthHeader != null) {
+                    String value = contentLengthHeader.getValue();
+                    try {
+                        long contentLength = Long.parseLong(value);
+                        if (contentLengthHelper != null) {
+                            long maxLength = contentLengthHelper
+                                    .getMaxLength("text/plain");
+                            if (contentLength > maxLength) {
+                                throw new RobotSystemException(
+                                        "The content length (" + contentLength
+                                                + " byte) is over " + maxLength
+                                                + " byte. The url is "
+                                                + robotTxtUrl);
+                            }
+                        }
+                    } catch (Exception e) {
+                        // TODO check?
+                    }
+                } else {
+                    // TODO check?
+                }
+
                 RobotsTxt robotsTxt = robotsTxtHelper.parse(getMethod
                         .getResponseBodyAsStream());
                 if (robotsTxt != null) {
@@ -271,16 +302,41 @@ public class CommonsHttpClient implements S2RobotClient {
                     responseBodyInMemoryThresholdSize, outputFile);
             StreamUtil.drain(getMethod.getResponseBodyAsStream(), dfos);
 
+            long contentLength = 0;
             InputStream inputStream = null;
             if (dfos.isInMemory()) {
                 inputStream = new ByteArrayInputStream(dfos.getData());
+                contentLength = dfos.getData().length;
                 if (!outputFile.delete()) {
                     logger.warn("Could not delete "
                             + outputFile.getAbsolutePath());
                 }
             } else {
                 inputStream = new TemporaryFileInputStream(outputFile);
+                contentLength = outputFile.length();
             }
+
+            String contentType = null;
+            Header contentTypeHeader = getMethod
+                    .getResponseHeader("Content-Type");
+            if (contentTypeHeader != null) {
+                contentType = contentTypeHeader.getValue();
+                int idx = contentType.indexOf(";");
+                if (idx > 0) {
+                    contentType = contentType.substring(0, idx);
+                }
+            }
+
+            // check file size
+            if (contentLengthHelper != null) {
+                long maxLength = contentLengthHelper.getMaxLength(contentType);
+                if (contentLength > maxLength) {
+                    throw new RobotSystemException("The content length ("
+                            + contentLength + " byte) is over " + maxLength
+                            + " byte. The url is " + url);
+                }
+            }
+
             ResponseData responseData = new ResponseData();
             responseData.setMethod(Constants.GET_METHOD);
             responseData.setUrl(url);
@@ -290,14 +346,7 @@ public class CommonsHttpClient implements S2RobotClient {
             for (Header header : getMethod.getResponseHeaders()) {
                 responseData.addHeader(header.getName(), header.getValue());
             }
-            Header contentTypeHeader = getMethod
-                    .getResponseHeader("Content-Type");
-            if (contentTypeHeader != null) {
-                String contentType = contentTypeHeader.getValue();
-                int idx = contentType.indexOf(";");
-                if (idx > 0) {
-                    contentType = contentType.substring(0, idx);
-                }
+            if (contentType != null) {
                 responseData.setMimeType(contentType);
             }
             Header contentLengthHeader = getMethod
@@ -307,10 +356,10 @@ public class CommonsHttpClient implements S2RobotClient {
                 try {
                     responseData.setContentLength(Long.parseLong(value));
                 } catch (Exception e) {
-                    responseData.setContentLength(-1);
+                    responseData.setContentLength(contentLength);
                 }
             } else {
-                responseData.setContentLength(-1);
+                responseData.setContentLength(contentLength);
             }
             Header lastModifiedHeader = getMethod
                     .getResponseHeader("Last-Modified");

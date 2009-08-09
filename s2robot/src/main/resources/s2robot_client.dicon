@@ -4,6 +4,9 @@
 <components>
 	<include path="s2robot_robotstxt.dicon"/>
 
+	<component name="contentLengthHelper" class="org.seasar.robot.helper.ContentLengthHelper" instance="singleton" >
+	</component>
+
 	<component name="httpClient" class="org.seasar.robot.client.http.CommonsHttpClient" instance="prototype">
 		<property name="cookiePolicy">@org.apache.commons.httpclient.cookie.CookiePolicy@BROWSER_COMPATIBILITY</property>
 	</component>

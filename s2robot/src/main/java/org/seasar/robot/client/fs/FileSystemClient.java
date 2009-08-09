@@ -27,15 +27,20 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.seasar.framework.container.SingletonS2Container;
+import org.seasar.framework.container.annotation.tiger.Binding;
+import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.FileUtil;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.entity.ResponseData;
+import org.seasar.robot.helper.ContentLengthHelper;
 import org.seasar.robot.helper.MimeTypeHelper;
 import org.seasar.robot.util.TemporaryFileInputStream;
 import org.slf4j.Logger;
@@ -50,6 +55,10 @@ public class FileSystemClient implements S2RobotClient {
             .getLogger(FileSystemClient.class);
 
     protected String charset = Constants.UTF_8;
+
+    @Binding(bindingType = BindingType.MAY)
+    @Resource
+    protected ContentLengthHelper contentLengthHelper;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
@@ -69,10 +78,6 @@ public class FileSystemClient implements S2RobotClient {
 
         File file = new File(decodeUri(path));
         if (file.isFile()) {
-            responseData.setHttpStatusCode(200);
-            responseData.setCharSet(geCharSet(file));
-            responseData.setContentLength(file.length());
-            responseData.setLastModified(new Date(file.lastModified()));
             MimeTypeHelper mimeTypeHelper = SingletonS2Container
                     .getComponent("mimeTypeHelper");
             InputStream is = null;
@@ -86,6 +91,23 @@ public class FileSystemClient implements S2RobotClient {
             } finally {
                 IOUtils.closeQuietly(is);
             }
+
+            // check file size
+            responseData.setContentLength(file.length());
+            if (contentLengthHelper != null) {
+                long maxLength = contentLengthHelper.getMaxLength(responseData
+                        .getMimeType());
+                if (responseData.getContentLength() > maxLength) {
+                    throw new RobotSystemException("The content length ("
+                            + responseData.getContentLength()
+                            + " byte) is over " + maxLength
+                            + " byte. The url is " + uri);
+                }
+            }
+
+            responseData.setHttpStatusCode(200);
+            responseData.setCharSet(geCharSet(file));
+            responseData.setLastModified(new Date(file.lastModified()));
             if (file.canRead()) {
                 File outputFile = null;
                 try {

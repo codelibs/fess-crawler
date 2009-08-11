@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
@@ -43,12 +44,14 @@ import org.slf4j.LoggerFactory;
  */
 public class DBUrlQueueServiceImpl implements UrlQueueService {
 
+    private static final String EMPTY_STRING = "";
+
     private static final Logger logger = LoggerFactory
             .getLogger(DBUrlQueueServiceImpl.class);
 
     protected static volatile Map<String, LinkedList<UrlQueue>> URL_QUEUE_MAP = new HashMap<String, LinkedList<UrlQueue>>();
 
-    private static LruHashMap VISITED_URL_CACHE;
+    private static Map<String, LruHashMap> VISITED_URL_CACHE_MAP = new ConcurrentHashMap<String, LruHashMap>();
 
     public int cacheSize = 1000;
 
@@ -123,10 +126,9 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
             logger.debug("Deleted urls in queue: " + count);
         }
 
-        // clear cache
-        URL_QUEUE_MAP.remove(sessionId);
-        if (VISITED_URL_CACHE != null) {
-            VISITED_URL_CACHE.clear();
+        synchronized (URL_QUEUE_MAP) { // clear cache
+            URL_QUEUE_MAP.remove(sessionId);
+            VISITED_URL_CACHE_MAP.remove(sessionId);
         }
     }
 
@@ -144,10 +146,9 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
             logger.debug("Deleted urls in queue: " + count);
         }
 
-        // clear cache
-        URL_QUEUE_MAP.clear();
-        if (VISITED_URL_CACHE != null) {
-            VISITED_URL_CACHE.clear();
+        synchronized (URL_QUEUE_MAP) { // clear cache
+            URL_QUEUE_MAP.clear();
+            VISITED_URL_CACHE_MAP.clear();
         }
     }
 
@@ -168,11 +169,13 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    private LruHashMap getVisitedUrlCache() {
-        if (VISITED_URL_CACHE == null) {
-            VISITED_URL_CACHE = new LruHashMap(visitedUrlCacheSize);
+    private LruHashMap getVisitedUrlCache(String sessionId) {
+        LruHashMap visitedUrlMap = VISITED_URL_CACHE_MAP.get(sessionId);
+        if (visitedUrlMap == null) {
+            visitedUrlMap = new LruHashMap(visitedUrlCacheSize);
+            VISITED_URL_CACHE_MAP.put(sessionId, visitedUrlMap);
         }
-        return VISITED_URL_CACHE;
+        return visitedUrlMap;
     }
 
     protected boolean isNewUrl(UrlQueue urlQueue, List<UrlQueue> urlQueueList,
@@ -187,14 +190,15 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
 
         if (cache) {
+            String sessionId = urlQueue.getSessionId();
             // cache
-            if (getVisitedUrlCache().containsKey(url)) {
+            if (getVisitedUrlCache(sessionId).containsKey(url)) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("URL exists in a cache: " + url);
                 }
                 return false;
             }
-            getVisitedUrlCache().put(urlQueue.getUrl(), "");
+            getVisitedUrlCache(sessionId).put(urlQueue.getUrl(), EMPTY_STRING);
         }
 
         // check it in queue

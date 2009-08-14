@@ -16,7 +16,9 @@
 package org.seasar.robot.service.impl;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.beans.util.Beans;
@@ -105,6 +107,14 @@ public class DBDataServiceImplTest extends S2TestCase {
                 "http://www.id1.com/");
         assertNotNull(accessResult2);
 
+        accessResult2.setMimeType("text/html");
+        dataService.update(accessResult2);
+
+        AccessResult accessResult3 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
+        assertNotNull(accessResult3);
+        assertEquals("text/html", accessResult3.getMimeType());
+
         dataService.delete("id1");
 
         AccessResult accessResult4 = dataService.getAccessResult("id1",
@@ -145,8 +155,28 @@ public class DBDataServiceImplTest extends S2TestCase {
 
         dataService.store(accessResult2);
 
-        assertNotNull(dataService.getAccessResult("id1", "http://www.id1.com/"));
-        assertNotNull(dataService.getAccessResult("id2", "http://www.id2.com/"));
+        AccessResult accessResult3 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
+        AccessResult accessResult4 = dataService.getAccessResult("id2",
+                "http://www.id2.com/");
+        assertNotNull(accessResult3);
+        assertNotNull(accessResult4);
+
+        List<AccessResult> accessResultList = new ArrayList<AccessResult>();
+        accessResult3.setMimeType("text/html");
+        accessResult4.setMimeType("text/html");
+        accessResultList.add(accessResult3);
+        accessResultList.add(accessResult4);
+        dataService.update(accessResultList);
+
+        AccessResult accessResult5 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
+        AccessResult accessResult6 = dataService.getAccessResult("id2",
+                "http://www.id2.com/");
+        assertNotNull(accessResult5);
+        assertNotNull(accessResult6);
+        assertEquals("text/html", accessResult5.getMimeType());
+        assertEquals("text/html", accessResult6.getMimeType());
 
         dataService.delete("id1");
 

@@ -212,4 +212,44 @@ public class DBDataServiceImpl implements DataService {
                 AccessResultBhv.PATH_selectListByUrlDiff, pmb, handler);
 
     }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.AccessResult)
+     */
+    public void update(AccessResult accessResult) {
+        accessResultBhv
+                .update((org.seasar.robot.db.exentity.AccessResult) accessResult);
+
+        if (accessResult.getAccessResultData() != null) {
+            accessResultDataBhv
+                    .update((org.seasar.robot.db.exentity.AccessResultData) accessResult
+                            .getAccessResultData());
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.DataService#update(java.util.List)
+     */
+    public void update(List<AccessResult> accessResultList) {
+        List<org.seasar.robot.db.exentity.AccessResult> arList = new ArrayList<org.seasar.robot.db.exentity.AccessResult>();
+        List<org.seasar.robot.db.exentity.AccessResultData> ardList = new ArrayList<org.seasar.robot.db.exentity.AccessResultData>();
+
+        for (AccessResult accessResult : accessResultList) {
+            arList
+                    .add((org.seasar.robot.db.exentity.AccessResult) accessResult);
+            if (accessResult.getAccessResultData() != null) {
+                ardList
+                        .add((org.seasar.robot.db.exentity.AccessResultData) accessResult
+                                .getAccessResultData());
+            }
+        }
+        accessResultBhv.batchUpdate(arList);
+        if (!ardList.isEmpty()) {
+            accessResultDataBhv.batchUpdate(ardList);
+        }
+
+        for (AccessResult accessResult : accessResultList) {
+            update(accessResult);
+        }
+    }
 }

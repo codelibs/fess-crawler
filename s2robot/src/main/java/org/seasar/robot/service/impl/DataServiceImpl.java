@@ -68,7 +68,8 @@ public class DataServiceImpl implements DataService {
             Map<String, AccessResult> arMap = dataHelper
                     .getAccessResultMap(accessResult.getSessionId());
             if (arMap.containsKey(accessResult.getUrl())) {
-                throw new RuntimeException("hoge");
+                throw new RobotSystemException(accessResult.getUrl()
+                        + " already exists.");
             }
             arMap.put(accessResult.getUrl(), accessResult);
         }
@@ -136,6 +137,28 @@ public class DataServiceImpl implements DataService {
             if (!oldAccessResultMap.keySet().contains(newEntry.getKey())) {
                 accessResultCallback.iterate(newEntry.getValue());
             }
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.AccessResult)
+     */
+    public void update(AccessResult accessResult) {
+        Map<String, AccessResult> arMap = dataHelper
+                .getAccessResultMap(accessResult.getSessionId());
+        if (!arMap.containsKey(accessResult.getUrl())) {
+            throw new RobotSystemException(accessResult.getUrl()
+                    + " is not found.");
+        }
+        arMap.put(accessResult.getUrl(), accessResult);
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.DataService#update(java.util.List)
+     */
+    public void update(List<AccessResult> accessResultList) {
+        for (AccessResult accessResult : accessResultList) {
+            update(accessResult);
         }
     }
 }

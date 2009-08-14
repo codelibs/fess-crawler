@@ -28,6 +28,10 @@ public interface DataService {
 
     public abstract void store(AccessResult accessResult);
 
+    public abstract void update(AccessResult accessResult);
+
+    public abstract void update(List<AccessResult> accessResult);
+
     public abstract int getCount(String sessionId);
 
     public abstract void delete(String sessionId);

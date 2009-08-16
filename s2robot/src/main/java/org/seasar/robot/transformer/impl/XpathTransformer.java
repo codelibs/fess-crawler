@@ -103,8 +103,16 @@ public class XpathTransformer extends HtmlTransformer {
         try {
             resultData.setData(buf.toString().getBytes(charsetName));
         } catch (UnsupportedEncodingException e) {
-            throw new RobotSystemException("Invalid charsetName: "
-                    + charsetName, e);
+            if (logger.isInfoEnabled()) {
+                logger.info("Invalid charsetName: " + charsetName
+                        + ". Changed to " + Constants.UTF_8, e);
+            }
+            charsetName = Constants.UTF_8;
+            try {
+                resultData.setData(buf.toString().getBytes(charsetName));
+            } catch (UnsupportedEncodingException e1) {
+                throw new RobotSystemException("Unexpected exception");
+            }
         }
         resultData.setEncoding(charsetName);
     }

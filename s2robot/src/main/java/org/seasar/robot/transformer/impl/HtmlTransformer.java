@@ -77,7 +77,7 @@ public class HtmlTransformer extends AbstractTransformer {
 
     // If you want to follow a html spec, use 512.
     @Binding(bindingType = BindingType.MAY)
-    protected int preloadSizeForCharset = 1024;
+    protected int preloadSizeForCharset = 2048;
 
     @Binding(bindingType = BindingType.MAY)
     protected Pattern invalidUrlPattern = Pattern.compile(
@@ -476,6 +476,10 @@ public class HtmlTransformer extends AbstractTransformer {
             return new String(data, encoding != null ? encoding
                     : Constants.UTF_8);
         } catch (UnsupportedEncodingException e) {
+            if (logger.isInfoEnabled()) {
+                logger.info("Invalid charsetName: " + encoding
+                        + ". Changed to " + Constants.UTF_8, e);
+            }
             try {
                 return new String(data, Constants.UTF_8);
             } catch (UnsupportedEncodingException e1) {

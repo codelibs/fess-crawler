@@ -22,7 +22,7 @@
     <dependency>
       <groupId>org.seasar.robot</groupId>
       <artifactId>s2-robot</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     :
   </dependencies>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>org.seasar.robot</groupId>
       <artifactId>s2-robot-db</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     :
   </dependencies>

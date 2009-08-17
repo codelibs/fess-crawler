@@ -21,7 +21,7 @@
     // container から取得する場合
     S2Robot s2Robot = (S2Robot) container.getComponent(S2Robot.class);
 
-    // URL の追加 (この URL 以下を巡回します)
+    // URL の追加 (この URL を起点にして巡回します)
     s2Robot.addUrl(url);
     // 巡回する深さを指定
     s2Robot.getRobotContext().setMaxDepth(depth);
@@ -80,6 +80,8 @@
 
     * void store(AccessResult accessResult): クロール結果(AccessResult)を保存します。
 
+    * void update(AccessResult accessResult): クロール結果(AccessResult)を更新します。
+
     * int getCount(String sessionId): 指定された sessionId で保存されているクロール結果の数を返します。
 
     * void delete(String sessionId): 指定された sessionId で保存されているクロール結果をすべて削除します。
@@ -108,7 +110,7 @@ DataService dataService = (DataService) container
 
 * クロール結果 (AccessResult)
 
-    クロール結果は AccessResult エンティティに保存されます。
+    クロール結果は AccessResult エンティティとして保存されます。
     AccessResult には、URL や HTTP ステータスコードなどの 1 つの URL をクロールしたときの結果が保存されています。
     クロールした結果は、指定された Transformer で内容を変換され、AccessResultData エンティティとして保存されます。
     AccessResult は DataService インターフェースを通して取得することができます。

@@ -5,9 +5,9 @@
                ------------------
                    2009-07-09
 
-ファイルからの文字列抽出方法
+ファイルからの文字列・メタ情報の抽出方法
 
-    S2Robot では、ファイルから文字列を抽出する方法として、Extractor を提供しています。
+    S2Robot では、ファイルから文字列とメタ情報を抽出する方法として、Extractor を提供しています。
     Extractor は ExtractorFactory から MIME タイプをキーとして取得することができます。
     また、dicon ファイルの設定により自由に Extractor を追加、削除することが可能です。
 
@@ -24,64 +24,105 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
-	<component name="msWordExtractor" class="org.seasar.robot.extractor.impl.MsWordExtractor"/>
-	<component name="msExcelExtractor" class="org.seasar.robot.extractor.impl.MsExcelExtractor"/>
-	<component name="msPowerPointExtractor" class="org.seasar.robot.extractor.impl.MsPowerPointExtractor"/>
-	<component name="msPublisherExtractor" class="org.seasar.robot.extractor.impl.MsPublisherExtractor"/>
-	<component name="msVisioExtractor" class="org.seasar.robot.extractor.impl.MsVisioExtractor"/>
-	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor"/>
-	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
-	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
+    <component name="tikaExtractor" class="org.seasar.robot.extractor.impl.TikaExtractor"/>
 
-	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
-		<initMethod name="addExtractor">
-			<arg>"application/msword"</arg>
-			<arg>msWordExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"application/vnd.ms-excel"</arg>
-			<arg>msExcelExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"application/vnd.ms-powerpoint"</arg>
-			<arg>msPowerPointExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"application/vnd.ms-publisher"</arg>
-			<arg>msPublisherExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"application/vnd.visio"</arg>
-			<arg>msVisioExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"application/pdf"</arg>
-			<arg>pdfExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"text/plain"</arg>
-			<arg>textExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"text/html"</arg>
-			<arg>htmlExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"application/csv"</arg>
-			<arg>textExtractor</arg>
-		</initMethod>
-		<initMethod name="addExtractor">
-			<arg>"application/xml+xhtml"</arg>
-			<arg>htmlExtractor</arg>
-		</initMethod>
-	</component>
-
+    <component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
+        <initMethod name="addExtractor">
+            <arg>{
+"application/xml",
+"image/svg+xml",
+"application/x-tika-msoffice",
+"application/vnd.visio",
+"application/vnd.ms-powerpoint",
+"application/vnd.ms-excel",
+"application/vnd.ms-excel.sheet.binary.macroenabled.12",
+"application/msword",
+"application/vnd.ms-outlook",
+"application/x-tika-ooxml",
+"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+"application/vnd.ms-powerpoint.presentation.macroenabled.12",
+"application/vnd.openxmlformats-officedocument.presentationml.template",
+"application/vnd.openxmlformats-officedocument.presentationml.slideshow",
+"application/vnd.ms-powerpoint.slideshow.macroenabled.12",
+"application/vnd.ms-powerpoint.addin.macroenabled.12",
+"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+"application/vnd.ms-excel.sheet.macroenabled.12",
+"application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+"application/vnd.ms-excel.template.macroenabled.12",
+"application/vnd.ms-excel.addin.macroenabled.12",
+"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+"application/vnd.ms-word.document.macroenabled.12",
+"application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+"application/vnd.ms-word.template.macroenabled.12",
+"text/html",
+"application/xhtml+xml",
+"application/x-asp",
+"application/rtf",
+"application/pdf",
+"text/plain",
+"application/vnd.sun.xml.writer",
+"application/vnd.oasis.opendocument.text",
+"application/vnd.oasis.opendocument.graphics",
+"application/vnd.oasis.opendocument.presentation",
+"application/vnd.oasis.opendocument.spreadsheet",
+"application/vnd.oasis.opendocument.chart",
+"application/vnd.oasis.opendocument.image",
+"application/vnd.oasis.opendocument.formula",
+"application/vnd.oasis.opendocument.text-master",
+"application/vnd.oasis.opendocument.text-web",
+"application/vnd.oasis.opendocument.text-template",
+"application/vnd.oasis.opendocument.graphics-template",
+"application/vnd.oasis.opendocument.presentation-template",
+"application/vnd.oasis.opendocument.spreadsheet-template",
+"application/vnd.oasis.opendocument.chart-template",
+"application/vnd.oasis.opendocument.image-template",
+"application/vnd.oasis.opendocument.formula-template",
+"application/x-vnd.oasis.opendocument.text",
+"application/x-vnd.oasis.opendocument.graphics",
+"application/x-vnd.oasis.opendocument.presentation",
+"application/x-vnd.oasis.opendocument.spreadsheet",
+"application/x-vnd.oasis.opendocument.chart",
+"application/x-vnd.oasis.opendocument.image",
+"application/x-vnd.oasis.opendocument.formula",
+"application/x-vnd.oasis.opendocument.text-master",
+"application/x-vnd.oasis.opendocument.text-web",
+"application/x-vnd.oasis.opendocument.text-template",
+"application/x-vnd.oasis.opendocument.graphics-template",
+"application/x-vnd.oasis.opendocument.presentation-template",
+"application/x-vnd.oasis.opendocument.spreadsheet-template",
+"application/x-vnd.oasis.opendocument.chart-template",
+"application/x-vnd.oasis.opendocument.image-template",
+"application/x-vnd.oasis.opendocument.formula-template",
+"image/bmp",
+"image/gif",
+"image/jpeg",
+"image/png",
+"image/tiff",
+"image/vnd.wap.wbmp",
+"image/x-icon",
+"image/x-psd",
+"image/x-xcf",
+"application/zip",
+"application/x-tar",
+"application/x-gzip",
+"application/x-bzip",
+"application/x-tika-java-class",
+"audio/mpeg",
+"application/x-midi",
+"audio/midi",
+"audio/basic",
+"audio/x-wav",
+"audio/x-aiff"
+            }</arg>
+            <arg>tikaExtractor</arg>
+        </initMethod>
+    </component>
 </components>
 
 +--------------------------------------------------+
 
-    標準では、MS Office 系ファイルや PDF ファイルからの文字列抽出が可能です。
-    ただし、POI や PDFBox の jar ファイルが必要になります。
+    標準では、Apache Tika を利用することにより、MS Office 系ファイルや PDF ファイルからの文字列抽出が可能です。
+    音声ファイルや画像からはメタ情報を取得することができます。
 
 * 使用方法
 
@@ -94,8 +135,13 @@
     InputStream in = ... ex. new FileInputStream("/tmp/text.doc") ...;
     String mimeType = ... ex. "application/msword" ...;
     Extractor extractor = extractorFactory.getExtractor(mimeType);
-    String content = extractor.getText(in);
+    ExtractData extractData = extractor.getText(in);
+    String content = extractData.getContent();
     // content に text.doc 内の文字列だけ入る
+    for (String key : extractData.getKeySet()) {
+        String[] values = extractData.getValues(key);
+        // values にはメタ情報が入る
+    }
     :
 +--------------------------------------------------+
 

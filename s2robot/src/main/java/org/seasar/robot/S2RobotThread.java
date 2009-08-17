@@ -181,7 +181,7 @@ public class S2RobotThread implements Runnable {
                         if (logger.isInfoEnabled()) {
                             logger.info(e.getMessage());
                         } else if (logger.isDebugEnabled()) {
-                            logger.debug("Crawling Exception at "
+                            logger.debug("Crawling Access Exception at "
                                     + urlQueue.getUrl(), e);
                         }
                     } catch (Exception e) {

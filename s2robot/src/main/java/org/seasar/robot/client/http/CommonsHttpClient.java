@@ -18,6 +18,8 @@ package org.seasar.robot.client.http;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -267,7 +269,15 @@ public class CommonsHttpClient implements S2RobotClient {
             logger.debug("Accessing " + url);
         }
 
-        processRobotsTxt(url);
+        try {
+            processRobotsTxt(url);
+        } catch (RobotCrawlAccessException e) {
+            if (logger.isInfoEnabled()) {
+                logger.info(e.getMessage());
+            } else if (logger.isDebugEnabled()) {
+                logger.debug("Crawling Access Exception at " + url, e);
+            }
+        }
 
         GetMethod getMethod = new GetMethod(url);
 
@@ -385,6 +395,13 @@ public class CommonsHttpClient implements S2RobotClient {
             return responseData;
         } catch (UnknownHostException e) {
             throw new RobotCrawlAccessException("Unknown host: " + url, e);
+        } catch (NoRouteToHostException e) {
+            throw new RobotCrawlAccessException("No route to host: " + url, e);
+        } catch (ConnectException e) {
+            throw new RobotCrawlAccessException("Connection time out: " + url,
+                    e);
+        } catch (RobotSystemException e) {
+            throw e;
         } catch (Exception e) {
             throw new RobotSystemException("Failed to access " + url, e);
         } finally {

@@ -44,6 +44,7 @@ import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
@@ -87,7 +88,7 @@ public class HtmlTransformer extends AbstractTransformer {
 
     public ResultData transform(ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
-            throw new RobotSystemException("No response body.");
+            throw new RobotCrawlAccessException("No response body.");
         }
 
         InputStream is = responseData.getResponseBody();
@@ -103,7 +104,9 @@ public class HtmlTransformer extends AbstractTransformer {
             if (tempFile != null && !tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
-            throw new RobotSystemException("Could not read a response body.", e);
+            throw new RobotCrawlAccessException(
+                    "Could not read a response body: " + responseData.getUrl(),
+                    e);
         } finally {
             IOUtils.closeQuietly(is);
             IOUtils.closeQuietly(fos);
@@ -127,8 +130,8 @@ public class HtmlTransformer extends AbstractTransformer {
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
-            throw new RobotSystemException(
-                    "Could not load a charset in a response.", e);
+            throw new RobotSystemException("Could not load response data: "
+                    + responseData.getUrl(), e);
         } finally {
             IOUtils.closeQuietly(fis);
         }
@@ -275,7 +278,7 @@ public class HtmlTransformer extends AbstractTransformer {
             }
             return null;
         } catch (IOException e) {
-            throw new RobotSystemException("Could not load a content.", e);
+            throw new RobotCrawlAccessException("Could not load a content.", e);
         }
     }
 

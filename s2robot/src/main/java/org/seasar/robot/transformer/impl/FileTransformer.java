@@ -24,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
@@ -148,7 +149,7 @@ public class FileTransformer extends HtmlTransformer {
         try {
             resultData.setData(path.getBytes(charsetName));
         } catch (UnsupportedEncodingException e) {
-            throw new RobotSystemException("Invalid charsetName: "
+            throw new RobotCrawlAccessException("Invalid charsetName: "
                     + charsetName, e);
         }
         resultData.setEncoding(charsetName);

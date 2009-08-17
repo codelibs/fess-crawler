@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
@@ -38,7 +39,7 @@ public class BinaryTransformer extends AbstractTransformer {
      */
     public ResultData transform(ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
-            throw new RobotSystemException("No response body.");
+            throw new RobotCrawlAccessException("No response body.");
         }
 
         ResultData resultData = new ResultData();

@@ -33,6 +33,7 @@ import org.cyberneko.html.parsers.DOMParser;
 import org.seasar.framework.beans.util.Beans;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
@@ -78,7 +79,7 @@ public class XpathTransformer extends HtmlTransformer {
             }
             parser.parse(is);
         } catch (Exception e) {
-            throw new RobotSystemException("Could not parse "
+            throw new RobotCrawlAccessException("Could not parse "
                     + responseData.getUrl(), e);
         }
         Document document = parser.getDocument();

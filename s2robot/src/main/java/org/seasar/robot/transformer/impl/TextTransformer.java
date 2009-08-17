@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ExtractData;
@@ -46,7 +47,7 @@ public class TextTransformer extends AbstractTransformer {
     @Override
     public ResultData transform(ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
-            throw new RobotSystemException("No response body.");
+            throw new RobotCrawlAccessException("No response body.");
         }
 
         ExtractorFactory extractorFactory = SingletonS2Container
@@ -66,7 +67,7 @@ public class TextTransformer extends AbstractTransformer {
         try {
             content = extractor.getText(in, params).getContent();
         } catch (Exception e) {
-            throw new RobotSystemException("Could not extract data.", e);
+            throw new RobotCrawlAccessException("Could not extract data.", e);
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -76,7 +77,7 @@ public class TextTransformer extends AbstractTransformer {
         try {
             resultData.setData(content.getBytes(charsetName));
         } catch (UnsupportedEncodingException e) {
-            throw new RobotSystemException("Unsupported encoding: "
+            throw new RobotCrawlAccessException("Unsupported encoding: "
                     + charsetName, e);
         }
         resultData.setEncoding(charsetName);
@@ -100,7 +101,7 @@ public class TextTransformer extends AbstractTransformer {
         try {
             return new String(data, charsetName);
         } catch (UnsupportedEncodingException e) {
-            throw new RobotSystemException("Unsupported encoding: "
+            throw new RobotCrawlAccessException("Unsupported encoding: "
                     + charsetName, e);
         }
     }

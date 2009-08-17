@@ -177,6 +177,13 @@ public class S2RobotThread implements Runnable {
                                     urlQueue.getDepth() != null ? urlQueue
                                             .getDepth() + 1 : 1);
                         }
+                    } catch (RobotCrawlAccessException e) {
+                        if (logger.isInfoEnabled()) {
+                            logger.info(e.getMessage());
+                        } else if (logger.isDebugEnabled()) {
+                            logger.debug("Crawling Exception at "
+                                    + urlQueue.getUrl(), e);
+                        }
                     } catch (Exception e) {
                         logger.error("Crawling Exception at "
                                 + urlQueue.getUrl(), e);

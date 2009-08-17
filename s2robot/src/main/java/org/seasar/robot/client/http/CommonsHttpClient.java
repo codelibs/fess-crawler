@@ -18,6 +18,7 @@ package org.seasar.robot.client.http;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -37,6 +38,7 @@ import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.S2RobotContext;
 import org.seasar.robot.client.S2RobotClient;
@@ -201,7 +203,7 @@ public class CommonsHttpClient implements S2RobotClient {
                             long maxLength = contentLengthHelper
                                     .getMaxLength("text/plain");
                             if (contentLength > maxLength) {
-                                throw new RobotSystemException(
+                                throw new RobotCrawlAccessException(
                                         "The content length (" + contentLength
                                                 + " byte) is over " + maxLength
                                                 + " byte. The url is "
@@ -231,6 +233,9 @@ public class CommonsHttpClient implements S2RobotClient {
                     }
                 }
             }
+        } catch (UnknownHostException e) {
+            throw new RobotCrawlAccessException("Unknown host: " + robotTxtUrl,
+                    e);
         } catch (Exception e) {
             logger.warn("Could not parse " + robotTxtUrl, e);
         } finally {
@@ -331,7 +336,7 @@ public class CommonsHttpClient implements S2RobotClient {
             if (contentLengthHelper != null) {
                 long maxLength = contentLengthHelper.getMaxLength(contentType);
                 if (contentLength > maxLength) {
-                    throw new RobotSystemException("The content length ("
+                    throw new RobotCrawlAccessException("The content length ("
                             + contentLength + " byte) is over " + maxLength
                             + " byte. The url is " + url);
                 }
@@ -378,6 +383,8 @@ public class CommonsHttpClient implements S2RobotClient {
             }
 
             return responseData;
+        } catch (UnknownHostException e) {
+            throw new RobotCrawlAccessException("Unknown host: " + url, e);
         } catch (Exception e) {
             throw new RobotSystemException("Failed to access " + url, e);
         } finally {

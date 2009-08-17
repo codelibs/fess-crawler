@@ -37,6 +37,7 @@ import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.FileUtil;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.entity.ResponseData;
@@ -98,7 +99,7 @@ public class FileSystemClient implements S2RobotClient {
                 long maxLength = contentLengthHelper.getMaxLength(responseData
                         .getMimeType());
                 if (responseData.getContentLength() > maxLength) {
-                    throw new RobotSystemException("The content length ("
+                    throw new RobotCrawlAccessException("The content length ("
                             + responseData.getContentLength()
                             + " byte) is over " + maxLength
                             + " byte. The url is " + uri);

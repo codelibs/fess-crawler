@@ -4,7 +4,7 @@
   <groupId>org.seasar.robot</groupId>
   <artifactId>s2-robot</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.0</version>
+  <version>0.2.0-SNAPSHOT</version>
   <name>S2Robot</name>
   <description>S2Robot is a crawler framework for Seasar2.</description>
   <url>http://s2robot.sandbox.seasar.org/</url>

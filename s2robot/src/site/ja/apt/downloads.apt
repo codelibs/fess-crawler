@@ -3,9 +3,21 @@
                ------------------
                 Shinsuke Sugaya
                ------------------
-                   2009-05-06
+                   2009-08-30
 
 ダウンロード
 
-    TBD
+* Maven リポジトリ
+
+{{{https://www.seasar.org/maven/maven2/org/seasar/robot/}}}
+
+* S2Robot 0.1.0
+
+*--*-----*--------*---------*
+|  | ZIP | TAR.GZ | TAR.BZ2 |
+*--*-----*--------*---------*
+| S2Robot | {{{/download/2009-08-30/s2-robot-0.1.0-src.zip}s2-robot-0.1.0-src.zip}} | {{{/download/2009-08-30/s2-robot-0.1.0-src.tar.gz}s2-robot-0.1.0-src.tar.gz}} | {{{/download/2009-08-30/s2-robot-0.1.0-src.tar.bz2}s2-robot-0.1.0-src.tar.bz2}} |
+*--*-----*--------*---------*
+| S2Robot DB | {{{/download/2009-08-30/s2-robot-db-0.1.0-src.zip}s2-robot-db-0.1.0-src.zip}} | {{{/download/2009-08-30/s2-robot-db-0.1.0-src.tar.gz}s2-robot-db-0.1.0-src.tar.gz}} | {{{/download/2009-08-30/s2-robot-db-0.1.0-src.tar.bz2}s2-robot-db-0.1.0-src.tar.bz2}} |
+*--*-----*--------*---------*
 

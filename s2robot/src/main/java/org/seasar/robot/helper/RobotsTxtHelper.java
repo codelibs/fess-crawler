@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.RobotsTxt;
@@ -89,7 +90,7 @@ public class RobotsTxtHelper {
             line = stripComment(line);
             line = line.trim();
             String value;
-            if (line.isEmpty()) {
+            if (StringUtil.isEmpty(line)) {
                 continue;
             } else if ((value = getValue(USER_AGENT, line)) != null) {
                 String userAgent = value.toLowerCase();

@@ -39,8 +39,12 @@ public class FileSystemClientTest extends S2TestCase {
 
     public void test_doGet_dir() {
         File file = ResourceUtil.getResourceAsFile("test");
+        String path = file.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
         try {
-            fsClient.doGet("file://" + file.getAbsolutePath());
+            fsClient.doGet("file://" + path);
             fail();
         } catch (ChildUrlsException e) {
             Set<String> urlSet = e.getChildUrlList();
@@ -59,24 +63,31 @@ public class FileSystemClientTest extends S2TestCase {
 
     public void test_doGet_file() throws Exception {
         File file = ResourceUtil.getResourceAsFile("test/text1.txt");
-        ResponseData responseData = fsClient.doGet("file://"
-                + file.getAbsolutePath());
+        String path = file.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
+        ResponseData responseData = fsClient.doGet("file:" + path);
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
-        assertEquals(6, responseData.getContentLength());
+        assertTrue(6 == responseData.getContentLength()
+                || 7 == responseData.getContentLength());
         assertNotNull(responseData.getLastModified());
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
         assertTrue(responseData.getUrl().endsWith("test/text1.txt"));
         String content = new String(InputStreamUtil.getBytes(responseData
                 .getResponseBody()), "UTF-8");
-        assertEquals("test1\n", content);
+        assertEquals("test1", content.trim());
     }
 
     public void test_doGet_file_with_space() throws Exception {
         File file = ResourceUtil.getResourceAsFile("test/text 3.txt");
-        ResponseData responseData = fsClient.doGet("file://"
-                + file.getAbsolutePath());
+        String path = file.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
+        ResponseData responseData = fsClient.doGet("file:" + path);
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
         assertEquals(6, responseData.getContentLength());

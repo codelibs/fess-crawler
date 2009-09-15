@@ -184,7 +184,7 @@ public class FileTransformer extends HtmlTransformer {
                 .replaceAll("\\.\\./", "")//
                 .replaceAll("/$", "/index.html")//
                 .replaceAll("\\?", questionStr)//
-                .replaceFirst(":", colonStr)//
+                .replaceAll(":", colonStr)//
                 .replaceAll(";", semicolonStr)//
                 .replaceAll("&", ampersandStr)//
         ;

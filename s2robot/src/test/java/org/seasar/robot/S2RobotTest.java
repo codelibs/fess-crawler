@@ -62,9 +62,14 @@ public class S2RobotTest extends S2TestCase {
         dataService.delete(sessionId);
     }
 
-    public void test_execute_file() throws Exception {
+    public void test_execute_file_maxCount() throws Exception {
         File targetFile = ResourceUtil.getResourceAsFile("test");
-        String url = "file:" + targetFile.getAbsolutePath();
+        String path = targetFile.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
+        String url = "file:" + path;
+
         int maxCount = 3;
         int numOfThread = 2;
 
@@ -73,12 +78,65 @@ public class S2RobotTest extends S2TestCase {
         file.mkdirs();
         file.deleteOnExit();
         fileTransformer.setPath(file.getAbsolutePath());
-        // TODO use a local server(ex. jetty)
         s2Robot.addUrl(url);
         s2Robot.robotContext.setMaxThreadCheckCount(3);
         s2Robot.robotContext.setMaxAccessCount(maxCount);
         s2Robot.robotContext.setNumOfThread(numOfThread);
         s2Robot.urlFilter.addInclude(url + ".*");
+        String sessionId = s2Robot.execute();
+        assertEquals(maxCount, dataService.getCount(sessionId));
+        dataService.delete(sessionId);
+    }
+
+    public void test_execute_file_depth() throws Exception {
+        File targetFile = ResourceUtil.getResourceAsFile("test");
+        String path = targetFile.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
+        String url = "file:" + path;
+
+        int maxCount = 3;
+        int numOfThread = 2;
+
+        File file = File.createTempFile("s2robot-", "");
+        file.delete();
+        file.mkdirs();
+        file.deleteOnExit();
+        fileTransformer.setPath(file.getAbsolutePath());
+        s2Robot.addUrl(url);
+        s2Robot.robotContext.setMaxThreadCheckCount(3);
+        // s2Robot.robotContext.setMaxAccessCount(maxCount);
+        s2Robot.robotContext.setNumOfThread(numOfThread);
+        s2Robot.robotContext.setMaxDepth(1);
+        s2Robot.urlFilter.addInclude(url + ".*");
+        String sessionId = s2Robot.execute();
+        assertEquals(maxCount, dataService.getCount(sessionId));
+        dataService.delete(sessionId);
+    }
+
+    public void test_execute_file_filtered() throws Exception {
+        File targetFile = ResourceUtil.getResourceAsFile("test");
+        String path = targetFile.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
+        String url = "file:" + path;
+
+        int maxCount = 3;
+        int numOfThread = 2;
+
+        File file = File.createTempFile("s2robot-", "");
+        file.delete();
+        file.mkdirs();
+        file.deleteOnExit();
+        fileTransformer.setPath(file.getAbsolutePath());
+        s2Robot.addUrl(url);
+        s2Robot.robotContext.setMaxThreadCheckCount(3);
+        // s2Robot.robotContext.setMaxAccessCount(maxCount);
+        s2Robot.robotContext.setNumOfThread(numOfThread);
+        s2Robot.urlFilter.addInclude(url + ".*");
+        s2Robot.urlFilter.addExclude(url + "/dir1/.*");
         String sessionId = s2Robot.execute();
         assertEquals(maxCount, dataService.getCount(sessionId));
         dataService.delete(sessionId);
@@ -123,6 +181,7 @@ public class S2RobotTest extends S2TestCase {
         // TODO use a local server(ex. jetty)
 
         S2Robot s2Robot1 = (S2Robot) getComponent(S2Robot.class);
+        s2Robot1.setSessionId(s2Robot1.getSessionId() + "1");
         s2Robot1.setBackground(true);
         ((UrlFilterImpl) s2Robot1.urlFilter)
                 .setIncludeFilteringPattern("$1$2$3.*");
@@ -131,6 +190,7 @@ public class S2RobotTest extends S2TestCase {
         s2Robot1.getRobotContext().setNumOfThread(numOfThread);
 
         S2Robot s2Robot2 = (S2Robot) getComponent(S2Robot.class);
+        s2Robot2.setSessionId(s2Robot2.getSessionId() + "2");
         s2Robot2.setBackground(true);
         ((UrlFilterImpl) s2Robot2.urlFilter)
                 .setIncludeFilteringPattern("$1$2$3.*");

@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.extractor.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -139,6 +140,38 @@ public class TikaExtractorTest extends S2TestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));
+    }
+
+    public void test_getTika_xml() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test_utf8.xml");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertEquals(extractData.getValues("title")[0], "タイトル");
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_xml_sjis() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test_sjis.xml");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertEquals(extractData.getValues("title")[0], "タイトル");
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_xml_broken() {
+        InputStream in = new ByteArrayInputStream(
+                "<?xml encoding=\"UTF-8\"/><hoge>テスト<br></hoge>".getBytes());
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
     }
 
     public void test_getTika_null() {

@@ -3,6 +3,15 @@
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
 	<component name="tikaExtractor" class="org.seasar.robot.extractor.impl.TikaExtractor"/>
+	<component name="msWordExtractor" class="org.seasar.robot.extractor.impl.MsWordExtractor"/>
+	<component name="msExcelExtractor" class="org.seasar.robot.extractor.impl.MsExcelExtractor"/>
+	<component name="msPowerPointExtractor" class="org.seasar.robot.extractor.impl.MsPowerPointExtractor"/>
+	<component name="msPublisherExtractor" class="org.seasar.robot.extractor.impl.MsPublisherExtractor"/>
+	<component name="msVisioExtractor" class="org.seasar.robot.extractor.impl.MsVisioExtractor"/>
+	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor"/>
+	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
+	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
+	<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
 
 	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
 		<initMethod name="addExtractor">

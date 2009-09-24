@@ -17,6 +17,7 @@
 	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
 	<component name="zipExtractor" class="org.seasar.robot.extractor.impl.ZipExtractor"/>
 	<component name="tarExtractor" class="org.seasar.robot.extractor.impl.TarExtractor"/>
+	<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
 
 	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
 		<initMethod name="addExtractor">
@@ -66,6 +67,10 @@
 		<initMethod name="addExtractor">
 			<arg>"application/x-tar"</arg>
 			<arg>tarExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/xml"</arg>
+			<arg>xmlExtractor</arg>
 		</initMethod>
 	</component>
 

@@ -74,6 +74,10 @@ public class XmlExtractor implements Extractor {
             bis.mark(size);
             int c = bis.read(b);
 
+            if (c == -1) {
+                return encoding;
+            }
+
             String head = new String(b, 0, c, encoding);
             if (StringUtil.isBlank(head)) {
                 return encoding;

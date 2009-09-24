@@ -59,6 +59,14 @@ public class XmlExtractorTest extends S2TestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    public void test_getXml_empty() {
+        InputStream in = new ByteArrayInputStream("".getBytes());
+        String content = xmlExtractor.getText(in, null).getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertEquals("", content);
+    }
+
     public void test_getEncoding_utf8() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.xml");

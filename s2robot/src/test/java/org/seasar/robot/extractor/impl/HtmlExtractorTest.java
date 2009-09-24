@@ -16,6 +16,7 @@
 package org.seasar.robot.extractor.impl;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -56,6 +57,14 @@ public class HtmlExtractorTest extends S2TestCase {
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getHtml_empty() {
+        InputStream in = new ByteArrayInputStream("".getBytes());
+        String content = htmlExtractor.getText(in, null).getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertEquals("", content);
     }
 
     public void test_getEncoding_utf8() {

@@ -82,6 +82,8 @@ public class S2RobotTest extends S2TestCase {
         s2Robot1.getRobotContext().setMaxAccessCount(maxCount);
         s2Robot1.getRobotContext().setNumOfThread(numOfThread);
 
+        Thread.sleep(100);
+
         S2Robot s2Robot2 = (S2Robot) getComponent(S2Robot.class);
         s2Robot2.setBackground(true);
         ((UrlFilterImpl) s2Robot2.urlFilter)

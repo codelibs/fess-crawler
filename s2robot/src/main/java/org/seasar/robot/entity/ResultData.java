@@ -17,7 +17,7 @@ package org.seasar.robot.entity;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -33,7 +33,7 @@ public class ResultData implements Serializable {
 
     private String encoding;
 
-    private Set<String> childUrlSet = new HashSet<String>();
+    private Set<String> childUrlSet = new LinkedHashSet<String>();
 
     public byte[] getData() {
         return data;

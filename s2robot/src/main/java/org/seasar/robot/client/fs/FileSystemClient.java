@@ -25,6 +25,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -60,6 +61,8 @@ public class FileSystemClient implements S2RobotClient {
     @Binding(bindingType = BindingType.MAY)
     @Resource
     protected ContentLengthHelper contentLengthHelper;
+
+    private Map<String, Object> initParamMap;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
@@ -197,6 +200,13 @@ public class FileSystemClient implements S2RobotClient {
 
     public void setCharset(String charset) {
         this.charset = charset;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.client.S2RobotClient#setInitParameterMap(java.util.Map)
+     */
+    public void setInitParameterMap(Map<String, Object> params) {
+        this.initParamMap = params;
     }
 
 }

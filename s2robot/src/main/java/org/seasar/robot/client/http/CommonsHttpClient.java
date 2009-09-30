@@ -25,11 +25,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -83,6 +85,7 @@ public class CommonsHttpClient implements S2RobotClient {
 
     public String userAgent = "S2Robot";
 
+    @Deprecated
     public String userAgentForRobotsTxt = "S2Robot";
 
     protected volatile org.apache.commons.httpclient.HttpClient httpClient;
@@ -96,6 +99,18 @@ public class CommonsHttpClient implements S2RobotClient {
 
     public int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
+    private Map<String, Object> initParamMap;
+
+    protected <T> T getInitParameter(String key, T defaultValue) {
+        if (initParamMap != null) {
+            T value = (T) initParamMap.get(key);
+            if (value != null) {
+                return value;
+            }
+        }
+        return defaultValue;
+    }
+
     protected synchronized void init() {
         if (httpClient != null) {
             return;
@@ -107,18 +122,26 @@ public class CommonsHttpClient implements S2RobotClient {
 
         MultiThreadedHttpConnectionManager connectionManager = new MultiThreadedHttpConnectionManager();
         HttpConnectionManagerParams params = new HttpConnectionManagerParams();
+        Integer connectionTimeout = getInitParameter("connectionTimeout",
+                this.connectionTimeout);
         if (connectionTimeout != null) {
             params.setConnectionTimeout(connectionTimeout);
         }
+        Integer maxTotalConnections = getInitParameter("maxTotalConnections",
+                this.maxTotalConnections);
         if (maxTotalConnections != null) {
             params.setMaxTotalConnections(maxTotalConnections);
         }
+        Boolean staleCheckingEnabled = getInitParameter("staleCheckingEnabled",
+                this.staleCheckingEnabled);
         if (staleCheckingEnabled != null) {
             params.setStaleCheckingEnabled(staleCheckingEnabled);
         }
+        Integer soTimeout = getInitParameter("soTimeout", this.soTimeout);
         if (soTimeout != null) {
             params.setSoTimeout(soTimeout);
         }
+        Integer linger = getInitParameter("linger", this.linger);
         if (linger != null) {
             params.setLinger(linger);
         }
@@ -128,12 +151,32 @@ public class CommonsHttpClient implements S2RobotClient {
                 connectionManager);
 
         // proxy
+        String proxyHost = getInitParameter("proxyHost", this.proxyHost);
+        Integer proxyPort = getInitParameter("proxyPort", this.proxyPort);
         if (proxyHost != null && proxyPort != null) {
             httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort);
+            Credentials proxyCredentials = getInitParameter("proxyCredentials",
+                    this.proxyCredentials);
             if (proxyCredentials != null) {
                 httpClient.getState().setProxyCredentials(AuthScope.ANY,
                         proxyCredentials);
             }
+        }
+
+        // user agent
+        String userAgent = getInitParameter("userAgent", this.userAgent);
+        if (StringUtil.isNotBlank(userAgent)) {
+            httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
+                    userAgent);
+        }
+
+        // Basic Authentication
+        HttpState httpState = httpClient.getState();
+        BasicAuthentication[] siteCredentialList = getInitParameter(
+                "basicAuthentications", new BasicAuthentication[0]);
+        for (BasicAuthentication basicAuthentication : siteCredentialList) {
+            httpState.setCredentials(basicAuthentication.getAuthScope(),
+                    basicAuthentication.getCredentials());
         }
     }
 
@@ -183,10 +226,6 @@ public class CommonsHttpClient implements S2RobotClient {
         if (cookiePolicy != null) {
             getMethod.getParams().setCookiePolicy(cookiePolicy);
         }
-
-        // user agent
-        httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
-                userAgentForRobotsTxt);
 
         try { // get a content 
             httpClient.executeMethod(getMethod);
@@ -288,10 +327,6 @@ public class CommonsHttpClient implements S2RobotClient {
         if (cookiePolicy != null) {
             getMethod.getParams().setCookiePolicy(cookiePolicy);
         }
-
-        // user agent
-        httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
-                userAgent);
 
         try {
             // get a content 
@@ -418,5 +453,12 @@ public class CommonsHttpClient implements S2RobotClient {
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.client.S2RobotClient#setInitParameterMap(java.util.Map)
+     */
+    public void setInitParameterMap(Map<String, Object> params) {
+        this.initParamMap = params;
     }
 }

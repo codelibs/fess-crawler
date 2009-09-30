@@ -69,4 +69,12 @@ public class S2RobotClientFactory {
         }
         return null;
     }
+
+    public void setInitParameterMap(Map<String, Object> params) {
+        if (params != null) {
+            for (S2RobotClient client : clientMap.values()) {
+                client.setInitParameterMap(params);
+            }
+        }
+    }
 }

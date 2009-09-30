@@ -15,8 +15,13 @@
  */
 package org.seasar.robot.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.seasar.extension.unit.S2TestCase;
+import org.seasar.robot.client.fs.FileSystemClient;
 import org.seasar.robot.client.http.CommonsHttpClient;
+import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
@@ -44,6 +49,31 @@ public class S2RobotClientFactoryTest extends S2TestCase {
         assertNotNull(client);
         assertTrue(client instanceof CommonsHttpClient);
 
+        url = "file:/home/hoge";
+        client = clientFactory.getClient(url);
+        assertNotNull(client);
+        assertTrue(client instanceof FileSystemClient);
+
+    }
+
+    public void test_setInitParameterMap() {
+        Map<String, Object> paramMap = new HashMap<String, Object>();
+        paramMap.put("hoge", "test");
+
+        final StringBuilder buf = new StringBuilder();
+        clientFactory.addClient("test:.*", new S2RobotClient() {
+            public ResponseData doGet(String url) {
+                return null;
+            }
+
+            public void setInitParameterMap(Map<String, Object> params) {
+                buf.append("value=").append(params.get("hoge"));
+            }
+        });
+
+        clientFactory.setInitParameterMap(paramMap);
+
+        assertEquals("value=test", buf.toString());
     }
 
     public void test_getClient_null() {

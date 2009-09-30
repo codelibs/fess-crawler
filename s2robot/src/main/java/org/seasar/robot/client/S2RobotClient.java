@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.client;
 
+import java.util.Map;
+
 import org.seasar.robot.entity.ResponseData;
 
 /**
@@ -23,6 +25,10 @@ import org.seasar.robot.entity.ResponseData;
  */
 public interface S2RobotClient {
 
+    public abstract void setInitParameterMap(Map<String, Object> params);
+
     public abstract ResponseData doGet(String url);
+
+    // TODO doPost?
 
 }

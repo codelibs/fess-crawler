@@ -36,10 +36,6 @@ public class RuleManagerImpl implements RuleManager {
         ruleList = new ArrayList<Rule>();
     }
 
-    public void addRule(Rule rule) {
-        ruleList.add(rule);
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -52,5 +48,26 @@ public class RuleManagerImpl implements RuleManager {
             }
         }
         return null;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.rule.RuleManager#addRule(org.seasar.robot.rule.Rule)
+     */
+    public void addRule(Rule rule) {
+        ruleList.add(rule);
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.rule.RuleManager#hasRule(org.seasar.robot.rule.Rule)
+     */
+    public boolean hasRule(Rule rule) {
+        return ruleList.contains(rule);
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.rule.RuleManager#removeRule(org.seasar.robot.rule.Rule)
+     */
+    public boolean removeRule(Rule rule) {
+        return ruleList.remove(rule);
     }
 }

@@ -25,4 +25,9 @@ public interface RuleManager {
 
     public abstract Rule getRule(ResponseData responseData);
 
+    public abstract void addRule(Rule rule);
+
+    public abstract boolean removeRule(Rule rule);
+
+    public abstract boolean hasRule(Rule rule);
 }

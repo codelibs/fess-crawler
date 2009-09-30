@@ -11,6 +11,7 @@
 	</component>
 	
 	<component name="fileRule" class="org.seasar.robot.rule.impl.RegexRule" >
+		<property name="ruleId">"fileRule"</property>
 		<property name="defaultRule">true</property>
 		<property name="responseProcessor">
 			<component class="org.seasar.robot.processor.impl.DefaultResponseProcessor">

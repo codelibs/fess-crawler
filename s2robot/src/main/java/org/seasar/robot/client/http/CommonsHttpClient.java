@@ -61,6 +61,27 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class CommonsHttpClient implements S2RobotClient {
+
+    public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
+
+    public static final String MAX_TOTAL_CONNECTIONS_PROPERTY = "maxTotalConnections";
+
+    public static final String STALE_CHECKING_ENABLED_PROPERTY = "staleCheckingEnabled";
+
+    public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
+
+    public static final String LINGER_PROPERTY = "linger";
+
+    public static final String PROXY_HOST_PROPERTY = "proxyHost";
+
+    public static final String PROXY_PORT_PROPERTY = "proxyPort";
+
+    public static final String PROXY_CREDENTIALS_PROPERTY = "proxyCredentials";
+
+    public static final String USER_AGENT_PROPERTY = "userAgent";
+
+    public static final String BASIC_AUTHENTICATIONS_PROPERTY = "basicAuthentications";
+
     private final Logger logger = LoggerFactory
             .getLogger(CommonsHttpClient.class);
 
@@ -122,26 +143,27 @@ public class CommonsHttpClient implements S2RobotClient {
 
         MultiThreadedHttpConnectionManager connectionManager = new MultiThreadedHttpConnectionManager();
         HttpConnectionManagerParams params = new HttpConnectionManagerParams();
-        Integer connectionTimeout = getInitParameter("connectionTimeout",
-                this.connectionTimeout);
+        Integer connectionTimeout = getInitParameter(
+                CONNECTION_TIMEOUT_PROPERTY, this.connectionTimeout);
         if (connectionTimeout != null) {
             params.setConnectionTimeout(connectionTimeout);
         }
-        Integer maxTotalConnections = getInitParameter("maxTotalConnections",
-                this.maxTotalConnections);
+        Integer maxTotalConnections = getInitParameter(
+                MAX_TOTAL_CONNECTIONS_PROPERTY, this.maxTotalConnections);
         if (maxTotalConnections != null) {
             params.setMaxTotalConnections(maxTotalConnections);
         }
-        Boolean staleCheckingEnabled = getInitParameter("staleCheckingEnabled",
-                this.staleCheckingEnabled);
+        Boolean staleCheckingEnabled = getInitParameter(
+                STALE_CHECKING_ENABLED_PROPERTY, this.staleCheckingEnabled);
         if (staleCheckingEnabled != null) {
             params.setStaleCheckingEnabled(staleCheckingEnabled);
         }
-        Integer soTimeout = getInitParameter("soTimeout", this.soTimeout);
+        Integer soTimeout = getInitParameter(SO_TIMEOUT_PROPERTY,
+                this.soTimeout);
         if (soTimeout != null) {
             params.setSoTimeout(soTimeout);
         }
-        Integer linger = getInitParameter("linger", this.linger);
+        Integer linger = getInitParameter(LINGER_PROPERTY, this.linger);
         if (linger != null) {
             params.setLinger(linger);
         }
@@ -151,12 +173,13 @@ public class CommonsHttpClient implements S2RobotClient {
                 connectionManager);
 
         // proxy
-        String proxyHost = getInitParameter("proxyHost", this.proxyHost);
-        Integer proxyPort = getInitParameter("proxyPort", this.proxyPort);
+        String proxyHost = getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
+        Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY,
+                this.proxyPort);
         if (proxyHost != null && proxyPort != null) {
             httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort);
-            Credentials proxyCredentials = getInitParameter("proxyCredentials",
-                    this.proxyCredentials);
+            Credentials proxyCredentials = getInitParameter(
+                    PROXY_CREDENTIALS_PROPERTY, this.proxyCredentials);
             if (proxyCredentials != null) {
                 httpClient.getState().setProxyCredentials(AuthScope.ANY,
                         proxyCredentials);
@@ -164,7 +187,7 @@ public class CommonsHttpClient implements S2RobotClient {
         }
 
         // user agent
-        String userAgent = getInitParameter("userAgent", this.userAgent);
+        String userAgent = getInitParameter(USER_AGENT_PROPERTY, this.userAgent);
         if (StringUtil.isNotBlank(userAgent)) {
             httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
                     userAgent);
@@ -173,7 +196,7 @@ public class CommonsHttpClient implements S2RobotClient {
         // Basic Authentication
         HttpState httpState = httpClient.getState();
         BasicAuthentication[] siteCredentialList = getInitParameter(
-                "basicAuthentications", new BasicAuthentication[0]);
+                BASIC_AUTHENTICATIONS_PROPERTY, new BasicAuthentication[0]);
         for (BasicAuthentication basicAuthentication : siteCredentialList) {
             httpState.setCredentials(basicAuthentication.getAuthScope(),
                     basicAuthentication.getCredentials());

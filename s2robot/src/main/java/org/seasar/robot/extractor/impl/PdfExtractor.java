@@ -22,8 +22,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
 
-import org.pdfbox.pdmodel.PDDocument;
-import org.pdfbox.util.PDFTextStripper;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.util.PDFTextStripper;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;

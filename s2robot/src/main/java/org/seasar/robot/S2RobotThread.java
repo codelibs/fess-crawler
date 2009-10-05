@@ -178,10 +178,16 @@ public class S2RobotThread implements Runnable {
                                             .getDepth() + 1 : 1);
                         }
                     } catch (RobotCrawlAccessException e) {
-                        if (logger.isInfoEnabled()) {
-                            logger.info(e.getMessage());
-                        } else if (logger.isDebugEnabled()) {
+                        if (e.isDebugEnabled()) {
                             logger.debug("Crawling Access Exception at "
+                                    + urlQueue.getUrl(), e);
+                        } else if (e.isInfoEnabled()) {
+                            logger.info(e.getMessage());
+                        } else if (e.isWarnEnabled()) {
+                            logger.warn("Crawling Access Exception at "
+                                    + urlQueue.getUrl(), e);
+                        } else if (e.isErrorEnabled()) {
+                            logger.error("Crawling Access Exception at "
                                     + urlQueue.getUrl(), e);
                         }
                     } catch (Exception e) {

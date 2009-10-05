@@ -23,6 +23,16 @@ public class RobotCrawlAccessException extends RobotSystemException {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String DEBUG = "DEBUG";
+
+    public static final String INFO = "ERROR";
+
+    public static final String WARN = "WARN";
+
+    public static final String ERROR = "ERROR";
+
+    private String logLevel = INFO;
+
     public RobotCrawlAccessException(String message, Throwable cause) {
         super(message, cause);
     }
@@ -34,4 +44,25 @@ public class RobotCrawlAccessException extends RobotSystemException {
     public RobotCrawlAccessException(Throwable cause) {
         super(cause);
     }
+
+    public void setLogLevel(String logLevel) {
+        this.logLevel = logLevel;
+    }
+
+    public boolean isDebugEnabled() {
+        return DEBUG.equals(logLevel);
+    }
+
+    public boolean isInfoEnabled() {
+        return INFO.equals(logLevel);
+    }
+
+    public boolean isWarnEnabled() {
+        return WARN.equals(logLevel);
+    }
+
+    public boolean isErrorEnabled() {
+        return ERROR.equals(logLevel);
+    }
+
 }

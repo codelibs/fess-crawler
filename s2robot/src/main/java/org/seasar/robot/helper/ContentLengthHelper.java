@@ -18,6 +18,8 @@ package org.seasar.robot.helper;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.seasar.framework.container.annotation.tiger.Binding;
+import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.RobotSystemException;
 
@@ -27,6 +29,7 @@ import org.seasar.robot.RobotSystemException;
  */
 public class ContentLengthHelper {
 
+    @Binding(bindingType = BindingType.MAY)
     protected long defaultMaxLength = 10L * 1024L * 1024L;//10M
 
     protected Map<String, Long> maxLengthMap = new HashMap<String, Long>();
@@ -50,5 +53,13 @@ public class ContentLengthHelper {
             return maxLength;
         }
         return defaultMaxLength;
+    }
+
+    public long getDefaultMaxLength() {
+        return defaultMaxLength;
+    }
+
+    public void setDefaultMaxLength(long defaultMaxLength) {
+        this.defaultMaxLength = defaultMaxLength;
     }
 }

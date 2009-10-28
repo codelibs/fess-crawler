@@ -17,6 +17,8 @@ package org.seasar.robot.extractor.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.extension.unit.S2TestCase;
@@ -167,6 +169,106 @@ public class TikaExtractorTest extends S2TestCase {
     public void test_getTika_xml_broken() {
         InputStream in = new ByteArrayInputStream(
                 "<?xml encoding=\"UTF-8\"/><hoge>テスト<br></hoge>".getBytes());
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_java() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.java");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("Content-Type", "text/plain");
+        params.put("resourceName", "test.java");
+        ExtractData extractData = tikaExtractor.getText(in, params);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_java_1() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.java");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("Content-Type", "text/plain");
+        ExtractData extractData = tikaExtractor.getText(in, params);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_java_2() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.java");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("resourceName", "test.java");
+        ExtractData extractData = tikaExtractor.getText(in, params);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_java_3() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.java");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_js() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.js");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("Content-Type", "text/plain");
+        params.put("resourceName", "test.js");
+        ExtractData extractData = tikaExtractor.getText(in, params);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_c() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.c");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_cpp() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.cpp");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_h() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.h");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_hpp() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.hpp");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);

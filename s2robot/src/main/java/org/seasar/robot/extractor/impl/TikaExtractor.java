@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -78,20 +79,28 @@ public class TikaExtractor implements Extractor {
                 String contentType = params != null ? params
                         .get(ExtractData.CONTENT_TYPE) : null;
 
-                Metadata metadata = new Metadata();
-                if (StringUtil.isNotEmpty(resourceName)) {
-                    metadata.set(Metadata.RESOURCE_NAME_KEY, resourceName);
-                }
-                if (StringUtil.isNotBlank(contentType)) {
-                    metadata.set(Metadata.CONTENT_TYPE, contentType);
-                }
+                Metadata metadata = createMetadata(resourceName, contentType);
 
                 Parser parser = new AutoDetectParser();
-                StringWriter writer = new StringWriter();
-                parser.parse(in, new BodyContentHandler(writer), metadata);
+                Map<String, Object> context = new HashMap<String, Object>();
+                context.put(Parser.class.getName(), parser);
 
-                ExtractData extractData = new ExtractData(writer.toString()
-                        .replaceAll("\\s+$", " ").trim());
+                StringWriter writer = new StringWriter();
+                parser.parse(in, new BodyContentHandler(writer), metadata,
+                        context);
+
+                String content = normalizeContent(writer);
+                if (StringUtil.isBlank(content)) {
+                    // retry without a resource name
+                    IOUtils.closeQuietly(in);
+                    in = new FileInputStream(tempFile);
+                    Metadata metadata2 = createMetadata(null, contentType);
+                    StringWriter writer2 = new StringWriter();
+                    parser.parse(in, new BodyContentHandler(writer2),
+                            metadata2, context);
+                    content = normalizeContent(writer2);
+                }
+                ExtractData extractData = new ExtractData(content);
 
                 String[] names = metadata.names();
                 Arrays.sort(names);
@@ -122,6 +131,21 @@ public class TikaExtractor implements Extractor {
                 tempFile.deleteOnExit();
             }
         }
+    }
+
+    private String normalizeContent(StringWriter writer2) {
+        return writer2.toString().replaceAll("\\s+$", " ").trim();
+    }
+
+    private Metadata createMetadata(String resourceName, String contentType) {
+        Metadata metadata = new Metadata();
+        if (StringUtil.isNotEmpty(resourceName)) {
+            metadata.set(Metadata.RESOURCE_NAME_KEY, resourceName);
+        }
+        if (StringUtil.isNotBlank(contentType)) {
+            metadata.set(Metadata.CONTENT_TYPE, contentType);
+        }
+        return metadata;
     }
 
 }

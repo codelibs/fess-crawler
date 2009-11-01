@@ -23,7 +23,9 @@ import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -82,6 +84,8 @@ public class CommonsHttpClient implements S2RobotClient {
 
     public static final String BASIC_AUTHENTICATIONS_PROPERTY = "basicAuthentications";
 
+    public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
+
     private final Logger logger = LoggerFactory
             .getLogger(CommonsHttpClient.class);
 
@@ -121,6 +125,8 @@ public class CommonsHttpClient implements S2RobotClient {
     public int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
     private Map<String, Object> initParamMap;
+
+    private List<Header> requestHeaderList = new ArrayList<Header>();
 
     protected <T> T getInitParameter(String key, T defaultValue) {
         if (initParamMap != null) {
@@ -201,6 +207,16 @@ public class CommonsHttpClient implements S2RobotClient {
             httpState.setCredentials(basicAuthentication.getAuthScope(),
                     basicAuthentication.getCredentials());
         }
+
+        // Request Header
+        RequestHeader[] requestHeaders = getInitParameter(
+                REQUERT_HEADERS_PROPERTY, new RequestHeader[0]);
+        for (RequestHeader requestHeader : requestHeaders) {
+            if (requestHeader.isValid()) {
+                requestHeaderList.add(new Header(requestHeader.getName(),
+                        requestHeader.getValue()));
+            }
+        }
     }
 
     protected void processRobotsTxt(String url) {
@@ -248,6 +264,11 @@ public class CommonsHttpClient implements S2RobotClient {
         // cookie
         if (cookiePolicy != null) {
             getMethod.getParams().setCookiePolicy(cookiePolicy);
+        }
+
+        // request header
+        for (Header header : requestHeaderList) {
+            getMethod.setRequestHeader(header);
         }
 
         try { // get a content 
@@ -349,6 +370,11 @@ public class CommonsHttpClient implements S2RobotClient {
         // cookie
         if (cookiePolicy != null) {
             getMethod.getParams().setCookiePolicy(cookiePolicy);
+        }
+
+        // request header
+        for (Header header : requestHeaderList) {
+            getMethod.setRequestHeader(header);
         }
 
         try {

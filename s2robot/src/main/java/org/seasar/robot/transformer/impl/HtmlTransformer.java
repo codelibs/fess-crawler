@@ -232,6 +232,7 @@ public class HtmlTransformer extends AbstractTransformer {
                                 .getKey(), entry.getValue(), responseData
                                 .getCharSet()));
             }
+            urlList = convertChildUrlList(urlList);
         } catch (Exception e) {
             logger.warn("Could not create child urls.", e);
         } finally {
@@ -242,6 +243,10 @@ public class HtmlTransformer extends AbstractTransformer {
         String u = responseData.getUrl();
         resultData.removeUrl(u);
         resultData.removeUrl(getDuplicateUrl(u));
+    }
+
+    protected List<String> convertChildUrlList(List<String> urlList) {
+        return urlList;
     }
 
     protected void storeData(ResponseData responseData, ResultData resultData) {

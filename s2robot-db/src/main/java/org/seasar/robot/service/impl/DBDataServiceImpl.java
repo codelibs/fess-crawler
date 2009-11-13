@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.seasar.dbflute.cbean.EntityRowHandler;
+import org.seasar.robot.dbflute.cbean.EntityRowHandler;
 import org.seasar.framework.beans.util.Beans;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;

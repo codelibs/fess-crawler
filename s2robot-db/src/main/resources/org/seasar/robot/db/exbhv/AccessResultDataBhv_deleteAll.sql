@@ -1,2 +1,0 @@
-delete
-from ACCESS_RESULT_DATA

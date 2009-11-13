@@ -70,19 +70,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.seasar.dbflute</groupId>
-        <artifactId>maven-dbflute-plugin</artifactId>
-        <version>0.1.0</version>
-        <configuration>
-          <dbfluteVersion>0.9.5.1</dbfluteVersion>
-          <rootPackage>org.seasar.robot</rootPackage>
-          <dbPackage>org.seasar.robot.db</dbPackage>
-          <schemaName>robot</schemaName>
-          <schemaFile>${basedir}/dbflute/schema/project-schema-robot.xml</schemaFile>
-          <databaseUrl>jdbc:h2:file:${basedir}/src/main/db/robot</databaseUrl>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>com.google.code.maven-license-plugin</groupId>
         <artifactId>maven-license-plugin</artifactId>
         <version>1.4.0</version>
@@ -146,14 +133,15 @@
       <version>${version}</version>
     </dependency>
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>1.1.111</version>
+      <groupId>org.seasar.robot</groupId>
+      <artifactId>s2-robot-db-h2</artifactId>
+      <version>${version}</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.seasar.dbflute</groupId>
-      <artifactId>dbflute-runtime</artifactId>
-      <version>0.9.5.1</version>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.1.118</version>
     </dependency>
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>

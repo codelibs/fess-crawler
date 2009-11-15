@@ -9,6 +9,7 @@
     <include path="s2robot_interval.dicon"/>
     <include path="s2robot_extractor.dicon"/>
     <include path="s2robot_mimetype.dicon"/>
+    <include path="s2robot_encoding.dicon"/>
 
 	<!-- S2Robot -->
 	<component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >

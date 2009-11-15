@@ -33,6 +33,7 @@ import org.seasar.robot.db.cbean.AccessResultCB;
 import org.seasar.robot.db.cbean.UrlQueueCB;
 import org.seasar.robot.db.exbhv.AccessResultBhv;
 import org.seasar.robot.db.exbhv.UrlQueueBhv;
+import org.seasar.robot.dbflute.cbean.EntityRowHandler;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.service.UrlQueueService;
 import org.slf4j.Logger;
@@ -295,5 +296,34 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         synchronized (urlQueueList) {
             return !isNewUrl(urlQueue, urlQueueList, false);
         }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.service.UrlQueueService#generateUrlQueues(java.lang.String, java.lang.String)
+     */
+    public void generateUrlQueues(String previousSessionId,
+            final String sessionId) {
+        AccessResultCB cb = new AccessResultCB();
+        cb.query().setSessionId_Equal(previousSessionId);
+        cb.query().addOrderBy_CreateTime_Asc();
+        accessResultBhv
+                .selectCursor(
+                        cb,
+                        new EntityRowHandler<org.seasar.robot.db.exentity.AccessResult>() {
+                            public void handle(
+                                    org.seasar.robot.db.exentity.AccessResult entity) {
+                                org.seasar.robot.db.exentity.UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
+                                urlQueue.setSessionId(sessionId);
+                                urlQueue.setMethod(entity.getMethod());
+                                urlQueue.setUrl(entity.getUrl());
+                                urlQueue.setParentUrl(entity.getParentUrl());
+                                urlQueue.setDepth(0);
+                                urlQueue.setLastModified(entity
+                                        .getLastModified());
+                                urlQueue.setCreateTime(new Timestamp(new Date()
+                                        .getTime()));
+                                urlQueueBhv.insert(urlQueue);
+                            }
+                        });
     }
 }

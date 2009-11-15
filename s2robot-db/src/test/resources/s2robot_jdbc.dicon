@@ -30,7 +30,7 @@
 		<property name="URL">
 			"jdbc:h2:file:"
 				+ @org.seasar.framework.util.ResourceUtil@getBuildDir(@org.seasar.robot.S2RobotTest@class).getCanonicalPath()
-				+ "/db/robot;DB_CLOSE_ON_EXIT=FALSE"
+				+ "/db/robot;DB_CLOSE_ON_EXIT=FALSE;LOG=2;MVCC=true"
 		</property>
 		<property name="user">"sa"</property>
 		<property name="password"></property>

@@ -39,6 +39,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xpath.CachedXPathAPI;
 import org.cyberneko.html.parsers.DOMParser;
+import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.InputStreamUtil;
@@ -49,6 +50,7 @@ import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
+import org.seasar.robot.helper.EncodingHelper;
 import org.seasar.robot.util.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,21 +272,28 @@ public class HtmlTransformer extends AbstractTransformer {
 
     protected String loadCharset(InputStream inputStream) {
         BufferedInputStream bis = null;
+        String encoding = null;
         try {
             bis = new BufferedInputStream(inputStream);
             byte[] buffer = new byte[preloadSizeForCharset];
             int size = bis.read(buffer);
             if (size != -1) {
                 String content = new String(buffer, 0, size);
-                String encoding = parseCharset(content);
-                if (encoding != null) {
-                    return encoding;
-                }
+                encoding = parseCharset(content);
             }
-            return null;
         } catch (IOException e) {
             throw new RobotCrawlAccessException("Could not load a content.", e);
         }
+
+        try {
+            EncodingHelper encodingHelper = SingletonS2Container
+                    .getComponent(EncodingHelper.class);
+            encoding = encodingHelper.normalize(encoding);
+        } catch (Exception e) {
+            // nothing
+        }
+        
+        return encoding;
     }
 
     protected String parseCharset(String content) {

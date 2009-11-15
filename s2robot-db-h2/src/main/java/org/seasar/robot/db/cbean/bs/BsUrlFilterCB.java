@@ -21,11 +21,8 @@ import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
 import org.seasar.robot.db.allcommon.ImplementedInvokerAssistant;
 import org.seasar.robot.db.allcommon.ImplementedSqlClauseCreator;
-import org.seasar.robot.db.cbean.AccessResultCB;
-import org.seasar.robot.db.cbean.AccessResultDataCB;
-import org.seasar.robot.db.cbean.cq.AccessResultCQ;
-import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
-import org.seasar.robot.db.cbean.nss.AccessResultDataNss;
+import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
 import org.seasar.robot.dbflute.cbean.AbstractConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
@@ -42,17 +39,17 @@ import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
 import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
 
 /**
- * The base condition-bean of ACCESS_RESULT.
+ * The base condition-bean of URL_FILTER.
  * @author DBFlute(AutoGenerator)
  */
-public class BsAccessResultCB extends AbstractConditionBean {
+public class BsUrlFilterCB extends AbstractConditionBean {
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
     private final DBMetaProvider _dbmetaProvider = new DBMetaInstanceHandler();
 
-    protected AccessResultCQ _conditionQuery;
+    protected UrlFilterCQ _conditionQuery;
 
     // ===================================================================================
     //                                                                           SqlClause
@@ -74,11 +71,11 @@ public class BsAccessResultCB extends AbstractConditionBean {
     //                                                                          Table Name
     //                                                                          ==========
     public String getTableDbName() {
-        return "ACCESS_RESULT";
+        return "URL_FILTER";
     }
 
     public String getTableSqlName() {
-        return "ACCESS_RESULT";
+        return "URL_FILTER";
     }
 
     // ===================================================================================
@@ -113,13 +110,13 @@ public class BsAccessResultCB extends AbstractConditionBean {
     // ===================================================================================
     //                                                                               Query
     //                                                                               =====
-    public AccessResultCQ query() {
+    public UrlFilterCQ query() {
         return getConditionQuery();
     }
 
-    public AccessResultCQ getConditionQuery() {
+    public UrlFilterCQ getConditionQuery() {
         if (_conditionQuery == null) {
-            _conditionQuery = new AccessResultCQ(null, getSqlClause(),
+            _conditionQuery = new UrlFilterCQ(null, getSqlClause(),
                     getSqlClause().getLocalTableAliasName(), 0);
         }
         return _conditionQuery;
@@ -138,69 +135,46 @@ public class BsAccessResultCB extends AbstractConditionBean {
     /**
      * Set up 'union'.
      * <pre>
-     * cb.query().union(new UnionQuery&lt;AccessResultCB&gt;() {
-     *     public void query(AccessResultCB unionCB) {
+     * cb.query().union(new UnionQuery&lt;UrlFilterCB&gt;() {
+     *     public void query(UrlFilterCB unionCB) {
      *         unionCB.query().setXxx...
      *     }
      * });
      * </pre>
      * @param unionQuery The query of 'union'. (NotNull)
      */
-    public void union(UnionQuery<AccessResultCB> unionQuery) {
-        final AccessResultCB cb = new AccessResultCB();
+    public void union(UnionQuery<UrlFilterCB> unionQuery) {
+        final UrlFilterCB cb = new UrlFilterCB();
         cb.xsetupForUnion();
         xsyncUQ(cb);
         unionQuery.query(cb);
-        final AccessResultCQ cq = cb.query();
+        final UrlFilterCQ cq = cb.query();
         query().xsetUnionQuery(cq);
     }
 
     /**
      * Set up 'union all'.
      * <pre>
-     * cb.query().unionAll(new UnionQuery&lt;AccessResultCB&gt;() {
-     *     public void query(AccessResultCB unionCB) {
+     * cb.query().unionAll(new UnionQuery&lt;UrlFilterCB&gt;() {
+     *     public void query(UrlFilterCB unionCB) {
      *         unionCB.query().setXxx...
      *     }
      * });
      * </pre>
      * @param unionQuery The query of 'union'. (NotNull)
      */
-    public void unionAll(UnionQuery<AccessResultCB> unionQuery) {
-        final AccessResultCB cb = new AccessResultCB();
+    public void unionAll(UnionQuery<UrlFilterCB> unionQuery) {
+        final UrlFilterCB cb = new UrlFilterCB();
         cb.xsetupForUnion();
         xsyncUQ(cb);
         unionQuery.query(cb);
-        final AccessResultCQ cq = cb.query();
+        final UrlFilterCQ cq = cb.query();
         query().xsetUnionAllQuery(cq);
     }
 
     // ===================================================================================
     //                                                                         SetupSelect
     //                                                                         ===========
-
-    protected AccessResultDataNss _nssAccessResultDataAsOne;
-
-    public AccessResultDataNss getNssAccessResultDataAsOne() {
-        if (_nssAccessResultDataAsOne == null) {
-            _nssAccessResultDataAsOne = new AccessResultDataNss(null);
-        }
-        return _nssAccessResultDataAsOne;
-    }
-
-    public AccessResultDataNss setupSelect_AccessResultDataAsOne() {
-        doSetupSelect(new SsCall() {
-            public ConditionQuery qf() {
-                return query().queryAccessResultDataAsOne();
-            }
-        });
-        if (_nssAccessResultDataAsOne == null
-                || !_nssAccessResultDataAsOne.hasConditionQuery()) {
-            _nssAccessResultDataAsOne = new AccessResultDataNss(query()
-                    .queryAccessResultDataAsOne());
-        }
-        return _nssAccessResultDataAsOne;
-    }
 
     // [DBFlute-0.7.4]
     // ===================================================================================
@@ -211,12 +185,12 @@ public class BsAccessResultCB extends AbstractConditionBean {
     public HpSpecification specify() {
         if (_specification == null) {
             _specification = new HpSpecification(this,
-                    new HpSpQyCall<AccessResultCQ>() {
+                    new HpSpQyCall<UrlFilterCQ>() {
                         public boolean has() {
                             return true;
                         }
 
-                        public AccessResultCQ qy() {
+                        public UrlFilterCQ qy() {
                             return query();
                         }
                     }, _forDerivedReferrer, _forScalarSelect,
@@ -230,13 +204,11 @@ public class BsAccessResultCB extends AbstractConditionBean {
     }
 
     public static class HpSpecification extends
-            HpAbstractSpecification<AccessResultCQ> {
-        protected HpSpQyCall<AccessResultCQ> _myQyCall;
-
-        protected AccessResultDataCB.HpSpecification _accessResultDataAsOne;
+            HpAbstractSpecification<UrlFilterCQ> {
+        protected HpSpQyCall<UrlFilterCQ> _myQyCall;
 
         public HpSpecification(ConditionBean baseCB,
-                HpSpQyCall<AccessResultCQ> qyCall, boolean forDeriveReferrer,
+                HpSpQyCall<UrlFilterCQ> qyCall, boolean forDeriveReferrer,
                 boolean forScalarSelect, boolean forScalarSubQuery,
                 DBMetaProvider dbmetaProvider) {
             super(baseCB, qyCall, forDeriveReferrer, forScalarSelect,
@@ -254,54 +226,14 @@ public class BsAccessResultCB extends AbstractConditionBean {
             doColumn("SESSION_ID");
         }
 
-        /** RULE_ID: {VARCHAR(20)} */
-        public void columnRuleId() {
-            doColumn("RULE_ID");
-        }
-
         /** URL: {NotNull : VARCHAR(65536)} */
         public void columnUrl() {
             doColumn("URL");
         }
 
-        /** PARENT_URL: {VARCHAR(65536)} */
-        public void columnParentUrl() {
-            doColumn("PARENT_URL");
-        }
-
-        /** STATUS: {NotNull : INTEGER(10)} */
-        public void columnStatus() {
-            doColumn("STATUS");
-        }
-
-        /** HTTP_STATUS_CODE: {NotNull : INTEGER(10)} */
-        public void columnHttpStatusCode() {
-            doColumn("HTTP_STATUS_CODE");
-        }
-
-        /** METHOD: {NotNull : VARCHAR(10)} */
-        public void columnMethod() {
-            doColumn("METHOD");
-        }
-
-        /** MIME_TYPE: {NotNull : VARCHAR(100)} */
-        public void columnMimeType() {
-            doColumn("MIME_TYPE");
-        }
-
-        /** CONTENT_LENGTH: {NotNull : BIGINT(19)} */
-        public void columnContentLength() {
-            doColumn("CONTENT_LENGTH");
-        }
-
-        /** EXECUTION_TIME: {NotNull : INTEGER(10)} */
-        public void columnExecutionTime() {
-            doColumn("EXECUTION_TIME");
-        }
-
-        /** LAST_MODIFIED: {NotNull : TIMESTAMP(23, 10)} */
-        public void columnLastModified() {
-            doColumn("LAST_MODIFIED");
+        /** FILTER_TYPE: {NotNull : VARCHAR(1)} */
+        public void columnFilterType() {
+            doColumn("FILTER_TYPE");
         }
 
         /** CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} */
@@ -314,42 +246,11 @@ public class BsAccessResultCB extends AbstractConditionBean {
         }
 
         protected String getTableDbName() {
-            return "ACCESS_RESULT";
-        }
-
-        /**
-         * ACCESS_RESULT_DATA as 'accessResultDataAsOne'.
-         * @return Next specification. (NotNull)
-         */
-        public AccessResultDataCB.HpSpecification specifyAccessResultDataAsOne() {
-            assertForeign("accessResultDataAsOne");
-            if (_accessResultDataAsOne == null) {
-                _accessResultDataAsOne = new AccessResultDataCB.HpSpecification(
-                        _baseCB,
-                        new HpSpQyCall<AccessResultDataCQ>() {
-                            public boolean has() {
-                                return _myQyCall.has()
-                                        && _myQyCall
-                                                .qy()
-                                                .hasConditionQueryAccessResultDataAsOne();
-                            }
-
-                            public AccessResultDataCQ qy() {
-                                return _myQyCall.qy()
-                                        .queryAccessResultDataAsOne();
-                            }
-                        }, _forDerivedReferrer, _forScalarSelect,
-                        _forScalarSubQuery, _dbmetaProvider);
-                if (_forGeneralOneSpecificaion) {
-                    _accessResultDataAsOne
-                            .xsetupForGeneralOneSpecification(null);
-                }
-            }
-            return _accessResultDataAsOne;
+            return "URL_FILTER";
         }
 
         public void xsetupForGeneralOneSpecification(
-                HpSpQyCall<AccessResultCQ> qyCall) {
+                HpSpQyCall<UrlFilterCQ> qyCall) {
             if (qyCall != null) {
                 _myQyCall = qyCall;
                 _qyCall = qyCall;
@@ -366,20 +267,20 @@ public class BsAccessResultCB extends AbstractConditionBean {
      * @param leftSpecifyQuery The specify-query for left column. (NotNull)
      * @return The object for setting up operand and right column. (NotNull)
      */
-    public HpColQyOperand<AccessResultCB> columnQuery(
-            final SpecifyQuery<AccessResultCB> leftSpecifyQuery) {
-        return new HpColQyOperand<AccessResultCB>(
-                new HpColQyHandler<AccessResultCB>() {
-                    public void handle(SpecifyQuery<AccessResultCB> rightSp,
+    public HpColQyOperand<UrlFilterCB> columnQuery(
+            final SpecifyQuery<UrlFilterCB> leftSpecifyQuery) {
+        return new HpColQyOperand<UrlFilterCB>(
+                new HpColQyHandler<UrlFilterCB>() {
+                    public void handle(SpecifyQuery<UrlFilterCB> rightSp,
                             String operand) {
-                        AccessResultCB cb = new AccessResultCB();
+                        UrlFilterCB cb = new UrlFilterCB();
                         cb.specify().xsetupForGeneralOneSpecification(
-                                new HpSpQyCall<AccessResultCQ>() {
+                                new HpSpQyCall<UrlFilterCQ>() {
                                     public boolean has() {
                                         return true;
                                     }
 
-                                    public AccessResultCQ qy() {
+                                    public UrlFilterCQ qy() {
                                         return query();
                                     }
                                 });
@@ -392,8 +293,8 @@ public class BsAccessResultCB extends AbstractConditionBean {
     // ===================================================================================
     //                                                                             OrQuery
     //                                                                             =======
-    public void orQuery(OrQuery<AccessResultCB> orQuery) {
-        xorQ((AccessResultCB) this, orQuery);
+    public void orQuery(OrQuery<UrlFilterCB> orQuery) {
+        xorQ((UrlFilterCB) this, orQuery);
     }
 
     // ===================================================================================
@@ -426,11 +327,11 @@ public class BsAccessResultCB extends AbstractConditionBean {
     //                                                                            ========
     // Very Internal (for Suppressing Warn about 'Not Use Import')
     protected String getConditionBeanClassNameInternally() {
-        return AccessResultCB.class.getName();
+        return UrlFilterCB.class.getName();
     }
 
     protected String getConditionQueryClassNameInternally() {
-        return AccessResultCQ.class.getName();
+        return UrlFilterCQ.class.getName();
     }
 
     protected String getSubQueryClassNameInternally() {

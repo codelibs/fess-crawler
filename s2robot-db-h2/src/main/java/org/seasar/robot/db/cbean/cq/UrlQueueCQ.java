@@ -15,9 +15,9 @@
  */
 package org.seasar.robot.db.cbean.cq;
 
+import org.seasar.robot.db.cbean.cq.bs.BsUrlQueueCQ;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.robot.db.cbean.cq.bs.BsUrlQueueCQ;
 
 /**
  * The condition-query of URL_QUEUE.

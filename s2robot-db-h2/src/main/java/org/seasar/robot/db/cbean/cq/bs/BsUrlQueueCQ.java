@@ -1,14 +1,29 @@
+/*
+ * Copyright 2004-2009 the Seasar Foundation and the Others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
 package org.seasar.robot.db.cbean.cq.bs;
 
 import java.util.Map;
 
+import org.seasar.robot.db.cbean.UrlQueueCB;
+import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
+import org.seasar.robot.db.cbean.cq.ciq.UrlQueueCIQ;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
-import org.seasar.robot.db.cbean.UrlQueueCB;
-import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
-import org.seasar.robot.db.cbean.cq.ciq.UrlQueueCIQ;
 
 /**
  * The base condition-query of URL_QUEUE.
@@ -204,6 +219,29 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     public BsUrlQueueCQ addOrderBy_Depth_Desc() {
         regOBD("DEPTH");
+        return this;
+    }
+
+    protected ConditionValue _lastModified;
+
+    public ConditionValue getLastModified() {
+        if (_lastModified == null) {
+            _lastModified = nCV();
+        }
+        return _lastModified;
+    }
+
+    protected ConditionValue getCValueLastModified() {
+        return getLastModified();
+    }
+
+    public BsUrlQueueCQ addOrderBy_LastModified_Asc() {
+        regOBA("LAST_MODIFIED");
+        return this;
+    }
+
+    public BsUrlQueueCQ addOrderBy_LastModified_Desc() {
+        regOBD("LAST_MODIFIED");
         return this;
     }
 

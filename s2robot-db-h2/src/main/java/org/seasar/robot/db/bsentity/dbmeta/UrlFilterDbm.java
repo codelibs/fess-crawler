@@ -18,29 +18,28 @@ package org.seasar.robot.db.bsentity.dbmeta;
 import java.util.List;
 import java.util.Map;
 
-import org.seasar.robot.db.exentity.AccessResultData;
+import org.seasar.robot.db.exentity.UrlFilter;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.robot.dbflute.dbmeta.info.ForeignInfo;
 import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
 import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
- * The DB meta of ACCESS_RESULT_DATA. (Singleton)
+ * The DB meta of URL_FILTER. (Singleton)
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultDataDbm extends AbstractDBMeta {
+public class UrlFilterDbm extends AbstractDBMeta {
 
     // ===================================================================================
     //                                                                           Singleton
     //                                                                           =========
-    private static final AccessResultDataDbm _instance = new AccessResultDataDbm();
+    private static final UrlFilterDbm _instance = new UrlFilterDbm();
 
-    private AccessResultDataDbm() {
+    private UrlFilterDbm() {
     }
 
-    public static AccessResultDataDbm getInstance() {
+    public static UrlFilterDbm getInstance() {
         return _instance;
     }
 
@@ -48,54 +47,63 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     //                                                                          Table Info
     //                                                                          ==========
     public String getTableDbName() {
-        return "ACCESS_RESULT_DATA";
+        return "URL_FILTER";
     }
 
     public String getTablePropertyName() {
-        return "accessResultData";
+        return "urlFilter";
     }
 
     public String getTableSqlName() {
-        return "ACCESS_RESULT_DATA";
+        return "URL_FILTER";
     }
 
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
     protected ColumnInfo _columnId = cci("ID", null, "id", Long.class, true,
-            false, 19, 0, false, null);
+            true, 19, 0, false, null);
 
-    protected ColumnInfo _columnTransformerName = cci("TRANSFORMER_NAME", null,
-            "transformerName", String.class, false, false, 255, 0, false, null);
+    protected ColumnInfo _columnSessionId = cci("SESSION_ID", null,
+            "sessionId", String.class, false, false, 20, 0, false, null);
 
-    protected ColumnInfo _columnData = cci("DATA", null, "data", byte[].class,
-            false, false, 2147483647, 0, false, null);
+    protected ColumnInfo _columnUrl = cci("URL", null, "url", String.class,
+            false, false, 65536, 0, false, null);
 
-    protected ColumnInfo _columnEncoding = cci("ENCODING", null, "encoding",
-            String.class, false, false, 20, 0, false, null);
+    protected ColumnInfo _columnFilterType = cci("FILTER_TYPE", null,
+            "filterType", String.class, false, false, 1, 0, false, null);
+
+    protected ColumnInfo _columnCreateTime = cci("CREATE_TIME", null,
+            "createTime", java.sql.Timestamp.class, false, false, 23, 10,
+            false, null);
 
     public ColumnInfo columnId() {
         return _columnId;
     }
 
-    public ColumnInfo columnTransformerName() {
-        return _columnTransformerName;
+    public ColumnInfo columnSessionId() {
+        return _columnSessionId;
     }
 
-    public ColumnInfo columnData() {
-        return _columnData;
+    public ColumnInfo columnUrl() {
+        return _columnUrl;
     }
 
-    public ColumnInfo columnEncoding() {
-        return _columnEncoding;
+    public ColumnInfo columnFilterType() {
+        return _columnFilterType;
+    }
+
+    public ColumnInfo columnCreateTime() {
+        return _columnCreateTime;
     }
 
     protected List<ColumnInfo> ccil() {
         List<ColumnInfo> ls = newArrayList();
         ls.add(columnId());
-        ls.add(columnTransformerName());
-        ls.add(columnData());
-        ls.add(columnEncoding());
+        ls.add(columnSessionId());
+        ls.add(columnUrl());
+        ls.add(columnFilterType());
+        ls.add(columnCreateTime());
         return ls;
     }
 
@@ -127,12 +135,6 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // -----------------------------------------------------
     //                                      Foreign Property
     //                                      ----------------
-    public ForeignInfo foreignAccessResult() {
-        Map<ColumnInfo, ColumnInfo> map = newLinkedHashMap(columnId(),
-                AccessResultDbm.getInstance().columnId());
-        return cfi("accessResult", this, AccessResultDbm.getInstance(), map, 0,
-                true);
-    }
 
     // -----------------------------------------------------
     //                                     Referrer Property
@@ -141,31 +143,34 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                        Various Info
     //                                                                        ============
+    public boolean hasIdentity() {
+        return true;
+    }
 
     // ===================================================================================
     //                                                                           Type Name
     //                                                                           =========
     public String getEntityTypeName() {
-        return "org.seasar.robot.db.exentity.AccessResultData";
+        return "org.seasar.robot.db.exentity.UrlFilter";
     }
 
     public String getConditionBeanTypeName() {
-        return "org.seasar.robot.db.cbean.bs.AccessResultDataCB";
+        return "org.seasar.robot.db.cbean.bs.UrlFilterCB";
     }
 
     public String getDaoTypeName() {
-        return "org.seasar.robot.db.exdao.AccessResultDataDao";
+        return "org.seasar.robot.db.exdao.UrlFilterDao";
     }
 
     public String getBehaviorTypeName() {
-        return "org.seasar.robot.db.exbhv.AccessResultDataBhv";
+        return "org.seasar.robot.db.exbhv.UrlFilterBhv";
     }
 
     // ===================================================================================
     //                                                                         Object Type
     //                                                                         ===========
-    public Class<AccessResultData> getEntityType() {
-        return AccessResultData.class;
+    public Class<UrlFilter> getEntityType() {
+        return UrlFilter.class;
     }
 
     // ===================================================================================
@@ -175,8 +180,8 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         return newMyEntity();
     }
 
-    public AccessResultData newMyEntity() {
-        return new AccessResultData();
+    public UrlFilter newMyEntity() {
+        return new UrlFilter();
     }
 
     // ===================================================================================
@@ -187,7 +192,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     //                                                ------
     public void acceptPrimaryKeyMap(Entity entity,
             Map<String, ? extends Object> primaryKeyMap) {
-        doAcceptPrimaryKeyMap((AccessResultData) entity, primaryKeyMap, _epsMap);
+        doAcceptPrimaryKeyMap((UrlFilter) entity, primaryKeyMap, _epsMap);
     }
 
     public void acceptPrimaryKeyMapString(Entity entity,
@@ -197,8 +202,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
 
     public void acceptColumnValueMap(Entity entity,
             Map<String, ? extends Object> columnValueMap) {
-        doAcceptColumnValueMap((AccessResultData) entity, columnValueMap,
-                _epsMap);
+        doAcceptColumnValueMap((UrlFilter) entity, columnValueMap, _epsMap);
     }
 
     public void acceptColumnValueMapString(Entity entity,
@@ -252,13 +256,14 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     //                                                               Entity Property Setup
     //                                                               =====================
     // It's very INTERNAL!
-    protected final Map<String, Eps<AccessResultData>> _epsMap = StringKeyMap
+    protected final Map<String, Eps<UrlFilter>> _epsMap = StringKeyMap
             .createAsFlexibleConcurrent();
     {
         setupEps(_epsMap, new EpsId(), columnId());
-        setupEps(_epsMap, new EpsTransformerName(), columnTransformerName());
-        setupEps(_epsMap, new EpsData(), columnData());
-        setupEps(_epsMap, new EpsEncoding(), columnEncoding());
+        setupEps(_epsMap, new EpsSessionId(), columnSessionId());
+        setupEps(_epsMap, new EpsUrl(), columnUrl());
+        setupEps(_epsMap, new EpsFilterType(), columnFilterType());
+        setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
     }
 
     public boolean hasEntityPropertySetupper(String propertyName) {
@@ -267,30 +272,36 @@ public class AccessResultDataDbm extends AbstractDBMeta {
 
     public void setupEntityProperty(String propertyName, Object entity,
             Object value) {
-        findEps(_epsMap, propertyName).setup((AccessResultData) entity, value);
+        findEps(_epsMap, propertyName).setup((UrlFilter) entity, value);
     }
 
-    public static class EpsId implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
+    public static class EpsId implements Eps<UrlFilter> {
+        public void setup(UrlFilter e, Object v) {
             e.setId((Long) v);
         }
     }
 
-    public static class EpsTransformerName implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
-            e.setTransformerName((String) v);
+    public static class EpsSessionId implements Eps<UrlFilter> {
+        public void setup(UrlFilter e, Object v) {
+            e.setSessionId((String) v);
         }
     }
 
-    public static class EpsData implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
-            e.setData((byte[]) v);
+    public static class EpsUrl implements Eps<UrlFilter> {
+        public void setup(UrlFilter e, Object v) {
+            e.setUrl((String) v);
         }
     }
 
-    public static class EpsEncoding implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
-            e.setEncoding((String) v);
+    public static class EpsFilterType implements Eps<UrlFilter> {
+        public void setup(UrlFilter e, Object v) {
+            e.setFilterType((String) v);
+        }
+    }
+
+    public static class EpsCreateTime implements Eps<UrlFilter> {
+        public void setup(UrlFilter e, Object v) {
+            e.setCreateTime((java.sql.Timestamp) v);
         }
     }
 }

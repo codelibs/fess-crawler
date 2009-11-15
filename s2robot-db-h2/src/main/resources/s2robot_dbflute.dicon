@@ -15,5 +15,6 @@
     <!-- The components of Behavior. -->
     <component name="accessResultBhv" class="org.seasar.robot.db.exbhv.AccessResultBhv"/>
     <component name="accessResultDataBhv" class="org.seasar.robot.db.exbhv.AccessResultDataBhv"/>
+    <component name="urlFilterBhv" class="org.seasar.robot.db.exbhv.UrlFilterBhv"/>
     <component name="urlQueueBhv" class="org.seasar.robot.db.exbhv.UrlQueueBhv"/>
 </components>

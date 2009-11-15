@@ -19,7 +19,6 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import org.seasar.framework.beans.util.Beans;
-import org.seasar.robot.Constants;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 
@@ -45,7 +44,6 @@ public class AccessResult extends org.seasar.robot.db.bsentity.BsAccessResult
 
         setCreateTime(new Timestamp(new Date().getTime())); // TODO response time
         Beans.copy(responseData, this).execute();
-        setStatus(Constants.OK_STATUS);
 
         AccessResultData accessResultData = new AccessResultData();
         Beans.copy(resultData, accessResultData).execute();

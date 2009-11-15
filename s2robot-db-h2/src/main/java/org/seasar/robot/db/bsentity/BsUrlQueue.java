@@ -1,11 +1,26 @@
+/*
+ * Copyright 2004-2009 the Seasar Foundation and the Others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
 package org.seasar.robot.db.bsentity;
 
 import java.io.Serializable;
 import java.util.Set;
 
+import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
 
 /**
  * The entity of URL_QUEUE that is TABLE. <br />
@@ -14,7 +29,7 @@ import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, METHOD, URL, PARENT_URL, DEPTH, CREATE_TIME
+ *     ID, SESSION_ID, METHOD, URL, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
  * 
  * [sequence]
  *     
@@ -70,6 +85,9 @@ public abstract class BsUrlQueue implements Entity, Serializable {
 
     /** DEPTH: {NotNull : INTEGER(10)} */
     protected Integer _depth;
+
+    /** LAST_MODIFIED: {TIMESTAMP(23, 10)} */
+    protected java.sql.Timestamp _lastModified;
 
     /** CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _createTime;
@@ -218,6 +236,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
         sb.append(c).append(getUrl());
         sb.append(c).append(getParentUrl());
         sb.append(c).append(getDepth());
+        sb.append(c).append(getLastModified());
         sb.append(c).append(getCreateTime());
         if (sb.length() > 0) {
             sb.delete(0, c.length());
@@ -333,6 +352,23 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     public void setDepth(Integer depth) {
         _modifiedProperties.addPropertyName("depth");
         this._depth = depth;
+    }
+
+    /**
+     * LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
+     * @return The value of the column 'LAST_MODIFIED'. (Nullable)
+     */
+    public java.sql.Timestamp getLastModified() {
+        return _lastModified;
+    }
+
+    /**
+     * LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
+     * @param lastModified The value of the column 'LAST_MODIFIED'. (Nullable)
+     */
+    public void setLastModified(java.sql.Timestamp lastModified) {
+        _modifiedProperties.addPropertyName("lastModified");
+        this._lastModified = lastModified;
     }
 
     /**

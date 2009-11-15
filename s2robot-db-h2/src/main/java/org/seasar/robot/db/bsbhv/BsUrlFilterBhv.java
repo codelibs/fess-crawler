@@ -17,10 +17,9 @@ package org.seasar.robot.db.bsbhv;
 
 import java.util.List;
 
-import org.seasar.robot.db.bsentity.dbmeta.AccessResultDbm;
-import org.seasar.robot.db.cbean.AccessResultCB;
-import org.seasar.robot.db.exentity.AccessResult;
-import org.seasar.robot.db.exentity.AccessResultData;
+import org.seasar.robot.db.bsentity.dbmeta.UrlFilterDbm;
+import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.exentity.UrlFilter;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.bhv.AbstractBehaviorWritable;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
@@ -34,13 +33,13 @@ import org.seasar.robot.dbflute.cbean.ResultBeanBuilder;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
- * The behavior of ACCESS_RESULT that is TABLE. <br />
+ * The behavior of URL_FILTER that is TABLE. <br />
  * <pre>
  * [primary-key]
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, LAST_MODIFIED, CREATE_TIME
+ *     ID, SESSION_ID, URL, FILTER_TYPE, CREATE_TIME
  * 
  * [sequence]
  *     
@@ -52,29 +51,25 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  *     
  * 
  * [foreign-table]
- *     ACCESS_RESULT_DATA(AsOne)
+ *     
  * 
  * [referrer-table]
- *     ACCESS_RESULT_DATA
+ *     
  * 
  * [foreign-property]
- *     accessResultDataAsOne
+ *     
  * 
  * [referrer-property]
  *     
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
+public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     // ===================================================================================
     //                                                                          Definition
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
-    public static final String PATH_selectListByUrlDiff = "selectListByUrlDiff";
-
-    public static final String PATH_deleteBySessionId = "deleteBySessionId";
-
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================
@@ -82,7 +77,7 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                          ==========
     /** @return The name on database of table. (NotNull) */
     public String getTableDbName() {
-        return "ACCESS_RESULT";
+        return "URL_FILTER";
     }
 
     // ===================================================================================
@@ -90,12 +85,12 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                              ======
     /** @return The instance of DBMeta. (NotNull) */
     public DBMeta getDBMeta() {
-        return AccessResultDbm.getInstance();
+        return UrlFilterDbm.getInstance();
     }
 
     /** @return The instance of DBMeta as my table type. (NotNull) */
-    public AccessResultDbm getMyDBMeta() {
-        return AccessResultDbm.getInstance();
+    public UrlFilterDbm getMyDBMeta() {
+        return UrlFilterDbm.getInstance();
     }
 
     // ===================================================================================
@@ -112,13 +107,13 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     }
 
     /** @return The instance of new entity as my table type. (NotNull) */
-    public AccessResult newMyEntity() {
-        return new AccessResult();
+    public UrlFilter newMyEntity() {
+        return new UrlFilter();
     }
 
     /** @return The instance of new condition-bean as my table type. (NotNull) */
-    public AccessResultCB newMyConditionBean() {
-        return new AccessResultCB();
+    public UrlFilterCB newMyConditionBean() {
+        return new UrlFilterCB();
     }
 
     // ===================================================================================
@@ -126,10 +121,10 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                        ============
     /**
      * Select the count by the condition-bean. {IgnorePagingCondition}
-     * @param cb The condition-bean of AccessResult. (NotNull)
+     * @param cb The condition-bean of UrlFilter. (NotNull)
      * @return The selected count.
      */
-    public int selectCount(AccessResultCB cb) {
+    public int selectCount(UrlFilterCB cb) {
         assertCBNotNull(cb);
         return delegateSelectCount(cb);
     }
@@ -145,13 +140,13 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     /**
      * Select the cursor by the condition-bean. <br />
      * Attention: It has a mapping cost from result set to entity.
-     * @param cb The condition-bean of AccessResult. (NotNull)
-     * @param entityRowHandler The handler of entity row of AccessResult. (NotNull)
+     * @param cb The condition-bean of UrlFilter. (NotNull)
+     * @param entityRowHandler The handler of entity row of UrlFilter. (NotNull)
      */
-    public void selectCursor(AccessResultCB cb,
-            EntityRowHandler<AccessResult> entityRowHandler) {
+    public void selectCursor(UrlFilterCB cb,
+            EntityRowHandler<UrlFilter> entityRowHandler) {
         assertCBNotNull(cb);
-        assertObjectNotNull("entityRowHandler<AccessResult>", entityRowHandler);
+        assertObjectNotNull("entityRowHandler<UrlFilter>", entityRowHandler);
         delegateSelectCursor(cb, entityRowHandler);
     }
 
@@ -160,16 +155,14 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                       =============
     /**
      * Select the entity by the condition-bean.
-     * @param cb The condition-bean of AccessResult. (NotNull)
+     * @param cb The condition-bean of UrlFilter. (NotNull)
      * @return The selected entity. (Nullable: If the condition has no data, it returns null)
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
-    public AccessResult selectEntity(final AccessResultCB cb) {
-        return helpSelectEntityInternally(
-                cb,
-                new InternalSelectEntityCallback<AccessResult, AccessResultCB>() {
-                    public List<AccessResult> callbackSelectList(
-                            AccessResultCB cb) {
+    public UrlFilter selectEntity(final UrlFilterCB cb) {
+        return helpSelectEntityInternally(cb,
+                new InternalSelectEntityCallback<UrlFilter, UrlFilterCB>() {
+                    public List<UrlFilter> callbackSelectList(UrlFilterCB cb) {
                         return selectList(cb);
                     }
                 });
@@ -182,17 +175,16 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
 
     /**
      * Select the entity by the condition-bean with deleted check.
-     * @param cb The condition-bean of AccessResult. (NotNull)
+     * @param cb The condition-bean of UrlFilter. (NotNull)
      * @return The selected entity. (NotNull)
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
-    public AccessResult selectEntityWithDeletedCheck(final AccessResultCB cb) {
+    public UrlFilter selectEntityWithDeletedCheck(final UrlFilterCB cb) {
         return helpSelectEntityWithDeletedCheckInternally(
                 cb,
-                new InternalSelectEntityWithDeletedCheckCallback<AccessResult, AccessResultCB>() {
-                    public List<AccessResult> callbackSelectList(
-                            AccessResultCB cb) {
+                new InternalSelectEntityWithDeletedCheckCallback<UrlFilter, UrlFilterCB>() {
+                    public List<UrlFilter> callbackSelectList(UrlFilterCB cb) {
                         return selectList(cb);
                     }
                 });
@@ -209,7 +201,7 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @return The selected entity. (Nullable: If the primary-key value has no data, it returns null)
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
-    public AccessResult selectByPKValue(Long id) {
+    public UrlFilter selectByPKValue(Long id) {
         return selectEntity(buildPKCB(id));
     }
 
@@ -220,13 +212,13 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
-    public AccessResult selectByPKValueWithDeletedCheck(Long id) {
+    public UrlFilter selectByPKValueWithDeletedCheck(Long id) {
         return selectEntityWithDeletedCheck(buildPKCB(id));
     }
 
-    private AccessResultCB buildPKCB(Long id) {
+    private UrlFilterCB buildPKCB(Long id) {
         assertObjectNotNull("id", id);
-        AccessResultCB cb = newMyConditionBean();
+        UrlFilterCB cb = newMyConditionBean();
         cb.query().setId_Equal(id);
         return cb;
     }
@@ -236,12 +228,12 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                         ===========
     /**
      * Select the list as result bean.
-     * @param cb The condition-bean of AccessResult. (NotNull)
+     * @param cb The condition-bean of UrlFilter. (NotNull)
      * @return The result bean of selected list. (NotNull)
      */
-    public ListResultBean<AccessResult> selectList(AccessResultCB cb) {
+    public ListResultBean<UrlFilter> selectList(UrlFilterCB cb) {
         assertCBNotNull(cb);
-        return new ResultBeanBuilder<AccessResult>(getTableDbName())
+        return new ResultBeanBuilder<UrlFilter>(getTableDbName())
                 .buildListResultBean(cb, delegateSelectList(cb));
     }
 
@@ -255,14 +247,14 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                         ===========
     /**
      * Select the page as result bean.
-     * @param cb The condition-bean of AccessResult. (NotNull)
+     * @param cb The condition-bean of UrlFilter. (NotNull)
      * @return The result bean of selected page. (NotNull)
      */
-    public PagingResultBean<AccessResult> selectPage(final AccessResultCB cb) {
+    public PagingResultBean<UrlFilter> selectPage(final UrlFilterCB cb) {
         assertCBNotNull(cb);
-        final PagingInvoker<AccessResult> invoker = new PagingInvoker<AccessResult>(
+        final PagingInvoker<UrlFilter> invoker = new PagingInvoker<UrlFilter>(
                 getTableDbName());
-        final PagingHandler<AccessResult> handler = new PagingHandler<AccessResult>() {
+        final PagingHandler<UrlFilter> handler = new PagingHandler<UrlFilter>() {
             public PagingBean getPagingBean() {
                 return cb;
             }
@@ -271,7 +263,7 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
                 return selectCount(cb);
             }
 
-            public List<AccessResult> paging() {
+            public List<UrlFilter> paging() {
                 return selectList(cb);
             }
         };
@@ -290,7 +282,7 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * Select the scalar value derived by a function. <br />
      * Call a function method after this method called like as follows:
      * <pre>
-     * accessResultBhv.scalarSelect(Date.class).max(new ScalarQuery(AccessResultCB cb) {
+     * urlFilterBhv.scalarSelect(Date.class).max(new ScalarQuery(UrlFilterCB cb) {
      *     cb.specify().columnXxxDatetime(); // the required specification of target column
      *     cb.query().setXxxName_PrefixSearch("S"); // query as you like it
      * });
@@ -299,54 +291,29 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @param resultType The type of result. (NotNull)
      * @return The scalar value derived by a function. (Nullable)
      */
-    public <RESULT> SLFunction<AccessResultCB, RESULT> scalarSelect(
+    public <RESULT> SLFunction<UrlFilterCB, RESULT> scalarSelect(
             Class<RESULT> resultType) {
-        AccessResultCB cb = newMyConditionBean();
+        UrlFilterCB cb = newMyConditionBean();
         cb.xsetupForScalarSelect();
         cb.getSqlClause().disableSelectIndex(); // for when you use union
-        return new SLFunction<AccessResultCB, RESULT>(cb, resultType);
+        return new SLFunction<UrlFilterCB, RESULT>(cb, resultType);
     }
 
     // ===================================================================================
     //                                                                    Pull out Foreign
     //                                                                    ================
-    /**
-     * Pull out the list of referrer-as-one table 'AccessResultData'.
-     * @param accessResultList The list of accessResult. (NotNull)
-     * @return The list of referrer-as-one table. (NotNull)
-     */
-    public List<AccessResultData> pulloutAccessResultDataAsOne(
-            List<AccessResult> accessResultList) {
-        return helpPulloutInternally(accessResultList,
-                new InternalPulloutCallback<AccessResult, AccessResultData>() {
-                    public AccessResultData getFr(AccessResult e) {
-                        return e.getAccessResultDataAsOne();
-                    }
-
-                    public boolean hasRf() {
-                        return true;
-                    }
-
-                    public void setRfLs(AccessResultData e,
-                            List<AccessResult> ls) {
-                        if (!ls.isEmpty()) {
-                            e.setAccessResult(ls.get(0));
-                        }
-                    }
-                });
-    }
 
     // ===================================================================================
     //                                                                       Entity Update
     //                                                                       =============
     /**
      * Insert the entity.
-     * @param accessResult The entity of insert target. (NotNull)
+     * @param urlFilter The entity of insert target. (NotNull)
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
-    public void insert(AccessResult accessResult) {
-        assertEntityNotNull(accessResult);
-        delegateInsert(accessResult);
+    public void insert(UrlFilter urlFilter) {
+        assertEntityNotNull(urlFilter);
+        delegateInsert(urlFilter);
     }
 
     @Override
@@ -356,15 +323,15 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
 
     /**
      * Update the entity modified-only. {UpdateCountZeroException, ConcurrencyControl}
-     * @param accessResult The entity of update target. (NotNull) {PrimaryKeyRequired, ConcurrencyColumnRequired}
+     * @param urlFilter The entity of update target. (NotNull) {PrimaryKeyRequired, ConcurrencyColumnRequired}
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
-    public void update(final AccessResult accessResult) {
-        helpUpdateInternally(accessResult,
-                new InternalUpdateCallback<AccessResult>() {
-                    public int callbackDelegateUpdate(AccessResult entity) {
+    public void update(final UrlFilter urlFilter) {
+        helpUpdateInternally(urlFilter,
+                new InternalUpdateCallback<UrlFilter>() {
+                    public int callbackDelegateUpdate(UrlFilter entity) {
                         return delegateUpdate(entity);
                     }
                 });
@@ -382,28 +349,27 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
 
     /**
      * Insert or update the entity modified-only. {ConcurrencyControl(when update)}
-     * @param accessResult The entity of insert or update target. (NotNull)
+     * @param urlFilter The entity of insert or update target. (NotNull)
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
-    public void insertOrUpdate(final AccessResult accessResult) {
-        helpInsertOrUpdateInternally(
-                accessResult,
-                new InternalInsertOrUpdateCallback<AccessResult, AccessResultCB>() {
-                    public void callbackInsert(AccessResult entity) {
+    public void insertOrUpdate(final UrlFilter urlFilter) {
+        helpInsertOrUpdateInternally(urlFilter,
+                new InternalInsertOrUpdateCallback<UrlFilter, UrlFilterCB>() {
+                    public void callbackInsert(UrlFilter entity) {
                         insert(entity);
                     }
 
-                    public void callbackUpdate(AccessResult entity) {
+                    public void callbackUpdate(UrlFilter entity) {
                         update(entity);
                     }
 
-                    public AccessResultCB callbackNewMyConditionBean() {
+                    public UrlFilterCB callbackNewMyConditionBean() {
                         return newMyConditionBean();
                     }
 
-                    public int callbackSelectCount(AccessResultCB cb) {
+                    public int callbackSelectCount(UrlFilterCB cb) {
                         return selectCount(cb);
                     }
                 });
@@ -421,14 +387,14 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
 
     /**
      * Delete the entity. {UpdateCountZeroException, ConcurrencyControl}
-     * @param accessResult The entity of delete target. (NotNull) {PrimaryKeyRequired, ConcurrencyColumnRequired}
+     * @param urlFilter The entity of delete target. (NotNull) {PrimaryKeyRequired, ConcurrencyColumnRequired}
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
-    public void delete(AccessResult accessResult) {
-        helpDeleteInternally(accessResult,
-                new InternalDeleteCallback<AccessResult>() {
-                    public int callbackDelegateDelete(AccessResult entity) {
+    public void delete(UrlFilter urlFilter) {
+        helpDeleteInternally(urlFilter,
+                new InternalDeleteCallback<UrlFilter>() {
+                    public int callbackDelegateDelete(UrlFilter entity) {
                         return delegateDelete(entity);
                     }
                 });
@@ -444,36 +410,36 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                        ============
     /**
      * Batch insert the list. This method use 'Batch Update' of java.sql.PreparedStatement.
-     * @param accessResultList The list of the entity. (NotNull)
+     * @param urlFilterList The list of the entity. (NotNull)
      * @return The array of inserted count.
      */
-    public int[] batchInsert(List<AccessResult> accessResultList) {
-        assertObjectNotNull("accessResultList", accessResultList);
-        return delegateInsertList(accessResultList);
+    public int[] batchInsert(List<UrlFilter> urlFilterList) {
+        assertObjectNotNull("urlFilterList", urlFilterList);
+        return delegateInsertList(urlFilterList);
     }
 
     /**
      * Batch update the list. All columns are update target. {NOT modified only} <br />
      * This method use 'Batch Update' of java.sql.PreparedStatement.
-     * @param accessResultList The list of the entity. (NotNull)
+     * @param urlFilterList The list of the entity. (NotNull)
      * @return The array of updated count.
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
      */
-    public int[] batchUpdate(List<AccessResult> accessResultList) {
-        assertObjectNotNull("accessResultList", accessResultList);
-        return delegateUpdateList(accessResultList);
+    public int[] batchUpdate(List<UrlFilter> urlFilterList) {
+        assertObjectNotNull("urlFilterList", urlFilterList);
+        return delegateUpdateList(urlFilterList);
     }
 
     /**
      * Batch delete the list. <br />
      * This method use 'Batch Update' of java.sql.PreparedStatement.
-     * @param accessResultList The list of the entity. (NotNull)
+     * @param urlFilterList The list of the entity. (NotNull)
      * @return The array of deleted count.
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
      */
-    public int[] batchDelete(List<AccessResult> accessResultList) {
-        assertObjectNotNull("accessResultList", accessResultList);
-        return delegateDeleteList(accessResultList);
+    public int[] batchDelete(List<UrlFilter> urlFilterList) {
+        assertObjectNotNull("urlFilterList", urlFilterList);
+        return delegateDeleteList(urlFilterList);
     }
 
     // ===================================================================================
@@ -481,25 +447,25 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                        ============
     /**
      * Query update the several entities. {NoConcurrencyControl}
-     * @param accessResult The entity that contains update values. (NotNull) {PrimaryKeyNotRequired}
-     * @param cb The condition-bean of AccessResult. (NotNull)
+     * @param urlFilter The entity that contains update values. (NotNull) {PrimaryKeyNotRequired}
+     * @param cb The condition-bean of UrlFilter. (NotNull)
      * @return The updated count.
      */
-    public int queryUpdate(AccessResult accessResult, AccessResultCB cb) {
-        assertObjectNotNull("accessResult", accessResult);
+    public int queryUpdate(UrlFilter urlFilter, UrlFilterCB cb) {
+        assertObjectNotNull("urlFilter", urlFilter);
         assertCBNotNull(cb);
-        setupCommonColumnOfUpdateIfNeeds(accessResult);
-        filterEntityOfUpdate(accessResult);
-        assertEntityOfUpdate(accessResult);
-        return invoke(createQueryUpdateEntityCBCommand(accessResult, cb));
+        setupCommonColumnOfUpdateIfNeeds(urlFilter);
+        filterEntityOfUpdate(urlFilter);
+        assertEntityOfUpdate(urlFilter);
+        return invoke(createQueryUpdateEntityCBCommand(urlFilter, cb));
     }
 
     /**
      * Query delete the several entities. {NoConcurrencyControl}
-     * @param cb The condition-bean of AccessResult. (NotNull)
+     * @param cb The condition-bean of UrlFilter. (NotNull)
      * @return The deleted count.
      */
-    public int queryDelete(AccessResultCB cb) {
+    public int queryDelete(UrlFilterCB cb) {
         assertCBNotNull(cb);
         return invoke(createQueryDeleteCBCommand(cb));
     }
@@ -511,45 +477,45 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     // -----------------------------------------------------
     //                                                Select
     //                                                ------
-    protected int delegateSelectCount(AccessResultCB cb) {
+    protected int delegateSelectCount(UrlFilterCB cb) {
         return invoke(createSelectCountCBCommand(cb));
     }
 
-    protected void delegateSelectCursor(AccessResultCB cb,
-            EntityRowHandler<AccessResult> entityRowHandler) {
+    protected void delegateSelectCursor(UrlFilterCB cb,
+            EntityRowHandler<UrlFilter> entityRowHandler) {
         invoke(createSelectCursorCBCommand(cb, entityRowHandler,
-                AccessResult.class));
+                UrlFilter.class));
     }
 
-    protected List<AccessResult> delegateSelectList(AccessResultCB cb) {
-        return invoke(createSelectListCBCommand(cb, AccessResult.class));
+    protected List<UrlFilter> delegateSelectList(UrlFilterCB cb) {
+        return invoke(createSelectListCBCommand(cb, UrlFilter.class));
     }
 
     // -----------------------------------------------------
     //                                                Update
     //                                                ------
-    protected int delegateInsert(AccessResult e) {
+    protected int delegateInsert(UrlFilter e) {
         if (!processBeforeInsert(e)) {
             return 1;
         }
         return invoke(createInsertEntityCommand(e));
     }
 
-    protected int delegateUpdate(AccessResult e) {
+    protected int delegateUpdate(UrlFilter e) {
         if (!processBeforeUpdate(e)) {
             return 1;
         }
         return invoke(createUpdateNonstrictEntityCommand(e));
     }
 
-    protected int delegateDelete(AccessResult e) {
+    protected int delegateDelete(UrlFilter e) {
         if (!processBeforeDelete(e)) {
             return 1;
         }
         return invoke(createDeleteNonstrictEntityCommand(e));
     }
 
-    protected int[] delegateInsertList(List<AccessResult> ls) {
+    protected int[] delegateInsertList(List<UrlFilter> ls) {
         if (ls.isEmpty()) {
             return new int[] {};
         }
@@ -561,7 +527,7 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
         return delegateInsertList((List) ls);
     }
 
-    protected int[] delegateUpdateList(List<AccessResult> ls) {
+    protected int[] delegateUpdateList(List<UrlFilter> ls) {
         if (ls.isEmpty()) {
             return new int[] {};
         }
@@ -573,7 +539,7 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
         return delegateUpdateList((List) ls);
     }
 
-    protected int[] delegateDeleteList(List<AccessResult> ls) {
+    protected int[] delegateDeleteList(List<UrlFilter> ls) {
         if (ls.isEmpty()) {
             return new int[] {};
         }
@@ -607,11 +573,11 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     // ===================================================================================
     //                                                                     Downcast Helper
     //                                                                     ===============
-    protected AccessResult downcast(Entity entity) {
-        return helpEntityDowncastInternally(entity, AccessResult.class);
+    protected UrlFilter downcast(Entity entity) {
+        return helpEntityDowncastInternally(entity, UrlFilter.class);
     }
 
-    protected AccessResultCB downcast(ConditionBean cb) {
-        return helpConditionBeanDowncastInternally(cb, AccessResultCB.class);
+    protected UrlFilterCB downcast(ConditionBean cb) {
+        return helpConditionBeanDowncastInternally(cb, UrlFilterCB.class);
     }
 }

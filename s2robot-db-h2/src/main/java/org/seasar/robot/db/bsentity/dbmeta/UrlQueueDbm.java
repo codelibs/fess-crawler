@@ -1,14 +1,29 @@
+/*
+ * Copyright 2004-2009 the Seasar Foundation and the Others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
 package org.seasar.robot.db.bsentity.dbmeta;
 
 import java.util.List;
 import java.util.Map;
 
+import org.seasar.robot.db.exentity.UrlQueue;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
 import org.seasar.robot.dbflute.helper.StringKeyMap;
-import org.seasar.robot.db.exentity.UrlQueue;
 
 /**
  * The DB meta of URL_QUEUE. (Singleton)
@@ -64,6 +79,10 @@ public class UrlQueueDbm extends AbstractDBMeta {
     protected ColumnInfo _columnDepth = cci("DEPTH", null, "depth",
             Integer.class, false, false, 10, 0, false, null);
 
+    protected ColumnInfo _columnLastModified = cci("LAST_MODIFIED", null,
+            "lastModified", java.sql.Timestamp.class, false, false, 23, 10,
+            false, null);
+
     protected ColumnInfo _columnCreateTime = cci("CREATE_TIME", null,
             "createTime", java.sql.Timestamp.class, false, false, 23, 10,
             false, null);
@@ -92,6 +111,10 @@ public class UrlQueueDbm extends AbstractDBMeta {
         return _columnDepth;
     }
 
+    public ColumnInfo columnLastModified() {
+        return _columnLastModified;
+    }
+
     public ColumnInfo columnCreateTime() {
         return _columnCreateTime;
     }
@@ -104,6 +127,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         ls.add(columnUrl());
         ls.add(columnParentUrl());
         ls.add(columnDepth());
+        ls.add(columnLastModified());
         ls.add(columnCreateTime());
         return ls;
     }
@@ -266,6 +290,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         setupEps(_epsMap, new EpsUrl(), columnUrl());
         setupEps(_epsMap, new EpsParentUrl(), columnParentUrl());
         setupEps(_epsMap, new EpsDepth(), columnDepth());
+        setupEps(_epsMap, new EpsLastModified(), columnLastModified());
         setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
     }
 
@@ -311,6 +336,12 @@ public class UrlQueueDbm extends AbstractDBMeta {
     public static class EpsDepth implements Eps<UrlQueue> {
         public void setup(UrlQueue e, Object v) {
             e.setDepth((Integer) v);
+        }
+    }
+
+    public static class EpsLastModified implements Eps<UrlQueue> {
+        public void setup(UrlQueue e, Object v) {
+            e.setLastModified((java.sql.Timestamp) v);
         }
     }
 

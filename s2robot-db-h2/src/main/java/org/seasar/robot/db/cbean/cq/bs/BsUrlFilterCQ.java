@@ -17,30 +17,29 @@ package org.seasar.robot.db.cbean.cq.bs;
 
 import java.util.Map;
 
-import org.seasar.robot.db.cbean.AccessResultDataCB;
-import org.seasar.robot.db.cbean.cq.AccessResultCQ;
-import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
-import org.seasar.robot.db.cbean.cq.ciq.AccessResultDataCIQ;
+import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
+import org.seasar.robot.db.cbean.cq.ciq.UrlFilterCIQ;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
- * The base condition-query of ACCESS_RESULT_DATA.
+ * The base condition-query of URL_FILTER.
  * @author DBFlute(AutoGenerator)
  */
-public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
+public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected AccessResultDataCIQ _inlineQuery;
+    protected UrlFilterCIQ _inlineQuery;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public BsAccessResultDataCQ(ConditionQuery childQuery, SqlClause sqlClause,
+    public BsUrlFilterCQ(ConditionQuery childQuery, SqlClause sqlClause,
             String aliasName, int nestLevel) {
         super(childQuery, sqlClause, aliasName, nestLevel);
     }
@@ -50,10 +49,10 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     //                                                                              ======
     /**
      * Prepare inline query. <br />
-     * {select ... from ... left outer join (select * from ACCESS_RESULT_DATA) where abc = [abc] ...}
+     * {select ... from ... left outer join (select * from URL_FILTER) where abc = [abc] ...}
      * @return Inline query. (NotNull)
      */
-    public AccessResultDataCIQ inline() {
+    public UrlFilterCIQ inline() {
         if (_inlineQuery == null) {
             _inlineQuery = createInlineQuery();
         }
@@ -61,22 +60,22 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
         return _inlineQuery;
     }
 
-    protected AccessResultDataCIQ createInlineQuery() {
-        return new AccessResultDataCIQ(getReferrerQuery(), getSqlClause(),
+    protected UrlFilterCIQ createInlineQuery() {
+        return new UrlFilterCIQ(getReferrerQuery(), getSqlClause(),
                 getAliasName(), getNestLevel(), this);
     }
 
     /**
      * Prepare on-clause query. <br />
-     * {select ... from ... left outer join ACCESS_RESULT_DATA on ... and abc = [abc] ...}
+     * {select ... from ... left outer join URL_FILTER on ... and abc = [abc] ...}
      * @return On-clause query. (NotNull)
      */
-    public AccessResultDataCIQ on() {
+    public UrlFilterCIQ on() {
         if (isBaseQuery(this)) {
             throw new IllegalConditionBeanOperationException(
                     "On-clause for local table is unavailable!");
         }
-        AccessResultDataCIQ inlineQuery = inline();
+        UrlFilterCIQ inlineQuery = inline();
         inlineQuery.xsetOnClauseInline(true);
         return inlineQuery;
     }
@@ -98,110 +97,117 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
         return getId();
     }
 
-    protected Map<String, AccessResultCQ> _id_InScopeSubQuery_AccessResultMap;
-
-    public Map<String, AccessResultCQ> getId_InScopeSubQuery_AccessResult() {
-        return _id_InScopeSubQuery_AccessResultMap;
-    }
-
-    public String keepId_InScopeSubQuery_AccessResult(AccessResultCQ subQuery) {
-        if (_id_InScopeSubQuery_AccessResultMap == null) {
-            _id_InScopeSubQuery_AccessResultMap = newLinkedHashMap();
-        }
-        String key = "subQueryMapKey"
-                + (_id_InScopeSubQuery_AccessResultMap.size() + 1);
-        _id_InScopeSubQuery_AccessResultMap.put(key, subQuery);
-        return "id_InScopeSubQuery_AccessResult." + key;
-    }
-
-    public BsAccessResultDataCQ addOrderBy_Id_Asc() {
+    public BsUrlFilterCQ addOrderBy_Id_Asc() {
         regOBA("ID");
         return this;
     }
 
-    public BsAccessResultDataCQ addOrderBy_Id_Desc() {
+    public BsUrlFilterCQ addOrderBy_Id_Desc() {
         regOBD("ID");
         return this;
     }
 
-    protected ConditionValue _transformerName;
+    protected ConditionValue _sessionId;
 
-    public ConditionValue getTransformerName() {
-        if (_transformerName == null) {
-            _transformerName = nCV();
+    public ConditionValue getSessionId() {
+        if (_sessionId == null) {
+            _sessionId = nCV();
         }
-        return _transformerName;
+        return _sessionId;
     }
 
-    protected ConditionValue getCValueTransformerName() {
-        return getTransformerName();
+    protected ConditionValue getCValueSessionId() {
+        return getSessionId();
     }
 
-    public BsAccessResultDataCQ addOrderBy_TransformerName_Asc() {
-        regOBA("TRANSFORMER_NAME");
+    public BsUrlFilterCQ addOrderBy_SessionId_Asc() {
+        regOBA("SESSION_ID");
         return this;
     }
 
-    public BsAccessResultDataCQ addOrderBy_TransformerName_Desc() {
-        regOBD("TRANSFORMER_NAME");
+    public BsUrlFilterCQ addOrderBy_SessionId_Desc() {
+        regOBD("SESSION_ID");
         return this;
     }
 
-    protected ConditionValue _data;
+    protected ConditionValue _url;
 
-    public ConditionValue getData() {
-        if (_data == null) {
-            _data = nCV();
+    public ConditionValue getUrl() {
+        if (_url == null) {
+            _url = nCV();
         }
-        return _data;
+        return _url;
     }
 
-    protected ConditionValue getCValueData() {
-        return getData();
+    protected ConditionValue getCValueUrl() {
+        return getUrl();
     }
 
-    public BsAccessResultDataCQ addOrderBy_Data_Asc() {
-        regOBA("DATA");
+    public BsUrlFilterCQ addOrderBy_Url_Asc() {
+        regOBA("URL");
         return this;
     }
 
-    public BsAccessResultDataCQ addOrderBy_Data_Desc() {
-        regOBD("DATA");
+    public BsUrlFilterCQ addOrderBy_Url_Desc() {
+        regOBD("URL");
         return this;
     }
 
-    protected ConditionValue _encoding;
+    protected ConditionValue _filterType;
 
-    public ConditionValue getEncoding() {
-        if (_encoding == null) {
-            _encoding = nCV();
+    public ConditionValue getFilterType() {
+        if (_filterType == null) {
+            _filterType = nCV();
         }
-        return _encoding;
+        return _filterType;
     }
 
-    protected ConditionValue getCValueEncoding() {
-        return getEncoding();
+    protected ConditionValue getCValueFilterType() {
+        return getFilterType();
     }
 
-    public BsAccessResultDataCQ addOrderBy_Encoding_Asc() {
-        regOBA("ENCODING");
+    public BsUrlFilterCQ addOrderBy_FilterType_Asc() {
+        regOBA("FILTER_TYPE");
         return this;
     }
 
-    public BsAccessResultDataCQ addOrderBy_Encoding_Desc() {
-        regOBD("ENCODING");
+    public BsUrlFilterCQ addOrderBy_FilterType_Desc() {
+        regOBD("FILTER_TYPE");
+        return this;
+    }
+
+    protected ConditionValue _createTime;
+
+    public ConditionValue getCreateTime() {
+        if (_createTime == null) {
+            _createTime = nCV();
+        }
+        return _createTime;
+    }
+
+    protected ConditionValue getCValueCreateTime() {
+        return getCreateTime();
+    }
+
+    public BsUrlFilterCQ addOrderBy_CreateTime_Asc() {
+        regOBA("CREATE_TIME");
+        return this;
+    }
+
+    public BsUrlFilterCQ addOrderBy_CreateTime_Desc() {
+        regOBD("CREATE_TIME");
         return this;
     }
 
     // ===================================================================================
     //                                                           Specified Derived OrderBy
     //                                                           =========================
-    public BsAccessResultDataCQ addSpecifiedDerivedOrderBy_Asc(String aliasName) {
+    public BsUrlFilterCQ addSpecifiedDerivedOrderBy_Asc(String aliasName) {
         registerSpecifiedDerivedOrderBy_Asc(aliasName);
         return this;
     }
 
-    public BsAccessResultDataCQ addSpecifiedDerivedOrderBy_Desc(String aliasName) {
+    public BsUrlFilterCQ addSpecifiedDerivedOrderBy_Desc(String aliasName) {
         registerSpecifiedDerivedOrderBy_Desc(aliasName);
         return this;
     }
@@ -211,64 +217,21 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     //                                                                         ===========
     protected void reflectRelationOnUnionQuery(ConditionQuery baseQueryAsSuper,
             ConditionQuery unionQueryAsSuper) {
-        AccessResultDataCQ baseQuery = (AccessResultDataCQ) baseQueryAsSuper;
-        AccessResultDataCQ unionQuery = (AccessResultDataCQ) unionQueryAsSuper;
-        if (baseQuery.hasConditionQueryAccessResult()) {
-            unionQuery.queryAccessResult().reflectRelationOnUnionQuery(
-                    baseQuery.queryAccessResult(),
-                    unionQuery.queryAccessResult());
-        }
     }
 
     // ===================================================================================
     //                                                                       Foreign Query
     //                                                                       =============
-    public AccessResultCQ queryAccessResult() {
-        return getConditionQueryAccessResult();
-    }
-
-    protected AccessResultCQ _conditionQueryAccessResult;
-
-    public AccessResultCQ getConditionQueryAccessResult() {
-        if (_conditionQueryAccessResult == null) {
-            _conditionQueryAccessResult = xcreateQueryAccessResult();
-            xsetupOuterJoinAccessResult();
-        }
-        return _conditionQueryAccessResult;
-    }
-
-    protected AccessResultCQ xcreateQueryAccessResult() {
-        String nrp = resolveNextRelationPath("ACCESS_RESULT_DATA",
-                "accessResult");
-        String jan = resolveJoinAliasName(nrp, getNextNestLevel());
-        AccessResultCQ cq = new AccessResultCQ(this, getSqlClause(), jan,
-                getNextNestLevel());
-        cq.xsetForeignPropertyName("accessResult");
-        cq.xsetRelationPath(nrp);
-        return cq;
-    }
-
-    protected void xsetupOuterJoinAccessResult() {
-        AccessResultCQ cq = getConditionQueryAccessResult();
-        Map<String, String> joinOnMap = newLinkedHashMap();
-        joinOnMap.put(getRealColumnName("ID"), cq.getRealColumnName("ID"));
-        registerOuterJoin(cq, joinOnMap);
-    }
-
-    public boolean hasConditionQueryAccessResult() {
-        return _conditionQueryAccessResult != null;
-    }
-
     // ===================================================================================
     //                                                                     Scalar SubQuery
     //                                                                     ===============
-    protected Map<String, AccessResultDataCQ> _scalarSubQueryMap;
+    protected Map<String, UrlFilterCQ> _scalarSubQueryMap;
 
-    public Map<String, AccessResultDataCQ> getScalarSubQuery() {
+    public Map<String, UrlFilterCQ> getScalarSubQuery() {
         return _scalarSubQueryMap;
     }
 
-    public String keepScalarSubQuery(AccessResultDataCQ subQuery) {
+    public String keepScalarSubQuery(UrlFilterCQ subQuery) {
         if (_scalarSubQueryMap == null) {
             _scalarSubQueryMap = newLinkedHashMap();
         }
@@ -280,13 +243,13 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     // ===================================================================================
     //                                                             MySelf InScope SubQuery
     //                                                             =======================
-    protected Map<String, AccessResultDataCQ> _myselfInScopeSubQueryMap;
+    protected Map<String, UrlFilterCQ> _myselfInScopeSubQueryMap;
 
-    public Map<String, AccessResultDataCQ> getMyselfInScopeSubQuery() {
+    public Map<String, UrlFilterCQ> getMyselfInScopeSubQuery() {
         return _myselfInScopeSubQueryMap;
     }
 
-    public String keepMyselfInScopeSubQuery(AccessResultDataCQ subQuery) {
+    public String keepMyselfInScopeSubQuery(UrlFilterCQ subQuery) {
         if (_myselfInScopeSubQueryMap == null) {
             _myselfInScopeSubQueryMap = newLinkedHashMap();
         }
@@ -300,11 +263,11 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     //                                                                       =============
     // Very Internal (for Suppressing Warn about 'Not Use Import')
     String xCB() {
-        return AccessResultDataCB.class.getName();
+        return UrlFilterCB.class.getName();
     }
 
     String xCQ() {
-        return AccessResultDataCQ.class.getName();
+        return UrlFilterCQ.class.getName();
     }
 
     String xMap() {

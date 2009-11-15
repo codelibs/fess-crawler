@@ -15,18 +15,17 @@
  */
 package org.seasar.robot.db.cbean.nss;
 
-import org.seasar.robot.db.cbean.cq.AccessResultCQ;
-import org.seasar.robot.dbflute.cbean.ConditionQuery;
+import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
 
 /**
- * The nest select set-upper of ACCESS_RESULT.
+ * The nest select set-upper of URL_FILTER.
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultNss {
+public class UrlFilterNss {
 
-    protected AccessResultCQ _query;
+    protected UrlFilterCQ _query;
 
-    public AccessResultNss(AccessResultCQ query) {
+    public UrlFilterNss(UrlFilterCQ query) {
         _query = query;
     }
 
@@ -41,12 +40,4 @@ public class AccessResultNss {
     // ===================================================================================
     //                                                          With Nested Referrer Table
     //                                                          ==========================
-    public AccessResultDataNss withAccessResultDataAsOne() {
-        _query.doNss(new AccessResultCQ.NssCall() {
-            public ConditionQuery qf() {
-                return _query.queryAccessResultDataAsOne();
-            }
-        });
-        return new AccessResultDataNss(_query.queryAccessResultDataAsOne());
-    }
 }

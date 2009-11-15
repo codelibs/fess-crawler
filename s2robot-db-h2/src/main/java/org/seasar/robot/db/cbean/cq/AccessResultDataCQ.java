@@ -15,9 +15,9 @@
  */
 package org.seasar.robot.db.cbean.cq;
 
+import org.seasar.robot.db.cbean.cq.bs.BsAccessResultDataCQ;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.robot.db.cbean.cq.bs.BsAccessResultDataCQ;
 
 /**
  * The condition-query of ACCESS_RESULT_DATA.

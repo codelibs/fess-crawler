@@ -19,18 +19,17 @@ import java.io.Serializable;
 import java.util.Set;
 
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
-import org.seasar.robot.db.exentity.AccessResultData;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
- * The entity of ACCESS_RESULT that is TABLE. <br />
+ * The entity of URL_FILTER that is TABLE. <br />
  * <pre>
  * [primary-key]
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, LAST_MODIFIED, CREATE_TIME
+ *     ID, SESSION_ID, URL, FILTER_TYPE, CREATE_TIME
  * 
  * [sequence]
  *     
@@ -42,20 +41,20 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  *     
  * 
  * [foreign-table]
- *     ACCESS_RESULT_DATA(AsOne)
+ *     
  * 
  * [referrer-table]
- *     ACCESS_RESULT_DATA
+ *     
  * 
  * [foreign-property]
- *     accessResultDataAsOne
+ *     
  * 
  * [referrer-property]
  *     
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResult implements Entity, Serializable {
+public abstract class BsUrlFilter implements Entity, Serializable {
 
     // ===================================================================================
     //                                                                          Definition
@@ -75,35 +74,11 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /** SESSION_ID: {NotNull : VARCHAR(20)} */
     protected String _sessionId;
 
-    /** RULE_ID: {VARCHAR(20)} */
-    protected String _ruleId;
-
     /** URL: {NotNull : VARCHAR(65536)} */
     protected String _url;
 
-    /** PARENT_URL: {VARCHAR(65536)} */
-    protected String _parentUrl;
-
-    /** STATUS: {NotNull : INTEGER(10)} */
-    protected Integer _status;
-
-    /** HTTP_STATUS_CODE: {NotNull : INTEGER(10)} */
-    protected Integer _httpStatusCode;
-
-    /** METHOD: {NotNull : VARCHAR(10)} */
-    protected String _method;
-
-    /** MIME_TYPE: {NotNull : VARCHAR(100)} */
-    protected String _mimeType;
-
-    /** CONTENT_LENGTH: {NotNull : BIGINT(19)} */
-    protected Long _contentLength;
-
-    /** EXECUTION_TIME: {NotNull : INTEGER(10)} */
-    protected Integer _executionTime;
-
-    /** LAST_MODIFIED: {NotNull : TIMESTAMP(23, 10)} */
-    protected java.sql.Timestamp _lastModified;
+    /** FILTER_TYPE: {NotNull : VARCHAR(1)} */
+    protected String _filterType;
 
     /** CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _createTime;
@@ -118,11 +93,11 @@ public abstract class BsAccessResult implements Entity, Serializable {
     //                                                                          Table Name
     //                                                                          ==========
     public String getTableDbName() {
-        return "ACCESS_RESULT";
+        return "URL_FILTER";
     }
 
     public String getTablePropertyName() { // as JavaBeansRule
-        return "accessResult";
+        return "urlFilter";
     }
 
     // ===================================================================================
@@ -135,25 +110,6 @@ public abstract class BsAccessResult implements Entity, Serializable {
     // ===================================================================================
     //                                                                    Foreign Property
     //                                                                    ================
-    /** ACCESS_RESULT_DATA as 'accessResultDataAsOne'. */
-    protected AccessResultData _accessResultDataAsOne;
-
-    /**
-     * ACCESS_RESULT_DATA as 'accessResultDataAsOne'. {without lazy-load} <br />
-     * @return the entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (Nullable: If the foreign key does not have 'NotNull' constraint, please check null.)
-     */
-    public AccessResultData getAccessResultDataAsOne() {
-        return _accessResultDataAsOne;
-    }
-
-    /**
-     * ACCESS_RESULT_DATA as 'accessResultDataAsOne'.
-     * @param accessResultDataAsOne The entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (Nullable)
-     */
-    public void setAccessResultDataAsOne(AccessResultData accessResultDataAsOne) {
-        _accessResultDataAsOne = accessResultDataAsOne;
-    }
-
     // ===================================================================================
     //                                                                   Referrer Property
     //                                                                   =================
@@ -195,10 +151,10 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * @return Comparing result.
      */
     public boolean equals(Object other) {
-        if (other == null || !(other instanceof BsAccessResult)) {
+        if (other == null || !(other instanceof BsUrlFilter)) {
             return false;
         }
-        BsAccessResult otherEntity = (BsAccessResult) other;
+        BsUrlFilter otherEntity = (BsUrlFilter) other;
         if (!helpComparingValue(getId(), otherEntity.getId())) {
             return false;
         }
@@ -237,16 +193,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     public String toStringWithRelation() {
         StringBuilder sb = new StringBuilder();
         sb.append(toString());
-        String l = "\n  ";
-        if (_accessResultDataAsOne != null) {
-            sb.append(l).append(
-                    xbRDS(_accessResultDataAsOne, "accessResultDataAsOne"));
-        }
         return sb.toString();
-    }
-
-    private String xbRDS(Entity e, String name) { // buildRelationDisplayString()
-        return e.buildDisplayString(name, true, true);
     }
 
     /**
@@ -276,16 +223,8 @@ public abstract class BsAccessResult implements Entity, Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append(c).append(getId());
         sb.append(c).append(getSessionId());
-        sb.append(c).append(getRuleId());
         sb.append(c).append(getUrl());
-        sb.append(c).append(getParentUrl());
-        sb.append(c).append(getStatus());
-        sb.append(c).append(getHttpStatusCode());
-        sb.append(c).append(getMethod());
-        sb.append(c).append(getMimeType());
-        sb.append(c).append(getContentLength());
-        sb.append(c).append(getExecutionTime());
-        sb.append(c).append(getLastModified());
+        sb.append(c).append(getFilterType());
         sb.append(c).append(getCreateTime());
         if (sb.length() > 0) {
             sb.delete(0, c.length());
@@ -295,15 +234,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     private String xbuildRelationString() {
-        StringBuilder sb = new StringBuilder();
-        String c = ",";
-        if (_accessResultDataAsOne != null) {
-            sb.append(c).append("accessResultDataAsOne");
-        }
-        if (sb.length() > 0) {
-            sb.delete(0, c.length()).insert(0, "(").append(")");
-        }
-        return sb.toString();
+        return "";
     }
 
     // ===================================================================================
@@ -344,23 +275,6 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     /**
-     * RULE_ID: {VARCHAR(20)} <br />
-     * @return The value of the column 'RULE_ID'. (Nullable)
-     */
-    public String getRuleId() {
-        return _ruleId;
-    }
-
-    /**
-     * RULE_ID: {VARCHAR(20)} <br />
-     * @param ruleId The value of the column 'RULE_ID'. (Nullable)
-     */
-    public void setRuleId(String ruleId) {
-        _modifiedProperties.addPropertyName("ruleId");
-        this._ruleId = ruleId;
-    }
-
-    /**
      * URL: {NotNull : VARCHAR(65536)} <br />
      * @return The value of the column 'URL'. (Nullable)
      */
@@ -378,139 +292,20 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     /**
-     * PARENT_URL: {VARCHAR(65536)} <br />
-     * @return The value of the column 'PARENT_URL'. (Nullable)
+     * FILTER_TYPE: {NotNull : VARCHAR(1)} <br />
+     * @return The value of the column 'FILTER_TYPE'. (Nullable)
      */
-    public String getParentUrl() {
-        return _parentUrl;
+    public String getFilterType() {
+        return _filterType;
     }
 
     /**
-     * PARENT_URL: {VARCHAR(65536)} <br />
-     * @param parentUrl The value of the column 'PARENT_URL'. (Nullable)
+     * FILTER_TYPE: {NotNull : VARCHAR(1)} <br />
+     * @param filterType The value of the column 'FILTER_TYPE'. (Nullable)
      */
-    public void setParentUrl(String parentUrl) {
-        _modifiedProperties.addPropertyName("parentUrl");
-        this._parentUrl = parentUrl;
-    }
-
-    /**
-     * STATUS: {NotNull : INTEGER(10)} <br />
-     * @return The value of the column 'STATUS'. (Nullable)
-     */
-    public Integer getStatus() {
-        return _status;
-    }
-
-    /**
-     * STATUS: {NotNull : INTEGER(10)} <br />
-     * @param status The value of the column 'STATUS'. (Nullable)
-     */
-    public void setStatus(Integer status) {
-        _modifiedProperties.addPropertyName("status");
-        this._status = status;
-    }
-
-    /**
-     * HTTP_STATUS_CODE: {NotNull : INTEGER(10)} <br />
-     * @return The value of the column 'HTTP_STATUS_CODE'. (Nullable)
-     */
-    public Integer getHttpStatusCode() {
-        return _httpStatusCode;
-    }
-
-    /**
-     * HTTP_STATUS_CODE: {NotNull : INTEGER(10)} <br />
-     * @param httpStatusCode The value of the column 'HTTP_STATUS_CODE'. (Nullable)
-     */
-    public void setHttpStatusCode(Integer httpStatusCode) {
-        _modifiedProperties.addPropertyName("httpStatusCode");
-        this._httpStatusCode = httpStatusCode;
-    }
-
-    /**
-     * METHOD: {NotNull : VARCHAR(10)} <br />
-     * @return The value of the column 'METHOD'. (Nullable)
-     */
-    public String getMethod() {
-        return _method;
-    }
-
-    /**
-     * METHOD: {NotNull : VARCHAR(10)} <br />
-     * @param method The value of the column 'METHOD'. (Nullable)
-     */
-    public void setMethod(String method) {
-        _modifiedProperties.addPropertyName("method");
-        this._method = method;
-    }
-
-    /**
-     * MIME_TYPE: {NotNull : VARCHAR(100)} <br />
-     * @return The value of the column 'MIME_TYPE'. (Nullable)
-     */
-    public String getMimeType() {
-        return _mimeType;
-    }
-
-    /**
-     * MIME_TYPE: {NotNull : VARCHAR(100)} <br />
-     * @param mimeType The value of the column 'MIME_TYPE'. (Nullable)
-     */
-    public void setMimeType(String mimeType) {
-        _modifiedProperties.addPropertyName("mimeType");
-        this._mimeType = mimeType;
-    }
-
-    /**
-     * CONTENT_LENGTH: {NotNull : BIGINT(19)} <br />
-     * @return The value of the column 'CONTENT_LENGTH'. (Nullable)
-     */
-    public Long getContentLength() {
-        return _contentLength;
-    }
-
-    /**
-     * CONTENT_LENGTH: {NotNull : BIGINT(19)} <br />
-     * @param contentLength The value of the column 'CONTENT_LENGTH'. (Nullable)
-     */
-    public void setContentLength(Long contentLength) {
-        _modifiedProperties.addPropertyName("contentLength");
-        this._contentLength = contentLength;
-    }
-
-    /**
-     * EXECUTION_TIME: {NotNull : INTEGER(10)} <br />
-     * @return The value of the column 'EXECUTION_TIME'. (Nullable)
-     */
-    public Integer getExecutionTime() {
-        return _executionTime;
-    }
-
-    /**
-     * EXECUTION_TIME: {NotNull : INTEGER(10)} <br />
-     * @param executionTime The value of the column 'EXECUTION_TIME'. (Nullable)
-     */
-    public void setExecutionTime(Integer executionTime) {
-        _modifiedProperties.addPropertyName("executionTime");
-        this._executionTime = executionTime;
-    }
-
-    /**
-     * LAST_MODIFIED: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @return The value of the column 'LAST_MODIFIED'. (Nullable)
-     */
-    public java.sql.Timestamp getLastModified() {
-        return _lastModified;
-    }
-
-    /**
-     * LAST_MODIFIED: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @param lastModified The value of the column 'LAST_MODIFIED'. (Nullable)
-     */
-    public void setLastModified(java.sql.Timestamp lastModified) {
-        _modifiedProperties.addPropertyName("lastModified");
-        this._lastModified = lastModified;
+    public void setFilterType(String filterType) {
+        _modifiedProperties.addPropertyName("filterType");
+        this._filterType = filterType;
     }
 
     /**

@@ -13,29 +13,17 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.db.allcommon;
+package org.seasar.robot.db.cbean;
 
-import org.seasar.robot.dbflute.Entity;
+import org.seasar.robot.db.cbean.bs.BsUrlFilterCB;
 
 /**
- * The interface of entity defined common columns.
+ * The condition-bean of URL_FILTER.
+ * <p>
+ * You can implement your original methods here.
+ * This class remains when re-generating.
+ * </p>
  * @author DBFlute(AutoGenerator)
  */
-public interface EntityDefinedCommonColumn extends Entity {
-
-    /**
-     * Enable common column auto set up. {for after disable because the default is enabled}
-     */
-    public void enableCommonColumnAutoSetup();
-
-    /**
-     * Disable common column auto set up.
-     */
-    public void disableCommonColumnAutoSetup();
-
-    /**
-     * Can the entity set up common column by auto?
-     * @return Determination.
-     */
-    public boolean canCommonColumnAutoSetup();
+public class UrlFilterCB extends BsUrlFilterCB {
 }

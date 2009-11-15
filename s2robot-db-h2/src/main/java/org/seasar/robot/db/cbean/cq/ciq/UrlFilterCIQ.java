@@ -15,11 +15,10 @@
  */
 package org.seasar.robot.db.cbean.cq.ciq;
 
-import org.seasar.robot.db.cbean.AccessResultDataCB;
-import org.seasar.robot.db.cbean.cq.AccessResultCQ;
-import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
-import org.seasar.robot.db.cbean.cq.bs.AbstractBsAccessResultDataCQ;
-import org.seasar.robot.db.cbean.cq.bs.BsAccessResultDataCQ;
+import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
+import org.seasar.robot.db.cbean.cq.bs.AbstractBsUrlFilterCQ;
+import org.seasar.robot.db.cbean.cq.bs.BsUrlFilterCQ;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.dbflute.cbean.ckey.ConditionKey;
 import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
@@ -28,21 +27,21 @@ import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
- * The condition-inline-query of ACCESS_RESULT_DATA.
+ * The condition-inline-query of URL_FILTER.
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
+public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected BsAccessResultDataCQ _myCQ;
+    protected BsUrlFilterCQ _myCQ;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public AccessResultDataCIQ(ConditionQuery childQuery, SqlClause sqlClause,
-            String aliasName, int nestLevel, BsAccessResultDataCQ myCQ) {
+    public UrlFilterCIQ(ConditionQuery childQuery, SqlClause sqlClause,
+            String aliasName, int nestLevel, BsUrlFilterCQ myCQ) {
         super(childQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
         _foreignPropertyName = _myCQ.getForeignPropertyName();// Accept foreign property name.
@@ -101,28 +100,28 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
         return _myCQ.getId();
     }
 
-    public String keepId_InScopeSubQuery_AccessResult(AccessResultCQ sq) {
-        return _myCQ.keepId_InScopeSubQuery_AccessResult(sq);
+    protected ConditionValue getCValueSessionId() {
+        return _myCQ.getSessionId();
     }
 
-    protected ConditionValue getCValueTransformerName() {
-        return _myCQ.getTransformerName();
+    protected ConditionValue getCValueUrl() {
+        return _myCQ.getUrl();
     }
 
-    protected ConditionValue getCValueData() {
-        return _myCQ.getData();
+    protected ConditionValue getCValueFilterType() {
+        return _myCQ.getFilterType();
     }
 
-    protected ConditionValue getCValueEncoding() {
-        return _myCQ.getEncoding();
+    protected ConditionValue getCValueCreateTime() {
+        return _myCQ.getCreateTime();
     }
 
-    public String keepScalarSubQuery(AccessResultDataCQ subQuery) {
+    public String keepScalarSubQuery(UrlFilterCQ subQuery) {
         throwIICBOE("ScalarSubQuery");
         return null;
     }
 
-    public String keepMyselfInScopeSubQuery(AccessResultDataCQ subQuery) {
+    public String keepMyselfInScopeSubQuery(UrlFilterCQ subQuery) {
         throwIICBOE("MyselfInScopeSubQuery");
         return null;
     }
@@ -137,10 +136,10 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
     //                                                                       =============
     // Very Internal (for Suppressing Warn about 'Not Use Import')
     String xiCB() {
-        return AccessResultDataCB.class.getName();
+        return UrlFilterCB.class.getName();
     }
 
     String xiCQ() {
-        return AccessResultDataCQ.class.getName();
+        return UrlFilterCQ.class.getName();
     }
 }

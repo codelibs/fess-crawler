@@ -25,7 +25,6 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -40,7 +39,7 @@ import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
-import org.seasar.robot.client.S2RobotClient;
+import org.seasar.robot.client.AbstractS2RobotClient;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.helper.ContentLengthHelper;
 import org.seasar.robot.helper.MimeTypeHelper;
@@ -52,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class FileSystemClient implements S2RobotClient {
+public class FileSystemClient extends AbstractS2RobotClient {
     private final Logger logger = LoggerFactory
             .getLogger(FileSystemClient.class);
 
@@ -61,8 +60,6 @@ public class FileSystemClient implements S2RobotClient {
     @Binding(bindingType = BindingType.MAY)
     @Resource
     protected ContentLengthHelper contentLengthHelper;
-
-    private Map<String, Object> initParamMap;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
@@ -203,10 +200,14 @@ public class FileSystemClient implements S2RobotClient {
     }
 
     /* (non-Javadoc)
-     * @see org.seasar.robot.client.S2RobotClient#setInitParameterMap(java.util.Map)
+     * @see org.seasar.robot.client.S2RobotClient#doHead(java.lang.String)
      */
-    public void setInitParameterMap(Map<String, Object> params) {
-        this.initParamMap = params;
+    public ResponseData doHead(String url) {
+        try {
+            return doGet(url);
+        } catch (ChildUrlsException e) {
+            return null;
+        }
     }
 
 }

@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
@@ -17,20 +17,26 @@ package org.seasar.robot.client;
 
 import java.util.Map;
 
-import org.seasar.robot.entity.ResponseData;
-
 /**
  * @author shinsuke
  *
  */
-public interface S2RobotClient {
+public abstract class AbstractS2RobotClient implements S2RobotClient {
 
-    public abstract void setInitParameterMap(Map<String, Object> params);
+    private Map<String, Object> initParamMap;
 
-    public abstract ResponseData doGet(String url);
+    protected <T> T getInitParameter(String key, T defaultValue) {
+        if (initParamMap != null) {
+            T value = (T) initParamMap.get(key);
+            if (value != null) {
+                return value;
+            }
+        }
+        return defaultValue;
+    }
 
-    public abstract ResponseData doHead(String url);
-
-    // TODO doPost?
+    public void setInitParameterMap(Map<String, Object> params) {
+        this.initParamMap = params;
+    }
 
 }

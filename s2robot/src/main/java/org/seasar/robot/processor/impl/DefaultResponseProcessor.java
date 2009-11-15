@@ -17,6 +17,7 @@ package org.seasar.robot.processor.impl;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -49,19 +50,30 @@ public class DefaultResponseProcessor implements ResponseProcessor {
      * @see org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.robot.entity.ResponseData)
      */
     public void process(ResponseData responseData) {
-        if (transformer != null) {
-            ResultData resultData = transformer.transform(responseData);
-            if (resultData != null) {
-                UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
-                processResult(urlQueue, responseData, resultData);
-            } else {
-                logger.warn("No data for (" + responseData.getUrl() + ", "
-                        + responseData.getMimeType() + ")");
-            }
+        if (responseData.getStatus() == Constants.NOT_UPDATED_STATUS) {
+            UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
+            ResultData resultData = new ResultData();
+            Set<String> emptySet = Collections.emptySet();
+            resultData.setChildUrlSet(emptySet);
+            resultData.setData(new byte[0]);
+            resultData.setEncoding(Constants.UTF_8);
+            resultData.setTransformerName(Constants.NO_TRANSFORMER);
+            processResult(urlQueue, responseData, resultData);
         } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("No Transformer for (" + responseData.getUrl()
-                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+            if (transformer != null) {
+                ResultData resultData = transformer.transform(responseData);
+                if (resultData != null) {
+                    UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
+                    processResult(urlQueue, responseData, resultData);
+                } else {
+                    logger.warn("No data for (" + responseData.getUrl() + ", "
+                            + responseData.getMimeType() + ")");
+                }
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("No Transformer for (" + responseData.getUrl()
+                            + "). PLEASE CHECK YOUR CONFIGURATION.");
+                }
             }
         }
     }

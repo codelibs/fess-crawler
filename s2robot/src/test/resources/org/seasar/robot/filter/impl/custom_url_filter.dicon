@@ -12,4 +12,12 @@
 		<property name="includeFilteringPattern">"http://$2/.*"</property>
 		<property name="excludeFilteringPattern">"http://$2/.*"</property>
 	</component>
+
+	<!-- Service -->
+	<component name="urlFilterService" class="org.seasar.robot.service.impl.UrlFilterServiceImpl" instance="prototype" >
+	</component>
+
+	<!-- Helper -->
+	<component name="dataHelper" class="org.seasar.robot.helper.MemoryDataHelper" instance="singleton" >
+	</component>
 </components>

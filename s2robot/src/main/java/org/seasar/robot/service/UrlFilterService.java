@@ -9,42 +9,37 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 package org.seasar.robot.service;
 
 import java.util.List;
-
-import org.seasar.robot.entity.UrlQueue;
+import java.util.regex.Pattern;
 
 /**
  * @author shinsuke
  *
  */
-public interface UrlQueueService {
+public interface UrlFilterService {
 
-    public abstract void updateSessionId(String oldSessionId,
-            String newSessionId);
+    public abstract void addIncludeUrlFilter(String sessionId, String url);
 
-    public abstract void add(String sessionId, String url);
+    public abstract void addIncludeUrlFilter(String sessionId,
+            List<String> urlList);
 
-    public abstract void insert(UrlQueue urlQueue);
+    public abstract void addExcludeUrlFilter(String sessionId, String url);
+
+    public abstract void addExcludeUrlFilter(String sessionId,
+            List<String> urlList);
 
     public abstract void delete(String sessionId);
 
     public abstract void deleteAll();
 
-    public abstract void offerAll(String sessionId,
-            List<UrlQueue> newUrlQueueList);
+    public abstract List<Pattern> getIncludeUrlPatternList(String sessionId);
 
-    public abstract UrlQueue poll(String sessionId);
+    public abstract List<Pattern> getExcludeUrlPatternList(String sessionId);
 
-    public abstract void saveSession(String sessionId);
-
-    public abstract boolean visited(UrlQueue urlQueue);
-
-    public abstract void generateUrlQueues(String previousSessionId,
-            String sessionId);
 }

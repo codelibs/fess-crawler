@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.regex.Pattern;
 
 import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.UrlQueue;
@@ -94,4 +95,45 @@ public class MemoryDataHelper {
         return acList;
     }
 
+    protected volatile Map<String, List<Pattern>> includeUrlPatternMap = new HashMap<String, List<Pattern>>();
+
+    protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = new HashMap<String, List<Pattern>>();
+
+    public synchronized void addIncludeUrlPattern(String sessionId, String url) {
+        List<Pattern> patternList = getIncludeUrlPatternList(sessionId);
+        patternList.add(Pattern.compile(url));
+    }
+
+    public List<Pattern> getIncludeUrlPatternList(String sessionId) {
+        List<Pattern> patternList = includeUrlPatternMap.get(sessionId);
+        if (patternList == null) {
+            patternList = new ArrayList<Pattern>();
+            includeUrlPatternMap.put(sessionId, patternList);
+        }
+        return patternList;
+    }
+
+    public synchronized void addExcludeUrlPattern(String sessionId, String url) {
+        List<Pattern> patternList = getExcludeUrlPatternList(sessionId);
+        patternList.add(Pattern.compile(url));
+    }
+
+    public List<Pattern> getExcludeUrlPatternList(String sessionId) {
+        List<Pattern> patternList = excludeUrlPatternMap.get(sessionId);
+        if (patternList == null) {
+            patternList = new ArrayList<Pattern>();
+            excludeUrlPatternMap.put(sessionId, patternList);
+        }
+        return patternList;
+    }
+
+    public synchronized void clearUrlPattern(String sessionId) {
+        includeUrlPatternMap.remove(sessionId);
+        excludeUrlPatternMap.remove(sessionId);
+    }
+
+    public synchronized void clearUrlPattern() {
+        includeUrlPatternMap.clear();
+        excludeUrlPatternMap.clear();
+    }
 }

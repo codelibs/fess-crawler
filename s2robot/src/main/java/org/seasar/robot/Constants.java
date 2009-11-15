@@ -24,6 +24,8 @@ public class Constants {
 
     public static final int OK_STATUS = 0;
 
+    public static final int NOT_UPDATED_STATUS = 304;
+
     public static final String NO_TRANSFORMER = "NONE";
 
     public static final String UTF_8 = "UTF-8";

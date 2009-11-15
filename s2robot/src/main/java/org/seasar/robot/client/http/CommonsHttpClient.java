@@ -27,16 +27,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.output.DeferredFileOutputStream;
@@ -47,7 +48,7 @@ import org.seasar.robot.Constants;
 import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.S2RobotContext;
-import org.seasar.robot.client.S2RobotClient;
+import org.seasar.robot.client.AbstractS2RobotClient;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.RobotsTxt;
 import org.seasar.robot.helper.ContentLengthHelper;
@@ -62,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class CommonsHttpClient implements S2RobotClient {
+public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
@@ -124,19 +125,7 @@ public class CommonsHttpClient implements S2RobotClient {
 
     public int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
-    private Map<String, Object> initParamMap;
-
     private List<Header> requestHeaderList = new ArrayList<Header>();
-
-    protected <T> T getInitParameter(String key, T defaultValue) {
-        if (initParamMap != null) {
-            T value = (T) initParamMap.get(key);
-            if (value != null) {
-                return value;
-            }
-        }
-        return defaultValue;
-    }
 
     protected synchronized void init() {
         if (httpClient != null) {
@@ -344,6 +333,19 @@ public class CommonsHttpClient implements S2RobotClient {
      * @see org.seasar.robot.http.HttpClient#doGet(java.lang.String)
      */
     public ResponseData doGet(String url) {
+        HttpMethod getMethod = new GetMethod(url);
+        return doHttpMethod(url, getMethod);
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.http.HttpClient#doHead(java.lang.String)
+     */
+    public ResponseData doHead(String url) {
+        HttpMethod headMethod = new HeadMethod(url);
+        return doHttpMethod(url, headMethod);
+    }
+
+    public ResponseData doHttpMethod(String url, HttpMethod httpMethod) {
         if (httpClient == null) {
             init();
         }
@@ -362,29 +364,28 @@ public class CommonsHttpClient implements S2RobotClient {
             }
         }
 
-        GetMethod getMethod = new GetMethod(url);
-
         // do not redirect
-        getMethod.setFollowRedirects(false);
+        httpMethod.setFollowRedirects(false);
 
         // cookie
         if (cookiePolicy != null) {
-            getMethod.getParams().setCookiePolicy(cookiePolicy);
+            httpMethod.getParams().setCookiePolicy(cookiePolicy);
         }
 
         // request header
         for (Header header : requestHeaderList) {
-            getMethod.setRequestHeader(header);
+            httpMethod.setRequestHeader(header);
         }
 
         try {
             // get a content 
-            httpClient.executeMethod(getMethod);
+            httpClient.executeMethod(httpMethod);
 
-            int httpStatusCode = getMethod.getStatusCode();
+            int httpStatusCode = httpMethod.getStatusCode();
             // redirect
             if (httpStatusCode >= 300 && httpStatusCode < 400) {
-                Header locationHeader = getMethod.getResponseHeader("location");
+                Header locationHeader = httpMethod
+                        .getResponseHeader("location");
                 if (locationHeader != null) {
                     ResponseData responseData = new ResponseData();
                     responseData.setRedirectLocation(locationHeader.getValue());
@@ -394,29 +395,35 @@ public class CommonsHttpClient implements S2RobotClient {
                 }
             }
 
-            File outputFile = File.createTempFile("s2robot-CommonsHttpClient-",
-                    ".out");
-            outputFile.deleteOnExit();
-            DeferredFileOutputStream dfos = new DeferredFileOutputStream(
-                    responseBodyInMemoryThresholdSize, outputFile);
-            StreamUtil.drain(getMethod.getResponseBodyAsStream(), dfos);
-
             long contentLength = 0;
+            InputStream responseBodyStream = httpMethod
+                    .getResponseBodyAsStream();
             InputStream inputStream = null;
-            if (dfos.isInMemory()) {
-                inputStream = new ByteArrayInputStream(dfos.getData());
-                contentLength = dfos.getData().length;
-                if (!outputFile.delete()) {
-                    logger.warn("Could not delete "
-                            + outputFile.getAbsolutePath());
+            if (responseBodyStream != null) {
+                File outputFile = File.createTempFile(
+                        "s2robot-CommonsHttpClient-", ".out");
+                outputFile.deleteOnExit();
+                DeferredFileOutputStream dfos = new DeferredFileOutputStream(
+                        responseBodyInMemoryThresholdSize, outputFile);
+                StreamUtil.drain(httpMethod.getResponseBodyAsStream(), dfos);
+
+                if (dfos.isInMemory()) {
+                    inputStream = new ByteArrayInputStream(dfos.getData());
+                    contentLength = dfos.getData().length;
+                    if (!outputFile.delete()) {
+                        logger.warn("Could not delete "
+                                + outputFile.getAbsolutePath());
+                    }
+                } else {
+                    inputStream = new TemporaryFileInputStream(outputFile);
+                    contentLength = outputFile.length();
                 }
             } else {
-                inputStream = new TemporaryFileInputStream(outputFile);
-                contentLength = outputFile.length();
+                inputStream = new ByteArrayInputStream(new byte[0]);
             }
 
             String contentType = null;
-            Header contentTypeHeader = getMethod
+            Header contentTypeHeader = httpMethod
                     .getResponseHeader("Content-Type");
             if (contentTypeHeader != null) {
                 contentType = contentTypeHeader.getValue();
@@ -439,16 +446,21 @@ public class CommonsHttpClient implements S2RobotClient {
             ResponseData responseData = new ResponseData();
             responseData.setMethod(Constants.GET_METHOD);
             responseData.setUrl(url);
-            responseData.setCharSet(getMethod.getResponseCharSet());
+            if (httpMethod instanceof GetMethod) {
+                responseData.setCharSet(((GetMethod) httpMethod)
+                        .getResponseCharSet());
+            } else {
+                responseData.setCharSet(Constants.UTF_8);
+            }
             responseData.setResponseBody(inputStream);
             responseData.setHttpStatusCode(httpStatusCode);
-            for (Header header : getMethod.getResponseHeaders()) {
+            for (Header header : httpMethod.getResponseHeaders()) {
                 responseData.addHeader(header.getName(), header.getValue());
             }
             if (contentType != null) {
                 responseData.setMimeType(contentType);
             }
-            Header contentLengthHeader = getMethod
+            Header contentLengthHeader = httpMethod
                     .getResponseHeader("Content-Length");
             if (contentLengthHeader != null) {
                 String value = contentLengthHeader.getValue();
@@ -460,7 +472,7 @@ public class CommonsHttpClient implements S2RobotClient {
             } else {
                 responseData.setContentLength(contentLength);
             }
-            Header lastModifiedHeader = getMethod
+            Header lastModifiedHeader = httpMethod
                     .getResponseHeader("Last-Modified");
             if (lastModifiedHeader != null) {
                 String value = lastModifiedHeader.getValue();
@@ -489,7 +501,7 @@ public class CommonsHttpClient implements S2RobotClient {
         } catch (Exception e) {
             throw new RobotSystemException("Failed to access " + url, e);
         } finally {
-            getMethod.releaseConnection();
+            httpMethod.releaseConnection();
         }
 
     }
@@ -504,10 +516,4 @@ public class CommonsHttpClient implements S2RobotClient {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.client.S2RobotClient#setInitParameterMap(java.util.Map)
-     */
-    public void setInitParameterMap(Map<String, Object> params) {
-        this.initParamMap = params;
-    }
 }

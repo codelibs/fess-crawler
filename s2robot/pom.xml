@@ -324,5 +324,11 @@
       <artifactId>fontbox</artifactId>
       <version>1.0-20091008</version>
     </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty</artifactId>
+      <version>6.1.21</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

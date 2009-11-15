@@ -47,6 +47,10 @@ public interface UrlQueue {
 
     public abstract void setDepth(Integer depth);
 
+    public abstract Timestamp getLastModified();
+
+    public abstract void setLastModified(Timestamp lastModified);
+
     public abstract Timestamp getCreateTime();
 
     public abstract void setCreateTime(Timestamp createTime);

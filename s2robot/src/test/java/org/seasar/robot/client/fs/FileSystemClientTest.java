@@ -16,6 +16,7 @@
 package org.seasar.robot.client.fs;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Set;
 
 import org.seasar.extension.unit.S2TestCase;
@@ -132,5 +133,27 @@ public class FileSystemClientTest extends S2TestCase {
             fail();
         } catch (RobotSystemException e) {
         }
+    }
+
+    public void test_doHead_file() throws Exception {
+        File file = ResourceUtil.getResourceAsFile("test/text1.txt");
+        String path = file.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
+        ResponseData responseData = fsClient.doHead("file:" + path);
+        assertNotNull(responseData.getLastModified());
+        assertTrue(responseData.getLastModified().getTime() < new Date()
+                .getTime());
+    }
+
+    public void test_doHead_dir() throws Exception {
+        File file = ResourceUtil.getResourceAsFile("test");
+        String path = file.getAbsolutePath();
+        if (!path.startsWith("/")) {
+            path = "/" + path.replace('\\', '/');
+        }
+        ResponseData responseData = fsClient.doHead("file:" + path);
+        assertNull(responseData);
     }
 }

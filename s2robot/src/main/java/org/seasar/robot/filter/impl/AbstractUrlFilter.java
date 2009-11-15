@@ -27,11 +27,14 @@ import org.seasar.robot.filter.UrlFilter;
  * @author shinsuke
  *
  */
+@Deprecated
 public abstract class AbstractUrlFilter implements UrlFilter {
 
     protected List<Pattern> includeList = new ArrayList<Pattern>();
 
     protected List<Pattern> excludeList = new ArrayList<Pattern>();
+
+    protected String sessionId;
 
     public AbstractUrlFilter() {
     }
@@ -40,7 +43,8 @@ public abstract class AbstractUrlFilter implements UrlFilter {
         if (StringUtil.isBlank(urlPattern)) {
             throw new RobotSystemException("urlPattern is null");
         }
-        synchronized (includeList) {
+        List<Pattern> localList = includeList;
+        synchronized (localList) {
             List<Pattern> list = new ArrayList<Pattern>();
             list.addAll(includeList);
             list.add(Pattern.compile(urlPattern));
@@ -52,12 +56,21 @@ public abstract class AbstractUrlFilter implements UrlFilter {
         if (StringUtil.isBlank(urlPattern)) {
             throw new RobotSystemException("urlPattern is null");
         }
-        synchronized (excludeList) {
+        List<Pattern> localList = excludeList;
+        synchronized (localList) {
             List<Pattern> list = new ArrayList<Pattern>();
             list.addAll(excludeList);
             list.add(Pattern.compile(urlPattern));
             excludeList = list;
         }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.filter.UrlFilter#clear()
+     */
+    public void clear() {
+        includeList.clear();
+        excludeList.clear();
     }
 
     /* (non-Javadoc)

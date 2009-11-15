@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.client;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,6 +69,10 @@ public class S2RobotClientFactoryTest extends S2TestCase {
 
             public void setInitParameterMap(Map<String, Object> params) {
                 buf.append("value=").append(params.get("hoge"));
+            }
+
+            public ResponseData doHead(String url) {
+                return null;
             }
         });
 

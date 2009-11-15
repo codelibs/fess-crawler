@@ -15,24 +15,94 @@
  */
 package org.seasar.robot.filter.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.seasar.framework.container.SingletonS2Container;
+import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.filter.UrlFilter;
+import org.seasar.robot.service.UrlFilterService;
 
 /**
  * @author shinsuke
  *
  */
-public class UrlFilterImpl extends AbstractUrlFilter {
+public class UrlFilterImpl implements UrlFilter {
     protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
     protected String includeFilteringPattern;
 
     protected String excludeFilteringPattern;
 
+    protected List<String> cachedIncludeList = new ArrayList<String>();
+
+    protected List<String> cachedExcludeList = new ArrayList<String>();
+
+    protected String sessionId;
+
+    protected UrlFilterService urlFilterService;
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.filter.UrlFilter#addExclude(java.lang.String)
+     */
+    public void addExclude(String urlPattern) {
+        if (sessionId == null) {
+            cachedExcludeList.add(urlPattern);
+        } else {
+            getUrlFilterService().addExcludeUrlFilter(sessionId, urlPattern);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.filter.UrlFilter#addInclude(java.lang.String)
+     */
+    public void addInclude(String urlPattern) {
+        if (sessionId == null) {
+            cachedIncludeList.add(urlPattern);
+        } else {
+            getUrlFilterService().addIncludeUrlFilter(sessionId, urlPattern);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.filter.UrlFilter#clear()
+     */
+    public void clear() {
+        cachedIncludeList.clear();
+        cachedExcludeList.clear();
+        if (sessionId != null) {
+            getUrlFilterService().delete(sessionId);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.filter.UrlFilter#init(java.lang.String)
+     */
+    public void init(String sessionId) {
+        this.sessionId = sessionId;
+        if (!cachedIncludeList.isEmpty()) {
+            getUrlFilterService().addIncludeUrlFilter(sessionId,
+                    cachedIncludeList);
+            cachedIncludeList.clear();
+        }
+        if (!cachedExcludeList.isEmpty()) {
+            getUrlFilterService().addExcludeUrlFilter(sessionId,
+                    cachedExcludeList);
+            cachedExcludeList.clear();
+        }
+    }
+
     /* (non-Javadoc)
      * @see org.seasar.robot.filter.UrlFilter#match(java.lang.String)
      */
     public boolean match(String url) {
+        List<Pattern> includeList = getUrlFilterService()
+                .getIncludeUrlPatternList(sessionId);
+        List<Pattern> excludeList = getUrlFilterService()
+                .getExcludeUrlPatternList(sessionId);
+
         if (!includeList.isEmpty()) {
             boolean match = false;
             for (Pattern pattern : includeList) {
@@ -63,9 +133,8 @@ public class UrlFilterImpl extends AbstractUrlFilter {
     }
 
     /* (non-Javadoc)
-     * @see org.seasar.robot.filter.impl.AbstractUrlFilter#processUrl(java.lang.String)
+     * @see org.seasar.robot.filter.UrlFilter#processUrl(java.lang.String)
      */
-    @Override
     public void processUrl(String url) {
         if (includeFilteringPattern != null) {
             addInclude(url.replaceAll(urlPattern, includeFilteringPattern));
@@ -98,4 +167,16 @@ public class UrlFilterImpl extends AbstractUrlFilter {
     public void setExcludeFilteringPattern(String excludeFilteringPattern) {
         this.excludeFilteringPattern = excludeFilteringPattern;
     }
+
+    public UrlFilterService getUrlFilterService() {
+        if (urlFilterService == null) {
+            urlFilterService = SingletonS2Container
+                    .getComponent("urlFilterService");
+            if (urlFilterService == null) {
+                throw new RobotSystemException("urlFilterService is not found.");
+            }
+        }
+        return urlFilterService;
+    }
+
 }

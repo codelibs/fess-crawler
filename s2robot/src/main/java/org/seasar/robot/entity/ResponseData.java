@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.seasar.robot.Constants;
+
 /**
  * @author shinsuke
  *
@@ -51,6 +53,8 @@ public class ResponseData {
     private Date lastModified;
 
     private String redirectLocation;
+
+    private int status = Constants.OK_STATUS;
 
     private Map<String, String> headerMap = new LinkedHashMap<String, String>();
 
@@ -167,6 +171,14 @@ public class ResponseData {
 
     public void setLastModified(Date lastModified) {
         this.lastModified = lastModified;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
 }

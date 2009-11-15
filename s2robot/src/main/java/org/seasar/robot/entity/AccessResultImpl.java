@@ -38,7 +38,7 @@ public class AccessResultImpl implements AccessResult {
 
     protected String parentUrl;
 
-    protected Integer status;
+    protected Integer status = Constants.OK_STATUS;
 
     protected Integer httpStatusCode;
 
@@ -60,11 +60,14 @@ public class AccessResultImpl implements AccessResult {
     public void init(ResponseData responseData, ResultData resultData) {
 
         setCreateTime(new Timestamp(new Date().getTime()));
-        Beans.copy(responseData, this).execute();
-        setStatus(Constants.OK_STATUS);
+        if (responseData != null) {
+            Beans.copy(responseData, this).execute();
+        }
 
         AccessResultData accessResultData = new AccessResultDataImpl();
-        Beans.copy(resultData, accessResultData).execute();
+        if (resultData != null) {
+            Beans.copy(resultData, accessResultData).execute();
+        }
         setAccessResultData(accessResultData);
     }
 

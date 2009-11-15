@@ -24,6 +24,13 @@ package org.seasar.robot.filter;
 public interface UrlFilter {
 
     /**
+     * Initialize a url filter by sessionId.
+     * 
+     * @param sessionId
+     */
+    public abstract void init(String sessionId);
+
+    /**
      * Check if a given url is a target.
      * 
      * @param url
@@ -52,4 +59,8 @@ public interface UrlFilter {
      */
     public abstract void processUrl(String url);
 
+    /**
+     * Clear this filter.
+     */
+    public abstract void clear();
 }

@@ -22,6 +22,7 @@ import org.seasar.robot.S2RobotContext;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.filter.UrlFilter;
 import org.seasar.robot.util.CrawlingParameterUtil;
+import org.seasar.robot.util.S2RobotWebServer;
 
 /**
  * @author shinsuke
@@ -38,9 +39,16 @@ public class CommonsHttpClientTest extends S2TestCase {
     }
 
     public void test_doGet() {
-        String url = "http://s2robot.sandbox.seasar.org/";
-        ResponseData responseData = httpClient.doGet(url);
-        assertEquals(200, responseData.getHttpStatusCode());
+        S2RobotWebServer server = new S2RobotWebServer(7070);
+        server.start();
+
+        String url = "http://localhost:7070/";
+        try {
+            ResponseData responseData = httpClient.doGet(url);
+            assertEquals(200, responseData.getHttpStatusCode());
+        } finally {
+            server.stop();
+        }
     }
 
     public void test_parseLastModified() {
@@ -50,17 +58,26 @@ public class CommonsHttpClientTest extends S2TestCase {
     }
 
     public void test_processRobotsTxt() {
-        String url = "http://www.seasar.org/hoge/fuga.html";
-        S2RobotContext robotContext = new S2RobotContext();
-        robotContext.setUrlFilter(urlFilter);
-        CrawlingParameterUtil.setRobotContext(robotContext);
-        httpClient.init();
-        httpClient.processRobotsTxt(url);
-        assertEquals(1, robotContext.getRobotTxtUrlSet().size());
-        assertTrue(robotContext.getRobotTxtUrlSet().contains(
-                "http://www.seasar.org/robots.txt"));
-        assertFalse(urlFilter.match("http://www.seasar.org/admin/"));
-        assertFalse(urlFilter.match("http://www.seasar.org/websvn/"));
+        S2RobotWebServer server = new S2RobotWebServer(7070);
+        server.start();
+
+        String url = "http://localhost:7070/hoge.html";
+        try {
+            S2RobotContext robotContext = new S2RobotContext();
+            String sessionId = "id1";
+            urlFilter.init(sessionId);
+            robotContext.setUrlFilter(urlFilter);
+            CrawlingParameterUtil.setRobotContext(robotContext);
+            httpClient.init();
+            httpClient.processRobotsTxt(url);
+            assertEquals(1, robotContext.getRobotTxtUrlSet().size());
+            assertTrue(robotContext.getRobotTxtUrlSet().contains(
+                    "http://localhost:7070/robots.txt"));
+            assertFalse(urlFilter.match("http://localhost:7070/admin/"));
+            assertFalse(urlFilter.match("http://localhost:7070/websvn/"));
+        } finally {
+            server.stop();
+        }
     }
 
     public void test_convertRobotsTxtPathPattern() {
@@ -73,5 +90,21 @@ public class CommonsHttpClientTest extends S2TestCase {
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/*"));
         assertEquals(".*\\..*", httpClient.convertRobotsTxtPathPattern("."));
         assertEquals(".*", httpClient.convertRobotsTxtPathPattern("*"));
+    }
+
+    public void test_doHead() throws Exception {
+        S2RobotWebServer server = new S2RobotWebServer(7070);
+        server.start();
+
+        String url = "http://localhost:7070/";
+        try {
+            ResponseData responseData = httpClient.doHead(url);
+            Thread.sleep(100);
+            assertNotNull(responseData.getLastModified());
+            assertTrue(responseData.getLastModified().getTime() < new Date()
+                    .getTime());
+        } finally {
+            server.stop();
+        }
     }
 }

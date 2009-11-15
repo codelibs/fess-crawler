@@ -19,6 +19,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Resource;
@@ -176,4 +177,22 @@ public class UrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
+    public void generateUrlQueues(String previousSessionId, String sessionId) {
+        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+        Map<String, AccessResult> arMap = dataHelper
+                .getAccessResultMap(previousSessionId);
+        for (Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
+            synchronized (urlQueueList) {
+                UrlQueue urlQueue = new UrlQueueImpl();
+                urlQueue.setSessionId(sessionId);
+                urlQueue.setMethod(entry.getValue().getMethod());
+                urlQueue.setUrl(entry.getValue().getUrl());
+                urlQueue.setParentUrl(entry.getValue().getParentUrl());
+                urlQueue.setDepth(0);
+                urlQueue.setLastModified(entry.getValue().getLastModified());
+                urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
+                urlQueueList.add(urlQueue);
+            }
+        }
+    }
 }

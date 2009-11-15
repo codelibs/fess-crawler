@@ -23,6 +23,8 @@
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/jboss/javassist/3.4.ga/javassist-3.4.ga.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/jempbox/0.8.0-20091008/jempbox-0.8.0-20091008.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty/6.1.21/jetty-6.1.21.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty-util/6.1.21/jetty-util-6.1.21.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar" sourcepath="M2_REPO/junit/junit/3.8.1/junit-3.8.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.14/log4j-1.2.14.jar" sourcepath="M2_REPO/log4j/log4j/1.2.14/log4j-1.2.14-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/nekohtml/nekohtml/1.9.13/nekohtml-1.9.13.jar" sourcepath="M2_REPO/net/sourceforge/nekohtml/nekohtml/1.9.13/nekohtml-1.9.13-sources.jar"/>
@@ -36,6 +38,7 @@
   <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-framework/2.4.39/s2-framework-2.4.39.jar" sourcepath="M2_REPO/org/seasar/container/s2-framework/2.4.39/s2-framework-2.4.39-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-tiger/2.4.39/s2-tiger-2.4.39.jar" sourcepath="M2_REPO/org/seasar/container/s2-tiger/2.4.39/s2-tiger-2.4.39-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/xalan/serializer/2.7.1/serializer-2.7.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-log4j12/1.5.8/slf4j-log4j12-1.5.8.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/tika/tika-core/0.5-20091008/tika-core-0.5-20091008.jar"/>

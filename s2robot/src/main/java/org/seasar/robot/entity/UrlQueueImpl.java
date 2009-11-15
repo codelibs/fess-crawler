@@ -34,6 +34,8 @@ public class UrlQueueImpl implements UrlQueue {
 
     protected Integer depth;
 
+    protected Timestamp lastModified;
+
     protected Timestamp createTime;
 
     /* (non-Javadoc)
@@ -132,5 +134,19 @@ public class UrlQueueImpl implements UrlQueue {
      */
     public void setCreateTime(Timestamp createTime) {
         this.createTime = createTime;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.UrlQueue#getLastModified()
+     */
+    public Timestamp getLastModified() {
+        return lastModified;
+    }
+
+    /* (non-Javadoc)
+     * @see org.seasar.robot.entity.UrlQueue#setLastModified(java.sql.Timestamp)
+     */
+    public void setLastModified(Timestamp lastModified) {
+        this.lastModified = lastModified;
     }
 }

@@ -88,8 +88,8 @@ public class S2Robot implements Runnable {
     public void setSessionId(String sessionId) {
         if (StringUtil.isNotBlank(sessionId)
                 && !sessionId.equals(robotContext.sessionId)) {
-            robotContext.sessionId = sessionId;
             urlQueueService.updateSessionId(robotContext.sessionId, sessionId);
+            robotContext.sessionId = sessionId;
         }
     }
 
@@ -119,6 +119,7 @@ public class S2Robot implements Runnable {
         // TODO transaction?
         urlQueueService.delete(sessionId);
         dataService.delete(sessionId);
+        urlFilter.clear();
     }
 
     public void addIncludeFilter(String regexp) {
@@ -189,6 +190,8 @@ public class S2Robot implements Runnable {
         robotContext.urlFilter = urlFilter;
         robotContext.ruleManager = ruleManager;
         robotContext.intervalController = intervalController;
+
+        urlFilter.init(robotContext.sessionId);
 
         ThreadGroup threadGroup = new ThreadGroup("Robot-"
                 + robotContext.sessionId);

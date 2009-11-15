@@ -143,27 +143,59 @@ public class S2RobotThread implements Runnable {
                             logger.info("Crawling URL: " + urlQueue.getUrl());
                         }
 
-                        // access an url
-                        long startTime = System.currentTimeMillis();
-                        responseData = client.doGet(urlQueue.getUrl());
-                        responseData.setExecutionTime(System
-                                .currentTimeMillis()
-                                - startTime);
-                        responseData.setParentUrl(urlQueue.getParentUrl());
-                        responseData.setSessionId(robotContext.sessionId);
+                        boolean contentUpdated = true;
+                        if (urlQueue.getLastModified() != null) {
+                            long startTime = System.currentTimeMillis();
+                            //  head method
+                            responseData = client.doHead(urlQueue.getUrl());
+                            if (responseData != null
+                                    && responseData.getLastModified().getTime() <= urlQueue
+                                            .getLastModified().getTime()
+                                    && responseData.getHttpStatusCode() == 200) {
+                                if (logger.isInfoEnabled()) {
+                                    logger.info("Not updated URL: "
+                                            + urlQueue.getUrl());
+                                }
 
-                        if (responseData.getRedirectLocation() != null) {
-                            // redirect
-                            synchronized (robotContext.accessCountLock) {
-                                //  add an url
-                                storeChildUrl(responseData
-                                        .getRedirectLocation(), urlQueue
-                                        .getUrl(),
-                                        urlQueue.getDepth() != null ? urlQueue
-                                                .getDepth() + 1 : 1);
+                                responseData.setExecutionTime(System
+                                        .currentTimeMillis()
+                                        - startTime);
+                                responseData.setParentUrl(urlQueue
+                                        .getParentUrl());
+                                responseData
+                                        .setSessionId(robotContext.sessionId);
+                                responseData
+                                        .setStatus(Constants.NOT_UPDATED_STATUS);
+                                processResponse(urlQueue, responseData);
+
+                                contentUpdated = false;
                             }
-                        } else {
-                            processResponse(urlQueue, responseData);
+                        }
+
+                        if (contentUpdated) {
+                            // access an url
+                            long startTime = System.currentTimeMillis();
+                            responseData = client.doGet(urlQueue.getUrl());
+                            responseData.setExecutionTime(System
+                                    .currentTimeMillis()
+                                    - startTime);
+                            responseData.setParentUrl(urlQueue.getParentUrl());
+                            responseData.setSessionId(robotContext.sessionId);
+
+                            if (responseData.getRedirectLocation() != null) {
+                                // redirect
+                                synchronized (robotContext.accessCountLock) {
+                                    //  add an url
+                                    storeChildUrl(
+                                            responseData.getRedirectLocation(),
+                                            urlQueue.getUrl(),
+                                            urlQueue.getDepth() != null ? urlQueue
+                                                    .getDepth() + 1
+                                                    : 1);
+                                }
+                            } else {
+                                processResponse(urlQueue, responseData);
+                            }
                         }
 
                         if (logger.isDebugEnabled()) {

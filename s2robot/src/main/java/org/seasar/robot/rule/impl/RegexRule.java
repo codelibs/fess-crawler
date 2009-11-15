@@ -109,4 +109,16 @@ public class RegexRule extends AbstractRule {
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = regexMap.hashCode();
+        if (defaultRule) {
+            hash = hash * 31 + 1;
+        }
+        if (allRequired) {
+            hash = hash * 31 + 2;
+        }
+        return hash;
+    }
 }

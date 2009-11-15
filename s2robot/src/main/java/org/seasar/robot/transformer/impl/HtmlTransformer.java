@@ -51,6 +51,7 @@ import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.helper.EncodingHelper;
+import org.seasar.robot.helper.UrlConvertHelper;
 import org.seasar.robot.util.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -248,6 +249,17 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected List<String> convertChildUrlList(List<String> urlList) {
+        try {
+            UrlConvertHelper urlConvertHelper = SingletonS2Container
+                    .getComponent(UrlConvertHelper.class);
+            List<String> newUrlList = new ArrayList<String>();
+            for (String url : urlList) {
+                newUrlList.add(urlConvertHelper.convert(url));
+            }
+            return newUrlList;
+        } catch (Exception e) {
+            // NOP
+        }
         return urlList;
     }
 
@@ -292,7 +304,7 @@ public class HtmlTransformer extends AbstractTransformer {
         } catch (Exception e) {
             // nothing
         }
-        
+
         return encoding;
     }
 

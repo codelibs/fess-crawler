@@ -29,10 +29,6 @@ import org.seasar.robot.service.UrlFilterService;
  */
 public class UrlFilterServiceImpl implements UrlFilterService {
 
-    private static final String INCLUDE_FILTER_TYPE = "I";
-
-    private static final String EXCLUDE_FILTER_TYPE = "E";
-
     @Resource
     protected MemoryDataHelper dataHelper;
 

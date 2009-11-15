@@ -67,7 +67,7 @@ public class XpathTransformer extends HtmlTransformer {
     protected String charsetName = Constants.UTF_8;
 
     /** Class type returned by getData() method. The default is null(XML content of String). */
-    protected Class dataClass = null;
+    protected Class<?> dataClass = null;
 
     @Override
     protected void storeData(ResponseData responseData, ResultData resultData) {
@@ -342,11 +342,11 @@ public class XpathTransformer extends HtmlTransformer {
         this.charsetName = charsetName;
     }
 
-    public Class getDataClass() {
+    public Class<?> getDataClass() {
         return dataClass;
     }
 
-    public void setDataClass(Class dataClass) {
+    public void setDataClass(Class<?> dataClass) {
         this.dataClass = dataClass;
     }
 }

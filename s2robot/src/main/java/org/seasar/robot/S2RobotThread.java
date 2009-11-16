@@ -32,7 +32,9 @@ import org.seasar.robot.client.S2RobotClientFactory;
 import org.seasar.robot.client.fs.ChildUrlsException;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.UrlQueue;
+import org.seasar.robot.helper.LogHelper;
 import org.seasar.robot.interval.IntervalController;
+import org.seasar.robot.log.LogType;
 import org.seasar.robot.processor.ResponseProcessor;
 import org.seasar.robot.rule.Rule;
 import org.seasar.robot.service.DataService;
@@ -101,6 +103,19 @@ public class S2RobotThread implements Runnable {
         return isContinue;
     }
 
+    protected void logType(LogHelper logHelper, LogType key, Object... objs) {
+        if (logHelper != null) {
+            logHelper.logType(key, objs);
+        }
+    }
+
+    private LogHelper getLogHelper() {
+        if (container.hasComponentDef(LogHelper.class)) {
+            return (LogHelper) container.getComponent(LogHelper.class);
+        }
+        return null;
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Runnable#run()
      */
@@ -110,22 +125,20 @@ public class S2RobotThread implements Runnable {
         CrawlingParameterUtil.setRobotContext(robotContext);
         CrawlingParameterUtil.setUrlQueueService(urlQueueService);
         CrawlingParameterUtil.setDataService(dataService);
+        LogHelper logHelper = getLogHelper();
         try {
             while (robotContext.running && isContinue(threadCheckCount)) {
                 UrlQueue urlQueue = urlQueueService
                         .poll(robotContext.sessionId);
                 if (isValid(urlQueue)) {
                     ResponseData responseData = null;
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Starting " + urlQueue.getUrl());
-                    }
+                    logType(logHelper, LogType.START_CRAWLING, robotContext, urlQueue);
                     try {
                         S2RobotClient client = getClient(urlQueue.getUrl());
                         if (client == null) {
-                            if (logger.isInfoEnabled()) {
-                                logger.info("Unsupported URL: "
-                                        + urlQueue.getUrl());
-                            }
+                            logType(logHelper,
+                                    LogType.UNSUPPORTED_URL_AT_CRAWLING_STARTED,
+                                    robotContext, urlQueue);
                             break;
                         }
 
@@ -139,12 +152,10 @@ public class S2RobotThread implements Runnable {
                                     .delay(IntervalController.PRE_PROCESSING);
                         }
 
-                        if (logger.isInfoEnabled()) {
-                            logger.info("Crawling URL: " + urlQueue.getUrl());
-                        }
-
                         boolean contentUpdated = true;
                         if (urlQueue.getLastModified() != null) {
+                            logType(logHelper, LogType.CHECK_LAST_MODIFIED,
+                                    robotContext, urlQueue);
                             long startTime = System.currentTimeMillis();
                             //  head method
                             responseData = client.doHead(urlQueue.getUrl());
@@ -152,10 +163,8 @@ public class S2RobotThread implements Runnable {
                                     && responseData.getLastModified().getTime() <= urlQueue
                                             .getLastModified().getTime()
                                     && responseData.getHttpStatusCode() == 200) {
-                                if (logger.isInfoEnabled()) {
-                                    logger.info("Not updated URL: "
-                                            + urlQueue.getUrl());
-                                }
+                                logType(logHelper, LogType.NOT_MODIFIED, robotContext,
+                                        urlQueue);
 
                                 responseData.setExecutionTime(System
                                         .currentTimeMillis()
@@ -173,6 +182,8 @@ public class S2RobotThread implements Runnable {
                         }
 
                         if (contentUpdated) {
+                            logType(logHelper, LogType.GET_CONTENT, robotContext,
+                                    urlQueue);
                             // access an url
                             long startTime = System.currentTimeMillis();
                             responseData = client.doGet(urlQueue.getUrl());
@@ -183,6 +194,8 @@ public class S2RobotThread implements Runnable {
                             responseData.setSessionId(robotContext.sessionId);
 
                             if (responseData.getRedirectLocation() != null) {
+                                logType(logHelper, LogType.REDIRECT_LOCATION,
+                                        robotContext, urlQueue, responseData);
                                 // redirect
                                 synchronized (robotContext.accessCountLock) {
                                     //  add an url
@@ -194,13 +207,14 @@ public class S2RobotThread implements Runnable {
                                                     : 1);
                                 }
                             } else {
+                                logType(logHelper, LogType.PROCESS_RESPONSE,
+                                        robotContext, urlQueue, responseData);
                                 processResponse(urlQueue, responseData);
                             }
                         }
 
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Finished " + urlQueue.getUrl());
-                        }
+                        logType(logHelper, LogType.FINISHED_CRAWLING, robotContext,
+                                urlQueue);
                     } catch (ChildUrlsException e) {
                         synchronized (robotContext.accessCountLock) {
                             //  add an url

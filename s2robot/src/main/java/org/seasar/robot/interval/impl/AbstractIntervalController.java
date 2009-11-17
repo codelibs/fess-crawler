@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.interval.impl;
 
+import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.interval.IntervalController;
 
 /**
@@ -23,26 +24,38 @@ import org.seasar.robot.interval.IntervalController;
  */
 public abstract class AbstractIntervalController implements IntervalController {
 
+    protected boolean ignoreException = true;
+
     /* (non-Javadoc)
      * @see org.seasar.robot.interval.IntervalController#delay(int)
      */
     public void delay(int type) {
-        switch (type) {
-        case PRE_PROCESSING:
-            delayBeforeProcessing();
-            break;
-        case POST_PROCESSING:
-            delayAfterProcessing();
-            break;
-        case NO_URL_IN_QUEUE:
-            delayAtNoUrlInQueue();
-            break;
-        case WAIT_NEW_URL:
-            delayForWaitingNewUrl();
-            break;
-        default:
-            // NOP
-            break;
+        try {
+            switch (type) {
+            case PRE_PROCESSING:
+                delayBeforeProcessing();
+                break;
+            case POST_PROCESSING:
+                delayAfterProcessing();
+                break;
+            case NO_URL_IN_QUEUE:
+                delayAtNoUrlInQueue();
+                break;
+            case WAIT_NEW_URL:
+                delayForWaitingNewUrl();
+                break;
+            default:
+                // NOP
+                break;
+            }
+        } catch (RobotSystemException e) {
+            if (!ignoreException) {
+                throw e;
+            }
+        } catch (Exception e) {
+            if (!ignoreException) {
+                throw new RobotSystemException("Could not stop a process.", e);
+            }
         }
     }
 
@@ -53,4 +66,12 @@ public abstract class AbstractIntervalController implements IntervalController {
     protected abstract void delayAtNoUrlInQueue();
 
     protected abstract void delayForWaitingNewUrl();
+
+    public boolean isIgnoreException() {
+        return ignoreException;
+    }
+
+    public void setIgnoreException(boolean ignoreException) {
+        this.ignoreException = ignoreException;
+    }
 }

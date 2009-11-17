@@ -25,6 +25,8 @@ import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.framework.container.S2Container;
+import org.seasar.framework.container.annotation.tiger.Binding;
+import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.container.factory.SingletonS2ContainerFactory;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.client.S2RobotClient;
@@ -40,16 +42,12 @@ import org.seasar.robot.rule.Rule;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.service.UrlQueueService;
 import org.seasar.robot.util.CrawlingParameterUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class S2RobotThread implements Runnable {
-    private static final Logger logger = LoggerFactory
-            .getLogger(S2RobotThread.class);
 
     @Resource
     protected UrlQueueService urlQueueService;
@@ -59,6 +57,10 @@ public class S2RobotThread implements Runnable {
 
     @Resource
     protected S2Container container;
+
+    @Binding(bindingType = BindingType.MAY)
+    @Resource
+    protected LogHelper logHelper;
 
     protected S2RobotClientFactory clientFactory;
 
@@ -85,9 +87,6 @@ public class S2RobotThread implements Runnable {
         boolean isContinue = false;
         if (tcCount < robotContext.maxThreadCheckCount) {
             if (robotContext.maxAccessCount > 0) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Access Count: " + robotContext.accessCount);
-                }
                 if (robotContext.accessCount >= robotContext.maxAccessCount) {
                     return false;
                 }
@@ -103,40 +102,35 @@ public class S2RobotThread implements Runnable {
         return isContinue;
     }
 
-    protected void logType(LogHelper logHelper, LogType key, Object... objs) {
+    protected void log(LogHelper logHelper, LogType key, Object... objs) {
         if (logHelper != null) {
-            logHelper.logType(key, objs);
+            logHelper.log(key, objs);
         }
-    }
-
-    private LogHelper getLogHelper() {
-        if (container.hasComponentDef(LogHelper.class)) {
-            return (LogHelper) container.getComponent(LogHelper.class);
-        }
-        return null;
     }
 
     /* (non-Javadoc)
      * @see java.lang.Runnable#run()
      */
     public void run() {
+        log(logHelper, LogType.START_THREAD, robotContext);
         int threadCheckCount = 0;
         // set urlQueue to thread
         CrawlingParameterUtil.setRobotContext(robotContext);
         CrawlingParameterUtil.setUrlQueueService(urlQueueService);
         CrawlingParameterUtil.setDataService(dataService);
-        LogHelper logHelper = getLogHelper();
         try {
             while (robotContext.running && isContinue(threadCheckCount)) {
                 UrlQueue urlQueue = urlQueueService
                         .poll(robotContext.sessionId);
                 if (isValid(urlQueue)) {
                     ResponseData responseData = null;
-                    logType(logHelper, LogType.START_CRAWLING, robotContext, urlQueue);
+                    log(logHelper, LogType.START_CRAWLING, robotContext,
+                            urlQueue);
                     try {
                         S2RobotClient client = getClient(urlQueue.getUrl());
                         if (client == null) {
-                            logType(logHelper,
+                            log(
+                                    logHelper,
                                     LogType.UNSUPPORTED_URL_AT_CRAWLING_STARTED,
                                     robotContext, urlQueue);
                             break;
@@ -154,7 +148,7 @@ public class S2RobotThread implements Runnable {
 
                         boolean contentUpdated = true;
                         if (urlQueue.getLastModified() != null) {
-                            logType(logHelper, LogType.CHECK_LAST_MODIFIED,
+                            log(logHelper, LogType.CHECK_LAST_MODIFIED,
                                     robotContext, urlQueue);
                             long startTime = System.currentTimeMillis();
                             //  head method
@@ -163,8 +157,8 @@ public class S2RobotThread implements Runnable {
                                     && responseData.getLastModified().getTime() <= urlQueue
                                             .getLastModified().getTime()
                                     && responseData.getHttpStatusCode() == 200) {
-                                logType(logHelper, LogType.NOT_MODIFIED, robotContext,
-                                        urlQueue);
+                                log(logHelper, LogType.NOT_MODIFIED,
+                                        robotContext, urlQueue);
 
                                 responseData.setExecutionTime(System
                                         .currentTimeMillis()
@@ -182,7 +176,7 @@ public class S2RobotThread implements Runnable {
                         }
 
                         if (contentUpdated) {
-                            logType(logHelper, LogType.GET_CONTENT, robotContext,
+                            log(logHelper, LogType.GET_CONTENT, robotContext,
                                     urlQueue);
                             // access an url
                             long startTime = System.currentTimeMillis();
@@ -194,7 +188,7 @@ public class S2RobotThread implements Runnable {
                             responseData.setSessionId(robotContext.sessionId);
 
                             if (responseData.getRedirectLocation() != null) {
-                                logType(logHelper, LogType.REDIRECT_LOCATION,
+                                log(logHelper, LogType.REDIRECT_LOCATION,
                                         robotContext, urlQueue, responseData);
                                 // redirect
                                 synchronized (robotContext.accessCountLock) {
@@ -207,38 +201,30 @@ public class S2RobotThread implements Runnable {
                                                     : 1);
                                 }
                             } else {
-                                logType(logHelper, LogType.PROCESS_RESPONSE,
+                                log(logHelper, LogType.PROCESS_RESPONSE,
                                         robotContext, urlQueue, responseData);
                                 processResponse(urlQueue, responseData);
                             }
                         }
 
-                        logType(logHelper, LogType.FINISHED_CRAWLING, robotContext,
+                        log(logHelper, LogType.FINISHED_CRAWLING, robotContext,
                                 urlQueue);
                     } catch (ChildUrlsException e) {
+                        Set<String> childUrlSet = e.getChildUrlList();
+                        log(logHelper, LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
+                                robotContext, urlQueue, childUrlSet);
                         synchronized (robotContext.accessCountLock) {
                             //  add an url
-                            storeChildUrls(e.getChildUrlList(), urlQueue
-                                    .getUrl(),
+                            storeChildUrls(childUrlSet, urlQueue.getUrl(),
                                     urlQueue.getDepth() != null ? urlQueue
                                             .getDepth() + 1 : 1);
                         }
                     } catch (RobotCrawlAccessException e) {
-                        if (e.isDebugEnabled()) {
-                            logger.debug("Crawling Access Exception at "
-                                    + urlQueue.getUrl(), e);
-                        } else if (e.isInfoEnabled()) {
-                            logger.info(e.getMessage());
-                        } else if (e.isWarnEnabled()) {
-                            logger.warn("Crawling Access Exception at "
-                                    + urlQueue.getUrl(), e);
-                        } else if (e.isErrorEnabled()) {
-                            logger.error("Crawling Access Exception at "
-                                    + urlQueue.getUrl(), e);
-                        }
+                        log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION,
+                                robotContext, urlQueue, e);
                     } catch (Exception e) {
-                        logger.error("Crawling Exception at "
-                                + urlQueue.getUrl(), e);
+                        log(logHelper, LogType.CRAWLING_EXCETPION,
+                                robotContext, urlQueue, e);
                     } finally {
                         if (responseData != null) {
                             IOUtils
@@ -246,13 +232,8 @@ public class S2RobotThread implements Runnable {
                                             .getResponseBody());
                         }
                         if (robotContext.intervalController != null) {
-                            try {
-                                robotContext.intervalController
-                                        .delay(IntervalController.POST_PROCESSING);
-                            } catch (Exception e) {
-                                logger.warn("Could not sleep a thread: "
-                                        + Thread.currentThread().getName(), e);
-                            }
+                            robotContext.intervalController
+                                    .delay(IntervalController.POST_PROCESSING);
                         }
                         threadCheckCount = 0; // clear
                         // remove urlQueue from thread
@@ -260,19 +241,12 @@ public class S2RobotThread implements Runnable {
                         finishCrawling();
                     }
                 } else {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("No url in a queue. (" + threadCheckCount
-                                + ")");
-                    }
+                    log(logHelper, LogType.NO_URL_IN_QUEUE, robotContext,
+                            urlQueue, Integer.valueOf(threadCheckCount));
 
                     if (robotContext.intervalController != null) {
-                        try {
-                            robotContext.intervalController
-                                    .delay(IntervalController.NO_URL_IN_QUEUE);
-                        } catch (Exception e) {
-                            logger.warn("Could not sleep a thread: "
-                                    + Thread.currentThread().getName(), e);
-                        }
+                        robotContext.intervalController
+                                .delay(IntervalController.NO_URL_IN_QUEUE);
                     }
 
                     threadCheckCount++;
@@ -280,13 +254,8 @@ public class S2RobotThread implements Runnable {
 
                 // interval
                 if (robotContext.intervalController != null) {
-                    try {
-                        robotContext.intervalController
-                                .delay(IntervalController.WAIT_NEW_URL);
-                    } catch (Exception e) {
-                        logger.warn("Could not sleep a thread: "
-                                + Thread.currentThread().getName(), e);
-                    }
+                    robotContext.intervalController
+                            .delay(IntervalController.WAIT_NEW_URL);
                 }
             }
         } finally {
@@ -295,6 +264,7 @@ public class S2RobotThread implements Runnable {
             CrawlingParameterUtil.setUrlQueueService(null);
             CrawlingParameterUtil.setDataService(null);
         }
+        log(logHelper, LogType.FINISHED_THREAD, robotContext);
     }
 
     protected S2RobotClient getClient(String url) {
@@ -310,19 +280,12 @@ public class S2RobotThread implements Runnable {
             if (responseProcessor != null) {
                 responseProcessor.process(responseData);
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("No ResponseProcessor for ("
-                            + responseData.getUrl() + ", "
-                            + responseData.getMimeType()
-                            + "). PLEASE CHECK YOUR CONFIGURATION.");
-                }
+                log(logHelper, LogType.NO_RESPONSE_PROCESSOR, robotContext,
+                        urlQueue, responseData, rule);
             }
         } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("No rule for (" + responseData.getUrl() + ", "
-                        + responseData.getMimeType()
-                        + "). PLEASE CHECK YOUR CONFIGURATION.");
-            }
+            log(logHelper, LogType.NO_RULE, robotContext, urlQueue,
+                    responseData);
         }
 
     }

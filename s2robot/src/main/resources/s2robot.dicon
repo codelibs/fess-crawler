@@ -10,6 +10,7 @@
 	<include path="s2robot_mimetype.dicon"/>
 	<include path="s2robot_encoding.dicon"/>
 	<include path="s2robot_urlconverter.dicon"/>
+	<include path="s2robot_log.dicon"/>
 
 	<!-- S2Robot -->
 	<component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >

@@ -51,7 +51,9 @@ public class MemoryDataHelper {
 
     public synchronized void addUrlQueueList(String sessionId,
             Queue<UrlQueue> urlQueueList) {
-        urlQueueMap.put(sessionId, urlQueueList);
+        Queue<UrlQueue> uqList = getUrlQueueList(sessionId);
+        uqList.addAll(urlQueueList);
+        urlQueueMap.put(sessionId, uqList);
     }
 
     public synchronized void removeUrlQueueList(String sessionId) {

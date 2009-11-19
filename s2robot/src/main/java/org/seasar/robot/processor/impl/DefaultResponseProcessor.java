@@ -50,7 +50,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
      * @see org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.robot.entity.ResponseData)
      */
     public void process(ResponseData responseData) {
-        if (responseData.getStatus() == Constants.NOT_UPDATED_STATUS) {
+        if (responseData.getStatus() == Constants.NOT_MODIFIED_STATUS) {
             UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
             ResultData resultData = new ResultData();
             Set<String> emptySet = Collections.emptySet();

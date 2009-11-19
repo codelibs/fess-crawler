@@ -297,7 +297,7 @@ public class S2RobotTest extends S2TestCase {
 
             dataService.iterate(sessionId2, new AccessResultCallback() {
                 public void iterate(AccessResult accessResult) {
-                    assertEquals(Constants.NOT_UPDATED_STATUS, accessResult
+                    assertEquals(Constants.NOT_MODIFIED_STATUS, accessResult
                             .getStatus().intValue());
                 }
             });

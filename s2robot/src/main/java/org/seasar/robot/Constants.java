@@ -22,6 +22,8 @@ package org.seasar.robot;
 public class Constants {
     public static final String GET_METHOD = "GET";
 
+    public static final String HEAD_METHOD = "HEAD";
+
     public static final int OK_STATUS = 0;
 
     public static final int NOT_MODIFIED_STATUS = 304;

@@ -444,7 +444,11 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             }
 
             ResponseData responseData = new ResponseData();
-            responseData.setMethod(Constants.GET_METHOD);
+            if (httpMethod instanceof HeadMethod) {
+                responseData.setMethod(Constants.HEAD_METHOD);
+            } else {
+                responseData.setMethod(Constants.GET_METHOD);
+            }
             responseData.setUrl(url);
             if (httpMethod instanceof GetMethod) {
                 responseData.setCharSet(((GetMethod) httpMethod)

@@ -245,11 +245,13 @@ public class S2RobotTest extends S2TestCase {
             dataService.iterate(sessionId1, new AccessResultCallback() {
                 public void iterate(AccessResult accessResult) {
                     assertTrue(accessResult.getUrl().startsWith(url1));
+                    assertEquals(Constants.GET_METHOD, accessResult.getMethod());
                 }
             });
             dataService.iterate(sessionId2, new AccessResultCallback() {
                 public void iterate(AccessResult accessResult) {
                     assertTrue(accessResult.getUrl().startsWith(url2));
+                    assertEquals(Constants.GET_METHOD, accessResult.getMethod());
                 }
             });
 
@@ -299,6 +301,8 @@ public class S2RobotTest extends S2TestCase {
                 public void iterate(AccessResult accessResult) {
                     assertEquals(Constants.NOT_MODIFIED_STATUS, accessResult
                             .getStatus().intValue());
+                    assertEquals(Constants.HEAD_METHOD, accessResult
+                            .getMethod());
                 }
             });
         } finally {

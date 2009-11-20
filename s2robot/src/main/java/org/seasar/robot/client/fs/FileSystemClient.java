@@ -204,7 +204,9 @@ public class FileSystemClient extends AbstractS2RobotClient {
      */
     public ResponseData doHead(String url) {
         try {
-            return doGet(url);
+            ResponseData responseData = doGet(url);
+            responseData.setMethod(Constants.HEAD_METHOD);
+            return responseData;
         } catch (ChildUrlsException e) {
             return null;
         }

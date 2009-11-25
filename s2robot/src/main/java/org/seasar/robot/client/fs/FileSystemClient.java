@@ -70,15 +70,18 @@ public class FileSystemClient extends AbstractS2RobotClient {
         uri = preprocessUri(uri);
         responseData.setUrl(uri);
 
-        String path = null;
+        File file = null;
         try {
-            path = new URI(uri).getPath();
+            file = new File(new URI(uri));
         } catch (URISyntaxException e) {
             logger.warn("Could not parse url: " + uri, e);
         }
 
-        File file = new File(decodeUri(path));
-        if (file.isFile()) {
+        if (file == null) {
+            responseData.setHttpStatusCode(404);
+            responseData.setCharSet(charset);
+            responseData.setContentLength(0);
+        } else if (file.isFile()) {
             MimeTypeHelper mimeTypeHelper = SingletonS2Container
                     .getComponent("mimeTypeHelper");
             InputStream is = null;
@@ -161,11 +164,15 @@ public class FileSystemClient extends AbstractS2RobotClient {
         try {
             StringBuilder buf = new StringBuilder(uri.length() + 100);
             for (char c : uri.toCharArray()) {
-                String str = String.valueOf(c);
-                if (StringUtils.isAsciiPrintable(str) && c != ' ') {
-                    buf.append(c);
+                if (c == ' ') {
+                    buf.append("%20");
                 } else {
-                    buf.append(URLEncoder.encode(str, charset));
+                    String str = String.valueOf(c);
+                    if (StringUtils.isAsciiPrintable(str)) {
+                        buf.append(c);
+                    } else {
+                        buf.append(URLEncoder.encode(str, charset));
+                    }
                 }
             }
             return buf.toString();
@@ -174,6 +181,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
         }
     }
 
+    @Deprecated
     protected String decodeUri(String uri) {
         if (StringUtil.isBlank(uri)) {
             return uri;

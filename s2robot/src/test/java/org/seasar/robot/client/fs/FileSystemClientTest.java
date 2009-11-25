@@ -88,14 +88,14 @@ public class FileSystemClientTest extends S2TestCase {
         if (!path.startsWith("/")) {
             path = "/" + path.replace('\\', '/');
         }
-        ResponseData responseData = fsClient.doGet("file:" + path);
+        ResponseData responseData = fsClient.doGet(path);
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
         assertEquals(6, responseData.getContentLength());
         assertNotNull(responseData.getLastModified());
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
-        assertTrue(responseData.getUrl().endsWith("test/text+3.txt"));
+        assertTrue(responseData.getUrl().endsWith("test/text%203.txt"));
         String content = new String(InputStreamUtil.getBytes(responseData
                 .getResponseBody()), "UTF-8");
         assertEquals("test3\n", content);
@@ -110,7 +110,7 @@ public class FileSystemClientTest extends S2TestCase {
         assertEquals(result, fsClient.preprocessUri(value));
 
         value = "file://test test.txt";
-        result = "file://test+test.txt";
+        result = "file://test%20test.txt";
         assertEquals(result, fsClient.preprocessUri(value));
 
         value = "file://テスト.txt";
@@ -119,6 +119,10 @@ public class FileSystemClientTest extends S2TestCase {
 
         value = "test.txt";
         result = "file://test.txt";
+        assertEquals(result, fsClient.preprocessUri(value));
+
+        value = "テスト.txt";
+        result = "file://%E3%83%86%E3%82%B9%E3%83%88.txt";
         assertEquals(result, fsClient.preprocessUri(value));
     }
 

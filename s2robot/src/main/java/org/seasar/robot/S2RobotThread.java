@@ -222,7 +222,7 @@ public class S2RobotThread implements Runnable {
                     } catch (RobotCrawlAccessException e) {
                         log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION,
                                 robotContext, urlQueue, e);
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         log(logHelper, LogType.CRAWLING_EXCETPION,
                                 robotContext, urlQueue, e);
                     } finally {

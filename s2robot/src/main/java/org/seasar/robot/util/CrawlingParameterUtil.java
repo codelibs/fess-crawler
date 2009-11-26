@@ -25,59 +25,79 @@ import org.seasar.robot.service.UrlQueueService;
  *
  */
 public class CrawlingParameterUtil {
-    private static ThreadLocal<UrlQueue> urlQueueThreadLocal = new ThreadLocal<UrlQueue>();
+    private static final ThreadLocal<UrlQueue> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<UrlQueue>();
 
-    private static ThreadLocal<S2RobotContext> robotContextThreadLocal = new ThreadLocal<S2RobotContext>();
+    private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL = new ThreadLocal<S2RobotContext>();
 
-    private static ThreadLocal<UrlQueueService> urlQueueServiceThreadLocal = new ThreadLocal<UrlQueueService>();
+    private static final ThreadLocal<UrlQueueService> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<UrlQueueService>();
 
-    private static ThreadLocal<DataService> dataServiceThreadLocal = new ThreadLocal<DataService>();
+    private static final ThreadLocal<DataService> DATA_SERVICE_THREAD_LOCAL = new ThreadLocal<DataService>();
 
     public static UrlQueue getUrlQueue() {
-        return urlQueueThreadLocal.get();
+        if (URL_QUEUE_THREAD_LOCAL != null) {
+            return URL_QUEUE_THREAD_LOCAL.get();
+        }
+        return null;
     }
 
     public static void setUrlQueue(UrlQueue urlQueue) {
-        if (urlQueue != null) {
-            urlQueueThreadLocal.set(urlQueue);
-        } else {
-            urlQueueThreadLocal.remove();
+        if (URL_QUEUE_THREAD_LOCAL != null) {
+            if (urlQueue != null) {
+                URL_QUEUE_THREAD_LOCAL.set(urlQueue);
+            } else {
+                URL_QUEUE_THREAD_LOCAL.remove();
+            }
         }
     }
 
     public static S2RobotContext getRobotContext() {
-        return robotContextThreadLocal.get();
+        if (ROBOT_CONTEXT_THREAD_LOCAL != null) {
+            return ROBOT_CONTEXT_THREAD_LOCAL.get();
+        }
+        return null;
     }
 
     public static void setRobotContext(S2RobotContext robotContext) {
-        if (robotContext != null) {
-            robotContextThreadLocal.set(robotContext);
-        } else {
-            robotContextThreadLocal.remove();
+        if (ROBOT_CONTEXT_THREAD_LOCAL != null) {
+            if (robotContext != null) {
+                ROBOT_CONTEXT_THREAD_LOCAL.set(robotContext);
+            } else {
+                ROBOT_CONTEXT_THREAD_LOCAL.remove();
+            }
         }
     }
 
     public static UrlQueueService getUrlQueueService() {
-        return urlQueueServiceThreadLocal.get();
+        if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
+            return URL_QUEUE_SERVICE_THREAD_LOCAL.get();
+        }
+        return null;
     }
 
     public static void setUrlQueueService(UrlQueueService urlQueueService) {
-        if (urlQueueService != null) {
-            urlQueueServiceThreadLocal.set(urlQueueService);
-        } else {
-            urlQueueServiceThreadLocal.remove();
+        if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
+            if (urlQueueService != null) {
+                URL_QUEUE_SERVICE_THREAD_LOCAL.set(urlQueueService);
+            } else {
+                URL_QUEUE_SERVICE_THREAD_LOCAL.remove();
+            }
         }
     }
 
     public static DataService getDataService() {
-        return dataServiceThreadLocal.get();
+        if (DATA_SERVICE_THREAD_LOCAL != null) {
+            return DATA_SERVICE_THREAD_LOCAL.get();
+        }
+        return null;
     }
 
     public static void setDataService(DataService dataService) {
-        if (dataService != null) {
-            dataServiceThreadLocal.set(dataService);
-        } else {
-            dataServiceThreadLocal.remove();
+        if (DATA_SERVICE_THREAD_LOCAL != null) {
+            if (dataService != null) {
+                DATA_SERVICE_THREAD_LOCAL.set(dataService);
+            } else {
+                DATA_SERVICE_THREAD_LOCAL.remove();
+            }
         }
     }
 

@@ -90,7 +90,7 @@
           <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.1.118</version>
+            <version>1.2.124</version>
           </dependency>
         </dependencies>
         <configuration>
@@ -179,7 +179,7 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.1.118</version>
+      <version>1.2.124</version>
     </dependency>
     <dependency>
       <groupId>org.seasar.robot</groupId>

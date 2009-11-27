@@ -108,10 +108,12 @@ public class S2Robot implements Runnable {
     }
 
     public void awaitTermination(long millis) {
-        try {
-            parentThread.join(millis);
-        } catch (InterruptedException e) {
-            logger.warn("Interrupted job at " + parentThread.getName());
+        if (parentThread != null) {
+            try {
+                parentThread.join(millis);
+            } catch (InterruptedException e) {
+                logger.warn("Interrupted job at " + parentThread.getName());
+            }
         }
     }
 

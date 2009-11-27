@@ -145,7 +145,7 @@ public class LogHelperImpl implements LogHelper {
         case CRAWLING_EXCETPION: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
             UrlQueue urlQueue = (UrlQueue) objs[1];
-            Exception e = (Exception) objs[2];
+            Throwable e = (Throwable) objs[2];
             logger.error("Crawling Exception at " + urlQueue.getUrl(), e);
             break;
         }

@@ -29,17 +29,17 @@
 
     <!-- Service -->
 	<component name="urlQueueService" class="org.seasar.robot.service.impl.DBUrlQueueServiceImpl" instance="prototype" >
-		<aspect pointcut="add,insert.*,delete.*,offer.*,poll.*,save.*,generate.*,update.*,visited">
+		<aspect pointcut="poll,visited,add,delete,deleteAll,generateUrlQueues,insert,offerAll,saveSession,updateSessionId">
 			s2robot_j2ee.requiredTx
 		</aspect>
 	</component>
 	<component name="dataService" class="org.seasar.robot.service.impl.DBDataServiceImpl" instance="prototype" >
-		<aspect pointcut="store.*,get.*,delete.*,iterate.*,update.*">
+		<aspect pointcut="getAccessResult,getAccessResultList,getCount,delete,deleteAll,iterate,iterateUrlDiff,store,update">
 			s2robot_j2ee.requiredTx
 		</aspect>
 	</component>
 	<component name="urlFilterService" class="org.seasar.robot.service.impl.DBUrlFilterServiceImpl" instance="prototype" >
-		<aspect pointcut="add.*,delete.*,get.*">
+		<aspect pointcut="getExcludeUrlPatternList,getIncludeUrlPatternList,addExcludeUrlFilter,addIncludeUrlFilter,delete,deleteAll">
 			s2robot_j2ee.requiredTx
 		</aspect>
 	</component>

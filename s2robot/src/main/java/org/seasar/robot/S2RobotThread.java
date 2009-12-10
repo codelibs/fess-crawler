@@ -146,34 +146,8 @@ public class S2RobotThread implements Runnable {
                                     .delay(IntervalController.PRE_PROCESSING);
                         }
 
-                        boolean contentUpdated = true;
-                        if (urlQueue.getLastModified() != null) {
-                            log(logHelper, LogType.CHECK_LAST_MODIFIED,
-                                    robotContext, urlQueue);
-                            long startTime = System.currentTimeMillis();
-                            //  head method
-                            responseData = client.doHead(urlQueue.getUrl());
-                            if (responseData != null
-                                    && responseData.getLastModified().getTime() <= urlQueue
-                                            .getLastModified().getTime()
-                                    && responseData.getHttpStatusCode() == 200) {
-                                log(logHelper, LogType.NOT_MODIFIED,
-                                        robotContext, urlQueue);
-
-                                responseData.setExecutionTime(System
-                                        .currentTimeMillis()
-                                        - startTime);
-                                responseData.setParentUrl(urlQueue
-                                        .getParentUrl());
-                                responseData
-                                        .setSessionId(robotContext.sessionId);
-                                responseData
-                                        .setStatus(Constants.NOT_MODIFIED_STATUS);
-                                processResponse(urlQueue, responseData);
-
-                                contentUpdated = false;
-                            }
-                        }
+                        boolean contentUpdated = isContentUpdated(client,
+                                urlQueue, responseData);
 
                         if (contentUpdated) {
                             log(logHelper, LogType.GET_CONTENT, robotContext,
@@ -269,6 +243,32 @@ public class S2RobotThread implements Runnable {
 
     protected S2RobotClient getClient(String url) {
         return clientFactory.getClient(url);
+    }
+
+    protected boolean isContentUpdated(S2RobotClient client, UrlQueue urlQueue,
+            ResponseData responseData) {
+        if (urlQueue.getLastModified() != null) {
+            log(logHelper, LogType.CHECK_LAST_MODIFIED, robotContext, urlQueue);
+            long startTime = System.currentTimeMillis();
+            //  head method
+            responseData = client.doHead(urlQueue.getUrl());
+            if (responseData != null
+                    && responseData.getLastModified().getTime() <= urlQueue
+                            .getLastModified().getTime()
+                    && responseData.getHttpStatusCode() == 200) {
+                log(logHelper, LogType.NOT_MODIFIED, robotContext, urlQueue);
+
+                responseData.setExecutionTime(System.currentTimeMillis()
+                        - startTime);
+                responseData.setParentUrl(urlQueue.getParentUrl());
+                responseData.setSessionId(robotContext.sessionId);
+                responseData.setStatus(Constants.NOT_MODIFIED_STATUS);
+                processResponse(urlQueue, responseData);
+
+                return false;
+            }
+        }
+        return true;
     }
 
     protected void processResponse(UrlQueue urlQueue, ResponseData responseData) {

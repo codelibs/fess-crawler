@@ -41,7 +41,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean {
     //                                                                         ===========
     public BsAccessResultPmb() {
     }
-    
+
     // ===================================================================================
     //                                                                       Safety Result
     //                                                                       =============
@@ -91,12 +91,15 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean {
         sb.append(xbuildColumnString());
         return sb.toString();
     }
+
     private String xbuildColumnString() {
         final String delimiter = ",";
         final StringBuilder sb = new StringBuilder();
         sb.append(delimiter).append(_newSessionId);
         sb.append(delimiter).append(_oldSessionId);
-        if (sb.length() > 0) { sb.delete(0, delimiter.length()); }
+        if (sb.length() > 0) {
+            sb.delete(0, delimiter.length());
+        }
         sb.insert(0, "{").append("}");
         return sb.toString();
     }
@@ -109,7 +112,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean {
      * @return The value of newSessionId. (Nullable & NotEmptyString: if the value is empty string, returns null)
      */
     public String getNewSessionId() {
-        return (String)convertEmptyToNullIfString(_newSessionId);
+        return (String) convertEmptyToNullIfString(_newSessionId);
     }
 
     /**
@@ -125,7 +128,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean {
      * @return The value of oldSessionId. (Nullable & NotEmptyString: if the value is empty string, returns null)
      */
     public String getOldSessionId() {
-        return (String)convertEmptyToNullIfString(_oldSessionId);
+        return (String) convertEmptyToNullIfString(_oldSessionId);
     }
 
     /**

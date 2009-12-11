@@ -16,12 +16,12 @@
 package org.seasar.robot.db.bsentity;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Set;
 
-import org.seasar.robot.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
-import org.seasar.robot.db.exentity.*;
+import org.seasar.robot.db.exentity.AccessResult;
+import org.seasar.robot.dbflute.Entity;
+import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
  * The entity of ACCESS_RESULT_DATA that is TABLE. <br />
@@ -75,7 +75,7 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     /** TRANSFORMER_NAME: {NotNull : VARCHAR(255)} */
     protected String _transformerName;
 
-    /** DATA: {BLOB(65535)} */
+    /** DATA: {LONGBLOB(2147483647)} */
     protected byte[] _data;
 
     /** ENCODING: {VARCHAR(20)} */
@@ -134,7 +134,9 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     //                                                                       Determination
     //                                                                       =============
     public boolean hasPrimaryKeyValue() {
-        if (_id == null) { return false; }
+        if (_id == null) {
+            return false;
+        }
         return true;
     }
 
@@ -166,14 +168,20 @@ public abstract class BsAccessResultData implements Entity, Serializable {
      * @return Comparing result.
      */
     public boolean equals(Object other) {
-        if (other == null || !(other instanceof BsAccessResultData)) { return false; }
-        BsAccessResultData otherEntity = (BsAccessResultData)other;
-        if (!helpComparingValue(getId(), otherEntity.getId())) { return false; }
+        if (other == null || !(other instanceof BsAccessResultData)) {
+            return false;
+        }
+        BsAccessResultData otherEntity = (BsAccessResultData) other;
+        if (!helpComparingValue(getId(), otherEntity.getId())) {
+            return false;
+        }
         return true;
     }
 
     protected boolean helpComparingValue(Object value1, Object value2) {
-        if (value1 == null && value2 == null) { return true; }
+        if (value1 == null && value2 == null) {
+            return true;
+        }
         return value1 != null && value2 != null && value1.equals(value2);
     }
 
@@ -183,7 +191,9 @@ public abstract class BsAccessResultData implements Entity, Serializable {
      */
     public int hashCode() {
         int result = 17;
-        if (getId() != null) { result = (31*result) + getId().hashCode(); }
+        if (getId() != null) {
+            result = (31 * result) + getId().hashCode();
+        }
         return result;
     }
 
@@ -201,10 +211,12 @@ public abstract class BsAccessResultData implements Entity, Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append(toString());
         String l = "\n  ";
-        if (_accessResult != null)
-        { sb.append(l).append(xbRDS(_accessResult, "accessResult")); }
+        if (_accessResult != null) {
+            sb.append(l).append(xbRDS(_accessResult, "accessResult"));
+        }
         return sb.toString();
     }
+
     private String xbRDS(Entity e, String name) { // buildRelationDisplayString()
         return e.buildDisplayString(name, true, true);
     }
@@ -215,14 +227,22 @@ public abstract class BsAccessResultData implements Entity, Serializable {
      * @param relation Does it contains relation existences or not?
      * @return The display string for this entity. (NotNull)
      */
-    public String buildDisplayString(String name, boolean column, boolean relation) {
+    public String buildDisplayString(String name, boolean column,
+            boolean relation) {
         StringBuilder sb = new StringBuilder();
-        if (name != null) { sb.append(name).append(column || relation ? ":" : ""); }
-        if (column) { sb.append(xbuildColumnString()); }
-        if (relation) { sb.append(xbuildRelationString()); }
+        if (name != null) {
+            sb.append(name).append(column || relation ? ":" : "");
+        }
+        if (column) {
+            sb.append(xbuildColumnString());
+        }
+        if (relation) {
+            sb.append(xbuildRelationString());
+        }
         sb.append("@").append(Integer.toHexString(hashCode()));
         return sb.toString();
     }
+
     private String xbuildColumnString() {
         String c = ",";
         StringBuilder sb = new StringBuilder();
@@ -230,15 +250,22 @@ public abstract class BsAccessResultData implements Entity, Serializable {
         sb.append(c).append(getTransformerName());
         sb.append(c).append(getData());
         sb.append(c).append(getEncoding());
-        if (sb.length() > 0) { sb.delete(0, c.length()); }
+        if (sb.length() > 0) {
+            sb.delete(0, c.length());
+        }
         sb.insert(0, "{").append("}");
         return sb.toString();
     }
+
     private String xbuildRelationString() {
         StringBuilder sb = new StringBuilder();
         String c = ",";
-        if (_accessResult != null) { sb.append(c).append("accessResult"); }
-        if (sb.length() > 0) { sb.delete(0, c.length()).insert(0, "(").append(")"); }
+        if (_accessResult != null) {
+            sb.append(c).append("accessResult");
+        }
+        if (sb.length() > 0) {
+            sb.delete(0, c.length()).insert(0, "(").append(")");
+        }
         return sb.toString();
     }
 
@@ -280,7 +307,7 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     /**
-     * DATA: {BLOB(65535)} <br />
+     * DATA: {LONGBLOB(2147483647)} <br />
      * @return The value of the column 'DATA'. (Nullable)
      */
     public byte[] getData() {
@@ -288,7 +315,7 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     /**
-     * DATA: {BLOB(65535)} <br />
+     * DATA: {LONGBLOB(2147483647)} <br />
      * @param data The value of the column 'DATA'. (Nullable)
      */
     public void setData(byte[] data) {

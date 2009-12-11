@@ -76,16 +76,27 @@ public class BsAccessResultDiffCursor {
     protected ResultSet _rs;
 
     protected ValueType _vtId = vt(Long.class);
+
     protected ValueType _vtSessionId = vt(String.class);
+
     protected ValueType _vtRuleId = vt(String.class);
+
     protected ValueType _vtUrl = vt(String.class);
+
     protected ValueType _vtParentUrl = vt(String.class);
+
     protected ValueType _vtStatus = vt(Integer.class);
+
     protected ValueType _vtHttpStatusCode = vt(Integer.class);
+
     protected ValueType _vtMethod = vt(String.class);
+
     protected ValueType _vtMimeType = vt(String.class);
+
     protected ValueType _vtContentLength = vt(Long.class);
+
     protected ValueType _vtExecutionTime = vt(Integer.class);
+
     protected ValueType _vtCreateTime = vt(java.sql.Timestamp.class);
 
     protected ValueType vt(Class<?> type) {
@@ -141,7 +152,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Long getId() throws SQLException {
-        return (Long)_vtId.getValue(_rs, DB_NAME_ID);
+        return (Long) _vtId.getValue(_rs, DB_NAME_ID);
     }
 
     /**
@@ -150,7 +161,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getSessionId() throws SQLException {
-        return (String)_vtSessionId.getValue(_rs, DB_NAME_SESSION_ID);
+        return (String) _vtSessionId.getValue(_rs, DB_NAME_SESSION_ID);
     }
 
     /**
@@ -159,7 +170,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getRuleId() throws SQLException {
-        return (String)_vtRuleId.getValue(_rs, DB_NAME_RULE_ID);
+        return (String) _vtRuleId.getValue(_rs, DB_NAME_RULE_ID);
     }
 
     /**
@@ -168,7 +179,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getUrl() throws SQLException {
-        return (String)_vtUrl.getValue(_rs, DB_NAME_URL);
+        return (String) _vtUrl.getValue(_rs, DB_NAME_URL);
     }
 
     /**
@@ -177,7 +188,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getParentUrl() throws SQLException {
-        return (String)_vtParentUrl.getValue(_rs, DB_NAME_PARENT_URL);
+        return (String) _vtParentUrl.getValue(_rs, DB_NAME_PARENT_URL);
     }
 
     /**
@@ -186,7 +197,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Integer getStatus() throws SQLException {
-        return (Integer)_vtStatus.getValue(_rs, DB_NAME_STATUS);
+        return (Integer) _vtStatus.getValue(_rs, DB_NAME_STATUS);
     }
 
     /**
@@ -195,7 +206,8 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Integer getHttpStatusCode() throws SQLException {
-        return (Integer)_vtHttpStatusCode.getValue(_rs, DB_NAME_HTTP_STATUS_CODE);
+        return (Integer) _vtHttpStatusCode.getValue(_rs,
+                DB_NAME_HTTP_STATUS_CODE);
     }
 
     /**
@@ -204,7 +216,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getMethod() throws SQLException {
-        return (String)_vtMethod.getValue(_rs, DB_NAME_METHOD);
+        return (String) _vtMethod.getValue(_rs, DB_NAME_METHOD);
     }
 
     /**
@@ -213,7 +225,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public String getMimeType() throws SQLException {
-        return (String)_vtMimeType.getValue(_rs, DB_NAME_MIME_TYPE);
+        return (String) _vtMimeType.getValue(_rs, DB_NAME_MIME_TYPE);
     }
 
     /**
@@ -222,7 +234,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Long getContentLength() throws SQLException {
-        return (Long)_vtContentLength.getValue(_rs, DB_NAME_CONTENT_LENGTH);
+        return (Long) _vtContentLength.getValue(_rs, DB_NAME_CONTENT_LENGTH);
     }
 
     /**
@@ -231,7 +243,7 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public Integer getExecutionTime() throws SQLException {
-        return (Integer)_vtExecutionTime.getValue(_rs, DB_NAME_EXECUTION_TIME);
+        return (Integer) _vtExecutionTime.getValue(_rs, DB_NAME_EXECUTION_TIME);
     }
 
     /**
@@ -240,7 +252,8 @@ public class BsAccessResultDiffCursor {
      * @throws java.sql.SQLException
      */
     public java.sql.Timestamp getCreateTime() throws SQLException {
-        return (java.sql.Timestamp)_vtCreateTime.getValue(_rs, DB_NAME_CREATE_TIME);
+        return (java.sql.Timestamp) _vtCreateTime.getValue(_rs,
+                DB_NAME_CREATE_TIME);
     }
 
 }

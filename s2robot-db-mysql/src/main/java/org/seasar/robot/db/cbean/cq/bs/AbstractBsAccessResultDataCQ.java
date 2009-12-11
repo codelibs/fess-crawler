@@ -17,22 +17,28 @@ package org.seasar.robot.db.cbean.cq.bs;
 
 import java.util.Collection;
 
-import org.seasar.robot.dbflute.cbean.*;
-import org.seasar.robot.dbflute.cbean.chelper.*;
-import org.seasar.robot.dbflute.cbean.ckey.*;
-import org.seasar.robot.dbflute.cbean.coption.*;
+import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
+import org.seasar.robot.db.cbean.AccessResultCB;
+import org.seasar.robot.db.cbean.AccessResultDataCB;
+import org.seasar.robot.db.cbean.cq.AccessResultCQ;
+import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
+import org.seasar.robot.dbflute.cbean.AbstractConditionQuery;
+import org.seasar.robot.dbflute.cbean.ConditionQuery;
+import org.seasar.robot.dbflute.cbean.SubQuery;
+import org.seasar.robot.dbflute.cbean.chelper.HpSSQFunction;
+import org.seasar.robot.dbflute.cbean.chelper.HpSSQSetupper;
+import org.seasar.robot.dbflute.cbean.ckey.ConditionKey;
+import org.seasar.robot.dbflute.cbean.coption.LikeSearchOption;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
-import org.seasar.robot.db.allcommon.*;
-import org.seasar.robot.db.cbean.*;
-import org.seasar.robot.db.cbean.cq.*;
 
 /**
  * The abstract condition-query of ACCESS_RESULT_DATA.
  * @author DBFlute(AutoGenerator)
  */
-public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuery {
+public abstract class AbstractBsAccessResultDataCQ extends
+        AbstractConditionQuery {
 
     // ===================================================================================
     //                                                                           Attribute
@@ -42,7 +48,8 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public AbstractBsAccessResultDataCQ(ConditionQuery childQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
+    public AbstractBsAccessResultDataCQ(ConditionQuery childQuery,
+            SqlClause sqlClause, String aliasName, int nestLevel) {
         super(childQuery, sqlClause, aliasName, nestLevel);
     }
 
@@ -60,7 +67,7 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
     public String getTableDbName() {
         return "ACCESS_RESULT_DATA";
     }
-    
+
     public String getTableSqlName() {
         return "ACCESS_RESULT_DATA";
     }
@@ -68,7 +75,7 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
     // ===================================================================================
     //                                                                               Query
     //                                                                               =====
-    
+
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. {PK : NotNull : BIGINT(19) : FK to ACCESS_RESULT}
      * @param id The value of id as equal.
@@ -135,23 +142,35 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
 
     public void inScopeAccessResult(SubQuery<AccessResultCB> subQuery) {
         assertObjectNotNull("subQuery<AccessResultCB>", subQuery);
-        AccessResultCB cb = new AccessResultCB(); cb.xsetupForInScopeSubQuery(); subQuery.query(cb);
-        String subQueryPropertyName = keepId_InScopeSubQuery_AccessResult(cb.query()); // for saving query-value.
+        AccessResultCB cb = new AccessResultCB();
+        cb.xsetupForInScopeSubQuery();
+        subQuery.query(cb);
+        String subQueryPropertyName = keepId_InScopeSubQuery_AccessResult(cb
+                .query()); // for saving query-value.
         registerInScopeSubQuery(cb.query(), "ID", "ID", subQueryPropertyName);
     }
-    public abstract String keepId_InScopeSubQuery_AccessResult(AccessResultCQ subQuery);
+
+    public abstract String keepId_InScopeSubQuery_AccessResult(
+            AccessResultCQ subQuery);
 
     /**
      * IsNull(is null). And OnlyOnceRegistered.
      */
-    public void setId_IsNull() { regId(CK_ISN, DOBJ); }
+    public void setId_IsNull() {
+        regId(CK_ISN, DOBJ);
+    }
 
     /**
      * IsNotNull(is not null). And OnlyOnceRegistered.
      */
-    public void setId_IsNotNull() { regId(CK_ISNN, DOBJ); }
+    public void setId_IsNotNull() {
+        regId(CK_ISNN, DOBJ);
+    }
 
-    protected void regId(ConditionKey k, Object v) { regQ(k, v, getCValueId(), "ID"); }
+    protected void regId(ConditionKey k, Object v) {
+        regQ(k, v, getCValueId(), "ID");
+    }
+
     abstract protected ConditionValue getCValueId();
 
     /**
@@ -222,16 +241,20 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
      * InScope(in ('a', 'b')). And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered.
      * @param transformerNameList The collection of transformerName as inScope.
      */
-    public void setTransformerName_InScope(Collection<String> transformerNameList) {
-        regINS(CK_INS, cTL(transformerNameList), getCValueTransformerName(), "TRANSFORMER_NAME");
+    public void setTransformerName_InScope(
+            Collection<String> transformerNameList) {
+        regINS(CK_INS, cTL(transformerNameList), getCValueTransformerName(),
+                "TRANSFORMER_NAME");
     }
 
     /**
      * NotInScope(not in ('a', 'b')). And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered.
      * @param transformerNameList The collection of transformerName as notInScope.
      */
-    public void setTransformerName_NotInScope(Collection<String> transformerNameList) {
-        regINS(CK_NINS, cTL(transformerNameList), getCValueTransformerName(), "TRANSFORMER_NAME");
+    public void setTransformerName_NotInScope(
+            Collection<String> transformerNameList) {
+        regINS(CK_NINS, cTL(transformerNameList), getCValueTransformerName(),
+                "TRANSFORMER_NAME");
     }
 
     /**
@@ -239,8 +262,10 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
      * @param transformerName The value of transformerName as likeSearch.
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setTransformerName_LikeSearch(String transformerName, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(transformerName), getCValueTransformerName(), "TRANSFORMER_NAME", likeSearchOption);
+    public void setTransformerName_LikeSearch(String transformerName,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(transformerName), getCValueTransformerName(),
+                "TRANSFORMER_NAME", likeSearchOption);
     }
 
     /**
@@ -248,24 +273,36 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
      * @param transformerName The value of transformerName as notLikeSearch.
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setTransformerName_NotLikeSearch(String transformerName, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(transformerName), getCValueTransformerName(), "TRANSFORMER_NAME", likeSearchOption);
+    public void setTransformerName_NotLikeSearch(String transformerName,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(transformerName), getCValueTransformerName(),
+                "TRANSFORMER_NAME", likeSearchOption);
     }
 
-    protected void regTransformerName(ConditionKey k, Object v) { regQ(k, v, getCValueTransformerName(), "TRANSFORMER_NAME"); }
+    protected void regTransformerName(ConditionKey k, Object v) {
+        regQ(k, v, getCValueTransformerName(), "TRANSFORMER_NAME");
+    }
+
     abstract protected ConditionValue getCValueTransformerName();
 
     /**
      * IsNull(is null). And OnlyOnceRegistered.
      */
-    public void setData_IsNull() { regData(CK_ISN, DOBJ); }
+    public void setData_IsNull() {
+        regData(CK_ISN, DOBJ);
+    }
 
     /**
      * IsNotNull(is not null). And OnlyOnceRegistered.
      */
-    public void setData_IsNotNull() { regData(CK_ISNN, DOBJ); }
+    public void setData_IsNotNull() {
+        regData(CK_ISNN, DOBJ);
+    }
 
-    protected void regData(ConditionKey k, Object v) { regQ(k, v, getCValueData(), "DATA"); }
+    protected void regData(ConditionKey k, Object v) {
+        regQ(k, v, getCValueData(), "DATA");
+    }
+
     abstract protected ConditionValue getCValueData();
 
     /**
@@ -353,8 +390,10 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
      * @param encoding The value of encoding as likeSearch.
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setEncoding_LikeSearch(String encoding, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(encoding), getCValueEncoding(), "ENCODING", likeSearchOption);
+    public void setEncoding_LikeSearch(String encoding,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(encoding), getCValueEncoding(), "ENCODING",
+                likeSearchOption);
     }
 
     /**
@@ -362,21 +401,30 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
      * @param encoding The value of encoding as notLikeSearch.
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setEncoding_NotLikeSearch(String encoding, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(encoding), getCValueEncoding(), "ENCODING", likeSearchOption);
+    public void setEncoding_NotLikeSearch(String encoding,
+            LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(encoding), getCValueEncoding(), "ENCODING",
+                likeSearchOption);
     }
 
     /**
      * IsNull(is null). And OnlyOnceRegistered.
      */
-    public void setEncoding_IsNull() { regEncoding(CK_ISN, DOBJ); }
+    public void setEncoding_IsNull() {
+        regEncoding(CK_ISN, DOBJ);
+    }
 
     /**
      * IsNotNull(is not null). And OnlyOnceRegistered.
      */
-    public void setEncoding_IsNotNull() { regEncoding(CK_ISNN, DOBJ); }
+    public void setEncoding_IsNotNull() {
+        regEncoding(CK_ISNN, DOBJ);
+    }
 
-    protected void regEncoding(ConditionKey k, Object v) { regQ(k, v, getCValueEncoding(), "ENCODING"); }
+    protected void regEncoding(ConditionKey k, Object v) {
+        regQ(k, v, getCValueEncoding(), "ENCODING");
+    }
+
     abstract protected ConditionValue getCValueEncoding();
 
     // ===================================================================================
@@ -397,25 +445,33 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
     public HpSSQFunction<AccessResultDataCB> scalar_LessEqual() {
         return xcreateSSQFunction("<=");
     }
-    
+
     public HpSSQFunction<AccessResultDataCB> scalar_LessThan() {
         return xcreateSSQFunction("<");
     }
-    
-    protected HpSSQFunction<AccessResultDataCB> xcreateSSQFunction(final String operand) {
-        return new HpSSQFunction<AccessResultDataCB>(new HpSSQSetupper<AccessResultDataCB>() {
-            public void setup(String function, SubQuery<AccessResultDataCB> subQuery) {
-                xscalarSubQuery(function, subQuery, operand);
-            }
-        });
+
+    protected HpSSQFunction<AccessResultDataCB> xcreateSSQFunction(
+            final String operand) {
+        return new HpSSQFunction<AccessResultDataCB>(
+                new HpSSQSetupper<AccessResultDataCB>() {
+                    public void setup(String function,
+                            SubQuery<AccessResultDataCB> subQuery) {
+                        xscalarSubQuery(function, subQuery, operand);
+                    }
+                });
     }
 
-    protected void xscalarSubQuery(String function, SubQuery<AccessResultDataCB> subQuery, String operand) {
+    protected void xscalarSubQuery(String function,
+            SubQuery<AccessResultDataCB> subQuery, String operand) {
         assertObjectNotNull("subQuery<AccessResultDataCB>", subQuery);
-        AccessResultDataCB cb = new AccessResultDataCB(); cb.xsetupForScalarSubQuery(); subQuery.query(cb);
+        AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForScalarSubQuery();
+        subQuery.query(cb);
         String subQueryPropertyName = keepScalarSubQuery(cb.query()); // for saving query-value.
-        registerScalarSubQuery(function, cb.query(), subQueryPropertyName, operand);
+        registerScalarSubQuery(function, cb.query(), subQueryPropertyName,
+                operand);
     }
+
     public abstract String keepScalarSubQuery(AccessResultDataCQ subQuery);
 
     // ===================================================================================
@@ -427,18 +483,32 @@ public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuer
      */
     public void myselfInScope(SubQuery<AccessResultDataCB> subQuery) {
         assertObjectNotNull("subQuery<AccessResultDataCB>", subQuery);
-        AccessResultDataCB cb = new AccessResultDataCB(); cb.xsetupForInScopeSubQuery(); subQuery.query(cb);
+        AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForInScopeSubQuery();
+        subQuery.query(cb);
         String subQueryPropertyName = keepMyselfInScopeSubQuery(cb.query()); // for saving query-value.
         registerInScopeSubQuery(cb.query(), "ID", "ID", subQueryPropertyName);
     }
+
     public abstract String keepMyselfInScopeSubQuery(AccessResultDataCQ subQuery);
 
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
     // Very Internal (for Suppressing Warn about 'Not Use Import')
-    String xCB() { return AccessResultDataCB.class.getName(); }
-    String xCQ() { return AccessResultDataCQ.class.getName(); }
-    String xLSO() { return LikeSearchOption.class.getName(); }
-    String xSSQS() { return HpSSQSetupper.class.getName(); }
+    String xCB() {
+        return AccessResultDataCB.class.getName();
+    }
+
+    String xCQ() {
+        return AccessResultDataCQ.class.getName();
+    }
+
+    String xLSO() {
+        return LikeSearchOption.class.getName();
+    }
+
+    String xSSQS() {
+        return HpSSQSetupper.class.getName();
+    }
 }

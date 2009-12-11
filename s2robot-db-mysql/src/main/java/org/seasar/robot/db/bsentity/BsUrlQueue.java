@@ -16,11 +16,11 @@
 package org.seasar.robot.db.bsentity;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Set;
 
-import org.seasar.robot.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
+import org.seasar.robot.dbflute.Entity;
+import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
  * The entity of URL_QUEUE that is TABLE. <br />
@@ -126,7 +126,9 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     //                                                                       Determination
     //                                                                       =============
     public boolean hasPrimaryKeyValue() {
-        if (_id == null) { return false; }
+        if (_id == null) {
+            return false;
+        }
         return true;
     }
 
@@ -158,14 +160,20 @@ public abstract class BsUrlQueue implements Entity, Serializable {
      * @return Comparing result.
      */
     public boolean equals(Object other) {
-        if (other == null || !(other instanceof BsUrlQueue)) { return false; }
-        BsUrlQueue otherEntity = (BsUrlQueue)other;
-        if (!helpComparingValue(getId(), otherEntity.getId())) { return false; }
+        if (other == null || !(other instanceof BsUrlQueue)) {
+            return false;
+        }
+        BsUrlQueue otherEntity = (BsUrlQueue) other;
+        if (!helpComparingValue(getId(), otherEntity.getId())) {
+            return false;
+        }
         return true;
     }
 
     protected boolean helpComparingValue(Object value1, Object value2) {
-        if (value1 == null && value2 == null) { return true; }
+        if (value1 == null && value2 == null) {
+            return true;
+        }
         return value1 != null && value2 != null && value1.equals(value2);
     }
 
@@ -175,7 +183,9 @@ public abstract class BsUrlQueue implements Entity, Serializable {
      */
     public int hashCode() {
         int result = 17;
-        if (getId() != null) { result = (31*result) + getId().hashCode(); }
+        if (getId() != null) {
+            result = (31 * result) + getId().hashCode();
+        }
         return result;
     }
 
@@ -201,14 +211,22 @@ public abstract class BsUrlQueue implements Entity, Serializable {
      * @param relation Does it contains relation existences or not?
      * @return The display string for this entity. (NotNull)
      */
-    public String buildDisplayString(String name, boolean column, boolean relation) {
+    public String buildDisplayString(String name, boolean column,
+            boolean relation) {
         StringBuilder sb = new StringBuilder();
-        if (name != null) { sb.append(name).append(column || relation ? ":" : ""); }
-        if (column) { sb.append(xbuildColumnString()); }
-        if (relation) { sb.append(xbuildRelationString()); }
+        if (name != null) {
+            sb.append(name).append(column || relation ? ":" : "");
+        }
+        if (column) {
+            sb.append(xbuildColumnString());
+        }
+        if (relation) {
+            sb.append(xbuildRelationString());
+        }
         sb.append("@").append(Integer.toHexString(hashCode()));
         return sb.toString();
     }
+
     private String xbuildColumnString() {
         String c = ",";
         StringBuilder sb = new StringBuilder();
@@ -220,10 +238,13 @@ public abstract class BsUrlQueue implements Entity, Serializable {
         sb.append(c).append(getDepth());
         sb.append(c).append(getLastModified());
         sb.append(c).append(getCreateTime());
-        if (sb.length() > 0) { sb.delete(0, c.length()); }
+        if (sb.length() > 0) {
+            sb.delete(0, c.length());
+        }
         sb.insert(0, "{").append("}");
         return sb.toString();
     }
+
     private String xbuildRelationString() {
         return "";
     }

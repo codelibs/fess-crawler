@@ -16,18 +16,17 @@
 package org.seasar.robot.db.allcommon;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.seasar.framework.container.ComponentNotFoundRuntimeException;
+import org.seasar.framework.container.S2Container;
 import org.seasar.robot.dbflute.BehaviorSelector;
 import org.seasar.robot.dbflute.bhv.BehaviorReadable;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.util.DfTraceViewUtil;
-
-import org.seasar.framework.container.S2Container;
-import org.seasar.framework.container.ComponentNotFoundRuntimeException;
 
 /**
  * The implementation of behavior selector.
@@ -39,7 +38,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     //                                                                          Definition
     //                                                                          ==========
     /** Log instance. */
-    private static final Log _log = LogFactory.getLog(ImplementedBehaviorSelector.class);
+    private static final Log _log = LogFactory
+            .getLog(ImplementedBehaviorSelector.class);
 
     // ===================================================================================
     //                                                                           Attribute
@@ -58,18 +58,19 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
         assertObjectNotNull("componentType", componentType);
         assertObjectNotNull("_container", _container);
         try {
-		    return (COMPONENT)_container.getComponent(componentType);
-		} catch (ComponentNotFoundRuntimeException e) { // Normally it doesn't come.
-		    final COMPONENT component;
-		    try {
-		        // for HotDeploy Mode
-		        component = (COMPONENT)_container.getRoot().getComponent(componentType);
-		    } catch (ComponentNotFoundRuntimeException ignored) {
-		        throw e;
-		    }
-		    _container = _container.getRoot(); // Change container.
-		    return component;
-		}
+            return (COMPONENT) _container.getComponent(componentType);
+        } catch (ComponentNotFoundRuntimeException e) { // Normally it doesn't come.
+            final COMPONENT component;
+            try {
+                // for HotDeploy Mode
+                component = (COMPONENT) _container.getRoot().getComponent(
+                        componentType);
+            } catch (ComponentNotFoundRuntimeException ignored) {
+                throw e;
+            }
+            _container = _container.getRoot(); // Change container.
+            return component;
+        }
     }
 
     // ===================================================================================
@@ -79,12 +80,14 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      * Initialize condition-bean meta data. <br />
      */
     public void initializeConditionBeanMetaData() {
-        final Map<String, DBMeta> dbmetaMap = DBMetaInstanceHandler.getUnmodifiableDBMetaMap();
+        final Map<String, DBMeta> dbmetaMap = DBMetaInstanceHandler
+                .getUnmodifiableDBMetaMap();
         final Collection<DBMeta> dbmetas = dbmetaMap.values();
         long before = 0;
         if (_log.isInfoEnabled()) {
             before = System.currentTimeMillis();
-            _log.info("/= = = = = = = = = = = = = = = = = initializeConditionBeanMetaData()");
+            _log
+                    .info("/= = = = = = = = = = = = = = = = = initializeConditionBeanMetaData()");
         }
         for (DBMeta dbmeta : dbmetas) {
             final BehaviorReadable bhv = byName(dbmeta.getTableDbName());
@@ -93,7 +96,9 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
         if (_log.isInfoEnabled()) {
             long after = System.currentTimeMillis();
             _log.info("Initialized Count: " + dbmetas.size());
-            _log.info("= = = = = = = = = =/ [" + DfTraceViewUtil.convertToPerformanceView(after - before) + "]");
+            _log.info("= = = = = = = = = =/ ["
+                    + DfTraceViewUtil.convertToPerformanceView(after - before)
+                    + "]");
         }
     }
 
@@ -107,7 +112,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      * @return Behavior. (NotNull)
      */
     @SuppressWarnings("unchecked")
-    public <BEHAVIOR extends BehaviorReadable> BEHAVIOR select(Class<BEHAVIOR> behaviorType) {
+    public <BEHAVIOR extends BehaviorReadable> BEHAVIOR select(
+            Class<BEHAVIOR> behaviorType) {
         BEHAVIOR bhv = (BEHAVIOR) _behaviorCache.get(behaviorType);
         if (bhv != null) {
             return bhv;
@@ -129,8 +135,10 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      * @return Behavior-readable. (NotNull)
      */
     public BehaviorReadable byName(String tableFlexibleName) {
-        assertStringNotNullAndNotTrimmedEmpty("tableFlexibleName", tableFlexibleName);
-        final DBMeta dbmeta = DBMetaInstanceHandler.findDBMeta(tableFlexibleName);
+        assertStringNotNullAndNotTrimmedEmpty("tableFlexibleName",
+                tableFlexibleName);
+        final DBMeta dbmeta = DBMetaInstanceHandler
+                .findDBMeta(tableFlexibleName);
         return select(getBehaviorType(dbmeta));
     }
 
@@ -143,14 +151,17 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     protected Class<BehaviorReadable> getBehaviorType(DBMeta dbmeta) {
         final String behaviorTypeName = dbmeta.getBehaviorTypeName();
         if (behaviorTypeName == null) {
-            String msg = "The dbmeta.getBehaviorTypeName() should not return null: dbmeta=" + dbmeta;
+            String msg = "The dbmeta.getBehaviorTypeName() should not return null: dbmeta="
+                    + dbmeta;
             throw new IllegalStateException(msg);
         }
         final Class<BehaviorReadable> behaviorType;
         try {
-            behaviorType = (Class<BehaviorReadable>) Class.forName(behaviorTypeName);
+            behaviorType = (Class<BehaviorReadable>) Class
+                    .forName(behaviorTypeName);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("The class does not exist: " + behaviorTypeName, e);
+            throw new RuntimeException("The class does not exist: "
+                    + behaviorTypeName, e);
         }
         return behaviorType;
     }
@@ -180,11 +191,13 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      */
     protected void assertObjectNotNull(String variableName, Object value) {
         if (variableName == null) {
-            String msg = "The value should not be null: variableName=null value=" + value;
+            String msg = "The value should not be null: variableName=null value="
+                    + value;
             throw new IllegalArgumentException(msg);
         }
         if (value == null) {
-            String msg = "The value should not be null: variableName=" + variableName;
+            String msg = "The value should not be null: variableName="
+                    + variableName;
             throw new IllegalArgumentException(msg);
         }
     }
@@ -197,11 +210,13 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      * @param variableName Variable name. (NotNull)
      * @param value Value. (NotNull)
      */
-    protected void assertStringNotNullAndNotTrimmedEmpty(String variableName, String value) {
+    protected void assertStringNotNullAndNotTrimmedEmpty(String variableName,
+            String value) {
         assertObjectNotNull("variableName", variableName);
         assertObjectNotNull("value", value);
         if (value.trim().length() == 0) {
-            String msg = "The value should not be empty: variableName=" + variableName + " value=" + value;
+            String msg = "The value should not be empty: variableName="
+                    + variableName + " value=" + value;
             throw new IllegalArgumentException(msg);
         }
     }

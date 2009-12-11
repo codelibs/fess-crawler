@@ -17,18 +17,20 @@ package org.seasar.robot.db.allcommon;
 
 import javax.sql.DataSource;
 
+import org.seasar.extension.jdbc.types.ValueTypes;
+import org.seasar.framework.util.Disposable;
+import org.seasar.framework.util.DisposableUtil;
 import org.seasar.robot.dbflute.DBDef;
 import org.seasar.robot.dbflute.bhv.core.BehaviorCommandInvoker;
 import org.seasar.robot.dbflute.bhv.core.InvokerAssistant;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseCreator;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
+import org.seasar.robot.dbflute.helper.beans.factory.DfBeanDescFactory;
 import org.seasar.robot.dbflute.jdbc.DataSourceHandler;
 import org.seasar.robot.dbflute.jdbc.HandlingDataSourceWrapper;
 import org.seasar.robot.dbflute.jdbc.StatementConfig;
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 import org.seasar.robot.dbflute.resource.ResourceParameter;
-import org.seasar.extension.jdbc.types.ValueTypes;
-import org.seasar.robot.dbflute.helper.beans.factory.DfBeanDescFactory;
 import org.seasar.robot.dbflute.s2dao.extension.TnBeanMetaDataFactoryExtension;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnStatementFactoryImpl;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaDataFactory;
@@ -36,9 +38,6 @@ import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypeFactory;
 import org.seasar.robot.dbflute.s2dao.valuetype.impl.TnValueTypeFactoryImpl;
 import org.seasar.robot.dbflute.twowaysql.SqlAnalyzer;
 import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
-
-import org.seasar.framework.util.Disposable;
-import org.seasar.framework.util.DisposableUtil;
 
 /**
  * @author DBFlute(AutoGenerator)
@@ -52,15 +51,20 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     //                                          DI component
     //                                          ------------
     protected BehaviorCommandInvoker _behaviorCommandInvoker;
+
     protected DataSource _dataSource;
 
     // -----------------------------------------------------
     //                                        Lazy component
     //                                        --------------
     protected volatile DBMetaProvider _dbmetaProvider;
+
     protected volatile SqlClauseCreator _sqlClauseCreator;
+
     protected volatile StatementFactory _statementFactory;
+
     protected volatile TnBeanMetaDataFactory _beanMetaDataFactory;
+
     protected volatile TnValueTypeFactory _valueTypeFactory;
 
     // -----------------------------------------------------
@@ -82,7 +86,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     //                                           Data Source
     //                                           -----------
     public DataSource assistDataSource() { // DI component
-        DataSourceHandler dataSourceHandler = DBFluteConfig.getInstance().getDataSourceHandler();
+        DataSourceHandler dataSourceHandler = DBFluteConfig.getInstance()
+                .getDataSourceHandler();
         if (dataSourceHandler != null) {
             return new HandlingDataSourceWrapper(_dataSource, dataSourceHandler);
         }
@@ -217,9 +222,12 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     //                                    ------------------
     public ResourceParameter assistResourceParameter() {
         ResourceParameter resourceParameter = new ResourceParameter();
-        resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance().getOutsideSqlPackage());
-        resourceParameter.setLogDateFormat(DBFluteConfig.getInstance().getLogDateFormat());
-        resourceParameter.setLogTimestampFormat(DBFluteConfig.getInstance().getLogTimestampFormat());
+        resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance()
+                .getOutsideSqlPackage());
+        resourceParameter.setLogDateFormat(DBFluteConfig.getInstance()
+                .getLogDateFormat());
+        resourceParameter.setLogTimestampFormat(DBFluteConfig.getInstance()
+                .getLogTimestampFormat());
         return resourceParameter;
     }
 
@@ -290,7 +298,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
-    public void setBehaviorCommandInvoker(BehaviorCommandInvoker behaviorCommandInvoker) {
+    public void setBehaviorCommandInvoker(
+            BehaviorCommandInvoker behaviorCommandInvoker) {
         _behaviorCommandInvoker = behaviorCommandInvoker;
     }
 

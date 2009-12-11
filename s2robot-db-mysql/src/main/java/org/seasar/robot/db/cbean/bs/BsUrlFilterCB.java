@@ -17,6 +17,12 @@ package org.seasar.robot.db.cbean.bs;
 
 import java.util.Map;
 
+import org.seasar.robot.db.allcommon.DBFluteConfig;
+import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
+import org.seasar.robot.db.allcommon.ImplementedInvokerAssistant;
+import org.seasar.robot.db.allcommon.ImplementedSqlClauseCreator;
+import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
 import org.seasar.robot.dbflute.cbean.AbstractConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
@@ -24,16 +30,13 @@ import org.seasar.robot.dbflute.cbean.OrQuery;
 import org.seasar.robot.dbflute.cbean.SpecifyQuery;
 import org.seasar.robot.dbflute.cbean.SubQuery;
 import org.seasar.robot.dbflute.cbean.UnionQuery;
-import org.seasar.robot.dbflute.cbean.chelper.*;
+import org.seasar.robot.dbflute.cbean.chelper.HpAbstractSpecification;
+import org.seasar.robot.dbflute.cbean.chelper.HpColQyHandler;
+import org.seasar.robot.dbflute.cbean.chelper.HpColQyOperand;
+import org.seasar.robot.dbflute.cbean.chelper.HpSpQyCall;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
 import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
-import org.seasar.robot.db.allcommon.DBFluteConfig;
-import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
-import org.seasar.robot.db.allcommon.ImplementedInvokerAssistant;
-import org.seasar.robot.db.allcommon.ImplementedSqlClauseCreator;
-import org.seasar.robot.db.cbean.*;
-import org.seasar.robot.db.cbean.cq.*;
 
 /**
  * The base condition-bean of URL_FILTER.
@@ -45,6 +48,7 @@ public class BsUrlFilterCB extends AbstractConditionBean {
     //                                                                           Attribute
     //                                                                           =========
     private final DBMetaProvider _dbmetaProvider = new DBMetaInstanceHandler();
+
     protected UrlFilterCQ _conditionQuery;
 
     // ===================================================================================
@@ -54,7 +58,7 @@ public class BsUrlFilterCB extends AbstractConditionBean {
     protected SqlClause createSqlClause() {
         return new ImplementedSqlClauseCreator().createSqlClause(this);
     }
-    
+
     // ===================================================================================
     //                                                                     DBMeta Provider
     //                                                                     ===============
@@ -82,9 +86,9 @@ public class BsUrlFilterCB extends AbstractConditionBean {
         {
             Object obj = primaryKeyMap.get("ID");
             if (obj instanceof Long) {
-                query().setId_Equal((Long)obj);
+                query().setId_Equal((Long) obj);
             } else {
-                query().setId_Equal(new Long((String)obj));
+                query().setId_Equal(new Long((String) obj));
             }
         }
 
@@ -112,7 +116,8 @@ public class BsUrlFilterCB extends AbstractConditionBean {
 
     public UrlFilterCQ getConditionQuery() {
         if (_conditionQuery == null) {
-            _conditionQuery = new UrlFilterCQ(null, getSqlClause(), getSqlClause().getLocalTableAliasName(), 0);
+            _conditionQuery = new UrlFilterCQ(null, getSqlClause(),
+                    getSqlClause().getLocalTableAliasName(), 0);
         }
         return _conditionQuery;
     }
@@ -140,8 +145,11 @@ public class BsUrlFilterCB extends AbstractConditionBean {
      */
     public void union(UnionQuery<UrlFilterCB> unionQuery) {
         final UrlFilterCB cb = new UrlFilterCB();
-        cb.xsetupForUnion(); xsyncUQ(cb); unionQuery.query(cb);
-        final UrlFilterCQ cq = cb.query(); query().xsetUnionQuery(cq);
+        cb.xsetupForUnion();
+        xsyncUQ(cb);
+        unionQuery.query(cb);
+        final UrlFilterCQ cq = cb.query();
+        query().xsetUnionQuery(cq);
     }
 
     /**
@@ -157,8 +165,11 @@ public class BsUrlFilterCB extends AbstractConditionBean {
      */
     public void unionAll(UnionQuery<UrlFilterCB> unionQuery) {
         final UrlFilterCB cb = new UrlFilterCB();
-        cb.xsetupForUnion(); xsyncUQ(cb); unionQuery.query(cb);
-        final UrlFilterCQ cq = cb.query(); query().xsetUnionAllQuery(cq);
+        cb.xsetupForUnion();
+        xsyncUQ(cb);
+        unionQuery.query(cb);
+        final UrlFilterCQ cq = cb.query();
+        query().xsetUnionAllQuery(cq);
     }
 
     // ===================================================================================
@@ -170,42 +181,81 @@ public class BsUrlFilterCB extends AbstractConditionBean {
     //                                                                             Specify
     //                                                                             =======
     protected HpSpecification _specification;
+
     public HpSpecification specify() {
-        if (_specification == null) { _specification = new HpSpecification(this
-            , new HpSpQyCall<UrlFilterCQ>() {
-                public boolean has() { return true; }
-                public UrlFilterCQ qy() { return query(); }
-            }
-            , _forDerivedReferrer, _forScalarSelect, _forScalarSubQuery, getDBMetaProvider()); }
+        if (_specification == null) {
+            _specification = new HpSpecification(this,
+                    new HpSpQyCall<UrlFilterCQ>() {
+                        public boolean has() {
+                            return true;
+                        }
+
+                        public UrlFilterCQ qy() {
+                            return query();
+                        }
+                    }, _forDerivedReferrer, _forScalarSelect,
+                    _forScalarSubQuery, getDBMetaProvider());
+        }
         return _specification;
     }
+
     protected HpAbstractSpecification<? extends ConditionQuery> localSp() {
         return specify();
     }
 
-    public static class HpSpecification extends HpAbstractSpecification<UrlFilterCQ> {
+    public static class HpSpecification extends
+            HpAbstractSpecification<UrlFilterCQ> {
         protected HpSpQyCall<UrlFilterCQ> _myQyCall;
-        public HpSpecification(ConditionBean baseCB, HpSpQyCall<UrlFilterCQ> qyCall
-                             , boolean forDeriveReferrer, boolean forScalarSelect, boolean forScalarSubQuery
-                             , DBMetaProvider dbmetaProvider)
-        { super(baseCB, qyCall, forDeriveReferrer, forScalarSelect, forScalarSubQuery, dbmetaProvider); _myQyCall = qyCall; }
+
+        public HpSpecification(ConditionBean baseCB,
+                HpSpQyCall<UrlFilterCQ> qyCall, boolean forDeriveReferrer,
+                boolean forScalarSelect, boolean forScalarSubQuery,
+                DBMetaProvider dbmetaProvider) {
+            super(baseCB, qyCall, forDeriveReferrer, forScalarSelect,
+                    forScalarSubQuery, dbmetaProvider);
+            _myQyCall = qyCall;
+        }
+
         /** ID: {PK : ID : NotNull : BIGINT(19)} */
-        public void columnId() { doColumn("ID"); }
+        public void columnId() {
+            doColumn("ID");
+        }
+
         /** SESSION_ID: {NotNull : VARCHAR(20)} */
-        public void columnSessionId() { doColumn("SESSION_ID"); }
+        public void columnSessionId() {
+            doColumn("SESSION_ID");
+        }
+
         /** URL: {NotNull : TEXT(65535)} */
-        public void columnUrl() { doColumn("URL"); }
+        public void columnUrl() {
+            doColumn("URL");
+        }
+
         /** FILTER_TYPE: {NotNull : VARCHAR(1)} */
-        public void columnFilterType() { doColumn("FILTER_TYPE"); }
+        public void columnFilterType() {
+            doColumn("FILTER_TYPE");
+        }
+
         /** CREATE_TIME: {NotNull : DATETIME(19)} */
-        public void columnCreateTime() { doColumn("CREATE_TIME"); }
+        public void columnCreateTime() {
+            doColumn("CREATE_TIME");
+        }
+
         protected void doSpecifyRequiredColumn() {
             columnId(); // PK
         }
-        protected String getTableDbName() { return "URL_FILTER"; }
 
-        public void xsetupForGeneralOneSpecification(HpSpQyCall<UrlFilterCQ> qyCall) {
-            if (qyCall != null) { _myQyCall = qyCall; _qyCall = qyCall; } _forGeneralOneSpecificaion = true;
+        protected String getTableDbName() {
+            return "URL_FILTER";
+        }
+
+        public void xsetupForGeneralOneSpecification(
+                HpSpQyCall<UrlFilterCQ> qyCall) {
+            if (qyCall != null) {
+                _myQyCall = qyCall;
+                _qyCall = qyCall;
+            }
+            _forGeneralOneSpecificaion = true;
         }
     }
 
@@ -217,17 +267,26 @@ public class BsUrlFilterCB extends AbstractConditionBean {
      * @param leftSpecifyQuery The specify-query for left column. (NotNull)
      * @return The object for setting up operand and right column. (NotNull)
      */
-    public HpColQyOperand<UrlFilterCB> columnQuery(final SpecifyQuery<UrlFilterCB> leftSpecifyQuery) {
-        return new HpColQyOperand<UrlFilterCB>(new HpColQyHandler<UrlFilterCB>() {
-            public void handle(SpecifyQuery<UrlFilterCB> rightSp, String operand) {
-                UrlFilterCB cb = new UrlFilterCB();
-                cb.specify().xsetupForGeneralOneSpecification(new HpSpQyCall<UrlFilterCQ>() {
-                    public boolean has() { return true; }
-                    public UrlFilterCQ qy() { return query(); }
+    public HpColQyOperand<UrlFilterCB> columnQuery(
+            final SpecifyQuery<UrlFilterCB> leftSpecifyQuery) {
+        return new HpColQyOperand<UrlFilterCB>(
+                new HpColQyHandler<UrlFilterCB>() {
+                    public void handle(SpecifyQuery<UrlFilterCB> rightSp,
+                            String operand) {
+                        UrlFilterCB cb = new UrlFilterCB();
+                        cb.specify().xsetupForGeneralOneSpecification(
+                                new HpSpQyCall<UrlFilterCQ>() {
+                                    public boolean has() {
+                                        return true;
+                                    }
+
+                                    public UrlFilterCQ qy() {
+                                        return query();
+                                    }
+                                });
+                        xcolqy(cb, leftSpecifyQuery, rightSp, operand);
+                    }
                 });
-                xcolqy(cb, leftSpecifyQuery, rightSp, operand);
-            }
-        });
     }
 
     // [DBFlute-0.9.5.5]
@@ -235,19 +294,26 @@ public class BsUrlFilterCB extends AbstractConditionBean {
     //                                                                             OrQuery
     //                                                                             =======
     public void orQuery(OrQuery<UrlFilterCB> orQuery) {
-        xorQ((UrlFilterCB)this, orQuery);
+        xorQ((UrlFilterCB) this, orQuery);
     }
 
     // ===================================================================================
     //                                                                          DisplaySQL
     //                                                                          ==========
     @Override
-    protected SqlAnalyzerFactory getSqlAnalyzerFactory()
-    { return new ImplementedInvokerAssistant().assistSqlAnalyzerFactory(); }
+    protected SqlAnalyzerFactory getSqlAnalyzerFactory() {
+        return new ImplementedInvokerAssistant().assistSqlAnalyzerFactory();
+    }
+
     @Override
-    protected String getLogDateFormat() { return DBFluteConfig.getInstance().getLogDateFormat(); }
+    protected String getLogDateFormat() {
+        return DBFluteConfig.getInstance().getLogDateFormat();
+    }
+
     @Override
-    protected String getLogTimestampFormat() { return DBFluteConfig.getInstance().getLogTimestampFormat(); }
+    protected String getLogTimestampFormat() {
+        return DBFluteConfig.getInstance().getLogTimestampFormat();
+    }
 
     // ===================================================================================
     //                                                          Basic Status Determination
@@ -260,7 +326,15 @@ public class BsUrlFilterCB extends AbstractConditionBean {
     //                                                                            Internal
     //                                                                            ========
     // Very Internal (for Suppressing Warn about 'Not Use Import')
-    protected String getConditionBeanClassNameInternally() { return UrlFilterCB.class.getName(); }
-    protected String getConditionQueryClassNameInternally() { return UrlFilterCQ.class.getName(); }
-    protected String getSubQueryClassNameInternally() { return SubQuery.class.getName(); }
+    protected String getConditionBeanClassNameInternally() {
+        return UrlFilterCB.class.getName();
+    }
+
+    protected String getConditionQueryClassNameInternally() {
+        return UrlFilterCQ.class.getName();
+    }
+
+    protected String getSubQueryClassNameInternally() {
+        return SubQuery.class.getName();
+    }
 }

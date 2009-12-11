@@ -17,8 +17,12 @@ package org.seasar.robot.db.bsbhv;
 
 import java.util.List;
 
-import org.seasar.robot.dbflute.*;
-import org.seasar.robot.dbflute.bhv.*;
+import org.seasar.robot.db.bsentity.dbmeta.AccessResultDbm;
+import org.seasar.robot.db.cbean.AccessResultCB;
+import org.seasar.robot.db.exentity.AccessResult;
+import org.seasar.robot.db.exentity.AccessResultData;
+import org.seasar.robot.dbflute.Entity;
+import org.seasar.robot.dbflute.bhv.AbstractBehaviorWritable;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.EntityRowHandler;
 import org.seasar.robot.dbflute.cbean.ListResultBean;
@@ -28,9 +32,6 @@ import org.seasar.robot.dbflute.cbean.PagingInvoker;
 import org.seasar.robot.dbflute.cbean.PagingResultBean;
 import org.seasar.robot.dbflute.cbean.ResultBeanBuilder;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.db.exentity.*;
-import org.seasar.robot.db.bsentity.dbmeta.*;
-import org.seasar.robot.db.cbean.*;
 
 /**
  * The behavior of ACCESS_RESULT that is TABLE. <br />
@@ -71,38 +72,54 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
     public static final String PATH_selectListByUrlDiff = "selectListByUrlDiff";
+
     public static final String PATH_deleteBySessionId = "deleteBySessionId";
+
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================
     //                                                                          Table name
     //                                                                          ==========
     /** @return The name on database of table. (NotNull) */
-    public String getTableDbName() { return "ACCESS_RESULT"; }
+    public String getTableDbName() {
+        return "ACCESS_RESULT";
+    }
 
     // ===================================================================================
     //                                                                              DBMeta
     //                                                                              ======
     /** @return The instance of DBMeta. (NotNull) */
-    public DBMeta getDBMeta() { return AccessResultDbm.getInstance(); }
+    public DBMeta getDBMeta() {
+        return AccessResultDbm.getInstance();
+    }
 
     /** @return The instance of DBMeta as my table type. (NotNull) */
-    public AccessResultDbm getMyDBMeta() { return AccessResultDbm.getInstance(); }
+    public AccessResultDbm getMyDBMeta() {
+        return AccessResultDbm.getInstance();
+    }
 
     // ===================================================================================
     //                                                                        New Instance
     //                                                                        ============
     /** {@inheritDoc} */
-    public Entity newEntity() { return newMyEntity(); }
+    public Entity newEntity() {
+        return newMyEntity();
+    }
 
     /** {@inheritDoc} */
-    public ConditionBean newConditionBean() { return newMyConditionBean(); }
+    public ConditionBean newConditionBean() {
+        return newMyConditionBean();
+    }
 
     /** @return The instance of new entity as my table type. (NotNull) */
-    public AccessResult newMyEntity() { return new AccessResult(); }
+    public AccessResult newMyEntity() {
+        return new AccessResult();
+    }
 
     /** @return The instance of new condition-bean as my table type. (NotNull) */
-    public AccessResultCB newMyConditionBean() { return new AccessResultCB(); }
+    public AccessResultCB newMyConditionBean() {
+        return new AccessResultCB();
+    }
 
     // ===================================================================================
     //                                                                        Count Select
@@ -131,8 +148,10 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @param cb The condition-bean of AccessResult. (NotNull)
      * @param entityRowHandler The handler of entity row of AccessResult. (NotNull)
      */
-    public void selectCursor(AccessResultCB cb, EntityRowHandler<AccessResult> entityRowHandler) {
-        assertCBNotNull(cb); assertObjectNotNull("entityRowHandler<AccessResult>", entityRowHandler);
+    public void selectCursor(AccessResultCB cb,
+            EntityRowHandler<AccessResult> entityRowHandler) {
+        assertCBNotNull(cb);
+        assertObjectNotNull("entityRowHandler<AccessResult>", entityRowHandler);
         delegateSelectCursor(cb, entityRowHandler);
     }
 
@@ -146,8 +165,14 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public AccessResult selectEntity(final AccessResultCB cb) {
-        return helpSelectEntityInternally(cb, new InternalSelectEntityCallback<AccessResult, AccessResultCB>() {
-            public List<AccessResult> callbackSelectList(AccessResultCB cb) { return selectList(cb); } });
+        return helpSelectEntityInternally(
+                cb,
+                new InternalSelectEntityCallback<AccessResult, AccessResultCB>() {
+                    public List<AccessResult> callbackSelectList(
+                            AccessResultCB cb) {
+                        return selectList(cb);
+                    }
+                });
     }
 
     @Override
@@ -163,8 +188,14 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public AccessResult selectEntityWithDeletedCheck(final AccessResultCB cb) {
-        return helpSelectEntityWithDeletedCheckInternally(cb, new InternalSelectEntityWithDeletedCheckCallback<AccessResult, AccessResultCB>() {
-            public List<AccessResult> callbackSelectList(AccessResultCB cb) { return selectList(cb); } });
+        return helpSelectEntityWithDeletedCheckInternally(
+                cb,
+                new InternalSelectEntityWithDeletedCheckCallback<AccessResult, AccessResultCB>() {
+                    public List<AccessResult> callbackSelectList(
+                            AccessResultCB cb) {
+                        return selectList(cb);
+                    }
+                });
     }
 
     @Override
@@ -210,7 +241,8 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      */
     public ListResultBean<AccessResult> selectList(AccessResultCB cb) {
         assertCBNotNull(cb);
-        return new ResultBeanBuilder<AccessResult>(getTableDbName()).buildListResultBean(cb, delegateSelectList(cb));
+        return new ResultBeanBuilder<AccessResult>(getTableDbName())
+                .buildListResultBean(cb, delegateSelectList(cb));
     }
 
     @Override
@@ -228,11 +260,20 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      */
     public PagingResultBean<AccessResult> selectPage(final AccessResultCB cb) {
         assertCBNotNull(cb);
-        final PagingInvoker<AccessResult> invoker = new PagingInvoker<AccessResult>(getTableDbName());
+        final PagingInvoker<AccessResult> invoker = new PagingInvoker<AccessResult>(
+                getTableDbName());
         final PagingHandler<AccessResult> handler = new PagingHandler<AccessResult>() {
-            public PagingBean getPagingBean() { return cb; }
-            public int count() { return selectCount(cb); }
-            public List<AccessResult> paging() { return selectList(cb); }
+            public PagingBean getPagingBean() {
+                return cb;
+            }
+
+            public int count() {
+                return selectCount(cb);
+            }
+
+            public List<AccessResult> paging() {
+                return selectList(cb);
+            }
         };
         return invoker.invokePaging(handler);
     }
@@ -258,12 +299,14 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @param resultType The type of result. (NotNull)
      * @return The scalar value derived by a function. (Nullable)
      */
-    public <RESULT> SLFunction<AccessResultCB, RESULT> scalarSelect(Class<RESULT> resultType) {
+    public <RESULT> SLFunction<AccessResultCB, RESULT> scalarSelect(
+            Class<RESULT> resultType) {
         AccessResultCB cb = newMyConditionBean();
         cb.xsetupForScalarSelect();
         cb.getSqlClause().disableSelectIndex(); // for when you use union
         return new SLFunction<AccessResultCB, RESULT>(cb, resultType);
     }
+
     // ===================================================================================
     //                                                                    Pull out Foreign
     //                                                                    ================
@@ -272,13 +315,25 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @param accessResultList The list of accessResult. (NotNull)
      * @return The list of referrer-as-one table. (NotNull)
      */
-    public List<AccessResultData> pulloutAccessResultDataAsOne(List<AccessResult> accessResultList) {
-        return helpPulloutInternally(accessResultList, new InternalPulloutCallback<AccessResult, AccessResultData>() {
-            public AccessResultData getFr(AccessResult e) { return e.getAccessResultDataAsOne(); }
-            public boolean hasRf() { return true; }
-            public void setRfLs(AccessResultData e, List<AccessResult> ls)
-            { if (!ls.isEmpty()) { e.setAccessResult(ls.get(0)); } }
-        });
+    public List<AccessResultData> pulloutAccessResultDataAsOne(
+            List<AccessResult> accessResultList) {
+        return helpPulloutInternally(accessResultList,
+                new InternalPulloutCallback<AccessResult, AccessResultData>() {
+                    public AccessResultData getFr(AccessResult e) {
+                        return e.getAccessResultDataAsOne();
+                    }
+
+                    public boolean hasRf() {
+                        return true;
+                    }
+
+                    public void setRfLs(AccessResultData e,
+                            List<AccessResult> ls) {
+                        if (!ls.isEmpty()) {
+                            e.setAccessResult(ls.get(0));
+                        }
+                    }
+                });
     }
 
     // ===================================================================================
@@ -307,8 +362,12 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
     public void update(final AccessResult accessResult) {
-        helpUpdateInternally(accessResult, new InternalUpdateCallback<AccessResult>() {
-            public int callbackDelegateUpdate(AccessResult entity) { return delegateUpdate(entity); } });
+        helpUpdateInternally(accessResult,
+                new InternalUpdateCallback<AccessResult>() {
+                    public int callbackDelegateUpdate(AccessResult entity) {
+                        return delegateUpdate(entity);
+                    }
+                });
     }
 
     @Override
@@ -329,12 +388,25 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
     public void insertOrUpdate(final AccessResult accessResult) {
-        helpInsertOrUpdateInternally(accessResult, new InternalInsertOrUpdateCallback<AccessResult, AccessResultCB>() {
-            public void callbackInsert(AccessResult entity) { insert(entity); }
-            public void callbackUpdate(AccessResult entity) { update(entity); }
-            public AccessResultCB callbackNewMyConditionBean() { return newMyConditionBean(); }
-            public int callbackSelectCount(AccessResultCB cb) { return selectCount(cb); }
-        });
+        helpInsertOrUpdateInternally(
+                accessResult,
+                new InternalInsertOrUpdateCallback<AccessResult, AccessResultCB>() {
+                    public void callbackInsert(AccessResult entity) {
+                        insert(entity);
+                    }
+
+                    public void callbackUpdate(AccessResult entity) {
+                        update(entity);
+                    }
+
+                    public AccessResultCB callbackNewMyConditionBean() {
+                        return newMyConditionBean();
+                    }
+
+                    public int callbackSelectCount(AccessResultCB cb) {
+                        return selectCount(cb);
+                    }
+                });
     }
 
     @Override
@@ -354,8 +426,12 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public void delete(AccessResult accessResult) {
-        helpDeleteInternally(accessResult, new InternalDeleteCallback<AccessResult>() {
-            public int callbackDelegateDelete(AccessResult entity) { return delegateDelete(entity); } });
+        helpDeleteInternally(accessResult,
+                new InternalDeleteCallback<AccessResult>() {
+                    public int callbackDelegateDelete(AccessResult entity) {
+                        return delegateDelete(entity);
+                    }
+                });
     }
 
     @Override
@@ -410,9 +486,11 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
      * @return The updated count.
      */
     public int queryUpdate(AccessResult accessResult, AccessResultCB cb) {
-        assertObjectNotNull("accessResult", accessResult); assertCBNotNull(cb);
+        assertObjectNotNull("accessResult", accessResult);
+        assertCBNotNull(cb);
         setupCommonColumnOfUpdateIfNeeds(accessResult);
-        filterEntityOfUpdate(accessResult); assertEntityOfUpdate(accessResult);
+        filterEntityOfUpdate(accessResult);
+        assertEntityOfUpdate(accessResult);
         return invoke(createQueryUpdateEntityCBCommand(accessResult, cb));
     }
 
@@ -425,7 +503,7 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
         assertCBNotNull(cb);
         return invoke(createQueryDeleteCBCommand(cb));
     }
-    
+
     // ===================================================================================
     //                                                                     Delegate Method
     //                                                                     ===============
@@ -433,34 +511,79 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     // -----------------------------------------------------
     //                                                Select
     //                                                ------
-    protected int delegateSelectCount(AccessResultCB cb) { return invoke(createSelectCountCBCommand(cb)); }
-    protected void delegateSelectCursor(AccessResultCB cb, EntityRowHandler<AccessResult> entityRowHandler)
-    { invoke(createSelectCursorCBCommand(cb, entityRowHandler, AccessResult.class)); }
-    protected List<AccessResult> delegateSelectList(AccessResultCB cb)
-    { return invoke(createSelectListCBCommand(cb, AccessResult.class)); }
+    protected int delegateSelectCount(AccessResultCB cb) {
+        return invoke(createSelectCountCBCommand(cb));
+    }
+
+    protected void delegateSelectCursor(AccessResultCB cb,
+            EntityRowHandler<AccessResult> entityRowHandler) {
+        invoke(createSelectCursorCBCommand(cb, entityRowHandler,
+                AccessResult.class));
+    }
+
+    protected List<AccessResult> delegateSelectList(AccessResultCB cb) {
+        return invoke(createSelectListCBCommand(cb, AccessResult.class));
+    }
 
     // -----------------------------------------------------
     //                                                Update
     //                                                ------
-    protected int delegateInsert(AccessResult e)
-    { if (!processBeforeInsert(e)) { return 1; } return invoke(createInsertEntityCommand(e)); }
-    protected int delegateUpdate(AccessResult e)
-    { if (!processBeforeUpdate(e)) { return 1; } return invoke(createUpdateNonstrictEntityCommand(e)); }
-    protected int delegateDelete(AccessResult e)
-    { if (!processBeforeDelete(e)) { return 1; } return invoke(createDeleteNonstrictEntityCommand(e)); }
+    protected int delegateInsert(AccessResult e) {
+        if (!processBeforeInsert(e)) {
+            return 1;
+        }
+        return invoke(createInsertEntityCommand(e));
+    }
 
-    protected int[] delegateInsertList(List<AccessResult> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchInsertEntityCommand(helpFilterBeforeInsertInternally(ls))); }
+    protected int delegateUpdate(AccessResult e) {
+        if (!processBeforeUpdate(e)) {
+            return 1;
+        }
+        return invoke(createUpdateNonstrictEntityCommand(e));
+    }
+
+    protected int delegateDelete(AccessResult e) {
+        if (!processBeforeDelete(e)) {
+            return 1;
+        }
+        return invoke(createDeleteNonstrictEntityCommand(e));
+    }
+
+    protected int[] delegateInsertList(List<AccessResult> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchInsertEntityCommand(helpFilterBeforeInsertInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doCreateList(List<Entity> ls) { return delegateInsertList((List)ls); }
-    protected int[] delegateUpdateList(List<AccessResult> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchUpdateNonstrictEntityCommand(helpFilterBeforeUpdateInternally(ls))); }
+    protected int[] doCreateList(List<Entity> ls) {
+        return delegateInsertList((List) ls);
+    }
+
+    protected int[] delegateUpdateList(List<AccessResult> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchUpdateNonstrictEntityCommand(helpFilterBeforeUpdateInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doModifyList(List<Entity> ls) { return delegateUpdateList((List)ls); }
-    protected int[] delegateDeleteList(List<AccessResult> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchDeleteNonstrictEntityCommand(helpFilterBeforeDeleteInternally(ls))); }
+    protected int[] doModifyList(List<Entity> ls) {
+        return delegateUpdateList((List) ls);
+    }
+
+    protected int[] delegateDeleteList(List<AccessResult> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchDeleteNonstrictEntityCommand(helpFilterBeforeDeleteInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doRemoveList(List<Entity> ls) { return delegateDeleteList((List)ls); }
+    protected int[] doRemoveList(List<Entity> ls) {
+        return delegateDeleteList((List) ls);
+    }
 
     // ===================================================================================
     //                                                                Optimistic Lock Info

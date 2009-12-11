@@ -15,15 +15,16 @@
  */
 package org.seasar.robot.db.cbean.cq.ciq;
 
-import org.seasar.robot.dbflute.cbean.*;
-import org.seasar.robot.dbflute.cbean.ckey.*;
+import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
+import org.seasar.robot.db.cbean.cq.bs.AbstractBsUrlFilterCQ;
+import org.seasar.robot.db.cbean.cq.bs.BsUrlFilterCQ;
+import org.seasar.robot.dbflute.cbean.ConditionQuery;
+import org.seasar.robot.dbflute.cbean.ckey.ConditionKey;
 import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
-import org.seasar.robot.db.cbean.*;
-import org.seasar.robot.db.cbean.cq.bs.*;
-import org.seasar.robot.db.cbean.cq.*;
 
 /**
  * The condition-inline-query of URL_FILTER.
@@ -39,8 +40,8 @@ public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public UrlFilterCIQ(ConditionQuery childQuery, SqlClause sqlClause
-                        , String aliasName, int nestLevel, BsUrlFilterCQ myCQ) {
+    public UrlFilterCIQ(ConditionQuery childQuery, SqlClause sqlClause,
+            String aliasName, int nestLevel, BsUrlFilterCQ myCQ) {
         super(childQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
         _foreignPropertyName = _myCQ.getForeignPropertyName();// Accept foreign property name.
@@ -51,18 +52,22 @@ public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
     //                                                             Override about Register
     //                                                             =======================
     @Override
-    protected void reflectRelationOnUnionQuery(ConditionQuery baseQueryAsSuper, ConditionQuery unionQueryAsSuper) {
-        String msg = "InlineQuery must not need UNION method: " + baseQueryAsSuper + " : " + unionQueryAsSuper;
+    protected void reflectRelationOnUnionQuery(ConditionQuery baseQueryAsSuper,
+            ConditionQuery unionQueryAsSuper) {
+        String msg = "InlineQuery must not need UNION method: "
+                + baseQueryAsSuper + " : " + unionQueryAsSuper;
         throw new IllegalConditionBeanOperationException(msg);
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k, Object v, ConditionValue cv, String col) {
+    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k,
+            Object v, ConditionValue cv, String col) {
         regIQ(k, v, cv, col);
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k, Object v, ConditionValue cv, String col, ConditionOption op) {
+    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k,
+            Object v, ConditionValue cv, String col, ConditionOption op) {
         regIQ(k, v, cv, col, op);
     }
 
@@ -77,11 +82,13 @@ public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
             String msg = "Sorry! InScopeSubQuery of on-clause is unavailable";
             throw new IllegalConditionBeanOperationException(msg);
         }
-        return _onClauseInline ? getRealAliasName() + "." + columnName : columnName;
+        return _onClauseInline ? getRealAliasName() + "." + columnName
+                : columnName;
     }
 
     @Override
-    protected void registerExistsSubQuery(ConditionQuery subQuery, String columnName, String relatedColumnName, String propertyName) {
+    protected void registerExistsSubQuery(ConditionQuery subQuery,
+            String columnName, String relatedColumnName, String propertyName) {
         String msg = "Sorry! ExistsSubQuery at in-line view is unavailable. So please use InScopeSubQyery.";
         throw new IllegalConditionBeanOperationException(msg);
     }
@@ -89,24 +96,50 @@ public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
     // ===================================================================================
     //                                                                Override about Query
     //                                                                ====================
-    protected ConditionValue getCValueId() { return _myCQ.getId(); }
-    protected ConditionValue getCValueSessionId() { return _myCQ.getSessionId(); }
-    protected ConditionValue getCValueUrl() { return _myCQ.getUrl(); }
-    protected ConditionValue getCValueFilterType() { return _myCQ.getFilterType(); }
-    protected ConditionValue getCValueCreateTime() { return _myCQ.getCreateTime(); }
-    public String keepScalarSubQuery(UrlFilterCQ subQuery)
-    { throwIICBOE("ScalarSubQuery"); return null; }
-    public String keepMyselfInScopeSubQuery(UrlFilterCQ subQuery)
-    { throwIICBOE("MyselfInScopeSubQuery"); return null;}
+    protected ConditionValue getCValueId() {
+        return _myCQ.getId();
+    }
+
+    protected ConditionValue getCValueSessionId() {
+        return _myCQ.getSessionId();
+    }
+
+    protected ConditionValue getCValueUrl() {
+        return _myCQ.getUrl();
+    }
+
+    protected ConditionValue getCValueFilterType() {
+        return _myCQ.getFilterType();
+    }
+
+    protected ConditionValue getCValueCreateTime() {
+        return _myCQ.getCreateTime();
+    }
+
+    public String keepScalarSubQuery(UrlFilterCQ subQuery) {
+        throwIICBOE("ScalarSubQuery");
+        return null;
+    }
+
+    public String keepMyselfInScopeSubQuery(UrlFilterCQ subQuery) {
+        throwIICBOE("MyselfInScopeSubQuery");
+        return null;
+    }
 
     protected void throwIICBOE(String name) { // throwInlineIllegalConditionBeanOperationException()
-        throw new IllegalConditionBeanOperationException("Sorry! " + name + " at in-line view is unavailable!");
+        throw new IllegalConditionBeanOperationException("Sorry! " + name
+                + " at in-line view is unavailable!");
     }
 
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
     // Very Internal (for Suppressing Warn about 'Not Use Import')
-    String xiCB() { return UrlFilterCB.class.getName(); }
-    String xiCQ() { return UrlFilterCQ.class.getName(); }
+    String xiCB() {
+        return UrlFilterCB.class.getName();
+    }
+
+    String xiCQ() {
+        return UrlFilterCQ.class.getName();
+    }
 }

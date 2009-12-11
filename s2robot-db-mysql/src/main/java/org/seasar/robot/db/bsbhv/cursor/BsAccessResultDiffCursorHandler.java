@@ -14,11 +14,12 @@
  * governing permissions and limitations under the License.
  */
 package org.seasar.robot.db.bsbhv.cursor;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.seasar.robot.dbflute.jdbc.CursorHandler;
 import org.seasar.robot.db.exbhv.cursor.AccessResultDiffCursor;
+import org.seasar.robot.dbflute.jdbc.CursorHandler;
 
 /**
  * The cursor handler of AccessResultDiff.
@@ -42,7 +43,8 @@ public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
      * @return Type safe cursor. (Nullable)
      * @throws java.sql.SQLException
      */
-    protected AccessResultDiffCursor createTypeSafeCursor(ResultSet rs) throws SQLException {
+    protected AccessResultDiffCursor createTypeSafeCursor(ResultSet rs)
+            throws SQLException {
         final AccessResultDiffCursor cursor = new AccessResultDiffCursor();
         cursor.accept(rs);
         return cursor;
@@ -54,5 +56,6 @@ public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
      * @return Result. (Nullable)
      * @throws java.sql.SQLException
      */
-    abstract protected Object fetchCursor(AccessResultDiffCursor cursor) throws SQLException;
+    abstract protected Object fetchCursor(AccessResultDiffCursor cursor)
+            throws SQLException;
 }

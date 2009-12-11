@@ -15,11 +15,11 @@
  */
 package org.seasar.robot.db.allcommon;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
@@ -43,15 +43,20 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     protected static final Map<String, String> _tableDbNameClassNameMap;
     static {
         final Map<String, String> tmpMap = newHashMap();
-        tmpMap.put("ACCESS_RESULT", "org.seasar.robot.db.bsentity.dbmeta.AccessResultDbm");
-        tmpMap.put("ACCESS_RESULT_DATA", "org.seasar.robot.db.bsentity.dbmeta.AccessResultDataDbm");
-        tmpMap.put("URL_FILTER", "org.seasar.robot.db.bsentity.dbmeta.UrlFilterDbm");
-        tmpMap.put("URL_QUEUE", "org.seasar.robot.db.bsentity.dbmeta.UrlQueueDbm");
+        tmpMap.put("ACCESS_RESULT",
+                "org.seasar.robot.db.bsentity.dbmeta.AccessResultDbm");
+        tmpMap.put("ACCESS_RESULT_DATA",
+                "org.seasar.robot.db.bsentity.dbmeta.AccessResultDataDbm");
+        tmpMap.put("URL_FILTER",
+                "org.seasar.robot.db.bsentity.dbmeta.UrlFilterDbm");
+        tmpMap.put("URL_QUEUE",
+                "org.seasar.robot.db.bsentity.dbmeta.UrlQueueDbm");
         _tableDbNameClassNameMap = Collections.unmodifiableMap(tmpMap);
     }
 
     /** The flexible map of table DB name. This is for conversion at finding. */
-    protected static final Map<String, String> _tableDbNameFlexibleMap = StringKeyMap.createAsFlexibleConcurrent();
+    protected static final Map<String, String> _tableDbNameFlexibleMap = StringKeyMap
+            .createAsFlexibleConcurrent();
     static {
         final Set<String> tableDbNameSet = _tableDbNameClassNameMap.keySet();
         for (String tableDbName : tableDbNameSet) {
@@ -78,20 +83,23 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
             return;
         }
         synchronized (_tableDbNameInstanceMap) {
-            final Set<String> tableDbNameSet = _tableDbNameClassNameMap.keySet();
+            final Set<String> tableDbNameSet = _tableDbNameClassNameMap
+                    .keySet();
             for (String tableDbName : tableDbNameSet) {
                 findDBMeta(tableDbName); // Initialize!
             }
             if (!isInitialized()) {
                 String msg = "Failed to initialize tableDbNameInstanceMap:";
-                msg = msg + " tableDbNameInstanceMap=" + _tableDbNameInstanceMap;
+                msg = msg + " tableDbNameInstanceMap="
+                        + _tableDbNameInstanceMap;
                 throw new IllegalStateException(msg);
             }
         }
     }
 
     protected static boolean isInitialized() {
-        return _tableDbNameInstanceMap.size() == _tableDbNameClassNameMap.size();
+        return _tableDbNameInstanceMap.size() == _tableDbNameClassNameMap
+                .size();
     }
 
     // ===================================================================================
@@ -111,8 +119,10 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     public static DBMeta findDBMeta(String tableFlexibleName) {
         DBMeta dbmeta = byTableFlexibleName(tableFlexibleName);
         if (dbmeta == null) {
-            String msg = "The DB meta was not found by the table flexible name: " + tableFlexibleName;
-            msg = msg + " key=" + tableFlexibleName + " instanceMap=" + _tableDbNameInstanceMap;
+            String msg = "The DB meta was not found by the table flexible name: "
+                    + tableFlexibleName;
+            msg = msg + " key=" + tableFlexibleName + " instanceMap="
+                    + _tableDbNameInstanceMap;
             throw new DBMetaNotFoundException(msg);
         }
         return dbmeta;
@@ -126,12 +136,15 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
      * @return The instance of DB meta. (Nullable: If the DB meta is not found, it returns null)
      */
     protected static DBMeta byTableFlexibleName(String tableFlexibleName) {
-        assertStringNotNullAndNotTrimmedEmpty("tableFlexibleName", tableFlexibleName);
+        assertStringNotNullAndNotTrimmedEmpty("tableFlexibleName",
+                tableFlexibleName);
         final int dotLastIndex = tableFlexibleName.lastIndexOf(".");
         if (dotLastIndex >= 0) {
-            tableFlexibleName = tableFlexibleName.substring(dotLastIndex + ".".length());
+            tableFlexibleName = tableFlexibleName.substring(dotLastIndex
+                    + ".".length());
         }
-        final String tableDbName = _tableDbNameFlexibleMap.get(tableFlexibleName);
+        final String tableDbName = _tableDbNameFlexibleMap
+                .get(tableFlexibleName);
         if (tableDbName != null) {
             return byTableDbName(tableDbName);
         }
@@ -169,9 +182,9 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     protected static DBMeta getDBMeta(String className) {
         try {
             Class<?> clazz = Class.forName(className);
-            Method methoz = clazz.getMethod("getInstance", (Class[])null);
-            Object result = methoz.invoke(null, (Object[])null);
-            return (DBMeta)result;
+            Method methoz = clazz.getMethod("getInstance", (Class[]) null);
+            Object result = methoz.invoke(null, (Object[]) null);
+            return (DBMeta) result;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -214,7 +227,8 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     // -----------------------------------------------------
     //                                         Assert String
     //                                         -------------
-    protected static void assertStringNotNullAndNotTrimmedEmpty(String variableName, String value) {
+    protected static void assertStringNotNullAndNotTrimmedEmpty(
+            String variableName, String value) {
         DfAssertUtil.assertStringNotNullAndNotTrimmedEmpty(variableName, value);
     }
 }

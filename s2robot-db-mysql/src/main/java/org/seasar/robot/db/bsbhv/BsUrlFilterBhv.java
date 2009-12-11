@@ -17,8 +17,11 @@ package org.seasar.robot.db.bsbhv;
 
 import java.util.List;
 
-import org.seasar.robot.dbflute.*;
-import org.seasar.robot.dbflute.bhv.*;
+import org.seasar.robot.db.bsentity.dbmeta.UrlFilterDbm;
+import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.exentity.UrlFilter;
+import org.seasar.robot.dbflute.Entity;
+import org.seasar.robot.dbflute.bhv.AbstractBehaviorWritable;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.EntityRowHandler;
 import org.seasar.robot.dbflute.cbean.ListResultBean;
@@ -28,9 +31,6 @@ import org.seasar.robot.dbflute.cbean.PagingInvoker;
 import org.seasar.robot.dbflute.cbean.PagingResultBean;
 import org.seasar.robot.dbflute.cbean.ResultBeanBuilder;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.db.exentity.*;
-import org.seasar.robot.db.bsentity.dbmeta.*;
-import org.seasar.robot.db.cbean.*;
 
 /**
  * The behavior of URL_FILTER that is TABLE. <br />
@@ -76,31 +76,45 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     //                                                                          Table name
     //                                                                          ==========
     /** @return The name on database of table. (NotNull) */
-    public String getTableDbName() { return "URL_FILTER"; }
+    public String getTableDbName() {
+        return "URL_FILTER";
+    }
 
     // ===================================================================================
     //                                                                              DBMeta
     //                                                                              ======
     /** @return The instance of DBMeta. (NotNull) */
-    public DBMeta getDBMeta() { return UrlFilterDbm.getInstance(); }
+    public DBMeta getDBMeta() {
+        return UrlFilterDbm.getInstance();
+    }
 
     /** @return The instance of DBMeta as my table type. (NotNull) */
-    public UrlFilterDbm getMyDBMeta() { return UrlFilterDbm.getInstance(); }
+    public UrlFilterDbm getMyDBMeta() {
+        return UrlFilterDbm.getInstance();
+    }
 
     // ===================================================================================
     //                                                                        New Instance
     //                                                                        ============
     /** {@inheritDoc} */
-    public Entity newEntity() { return newMyEntity(); }
+    public Entity newEntity() {
+        return newMyEntity();
+    }
 
     /** {@inheritDoc} */
-    public ConditionBean newConditionBean() { return newMyConditionBean(); }
+    public ConditionBean newConditionBean() {
+        return newMyConditionBean();
+    }
 
     /** @return The instance of new entity as my table type. (NotNull) */
-    public UrlFilter newMyEntity() { return new UrlFilter(); }
+    public UrlFilter newMyEntity() {
+        return new UrlFilter();
+    }
 
     /** @return The instance of new condition-bean as my table type. (NotNull) */
-    public UrlFilterCB newMyConditionBean() { return new UrlFilterCB(); }
+    public UrlFilterCB newMyConditionBean() {
+        return new UrlFilterCB();
+    }
 
     // ===================================================================================
     //                                                                        Count Select
@@ -129,8 +143,10 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @param cb The condition-bean of UrlFilter. (NotNull)
      * @param entityRowHandler The handler of entity row of UrlFilter. (NotNull)
      */
-    public void selectCursor(UrlFilterCB cb, EntityRowHandler<UrlFilter> entityRowHandler) {
-        assertCBNotNull(cb); assertObjectNotNull("entityRowHandler<UrlFilter>", entityRowHandler);
+    public void selectCursor(UrlFilterCB cb,
+            EntityRowHandler<UrlFilter> entityRowHandler) {
+        assertCBNotNull(cb);
+        assertObjectNotNull("entityRowHandler<UrlFilter>", entityRowHandler);
         delegateSelectCursor(cb, entityRowHandler);
     }
 
@@ -144,8 +160,12 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public UrlFilter selectEntity(final UrlFilterCB cb) {
-        return helpSelectEntityInternally(cb, new InternalSelectEntityCallback<UrlFilter, UrlFilterCB>() {
-            public List<UrlFilter> callbackSelectList(UrlFilterCB cb) { return selectList(cb); } });
+        return helpSelectEntityInternally(cb,
+                new InternalSelectEntityCallback<UrlFilter, UrlFilterCB>() {
+                    public List<UrlFilter> callbackSelectList(UrlFilterCB cb) {
+                        return selectList(cb);
+                    }
+                });
     }
 
     @Override
@@ -161,8 +181,13 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public UrlFilter selectEntityWithDeletedCheck(final UrlFilterCB cb) {
-        return helpSelectEntityWithDeletedCheckInternally(cb, new InternalSelectEntityWithDeletedCheckCallback<UrlFilter, UrlFilterCB>() {
-            public List<UrlFilter> callbackSelectList(UrlFilterCB cb) { return selectList(cb); } });
+        return helpSelectEntityWithDeletedCheckInternally(
+                cb,
+                new InternalSelectEntityWithDeletedCheckCallback<UrlFilter, UrlFilterCB>() {
+                    public List<UrlFilter> callbackSelectList(UrlFilterCB cb) {
+                        return selectList(cb);
+                    }
+                });
     }
 
     @Override
@@ -208,7 +233,8 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      */
     public ListResultBean<UrlFilter> selectList(UrlFilterCB cb) {
         assertCBNotNull(cb);
-        return new ResultBeanBuilder<UrlFilter>(getTableDbName()).buildListResultBean(cb, delegateSelectList(cb));
+        return new ResultBeanBuilder<UrlFilter>(getTableDbName())
+                .buildListResultBean(cb, delegateSelectList(cb));
     }
 
     @Override
@@ -226,11 +252,20 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      */
     public PagingResultBean<UrlFilter> selectPage(final UrlFilterCB cb) {
         assertCBNotNull(cb);
-        final PagingInvoker<UrlFilter> invoker = new PagingInvoker<UrlFilter>(getTableDbName());
+        final PagingInvoker<UrlFilter> invoker = new PagingInvoker<UrlFilter>(
+                getTableDbName());
         final PagingHandler<UrlFilter> handler = new PagingHandler<UrlFilter>() {
-            public PagingBean getPagingBean() { return cb; }
-            public int count() { return selectCount(cb); }
-            public List<UrlFilter> paging() { return selectList(cb); }
+            public PagingBean getPagingBean() {
+                return cb;
+            }
+
+            public int count() {
+                return selectCount(cb);
+            }
+
+            public List<UrlFilter> paging() {
+                return selectList(cb);
+            }
         };
         return invoker.invokePaging(handler);
     }
@@ -256,12 +291,14 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @param resultType The type of result. (NotNull)
      * @return The scalar value derived by a function. (Nullable)
      */
-    public <RESULT> SLFunction<UrlFilterCB, RESULT> scalarSelect(Class<RESULT> resultType) {
+    public <RESULT> SLFunction<UrlFilterCB, RESULT> scalarSelect(
+            Class<RESULT> resultType) {
         UrlFilterCB cb = newMyConditionBean();
         cb.xsetupForScalarSelect();
         cb.getSqlClause().disableSelectIndex(); // for when you use union
         return new SLFunction<UrlFilterCB, RESULT>(cb, resultType);
     }
+
     // ===================================================================================
     //                                                                    Pull out Foreign
     //                                                                    ================
@@ -292,8 +329,12 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
     public void update(final UrlFilter urlFilter) {
-        helpUpdateInternally(urlFilter, new InternalUpdateCallback<UrlFilter>() {
-            public int callbackDelegateUpdate(UrlFilter entity) { return delegateUpdate(entity); } });
+        helpUpdateInternally(urlFilter,
+                new InternalUpdateCallback<UrlFilter>() {
+                    public int callbackDelegateUpdate(UrlFilter entity) {
+                        return delegateUpdate(entity);
+                    }
+                });
     }
 
     @Override
@@ -314,12 +355,24 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
     public void insertOrUpdate(final UrlFilter urlFilter) {
-        helpInsertOrUpdateInternally(urlFilter, new InternalInsertOrUpdateCallback<UrlFilter, UrlFilterCB>() {
-            public void callbackInsert(UrlFilter entity) { insert(entity); }
-            public void callbackUpdate(UrlFilter entity) { update(entity); }
-            public UrlFilterCB callbackNewMyConditionBean() { return newMyConditionBean(); }
-            public int callbackSelectCount(UrlFilterCB cb) { return selectCount(cb); }
-        });
+        helpInsertOrUpdateInternally(urlFilter,
+                new InternalInsertOrUpdateCallback<UrlFilter, UrlFilterCB>() {
+                    public void callbackInsert(UrlFilter entity) {
+                        insert(entity);
+                    }
+
+                    public void callbackUpdate(UrlFilter entity) {
+                        update(entity);
+                    }
+
+                    public UrlFilterCB callbackNewMyConditionBean() {
+                        return newMyConditionBean();
+                    }
+
+                    public int callbackSelectCount(UrlFilterCB cb) {
+                        return selectCount(cb);
+                    }
+                });
     }
 
     @Override
@@ -339,8 +392,12 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public void delete(UrlFilter urlFilter) {
-        helpDeleteInternally(urlFilter, new InternalDeleteCallback<UrlFilter>() {
-            public int callbackDelegateDelete(UrlFilter entity) { return delegateDelete(entity); } });
+        helpDeleteInternally(urlFilter,
+                new InternalDeleteCallback<UrlFilter>() {
+                    public int callbackDelegateDelete(UrlFilter entity) {
+                        return delegateDelete(entity);
+                    }
+                });
     }
 
     @Override
@@ -395,9 +452,11 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @return The updated count.
      */
     public int queryUpdate(UrlFilter urlFilter, UrlFilterCB cb) {
-        assertObjectNotNull("urlFilter", urlFilter); assertCBNotNull(cb);
+        assertObjectNotNull("urlFilter", urlFilter);
+        assertCBNotNull(cb);
         setupCommonColumnOfUpdateIfNeeds(urlFilter);
-        filterEntityOfUpdate(urlFilter); assertEntityOfUpdate(urlFilter);
+        filterEntityOfUpdate(urlFilter);
+        assertEntityOfUpdate(urlFilter);
         return invoke(createQueryUpdateEntityCBCommand(urlFilter, cb));
     }
 
@@ -410,7 +469,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
         assertCBNotNull(cb);
         return invoke(createQueryDeleteCBCommand(cb));
     }
-    
+
     // ===================================================================================
     //                                                                     Delegate Method
     //                                                                     ===============
@@ -418,34 +477,79 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     // -----------------------------------------------------
     //                                                Select
     //                                                ------
-    protected int delegateSelectCount(UrlFilterCB cb) { return invoke(createSelectCountCBCommand(cb)); }
-    protected void delegateSelectCursor(UrlFilterCB cb, EntityRowHandler<UrlFilter> entityRowHandler)
-    { invoke(createSelectCursorCBCommand(cb, entityRowHandler, UrlFilter.class)); }
-    protected List<UrlFilter> delegateSelectList(UrlFilterCB cb)
-    { return invoke(createSelectListCBCommand(cb, UrlFilter.class)); }
+    protected int delegateSelectCount(UrlFilterCB cb) {
+        return invoke(createSelectCountCBCommand(cb));
+    }
+
+    protected void delegateSelectCursor(UrlFilterCB cb,
+            EntityRowHandler<UrlFilter> entityRowHandler) {
+        invoke(createSelectCursorCBCommand(cb, entityRowHandler,
+                UrlFilter.class));
+    }
+
+    protected List<UrlFilter> delegateSelectList(UrlFilterCB cb) {
+        return invoke(createSelectListCBCommand(cb, UrlFilter.class));
+    }
 
     // -----------------------------------------------------
     //                                                Update
     //                                                ------
-    protected int delegateInsert(UrlFilter e)
-    { if (!processBeforeInsert(e)) { return 1; } return invoke(createInsertEntityCommand(e)); }
-    protected int delegateUpdate(UrlFilter e)
-    { if (!processBeforeUpdate(e)) { return 1; } return invoke(createUpdateNonstrictEntityCommand(e)); }
-    protected int delegateDelete(UrlFilter e)
-    { if (!processBeforeDelete(e)) { return 1; } return invoke(createDeleteNonstrictEntityCommand(e)); }
+    protected int delegateInsert(UrlFilter e) {
+        if (!processBeforeInsert(e)) {
+            return 1;
+        }
+        return invoke(createInsertEntityCommand(e));
+    }
 
-    protected int[] delegateInsertList(List<UrlFilter> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchInsertEntityCommand(helpFilterBeforeInsertInternally(ls))); }
+    protected int delegateUpdate(UrlFilter e) {
+        if (!processBeforeUpdate(e)) {
+            return 1;
+        }
+        return invoke(createUpdateNonstrictEntityCommand(e));
+    }
+
+    protected int delegateDelete(UrlFilter e) {
+        if (!processBeforeDelete(e)) {
+            return 1;
+        }
+        return invoke(createDeleteNonstrictEntityCommand(e));
+    }
+
+    protected int[] delegateInsertList(List<UrlFilter> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchInsertEntityCommand(helpFilterBeforeInsertInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doCreateList(List<Entity> ls) { return delegateInsertList((List)ls); }
-    protected int[] delegateUpdateList(List<UrlFilter> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchUpdateNonstrictEntityCommand(helpFilterBeforeUpdateInternally(ls))); }
+    protected int[] doCreateList(List<Entity> ls) {
+        return delegateInsertList((List) ls);
+    }
+
+    protected int[] delegateUpdateList(List<UrlFilter> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchUpdateNonstrictEntityCommand(helpFilterBeforeUpdateInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doModifyList(List<Entity> ls) { return delegateUpdateList((List)ls); }
-    protected int[] delegateDeleteList(List<UrlFilter> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchDeleteNonstrictEntityCommand(helpFilterBeforeDeleteInternally(ls))); }
+    protected int[] doModifyList(List<Entity> ls) {
+        return delegateUpdateList((List) ls);
+    }
+
+    protected int[] delegateDeleteList(List<UrlFilter> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchDeleteNonstrictEntityCommand(helpFilterBeforeDeleteInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doRemoveList(List<Entity> ls) { return delegateDeleteList((List)ls); }
+    protected int[] doRemoveList(List<Entity> ls) {
+        return delegateDeleteList((List) ls);
+    }
 
     // ===================================================================================
     //                                                                Optimistic Lock Info

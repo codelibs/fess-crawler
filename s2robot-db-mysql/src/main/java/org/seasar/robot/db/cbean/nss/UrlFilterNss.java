@@ -24,8 +24,14 @@ import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
 public class UrlFilterNss {
 
     protected UrlFilterCQ _query;
-    public UrlFilterNss(UrlFilterCQ query) { _query = query; }
-    public boolean hasConditionQuery() { return _query != null; }
+
+    public UrlFilterNss(UrlFilterCQ query) {
+        _query = query;
+    }
+
+    public boolean hasConditionQuery() {
+        return _query != null;
+    }
 
     // ===================================================================================
     //                                                           With Nested Foreign Table

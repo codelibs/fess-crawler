@@ -17,8 +17,11 @@ package org.seasar.robot.db.bsbhv;
 
 import java.util.List;
 
-import org.seasar.robot.dbflute.*;
-import org.seasar.robot.dbflute.bhv.*;
+import org.seasar.robot.db.bsentity.dbmeta.UrlQueueDbm;
+import org.seasar.robot.db.cbean.UrlQueueCB;
+import org.seasar.robot.db.exentity.UrlQueue;
+import org.seasar.robot.dbflute.Entity;
+import org.seasar.robot.dbflute.bhv.AbstractBehaviorWritable;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.EntityRowHandler;
 import org.seasar.robot.dbflute.cbean.ListResultBean;
@@ -28,9 +31,6 @@ import org.seasar.robot.dbflute.cbean.PagingInvoker;
 import org.seasar.robot.dbflute.cbean.PagingResultBean;
 import org.seasar.robot.dbflute.cbean.ResultBeanBuilder;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.db.exentity.*;
-import org.seasar.robot.db.bsentity.dbmeta.*;
-import org.seasar.robot.db.cbean.*;
 
 /**
  * The behavior of URL_QUEUE that is TABLE. <br />
@@ -71,37 +71,52 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
     public static final String PATH_deleteBySessionId = "deleteBySessionId";
+
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================
     //                                                                          Table name
     //                                                                          ==========
     /** @return The name on database of table. (NotNull) */
-    public String getTableDbName() { return "URL_QUEUE"; }
+    public String getTableDbName() {
+        return "URL_QUEUE";
+    }
 
     // ===================================================================================
     //                                                                              DBMeta
     //                                                                              ======
     /** @return The instance of DBMeta. (NotNull) */
-    public DBMeta getDBMeta() { return UrlQueueDbm.getInstance(); }
+    public DBMeta getDBMeta() {
+        return UrlQueueDbm.getInstance();
+    }
 
     /** @return The instance of DBMeta as my table type. (NotNull) */
-    public UrlQueueDbm getMyDBMeta() { return UrlQueueDbm.getInstance(); }
+    public UrlQueueDbm getMyDBMeta() {
+        return UrlQueueDbm.getInstance();
+    }
 
     // ===================================================================================
     //                                                                        New Instance
     //                                                                        ============
     /** {@inheritDoc} */
-    public Entity newEntity() { return newMyEntity(); }
+    public Entity newEntity() {
+        return newMyEntity();
+    }
 
     /** {@inheritDoc} */
-    public ConditionBean newConditionBean() { return newMyConditionBean(); }
+    public ConditionBean newConditionBean() {
+        return newMyConditionBean();
+    }
 
     /** @return The instance of new entity as my table type. (NotNull) */
-    public UrlQueue newMyEntity() { return new UrlQueue(); }
+    public UrlQueue newMyEntity() {
+        return new UrlQueue();
+    }
 
     /** @return The instance of new condition-bean as my table type. (NotNull) */
-    public UrlQueueCB newMyConditionBean() { return new UrlQueueCB(); }
+    public UrlQueueCB newMyConditionBean() {
+        return new UrlQueueCB();
+    }
 
     // ===================================================================================
     //                                                                        Count Select
@@ -130,8 +145,10 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      * @param cb The condition-bean of UrlQueue. (NotNull)
      * @param entityRowHandler The handler of entity row of UrlQueue. (NotNull)
      */
-    public void selectCursor(UrlQueueCB cb, EntityRowHandler<UrlQueue> entityRowHandler) {
-        assertCBNotNull(cb); assertObjectNotNull("entityRowHandler<UrlQueue>", entityRowHandler);
+    public void selectCursor(UrlQueueCB cb,
+            EntityRowHandler<UrlQueue> entityRowHandler) {
+        assertCBNotNull(cb);
+        assertObjectNotNull("entityRowHandler<UrlQueue>", entityRowHandler);
         delegateSelectCursor(cb, entityRowHandler);
     }
 
@@ -145,8 +162,12 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public UrlQueue selectEntity(final UrlQueueCB cb) {
-        return helpSelectEntityInternally(cb, new InternalSelectEntityCallback<UrlQueue, UrlQueueCB>() {
-            public List<UrlQueue> callbackSelectList(UrlQueueCB cb) { return selectList(cb); } });
+        return helpSelectEntityInternally(cb,
+                new InternalSelectEntityCallback<UrlQueue, UrlQueueCB>() {
+                    public List<UrlQueue> callbackSelectList(UrlQueueCB cb) {
+                        return selectList(cb);
+                    }
+                });
     }
 
     @Override
@@ -162,8 +183,13 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     public UrlQueue selectEntityWithDeletedCheck(final UrlQueueCB cb) {
-        return helpSelectEntityWithDeletedCheckInternally(cb, new InternalSelectEntityWithDeletedCheckCallback<UrlQueue, UrlQueueCB>() {
-            public List<UrlQueue> callbackSelectList(UrlQueueCB cb) { return selectList(cb); } });
+        return helpSelectEntityWithDeletedCheckInternally(
+                cb,
+                new InternalSelectEntityWithDeletedCheckCallback<UrlQueue, UrlQueueCB>() {
+                    public List<UrlQueue> callbackSelectList(UrlQueueCB cb) {
+                        return selectList(cb);
+                    }
+                });
     }
 
     @Override
@@ -209,7 +235,8 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      */
     public ListResultBean<UrlQueue> selectList(UrlQueueCB cb) {
         assertCBNotNull(cb);
-        return new ResultBeanBuilder<UrlQueue>(getTableDbName()).buildListResultBean(cb, delegateSelectList(cb));
+        return new ResultBeanBuilder<UrlQueue>(getTableDbName())
+                .buildListResultBean(cb, delegateSelectList(cb));
     }
 
     @Override
@@ -227,11 +254,20 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      */
     public PagingResultBean<UrlQueue> selectPage(final UrlQueueCB cb) {
         assertCBNotNull(cb);
-        final PagingInvoker<UrlQueue> invoker = new PagingInvoker<UrlQueue>(getTableDbName());
+        final PagingInvoker<UrlQueue> invoker = new PagingInvoker<UrlQueue>(
+                getTableDbName());
         final PagingHandler<UrlQueue> handler = new PagingHandler<UrlQueue>() {
-            public PagingBean getPagingBean() { return cb; }
-            public int count() { return selectCount(cb); }
-            public List<UrlQueue> paging() { return selectList(cb); }
+            public PagingBean getPagingBean() {
+                return cb;
+            }
+
+            public int count() {
+                return selectCount(cb);
+            }
+
+            public List<UrlQueue> paging() {
+                return selectList(cb);
+            }
         };
         return invoker.invokePaging(handler);
     }
@@ -257,12 +293,14 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      * @param resultType The type of result. (NotNull)
      * @return The scalar value derived by a function. (Nullable)
      */
-    public <RESULT> SLFunction<UrlQueueCB, RESULT> scalarSelect(Class<RESULT> resultType) {
+    public <RESULT> SLFunction<UrlQueueCB, RESULT> scalarSelect(
+            Class<RESULT> resultType) {
         UrlQueueCB cb = newMyConditionBean();
         cb.xsetupForScalarSelect();
         cb.getSqlClause().disableSelectIndex(); // for when you use union
         return new SLFunction<UrlQueueCB, RESULT>(cb, resultType);
     }
+
     // ===================================================================================
     //                                                                    Pull out Foreign
     //                                                                    ================
@@ -294,7 +332,10 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      */
     public void update(final UrlQueue urlQueue) {
         helpUpdateInternally(urlQueue, new InternalUpdateCallback<UrlQueue>() {
-            public int callbackDelegateUpdate(UrlQueue entity) { return delegateUpdate(entity); } });
+            public int callbackDelegateUpdate(UrlQueue entity) {
+                return delegateUpdate(entity);
+            }
+        });
     }
 
     @Override
@@ -315,12 +356,24 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
      */
     public void insertOrUpdate(final UrlQueue urlQueue) {
-        helpInsertOrUpdateInternally(urlQueue, new InternalInsertOrUpdateCallback<UrlQueue, UrlQueueCB>() {
-            public void callbackInsert(UrlQueue entity) { insert(entity); }
-            public void callbackUpdate(UrlQueue entity) { update(entity); }
-            public UrlQueueCB callbackNewMyConditionBean() { return newMyConditionBean(); }
-            public int callbackSelectCount(UrlQueueCB cb) { return selectCount(cb); }
-        });
+        helpInsertOrUpdateInternally(urlQueue,
+                new InternalInsertOrUpdateCallback<UrlQueue, UrlQueueCB>() {
+                    public void callbackInsert(UrlQueue entity) {
+                        insert(entity);
+                    }
+
+                    public void callbackUpdate(UrlQueue entity) {
+                        update(entity);
+                    }
+
+                    public UrlQueueCB callbackNewMyConditionBean() {
+                        return newMyConditionBean();
+                    }
+
+                    public int callbackSelectCount(UrlQueueCB cb) {
+                        return selectCount(cb);
+                    }
+                });
     }
 
     @Override
@@ -341,7 +394,10 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      */
     public void delete(UrlQueue urlQueue) {
         helpDeleteInternally(urlQueue, new InternalDeleteCallback<UrlQueue>() {
-            public int callbackDelegateDelete(UrlQueue entity) { return delegateDelete(entity); } });
+            public int callbackDelegateDelete(UrlQueue entity) {
+                return delegateDelete(entity);
+            }
+        });
     }
 
     @Override
@@ -396,9 +452,11 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
      * @return The updated count.
      */
     public int queryUpdate(UrlQueue urlQueue, UrlQueueCB cb) {
-        assertObjectNotNull("urlQueue", urlQueue); assertCBNotNull(cb);
+        assertObjectNotNull("urlQueue", urlQueue);
+        assertCBNotNull(cb);
         setupCommonColumnOfUpdateIfNeeds(urlQueue);
-        filterEntityOfUpdate(urlQueue); assertEntityOfUpdate(urlQueue);
+        filterEntityOfUpdate(urlQueue);
+        assertEntityOfUpdate(urlQueue);
         return invoke(createQueryUpdateEntityCBCommand(urlQueue, cb));
     }
 
@@ -411,7 +469,7 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
         assertCBNotNull(cb);
         return invoke(createQueryDeleteCBCommand(cb));
     }
-    
+
     // ===================================================================================
     //                                                                     Delegate Method
     //                                                                     ===============
@@ -419,34 +477,78 @@ public abstract class BsUrlQueueBhv extends AbstractBehaviorWritable {
     // -----------------------------------------------------
     //                                                Select
     //                                                ------
-    protected int delegateSelectCount(UrlQueueCB cb) { return invoke(createSelectCountCBCommand(cb)); }
-    protected void delegateSelectCursor(UrlQueueCB cb, EntityRowHandler<UrlQueue> entityRowHandler)
-    { invoke(createSelectCursorCBCommand(cb, entityRowHandler, UrlQueue.class)); }
-    protected List<UrlQueue> delegateSelectList(UrlQueueCB cb)
-    { return invoke(createSelectListCBCommand(cb, UrlQueue.class)); }
+    protected int delegateSelectCount(UrlQueueCB cb) {
+        return invoke(createSelectCountCBCommand(cb));
+    }
+
+    protected void delegateSelectCursor(UrlQueueCB cb,
+            EntityRowHandler<UrlQueue> entityRowHandler) {
+        invoke(createSelectCursorCBCommand(cb, entityRowHandler, UrlQueue.class));
+    }
+
+    protected List<UrlQueue> delegateSelectList(UrlQueueCB cb) {
+        return invoke(createSelectListCBCommand(cb, UrlQueue.class));
+    }
 
     // -----------------------------------------------------
     //                                                Update
     //                                                ------
-    protected int delegateInsert(UrlQueue e)
-    { if (!processBeforeInsert(e)) { return 1; } return invoke(createInsertEntityCommand(e)); }
-    protected int delegateUpdate(UrlQueue e)
-    { if (!processBeforeUpdate(e)) { return 1; } return invoke(createUpdateNonstrictEntityCommand(e)); }
-    protected int delegateDelete(UrlQueue e)
-    { if (!processBeforeDelete(e)) { return 1; } return invoke(createDeleteNonstrictEntityCommand(e)); }
+    protected int delegateInsert(UrlQueue e) {
+        if (!processBeforeInsert(e)) {
+            return 1;
+        }
+        return invoke(createInsertEntityCommand(e));
+    }
 
-    protected int[] delegateInsertList(List<UrlQueue> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchInsertEntityCommand(helpFilterBeforeInsertInternally(ls))); }
+    protected int delegateUpdate(UrlQueue e) {
+        if (!processBeforeUpdate(e)) {
+            return 1;
+        }
+        return invoke(createUpdateNonstrictEntityCommand(e));
+    }
+
+    protected int delegateDelete(UrlQueue e) {
+        if (!processBeforeDelete(e)) {
+            return 1;
+        }
+        return invoke(createDeleteNonstrictEntityCommand(e));
+    }
+
+    protected int[] delegateInsertList(List<UrlQueue> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchInsertEntityCommand(helpFilterBeforeInsertInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doCreateList(List<Entity> ls) { return delegateInsertList((List)ls); }
-    protected int[] delegateUpdateList(List<UrlQueue> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchUpdateNonstrictEntityCommand(helpFilterBeforeUpdateInternally(ls))); }
+    protected int[] doCreateList(List<Entity> ls) {
+        return delegateInsertList((List) ls);
+    }
+
+    protected int[] delegateUpdateList(List<UrlQueue> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchUpdateNonstrictEntityCommand(helpFilterBeforeUpdateInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doModifyList(List<Entity> ls) { return delegateUpdateList((List)ls); }
-    protected int[] delegateDeleteList(List<UrlQueue> ls)
-    { if (ls.isEmpty()) { return new int[]{}; } return invoke(createBatchDeleteNonstrictEntityCommand(helpFilterBeforeDeleteInternally(ls))); }
+    protected int[] doModifyList(List<Entity> ls) {
+        return delegateUpdateList((List) ls);
+    }
+
+    protected int[] delegateDeleteList(List<UrlQueue> ls) {
+        if (ls.isEmpty()) {
+            return new int[] {};
+        }
+        return invoke(createBatchDeleteNonstrictEntityCommand(helpFilterBeforeDeleteInternally(ls)));
+    }
+
     @SuppressWarnings("unchecked")
-    protected int[] doRemoveList(List<Entity> ls) { return delegateDeleteList((List)ls); }
+    protected int[] doRemoveList(List<Entity> ls) {
+        return delegateDeleteList((List) ls);
+    }
 
     // ===================================================================================
     //                                                                Optimistic Lock Info

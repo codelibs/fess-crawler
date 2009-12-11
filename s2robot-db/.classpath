@@ -21,7 +21,7 @@
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-j2ee_1.4_spec/1.0/geronimo-j2ee_1.4_spec-1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.0/geronimo-jta_1.1_spec-1.0.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.0/geronimo-jta_1.1_spec-1.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1-sources.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/h2database/h2/1.1.118/h2-1.1.118.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/h2database/h2/1.2.124/h2-1.2.124.jar" sourcepath="M2_REPO/com/h2database/h2/1.2.124/h2-1.2.124-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/jboss/javassist/3.4.ga/javassist-3.4.ga.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/jempbox/0.8.0-20091008/jempbox-0.8.0-20091008.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty/6.1.21/jetty-6.1.21.jar"/>

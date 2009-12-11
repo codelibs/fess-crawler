@@ -33,7 +33,8 @@ import org.seasar.robot.db.cbean.AccessResultCB;
 import org.seasar.robot.db.cbean.UrlQueueCB;
 import org.seasar.robot.db.exbhv.AccessResultBhv;
 import org.seasar.robot.db.exbhv.UrlQueueBhv;
-import org.seasar.robot.dbflute.cbean.EntityRowHandler;
+import org.seasar.robot.db.exentity.AccessResult;
+import org.seasar.robot.dbflute.cbean.PagingResultBean;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.service.UrlQueueService;
 import org.slf4j.Logger;
@@ -57,6 +58,8 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     public int cacheSize = 1000;
 
     public int visitedUrlCacheSize = 1000;
+
+    public int generatedUrlQueueSize = 1000;
 
     @Resource
     protected UrlQueueBhv urlQueueBhv;
@@ -116,12 +119,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.seasar.robot.service.UrlQueueService#delete(java.lang.String)
      */
     public void delete(String sessionId) {
-        //        UrlQueueCB cb = new UrlQueueCB();
-        //        cb.query().setSessionId_Equal(sessionId);
-        //        urlQueueBhv.queryDelete(cb);
-        String pmb = sessionId;
-        int count = urlQueueBhv.outsideSql().execute(
-                UrlQueueBhv.PATH_deleteBySessionId, pmb);
+        int count = urlQueueBhv.deleteBySessionId(sessionId);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Deleted urls in queue: " + count);
@@ -137,11 +135,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.seasar.robot.service.UrlQueueService#deleteAll()
      */
     public void deleteAll() {
-        //        UrlQueueCB cb = new UrlQueueCB();
-        //        urlQueueBhv.queryDelete(cb);
-        String pmb = null;
-        int count = urlQueueBhv.outsideSql().execute(
-                UrlQueueBhv.PATH_deleteBySessionId, pmb);
+        int count = urlQueueBhv.deleteAll();
 
         if (logger.isDebugEnabled()) {
             logger.debug("Deleted urls in queue: " + count);
@@ -306,24 +300,25 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         AccessResultCB cb = new AccessResultCB();
         cb.query().setSessionId_Equal(previousSessionId);
         cb.query().addOrderBy_CreateTime_Asc();
-        accessResultBhv
-                .selectCursor(
-                        cb,
-                        new EntityRowHandler<org.seasar.robot.db.exentity.AccessResult>() {
-                            public void handle(
-                                    org.seasar.robot.db.exentity.AccessResult entity) {
-                                org.seasar.robot.db.exentity.UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
-                                urlQueue.setSessionId(sessionId);
-                                urlQueue.setMethod(entity.getMethod());
-                                urlQueue.setUrl(entity.getUrl());
-                                urlQueue.setParentUrl(entity.getParentUrl());
-                                urlQueue.setDepth(0);
-                                urlQueue.setLastModified(entity
-                                        .getLastModified());
-                                urlQueue.setCreateTime(new Timestamp(new Date()
-                                        .getTime()));
-                                urlQueueBhv.insert(urlQueue);
-                            }
-                        });
+        int count = accessResultBhv.selectCount(cb);
+        List<org.seasar.robot.db.exentity.UrlQueue> urlQueueList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
+        for (int i = 0; i * generatedUrlQueueSize < count; i++) {
+            urlQueueList.clear();
+            cb.paging(generatedUrlQueueSize, i + 1);
+            PagingResultBean<AccessResult> selectPage = accessResultBhv
+                    .selectPage(cb);
+            for (AccessResult entity : selectPage) {
+                org.seasar.robot.db.exentity.UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
+                urlQueue.setSessionId(sessionId);
+                urlQueue.setMethod(entity.getMethod());
+                urlQueue.setUrl(entity.getUrl());
+                urlQueue.setParentUrl(entity.getParentUrl());
+                urlQueue.setDepth(0);
+                urlQueue.setLastModified(entity.getLastModified());
+                urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
+                urlQueueList.add(urlQueue);
+            }
+            urlQueueBhv.batchInsert(urlQueueList);
+        }
     }
 }

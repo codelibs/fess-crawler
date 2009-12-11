@@ -6,6 +6,29 @@
   <packaging>jar</packaging>
   <version>0.3.0-SNAPSHOT</version>
   <name>s2-robot-db</name>
+  <profiles>
+    <profile>
+      <id>h2</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <database>h2</database>
+        <databaseGroupId>com.h2database</databaseGroupId>
+        <databaseArtifactId>h2</databaseArtifactId>
+        <databaseVersion>1.2.124</databaseVersion>
+      </properties>
+    </profile>
+    <profile>
+      <id>mysql</id>
+      <properties>
+        <database>mysql</database>
+        <databaseGroupId>mysql</databaseGroupId>
+        <databaseArtifactId>mysql-connector-java</databaseArtifactId>
+        <databaseVersion>5.1.10</databaseVersion>
+      </properties>
+    </profile>
+  </profiles>
   <build>
     <pluginManagement>
       <plugins>
@@ -134,14 +157,14 @@
     </dependency>
     <dependency>
       <groupId>org.seasar.robot</groupId>
-      <artifactId>s2-robot-db-h2</artifactId>
+      <artifactId>s2-robot-db-${database}</artifactId>
       <version>${version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>1.2.124</version>
+      <groupId>${databaseGroupId}</groupId>
+      <artifactId>${databaseArtifactId}</artifactId>
+      <version>${databaseVersion}</version>
       <optional>true</optional>
     </dependency>
     <dependency>

@@ -95,17 +95,14 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.seasar.robot.service.impl.UrlFilterService#delete(java.lang.String)
      */
     public void delete(String sessionId) {
-        UrlFilterCB cb = new UrlFilterCB();
-        cb.query().setSessionId_Equal(sessionId);
-        urlFilterBhv.queryDelete(cb);
+        urlFilterBhv.deleteBySessionId(sessionId);
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#deleteAll()
      */
     public void deleteAll() {
-        UrlFilterCB cb = new UrlFilterCB();
-        urlFilterBhv.queryDelete(cb);
+        urlFilterBhv.deleteAll();
     }
 
     /* (non-Javadoc)

@@ -23,7 +23,10 @@ import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.filter.impl.UrlFilterImpl;
 import org.seasar.robot.service.DataService;
+import org.seasar.robot.service.UrlFilterService;
 import org.seasar.robot.service.UrlQueueService;
+import org.seasar.robot.service.impl.DBUrlQueueServiceImpl;
+import org.seasar.robot.service.impl.UrlQueueServiceImpl;
 import org.seasar.robot.transformer.impl.FileTransformer;
 import org.seasar.robot.util.AccessResultCallback;
 import org.seasar.robot.util.S2RobotWebServer;
@@ -35,6 +38,8 @@ public class S2RobotTest extends S2TestCase {
     public DataService dataService;
 
     public UrlQueueService urlQueueService;
+
+    public UrlFilterService urlFilterService;
 
     public FileTransformer fileTransformer;
 
@@ -156,6 +161,8 @@ public class S2RobotTest extends S2TestCase {
         S2RobotWebServer server = new S2RobotWebServer(7070);
         server.start();
 
+        ((DBUrlQueueServiceImpl) urlQueueService).generatedUrlQueueSize = 5;
+
         String url = "http://localhost:7070/";
         try {
             int maxCount = 50;
@@ -189,6 +196,10 @@ public class S2RobotTest extends S2TestCase {
                             .getStatus().intValue());
                 }
             });
+
+            dataService.deleteAll();
+            urlQueueService.deleteAll();
+            urlFilterService.deleteAll();
         } finally {
             server.stop();
         }

@@ -21,17 +21,16 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.seasar.robot.dbflute.cbean.EntityRowHandler;
 import org.seasar.framework.beans.util.Beans;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.db.cbean.AccessResultCB;
-import org.seasar.robot.db.cbean.AccessResultDataCB;
 import org.seasar.robot.db.exbhv.AccessResultBhv;
 import org.seasar.robot.db.exbhv.AccessResultDataBhv;
 import org.seasar.robot.db.exbhv.cursor.AccessResultDiffCursor;
 import org.seasar.robot.db.exbhv.cursor.AccessResultDiffCursorHandler;
 import org.seasar.robot.db.exbhv.pmbean.AccessResultPmb;
+import org.seasar.robot.dbflute.cbean.EntityRowHandler;
 import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.service.DataService;
@@ -87,29 +86,16 @@ public class DBDataServiceImpl implements DataService {
      * @see org.seasar.robot.service.DataService#delete(java.lang.String)
      */
     public void delete(String sessionId) {
-        AccessResultDataCB cb1 = new AccessResultDataCB();
-        cb1.query().queryAccessResult().setSessionId_Equal(sessionId);
-        accessResultDataBhv.queryDelete(cb1);
-        //        String pmb = sessionId;
-        //        int count = accessResultDataBhv.outsideSql().execute(
-        //                AccessResultDataBhv.PATH_deleteBySessionId, pmb);
-        //
-        //        if (logger.isDebugEnabled()) {
-        //            logger.debug("Deleted urls in queue("
-        //                    + AccessResultDataBhv.PATH_deleteBySessionId + "): "
-        //                    + count);
-        //        }
-
-        //        AccessResultCB cb2 = new AccessResultCB();
-        //        cb2.query().setSessionId_Equal(sessionId);
-        //        accessResultBhv.queryDelete(cb2);
-        String pmb = sessionId;
-        int count = accessResultBhv.outsideSql().execute(
-                AccessResultBhv.PATH_deleteBySessionId, pmb);
+        int count = accessResultDataBhv.deleteBySessionId(sessionId);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Deleted urls in queue("
-                    + AccessResultBhv.PATH_deleteBySessionId + "): " + count);
+            logger.debug("Deleted accessResultData: " + count);
+        }
+
+        count = accessResultBhv.deleteBySessionId(sessionId);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deleted accessResult: " + count);
         }
     }
 
@@ -117,25 +103,16 @@ public class DBDataServiceImpl implements DataService {
      * @see org.seasar.robot.service.DataService#deleteAll()
      */
     public void deleteAll() {
-        //        AccessResultDataCB cb1 = new AccessResultDataCB();
-        //        accessResultDataBhv.queryDelete(cb1);
-        String pmb = null;
-        int count = accessResultDataBhv.outsideSql().execute(
-                AccessResultDataBhv.PATH_deleteAll, pmb);
+        int count = accessResultDataBhv.deleteAll();
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Deleted urls in queue("
-                    + AccessResultDataBhv.PATH_deleteAll + "): " + count);
+            logger.debug("Deleted accessResultData: " + count);
         }
 
-        //        AccessResultCB cb2 = new AccessResultCB();
-        //        accessResultBhv.queryDelete(cb2);
-        count = accessResultBhv.outsideSql().execute(
-                AccessResultBhv.PATH_deleteBySessionId, pmb);
+        count = accessResultBhv.deleteAll();
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Deleted urls in queue("
-                    + AccessResultBhv.PATH_deleteBySessionId + "): " + count);
+            logger.debug("Deleted accessResult: " + count);
         }
     }
 

@@ -25,4 +25,19 @@ package org.seasar.robot.db.exbhv;
  */
 public class AccessResultBhv extends
         org.seasar.robot.db.bsbhv.BsAccessResultBhv {
+    public int deleteBySessionId(String sessionId) {
+        //        AccessResultCB cb2 = new AccessResultCB();
+        //        cb2.query().setSessionId_Equal(sessionId);
+        //        accessResultBhv.queryDelete(cb2);
+        return outsideSql().execute(AccessResultBhv.PATH_deleteBySessionId,
+                sessionId);
+    }
+
+    public int deleteAll() {
+        //        AccessResultCB cb2 = new AccessResultCB();
+        //        accessResultBhv.queryDelete(cb2);
+        String pmb = null;
+        return outsideSql()
+                .execute(AccessResultBhv.PATH_deleteBySessionId, pmb);
+    }
 }

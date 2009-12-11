@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.db.exbhv;
 
+import org.seasar.robot.db.cbean.AccessResultDataCB;
+
 /**
  * The behavior of ACCESS_RESULT_DATA.
  * <p>
@@ -25,4 +27,19 @@ package org.seasar.robot.db.exbhv;
  */
 public class AccessResultDataBhv extends
         org.seasar.robot.db.bsbhv.BsAccessResultDataBhv {
+    public int deleteBySessionId(String sessionId) {
+        AccessResultDataCB cb1 = new AccessResultDataCB();
+        cb1.query().queryAccessResult().setSessionId_Equal(sessionId);
+        return queryDelete(cb1);
+
+        //        return outsideSql().execute(AccessResultDataBhv.PATH_deleteBySessionId,
+        //                sessionId);
+    }
+
+    public int deleteAll() {
+        //        AccessResultDataCB cb1 = new AccessResultDataCB();
+        //        accessResultDataBhv.queryDelete(cb1);
+        String pmb = null;
+        return outsideSql().execute(AccessResultDataBhv.PATH_deleteAll, pmb);
+    }
 }

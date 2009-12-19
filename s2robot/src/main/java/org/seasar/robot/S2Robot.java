@@ -68,6 +68,8 @@ public class S2Robot implements Runnable {
 
     protected boolean daemon = false;
 
+    protected int threadPriority = Thread.NORM_PRIORITY;
+
     protected Thread parentThread;
 
     public S2Robot() {
@@ -206,6 +208,7 @@ public class S2Robot implements Runnable {
             threads[i] = new Thread(threadGroup, robotThread, "Robot-"
                     + robotContext.sessionId + "-" + Integer.toString(i + 1));
             threads[i].setDaemon(daemon);
+            threads[i].setPriority(threadPriority);
         }
 
         // run
@@ -245,5 +248,9 @@ public class S2Robot implements Runnable {
 
     public void setMaxAccessCount(long maxAccessCount) {
         robotContext.maxAccessCount = maxAccessCount;
+    }
+
+    public void setThreadPriority(int threadPriority) {
+        this.threadPriority = threadPriority;
     }
 }

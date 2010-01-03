@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
-import org.seasar.framework.util.LruHashMap;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.db.cbean.AccessResultCB;
@@ -37,6 +36,7 @@ import org.seasar.robot.db.exentity.AccessResult;
 import org.seasar.robot.dbflute.cbean.PagingResultBean;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.service.UrlQueueService;
+import org.seasar.robot.util.LruHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
 
     protected static volatile Map<String, LinkedList<UrlQueue>> URL_QUEUE_MAP = new HashMap<String, LinkedList<UrlQueue>>();
 
-    private static Map<String, LruHashMap> VISITED_URL_CACHE_MAP = new ConcurrentHashMap<String, LruHashMap>();
+    private static ConcurrentHashMap<String, LruHashMap<String, String>> VISITED_URL_CACHE_MAP = new ConcurrentHashMap<String, LruHashMap<String, String>>();
 
     public int cacheSize = 1000;
 
@@ -164,11 +164,16 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    private LruHashMap getVisitedUrlCache(String sessionId) {
-        LruHashMap visitedUrlMap = VISITED_URL_CACHE_MAP.get(sessionId);
+    private LruHashMap<String, String> getVisitedUrlCache(String sessionId) {
+        LruHashMap<String, String> visitedUrlMap = VISITED_URL_CACHE_MAP
+                .get(sessionId);
         if (visitedUrlMap == null) {
-            visitedUrlMap = new LruHashMap(visitedUrlCacheSize);
-            VISITED_URL_CACHE_MAP.put(sessionId, visitedUrlMap);
+            visitedUrlMap = new LruHashMap<String, String>(visitedUrlCacheSize);
+            LruHashMap<String, String> urlMap = VISITED_URL_CACHE_MAP
+                    .putIfAbsent(sessionId, visitedUrlMap);
+            if (urlMap != null) {
+                visitedUrlMap = urlMap;
+            }
         }
         return visitedUrlMap;
     }

@@ -117,7 +117,6 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 try {
                     outputFile = File.createTempFile(
                             "s2robot-FileSystemClient-", ".out");
-                    outputFile.deleteOnExit();
                     FileUtil.copy(file, outputFile);
                     responseData.setResponseBody(new TemporaryFileInputStream(
                             outputFile));

@@ -402,7 +402,6 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             if (responseBodyStream != null) {
                 File outputFile = File.createTempFile(
                         "s2robot-CommonsHttpClient-", ".out");
-                outputFile.deleteOnExit();
                 DeferredFileOutputStream dfos = new DeferredFileOutputStream(
                         responseBodyInMemoryThresholdSize, outputFile);
                 StreamUtil.drain(httpMethod.getResponseBodyAsStream(), dfos);

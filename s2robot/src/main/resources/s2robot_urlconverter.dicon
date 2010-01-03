@@ -2,6 +2,13 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
+	<!-- Converts child links to normalize it. -->
 	<component name="urlConvertHelper" class="org.seasar.robot.helper.UrlConvertHelper">
+		<!-- 
+		<initMethod name="add">
+			<arg>"target"</arg>
+			<arg>"replacement"</arg>
+		</initMethod>
+		 -->
 	</component>
 </components>

@@ -40,6 +40,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
@@ -377,6 +378,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             httpMethod.setRequestHeader(header);
         }
 
+        ResponseData responseData = null;
         try {
             // get a content 
             httpClient.executeMethod(httpMethod);
@@ -387,7 +389,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                 Header locationHeader = httpMethod
                         .getResponseHeader("location");
                 if (locationHeader != null) {
-                    ResponseData responseData = new ResponseData();
+                    responseData = new ResponseData();
                     responseData.setRedirectLocation(locationHeader.getValue());
                     return responseData;
                 } else {
@@ -442,7 +444,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                 }
             }
 
-            ResponseData responseData = new ResponseData();
+            responseData = new ResponseData();
             if (httpMethod instanceof HeadMethod) {
                 responseData.setMethod(Constants.HEAD_METHOD);
             } else {
@@ -493,15 +495,30 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
             return responseData;
         } catch (UnknownHostException e) {
+            if (responseData != null) {
+                IOUtils.closeQuietly(responseData.getResponseBody());
+            }
             throw new RobotCrawlAccessException("Unknown host: " + url, e);
         } catch (NoRouteToHostException e) {
+            if (responseData != null) {
+                IOUtils.closeQuietly(responseData.getResponseBody());
+            }
             throw new RobotCrawlAccessException("No route to host: " + url, e);
         } catch (ConnectException e) {
+            if (responseData != null) {
+                IOUtils.closeQuietly(responseData.getResponseBody());
+            }
             throw new RobotCrawlAccessException("Connection time out: " + url,
                     e);
         } catch (RobotSystemException e) {
+            if (responseData != null) {
+                IOUtils.closeQuietly(responseData.getResponseBody());
+            }
             throw e;
         } catch (Exception e) {
+            if (responseData != null) {
+                IOUtils.closeQuietly(responseData.getResponseBody());
+            }
             throw new RobotSystemException("Failed to access " + url, e);
         } finally {
             httpMethod.releaseConnection();

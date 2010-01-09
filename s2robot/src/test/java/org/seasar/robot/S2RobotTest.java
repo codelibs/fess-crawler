@@ -70,6 +70,58 @@ public class S2RobotTest extends S2TestCase {
         }
     }
 
+    public void test_execute_xmlSitemaps() throws Exception {
+        S2RobotWebServer server = new S2RobotWebServer(7070);
+        server.start();
+
+        String url = "http://localhost:7070/";
+        try {
+            int maxCount = 50;
+            int numOfThread = 10;
+
+            File file = File.createTempFile("s2robot-", "");
+            file.delete();
+            file.mkdirs();
+            file.deleteOnExit();
+            fileTransformer.setPath(file.getAbsolutePath());
+            s2Robot.addUrl(url + "sitemaps.xml");
+            s2Robot.robotContext.setMaxAccessCount(maxCount);
+            s2Robot.robotContext.setNumOfThread(numOfThread);
+            s2Robot.urlFilter.addInclude(url + ".*");
+            String sessionId = s2Robot.execute();
+            assertEquals(maxCount, dataService.getCount(sessionId));
+            dataService.delete(sessionId);
+        } finally {
+            server.stop();
+        }
+    }
+
+    public void test_execute_textSitemaps() throws Exception {
+        S2RobotWebServer server = new S2RobotWebServer(7070);
+        server.start();
+
+        String url = "http://localhost:7070/";
+        try {
+            int maxCount = 50;
+            int numOfThread = 10;
+
+            File file = File.createTempFile("s2robot-", "");
+            file.delete();
+            file.mkdirs();
+            file.deleteOnExit();
+            fileTransformer.setPath(file.getAbsolutePath());
+            s2Robot.addUrl(url + "sitemaps.xml");
+            s2Robot.robotContext.setMaxAccessCount(maxCount);
+            s2Robot.robotContext.setNumOfThread(numOfThread);
+            s2Robot.urlFilter.addInclude(url + ".*");
+            String sessionId = s2Robot.execute();
+            assertEquals(maxCount, dataService.getCount(sessionId));
+            dataService.delete(sessionId);
+        } finally {
+            server.stop();
+        }
+    }
+
     public void test_execute_file_maxCount() throws Exception {
         File targetFile = ResourceUtil.getResourceAsFile("test");
         String path = targetFile.getAbsolutePath();

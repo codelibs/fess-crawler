@@ -87,12 +87,42 @@ public class S2RobotWebServer {
             tempDir.delete();
             tempDir.mkdirs();
 
+            // robots.txt
             StringBuilder buf = new StringBuilder();
             buf.append("User-agent: *").append('\n');
             buf.append("Disallow: /admin/").append('\n');
             buf.append("Disallow: /websvn/").append('\n');
             File robotTxtFile = new File(tempDir, "robots.txt");
             FileUtil.write(robotTxtFile.getAbsolutePath(), buf.toString()
+                    .getBytes("UTF-8"));
+            robotTxtFile.deleteOnExit();
+
+            // sitemaps.xml
+            buf = new StringBuilder();
+            buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append(
+                    '\n');
+            buf.append("<urlset ").append(
+                    "xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">")
+                    .append('\n');
+            buf.append("<url>").append('\n');
+            buf.append("<loc>http://localhost:7070/index.html</loc>").append(
+                    '\n');
+            buf.append("<loc>http://localhost:7070/file").append(count).append(
+                    "-1.html").append("</loc>").append('\n');
+            buf.append("</url>").append('\n');
+            buf.append("</urlset>").append('\n');
+            File sitemapsFile = new File(tempDir, "sitemaps.xml");
+            FileUtil.write(sitemapsFile.getAbsolutePath(), buf.toString()
+                    .getBytes("UTF-8"));
+            robotTxtFile.deleteOnExit();
+
+            // sitemaps.txt
+            buf = new StringBuilder();
+            buf.append("http://localhost:7070/index.html").append('\n');
+            buf.append("http://localhost:7070/file").append(count).append(
+                    "-1.html").append('\n');
+            sitemapsFile = new File(tempDir, "sitemaps.txt");
+            FileUtil.write(sitemapsFile.getAbsolutePath(), buf.toString()
                     .getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 

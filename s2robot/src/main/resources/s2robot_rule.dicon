@@ -6,7 +6,22 @@
     
 	<component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="prototype">
 		<initMethod name="addRule">
+			<arg>sitemapsRule</arg>
+		</initMethod>
+		<initMethod name="addRule">
 			<arg>fileRule</arg>
+		</initMethod>
+	</component>
+	
+	<component name="sitemapsRule" class="org.seasar.robot.rule.impl.RegexRule" >
+		<property name="ruleId">"sitemapsRule"</property>
+		<property name="responseProcessor">
+			<component class="org.seasar.robot.processor.impl.SitemapsResponseProcessor">
+			</component>
+		</property>
+		<initMethod name="addRule">
+			<arg>"url"</arg>
+			<arg>".*sitemap[^/]*.xml$|.*sitemap[^/]*.gz$|.*sitemap[^/]*.txt$"</arg>
 		</initMethod>
 	</component>
 	

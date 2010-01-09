@@ -379,6 +379,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
         }
 
         ResponseData responseData = null;
+        InputStream inputStream = null;
         try {
             // get a content 
             httpClient.executeMethod(httpMethod);
@@ -400,7 +401,6 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             long contentLength = 0;
             InputStream responseBodyStream = httpMethod
                     .getResponseBodyAsStream();
-            InputStream inputStream = null;
             if (responseBodyStream != null) {
                 File outputFile = File.createTempFile(
                         "s2robot-CommonsHttpClient-", ".out");
@@ -495,30 +495,20 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
             return responseData;
         } catch (UnknownHostException e) {
-            if (responseData != null) {
-                IOUtils.closeQuietly(responseData.getResponseBody());
-            }
+            IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Unknown host: " + url, e);
         } catch (NoRouteToHostException e) {
-            if (responseData != null) {
-                IOUtils.closeQuietly(responseData.getResponseBody());
-            }
+            IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("No route to host: " + url, e);
         } catch (ConnectException e) {
-            if (responseData != null) {
-                IOUtils.closeQuietly(responseData.getResponseBody());
-            }
+            IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Connection time out: " + url,
                     e);
         } catch (RobotSystemException e) {
-            if (responseData != null) {
-                IOUtils.closeQuietly(responseData.getResponseBody());
-            }
+            IOUtils.closeQuietly(inputStream);
             throw e;
         } catch (Exception e) {
-            if (responseData != null) {
-                IOUtils.closeQuietly(responseData.getResponseBody());
-            }
+            IOUtils.closeQuietly(inputStream);
             throw new RobotSystemException("Failed to access " + url, e);
         } finally {
             httpMethod.releaseConnection();

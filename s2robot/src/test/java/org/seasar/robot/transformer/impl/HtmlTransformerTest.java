@@ -170,6 +170,10 @@ public class HtmlTransformerTest extends S2TestCase {
 
         value = "http://www.seasar.org/hoge.html";
         assertTrue(htmlTransformer.isValidPath(value));
+
+        value = "a javascript:...";
+        assertTrue(htmlTransformer.isValidPath(value));
+
     }
 
     public void test_isValidPath_invalid() {

@@ -84,8 +84,11 @@ public class HtmlTransformer extends AbstractTransformer {
     protected int preloadSizeForCharset = 2048;
 
     @Binding(bindingType = BindingType.MAY)
-    protected Pattern invalidUrlPattern = Pattern.compile(
-            "\\s*javascript:|\\s*mailto:|\\s*irc:", Pattern.CASE_INSENSITIVE);
+    protected Pattern invalidUrlPattern = Pattern.compile("^\\s*javascript:|"
+            + "^\\s*mailto:|" + "^\\s*irc:|" + "^\\s*skype:|" + "^\\s*about:|"
+            + "^\\s*fscommand:|" + "^\\s*aim:|" + "^\\s*msnim:|"
+            + "^\\s*news:|" + "^\\s*tel:|" + "^\\s*unsaved:|" + "^\\s*callto:",
+            Pattern.CASE_INSENSITIVE);
 
     private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
 

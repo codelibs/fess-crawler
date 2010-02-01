@@ -112,9 +112,6 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public String userAgent = "S2Robot";
 
-    @Deprecated
-    public String userAgentForRobotsTxt = "S2Robot";
-
     protected volatile org.apache.commons.httpclient.HttpClient httpClient;
 
     public String proxyHost;
@@ -296,7 +293,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                         .getResponseBodyAsStream());
                 if (robotsTxt != null) {
                     RobotsTxt.Directives directives = robotsTxt
-                            .getDirectives(userAgentForRobotsTxt);
+                            .getDirectives(userAgent);
                     if (directives != null) {
                         for (String urlPattern : directives.getDisallows()) {
                             if (StringUtil.isNotBlank(urlPattern)) {
@@ -308,11 +305,9 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                     }
                 }
             }
-        } catch (UnknownHostException e) {
-            throw new RobotCrawlAccessException("Unknown host: " + robotTxtUrl,
-                    e);
         } catch (Exception e) {
-            logger.warn("Could not parse " + robotTxtUrl, e);
+            throw new RobotCrawlAccessException("Could not process "
+                    + robotTxtUrl + ". ", e);
         } finally {
             getMethod.releaseConnection();
         }
@@ -359,7 +354,12 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             processRobotsTxt(url);
         } catch (RobotCrawlAccessException e) {
             if (logger.isInfoEnabled()) {
-                logger.info(e.getMessage());
+                StringBuilder buf = new StringBuilder();
+                buf.append(e.getMessage());
+                if (e.getCause() != null) {
+                    buf.append(e.getCause().getMessage());
+                }
+                logger.info(buf.toString());
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Crawling Access Exception at " + url, e);
             }

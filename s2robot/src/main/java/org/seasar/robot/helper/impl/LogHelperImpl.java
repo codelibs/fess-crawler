@@ -151,11 +151,16 @@ public class LogHelperImpl implements LogHelper {
         }
         case NO_URL_IN_QUEUE: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            // UrlQueue urlQueue = (UrlQueue) objs[1];
+            UrlQueue urlQueue = (UrlQueue) objs[1];
             Integer threadCheckCount = (Integer) objs[2];
             if (logger.isDebugEnabled()) {
-                logger.debug("No valid url in a queue. (" + threadCheckCount
-                        + ")");
+                String url = urlQueue.getUrl();
+                if (url != null) {
+                    logger.debug(url + " is not a target url. ("
+                            + threadCheckCount + ")");
+                } else {
+                    logger.debug("The url is null. (" + threadCheckCount + ")");
+                }
             }
             break;
         }

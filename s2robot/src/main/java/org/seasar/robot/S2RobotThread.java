@@ -133,7 +133,7 @@ public class S2RobotThread implements Runnable {
                                     logHelper,
                                     LogType.UNSUPPORTED_URL_AT_CRAWLING_STARTED,
                                     robotContext, urlQueue);
-                            break;
+                            continue;
                         }
 
                         startCrawling();

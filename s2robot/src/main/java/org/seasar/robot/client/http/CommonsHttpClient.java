@@ -17,9 +17,11 @@ package org.seasar.robot.client.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -496,14 +498,24 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             return responseData;
         } catch (UnknownHostException e) {
             IOUtils.closeQuietly(inputStream);
-            throw new RobotCrawlAccessException("Unknown host: " + url, e);
+            throw new RobotCrawlAccessException("Unknown host("
+                    + e.getMessage() + "): " + url, e);
         } catch (NoRouteToHostException e) {
             IOUtils.closeQuietly(inputStream);
-            throw new RobotCrawlAccessException("No route to host: " + url, e);
+            throw new RobotCrawlAccessException("No route to host("
+                    + e.getMessage() + "): " + url, e);
         } catch (ConnectException e) {
             IOUtils.closeQuietly(inputStream);
-            throw new RobotCrawlAccessException("Connection time out: " + url,
-                    e);
+            throw new RobotCrawlAccessException("Connection time out("
+                    + e.getMessage() + "): " + url, e);
+        } catch (SocketException e) {
+            IOUtils.closeQuietly(inputStream);
+            throw new RobotCrawlAccessException("Socket exception("
+                    + e.getMessage() + "): " + url, e);
+        } catch (IOException e) {
+            IOUtils.closeQuietly(inputStream);
+            throw new RobotCrawlAccessException("I/O exception("
+                    + e.getMessage() + "): " + url, e);
         } catch (RobotSystemException e) {
             IOUtils.closeQuietly(inputStream);
             throw e;

@@ -147,7 +147,7 @@ public class S2RobotThread implements Runnable {
                         }
 
                         boolean contentUpdated = isContentUpdated(client,
-                                urlQueue, responseData);
+                                urlQueue);
 
                         if (contentUpdated) {
                             log(logHelper, LogType.GET_CONTENT, robotContext,
@@ -245,27 +245,40 @@ public class S2RobotThread implements Runnable {
         return clientFactory.getClient(url);
     }
 
+    protected boolean isContentUpdated(S2RobotClient client, UrlQueue urlQueue) {
+        return isContentUpdated(client, urlQueue, null);
+    }
+
+    @Deprecated
     protected boolean isContentUpdated(S2RobotClient client, UrlQueue urlQueue,
-            ResponseData responseData) {
+            ResponseData ignore) {
+        // TODO move the following code at a next version, and then remove this method.
         if (urlQueue.getLastModified() != null) {
             log(logHelper, LogType.CHECK_LAST_MODIFIED, robotContext, urlQueue);
             long startTime = System.currentTimeMillis();
-            //  head method
-            responseData = client.doHead(urlQueue.getUrl());
-            if (responseData != null
-                    && responseData.getLastModified().getTime() <= urlQueue
-                            .getLastModified().getTime()
-                    && responseData.getHttpStatusCode() == 200) {
-                log(logHelper, LogType.NOT_MODIFIED, robotContext, urlQueue);
+            ResponseData responseData = null;
+            try {
+                //  head method
+                responseData = client.doHead(urlQueue.getUrl());
+                if (responseData != null
+                        && responseData.getLastModified().getTime() <= urlQueue
+                                .getLastModified().getTime()
+                        && responseData.getHttpStatusCode() == 200) {
+                    log(logHelper, LogType.NOT_MODIFIED, robotContext, urlQueue);
 
-                responseData.setExecutionTime(System.currentTimeMillis()
-                        - startTime);
-                responseData.setParentUrl(urlQueue.getParentUrl());
-                responseData.setSessionId(robotContext.sessionId);
-                responseData.setStatus(Constants.NOT_MODIFIED_STATUS);
-                processResponse(urlQueue, responseData);
+                    responseData.setExecutionTime(System.currentTimeMillis()
+                            - startTime);
+                    responseData.setParentUrl(urlQueue.getParentUrl());
+                    responseData.setSessionId(robotContext.sessionId);
+                    responseData.setStatus(Constants.NOT_MODIFIED_STATUS);
+                    processResponse(urlQueue, responseData);
 
-                return false;
+                    return false;
+                }
+            } finally {
+                if (responseData != null) {
+                    IOUtils.closeQuietly(responseData.getResponseBody());
+                }
             }
         }
         return true;

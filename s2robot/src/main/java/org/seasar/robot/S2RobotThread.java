@@ -303,7 +303,8 @@ public class S2RobotThread implements Runnable {
 
     }
 
-    private void storeChildUrls(Set<String> childUrlList, String url, int depth) {
+    protected void storeChildUrls(Set<String> childUrlList, String url,
+            int depth) {
         //  add url and filter 
         List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (String childUrl : childUrlList) {
@@ -321,7 +322,7 @@ public class S2RobotThread implements Runnable {
         urlQueueService.offerAll(robotContext.sessionId, childList);
     }
 
-    private void storeChildUrl(String childUrl, String url, int depth) {
+    protected void storeChildUrl(String childUrl, String url, int depth) {
         //  add url and filter 
         if (robotContext.urlFilter.match(childUrl)) {
             List<UrlQueue> childList = new ArrayList<UrlQueue>(1);

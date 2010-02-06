@@ -380,32 +380,38 @@ public class HtmlTransformer extends AbstractTransformer {
                 Element element = (Element) list.item(i);
                 String attrValue = element.getAttribute(attr);
                 if (isValidPath(attrValue)) {
-                    try {
-                        URL childUrl = new URL(url, attrValue.trim());
-                        String u = encodeUrl(normalizeUrl(childUrl
-                                .toExternalForm()), encoding);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug(attrValue + " -> " + u);
-                        }
-                        if (StringUtil.isNotBlank(u)) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Add Child: " + u);
-                            }
-                            urlList.add(u);
-                        } else {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Skip Child: " + u);
-                            }
-                        }
-                    } catch (MalformedURLException e) {
-                        logger.warn("Malformed URL: " + attrValue, e);
-                    }
+                    addChildUrlFromTagAttribute(urlList, url, attrValue,
+                            encoding);
                 }
             }
         } catch (TransformerException e) {
             logger.warn("Could not get urls: (" + xpath + ", " + attr + ")", e);
         }
         return urlList;
+    }
+
+    protected void addChildUrlFromTagAttribute(List<String> urlList, URL url,
+            String attrValue, String encoding) {
+        try {
+            URL childUrl = new URL(url, attrValue.trim());
+            String u = encodeUrl(normalizeUrl(childUrl.toExternalForm()),
+                    encoding);
+            if (logger.isDebugEnabled()) {
+                logger.debug(attrValue + " -> " + u);
+            }
+            if (StringUtil.isNotBlank(u)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Add Child: " + u);
+                }
+                urlList.add(u);
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Skip Child: " + u);
+                }
+            }
+        } catch (MalformedURLException e) {
+            logger.warn("Malformed URL: " + attrValue, e);
+        }
     }
 
     protected String encodeUrl(String url, String enc) {

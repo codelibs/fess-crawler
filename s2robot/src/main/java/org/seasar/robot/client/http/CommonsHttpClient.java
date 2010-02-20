@@ -331,7 +331,13 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
      * @see org.seasar.robot.http.HttpClient#doGet(java.lang.String)
      */
     public ResponseData doGet(String url) {
-        HttpMethod getMethod = new GetMethod(url);
+        HttpMethod getMethod;
+        try {
+            getMethod = new GetMethod(url);
+        } catch (IllegalArgumentException e) {
+            throw new RobotCrawlAccessException("The url may not be valid: "
+                    + url, e);
+        }
         return doHttpMethod(url, getMethod);
     }
 
@@ -339,7 +345,13 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
      * @see org.seasar.robot.http.HttpClient#doHead(java.lang.String)
      */
     public ResponseData doHead(String url) {
-        HttpMethod headMethod = new HeadMethod(url);
+        HttpMethod headMethod;
+        try {
+            headMethod = new HeadMethod(url);
+        } catch (IllegalArgumentException e) {
+            throw new RobotCrawlAccessException("The url may not be valid: "
+                    + url, e);
+        }
         return doHttpMethod(url, headMethod);
     }
 

@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,7 +37,6 @@ import java.util.regex.Pattern;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.xpath.CachedXPathAPI;
 import org.cyberneko.html.parsers.DOMParser;
 import org.seasar.framework.container.SingletonS2Container;
@@ -52,6 +52,7 @@ import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.helper.EncodingHelper;
 import org.seasar.robot.helper.UrlConvertHelper;
+import org.seasar.robot.util.CharUtil;
 import org.seasar.robot.util.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,8 +282,24 @@ public class HtmlTransformer extends AbstractTransformer {
                 responseData.setCharSet(Constants.UTF_8);
             }
         } else {
-            responseData.setCharSet(encoding);
+            responseData.setCharSet(encoding.trim());
         }
+
+        if (!isSupportedCharset(responseData.getCharSet())) {
+            responseData.setCharSet(Constants.UTF_8);
+        }
+    }
+
+    protected boolean isSupportedCharset(String charsetName) {
+        if (charsetName == null) {
+            return false;
+        }
+        try {
+            Charset.forName(charsetName);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
     protected String loadCharset(InputStream inputStream) {
@@ -419,20 +436,18 @@ public class HtmlTransformer extends AbstractTransformer {
             return url;
         }
 
-        try {
-            StringBuilder buf = new StringBuilder(url.length() + 100);
-            for (char c : url.toCharArray()) {
-                String str = String.valueOf(c);
-                if (StringUtils.isAsciiPrintable(str)) {
-                    buf.append(c);
-                } else {
-                    buf.append(URLEncoder.encode(str, enc));
+        StringBuilder buf = new StringBuilder(url.length() + 100);
+        for (char c : url.toCharArray()) {
+            if (CharUtil.isUrlChar(c)) {
+                buf.append(c);
+            } else {
+                try {
+                    buf.append(URLEncoder.encode(String.valueOf(c), enc));
+                } catch (UnsupportedEncodingException e) {
                 }
             }
-            return buf.toString();
-        } catch (UnsupportedEncodingException e) {
-            return url;
         }
+        return buf.toString();
     }
 
     protected String normalizeUrl(String url) {

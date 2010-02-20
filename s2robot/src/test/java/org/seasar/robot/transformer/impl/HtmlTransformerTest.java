@@ -221,9 +221,24 @@ public class HtmlTransformerTest extends S2TestCase {
     }
 
     public void test_encodeUrl_valid() {
-        String url = "http://test.com/hoge/;jsessionid?p=id&test=テスト&u=18718&v=123%3d#test";
-        String result = "http://test.com/hoge/;jsessionid?p=id&test=%E3%83%86%E3%82%B9%E3%83%88&u=18718&v=123%3d#test";
-
+        String url = "http://TEST.com/hoge/;jsessionid?p=id&test=テスト&u=18718&v=123%3d#test";
+        String result = "http://TEST.com/hoge/;jsessionid?p=id&test=%E3%83%86%E3%82%B9%E3%83%88&u=18718&v=123%3d#test";
         assertEquals(result, htmlTransformer.encodeUrl(url, "UTF-8"));
+
+        url = ".-*_:/+%=&?#[]@~!$'(),;";
+        result = ".-*_:/+%=&?#[]@~!$'(),;";
+        assertEquals(result, htmlTransformer.encodeUrl(url, "UTF-8"));
+    }
+
+    public void test_isSupportedCharset_valid() {
+        assertTrue(htmlTransformer.isSupportedCharset("UTF-8"));
+        assertTrue(htmlTransformer.isSupportedCharset("EUC-JP"));
+        assertTrue(htmlTransformer.isSupportedCharset("Shift_JIS"));
+    }
+
+    public void test_isSupportedCharset_invalid() {
+        assertFalse(htmlTransformer.isSupportedCharset("aaa"));
+        assertFalse(htmlTransformer.isSupportedCharset(" "));
+        assertFalse(htmlTransformer.isSupportedCharset(null));
     }
 }

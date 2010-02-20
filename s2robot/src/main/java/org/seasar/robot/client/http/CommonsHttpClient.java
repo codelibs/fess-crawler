@@ -127,6 +127,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     private List<Header> requestHeaderList = new ArrayList<Header>();
 
+    public String defaultMimeType = "application/octet-stream";
+
     protected synchronized void init() {
         if (httpClient != null) {
             return;
@@ -478,6 +480,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             }
             if (contentType != null) {
                 responseData.setMimeType(contentType);
+            } else {
+                responseData.setMimeType(defaultMimeType);
             }
             Header contentLengthHeader = httpMethod
                     .getResponseHeader("Content-Length");

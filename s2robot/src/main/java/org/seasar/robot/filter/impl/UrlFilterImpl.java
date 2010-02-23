@@ -24,12 +24,17 @@ import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.filter.UrlFilter;
 import org.seasar.robot.service.UrlFilterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class UrlFilterImpl implements UrlFilter {
+
+    private final Logger logger = LoggerFactory.getLogger(UrlFilterImpl.class);
+
     protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
     protected String includeFilteringPattern;
@@ -48,6 +53,14 @@ public class UrlFilterImpl implements UrlFilter {
      * @see org.seasar.robot.filter.UrlFilter#addExclude(java.lang.String)
      */
     public void addExclude(String urlPattern) {
+        try {
+            Pattern.compile(urlPattern);
+        } catch (Exception e) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("Invalid exclude pattern: " + urlPattern);
+            }
+            return;
+        }
         if (sessionId == null) {
             cachedExcludeList.add(urlPattern);
         } else {
@@ -59,6 +72,14 @@ public class UrlFilterImpl implements UrlFilter {
      * @see org.seasar.robot.filter.UrlFilter#addInclude(java.lang.String)
      */
     public void addInclude(String urlPattern) {
+        try {
+            Pattern.compile(urlPattern);
+        } catch (Exception e) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("Invalid include pattern: " + urlPattern);
+            }
+            return;
+        }
         if (sessionId == null) {
             cachedIncludeList.add(urlPattern);
         } else {

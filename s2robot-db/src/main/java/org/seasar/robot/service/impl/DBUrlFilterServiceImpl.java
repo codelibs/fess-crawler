@@ -26,12 +26,16 @@ import org.seasar.robot.db.cbean.UrlFilterCB;
 import org.seasar.robot.db.exbhv.UrlFilterBhv;
 import org.seasar.robot.db.exentity.UrlFilter;
 import org.seasar.robot.service.UrlFilterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class DBUrlFilterServiceImpl implements UrlFilterService {
+    private final Logger logger = LoggerFactory
+            .getLogger(DBUrlFilterServiceImpl.class);
 
     private static final String INCLUDE_FILTER_TYPE = "I";
 
@@ -75,6 +79,14 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     }
 
     protected void addUrlFilter(String sessionId, String url, String filterType) {
+        try {
+            Pattern.compile(url);
+        } catch (Exception e) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("Invalid url filter pattern: " + url);
+            }
+            return;
+        }
         clearCache();
         UrlFilter urlFilter = new UrlFilter();
         urlFilter.setSessionId(sessionId);
@@ -89,6 +101,14 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
         clearCache();
         List<UrlFilter> urlFilterList = new ArrayList<UrlFilter>();
         for (String url : urlList) {
+            try {
+                Pattern.compile(url);
+            } catch (Exception e) {
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Invalid url filter pattern: " + url);
+                }
+                continue;
+            }
             UrlFilter urlFilter = new UrlFilter();
             urlFilter.setSessionId(sessionId);
             urlFilter.setUrl(url);

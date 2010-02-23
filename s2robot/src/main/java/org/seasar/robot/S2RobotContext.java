@@ -15,12 +15,12 @@
  */
 package org.seasar.robot;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.seasar.robot.filter.UrlFilter;
 import org.seasar.robot.interval.IntervalController;
 import org.seasar.robot.rule.RuleManager;
+import org.seasar.robot.util.LruHashSet;
 
 /**
  * @author shinsuke
@@ -45,7 +45,7 @@ public class S2RobotContext {
 
     protected IntervalController intervalController;
 
-    protected Set<String> robotTxtUrlSet = new HashSet<String>(); // TODO size?
+    protected Set<String> robotTxtUrlSet = new LruHashSet<String>(10000);
 
     /** The number of a thread */
     protected int numOfThread = 10;

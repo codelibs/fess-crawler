@@ -379,6 +379,10 @@ public class HtmlTransformer extends AbstractTransformer {
             Element element = (Element) list.item(0);
             String attrValue = element.getAttribute("href");
             if (StringUtil.isNotBlank(attrValue)) {
+                // if starting with www, append a protocol
+                if (attrValue.startsWith("www.")) {
+                    attrValue = "http://" + attrValue;
+                }
                 return attrValue;
             }
         }

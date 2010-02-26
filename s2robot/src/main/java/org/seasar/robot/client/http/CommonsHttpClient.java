@@ -178,8 +178,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             Credentials proxyCredentials = getInitParameter(
                     PROXY_CREDENTIALS_PROPERTY, this.proxyCredentials);
             if (proxyCredentials != null) {
-                httpClient.getState().setProxyCredentials(AuthScope.ANY,
-                        proxyCredentials);
+                httpClient.getState().setProxyCredentials(
+                        new AuthScope(proxyHost, proxyPort), proxyCredentials);
             }
         }
 

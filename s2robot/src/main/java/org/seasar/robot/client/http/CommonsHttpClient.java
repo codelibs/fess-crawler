@@ -93,6 +93,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
     private final Logger logger = LoggerFactory
             .getLogger(CommonsHttpClient.class);
 
+    @Binding(bindingType = BindingType.MAY)
     @Resource
     protected RobotsTxtHelper robotsTxtHelper;
 

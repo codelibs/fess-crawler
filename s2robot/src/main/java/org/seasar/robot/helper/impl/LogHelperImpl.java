@@ -154,9 +154,8 @@ public class LogHelperImpl implements LogHelper {
             UrlQueue urlQueue = (UrlQueue) objs[1];
             Integer threadCheckCount = (Integer) objs[2];
             if (logger.isDebugEnabled()) {
-                String url = urlQueue.getUrl();
-                if (url != null) {
-                    logger.debug(url + " is not a target url. ("
+                if (urlQueue != null && urlQueue.getUrl() != null) {
+                    logger.debug(urlQueue.getUrl() + " is not a target url. ("
                             + threadCheckCount + ")");
                 } else {
                     logger.debug("The url is null. (" + threadCheckCount + ")");

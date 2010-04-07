@@ -4,7 +4,7 @@
   <groupId>org.seasar.robot</groupId>
   <artifactId>s2-robot</artifactId>
   <packaging>jar</packaging>
-  <version>0.4.0</version>
+  <version>0.4.1-SNAPSHOT</version>
   <name>S2Robot</name>
   <description>S2Robot is a crawler framework for Seasar2.</description>
   <url>http://s2robot.sandbox.seasar.org/</url>
@@ -281,7 +281,7 @@
     <dependency>
       <groupId>net.sourceforge.nekohtml</groupId>
       <artifactId>nekohtml</artifactId>
-      <version>1.9.13</version>
+      <version>1.9.14</version>
     </dependency>
     <dependency>
       <groupId>xalan</groupId>
@@ -291,17 +291,17 @@
     <dependency>
       <groupId>org.seasar.container</groupId>
       <artifactId>s2-tiger</artifactId>
-      <version>2.4.39</version>
+      <version>2.4.41</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.5.8</version>
+      <version>1.5.11</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.5.8</version>
+      <version>1.5.11</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -317,12 +317,7 @@
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
-      <version>0.8.0-20091008</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.pdfbox</groupId>
-      <artifactId>fontbox</artifactId>
-      <version>1.0-20091008</version>
+      <version>1.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.mortbay.jetty</groupId>

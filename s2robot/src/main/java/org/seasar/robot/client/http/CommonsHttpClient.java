@@ -421,9 +421,24 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             if (responseBodyStream != null) {
                 File outputFile = File.createTempFile(
                         "s2robot-CommonsHttpClient-", ".out");
-                DeferredFileOutputStream dfos = new DeferredFileOutputStream(
-                        responseBodyInMemoryThresholdSize, outputFile);
-                StreamUtil.drain(httpMethod.getResponseBodyAsStream(), dfos);
+                DeferredFileOutputStream dfos = null;
+                try {
+                    try {
+                        dfos = new DeferredFileOutputStream(
+                                responseBodyInMemoryThresholdSize, outputFile);
+                        StreamUtil.drain(httpMethod.getResponseBodyAsStream(),
+                                dfos);
+                        dfos.flush();
+                    } finally {
+                        IOUtils.closeQuietly(dfos);
+                    }
+                } catch (Exception e) {
+                    if (!outputFile.delete()) {
+                        logger.warn("Could not delete "
+                                + outputFile.getAbsolutePath());
+                    }
+                    throw e;
+                }
 
                 if (dfos.isInMemory()) {
                     inputStream = new ByteArrayInputStream(dfos.getData());

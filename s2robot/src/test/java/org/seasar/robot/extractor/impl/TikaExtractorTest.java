@@ -17,12 +17,14 @@ package org.seasar.robot.extractor.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
 import org.slf4j.Logger;
@@ -162,13 +164,13 @@ public class TikaExtractorTest extends S2TestCase {
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
-        assertEquals(extractData.getValues("title")[0], "タイトル");
         assertTrue(content.contains("テスト"));
     }
 
-    public void test_getTika_xml_broken() {
+    public void test_getTika_xml_broken() throws UnsupportedEncodingException {
         InputStream in = new ByteArrayInputStream(
-                "<?xml encoding=\"UTF-8\"/><hoge>テスト<br></hoge>".getBytes());
+                "<?xml encoding=\"UTF-8\"/><hoge>テスト<br></hoge>"
+                        .getBytes(Constants.UTF_8));
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);

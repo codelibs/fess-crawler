@@ -1,9 +1,9 @@
 <?xml encoding="Shift_JIS"?>
-<html>
-<head>
-<title>タイトル</title>
-</head>
-<body>
+<a>
+<b>
+<d>タイトル</d>
+</b>
+<c>
 テスト
-</body>
-</html>
+</c>
+</a>

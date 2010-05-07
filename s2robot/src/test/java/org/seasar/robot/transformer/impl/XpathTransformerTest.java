@@ -69,7 +69,7 @@ public class XpathTransformerTest extends S2TestCase {
                 + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
-        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathTransformer");
 
@@ -85,7 +85,7 @@ public class XpathTransformerTest extends S2TestCase {
                 + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
-        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
 
@@ -126,7 +126,7 @@ public class XpathTransformerTest extends S2TestCase {
                 + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
-        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathMapTransformer");
 
@@ -151,7 +151,7 @@ public class XpathTransformerTest extends S2TestCase {
                 + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
-        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathEntityTransformer");
 
@@ -176,7 +176,7 @@ public class XpathTransformerTest extends S2TestCase {
                 + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
-        accessResultDataImpl.setData(value.getBytes());
+        accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathEntityTransformer");
 

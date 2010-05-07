@@ -23,13 +23,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.seasar.framework.container.SingletonS2Container;
@@ -82,12 +82,12 @@ public class TikaExtractor implements Extractor {
                 Metadata metadata = createMetadata(resourceName, contentType);
 
                 Parser parser = new AutoDetectParser();
-                Map<String, Object> context = new HashMap<String, Object>();
-                context.put(Parser.class.getName(), parser);
+                ParseContext parseContext = new ParseContext();
+                parseContext.set(Parser.class, parser);
 
                 StringWriter writer = new StringWriter();
                 parser.parse(in, new BodyContentHandler(writer), metadata,
-                        context);
+                        parseContext);
 
                 String content = normalizeContent(writer);
                 if (StringUtil.isBlank(content)) {
@@ -97,7 +97,7 @@ public class TikaExtractor implements Extractor {
                     Metadata metadata2 = createMetadata(null, contentType);
                     StringWriter writer2 = new StringWriter();
                     parser.parse(in, new BodyContentHandler(writer2),
-                            metadata2, context);
+                            metadata2, parseContext);
                     content = normalizeContent(writer2);
                 }
                 ExtractData extractData = new ExtractData(content);

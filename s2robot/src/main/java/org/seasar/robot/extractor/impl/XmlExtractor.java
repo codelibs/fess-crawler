@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class XmlExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(XmlExtractor.class);
 
     protected String encoding = Constants.UTF_8;

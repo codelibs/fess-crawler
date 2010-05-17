@@ -15,7 +15,6 @@
  */
 package org.seasar.robot.util;
 
-
 /**
  * @author shinsuke
  *

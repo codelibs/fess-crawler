@@ -31,9 +31,13 @@ import org.seasar.robot.entity.UrlQueue;
  *
  */
 public class MemoryDataHelper {
-    protected volatile Map<String, Queue<UrlQueue>> urlQueueMap = new HashMap<String, Queue<UrlQueue>>();
+    protected volatile Map<String, Queue<UrlQueue>> urlQueueMap = new HashMap<String, Queue<UrlQueue>>(); // NOPMD
 
-    protected volatile Map<String, Map<String, AccessResult>> sessionMap = new HashMap<String, Map<String, AccessResult>>();
+    protected volatile Map<String, Map<String, AccessResult>> sessionMap = new HashMap<String, Map<String, AccessResult>>(); // NOPMD
+
+    protected volatile Map<String, List<Pattern>> includeUrlPatternMap = new HashMap<String, List<Pattern>>(); // NOPMD
+
+    protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = new HashMap<String, List<Pattern>>(); // NOPMD
 
     public void clear() {
         urlQueueMap.clear();
@@ -96,10 +100,6 @@ public class MemoryDataHelper {
         // TODO order
         return acList;
     }
-
-    protected volatile Map<String, List<Pattern>> includeUrlPatternMap = new HashMap<String, List<Pattern>>();
-
-    protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = new HashMap<String, List<Pattern>>();
 
     public synchronized void addIncludeUrlPattern(String sessionId, String url) {
         List<Pattern> patternList = getIncludeUrlPatternList(sessionId);

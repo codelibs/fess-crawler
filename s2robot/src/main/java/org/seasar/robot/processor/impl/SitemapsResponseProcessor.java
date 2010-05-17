@@ -26,16 +26,12 @@ import org.seasar.robot.entity.Sitemap;
 import org.seasar.robot.entity.SitemapSet;
 import org.seasar.robot.helper.SitemapsHelper;
 import org.seasar.robot.processor.ResponseProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class SitemapsResponseProcessor implements ResponseProcessor {
-    private static final Logger logger = LoggerFactory
-            .getLogger(SitemapsResponseProcessor.class);
 
     /* (non-Javadoc)
      * @see org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.robot.entity.ResponseData)

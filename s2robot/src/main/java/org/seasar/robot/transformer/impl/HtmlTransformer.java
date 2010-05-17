@@ -68,7 +68,7 @@ import org.xml.sax.InputSource;
  * 
  */
 public class HtmlTransformer extends AbstractTransformer {
-    private static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(HtmlTransformer.class);
 
     protected Map<String, String> featureMap = new HashMap<String, String>();
@@ -454,13 +454,13 @@ public class HtmlTransformer extends AbstractTransformer {
         return buf.toString();
     }
 
-    protected String normalizeUrl(String url) {
-        if (url == null) {
+    protected String normalizeUrl(String u) {
+        if (u == null) {
             return null;
         }
 
         // trim
-        url = url.trim();
+        String url = u.trim();
 
         int idx = url.indexOf("#");
         if (idx >= 0) {

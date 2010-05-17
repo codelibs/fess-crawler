@@ -33,11 +33,11 @@ public class S2RobotContext {
 
     protected Object activeThreadCountLock = new Object();
 
-    protected volatile Long accessCount = 0L;
+    protected volatile Long accessCount = 0L; // NOPMD
 
     protected Object accessCountLock = new Object();
 
-    protected volatile boolean running = false;
+    protected volatile boolean running = false; // NOPMD
 
     protected UrlFilter urlFilter;
 

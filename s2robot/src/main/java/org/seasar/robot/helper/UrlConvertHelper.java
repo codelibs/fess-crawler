@@ -32,10 +32,12 @@ public class UrlConvertHelper {
         if (url == null) {
             return null;
         }
+        String convertedUrl = url;
         for (Map.Entry<String, String> entry : convertMap.entrySet()) {
-            url = url.replaceAll(entry.getKey(), entry.getValue());
+            convertedUrl = convertedUrl.replaceAll(entry.getKey(), entry
+                    .getValue());
         }
-        return url;
+        return convertedUrl;
     }
 
     public void add(String target, String replacement) {

@@ -90,7 +90,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
 
-    private final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(CommonsHttpClient.class);
 
     @Binding(bindingType = BindingType.MAY)
@@ -115,7 +115,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public String userAgent = "S2Robot";
 
-    protected volatile org.apache.commons.httpclient.HttpClient httpClient;
+    protected volatile org.apache.commons.httpclient.HttpClient httpClient; // NOPMD
 
     public String proxyHost;
 
@@ -274,21 +274,17 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                         .getResponseHeader("Content-Length");
                 if (contentLengthHeader != null) {
                     String value = contentLengthHeader.getValue();
-                    try {
-                        long contentLength = Long.parseLong(value);
-                        if (contentLengthHelper != null) {
-                            long maxLength = contentLengthHelper
-                                    .getMaxLength("text/plain");
-                            if (contentLength > maxLength) {
-                                throw new RobotCrawlAccessException(
-                                        "The content length (" + contentLength
-                                                + " byte) is over " + maxLength
-                                                + " byte. The url is "
-                                                + robotTxtUrl);
-                            }
+                    long contentLength = Long.parseLong(value);
+                    if (contentLengthHelper != null) {
+                        long maxLength = contentLengthHelper
+                                .getMaxLength("text/plain");
+                        if (contentLength > maxLength) {
+                            throw new RobotCrawlAccessException(
+                                    "The content length (" + contentLength
+                                            + " byte) is over " + maxLength
+                                            + " byte. The url is "
+                                            + robotTxtUrl);
                         }
-                    } catch (Exception e) {
-                        // TODO check?
                     }
                 } else {
                     // TODO check?
@@ -310,6 +306,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                     }
                 }
             }
+        } catch (RobotSystemException e) {
+            throw e;
         } catch (Exception e) {
             throw new RobotCrawlAccessException("Could not process "
                     + robotTxtUrl + ". ", e);

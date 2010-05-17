@@ -33,7 +33,8 @@ import org.slf4j.LoggerFactory;
  */
 public class UrlFilterImpl implements UrlFilter {
 
-    private final Logger logger = LoggerFactory.getLogger(UrlFilterImpl.class);
+    private static final Logger logger = LoggerFactory // NOPMD
+            .getLogger(UrlFilterImpl.class);
 
     protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 

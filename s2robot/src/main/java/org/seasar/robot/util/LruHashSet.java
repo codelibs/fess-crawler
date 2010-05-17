@@ -28,7 +28,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
         java.io.Serializable {
     private static final long serialVersionUID = 1L;
 
-    private transient LruHashMap<E, Object> map;
+    private LruHashMap<E, Object> map;
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();

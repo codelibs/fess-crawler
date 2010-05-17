@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UrlQueueServiceImpl implements UrlQueueService {
 
-    private static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(UrlQueueServiceImpl.class);
 
     @Resource

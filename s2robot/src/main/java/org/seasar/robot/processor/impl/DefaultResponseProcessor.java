@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class DefaultResponseProcessor implements ResponseProcessor {
-    private static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(DefaultResponseProcessor.class);
 
     protected Transformer transformer;

@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TarExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(TarExtractor.class);
 
     @Resource

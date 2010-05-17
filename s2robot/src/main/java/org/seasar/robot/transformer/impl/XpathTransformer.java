@@ -53,7 +53,7 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  */
 public class XpathTransformer extends HtmlTransformer {
-    private static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(XpathTransformer.class);
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",
@@ -124,13 +124,11 @@ public class XpathTransformer extends HtmlTransformer {
     }
 
     protected String getResultDataBody(String name, String value) {
-        if (value == null) {
-            value = "";
-        }
         // TODO support other type
         // TODO trim(default)
         return "<field name=\"" + escapeXml(name) + "\">"
-                + trimSpace(escapeXml(value)) + "</field>\n";
+                + trimSpace(escapeXml(value != null ? value : ""))
+                + "</field>\n";
     }
 
     protected String getResultDataBody(String name, List<String> values) {

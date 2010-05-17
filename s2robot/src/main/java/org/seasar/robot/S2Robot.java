@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class S2Robot implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(S2Robot.class);
+    private static final Logger logger = LoggerFactory.getLogger(S2Robot.class); // NOPMD
 
     @Resource
     protected UrlQueueService urlQueueService;

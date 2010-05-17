@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FileSystemClient extends AbstractS2RobotClient {
-    private final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
             .getLogger(FileSystemClient.class);
 
     protected String charset = Constants.UTF_8;
@@ -67,14 +67,14 @@ public class FileSystemClient extends AbstractS2RobotClient {
     public ResponseData doGet(String uri) {
         ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
-        uri = preprocessUri(uri);
-        responseData.setUrl(uri);
+        String filePath = preprocessUri(uri);
+        responseData.setUrl(filePath);
 
         File file = null;
         try {
-            file = new File(new URI(uri));
+            file = new File(new URI(filePath));
         } catch (URISyntaxException e) {
-            logger.warn("Could not parse url: " + uri, e);
+            logger.warn("Could not parse url: " + filePath, e);
         }
 
         if (file == null) {
@@ -105,7 +105,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                     throw new RobotCrawlAccessException("The content length ("
                             + responseData.getContentLength()
                             + " byte) is over " + maxLength
-                            + " byte. The url is " + uri);
+                            + " byte. The url is " + filePath);
                 }
             }
 
@@ -156,13 +156,14 @@ public class FileSystemClient extends AbstractS2RobotClient {
             throw new RobotSystemException("The uri is empty.");
         }
 
-        if (!uri.startsWith("file:")) {
-            uri = "file://" + uri;
+        String filePath = uri;
+        if (!filePath.startsWith("file:")) {
+            filePath = "file://" + filePath;
         }
 
+        StringBuilder buf = new StringBuilder(filePath.length() + 100);
         try {
-            StringBuilder buf = new StringBuilder(uri.length() + 100);
-            for (char c : uri.toCharArray()) {
+            for (char c : filePath.toCharArray()) {
                 if (c == ' ') {
                     buf.append("%20");
                 } else {
@@ -174,10 +175,10 @@ public class FileSystemClient extends AbstractS2RobotClient {
                     }
                 }
             }
-            return buf.toString();
         } catch (UnsupportedEncodingException e) {
-            return uri;
+            return filePath;
         }
+        return buf.toString();
     }
 
     @Deprecated

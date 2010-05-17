@@ -50,8 +50,9 @@ public class TikaExtractor implements Extractor {
     /* (non-Javadoc)
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
-        if (in == null) {
+    public ExtractData getText(InputStream inputStream,
+            Map<String, String> params) {
+        if (inputStream == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
 
@@ -66,12 +67,12 @@ public class TikaExtractor implements Extractor {
             OutputStream out = null;
             try {
                 out = new FileOutputStream(tempFile);
-                StreamUtil.drain(in, out);
+                StreamUtil.drain(inputStream, out);
             } finally {
                 IOUtils.closeQuietly(out);
             }
 
-            in = new FileInputStream(tempFile);
+            InputStream in = new FileInputStream(tempFile);
 
             try {
                 String resourceName = params != null ? params

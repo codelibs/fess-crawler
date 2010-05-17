@@ -138,7 +138,7 @@ public class RobotsTxtHelper {
     protected String stripComment(String line) {
         int commentIndex = line.indexOf('#');
         if (commentIndex != -1) {
-            line = line.substring(0, commentIndex);
+            return line.substring(0, commentIndex);
         }
         return line;
     }

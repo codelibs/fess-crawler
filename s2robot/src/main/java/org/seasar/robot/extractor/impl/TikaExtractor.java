@@ -15,12 +15,14 @@
  */
 package org.seasar.robot.extractor.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Map;
@@ -34,11 +36,14 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.util.StringUtil;
+import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;
 import org.seasar.robot.extractor.Extractor;
 import org.seasar.robot.util.StreamUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 /**
@@ -46,6 +51,10 @@ import org.xml.sax.SAXException;
  *
  */
 public class TikaExtractor implements Extractor {
+    private static final Logger logger = LoggerFactory // NOPMD
+            .getLogger(TikaExtractor.class);
+
+    public String outputEncoding = Constants.UTF_8;
 
     /* (non-Javadoc)
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
@@ -74,6 +83,12 @@ public class TikaExtractor implements Extractor {
 
             InputStream in = new FileInputStream(tempFile);
 
+            PrintStream originalOutStream = System.out;
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            System.setOut(new PrintStream(outStream, true));
+            PrintStream originalErrStream = System.err;
+            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+            System.setErr(new PrintStream(errStream, true));
             try {
                 String resourceName = params != null ? params
                         .get(ExtractData.RESOURCE_NAME_KEY) : null;
@@ -124,6 +139,27 @@ public class TikaExtractor implements Extractor {
                 throw e;
             } finally {
                 IOUtils.closeQuietly(in);
+                if (originalOutStream != null) {
+                    System.setOut(originalOutStream);
+                }
+                if (originalErrStream != null) {
+                    System.setErr(originalErrStream);
+                }
+                try {
+                    if (logger.isInfoEnabled()) {
+                        byte[] bs = outStream.toByteArray();
+                        if (bs.length != 0) {
+                            logger.info(new String(bs, outputEncoding));
+                        }
+                    }
+                    if (logger.isWarnEnabled()) {
+                        byte[] bs = errStream.toByteArray();
+                        if (bs.length != 0) {
+                            logger.warn(new String(bs, outputEncoding));
+                        }
+                    }
+                } catch (Exception e) {
+                }
             }
         } catch (Exception e) {
             throw new ExtractException("Could not extract a content.", e);

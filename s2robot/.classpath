@@ -16,7 +16,7 @@
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar" sourcepath="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/dom4j/dom4j/1.6.1/dom4j-1.6.1.jar" sourcepath="M2_REPO/dom4j/dom4j/1.6.1/dom4j-1.6.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/easymock/easymock/2.4/easymock-2.4.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/fontbox/1.1.0/fontbox-1.1.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/fontbox/1.1.0/fontbox-1.1.0.jar" sourcepath="M2_REPO/org/apache/pdfbox/fontbox/1.1.0/fontbox-1.1.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-annotation_1.0_spec/1.0/geronimo-annotation_1.0_spec-1.0.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-annotation_1.0_spec/1.0/geronimo-annotation_1.0_spec-1.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-ejb_3.0_spec/1.0/geronimo-ejb_3.0_spec-1.0.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-ejb_3.0_spec/1.0/geronimo-ejb_3.0_spec-1.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-interceptor_3.0_spec/1.0/geronimo-interceptor_3.0_spec-1.0.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-interceptor_3.0_spec/1.0/geronimo-interceptor_3.0_spec-1.0-sources.jar"/>
@@ -25,27 +25,29 @@
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/ibm/icu/icu4j/3.8/icu4j-3.8.jar"/>
   <classpathentry kind="var" path="M2_REPO/jboss/javassist/3.4.ga/javassist-3.4.ga.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/jempbox/1.1.0/jempbox-1.1.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/jempbox/1.1.0/jempbox-1.1.0.jar" sourcepath="M2_REPO/org/apache/pdfbox/jempbox/1.1.0/jempbox-1.1.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty/6.1.21/jetty-6.1.21.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty-util/6.1.21/jetty-util-6.1.21.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar" sourcepath="M2_REPO/junit/junit/3.8.1/junit-3.8.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.14/log4j-1.2.14.jar" sourcepath="M2_REPO/log4j/log4j/1.2.14/log4j-1.2.14-sources.jar"/>
-  <classpathentry kind="var" path="M2_REPO/net/sourceforge/nekohtml/nekohtml/1.9.14/nekohtml-1.9.14.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/drewnoakes/metadata-extractor/2.4.0-beta-1/metadata-extractor-2.4.0-beta-1.jar" sourcepath="M2_REPO/com/drewnoakes/metadata-extractor/2.4.0-beta-1/metadata-extractor-2.4.0-beta-1-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/net/sourceforge/nekohtml/nekohtml/1.9.14/nekohtml-1.9.14.jar" sourcepath="M2_REPO/net/sourceforge/nekohtml/nekohtml/1.9.14/nekohtml-1.9.14-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/ognl/ognl/2.6.9-patch-20090427/ognl-2.6.9-patch-20090427.jar" sourcepath="M2_REPO/ognl/ognl/2.6.9-patch-20090427/ognl-2.6.9-patch-20090427-sources.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/poi/ooxml-schemas/1.0/ooxml-schemas-1.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/pdfbox/1.1.0/pdfbox-1.1.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/poi/poi/3.5-FINAL/poi-3.5-FINAL.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/poi/poi-ooxml/3.5-FINAL/poi-ooxml-3.5-FINAL.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/poi/poi-scratchpad/3.5-FINAL/poi-scratchpad-3.5-FINAL.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-extension/2.4.41/s2-extension-2.4.41.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-framework/2.4.41/s2-framework-2.4.41.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-tiger/2.4.41/s2-tiger-2.4.41.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/pdfbox/pdfbox/1.1.0/pdfbox-1.1.0.jar" sourcepath="M2_REPO/org/apache/pdfbox/pdfbox/1.1.0/pdfbox-1.1.0-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/poi/poi/3.6/poi-3.6.jar" sourcepath="M2_REPO/org/apache/poi/poi/3.6/poi-3.6-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/poi/poi-ooxml/3.6/poi-ooxml-3.6.jar" sourcepath="M2_REPO/org/apache/poi/poi-ooxml/3.6/poi-ooxml-3.6-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/poi/poi-ooxml-schemas/3.6/poi-ooxml-schemas-3.6.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/poi/poi-scratchpad/3.6/poi-scratchpad-3.6.jar" sourcepath="M2_REPO/org/apache/poi/poi-scratchpad/3.6/poi-scratchpad-3.6-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-extension/2.4.41/s2-extension-2.4.41.jar" sourcepath="M2_REPO/org/seasar/container/s2-extension/2.4.41/s2-extension-2.4.41-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-framework/2.4.41/s2-framework-2.4.41.jar" sourcepath="M2_REPO/org/seasar/container/s2-framework/2.4.41/s2-framework-2.4.41-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/seasar/container/s2-tiger/2.4.41/s2-tiger-2.4.41.jar" sourcepath="M2_REPO/org/seasar/container/s2-tiger/2.4.41/s2-tiger-2.4.41-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/xalan/serializer/2.7.1/serializer-2.7.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.5.11/slf4j-api-1.5.11.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-log4j12/1.5.11/slf4j-log4j12-1.5.11.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/tika/tika-core/0.5-20091008/tika-core-0.5-20091008.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/tika/tika-parsers/0.5-20091008/tika-parsers-0.5-20091008.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.5.11/slf4j-api-1.5.11.jar" sourcepath="M2_REPO/org/slf4j/slf4j-api/1.5.11/slf4j-api-1.5.11-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-log4j12/1.5.11/slf4j-log4j12-1.5.11.jar" sourcepath="M2_REPO/org/slf4j/slf4j-log4j12/1.5.11/slf4j-log4j12-1.5.11-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/ccil/cowan/tagsoup/tagsoup/1.2/tagsoup-1.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/tika/tika-core/0.7/tika-core-0.7.jar" sourcepath="M2_REPO/org/apache/tika/tika-core/0.7/tika-core-0.7-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/tika/tika-parsers/0.7/tika-parsers-0.7.jar" sourcepath="M2_REPO/org/apache/tika/tika-parsers/0.7/tika-parsers-0.7-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/xalan/xalan/2.7.1/xalan-2.7.1.jar" sourcepath="M2_REPO/xalan/xalan/2.7.1/xalan-2.7.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/xerces/xercesImpl/2.9.1/xercesImpl-2.9.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/xml-apis/xml-apis/1.3.04/xml-apis-1.3.04.jar"/>

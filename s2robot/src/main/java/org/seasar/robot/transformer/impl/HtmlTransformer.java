@@ -231,13 +231,12 @@ public class HtmlTransformer extends AbstractTransformer {
             Document document = parser.getDocument();
             // base href
             String baseHref = getBaseHref(document);
-            URL url = new URL(baseHref != null ? baseHref : responseData
-                    .getUrl());
+            URL url = new URL(baseHref != null ? baseHref
+                    : responseData.getUrl());
             for (Map.Entry<String, String> entry : childUrlRuleMap.entrySet()) {
-                urlList
-                        .addAll(getUrlFromTagAttribute(url, document, entry
-                                .getKey(), entry.getValue(), responseData
-                                .getCharSet()));
+                urlList.addAll(getUrlFromTagAttribute(url, document,
+                        entry.getKey(), entry.getValue(),
+                        responseData.getCharSet()));
             }
             urlList = convertChildUrlList(urlList);
         } catch (Exception e) {
@@ -469,7 +468,7 @@ public class HtmlTransformer extends AbstractTransformer {
 
         idx = url.indexOf(";jsessionid");
         if (idx >= 0) {
-            url = url.substring(0, idx);
+            url = url.replaceFirst(";jsessionid=[a-zA-Z0-9\\.]*", "");
         }
 
         if (url.indexOf("/../") >= 0 || url.indexOf(" ") >= 0) {

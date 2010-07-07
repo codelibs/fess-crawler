@@ -102,21 +102,57 @@ public class HtmlTransformerTest extends S2TestCase {
         url = "http://hoge/index.html";
         assertEquals(url, htmlTransformer.normalizeUrl(url));
 
+        url = "http://hoge/index.html?a=1";
+        assertEquals(url, htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html?a=1&b=2";
+        assertEquals(url, htmlTransformer.normalizeUrl(url));
+
         url = "http://hoge/index.html#hoge";
-        assertEquals("http://hoge/index.html", htmlTransformer
-                .normalizeUrl(url));
+        assertEquals("http://hoge/index.html",
+                htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html#";
-        assertEquals("http://hoge/index.html", htmlTransformer
-                .normalizeUrl(url));
+        assertEquals("http://hoge/index.html",
+                htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge";
-        assertEquals("http://hoge/index.html", htmlTransformer
-                .normalizeUrl(url));
+        assertEquals("http://hoge/index.html",
+                htmlTransformer.normalizeUrl(url));
 
+        url = "http://hoge/index.html;jsessionid=hoge.fuga";
+        assertEquals("http://hoge/index.html",
+                htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid=hoge?a=1";
+        assertEquals("http://hoge/index.html?a=1",
+                htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid=hoge.fuga?a=1";
+        assertEquals("http://hoge/index.html?a=1",
+                htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid=hoge?a=1&b=2";
+        assertEquals("http://hoge/index.html?a=1&b=2",
+                htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid=hoge#HOGE";
+        assertEquals("http://hoge/index.html",
+                htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid=hoge?a=1#HOGE";
+        assertEquals("http://hoge/index.html?a=1",
+                htmlTransformer.normalizeUrl(url));
+
+        // invalid cases
         url = "http://hoge/index.html;jsessionid";
-        assertEquals("http://hoge/index.html", htmlTransformer
-                .normalizeUrl(url));
+        assertEquals("http://hoge/index.html;jsessionid",
+                htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/index.html;jsessionid?a=1#HOGE";
+        assertEquals("http://hoge/index.html;jsessionid?a=1",
+                htmlTransformer.normalizeUrl(url));
+
     }
 
     public void test_getData() throws Exception {
@@ -138,7 +174,7 @@ public class HtmlTransformerTest extends S2TestCase {
         accessResultDataImpl.setTransformerName("transformer");
 
         try {
-            Object obj = htmlTransformer.getData(accessResultDataImpl);
+            htmlTransformer.getData(accessResultDataImpl);
             fail();
         } catch (RobotSystemException e) {
 
@@ -146,7 +182,6 @@ public class HtmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData_nullData() throws Exception {
-        String value = "<html><body>hoge</body></html>";
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);

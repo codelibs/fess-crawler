@@ -32,20 +32,41 @@ import java.util.Locale;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.httpclient.Credentials;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.HeadMethod;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.DeferredFileOutputStream;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
+import org.seasar.framework.container.annotation.tiger.DestroyMethod;
 import org.seasar.framework.container.annotation.tiger.InitMethod;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
@@ -67,7 +88,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class CommonsHttpClient extends AbstractS2RobotClient {
+public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
@@ -78,6 +99,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
     public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
 
     public static final String LINGER_PROPERTY = "linger";
+
+    public static final String CONNECTION_MANAGER_TIMEOUT_PROPERTY = "connectionManagerTimeout";
 
     public static final String PROXY_HOST_PROPERTY = "proxyHost";
 
@@ -92,7 +115,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
     public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
 
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(CommonsHttpClient.class);
+            .getLogger(HcHttpClient.class);
 
     @Binding(bindingType = BindingType.MAY)
     @Resource
@@ -112,11 +135,15 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public Integer linger;
 
+    public Integer connectionManagerTimeout;
+
     public String cookiePolicy;
 
     public String userAgent = "S2Robot";
 
-    protected volatile org.apache.commons.httpclient.HttpClient httpClient; // NOPMD
+    protected volatile DefaultHttpClient httpClient; // NOPMD
+
+    public HttpContext httpClientContext = new BasicHttpContext();
 
     public String proxyHost;
 
@@ -131,6 +158,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public String defaultMimeType = "application/octet-stream";
 
+    public SchemeRegistry schemeRegistry;
+
     @InitMethod
     public void init() {
         if (httpClient != null) {
@@ -138,68 +167,97 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Initializing " + CommonsHttpClient.class.getName());
+            logger.debug("Initializing " + HcHttpClient.class.getName());
         }
 
-        MultiThreadedHttpConnectionManager connectionManager = new MultiThreadedHttpConnectionManager();
-        HttpConnectionManagerParams params = new HttpConnectionManagerParams();
+        if (schemeRegistry == null) {
+            schemeRegistry = new SchemeRegistry();
+            schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory
+                    .getSocketFactory()));
+            schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory
+                    .getSocketFactory()));
+        }
+
+        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(
+                schemeRegistry);
+        DefaultHttpClient defaultHttpClient = new DefaultHttpClient(cm);
+        HttpParams params = defaultHttpClient.getParams();
+
         Integer connectionTimeout = getInitParameter(
                 CONNECTION_TIMEOUT_PROPERTY, this.connectionTimeout);
         if (connectionTimeout != null) {
-            params.setConnectionTimeout(connectionTimeout);
+            HttpConnectionParams
+                    .setConnectionTimeout(params, connectionTimeout);
         }
         Integer maxTotalConnections = getInitParameter(
                 MAX_TOTAL_CONNECTIONS_PROPERTY, this.maxTotalConnections);
         if (maxTotalConnections != null) {
-            params.setMaxTotalConnections(maxTotalConnections);
+            cm.setMaxTotalConnections(maxTotalConnections);
         }
         Boolean staleCheckingEnabled = getInitParameter(
                 STALE_CHECKING_ENABLED_PROPERTY, this.staleCheckingEnabled);
         if (staleCheckingEnabled != null) {
-            params.setStaleCheckingEnabled(staleCheckingEnabled);
+            HttpConnectionParams.setStaleCheckingEnabled(params,
+                    staleCheckingEnabled);
         }
         Integer soTimeout = getInitParameter(SO_TIMEOUT_PROPERTY,
                 this.soTimeout);
         if (soTimeout != null) {
-            params.setSoTimeout(soTimeout);
+            HttpConnectionParams.setSoTimeout(params, soTimeout);
         }
         Integer linger = getInitParameter(LINGER_PROPERTY, this.linger);
         if (linger != null) {
-            params.setLinger(linger);
+            HttpConnectionParams.setLinger(params, linger);
         }
-        connectionManager.setParams(params);
-
-        httpClient = new org.apache.commons.httpclient.HttpClient(
-                connectionManager);
+        Integer connectionManagerTimeout = getInitParameter(
+                CONNECTION_MANAGER_TIMEOUT_PROPERTY,
+                this.connectionManagerTimeout);
+        if (connectionManagerTimeout != null) {
+            ConnManagerParams.setTimeout(params, connectionManagerTimeout);
+        }
 
         // proxy
         String proxyHost = getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
         Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY,
                 this.proxyPort);
         if (proxyHost != null && proxyPort != null) {
-            httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort);
+            HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+            params.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+
             Credentials proxyCredentials = getInitParameter(
                     PROXY_CREDENTIALS_PROPERTY, this.proxyCredentials);
             if (proxyCredentials != null) {
-                httpClient.getState().setProxyCredentials(
+                defaultHttpClient.getCredentialsProvider().setCredentials(
                         new AuthScope(proxyHost, proxyPort), proxyCredentials);
+
             }
         }
 
         // user agent
         String userAgent = getInitParameter(USER_AGENT_PROPERTY, this.userAgent);
         if (StringUtil.isNotBlank(userAgent)) {
-            httpClient.getParams().setParameter(HttpMethodParams.USER_AGENT,
-                    userAgent);
+            HttpProtocolParams.setUserAgent(params, userAgent);
         }
 
-        // Basic Authentication
-        HttpState httpState = httpClient.getState();
-        BasicAuthentication[] siteCredentialList = getInitParameter(
-                BASIC_AUTHENTICATIONS_PROPERTY, new BasicAuthentication[0]);
-        for (BasicAuthentication basicAuthentication : siteCredentialList) {
-            httpState.setCredentials(basicAuthentication.getAuthScope(),
-                    basicAuthentication.getCredentials());
+        // Authentication
+        Authentication[] siteCredentialList = getInitParameter(
+                BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0]);
+        AuthCache authCache = new BasicAuthCache();
+        boolean useAuthCache = false;
+        for (Authentication authentication : siteCredentialList) {
+            AuthScope authScope = authentication.getAuthScope();
+            defaultHttpClient.getCredentialsProvider().setCredentials(
+                    authScope, authentication.getCredentials());
+            if (authScope.getHost() != null
+                    && authentication.getAuthScheme() != null) {
+                HttpHost targetHost = new HttpHost(authScope.getHost(),
+                        authScope.getPort());
+                authCache.put(targetHost, new BasicScheme());
+                useAuthCache = true;
+            }
+        }
+        if (useAuthCache) {
+            httpClientContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
         }
 
         // Request Header
@@ -207,9 +265,26 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                 REQUERT_HEADERS_PROPERTY, new RequestHeader[0]);
         for (RequestHeader requestHeader : requestHeaders) {
             if (requestHeader.isValid()) {
-                requestHeaderList.add(new Header(requestHeader.getName(),
+                requestHeaderList.add(new BasicHeader(requestHeader.getName(),
                         requestHeader.getValue()));
             }
+        }
+
+        // do not redirect
+        defaultHttpClient.getParams().setBooleanParameter(
+                ClientPNames.HANDLE_REDIRECTS, false);
+
+        // cookie store
+        CookieStore cookieStore = new BasicCookieStore();
+        defaultHttpClient.setCookieStore(cookieStore);
+
+        httpClient = defaultHttpClient;
+    }
+
+    @DestroyMethod
+    public void destroy() {
+        if (httpClient != null) {
+            httpClient.getConnectionManager().shutdown();
         }
     }
 
@@ -253,27 +328,31 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
         }
 
-        GetMethod getMethod = new GetMethod(robotTxtUrl);
+        HttpGet httpGet = new HttpGet(robotTxtUrl);
 
         // cookie
         if (cookiePolicy != null) {
-            getMethod.getParams().setCookiePolicy(cookiePolicy);
+            httpGet.getParams().setParameter(ClientPNames.COOKIE_POLICY,
+                    cookiePolicy);
         }
 
         // request header
         for (Header header : requestHeaderList) {
-            getMethod.setRequestHeader(header);
+            httpGet.addHeader(header);
         }
 
-        try { // get a content 
-            httpClient.executeMethod(getMethod);
+        HttpEntity httpEntity = null;
+        try {
+            // get a content 
+            HttpResponse response = httpClient.execute(httpGet,
+                    httpClientContext);
 
-            int httpStatusCode = getMethod.getStatusCode();
+            int httpStatusCode = response.getStatusLine().getStatusCode();
             if (httpStatusCode == 200) {
 
                 // check file size
-                Header contentLengthHeader = getMethod
-                        .getResponseHeader("Content-Length");
+                Header contentLengthHeader = response
+                        .getFirstHeader("Content-Length");
                 if (contentLengthHeader != null) {
                     String value = contentLengthHeader.getValue();
                     long contentLength = Long.parseLong(value);
@@ -292,8 +371,9 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                     // TODO check?
                 }
 
-                RobotsTxt robotsTxt = robotsTxtHelper.parse(getMethod
-                        .getResponseBodyAsStream());
+                httpEntity = response.getEntity();
+                RobotsTxt robotsTxt = robotsTxtHelper.parse(httpEntity
+                        .getContent());
                 if (robotsTxt != null) {
                     RobotsTxt.Directives directives = robotsTxt
                             .getDirectives(userAgent);
@@ -314,7 +394,14 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             throw new RobotCrawlAccessException("Could not process "
                     + robotTxtUrl + ". ", e);
         } finally {
-            getMethod.releaseConnection();
+            if (httpEntity != null) {
+                try {
+                    httpEntity.consumeContent();
+                } catch (IOException e) {
+                    logger.warn("Could not consume a content for "
+                            + robotTxtUrl);
+                }
+            }
         }
     }
 
@@ -334,31 +421,31 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
      * @see org.seasar.robot.http.HttpClient#doGet(java.lang.String)
      */
     public ResponseData doGet(String url) {
-        HttpMethod getMethod;
+        HttpUriRequest httpGet;
         try {
-            getMethod = new GetMethod(url);
+            httpGet = new HttpGet(url);
         } catch (IllegalArgumentException e) {
             throw new RobotCrawlAccessException("The url may not be valid: "
                     + url, e);
         }
-        return doHttpMethod(url, getMethod);
+        return doHttpMethod(url, httpGet);
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.http.HttpClient#doHead(java.lang.String)
      */
     public ResponseData doHead(String url) {
-        HttpMethod headMethod;
+        HttpUriRequest httpHead;
         try {
-            headMethod = new HeadMethod(url);
+            httpHead = new HttpHead(url);
         } catch (IllegalArgumentException e) {
             throw new RobotCrawlAccessException("The url may not be valid: "
                     + url, e);
         }
-        return doHttpMethod(url, headMethod);
+        return doHttpMethod(url, httpHead);
     }
 
-    public ResponseData doHttpMethod(String url, HttpMethod httpMethod) {
+    public ResponseData doHttpMethod(String url, HttpUriRequest httpRequest) {
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing " + url);
         }
@@ -378,30 +465,29 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             }
         }
 
-        // do not redirect
-        httpMethod.setFollowRedirects(false);
-
         // cookie
         if (cookiePolicy != null) {
-            httpMethod.getParams().setCookiePolicy(cookiePolicy);
+            httpRequest.getParams().setParameter(ClientPNames.COOKIE_POLICY,
+                    cookiePolicy);
         }
 
         // request header
         for (Header header : requestHeaderList) {
-            httpMethod.setRequestHeader(header);
+            httpRequest.addHeader(header);
         }
 
         ResponseData responseData = null;
         InputStream inputStream = null;
+        HttpEntity httpEntity = null;
         try {
             // get a content 
-            httpClient.executeMethod(httpMethod);
+            HttpResponse response = httpClient.execute(httpRequest,
+                    httpClientContext);
 
-            int httpStatusCode = httpMethod.getStatusCode();
+            int httpStatusCode = response.getStatusLine().getStatusCode();
             // redirect
             if (httpStatusCode >= 300 && httpStatusCode < 400) {
-                Header locationHeader = httpMethod
-                        .getResponseHeader("location");
+                Header locationHeader = response.getFirstHeader("location");
                 if (locationHeader != null) {
                     responseData = new ResponseData();
                     responseData.setRedirectLocation(locationHeader.getValue());
@@ -411,10 +497,10 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                 }
             }
 
+            httpEntity = response.getEntity();
             long contentLength = 0;
-            InputStream responseBodyStream = httpMethod
-                    .getResponseBodyAsStream();
-            if (responseBodyStream != null) {
+            if (httpEntity != null) {
+                InputStream responseBodyStream = httpEntity.getContent();
                 File outputFile = File.createTempFile(
                         "s2robot-CommonsHttpClient-", ".out");
                 DeferredFileOutputStream dfos = null;
@@ -422,8 +508,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                     try {
                         dfos = new DeferredFileOutputStream(
                                 responseBodyInMemoryThresholdSize, outputFile);
-                        StreamUtil.drain(httpMethod.getResponseBodyAsStream(),
-                                dfos);
+                        StreamUtil.drain(responseBodyStream, dfos);
                         dfos.flush();
                     } finally {
                         IOUtils.closeQuietly(dfos);
@@ -452,8 +537,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             }
 
             String contentType = null;
-            Header contentTypeHeader = httpMethod
-                    .getResponseHeader("Content-Type");
+            Header contentTypeHeader = response.getFirstHeader("Content-Type");
             if (contentTypeHeader != null) {
                 contentType = contentTypeHeader.getValue();
                 int idx = contentType.indexOf(";");
@@ -473,21 +557,22 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             }
 
             responseData = new ResponseData();
-            if (httpMethod instanceof HeadMethod) {
+            responseData.setUrl(url);
+            if (httpRequest instanceof HttpHead) {
                 responseData.setMethod(Constants.HEAD_METHOD);
+                responseData.setCharSet(Constants.UTF_8);
             } else {
                 responseData.setMethod(Constants.GET_METHOD);
-            }
-            responseData.setUrl(url);
-            if (httpMethod instanceof GetMethod) {
-                responseData.setCharSet(((GetMethod) httpMethod)
-                        .getResponseCharSet());
-            } else {
-                responseData.setCharSet(Constants.UTF_8);
+                Header contentEncodingHeader = httpEntity.getContentEncoding();
+                if (contentEncodingHeader != null) {
+                    responseData.setCharSet(contentEncodingHeader.getValue());
+                } else {
+                    responseData.setCharSet(Constants.UTF_8);
+                }
             }
             responseData.setResponseBody(inputStream);
             responseData.setHttpStatusCode(httpStatusCode);
-            for (Header header : httpMethod.getResponseHeaders()) {
+            for (Header header : response.getAllHeaders()) {
                 responseData.addHeader(header.getName(), header.getValue());
             }
             if (contentType != null) {
@@ -495,8 +580,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             } else {
                 responseData.setMimeType(defaultMimeType);
             }
-            Header contentLengthHeader = httpMethod
-                    .getResponseHeader("Content-Length");
+            Header contentLengthHeader = response
+                    .getFirstHeader("Content-Length");
             if (contentLengthHeader != null) {
                 String value = contentLengthHeader.getValue();
                 try {
@@ -507,8 +592,8 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             } else {
                 responseData.setContentLength(contentLength);
             }
-            Header lastModifiedHeader = httpMethod
-                    .getResponseHeader("Last-Modified");
+            Header lastModifiedHeader = response
+                    .getFirstHeader("Last-Modified");
             if (lastModifiedHeader != null) {
                 String value = lastModifiedHeader.getValue();
                 if (StringUtil.isNotBlank(value)) {
@@ -551,7 +636,13 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             IOUtils.closeQuietly(inputStream);
             throw new RobotSystemException("Failed to access " + url, e);
         } finally {
-            httpMethod.releaseConnection();
+            if (httpEntity != null) {
+                try {
+                    httpEntity.consumeContent();
+                } catch (IOException e) {
+                    logger.warn("Could not consume a content for " + url);
+                }
+            }
         }
 
     }

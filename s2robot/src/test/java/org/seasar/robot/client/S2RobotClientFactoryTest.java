@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.client.fs.FileSystemClient;
-import org.seasar.robot.client.http.CommonsHttpClient;
+import org.seasar.robot.client.http.HcHttpClient;
 import org.seasar.robot.entity.ResponseData;
 
 /**
@@ -42,12 +42,12 @@ public class S2RobotClientFactoryTest extends S2TestCase {
         url = "http://hoge.com/";
         client = clientFactory.getClient(url);
         assertNotNull(client);
-        assertTrue(client instanceof CommonsHttpClient);
+        assertTrue(client instanceof HcHttpClient);
 
         url = "https://hoge.com/";
         client = clientFactory.getClient(url);
         assertNotNull(client);
-        assertTrue(client instanceof CommonsHttpClient);
+        assertTrue(client instanceof HcHttpClient);
 
         url = "file:/home/hoge";
         client = clientFactory.getClient(url);

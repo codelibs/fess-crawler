@@ -28,14 +28,14 @@ import org.seasar.robot.util.S2RobotWebServer;
  * @author shinsuke
  *
  */
-public class CommonsHttpClientTest extends S2TestCase {
-    public CommonsHttpClient httpClient;
+public class HcHttpClientTest extends S2TestCase {
+    public HcHttpClient httpClient;
 
     public UrlFilter urlFilter;
 
     @Override
     protected String getRootDicon() throws Throwable {
-        return "org/seasar/robot/client/http/commonshttpclient.dicon";
+        return "app.dicon";
     }
 
     public void test_doGet() {

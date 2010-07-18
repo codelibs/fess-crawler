@@ -160,6 +160,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public SchemeRegistry schemeRegistry;
 
+    public CookieStore cookieStore = new BasicCookieStore();
+
     @InitMethod
     public void init() {
         if (httpClient != null) {
@@ -275,7 +277,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 ClientPNames.HANDLE_REDIRECTS, false);
 
         // cookie store
-        CookieStore cookieStore = new BasicCookieStore();
         defaultHttpClient.setCookieStore(cookieStore);
 
         httpClient = defaultHttpClient;

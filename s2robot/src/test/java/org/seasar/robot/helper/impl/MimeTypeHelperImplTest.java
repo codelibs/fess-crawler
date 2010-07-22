@@ -44,6 +44,12 @@ public class MimeTypeHelperImplTest extends S2TestCase {
                 .getResourceAsStream("extractor/msoffice/test.xls");
         InputStream msPowerPointStream = ResourceUtil
                 .getResourceAsStream("extractor/msoffice/test.ppt");
+        InputStream msWordXStream = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.docx");
+        InputStream msExcelXStream = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.xlsx");
+        InputStream msPowerPointXStream = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.pptx");
         InputStream zipStream = ResourceUtil
                 .getResourceAsStream("extractor/zip/test.zip");
         InputStream gzStream = ResourceUtil
@@ -51,40 +57,56 @@ public class MimeTypeHelperImplTest extends S2TestCase {
         InputStream pdfStream = ResourceUtil
                 .getResourceAsStream("extractor/test.pdf");
 
-        assertEquals("text/plain", mimeTypeHelper
-                .getContentType(is, "hoge.txt"));
-        assertEquals("text/html", mimeTypeHelper
-                .getContentType(is, "hoge.html"));
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentType(is, "hoge.txt"));
+        assertEquals("text/html",
+                mimeTypeHelper.getContentType(is, "hoge.html"));
         assertEquals("text/html", mimeTypeHelper.getContentType(is, "hoge.htm"));
 
-        assertEquals("text/plain", mimeTypeHelper
-                .getContentType(is, "hoge.doc"));
-        assertEquals("application/msword", mimeTypeHelper.getContentType(
-                msWordStream, "hoge.doc"));
-        assertEquals("text/plain", mimeTypeHelper
-                .getContentType(is, "hoge.xls"));
-        assertEquals("application/vnd.ms-excel", mimeTypeHelper.getContentType(
-                msExcelStream, "hoge.xls"));
-        assertEquals("text/plain", mimeTypeHelper
-                .getContentType(is, "hoge.ppt"));
-        assertEquals("application/vnd.ms-powerpoint", mimeTypeHelper
-                .getContentType(msPowerPointStream, "hoge.ppt"));
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentType(is, "hoge.doc"));
+        assertEquals("application/msword",
+                mimeTypeHelper.getContentType(msWordStream, "hoge.doc"));
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentType(is, "hoge.xls"));
+        assertEquals("application/vnd.ms-excel",
+                mimeTypeHelper.getContentType(msExcelStream, "hoge.xls"));
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentType(is, "hoge.ppt"));
+        assertEquals("application/vnd.ms-powerpoint",
+                mimeTypeHelper.getContentType(msPowerPointStream, "hoge.ppt"));
 
-        assertEquals("image/jpeg", mimeTypeHelper.getContentType(null,
-                "hoge.jpg"));
-        assertEquals("image/gif", mimeTypeHelper.getContentType(null,
-                "hoge.gif"));
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentType(is, "hoge.docx"));
+        assertEquals(
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                mimeTypeHelper.getContentType(msWordXStream, "hoge.docx"));
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentType(is, "hoge.xlsx"));
+        assertEquals(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                mimeTypeHelper.getContentType(msExcelXStream, "hoge.xlsx"));
+        assertEquals("text/plain",
+                mimeTypeHelper.getContentType(is, "hoge.pptx"));
+        assertEquals(
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                mimeTypeHelper.getContentType(msPowerPointXStream, "hoge.pptx"));
 
-        assertEquals("application/pdf", mimeTypeHelper.getContentType(
-                pdfStream, "hoge.pdf"));
+        assertEquals("image/jpeg",
+                mimeTypeHelper.getContentType(null, "hoge.jpg"));
+        assertEquals("image/gif",
+                mimeTypeHelper.getContentType(null, "hoge.gif"));
 
-        assertEquals("application/x-gzip", mimeTypeHelper.getContentType(
-                gzStream, "hoge.tar.gz"));
-        assertEquals("application/zip", mimeTypeHelper.getContentType(
-                zipStream, "hoge.zip"));
+        assertEquals("application/pdf",
+                mimeTypeHelper.getContentType(pdfStream, "hoge.pdf"));
 
-        assertEquals("application/octet-stream", mimeTypeHelper.getContentType(
-                null, "hoge"));
+        assertEquals("application/x-gzip",
+                mimeTypeHelper.getContentType(gzStream, "hoge.tar.gz"));
+        assertEquals("application/zip",
+                mimeTypeHelper.getContentType(zipStream, "hoge.zip"));
+
+        assertEquals("application/octet-stream",
+                mimeTypeHelper.getContentType(null, "hoge"));
 
     }
 

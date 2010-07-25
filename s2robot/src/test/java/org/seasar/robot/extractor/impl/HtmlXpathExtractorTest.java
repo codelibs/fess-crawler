@@ -30,11 +30,11 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class HtmlExtractorTest extends S2TestCase {
+public class HtmlXpathExtractorTest extends S2TestCase {
     private static final Logger logger = LoggerFactory
-            .getLogger(HtmlExtractorTest.class);
+            .getLogger(HtmlXpathExtractorTest.class);
 
-    public HtmlExtractor htmlExtractor;
+    public HtmlXpathExtractor htmlXpathExtractor;
 
     @Override
     protected String getRootDicon() throws Throwable {
@@ -44,7 +44,7 @@ public class HtmlExtractorTest extends S2TestCase {
     public void test_getHtml_utf8() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.html");
-        String content = htmlExtractor.getText(in, null).getContent();
+        String content = htmlXpathExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -53,7 +53,7 @@ public class HtmlExtractorTest extends S2TestCase {
     public void test_getHtml_sjis() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.html");
-        String content = htmlExtractor.getText(in, null).getContent();
+        String content = htmlXpathExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -62,7 +62,7 @@ public class HtmlExtractorTest extends S2TestCase {
     public void test_getHtml_attr() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_attr.html");
-        String content = htmlExtractor.getText(in, null).getContent();
+        String content = htmlXpathExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("本文1"));
@@ -76,7 +76,7 @@ public class HtmlExtractorTest extends S2TestCase {
 
     public void test_getHtml_empty() {
         InputStream in = new ByteArrayInputStream("".getBytes());
-        String content = htmlExtractor.getText(in, null).getContent();
+        String content = htmlXpathExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);
@@ -86,7 +86,7 @@ public class HtmlExtractorTest extends S2TestCase {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.html");
         BufferedInputStream bis = new BufferedInputStream(in);
-        String encoding = htmlExtractor.getEncoding(bis);
+        String encoding = htmlXpathExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
@@ -95,14 +95,14 @@ public class HtmlExtractorTest extends S2TestCase {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.html");
         BufferedInputStream bis = new BufferedInputStream(in);
-        String encoding = htmlExtractor.getEncoding(bis);
+        String encoding = htmlXpathExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
     }
 
     public void test_getHtml_null() {
         try {
-            htmlExtractor.getText(null, null);
+            htmlXpathExtractor.getText(null, null);
             fail();
         } catch (RobotSystemException e) {
             // NOP

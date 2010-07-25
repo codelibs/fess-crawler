@@ -2665,6 +2665,7 @@
     <glob pattern="*.xml"/>
     <glob pattern="*.xsl"/>
     <glob pattern="*.xsd"/>
+    <glob pattern="*.mm"/>
     <sub-class-of type="text/plain" />
   </mime-type>
 

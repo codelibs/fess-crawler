@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;
@@ -87,16 +88,20 @@ public class XpathTransformer extends HtmlTransformer {
         StringBuilder buf = new StringBuilder(1000);
         buf.append(getResultDataHeader());
         for (Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
-            Node value = null;
+            StringBuilder nodeBuf = new StringBuilder(255);
             try {
-                value = getXPathAPI().selectSingleNode(document,
+                NodeList nodeList = getXPathAPI().selectNodeList(document,
                         entry.getValue());
+                for (int i = 0; i < nodeList.getLength(); i++) {
+                    Node node = nodeList.item(i);
+                    nodeBuf.append(node.getTextContent()).append(' ');
+                }
             } catch (TransformerException e) {
                 logger.warn("Could not parse a value of " + entry.getKey()
                         + ":" + entry.getValue());
             }
-            buf.append(getResultDataBody(entry.getKey(), value != null ? value
-                    .getTextContent() : null));
+            buf.append(getResultDataBody(entry.getKey(), nodeBuf.toString()
+                    .trim()));
         }
         buf.append(getAdditionalData(responseData, document));
         buf.append(getResultDataFooter());
@@ -162,7 +167,7 @@ public class XpathTransformer extends HtmlTransformer {
         //        return StringEscapeUtils.escapeXml(value);
         return stripInvalidXMLCharacters(//
         value//
-                .replaceAll("&", "&amp;")//
+        .replaceAll("&", "&amp;")//
                 .replaceAll("<", "&lt;")//
                 .replaceAll(">", "&gt;")//
                 .replaceAll("\"", "&quot;")//

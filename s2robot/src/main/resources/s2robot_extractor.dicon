@@ -12,11 +12,31 @@
 	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
 	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
 	<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
+	<component name="htmlXpathExtractor" class="org.seasar.robot.extractor.impl.HtmlXpathExtractor">
+		<initMethod name="addFeature">
+			<arg>"http://xml.org/sax/features/namespaces"</arg>
+			<arg>"false"</arg>
+		</initMethod>
+	</component>
 
 	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
 		<initMethod name="addExtractor">
 			<arg>{
 "application/xml",
+"application/xhtml+xml",
+"text/xml",
+"text/xml-external-parsed-entity"
+			}</arg>
+			<arg>xmlExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>{
+"text/html"
+			}</arg>
+			<arg>xmlExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>{
 "image/svg+xml",
 "application/x-tika-msoffice",
 "application/vnd.visio",
@@ -41,8 +61,6 @@
 "application/vnd.ms-word.document.macroenabled.12",
 "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
 "application/vnd.ms-word.template.macroenabled.12",
-"text/html",
-"application/xhtml+xml",
 "application/x-asp",
 "application/rtf",
 "application/pdf",
@@ -161,9 +179,7 @@
 "text/x-setext",
 "text/x-uuencode",
 "text/x-vcalendar",
-"text/x-vcard",
-"text/xml",
-"text/xml-external-parsed-entity"
+"text/x-vcard"
 			}</arg>
 			<arg>tikaExtractor</arg>
 		</initMethod>

@@ -15,101 +15,29 @@
  */
 package org.seasar.robot.extractor.impl;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.seasar.framework.util.InputStreamUtil;
-import org.seasar.framework.util.StringUtil;
-import org.seasar.robot.Constants;
-import org.seasar.robot.RobotSystemException;
-import org.seasar.robot.entity.ExtractData;
-import org.seasar.robot.extractor.ExtractException;
 import org.seasar.robot.extractor.Extractor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
-public class XmlExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(XmlExtractor.class);
-
-    protected String encoding = Constants.UTF_8;
-
+public class XmlExtractor extends AbstractXmlExtractor implements Extractor {
     protected Pattern xmlEncodingPattern = Pattern.compile(
             "<\\?xml.*encoding\\s*=\\s*['\"]([\\w\\d\\-_]*)['\"]\\s*\\?>",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Pattern xmlTagPattern = Pattern.compile("<[^>]+>");
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
-     */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
-        if (in == null) {
-            throw new RobotSystemException("The inputstream is null.");
-        }
-        try {
-            BufferedInputStream bis = new BufferedInputStream(in);
-            String enc = getEncoding(bis);
-            String content = new String(InputStreamUtil.getBytes(bis), enc);
-            return new ExtractData(xmlTagPattern.matcher(content)
-                    .replaceAll(""));
-        } catch (Exception e) {
-            throw new ExtractException(e);
-        }
+    @Override
+    protected Pattern getEncodingPattern() {
+        return xmlEncodingPattern;
     }
 
-    protected String getEncoding(BufferedInputStream bis) {
-        int size = 512;
-        byte[] b = new byte[512];
-        try {
-            bis.mark(size);
-            int c = bis.read(b);
-
-            if (c == -1) {
-                return encoding;
-            }
-
-            String head = new String(b, 0, c, encoding);
-            if (StringUtil.isBlank(head)) {
-                return encoding;
-            }
-            Matcher matcher = xmlEncodingPattern.matcher(head);
-            if (matcher.find()) {
-                String enc = matcher.group(1);
-                if (Charset.isSupported(enc)) {
-                    return enc;
-                }
-            }
-        } catch (Exception e) {
-            if (logger.isInfoEnabled()) {
-                logger.info("Use a default encoding: " + encoding, e);
-            }
-        } finally {
-            try {
-                bis.reset();
-            } catch (IOException e) {
-                throw new ExtractException(e);
-            }
-        }
-
-        return encoding;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
+    @Override
+    protected Pattern getTagPattern() {
+        return xmlTagPattern;
     }
 
     public Pattern getXmlEncodingPattern() {

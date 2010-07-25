@@ -167,6 +167,16 @@ public class TikaExtractorTest extends S2TestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    public void test_getTika_xml_entity() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test_entity.xml");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
     public void test_getTika_xml_broken() throws UnsupportedEncodingException {
         InputStream in = new ByteArrayInputStream(
                 "<?xml encoding=\"UTF-8\"/><hoge>テスト<br></hoge>"

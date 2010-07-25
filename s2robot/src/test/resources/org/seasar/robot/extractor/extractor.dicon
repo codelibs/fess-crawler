@@ -18,6 +18,12 @@
 	<component name="zipExtractor" class="org.seasar.robot.extractor.impl.ZipExtractor"/>
 	<component name="tarExtractor" class="org.seasar.robot.extractor.impl.TarExtractor"/>
 	<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
+	<component name="htmlXpathExtractor" class="org.seasar.robot.extractor.impl.HtmlXpathExtractor">
+		<initMethod name="addFeature">
+			<arg>"http://xml.org/sax/features/namespaces"</arg>
+			<arg>"false"</arg>
+		</initMethod>
+	</component>
 
 	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
 		<initMethod name="addExtractor">

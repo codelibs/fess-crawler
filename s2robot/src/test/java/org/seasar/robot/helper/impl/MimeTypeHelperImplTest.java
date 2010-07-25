@@ -56,6 +56,8 @@ public class MimeTypeHelperImplTest extends S2TestCase {
                 .getResourceAsStream("extractor/gz/test.tar.gz");
         InputStream pdfStream = ResourceUtil
                 .getResourceAsStream("extractor/test.pdf");
+        InputStream freeMindStream = ResourceUtil
+                .getResourceAsStream("extractor/test.mm");
 
         assertEquals("text/plain",
                 mimeTypeHelper.getContentType(is, "hoge.txt"));
@@ -104,6 +106,9 @@ public class MimeTypeHelperImplTest extends S2TestCase {
                 mimeTypeHelper.getContentType(gzStream, "hoge.tar.gz"));
         assertEquals("application/zip",
                 mimeTypeHelper.getContentType(zipStream, "hoge.zip"));
+
+        assertEquals("application/xml",
+                mimeTypeHelper.getContentType(freeMindStream, "hoge.mm"));
 
         assertEquals("application/octet-stream",
                 mimeTypeHelper.getContentType(null, "hoge"));

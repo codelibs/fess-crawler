@@ -94,6 +94,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String MAX_TOTAL_CONNECTIONS_PROPERTY = "maxTotalConnections";
 
+    public static final String MAX_CONNECTIONS_PER_ROUTE_PROPERTY = "maxConnectionsPerRoute";
+
     public static final String STALE_CHECKING_ENABLED_PROPERTY = "staleCheckingEnabled";
 
     public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
@@ -128,6 +130,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
     public Integer connectionTimeout;
 
     public Integer maxTotalConnections;
+
+    public Integer maxConnectionsPerRoute;
 
     public Boolean staleCheckingEnabled;
 
@@ -195,6 +199,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 MAX_TOTAL_CONNECTIONS_PROPERTY, this.maxTotalConnections);
         if (maxTotalConnections != null) {
             cm.setMaxTotalConnections(maxTotalConnections);
+        }
+        Integer maxConnectionsPerRoute = getInitParameter(
+                MAX_CONNECTIONS_PER_ROUTE_PROPERTY, this.maxConnectionsPerRoute);
+        if (maxConnectionsPerRoute != null) {
+            cm.setDefaultMaxPerRoute(maxConnectionsPerRoute);
         }
         Boolean staleCheckingEnabled = getInitParameter(
                 STALE_CHECKING_ENABLED_PROPERTY, this.staleCheckingEnabled);

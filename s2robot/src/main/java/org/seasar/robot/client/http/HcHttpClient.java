@@ -47,17 +47,13 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -91,10 +87,6 @@ import org.slf4j.LoggerFactory;
 public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
-
-    public static final String MAX_TOTAL_CONNECTIONS_PROPERTY = "maxTotalConnections";
-
-    public static final String MAX_CONNECTIONS_PER_ROUTE_PROPERTY = "maxConnectionsPerRoute";
 
     public static final String STALE_CHECKING_ENABLED_PROPERTY = "staleCheckingEnabled";
 
@@ -162,9 +154,9 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public String defaultMimeType = "application/octet-stream";
 
-    public SchemeRegistry schemeRegistry;
-
     public CookieStore cookieStore = new BasicCookieStore();
+
+    public ClientConnectionManager clientConnectionManager;
 
     @InitMethod
     public void init() {
@@ -176,17 +168,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
             logger.debug("Initializing " + HcHttpClient.class.getName());
         }
 
-        if (schemeRegistry == null) {
-            schemeRegistry = new SchemeRegistry();
-            schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory
-                    .getSocketFactory()));
-            schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory
-                    .getSocketFactory()));
-        }
-
-        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(
-                schemeRegistry);
-        DefaultHttpClient defaultHttpClient = new DefaultHttpClient(cm);
+        DefaultHttpClient defaultHttpClient = new DefaultHttpClient(
+                clientConnectionManager);
         HttpParams params = defaultHttpClient.getParams();
 
         Integer connectionTimeout = getInitParameter(
@@ -194,16 +177,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
         if (connectionTimeout != null) {
             HttpConnectionParams
                     .setConnectionTimeout(params, connectionTimeout);
-        }
-        Integer maxTotalConnections = getInitParameter(
-                MAX_TOTAL_CONNECTIONS_PROPERTY, this.maxTotalConnections);
-        if (maxTotalConnections != null) {
-            cm.setMaxTotalConnections(maxTotalConnections);
-        }
-        Integer maxConnectionsPerRoute = getInitParameter(
-                MAX_CONNECTIONS_PER_ROUTE_PROPERTY, this.maxConnectionsPerRoute);
-        if (maxConnectionsPerRoute != null) {
-            cm.setDefaultMaxPerRoute(maxConnectionsPerRoute);
         }
         Boolean staleCheckingEnabled = getInitParameter(
                 STALE_CHECKING_ENABLED_PROPERTY, this.staleCheckingEnabled);

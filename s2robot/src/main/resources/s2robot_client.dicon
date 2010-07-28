@@ -7,6 +7,35 @@
 
 	<component name="httpClient" class="org.seasar.robot.client.http.HcHttpClient" instance="prototype">
 		<property name="cookiePolicy">@org.apache.http.client.params.CookiePolicy@BEST_MATCH</property>
+		<property name="clientConnectionManager">clientConnectionManager</property>
+	</component>
+	
+	<component name="clientConnectionManager" class="org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager">
+		<arg>
+			<component class="org.apache.http.conn.scheme.SchemeRegistry">
+				<initMethod name="register">
+					<arg>
+						<component class="org.apache.http.conn.scheme.Scheme">
+							<arg>"http"</arg>
+							<arg>80</arg>
+							<arg>@org.apache.http.conn.scheme.PlainSocketFactory@getSocketFactory()</arg>
+						</component>
+					</arg>
+				</initMethod>
+				<initMethod name="register">
+					<arg>
+						<component class="org.apache.http.conn.scheme.Scheme">
+							<arg>"https"</arg>
+							<arg>443</arg>
+							<arg>@org.apache.http.conn.ssl.SSLSocketFactory@getSocketFactory()</arg>
+						</component>
+					</arg>
+				</initMethod>
+			</component>
+		</arg>
+		<property name="maxTotalConnections">200</property>
+		<property name="defaultMaxPerRoute">200</property>
+		<destroyMethod name="shutdown"></destroyMethod>
 	</component>
 
 	<component name="fsClient" class="org.seasar.robot.client.fs.FileSystemClient" instance="prototype">

@@ -351,7 +351,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
             httpGet.addHeader(header);
         }
 
-        HttpEntity httpEntity = null;
         try {
             // get a content 
             HttpResponse response = httpClient.execute(httpGet,
@@ -381,37 +380,33 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     // TODO check?
                 }
 
-                httpEntity = response.getEntity();
-                RobotsTxt robotsTxt = robotsTxtHelper.parse(httpEntity
-                        .getContent());
-                if (robotsTxt != null) {
-                    RobotsTxt.Directives directives = robotsTxt
-                            .getDirectives(userAgent);
-                    if (directives != null) {
-                        for (String urlPattern : directives.getDisallows()) {
-                            if (StringUtil.isNotBlank(urlPattern)) {
-                                urlPattern = convertRobotsTxtPathPattern(urlPattern);
-                                robotContext.getUrlFilter().addExclude(
-                                        hostUrl + urlPattern);
+                HttpEntity httpEntity = response.getEntity();
+                if (httpEntity != null) {
+                    RobotsTxt robotsTxt = robotsTxtHelper.parse(httpEntity
+                            .getContent());
+                    if (robotsTxt != null) {
+                        RobotsTxt.Directives directives = robotsTxt
+                                .getDirectives(userAgent);
+                        if (directives != null) {
+                            for (String urlPattern : directives.getDisallows()) {
+                                if (StringUtil.isNotBlank(urlPattern)) {
+                                    urlPattern = convertRobotsTxtPathPattern(urlPattern);
+                                    robotContext.getUrlFilter().addExclude(
+                                            hostUrl + urlPattern);
+                                }
                             }
                         }
                     }
+                    httpEntity.consumeContent();
                 }
             }
         } catch (RobotSystemException e) {
+            httpGet.abort();
             throw e;
         } catch (Exception e) {
+            httpGet.abort();
             throw new RobotCrawlAccessException("Could not process "
                     + robotTxtUrl + ". ", e);
-        } finally {
-            if (httpEntity != null) {
-                try {
-                    httpEntity.consumeContent();
-                } catch (IOException e) {
-                    logger.warn("Could not consume a content for "
-                            + robotTxtUrl);
-                }
-            }
         }
     }
 
@@ -488,7 +483,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
         ResponseData responseData = null;
         InputStream inputStream = null;
-        HttpEntity httpEntity = null;
         try {
             // get a content 
             HttpResponse response = httpClient.execute(httpRequest,
@@ -507,8 +501,9 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 }
             }
 
-            httpEntity = response.getEntity();
+            HttpEntity httpEntity = response.getEntity();
             long contentLength = 0;
+            String contentEncoding = Constants.UTF_8;
             if (httpEntity != null) {
                 InputStream responseBodyStream = httpEntity.getContent();
                 File outputFile = File.createTempFile(
@@ -542,6 +537,13 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     inputStream = new TemporaryFileInputStream(outputFile);
                     contentLength = outputFile.length();
                 }
+
+                Header contentEncodingHeader = httpEntity.getContentEncoding();
+                if (contentEncodingHeader != null) {
+                    contentEncoding = contentEncodingHeader.getValue();
+                }
+
+                httpEntity.consumeContent();
             } else {
                 inputStream = new ByteArrayInputStream(new byte[0]);
             }
@@ -568,17 +570,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
             responseData = new ResponseData();
             responseData.setUrl(url);
+            responseData.setCharSet(contentEncoding);
             if (httpRequest instanceof HttpHead) {
                 responseData.setMethod(Constants.HEAD_METHOD);
-                responseData.setCharSet(Constants.UTF_8);
             } else {
                 responseData.setMethod(Constants.GET_METHOD);
-                Header contentEncodingHeader = httpEntity.getContentEncoding();
-                if (contentEncodingHeader != null) {
-                    responseData.setCharSet(contentEncodingHeader.getValue());
-                } else {
-                    responseData.setCharSet(Constants.UTF_8);
-                }
             }
             responseData.setResponseBody(inputStream);
             responseData.setHttpStatusCode(httpStatusCode);
@@ -620,41 +616,39 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
             return responseData;
         } catch (UnknownHostException e) {
+            httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Unknown host("
                     + e.getMessage() + "): " + url, e);
         } catch (NoRouteToHostException e) {
+            httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("No route to host("
                     + e.getMessage() + "): " + url, e);
         } catch (ConnectException e) {
+            httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Connection time out("
                     + e.getMessage() + "): " + url, e);
         } catch (SocketException e) {
+            httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Socket exception("
                     + e.getMessage() + "): " + url, e);
         } catch (IOException e) {
+            httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("I/O exception("
                     + e.getMessage() + "): " + url, e);
         } catch (RobotSystemException e) {
+            httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw e;
         } catch (Exception e) {
+            httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotSystemException("Failed to access " + url, e);
-        } finally {
-            if (httpEntity != null) {
-                try {
-                    httpEntity.consumeContent();
-                } catch (IOException e) {
-                    logger.warn("Could not consume a content for " + url);
-                }
-            }
         }
-
     }
 
     protected Date parseLastModified(String value) {

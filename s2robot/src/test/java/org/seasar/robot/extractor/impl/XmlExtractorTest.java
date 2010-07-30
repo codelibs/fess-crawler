@@ -48,6 +48,19 @@ public class XmlExtractorTest extends S2TestCase {
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+        assertTrue(content.contains("コメント"));
+    }
+
+    public void test_getXml_utf8_ignoreCommentTag() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test_utf8.xml");
+        xmlExtractor.setIgnoreCommentTag(true);
+        String content = xmlExtractor.getText(in, null).getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+        assertFalse(content.contains("コメント"));
+        xmlExtractor.setIgnoreCommentTag(false);
     }
 
     public void test_getXml_sjis() {
@@ -69,8 +82,7 @@ public class XmlExtractorTest extends S2TestCase {
     }
 
     public void test_getXml_mm() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test.mm");
+        InputStream in = ResourceUtil.getResourceAsStream("extractor/test.mm");
         String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);

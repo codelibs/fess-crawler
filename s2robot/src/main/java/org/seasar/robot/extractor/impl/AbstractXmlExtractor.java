@@ -46,6 +46,8 @@ public abstract class AbstractXmlExtractor {
 
     protected int preloadSizeForCharset = 2048;
 
+    protected boolean ignoreCommentTag = false;
+
     protected abstract Pattern getEncodingPattern();
 
     protected abstract Pattern getTagPattern();
@@ -102,8 +104,13 @@ public abstract class AbstractXmlExtractor {
     }
 
     protected String extractString(String content) {
-        Matcher matcher = getTagPattern().matcher(
-                content.replaceAll("[\\r\\n]", " "));
+        String input = content.replaceAll("[\\r\\n]", " ");
+        if (ignoreCommentTag) {
+            input = input.replaceAll("<!--[^>]+-->", "");
+        } else {
+            input = input.replace("<!--", "").replace("-->", "");
+        }
+        Matcher matcher = getTagPattern().matcher(input);
         StringBuffer sb = new StringBuffer();
         Pattern attrPattern = Pattern.compile("\\s[^ ]+=\"([^\"]*)\"");
         while (matcher.find()) {
@@ -113,7 +120,8 @@ public abstract class AbstractXmlExtractor {
             while (attrMatcher.find()) {
                 buf.append(attrMatcher.group(1)).append(' ');
             }
-            matcher.appendReplacement(sb, buf.toString().replace("$", "\\$"));
+            matcher.appendReplacement(sb, buf.toString().replace("\\", "\\\\")
+                    .replace("$", "\\$"));
         }
         matcher.appendTail(sb);
         return sb.toString().replaceAll("\\s+", " ").trim();
@@ -139,6 +147,14 @@ public abstract class AbstractXmlExtractor {
      */
     public void setPreloadSizeForCharset(int preloadSizeForCharset) {
         this.preloadSizeForCharset = preloadSizeForCharset;
+    }
+
+    public boolean isIgnoreCommentTag() {
+        return ignoreCommentTag;
+    }
+
+    public void setIgnoreCommentTag(boolean ignoreCommentTag) {
+        this.ignoreCommentTag = ignoreCommentTag;
     }
 
 }

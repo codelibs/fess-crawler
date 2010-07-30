@@ -102,9 +102,10 @@ public abstract class AbstractXmlExtractor {
     }
 
     protected String extractString(String content) {
-        Matcher matcher = getTagPattern().matcher(content);
+        Matcher matcher = getTagPattern().matcher(
+                content.replaceAll("[\\r\\n]", " "));
         StringBuffer sb = new StringBuffer();
-        Pattern attrPattern = Pattern.compile(" [^ ]+=\"([^\"]*)\"");
+        Pattern attrPattern = Pattern.compile("\\s[^ ]+=\"([^\"]*)\"");
         while (matcher.find()) {
             String tagStr = matcher.group();
             Matcher attrMatcher = attrPattern.matcher(tagStr);
@@ -112,7 +113,7 @@ public abstract class AbstractXmlExtractor {
             while (attrMatcher.find()) {
                 buf.append(attrMatcher.group(1)).append(' ');
             }
-            matcher.appendReplacement(sb, buf.toString());
+            matcher.appendReplacement(sb, buf.toString().replace("$", "\\$"));
         }
         matcher.appendTail(sb);
         return sb.toString().replaceAll("\\s+", " ").trim();

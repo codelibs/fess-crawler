@@ -49,6 +49,7 @@ import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.container.annotation.tiger.InitMethod;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
+import org.seasar.robot.MaxLengthExceededException;
 import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.S2RobotContext;
@@ -281,7 +282,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                         long maxLength = contentLengthHelper
                                 .getMaxLength("text/plain");
                         if (contentLength > maxLength) {
-                            throw new RobotCrawlAccessException(
+                            throw new MaxLengthExceededException(
                                     "The content length (" + contentLength
                                             + " byte) is over " + maxLength
                                             + " byte. The url is "
@@ -466,7 +467,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             if (contentLengthHelper != null) {
                 long maxLength = contentLengthHelper.getMaxLength(contentType);
                 if (contentLength > maxLength) {
-                    throw new RobotCrawlAccessException("The content length ("
+                    throw new MaxLengthExceededException("The content length ("
                             + contentLength + " byte) is over " + maxLength
                             + " byte. The url is " + url);
                 }

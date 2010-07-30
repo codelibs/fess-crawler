@@ -37,7 +37,7 @@ import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.util.FileUtil;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
-import org.seasar.robot.RobotCrawlAccessException;
+import org.seasar.robot.MaxLengthExceededException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.client.AbstractS2RobotClient;
 import org.seasar.robot.entity.ResponseData;
@@ -87,8 +87,8 @@ public class FileSystemClient extends AbstractS2RobotClient {
             InputStream is = null;
             try {
                 is = new FileInputStream(file);
-                responseData.setMimeType(mimeTypeHelper.getContentType(is, file
-                        .getName()));
+                responseData.setMimeType(mimeTypeHelper.getContentType(is,
+                        file.getName()));
             } catch (Exception e) {
                 responseData.setMimeType(mimeTypeHelper.getContentType(null,
                         file.getName()));
@@ -102,7 +102,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 long maxLength = contentLengthHelper.getMaxLength(responseData
                         .getMimeType());
                 if (responseData.getContentLength() > maxLength) {
-                    throw new RobotCrawlAccessException("The content length ("
+                    throw new MaxLengthExceededException("The content length ("
                             + responseData.getContentLength()
                             + " byte) is over " + maxLength
                             + " byte. The url is " + filePath);

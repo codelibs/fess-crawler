@@ -235,6 +235,18 @@ public class TikaExtractorTest extends S2TestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    public void test_getTika_java_4() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/program/test.java");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("Content-Type", "text/x-java-source");
+        ExtractData extractData = tikaExtractor.getText(in, params);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
     public void test_getTika_js() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/program/test.js");

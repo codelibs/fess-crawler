@@ -115,6 +115,16 @@ public class TikaExtractor implements Extractor {
                     parser.parse(in, new BodyContentHandler(writer2),
                             metadata2, parseContext);
                     content = normalizeContent(writer2);
+                    if (StringUtil.isBlank(content)) {
+                        // retry without a content type
+                        IOUtils.closeQuietly(in);
+                        in = new FileInputStream(tempFile);
+                        Metadata metadata3 = createMetadata(null, null);
+                        StringWriter writer3 = new StringWriter();
+                        parser.parse(in, new BodyContentHandler(writer3),
+                                metadata3, parseContext);
+                        content = normalizeContent(writer3);
+                    }
                 }
                 ExtractData extractData = new ExtractData(content);
 

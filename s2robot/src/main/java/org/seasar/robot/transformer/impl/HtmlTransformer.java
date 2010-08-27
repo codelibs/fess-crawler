@@ -98,26 +98,7 @@ public class HtmlTransformer extends AbstractTransformer {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        InputStream is = responseData.getResponseBody();
-        File tempFile = null;
-        FileOutputStream fos = null;
-        try {
-            tempFile = File.createTempFile("s2robot-HtmlTransformer-", ".html");
-            fos = new FileOutputStream(tempFile);
-            StreamUtil.drain(is, fos);
-        } catch (Exception e) {
-            IOUtils.closeQuietly(fos);
-            // clean up
-            if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
-            throw new RobotCrawlAccessException(
-                    "Could not read a response body: " + responseData.getUrl(),
-                    e);
-        } finally {
-            IOUtils.closeQuietly(is);
-            IOUtils.closeQuietly(fos);
-        }
+        File tempFile = createResponseBodyFile(responseData);
 
         FileInputStream fis = null;
 
@@ -127,12 +108,14 @@ public class HtmlTransformer extends AbstractTransformer {
             responseData.setResponseBody(fis);
             updateCharset(responseData);
         } catch (RobotSystemException e) {
+            IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw e;
         } catch (Exception e) {
+            IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
@@ -152,12 +135,14 @@ public class HtmlTransformer extends AbstractTransformer {
             responseData.setResponseBody(fis);
             storeData(responseData, resultData);
         } catch (RobotSystemException e) {
+            IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw e;
         } catch (Exception e) {
+            IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
@@ -174,12 +159,14 @@ public class HtmlTransformer extends AbstractTransformer {
                 responseData.setResponseBody(fis);
                 storeChildUrls(responseData, resultData);
             } catch (RobotSystemException e) {
+                IOUtils.closeQuietly(fis);
                 // clean up
                 if (!tempFile.delete()) {
                     logger.warn("Could not delete a temp file: " + tempFile);
                 }
                 throw e;
             } catch (Exception e) {
+                IOUtils.closeQuietly(fis);
                 // clean up
                 if (!tempFile.delete()) {
                     logger.warn("Could not delete a temp file: " + tempFile);
@@ -196,6 +183,30 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         return resultData;
+    }
+
+    protected File createResponseBodyFile(ResponseData responseData) {
+        File tempFile = null;
+        InputStream is = responseData.getResponseBody();
+        FileOutputStream fos = null;
+        try {
+            tempFile = File.createTempFile("s2robot-HtmlTransformer-", ".html");
+            fos = new FileOutputStream(tempFile);
+            StreamUtil.drain(is, fos);
+        } catch (Exception e) {
+            IOUtils.closeQuietly(fos);
+            // clean up
+            if (tempFile != null && !tempFile.delete()) {
+                logger.warn("Could not delete a temp file: " + tempFile);
+            }
+            throw new RobotCrawlAccessException(
+                    "Could not read a response body: " + responseData.getUrl(),
+                    e);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(fos);
+        }
+        return tempFile;
     }
 
     protected boolean isHtml(ResponseData responseData) {

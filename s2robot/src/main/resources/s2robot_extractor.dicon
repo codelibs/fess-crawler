@@ -24,6 +24,7 @@
 			<arg>{
 "application/xml",
 "application/xhtml+xml",
+"application/rdf+xml",
 "text/xml",
 "text/xml-external-parsed-entity"
 			}</arg>
@@ -179,7 +180,8 @@
 "text/x-setext",
 "text/x-uuencode",
 "text/x-vcalendar",
-"text/x-vcard"
+"text/x-vcard",
+"application/x-sh"
 			}</arg>
 			<arg>tikaExtractor</arg>
 		</initMethod>

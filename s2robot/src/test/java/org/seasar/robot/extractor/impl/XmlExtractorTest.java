@@ -123,6 +123,16 @@ public class XmlExtractorTest extends S2TestCase {
         assertEquals("UTF-8", encoding);
     }
 
+    public void test_getRdf() {
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test.rdf");
+        String content = xmlExtractor.getText(in, null).getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+        assertTrue(content.contains("コメント"));
+    }
+
     public void test_getXml_null() {
         try {
             xmlExtractor.getText(null, null);

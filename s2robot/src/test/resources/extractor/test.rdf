@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cd="http://www.recshop.fake/cd#">
+
+<rdf:Description rdf:about="http://www.recshop.fake/cd/Empire Burlesque">
+  <cd:artist>Shinsuke Sugaya</cd:artist>
+  <cd:country>Japan</cd:country>
+  <cd:company>テスト</cd:company>
+  <cd:price>100</cd:price>
+  <cd:year>2010</cd:year>
+</rdf:Description>
+<!-- コメント -->
+
+</rdf:RDF>

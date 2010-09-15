@@ -22,7 +22,7 @@
     <dependency>
       <groupId>org.seasar.robot</groupId>
       <artifactId>s2-robot</artifactId>
-      <version>0.1.0</version>
+      <version>0.4.2</version>
     </dependency>
     :
   </dependencies>
@@ -59,17 +59,24 @@
     :
     <dependency>
       <groupId>org.seasar.robot</groupId>
+      <artifactId>s2-robot-db-h2</artifactId>
+      <version>0.4.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seasar.robot</groupId>
       <artifactId>s2-robot-db</artifactId>
-      <version>0.1.0</version>
+      <version>0.4.2</version>
     </dependency>
     :
   </dependencies>
 +-------------------------------------------+
 
-    Maven 2 以外で利用する場合は、s2-robot、s2-robot-db および {{{dependencies.html}依存関係}} を参照して、必要な jar ファイルを追加してください。
+    Maven 2 以外で利用する場合は、s2-robot、s2-robot-db、s2-robot-db-h2 および {{{dependencies.html}依存関係}} を参照して、必要な jar ファイルを追加してください。
 
     利用する DB を用意します。デフォルトでは H2Database を利用するので、プロジェクトのトップディレクトリなどにコピーしてください。
-    最新のデータは{{{https://www.seasar.org/svn/sandbox/s2robot/trunk/s2robot-db/src/main/db/}ここ}}から取得できます。
+    最新のデータは{{{https://www.seasar.org/svn/sandbox/s2robot/trunk/s2robot-db/src/test/resources/db/}ここ}}から取得できます。
+
+	また、H2Dataaseでなく、MySQLを利用する場合は{{{https://www.seasar.org/svn/sandbox/s2robot/trunk/s2robot-db-mysql/src/main/config/robot.ddl}DDL}}を利用してテーブルを作成して、s2-robot-db-h2の代わりにs2-robot-db-mysqlを利用してください。
 
     次に app.dicon などの dicon ファイルで s2robot_db.dicon を include します。
 

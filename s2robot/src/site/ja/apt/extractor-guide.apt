@@ -145,3 +145,70 @@
     :
 +--------------------------------------------------+
 
+* 各種Extractor
+
+    Extractor を追加する場合は、ExtractorFactory にも追加してください。
+
+** TextExtractor
+
+    テキストファイルからテキストを抽出します。
+
++--------------------------------------------------+
+<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
++--------------------------------------------------+
+
+** XmlExtractor
+
+    XML ファイルからテキストを抽出します。
+
++--------------------------------------------------+
+<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
++--------------------------------------------------+
+
+** HtmlExtractor
+
+    HTML ファイルからテキストを抽出します。
+
++--------------------------------------------------+
+<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
++--------------------------------------------------+
+
+** HtmlXpathExtractor
+
+    HTML ファイルから XPath で指定してテキストを抽出します。
+
++--------------------------------------------------+
+<component name="htmlXpathExtractor" class="org.seasar.robot.extractor.impl.HtmlXpathExtractor">
+    <property name="targetNodePath">"//HTML/BODY | //@alt | //@title"</property>
+    <initMethod name="addFeature">
+        <arg>"http://xml.org/sax/features/namespaces"</arg>
+        <arg>"false"</arg>
+    </initMethod>
+</component>
++--------------------------------------------------+
+
+** TikaExtractor
+
+    Apache Tika を利用して様々なファイルからテキストを抽出します。
+    ファイルの種類は自動的に判定されます。
+
++--------------------------------------------------+
+<component name="tikaExtractor" class="org.seasar.robot.extractor.impl.TikaExtractor"/>
++--------------------------------------------------+
+
+** CommandExtractor
+
+    コマンドライン呼び出しによりテキスト抽出を行う Extractor です。
+    たとえば、以下のように設定することで pdftotext コマンドを利用してテキスト抽出ができます。
+
++--------------------------------------------------+
+<component name="pdfCmdExtractor" class="org.seasar.robot.extractor.impl.CommandExtractor">
+    <property name="command">"pdftotext $INPUT_FILE $OUTPUT_FILE"</property>
+    <property name="outputEncoding">"UTF-8"</property>
+</component>
++--------------------------------------------------+
+
+    $INPUT_FILE は変換元のファイルパス、$OUTPUT_FILE は変換後のファイルパスです。
+    これらのファイルは S2Robot により一時的に作成され、テキスト抽出後に削除されます。
+    outputEncoding は $OUTPUT_FILE のエンコーディングです。
+    outputEncoding を正しく設定しないと文字化けの原因になります。

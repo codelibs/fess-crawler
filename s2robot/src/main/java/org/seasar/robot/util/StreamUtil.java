@@ -15,9 +15,14 @@
  */
 package org.seasar.robot.util;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.apache.commons.io.IOUtils;
 
 /**
  * @author shinsuke
@@ -39,6 +44,16 @@ public class StreamUtil {
         } finally {
             bytes = null;
         }
+    }
 
+    public static void drain(InputStream r, File outputFile) throws IOException {
+        BufferedOutputStream bos = null;
+        try {
+            bos = new BufferedOutputStream(new FileOutputStream(outputFile));
+            drain(r, bos);
+            bos.flush();
+        } finally {
+            IOUtils.closeQuietly(bos);
+        }
     }
 }

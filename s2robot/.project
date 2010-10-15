@@ -1,6 +1,6 @@
 <projectDescription>
   <name>s2-robot</name>
-  <comment>S2Robot is a crawler framework for Seasar2.</comment>
+  <comment>S2Robot is a crawler framework for Seasar2. NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
   <projects/>
   <buildSpec>
     <buildCommand>

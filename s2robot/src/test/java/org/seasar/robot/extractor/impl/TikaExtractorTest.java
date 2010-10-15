@@ -160,7 +160,9 @@ public class TikaExtractorTest extends S2TestCase {
     public void test_getTika_xml_sjis() {
         InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.xml");
-        ExtractData extractData = tikaExtractor.getText(in, null);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("resourceName", "test_sjis.xml");
+        ExtractData extractData = tikaExtractor.getText(in, params);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
@@ -307,6 +309,16 @@ public class TikaExtractorTest extends S2TestCase {
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getTika_rtf() {
+        InputStream in = ResourceUtil.getResourceAsStream("extractor/test.rtf");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        // TODO assertEquals(extractData.getValues("title")[0], "タイトル");
+        // TODO assertTrue(content.contains("テスト"));
     }
 
     public void test_getTika_null() {

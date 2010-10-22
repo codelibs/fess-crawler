@@ -24,5 +24,5 @@ public interface IntervalController {
 
     public static final int WAIT_NEW_URL = 8;
 
-    public abstract void delay(int type);
+    void delay(int type);
 }

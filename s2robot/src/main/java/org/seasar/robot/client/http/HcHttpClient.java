@@ -160,7 +160,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
-    private List<Header> requestHeaderList = new ArrayList<Header>();
+    private final List<Header> requestHeaderList = new ArrayList<Header>();
 
     public String defaultMimeType = "application/octet-stream";
 
@@ -180,11 +180,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
             logger.debug("Initializing " + HcHttpClient.class.getName());
         }
 
-        DefaultHttpClient defaultHttpClient =
+        final DefaultHttpClient defaultHttpClient =
             new DefaultHttpClient(clientConnectionManager);
-        HttpParams params = defaultHttpClient.getParams();
+        final HttpParams params = defaultHttpClient.getParams();
 
-        Integer connectionTimeout =
+        final Integer connectionTimeout =
             getInitParameter(
                 CONNECTION_TIMEOUT_PROPERTY,
                 this.connectionTimeout);
@@ -192,7 +192,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             HttpConnectionParams
                 .setConnectionTimeout(params, connectionTimeout);
         }
-        Boolean staleCheckingEnabled =
+        final Boolean staleCheckingEnabled =
             getInitParameter(
                 STALE_CHECKING_ENABLED_PROPERTY,
                 this.staleCheckingEnabled);
@@ -201,16 +201,16 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 params,
                 staleCheckingEnabled);
         }
-        Integer soTimeout =
+        final Integer soTimeout =
             getInitParameter(SO_TIMEOUT_PROPERTY, this.soTimeout);
         if (soTimeout != null) {
             HttpConnectionParams.setSoTimeout(params, soTimeout);
         }
-        Integer linger = getInitParameter(LINGER_PROPERTY, this.linger);
+        final Integer linger = getInitParameter(LINGER_PROPERTY, this.linger);
         if (linger != null) {
             HttpConnectionParams.setLinger(params, linger);
         }
-        Integer connectionManagerTimeout =
+        final Integer connectionManagerTimeout =
             getInitParameter(
                 CONNECTION_MANAGER_TIMEOUT_PROPERTY,
                 this.connectionManagerTimeout);
@@ -219,7 +219,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // AuthSchemeFactory
-        Map<String, AuthSchemeFactory> authSchemeFactoryMap =
+        final Map<String, AuthSchemeFactory> authSchemeFactoryMap =
             getInitParameter(
                 AUTH_SCHEME_FACTORIES_PROPERTY,
                 this.authSchemeFactoryMap);
@@ -233,15 +233,15 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // proxy
-        String proxyHost =
+        final String proxyHost =
             getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
-        Integer proxyPort =
+        final Integer proxyPort =
             getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort);
         if (proxyHost != null && proxyPort != null) {
-            HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+            final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
             params.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 
-            Credentials proxyCredentials =
+            final Credentials proxyCredentials =
                 getInitParameter(
                     PROXY_CREDENTIALS_PROPERTY,
                     this.proxyCredentials);
@@ -254,27 +254,27 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // user agent
-        String userAgent =
+        final String userAgent =
             getInitParameter(USER_AGENT_PROPERTY, this.userAgent);
         if (StringUtil.isNotBlank(userAgent)) {
             HttpProtocolParams.setUserAgent(params, userAgent);
         }
 
         // Authentication
-        Authentication[] siteCredentialList =
+        final Authentication[] siteCredentialList =
             getInitParameter(
                 BASIC_AUTHENTICATIONS_PROPERTY,
                 new Authentication[0]);
-        AuthCache authCache = new BasicAuthCache();
+        final AuthCache authCache = new BasicAuthCache();
         boolean useAuthCache = false;
         for (Authentication authentication : siteCredentialList) {
-            AuthScope authScope = authentication.getAuthScope();
+            final AuthScope authScope = authentication.getAuthScope();
             defaultHttpClient.getCredentialsProvider().setCredentials(
                 authScope,
                 authentication.getCredentials());
             if (authScope.getHost() != null
                 && authentication.getAuthScheme() != null) {
-                HttpHost targetHost =
+                final HttpHost targetHost =
                     new HttpHost(authScope.getHost(), authScope.getPort());
                 authCache.put(targetHost, new BasicScheme());
                 useAuthCache = true;
@@ -285,7 +285,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // Request Header
-        RequestHeader[] requestHeaders =
+        final RequestHeader[] requestHeaders =
             getInitParameter(REQUERT_HEADERS_PROPERTY, new RequestHeader[0]);
         for (RequestHeader requestHeader : requestHeaders) {
             if (requestHeader.isValid()) {
@@ -313,7 +313,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
     }
 
-    protected void processRobotsTxt(String url) {
+    protected void processRobotsTxt(final String url) {
         if (StringUtil.isBlank(url)) {
             throw new RobotSystemException("url is null or empty.");
         }
@@ -324,20 +324,21 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // robot context
-        S2RobotContext robotContext = CrawlingParameterUtil.getRobotContext();
+        final S2RobotContext robotContext =
+            CrawlingParameterUtil.getRobotContext();
         if (robotContext == null) {
             // wrong state
             return;
         }
 
-        int idx = url.indexOf('/', url.indexOf("://") + 3);
+        final int idx = url.indexOf('/', url.indexOf("://") + 3);
         String hostUrl;
         if (idx >= 0) {
             hostUrl = url.substring(0, idx);
         } else {
             hostUrl = url;
         }
-        String robotTxtUrl = hostUrl + "/robots.txt";
+        final String robotTxtUrl = hostUrl + "/robots.txt";
 
         // check url
         if (robotContext.getRobotTxtUrlSet().contains(robotTxtUrl)) {
@@ -353,7 +354,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
         }
 
-        HttpGet httpGet = new HttpGet(robotTxtUrl);
+        final HttpGet httpGet = new HttpGet(robotTxtUrl);
 
         // cookie
         if (cookiePolicy != null) {
@@ -369,20 +370,20 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
         try {
             // get a content
-            HttpResponse response =
+            final HttpResponse response =
                 httpClient.execute(httpGet, httpClientContext);
 
-            int httpStatusCode = response.getStatusLine().getStatusCode();
+            final int httpStatusCode = response.getStatusLine().getStatusCode();
             if (httpStatusCode == 200) {
 
                 // check file size
-                Header contentLengthHeader =
+                final Header contentLengthHeader =
                     response.getFirstHeader("Content-Length");
                 if (contentLengthHeader != null) {
-                    String value = contentLengthHeader.getValue();
-                    long contentLength = Long.parseLong(value);
+                    final String value = contentLengthHeader.getValue();
+                    final long contentLength = Long.parseLong(value);
                     if (contentLengthHelper != null) {
-                        long maxLength =
+                        final long maxLength =
                             contentLengthHelper.getMaxLength("text/plain");
                         if (contentLength > maxLength) {
                             throw new MaxLengthExceededException(
@@ -391,16 +392,14 @@ public class HcHttpClient extends AbstractS2RobotClient {
                                     + " byte. The url is " + robotTxtUrl);
                         }
                     }
-                } else {
-                    // TODO check?
                 }
 
-                HttpEntity httpEntity = response.getEntity();
+                final HttpEntity httpEntity = response.getEntity();
                 if (httpEntity != null) {
-                    RobotsTxt robotsTxt =
+                    final RobotsTxt robotsTxt =
                         robotsTxtHelper.parse(httpEntity.getContent());
                     if (robotsTxt != null) {
-                        RobotsTxt.Directives directives =
+                        final RobotsTxt.Directives directives =
                             robotsTxt.getDirectives(userAgent);
                         if (directives != null) {
                             for (String urlPattern : directives.getDisallows()) {
@@ -426,10 +425,10 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
     }
 
-    protected String convertRobotsTxtPathPattern(String path) {
+    protected String convertRobotsTxtPathPattern(final String path) {
         String newPath =
             path.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".*");
-        if (!newPath.startsWith("/")) {
+        if (newPath.charAt(0) != '/') {
             newPath = ".*" + newPath;
         }
         if (!newPath.endsWith("$") && !newPath.endsWith(".*")) {
@@ -443,7 +442,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.http.HttpClient#doGet(java.lang.String)
      */
-    public ResponseData doGet(String url) {
+    public ResponseData doGet(final String url) {
         HttpUriRequest httpGet;
         try {
             httpGet = new HttpGet(url);
@@ -459,7 +458,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.http.HttpClient#doHead(java.lang.String)
      */
-    public ResponseData doHead(String url) {
+    public ResponseData doHead(final String url) {
         HttpUriRequest httpHead;
         try {
             httpHead = new HttpHead(url);
@@ -470,7 +469,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
         return doHttpMethod(url, httpHead);
     }
 
-    public ResponseData doHttpMethod(String url, HttpUriRequest httpRequest) {
+    public ResponseData doHttpMethod(final String url,
+            final HttpUriRequest httpRequest) {
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing " + url);
         }
@@ -479,7 +479,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             processRobotsTxt(url);
         } catch (RobotCrawlAccessException e) {
             if (logger.isInfoEnabled()) {
-                StringBuilder buf = new StringBuilder();
+                final StringBuilder buf = new StringBuilder();
                 buf.append(e.getMessage());
                 if (e.getCause() != null) {
                     buf.append(e.getCause().getMessage());
@@ -506,28 +506,31 @@ public class HcHttpClient extends AbstractS2RobotClient {
         InputStream inputStream = null;
         try {
             // get a content
-            HttpResponse response =
+            final HttpResponse response =
                 httpClient.execute(httpRequest, httpClientContext);
 
-            int httpStatusCode = response.getStatusLine().getStatusCode();
+            final int httpStatusCode = response.getStatusLine().getStatusCode();
             // redirect
             if (httpStatusCode >= 300 && httpStatusCode < 400) {
-                Header locationHeader = response.getFirstHeader("location");
-                if (locationHeader != null) {
+                final Header locationHeader =
+                    response.getFirstHeader("location");
+                if (locationHeader == null) {
+                    logger.warn("Invalid redirect location at " + url);
+                } else {
                     responseData = new ResponseData();
                     responseData.setRedirectLocation(locationHeader.getValue());
                     return responseData;
-                } else {
-                    logger.warn("Invalid redirect location at " + url);
                 }
             }
 
-            HttpEntity httpEntity = response.getEntity();
+            final HttpEntity httpEntity = response.getEntity();
             long contentLength = 0;
             String contentEncoding = Constants.UTF_8;
-            if (httpEntity != null) {
-                InputStream responseBodyStream = httpEntity.getContent();
-                File outputFile =
+            if (httpEntity == null) {
+                inputStream = new ByteArrayInputStream(new byte[0]);
+            } else {
+                final InputStream responseBodyStream = httpEntity.getContent();
+                final File outputFile =
                     File.createTempFile("s2robot-CommonsHttpClient-", ".out");
                 DeferredFileOutputStream dfos = null;
                 try {
@@ -561,21 +564,21 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     contentLength = outputFile.length();
                 }
 
-                Header contentEncodingHeader = httpEntity.getContentEncoding();
+                final Header contentEncodingHeader =
+                    httpEntity.getContentEncoding();
                 if (contentEncodingHeader != null) {
                     contentEncoding = contentEncodingHeader.getValue();
                 }
 
                 httpEntity.consumeContent();
-            } else {
-                inputStream = new ByteArrayInputStream(new byte[0]);
             }
 
             String contentType = null;
-            Header contentTypeHeader = response.getFirstHeader("Content-Type");
+            final Header contentTypeHeader =
+                response.getFirstHeader("Content-Type");
             if (contentTypeHeader != null) {
                 contentType = contentTypeHeader.getValue();
-                int idx = contentType.indexOf(";");
+                final int idx = contentType.indexOf(';');
                 if (idx > 0) {
                     contentType = contentType.substring(0, idx);
                 }
@@ -583,7 +586,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
             // check file size
             if (contentLengthHelper != null) {
-                long maxLength = contentLengthHelper.getMaxLength(contentType);
+                final long maxLength =
+                    contentLengthHelper.getMaxLength(contentType);
                 if (contentLength > maxLength) {
                     throw new MaxLengthExceededException("The content length ("
                         + contentLength + " byte) is over " + maxLength
@@ -604,38 +608,38 @@ public class HcHttpClient extends AbstractS2RobotClient {
             for (Header header : response.getAllHeaders()) {
                 responseData.addHeader(header.getName(), header.getValue());
             }
-            if (contentType != null) {
-                responseData.setMimeType(contentType);
-            } else {
+            if (contentType == null) {
                 responseData.setMimeType(defaultMimeType);
+            } else {
+                responseData.setMimeType(contentType);
             }
-            Header contentLengthHeader =
+            final Header contentLengthHeader =
                 response.getFirstHeader("Content-Length");
-            if (contentLengthHeader != null) {
-                String value = contentLengthHeader.getValue();
+            if (contentLengthHeader == null) {
+                responseData.setContentLength(contentLength);
+            } else {
+                final String value = contentLengthHeader.getValue();
                 try {
                     responseData.setContentLength(Long.parseLong(value));
                 } catch (Exception e) {
                     responseData.setContentLength(contentLength);
                 }
-            } else {
-                responseData.setContentLength(contentLength);
             }
-            Header lastModifiedHeader =
+            final Header lastModifiedHeader =
                 response.getFirstHeader("Last-Modified");
-            if (lastModifiedHeader != null) {
-                String value = lastModifiedHeader.getValue();
+            if (lastModifiedHeader == null) {
+                responseData.setLastModified(new Date()); // set current time
+            } else {
+                final String value = lastModifiedHeader.getValue();
                 if (StringUtil.isNotBlank(value)) {
-                    Date d = parseLastModified(value);
-                    if (d != null) {
-                        responseData.setLastModified(d);
+                    final Date d = parseLastModified(value);
+                    if (d == null) {
+                        // set current time
+                        responseData.setLastModified(new Date());
                     } else {
-                        responseData.setLastModified(new Date()); // set current
-                                                                  // time
+                        responseData.setLastModified(d);
                     }
                 }
-            } else {
-                responseData.setLastModified(new Date()); // set current time
             }
 
             return responseData;
@@ -675,8 +679,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
     }
 
-    protected Date parseLastModified(String value) {
-        SimpleDateFormat sdf =
+    protected Date parseLastModified(final String value) {
+        final SimpleDateFormat sdf =
             new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
         try {
             return sdf.parse(value);

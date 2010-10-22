@@ -19,10 +19,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * From {@link org.seasar.framework.util.LruHashMap} 
+ * From {@link org.seasar.framework.util.LruHashMap}
  * 
  * @author shinsuke
- *
+ * 
  */
 public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
@@ -41,7 +41,7 @@ public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
     /**
      * 上限サイズです。
      */
-    protected int limitSize;
+    protected final int limitSize;
 
     /**
      * {@link LruHashMap}を作成します。

@@ -26,21 +26,25 @@ import org.seasar.robot.extractor.Extractor;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class MsPowerPointExtractor implements Extractor {
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
+     * java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
         try {
             return new ExtractData(
-                    new org.apache.poi.hslf.extractor.PowerPointExtractor(in)
-                            .getText());
+                new org.apache.poi.hslf.extractor.PowerPointExtractor(in)
+                    .getText());
         } catch (IOException e) {
             throw new ExtractException(e);
         }

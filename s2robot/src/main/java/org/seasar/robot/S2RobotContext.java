@@ -24,7 +24,7 @@ import org.seasar.robot.util.LruHashSet;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class S2RobotContext {
     protected String sessionId;
@@ -62,7 +62,7 @@ public class S2RobotContext {
         return sessionId;
     }
 
-    public void setSessionId(String sessionId) {
+    public void setSessionId(final String sessionId) {
         this.sessionId = sessionId;
     }
 
@@ -70,7 +70,7 @@ public class S2RobotContext {
         return activeThreadCount;
     }
 
-    public void setActiveThreadCount(Integer activeThreadCount) {
+    public void setActiveThreadCount(final Integer activeThreadCount) {
         this.activeThreadCount = activeThreadCount;
     }
 
@@ -78,7 +78,7 @@ public class S2RobotContext {
         return accessCount;
     }
 
-    public void setAccessCount(Long accessCount) {
+    public void setAccessCount(final Long accessCount) {
         this.accessCount = accessCount;
     }
 
@@ -86,7 +86,7 @@ public class S2RobotContext {
         return running;
     }
 
-    public void setRunning(boolean running) {
+    public void setRunning(final boolean running) {
         this.running = running;
     }
 
@@ -94,7 +94,7 @@ public class S2RobotContext {
         return urlFilter;
     }
 
-    public void setUrlFilter(UrlFilter urlFilter) {
+    public void setUrlFilter(final UrlFilter urlFilter) {
         this.urlFilter = urlFilter;
     }
 
@@ -102,7 +102,7 @@ public class S2RobotContext {
         return ruleManager;
     }
 
-    public void setRuleManager(RuleManager ruleManager) {
+    public void setRuleManager(final RuleManager ruleManager) {
         this.ruleManager = ruleManager;
     }
 
@@ -110,7 +110,8 @@ public class S2RobotContext {
         return intervalController;
     }
 
-    public void setIntervalController(IntervalController intervalController) {
+    public void setIntervalController(
+            final IntervalController intervalController) {
         this.intervalController = intervalController;
     }
 
@@ -118,7 +119,7 @@ public class S2RobotContext {
         return robotTxtUrlSet;
     }
 
-    public void setRobotTxtUrlSet(Set<String> robotTxtUrlSet) {
+    public void setRobotTxtUrlSet(final Set<String> robotTxtUrlSet) {
         this.robotTxtUrlSet = robotTxtUrlSet;
     }
 
@@ -134,7 +135,7 @@ public class S2RobotContext {
         return numOfThread;
     }
 
-    public void setNumOfThread(int numOfThread) {
+    public void setNumOfThread(final int numOfThread) {
         this.numOfThread = numOfThread;
     }
 
@@ -142,7 +143,7 @@ public class S2RobotContext {
         return maxThreadCheckCount;
     }
 
-    public void setMaxThreadCheckCount(int maxThreadCheckCount) {
+    public void setMaxThreadCheckCount(final int maxThreadCheckCount) {
         this.maxThreadCheckCount = maxThreadCheckCount;
     }
 
@@ -150,7 +151,7 @@ public class S2RobotContext {
         return maxDepth;
     }
 
-    public void setMaxDepth(int maxDepth) {
+    public void setMaxDepth(final int maxDepth) {
         this.maxDepth = maxDepth;
     }
 
@@ -158,7 +159,7 @@ public class S2RobotContext {
         return maxAccessCount;
     }
 
-    public void setMaxAccessCount(long maxAccessCount) {
+    public void setMaxAccessCount(final long maxAccessCount) {
         this.maxAccessCount = maxAccessCount;
     }
 }

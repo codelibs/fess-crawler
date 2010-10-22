@@ -25,7 +25,7 @@ import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class RegexRule extends AbstractRule {
 
@@ -37,24 +37,28 @@ public class RegexRule extends AbstractRule {
 
     protected Map<String, Pattern> regexMap = new HashMap<String, Pattern>();
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.rule.impl.AbstractRule#match(org.seasar.robot.entity.ResponseData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.rule.impl.AbstractRule#match(org.seasar.robot.entity
+     * .ResponseData)
      */
     @Override
-    public boolean match(ResponseData responseData) {
+    public boolean match(final ResponseData responseData) {
         if (defaultRule) {
             return true;
         }
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        final Map<String, Object> map = new HashMap<String, Object>();
         Beans.copy(responseData, map).excludesWhitespace().execute();
         for (Map.Entry<String, Pattern> entry : regexMap.entrySet()) {
             String value = "";
-            Object obj = map.get(entry.getKey());
+            final Object obj = map.get(entry.getKey());
             if (obj != null) {
                 value = obj.toString();
             }
-            Matcher matcher = entry.getValue().matcher(value);
+            final Matcher matcher = entry.getValue().matcher(value);
             if (allRequired) {
                 if (!matcher.matches()) {
                     return false;
@@ -66,18 +70,14 @@ public class RegexRule extends AbstractRule {
             }
         }
 
-        if (allRequired) {
-            return true;
-        } else {
-            return false;
-        }
+        return allRequired;
     }
 
-    public void addRule(String key, String regex) {
+    public void addRule(final String key, final String regex) {
         regexMap.put(key, Pattern.compile(regex));
     }
 
-    public void addRule(String key, Pattern pattern) {
+    public void addRule(final String key, final Pattern pattern) {
         regexMap.put(key, pattern);
     }
 
@@ -85,7 +85,7 @@ public class RegexRule extends AbstractRule {
         return defaultRule;
     }
 
-    public void setDefaultRule(boolean defaultRule) {
+    public void setDefaultRule(final boolean defaultRule) {
         this.defaultRule = defaultRule;
     }
 
@@ -93,17 +93,17 @@ public class RegexRule extends AbstractRule {
         return allRequired;
     }
 
-    public void setAllRequired(boolean allRequired) {
+    public void setAllRequired(final boolean allRequired) {
         this.allRequired = allRequired;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj instanceof RegexRule) {
-            RegexRule rule = (RegexRule) obj;
+            final RegexRule rule = (RegexRule) obj;
             if (allRequired == rule.isAllRequired()
-                    && defaultRule == rule.isDefaultRule()
-                    && regexMap.equals(rule.regexMap)) {
+                && defaultRule == rule.isDefaultRule()
+                && regexMap.equals(rule.regexMap)) {
                 return true;
             }
         }

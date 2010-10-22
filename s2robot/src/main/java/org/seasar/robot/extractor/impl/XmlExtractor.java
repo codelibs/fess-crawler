@@ -21,12 +21,12 @@ import org.seasar.robot.extractor.Extractor;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class XmlExtractor extends AbstractXmlExtractor implements Extractor {
     protected Pattern xmlEncodingPattern = Pattern.compile(
-            "<\\?xml.*encoding\\s*=\\s*['\"]([\\w\\d\\-_]*)['\"]\\s*\\?>",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+        "<\\?xml.*encoding\\s*=\\s*['\"]([\\w\\d\\-_]*)['\"]\\s*\\?>",
+        Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Pattern xmlTagPattern = Pattern.compile("<[^>]+>");
 
@@ -44,7 +44,7 @@ public class XmlExtractor extends AbstractXmlExtractor implements Extractor {
         return xmlEncodingPattern;
     }
 
-    public void setXmlEncodingPattern(Pattern metaCharsetPattern) {
+    public void setXmlEncodingPattern(final Pattern metaCharsetPattern) {
         this.xmlEncodingPattern = metaCharsetPattern;
     }
 
@@ -52,7 +52,7 @@ public class XmlExtractor extends AbstractXmlExtractor implements Extractor {
         return xmlTagPattern;
     }
 
-    public void setXmlTagPattern(Pattern htmlTagPattern) {
+    public void setXmlTagPattern(final Pattern htmlTagPattern) {
         this.xmlTagPattern = htmlTagPattern;
     }
 }

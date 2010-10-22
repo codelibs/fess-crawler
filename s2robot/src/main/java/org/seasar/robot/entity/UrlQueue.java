@@ -19,40 +19,40 @@ import java.sql.Timestamp;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface UrlQueue {
 
-    public abstract Long getId();
+    Long getId();
 
-    public abstract void setId(Long id);
+    void setId(Long id);
 
-    public abstract String getSessionId();
+    String getSessionId();
 
-    public abstract void setSessionId(String sessionId);
+    void setSessionId(String sessionId);
 
-    public abstract String getMethod();
+    String getMethod();
 
-    public abstract void setMethod(String method);
+    void setMethod(String method);
 
-    public abstract String getUrl();
+    String getUrl();
 
-    public abstract void setUrl(String url);
+    void setUrl(String url);
 
-    public abstract String getParentUrl();
+    String getParentUrl();
 
-    public abstract void setParentUrl(String parentUrl);
+    void setParentUrl(String parentUrl);
 
-    public abstract Integer getDepth();
+    Integer getDepth();
 
-    public abstract void setDepth(Integer depth);
+    void setDepth(Integer depth);
 
-    public abstract Timestamp getLastModified();
+    Timestamp getLastModified();
 
-    public abstract void setLastModified(Timestamp lastModified);
+    void setLastModified(Timestamp lastModified);
 
-    public abstract Timestamp getCreateTime();
+    Timestamp getCreateTime();
 
-    public abstract void setCreateTime(Timestamp createTime);
+    void setCreateTime(Timestamp createTime);
 
 }

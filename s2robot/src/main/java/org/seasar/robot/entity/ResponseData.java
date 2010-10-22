@@ -24,7 +24,7 @@ import org.seasar.robot.Constants;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ResponseData {
 
@@ -58,14 +58,11 @@ public class ResponseData {
 
     private Map<String, String> headerMap = new LinkedHashMap<String, String>();
 
-    public ResponseData() {
-    }
-
     public int getHttpStatusCode() {
         return httpStatusCode;
     }
 
-    public void setHttpStatusCode(int statusCode) {
+    public void setHttpStatusCode(final int statusCode) {
         this.httpStatusCode = statusCode;
     }
 
@@ -73,7 +70,7 @@ public class ResponseData {
         return responseBody;
     }
 
-    public void setResponseBody(InputStream responseBody) {
+    public void setResponseBody(final InputStream responseBody) {
         this.responseBody = responseBody;
     }
 
@@ -81,7 +78,7 @@ public class ResponseData {
         return charSet;
     }
 
-    public void setCharSet(String charSet) {
+    public void setCharSet(final String charSet) {
         this.charSet = charSet;
     }
 
@@ -89,7 +86,7 @@ public class ResponseData {
         return contentLength;
     }
 
-    public void setContentLength(long contentLength) {
+    public void setContentLength(final long contentLength) {
         this.contentLength = contentLength;
     }
 
@@ -97,7 +94,7 @@ public class ResponseData {
         return mimeType;
     }
 
-    public void setMimeType(String contentType) {
+    public void setMimeType(final String contentType) {
         this.mimeType = contentType;
     }
 
@@ -105,11 +102,11 @@ public class ResponseData {
         return url;
     }
 
-    public void setUrl(String url) {
+    public void setUrl(final String url) {
         this.url = url;
     }
 
-    public void addHeader(String name, String value) {
+    public void addHeader(final String name, final String value) {
         headerMap.put(name, value);
     }
 
@@ -121,7 +118,7 @@ public class ResponseData {
         return method;
     }
 
-    public void setMethod(String method) {
+    public void setMethod(final String method) {
         this.method = method;
     }
 
@@ -129,7 +126,7 @@ public class ResponseData {
         return parentUrl;
     }
 
-    public void setParentUrl(String parentUrl) {
+    public void setParentUrl(final String parentUrl) {
         this.parentUrl = parentUrl;
     }
 
@@ -137,7 +134,7 @@ public class ResponseData {
         return ruleId;
     }
 
-    public void setRuleId(String ruleId) {
+    public void setRuleId(final String ruleId) {
         this.ruleId = ruleId;
     }
 
@@ -145,7 +142,7 @@ public class ResponseData {
         return sessionId;
     }
 
-    public void setSessionId(String sessionId) {
+    public void setSessionId(final String sessionId) {
         this.sessionId = sessionId;
     }
 
@@ -153,7 +150,7 @@ public class ResponseData {
         return executionTime;
     }
 
-    public void setExecutionTime(long executionTime) {
+    public void setExecutionTime(final long executionTime) {
         this.executionTime = executionTime;
     }
 
@@ -161,7 +158,7 @@ public class ResponseData {
         return redirectLocation;
     }
 
-    public void setRedirectLocation(String redirectLocation) {
+    public void setRedirectLocation(final String redirectLocation) {
         this.redirectLocation = redirectLocation;
     }
 
@@ -169,7 +166,7 @@ public class ResponseData {
         return lastModified;
     }
 
-    public void setLastModified(Date lastModified) {
+    public void setLastModified(final Date lastModified) {
         this.lastModified = lastModified;
     }
 
@@ -177,7 +174,7 @@ public class ResponseData {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(final int status) {
         this.status = status;
     }
 

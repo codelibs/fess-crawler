@@ -22,31 +22,30 @@ import org.seasar.robot.util.AccessResultCallback;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface DataService {
 
-    public abstract void store(AccessResult accessResult);
+    void store(AccessResult accessResult);
 
-    public abstract void update(AccessResult accessResult);
+    void update(AccessResult accessResult);
 
-    public abstract void update(List<AccessResult> accessResult);
+    void update(List<AccessResult> accessResult);
 
-    public abstract int getCount(String sessionId);
+    int getCount(String sessionId);
 
-    public abstract void delete(String sessionId);
+    void delete(String sessionId);
 
-    public abstract void deleteAll();
+    void deleteAll();
 
-    public abstract AccessResult getAccessResult(String sessionId, String url);
+    AccessResult getAccessResult(String sessionId, String url);
 
-    public abstract List<AccessResult> getAccessResultList(String url,
-            boolean hasData);
+    List<AccessResult> getAccessResultList(String url, boolean hasData);
 
-    public abstract void iterate(String sessionId,
+    void iterate(String sessionId,
             final AccessResultCallback accessResultCallback);
 
-    public abstract void iterateUrlDiff(String oldSessionId,
-            String newSessionId, final AccessResultCallback accessResultCallback);
+    void iterateUrlDiff(String oldSessionId, String newSessionId,
+            final AccessResultCallback accessResultCallback);
 
 }

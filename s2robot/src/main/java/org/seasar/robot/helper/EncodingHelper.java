@@ -22,7 +22,7 @@ import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class EncodingHelper {
 
@@ -30,11 +30,11 @@ public class EncodingHelper {
 
     protected Map<String, String> encodingMap = new HashMap<String, String>();
 
-    public String normalize(String enc) {
+    public String normalize(final String enc) {
         if (StringUtil.isBlank(enc)) {
             return defaultEncoding;
         } else {
-            String newEnc = encodingMap.get(enc);
+            final String newEnc = encodingMap.get(enc);
             if (StringUtil.isBlank(newEnc)) {
                 return enc;
             } else {

@@ -37,7 +37,7 @@ public abstract class AbstractRule implements Rule {
         return ruleId;
     }
 
-    public void setRuleId(String ruleId) {
+    public void setRuleId(final String ruleId) {
         this.ruleId = ruleId;
     }
 
@@ -45,7 +45,7 @@ public abstract class AbstractRule implements Rule {
         return responseProcessor;
     }
 
-    public void setResponseProcessor(ResponseProcessor responseProcessor) {
+    public void setResponseProcessor(final ResponseProcessor responseProcessor) {
         this.responseProcessor = responseProcessor;
     }
 

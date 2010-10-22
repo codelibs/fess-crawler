@@ -17,13 +17,13 @@ package org.seasar.robot;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class MaxLengthExceededException extends RobotCrawlAccessException {
 
     private static final long serialVersionUID = 1L;
 
-    public MaxLengthExceededException(String message) {
+    public MaxLengthExceededException(final String message) {
         super(message);
     }
 

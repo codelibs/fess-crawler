@@ -39,9 +39,10 @@ public class RuleManagerImpl implements RuleManager {
     /*
      * (non-Javadoc)
      * 
-     * @seeorg.seasar.robot.rule.RuleManager#getRule(org.seasar.robot.entity.ResponseData)
+     * @seeorg.seasar.robot.rule.RuleManager#getRule(org.seasar.robot.entity.
+     * ResponseData)
      */
-    public Rule getRule(ResponseData responseData) {
+    public Rule getRule(final ResponseData responseData) {
         for (Rule rule : ruleList) {
             if (rule.match(responseData)) {
                 return rule;
@@ -50,24 +51,33 @@ public class RuleManagerImpl implements RuleManager {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.rule.RuleManager#addRule(org.seasar.robot.rule.Rule)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.rule.RuleManager#addRule(org.seasar.robot.rule.Rule)
      */
-    public void addRule(Rule rule) {
+    public void addRule(final Rule rule) {
         ruleList.add(rule);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.rule.RuleManager#hasRule(org.seasar.robot.rule.Rule)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.rule.RuleManager#hasRule(org.seasar.robot.rule.Rule)
      */
-    public boolean hasRule(Rule rule) {
+    public boolean hasRule(final Rule rule) {
         return ruleList.contains(rule);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.rule.RuleManager#removeRule(org.seasar.robot.rule.Rule)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.rule.RuleManager#removeRule(org.seasar.robot.rule.Rule)
      */
-    public boolean removeRule(Rule rule) {
+    public boolean removeRule(final Rule rule) {
         return ruleList.remove(rule);
     }
 }

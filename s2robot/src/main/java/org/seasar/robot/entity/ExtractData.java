@@ -29,7 +29,7 @@ import org.apache.tika.metadata.TikaMimeKeys;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
         MSOffice, TikaMetadataKeys, TikaMimeKeys, Serializable {
@@ -41,17 +41,18 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
     protected String content;
 
     public ExtractData() {
+        // nothing
     }
 
-    public ExtractData(String content) {
+    public ExtractData(final String content) {
         this.content = content;
     }
 
-    public void putValues(String key, String[] values) {
+    public void putValues(final String key, final String[] values) {
         metadata.put(key, values);
     }
 
-    public String[] getValues(String key) {
+    public String[] getValues(final String key) {
         return metadata.get(key);
     }
 
@@ -63,7 +64,7 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(final String content) {
         this.content = content;
     }
 }

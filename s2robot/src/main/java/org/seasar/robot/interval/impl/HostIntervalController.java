@@ -28,45 +28,55 @@ import org.seasar.robot.util.CrawlingParameterUtil;
 
 public class HostIntervalController extends DefaultIntervalController {
 
-    private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<String, AtomicLong>();
+    private final ConcurrentMap<String, AtomicLong> lastTimes =
+        new ConcurrentHashMap<String, AtomicLong>();
 
     public HostIntervalController() {
+        super();
     }
 
-    public HostIntervalController(Map<String, Long> params) {
+    public HostIntervalController(final Map<String, Long> params) {
         super(params);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.interval.impl.AbstractIntervalController#delayBeforeProcessing()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.interval.impl.AbstractIntervalController#
+     * delayBeforeProcessing()
      */
     @Override
     protected void delayBeforeProcessing() {
-        UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
+        final UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
         if (urlQueue == null) {
             return;
         }
 
-        String url = urlQueue.getUrl();
+        final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url) || url.startsWith("file:")) {
             // not target
             return;
         }
 
         try {
-            URL u = new URL(url);
-            String host = u.getHost();
-            if (host == null)
+            final URL u = new URL(url);
+            final String host = u.getHost();
+            if (host == null) {
                 return;
-            AtomicLong lastTime = lastTimes.putIfAbsent(host, new AtomicLong(
-                    System.currentTimeMillis()));
-            if (lastTime == null)
+            }
+            final AtomicLong lastTime =
+                lastTimes.putIfAbsent(
+                    host,
+                    new AtomicLong(System.currentTimeMillis()));
+            if (lastTime == null) {
                 return;
+            }
             synchronized (this) {
                 while (true) {
-                    long currentTime = System.currentTimeMillis();
-                    long delayTime = lastTime.get()
-                            + delayMillisBeforeProcessing - currentTime;
+                    final long currentTime = System.currentTimeMillis();
+                    final long delayTime =
+                        lastTime.get() + delayMillisBeforeProcessing
+                            - currentTime;
                     if (delayTime <= 0) {
                         lastTime.set(currentTime);
                         break;

@@ -21,30 +21,27 @@ import org.seasar.robot.entity.UrlQueue;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface UrlQueueService {
 
-    public abstract void updateSessionId(String oldSessionId,
-            String newSessionId);
+    void updateSessionId(String oldSessionId, String newSessionId);
 
-    public abstract void add(String sessionId, String url);
+    void add(String sessionId, String url);
 
-    public abstract void insert(UrlQueue urlQueue);
+    void insert(UrlQueue urlQueue);
 
-    public abstract void delete(String sessionId);
+    void delete(String sessionId);
 
-    public abstract void deleteAll();
+    void deleteAll();
 
-    public abstract void offerAll(String sessionId,
-            List<UrlQueue> newUrlQueueList);
+    void offerAll(String sessionId, List<UrlQueue> newUrlQueueList);
 
-    public abstract UrlQueue poll(String sessionId);
+    UrlQueue poll(String sessionId);
 
-    public abstract void saveSession(String sessionId);
+    void saveSession(String sessionId);
 
-    public abstract boolean visited(UrlQueue urlQueue);
+    boolean visited(UrlQueue urlQueue);
 
-    public abstract void generateUrlQueues(String previousSessionId,
-            String sessionId);
+    void generateUrlQueues(String previousSessionId, String sessionId);
 }

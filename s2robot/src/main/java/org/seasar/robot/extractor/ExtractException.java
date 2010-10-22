@@ -19,7 +19,7 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ExtractException extends RobotSystemException {
 
@@ -29,21 +29,21 @@ public class ExtractException extends RobotSystemException {
      * @param message
      * @param cause
      */
-    public ExtractException(String message, Throwable cause) {
+    public ExtractException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
     /**
      * @param message
      */
-    public ExtractException(String message) {
+    public ExtractException(final String message) {
         super(message);
     }
 
     /**
      * @param cause
      */
-    public ExtractException(Throwable cause) {
+    public ExtractException(final Throwable cause) {
         super(cause);
     }
 

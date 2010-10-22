@@ -35,12 +35,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public abstract class AbstractXmlExtractor {
 
     protected static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(AbstractXmlExtractor.class);
+        .getLogger(AbstractXmlExtractor.class);
 
     protected String encoding = Constants.UTF_8;
 
@@ -52,38 +52,40 @@ public abstract class AbstractXmlExtractor {
 
     protected abstract Pattern getTagPattern();
 
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
         try {
-            BufferedInputStream bis = new BufferedInputStream(in);
-            String enc = getEncoding(bis);
-            String content = StringEscapeUtils.unescapeHtml(new String(
-                    InputStreamUtil.getBytes(bis), enc));
+            final BufferedInputStream bis = new BufferedInputStream(in);
+            final String enc = getEncoding(bis);
+            final String content =
+                StringEscapeUtils.unescapeHtml(new String(InputStreamUtil
+                    .getBytes(bis), enc));
             return new ExtractData(extractString(content));
         } catch (Exception e) {
             throw new ExtractException(e);
         }
     }
 
-    protected String getEncoding(BufferedInputStream bis) {
-        byte[] b = new byte[preloadSizeForCharset];
+    protected String getEncoding(final BufferedInputStream bis) {
+        final byte[] b = new byte[preloadSizeForCharset];
         try {
             bis.mark(preloadSizeForCharset);
-            int c = bis.read(b);
+            final int c = bis.read(b);
 
             if (c == -1) {
                 return encoding;
             }
 
-            String head = new String(b, 0, c, encoding);
+            final String head = new String(b, 0, c, encoding);
             if (StringUtil.isBlank(head)) {
                 return encoding;
             }
-            Matcher matcher = getEncodingPattern().matcher(head);
+            final Matcher matcher = getEncodingPattern().matcher(head);
             if (matcher.find()) {
-                String enc = matcher.group(1);
+                final String enc = matcher.group(1);
                 if (Charset.isSupported(enc)) {
                     return enc;
                 }
@@ -103,25 +105,27 @@ public abstract class AbstractXmlExtractor {
         return encoding;
     }
 
-    protected String extractString(String content) {
+    protected String extractString(final String content) {
         String input = content.replaceAll("[\\r\\n]", " ");
         if (ignoreCommentTag) {
             input = input.replaceAll("<!--[^>]+-->", "");
         } else {
             input = input.replace("<!--", "").replace("-->", "");
         }
-        Matcher matcher = getTagPattern().matcher(input);
-        StringBuffer sb = new StringBuffer();
-        Pattern attrPattern = Pattern.compile("\\s[^ ]+=\"([^\"]*)\"");
+        final Matcher matcher = getTagPattern().matcher(input);
+        final StringBuffer sb = new StringBuffer();
+        final Pattern attrPattern = Pattern.compile("\\s[^ ]+=\"([^\"]*)\"");
         while (matcher.find()) {
-            String tagStr = matcher.group();
-            Matcher attrMatcher = attrPattern.matcher(tagStr);
-            StringBuilder buf = new StringBuilder();
+            final String tagStr = matcher.group();
+            final Matcher attrMatcher = attrPattern.matcher(tagStr);
+            final StringBuilder buf = new StringBuilder();
             while (attrMatcher.find()) {
                 buf.append(attrMatcher.group(1)).append(' ');
             }
-            matcher.appendReplacement(sb, buf.toString().replace("\\", "\\\\")
-                    .replace("$", "\\$"));
+            matcher.appendReplacement(sb, buf
+                .toString()
+                .replace("\\", "\\\\")
+                .replace("$", "\\$"));
         }
         matcher.appendTail(sb);
         return sb.toString().replaceAll("\\s+", " ").trim();
@@ -131,7 +135,7 @@ public abstract class AbstractXmlExtractor {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 
@@ -143,9 +147,10 @@ public abstract class AbstractXmlExtractor {
     }
 
     /**
-     * @param preloadSizeForCharset The preloadSizeForCharset to set.
+     * @param preloadSizeForCharset
+     *            The preloadSizeForCharset to set.
      */
-    public void setPreloadSizeForCharset(int preloadSizeForCharset) {
+    public void setPreloadSizeForCharset(final int preloadSizeForCharset) {
         this.preloadSizeForCharset = preloadSizeForCharset;
     }
 
@@ -153,7 +158,7 @@ public abstract class AbstractXmlExtractor {
         return ignoreCommentTag;
     }
 
-    public void setIgnoreCommentTag(boolean ignoreCommentTag) {
+    public void setIgnoreCommentTag(final boolean ignoreCommentTag) {
         this.ignoreCommentTag = ignoreCommentTag;
     }
 

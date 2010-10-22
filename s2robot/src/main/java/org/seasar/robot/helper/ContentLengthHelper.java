@@ -25,16 +25,16 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ContentLengthHelper {
 
     @Binding(bindingType = BindingType.MAY)
-    protected long defaultMaxLength = 10L * 1024L * 1024L;//10M
+    protected long defaultMaxLength = 10L * 1024L * 1024L;// 10M
 
     protected Map<String, Long> maxLengthMap = new HashMap<String, Long>();
 
-    public void addMaxLength(String mimeType, long maxLength) {
+    public void addMaxLength(final String mimeType, final long maxLength) {
         if (StringUtil.isBlank(mimeType)) {
             throw new RobotSystemException("MIME type is a blank.");
         }
@@ -44,11 +44,11 @@ public class ContentLengthHelper {
         maxLengthMap.put(mimeType, maxLength);
     }
 
-    public long getMaxLength(String mimeType) {
+    public long getMaxLength(final String mimeType) {
         if (StringUtil.isBlank(mimeType)) {
             return defaultMaxLength;
         }
-        Long maxLength = maxLengthMap.get(mimeType);
+        final Long maxLength = maxLengthMap.get(mimeType);
         if (maxLength != null && maxLength >= 0L) {
             return maxLength;
         }
@@ -59,7 +59,7 @@ public class ContentLengthHelper {
         return defaultMaxLength;
     }
 
-    public void setDefaultMaxLength(long defaultMaxLength) {
+    public void setDefaultMaxLength(final long defaultMaxLength) {
         this.defaultMaxLength = defaultMaxLength;
     }
 }

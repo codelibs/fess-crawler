@@ -22,11 +22,10 @@ import org.seasar.robot.entity.ExtractData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface Extractor {
 
-    public abstract ExtractData getText(InputStream in,
-            Map<String, String> params);
+    ExtractData getText(InputStream in, Map<String, String> params);
 
 }

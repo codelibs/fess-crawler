@@ -17,6 +17,7 @@ package org.seasar.robot;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.annotation.Resource;
 
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * S2Robot manages/controls a crawling information.
  * 
  * @author shinsuke
- *
+ * 
  */
 public class S2Robot implements Runnable {
 
@@ -74,11 +75,12 @@ public class S2Robot implements Runnable {
 
     public S2Robot() {
         robotContext = new S2RobotContext();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        final SimpleDateFormat sdf =
+            new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.ENGLISH);
         robotContext.sessionId = sdf.format(new Date());
     }
 
-    public void addUrl(String url) {
+    public void addUrl(final String url) {
         urlQueueService.add(robotContext.sessionId, url);
         urlFilter.processUrl(url);
     }
@@ -87,9 +89,9 @@ public class S2Robot implements Runnable {
         return robotContext.sessionId;
     }
 
-    public void setSessionId(String sessionId) {
+    public void setSessionId(final String sessionId) {
         if (StringUtil.isNotBlank(sessionId)
-                && !sessionId.equals(robotContext.sessionId)) {
+            && !sessionId.equals(robotContext.sessionId)) {
             urlQueueService.updateSessionId(robotContext.sessionId, sessionId);
             robotContext.sessionId = sessionId;
         }
@@ -109,7 +111,7 @@ public class S2Robot implements Runnable {
         awaitTermination(0);
     }
 
-    public void awaitTermination(long millis) {
+    public void awaitTermination(final long millis) {
         if (parentThread != null) {
             try {
                 parentThread.join(millis);
@@ -119,20 +121,20 @@ public class S2Robot implements Runnable {
         }
     }
 
-    public void cleanup(String sessionId) {
+    public void cleanup(final String sessionId) {
         // TODO transaction?
         urlQueueService.delete(sessionId);
         dataService.delete(sessionId);
         urlFilter.clear();
     }
 
-    public void addIncludeFilter(String regexp) {
+    public void addIncludeFilter(final String regexp) {
         if (StringUtil.isNotBlank(regexp)) {
             urlFilter.addInclude(regexp);
         }
     }
 
-    public void addExcludeFilter(String regexp) {
+    public void addExcludeFilter(final String regexp) {
         if (StringUtil.isNotBlank(regexp)) {
             urlFilter.addExclude(regexp);
         }
@@ -146,7 +148,7 @@ public class S2Robot implements Runnable {
         return urlFilter;
     }
 
-    public void setUrlFilter(UrlFilter urlFilter) {
+    public void setUrlFilter(final UrlFilter urlFilter) {
         this.urlFilter = urlFilter;
     }
 
@@ -154,7 +156,7 @@ public class S2Robot implements Runnable {
         return ruleManager;
     }
 
-    public void setRuleManager(RuleManager ruleManager) {
+    public void setRuleManager(final RuleManager ruleManager) {
         this.ruleManager = ruleManager;
     }
 
@@ -162,7 +164,8 @@ public class S2Robot implements Runnable {
         return intervalController;
     }
 
-    public void setIntervalController(IntervalController intervalController) {
+    public void setIntervalController(
+            final IntervalController intervalController) {
         this.intervalController = intervalController;
     }
 
@@ -174,7 +177,7 @@ public class S2Robot implements Runnable {
         return background;
     }
 
-    public void setBackground(boolean background) {
+    public void setBackground(final boolean background) {
         this.background = background;
     }
 
@@ -182,11 +185,13 @@ public class S2Robot implements Runnable {
         return daemon;
     }
 
-    public void setDaemon(boolean daemon) {
+    public void setDaemon(final boolean daemon) {
         this.daemon = daemon;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Runnable#run()
      */
     public void run() {
@@ -197,15 +202,16 @@ public class S2Robot implements Runnable {
 
         urlFilter.init(robotContext.sessionId);
 
-        ThreadGroup threadGroup = new ThreadGroup("Robot-"
-                + robotContext.sessionId);
+        final ThreadGroup threadGroup =
+            new ThreadGroup("Robot-" + robotContext.sessionId);
         Thread[] threads = new Thread[robotContext.getNumOfThread()];
         for (int i = 0; i < robotContext.getNumOfThread(); i++) {
-            S2RobotThread robotThread = (S2RobotThread) container
-                    .getComponent("robotThread");
+            final S2RobotThread robotThread =
+                (S2RobotThread) container.getComponent("robotThread");
             robotThread.robotContext = robotContext;
             robotThread.clientFactory = clientFactory;
-            threads[i] = new Thread(threadGroup, robotThread, "Robot-"
+            threads[i] =
+                new Thread(threadGroup, robotThread, "Robot-"
                     + robotContext.sessionId + "-" + Integer.toString(i + 1));
             threads[i].setDaemon(daemon);
             threads[i].setPriority(threadPriority);
@@ -234,23 +240,23 @@ public class S2Robot implements Runnable {
         return robotContext;
     }
 
-    public void setNumOfThread(int numOfThread) {
+    public void setNumOfThread(final int numOfThread) {
         robotContext.numOfThread = numOfThread;
     }
 
-    public void setMaxThreadCheckCount(int maxThreadCheckCount) {
+    public void setMaxThreadCheckCount(final int maxThreadCheckCount) {
         robotContext.maxThreadCheckCount = maxThreadCheckCount;
     }
 
-    public void setMaxDepth(int maxDepth) {
+    public void setMaxDepth(final int maxDepth) {
         robotContext.maxDepth = maxDepth;
     }
 
-    public void setMaxAccessCount(long maxAccessCount) {
+    public void setMaxAccessCount(final long maxAccessCount) {
         robotContext.maxAccessCount = maxAccessCount;
     }
 
-    public void setThreadPriority(int threadPriority) {
+    public void setThreadPriority(final int threadPriority) {
         this.threadPriority = threadPriority;
     }
 }

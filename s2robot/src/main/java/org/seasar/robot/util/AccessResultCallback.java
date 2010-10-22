@@ -19,8 +19,8 @@ import org.seasar.robot.entity.AccessResult;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface AccessResultCallback {
-    public abstract void iterate(AccessResult accessResult);
+    void iterate(AccessResult accessResult);
 }

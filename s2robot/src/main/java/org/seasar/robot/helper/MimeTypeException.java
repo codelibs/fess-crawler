@@ -19,7 +19,7 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class MimeTypeException extends RobotSystemException {
 
@@ -29,21 +29,21 @@ public class MimeTypeException extends RobotSystemException {
      * @param message
      * @param cause
      */
-    public MimeTypeException(String message, Throwable cause) {
+    public MimeTypeException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
     /**
      * @param message
      */
-    public MimeTypeException(String message) {
+    public MimeTypeException(final String message) {
         super(message);
     }
 
     /**
      * @param cause
      */
-    public MimeTypeException(Throwable cause) {
+    public MimeTypeException(final Throwable cause) {
         super(cause);
     }
 

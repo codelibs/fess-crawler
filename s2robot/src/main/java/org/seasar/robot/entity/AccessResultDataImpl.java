@@ -23,7 +23,7 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class AccessResultDataImpl implements AccessResultData {
     protected Long id;
@@ -34,45 +34,59 @@ public class AccessResultDataImpl implements AccessResultData {
 
     protected String encoding;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResultData#getId()
      */
     public Long getId() {
         return id;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResultData#setId(java.lang.Long)
      */
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResultData#getTransformerName()
      */
     public String getTransformerName() {
         return transformerName;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.entity.AccessResultData#setTransformerName(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.entity.AccessResultData#setTransformerName(java.lang
+     * .String)
      */
-    public void setTransformerName(String transformerName) {
+    public void setTransformerName(final String transformerName) {
         this.transformerName = transformerName;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResultData#getData()
      */
     public byte[] getData() {
         return data;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResultData#setData(java.lang.String)
      */
-    public void setData(byte[] data) {
+    public void setData(final byte[] data) {
         this.data = data;
     }
 
@@ -80,11 +94,13 @@ public class AccessResultDataImpl implements AccessResultData {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResultData#getDataAsString()
      */
     public String getDataAsString() {
@@ -93,7 +109,7 @@ public class AccessResultDataImpl implements AccessResultData {
         }
         try {
             return new String(data, StringUtil.isNotBlank(encoding) ? encoding
-                    : Constants.UTF_8);
+                : Constants.UTF_8);
         } catch (UnsupportedEncodingException e) {
             try {
                 return new String(data, Constants.UTF_8);

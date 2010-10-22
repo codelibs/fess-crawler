@@ -31,7 +31,7 @@ import org.seasar.robot.util.AccessResultCallback;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class DataServiceImpl implements DataService {
 
@@ -42,13 +42,13 @@ public class DataServiceImpl implements DataService {
     @Resource
     protected MemoryDataHelper dataHelper;
 
-    public DataServiceImpl() {
-    }
-
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#store(org.seasar.robot.entity.AccessResult)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.DataService#store(org.seasar.robot.entity.
+     * AccessResult)
      */
-    public void store(AccessResult accessResult) {
+    public void store(final AccessResult accessResult) {
         if (accessResult == null) {
             throw new RobotSystemException("AccessResult is null.");
         }
@@ -56,8 +56,8 @@ public class DataServiceImpl implements DataService {
         synchronized (idCountLock) {
             idCount++;
             accessResult.setId(idCount);
-            AccessResultData accessResultData = accessResult
-                    .getAccessResultData();
+            AccessResultData accessResultData =
+                accessResult.getAccessResultData();
             if (accessResultData == null) {
                 accessResultData = new AccessResultDataImpl();
                 accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
@@ -65,98 +65,126 @@ public class DataServiceImpl implements DataService {
             }
             accessResultData.setId(accessResult.getId());
 
-            Map<String, AccessResult> arMap = dataHelper
-                    .getAccessResultMap(accessResult.getSessionId());
+            final Map<String, AccessResult> arMap =
+                dataHelper.getAccessResultMap(accessResult.getSessionId());
             if (arMap.containsKey(accessResult.getUrl())) {
                 throw new RobotSystemException(accessResult.getUrl()
-                        + " already exists.");
+                    + " already exists.");
             }
             arMap.put(accessResult.getUrl(), accessResult);
         }
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#getCount(java.lang.String)
      */
-    public int getCount(String sessionId) {
+    public int getCount(final String sessionId) {
         return dataHelper.getAccessResultMap(sessionId).size();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#delete(java.lang.String)
      */
-    public void delete(String sessionId) {
+    public void delete(final String sessionId) {
         dataHelper.deleteAccessResultMap(sessionId);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#deleteAll()
      */
     public void deleteAll() {
         dataHelper.clearUrlQueueList();
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#getAccessResult(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.DataService#getAccessResult(java.lang.String,
+     * java.lang.String)
      */
-    public AccessResult getAccessResult(String sessionId, String url) {
+    public AccessResult getAccessResult(final String sessionId, final String url) {
         return dataHelper.getAccessResultMap(sessionId).get(url);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#getAccessResultList(java.lang.String, boolean)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.DataService#getAccessResultList(java.lang.String
+     * , boolean)
      */
-    public List<AccessResult> getAccessResultList(String url, boolean hasData) {
+    public List<AccessResult> getAccessResultList(final String url,
+            final boolean hasData) {
         return dataHelper.getAccessResultList(url);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#iterate(java.lang.String, org.seasar.robot.util.AccessResultCallback)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.DataService#iterate(java.lang.String,
+     * org.seasar.robot.util.AccessResultCallback)
      */
-    public void iterate(String sessionId,
+    public void iterate(final String sessionId,
             final AccessResultCallback accessResultCallback) {
-        Map<String, AccessResult> arMap = dataHelper
-                .getAccessResultMap(sessionId);
+        final Map<String, AccessResult> arMap =
+            dataHelper.getAccessResultMap(sessionId);
         for (Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
             accessResultCallback.iterate(entry.getValue());
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String, java.lang.String, org.seasar.robot.util.AccessResultCallback)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String,
+     * java.lang.String, org.seasar.robot.util.AccessResultCallback)
      */
-    public void iterateUrlDiff(String oldSessionId, String newSessionId,
-            AccessResultCallback accessResultCallback) {
-        Map<String, AccessResult> oldAccessResultMap = dataHelper
-                .getAccessResultMap(oldSessionId);
-        Map<String, AccessResult> newAccessResultMap = dataHelper
-                .getAccessResultMap(newSessionId);
+    public void iterateUrlDiff(final String oldSessionId,
+            final String newSessionId,
+            final AccessResultCallback accessResultCallback) {
+        final Map<String, AccessResult> oldAccessResultMap =
+            dataHelper.getAccessResultMap(oldSessionId);
+        final Map<String, AccessResult> newAccessResultMap =
+            dataHelper.getAccessResultMap(newSessionId);
         for (Map.Entry<String, AccessResult> newEntry : newAccessResultMap
-                .entrySet()) {
+            .entrySet()) {
             if (!oldAccessResultMap.keySet().contains(newEntry.getKey())) {
                 accessResultCallback.iterate(newEntry.getValue());
             }
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.AccessResult)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.
+     * AccessResult)
      */
-    public void update(AccessResult accessResult) {
-        Map<String, AccessResult> arMap = dataHelper
-                .getAccessResultMap(accessResult.getSessionId());
+    public void update(final AccessResult accessResult) {
+        final Map<String, AccessResult> arMap =
+            dataHelper.getAccessResultMap(accessResult.getSessionId());
         if (!arMap.containsKey(accessResult.getUrl())) {
             throw new RobotSystemException(accessResult.getUrl()
-                    + " is not found.");
+                + " is not found.");
         }
         arMap.put(accessResult.getUrl(), accessResult);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#update(java.util.List)
      */
-    public void update(List<AccessResult> accessResultList) {
+    public void update(final List<AccessResult> accessResultList) {
         for (AccessResult accessResult : accessResultList) {
             update(accessResult);
         }

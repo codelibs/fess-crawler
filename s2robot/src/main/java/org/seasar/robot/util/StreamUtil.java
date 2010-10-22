@@ -26,12 +26,16 @@ import org.apache.commons.io.IOUtils;
 
 /**
  * @author shinsuke
- *
+ * 
  */
-public class StreamUtil {
+public final class StreamUtil {
     private static final int BLOCK_SIZE = 4096;
 
-    public static void drain(InputStream r, OutputStream w) throws IOException {
+    private StreamUtil() {
+    }
+
+    public static void drain(final InputStream r, final OutputStream w)
+            throws IOException {
         byte[] bytes = new byte[BLOCK_SIZE];
         try {
             int length = r.read(bytes);
@@ -46,7 +50,8 @@ public class StreamUtil {
         }
     }
 
-    public static void drain(InputStream r, File outputFile) throws IOException {
+    public static void drain(final InputStream r, final File outputFile)
+            throws IOException {
         BufferedOutputStream bos = null;
         try {
             bos = new BufferedOutputStream(new FileOutputStream(outputFile));

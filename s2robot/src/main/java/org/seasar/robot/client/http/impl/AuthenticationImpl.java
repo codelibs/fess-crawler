@@ -22,7 +22,7 @@ import org.seasar.robot.client.http.Authentication;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class AuthenticationImpl implements Authentication {
     private AuthScope authScope;
@@ -31,46 +31,54 @@ public class AuthenticationImpl implements Authentication {
 
     private AuthScheme authScheme;
 
-    public AuthenticationImpl(AuthScope authScope, Credentials credentials) {
+    public AuthenticationImpl(final AuthScope authScope,
+            final Credentials credentials) {
         this(authScope, credentials, null);
     }
 
-    public AuthenticationImpl(AuthScope authScope, Credentials credentials,
-            AuthScheme authScheme) {
+    public AuthenticationImpl(final AuthScope authScope,
+            final Credentials credentials, final AuthScheme authScheme) {
         this.authScope = authScope;
         this.credentials = credentials;
+        this.authScheme = authScheme;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.client.http.Authentication#getAuthScope()
      */
     public AuthScope getAuthScope() {
         return authScope;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.client.http.Authentication#getCredentials()
      */
     public Credentials getCredentials() {
         return credentials;
     }
 
-    public void setAuthScope(AuthScope authScope) {
+    public void setAuthScope(final AuthScope authScope) {
         this.authScope = authScope;
     }
 
-    public void setCredentials(Credentials credentials) {
+    public void setCredentials(final Credentials credentials) {
         this.credentials = credentials;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.client.http.Authentication#getAuthScheme()
      */
     public AuthScheme getAuthScheme() {
         return authScheme;
     }
 
-    public void setAuthScheme(AuthScheme authScheme) {
+    public void setAuthScheme(final AuthScheme authScheme) {
         this.authScheme = authScheme;
     }
 

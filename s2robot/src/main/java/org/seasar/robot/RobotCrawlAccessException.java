@@ -17,7 +17,7 @@ package org.seasar.robot;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class RobotCrawlAccessException extends RobotSystemException {
 
@@ -33,19 +33,19 @@ public class RobotCrawlAccessException extends RobotSystemException {
 
     private String logLevel = INFO;
 
-    public RobotCrawlAccessException(String message, Throwable cause) {
+    public RobotCrawlAccessException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public RobotCrawlAccessException(String message) {
+    public RobotCrawlAccessException(final String message) {
         super(message);
     }
 
-    public RobotCrawlAccessException(Throwable cause) {
+    public RobotCrawlAccessException(final Throwable cause) {
         super(cause);
     }
 
-    public void setLogLevel(String logLevel) {
+    public void setLogLevel(final String logLevel) {
         this.logLevel = logLevel;
     }
 

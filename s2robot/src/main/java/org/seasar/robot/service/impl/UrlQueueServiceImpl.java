@@ -36,34 +36,44 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class UrlQueueServiceImpl implements UrlQueueService {
 
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(UrlQueueServiceImpl.class);
+        .getLogger(UrlQueueServiceImpl.class);
 
     @Resource
     protected MemoryDataHelper dataHelper;
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#updateSessionId(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.UrlQueueService#updateSessionId(java.lang.String
+     * , java.lang.String)
      */
-    public void updateSessionId(String oldSessionId, String newSessionId) {
+    public void updateSessionId(final String oldSessionId,
+            final String newSessionId) {
         // not MT-safe
-        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(oldSessionId);
+        final Queue<UrlQueue> urlQueueList =
+            dataHelper.getUrlQueueList(oldSessionId);
         // overwrite
         dataHelper.addUrlQueueList(newSessionId, urlQueueList);
         dataHelper.removeUrlQueueList(oldSessionId);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#add(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.UrlQueueService#add(java.lang.String,
+     * java.lang.String)
      */
-    public void add(String sessionId, String url) {
-        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+    public void add(final String sessionId, final String url) {
+        final Queue<UrlQueue> urlQueueList =
+            dataHelper.getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            UrlQueue urlQueue = new UrlQueueImpl();
+            final UrlQueue urlQueue = new UrlQueueImpl();
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
             urlQueue.setUrl(url);
@@ -73,38 +83,51 @@ public class UrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#insert(org.seasar.robot.entity.UrlQueue)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.UrlQueueService#insert(org.seasar.robot.entity
+     * .UrlQueue)
      */
-    public void insert(UrlQueue urlQueue) {
-        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(urlQueue
-                .getSessionId());
+    public void insert(final UrlQueue urlQueue) {
+        final Queue<UrlQueue> urlQueueList =
+            dataHelper.getUrlQueueList(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             urlQueueList.add(urlQueue);
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#delete(java.lang.String)
      */
-    public void delete(String sessionId) {
+    public void delete(final String sessionId) {
         dataHelper.removeUrlQueueList(sessionId);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#deleteAll()
      */
     public void deleteAll() {
         dataHelper.clearUrlQueueList();
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#offerAll(java.lang.String, java.util.List)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.UrlQueueService#offerAll(java.lang.String,
+     * java.util.List)
      */
-    public void offerAll(String sessionId, List<UrlQueue> newUrlQueueList) {
-        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+    public void offerAll(final String sessionId,
+            final List<UrlQueue> newUrlQueueList) {
+        final Queue<UrlQueue> urlQueueList =
+            dataHelper.getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            List<UrlQueueImpl> targetList = new ArrayList<UrlQueueImpl>();
+            final List<UrlQueueImpl> targetList = new ArrayList<UrlQueueImpl>();
             for (UrlQueue urlQueue : newUrlQueueList) {
                 if (isNewUrl(urlQueue, urlQueueList)) {
                     targetList.add((UrlQueueImpl) urlQueue);
@@ -115,9 +138,10 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     }
 
-    protected boolean isNewUrl(UrlQueue urlQueue, Queue<UrlQueue> urlQueueList) {
+    protected boolean isNewUrl(final UrlQueue urlQueue,
+            final Queue<UrlQueue> urlQueueList) {
 
-        String url = urlQueue.getUrl();
+        final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL is a blank: " + url);
@@ -136,8 +160,8 @@ public class UrlQueueServiceImpl implements UrlQueueService {
         }
 
         // check it in result
-        AccessResult accessResult = dataHelper.getAccessResultMap(
-                urlQueue.getSessionId()).get(url);
+        final AccessResult accessResult =
+            dataHelper.getAccessResultMap(urlQueue.getSessionId()).get(url);
         if (accessResult != null) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL exists in a result: " + url);
@@ -149,41 +173,51 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#poll(java.lang.String)
      */
-    public UrlQueue poll(String sessionId) {
-        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+    public UrlQueue poll(final String sessionId) {
+        final Queue<UrlQueue> urlQueueList =
+            dataHelper.getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             return urlQueueList.poll();
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#saveSession(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.UrlQueueService#saveSession(java.lang.String)
      */
-    public void saveSession(String sessionId) {
+    public void saveSession(final String sessionId) {
         // NOP
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#visited(UrlQueue)
      */
-    public boolean visited(UrlQueue urlQueue) {
-        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(urlQueue
-                .getSessionId());
+    public boolean visited(final UrlQueue urlQueue) {
+        final Queue<UrlQueue> urlQueueList =
+            dataHelper.getUrlQueueList(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             return !isNewUrl(urlQueue, urlQueueList);
         }
     }
 
-    public void generateUrlQueues(String previousSessionId, String sessionId) {
-        Queue<UrlQueue> urlQueueList = dataHelper.getUrlQueueList(sessionId);
-        Map<String, AccessResult> arMap = dataHelper
-                .getAccessResultMap(previousSessionId);
+    public void generateUrlQueues(final String previousSessionId,
+            final String sessionId) {
+        final Queue<UrlQueue> urlQueueList =
+            dataHelper.getUrlQueueList(sessionId);
+        final Map<String, AccessResult> arMap =
+            dataHelper.getAccessResultMap(previousSessionId);
         for (Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
             synchronized (urlQueueList) {
-                UrlQueue urlQueue = new UrlQueueImpl();
+                final UrlQueue urlQueue = new UrlQueueImpl();
                 urlQueue.setSessionId(sessionId);
                 urlQueue.setMethod(entry.getValue().getMethod());
                 urlQueue.setUrl(entry.getValue().getUrl());

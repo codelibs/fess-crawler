@@ -19,15 +19,15 @@ import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface RuleManager {
 
-    public abstract Rule getRule(ResponseData responseData);
+    Rule getRule(ResponseData responseData);
 
-    public abstract void addRule(Rule rule);
+    void addRule(Rule rule);
 
-    public abstract boolean removeRule(Rule rule);
+    boolean removeRule(Rule rule);
 
-    public abstract boolean hasRule(Rule rule);
+    boolean hasRule(Rule rule);
 }

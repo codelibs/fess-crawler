@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class CommandExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory
+    private static final Logger logger = LoggerFactory // NOPMD
         .getLogger(CommandExtractor.class);
 
     public String outputEncoding = Constants.UTF_8;
@@ -61,21 +61,24 @@ public class CommandExtractor implements Extractor {
 
     public String commandOutputEncoding = System.getProperty("file.encoding");
 
+    public int maxOutputLine = 1000;
+
     /*
      * (non-Javadoc)
      * 
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
-        String resourceName =
-            params != null ? params.get(ExtractData.RESOURCE_NAME_KEY) : null;
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
+        final String resourceName =
+            params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
 
         String extention;
         String filePrefix;
         if (StringUtil.isNotBlank(resourceName)) {
-            String[] strings = resourceName.split("\\.");
-            StringBuilder buf = new StringBuilder();
+            final String[] strings = resourceName.split("\\.");
+            final StringBuilder buf = new StringBuilder();
             if (strings.length > 1) {
                 for (int i = 0; i < strings.length - 1; i++) {
                     if (buf.length() != 0) {
@@ -112,7 +115,7 @@ public class CommandExtractor implements Extractor {
 
             executeCommand(inputFile, outputFile);
 
-            ExtractData extractData =
+            final ExtractData extractData =
                 new ExtractData(new String(
                     FileUtil.getBytes(outputFile),
                     outputEncoding));
@@ -135,22 +138,22 @@ public class CommandExtractor implements Extractor {
         }
     }
 
-    private void executeCommand(File inputFile, File outputFile) {
+    private void executeCommand(final File inputFile, final File outputFile) {
 
         if (StringUtil.isBlank(command)) {
             throw new RobotSystemException("command is empty.");
         }
 
-        Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<String, String>();
         params.put("$INPUT_FILE", inputFile.getAbsolutePath());
         params.put("$OUTPUT_FILE", outputFile.getAbsolutePath());
 
-        List<String> cmdList = parseCommand(command, params);
+        final List<String> cmdList = parseCommand(command, params);
         if (logger.isInfoEnabled()) {
             logger.info("Command: " + cmdList);
         }
 
-        ProcessBuilder pb = new ProcessBuilder(cmdList);
+        final ProcessBuilder pb = new ProcessBuilder(cmdList);
         if (workingDirectory != null) {
             pb.directory(workingDirectory);
         }
@@ -165,10 +168,11 @@ public class CommandExtractor implements Extractor {
             mt = new MonitorThread(currentProcess, executionTimeout);
             mt.start();
 
-            InputStreamThread it =
+            final InputStreamThread it =
                 new InputStreamThread(
                     currentProcess.getInputStream(),
-                    commandOutputEncoding);
+                    commandOutputEncoding,
+                    maxOutputLine);
             it.start();
 
             currentProcess.waitFor();
@@ -179,7 +183,7 @@ public class CommandExtractor implements Extractor {
                     "The command execution is timeout: " + cmdList);
             }
 
-            int exitValue = currentProcess.exitValue();
+            final int exitValue = currentProcess.exitValue();
 
             if (logger.isInfoEnabled()) {
                 logger.info("Exit Code: " + exitValue + " - Process Output:\n"
@@ -221,15 +225,16 @@ public class CommandExtractor implements Extractor {
      * @param params
      * @return
      */
-    List<String> parseCommand(String command, Map<String, String> params) {
-        String cmd = command.trim();
-        List<String> cmdList = new ArrayList<String>();
-        StringBuilder buf = new StringBuilder();
+    List<String> parseCommand(final String command,
+            final Map<String, String> params) {
+        final String cmd = command.trim();
+        final List<String> cmdList = new ArrayList<String>();
+        final StringBuilder buf = new StringBuilder();
         boolean singleQuote = false;
         boolean doubleQuote = false;
         char prevChar = ' ';
         for (int i = 0; i < cmd.length(); i++) {
-            char c = cmd.charAt(i);
+            final char c = cmd.charAt(i);
             if (c == ' ' && !singleQuote && !doubleQuote && buf.length() > 0) {
                 cmdList.add(getCommandValue(buf.toString(), params));
                 buf.delete(0, buf.length());
@@ -266,8 +271,9 @@ public class CommandExtractor implements Extractor {
         return cmdList;
     }
 
-    private String getCommandValue(String key, Map<String, String> params) {
-        String value = params.get(key);
+    private String getCommandValue(final String key,
+            final Map<String, String> params) {
+        final String value = params.get(key);
         if (value == null) {
             return key;
         }
@@ -275,15 +281,16 @@ public class CommandExtractor implements Extractor {
     }
 
     protected static class MonitorThread extends Thread {
-        private Process process;
+        private final Process process;
 
-        private long timeout;
+        private final long timeout;
 
         private boolean finished = false;
 
         private boolean teminated = false;
 
-        public MonitorThread(Process process, long timeout) {
+        public MonitorThread(final Process process, final long timeout) {
+            super();
             this.process = process;
             this.timeout = timeout;
         }
@@ -311,7 +318,7 @@ public class CommandExtractor implements Extractor {
          * @param finished
          *            The finished to set.
          */
-        public void setFinished(boolean finished) {
+        public void setFinished(final boolean finished) {
             this.finished = finished;
         }
 
@@ -327,23 +334,26 @@ public class CommandExtractor implements Extractor {
 
         private BufferedReader br;
 
-        private List<String> list = new LinkedList<String>();
+        private final List<String> list = new LinkedList<String>();
 
-        private int maxLineBuffer = 1000;
+        private final int maxLineBuffer;
 
-        public InputStreamThread(InputStream is, String charset) {
+        public InputStreamThread(final InputStream is, final String charset,
+                int maxOutputLineBuffer) {
+            super();
             try {
                 br = new BufferedReader(new InputStreamReader(is, charset));
             } catch (UnsupportedEncodingException e) {
                 throw new RobotSystemException(e);
             }
+            maxLineBuffer = maxOutputLineBuffer;
         }
 
         @Override
         public void run() {
             for (;;) {
                 try {
-                    String line = br.readLine();
+                    final String line = br.readLine();
                     if (line == null) {
                         break;
                     }
@@ -361,11 +371,12 @@ public class CommandExtractor implements Extractor {
         }
 
         public String getOutput() {
-            StringBuilder buf = new StringBuilder();
+            final StringBuilder buf = new StringBuilder();
             for (String value : list) {
                 buf.append(value).append("\n");
             }
             return buf.toString();
         }
+
     }
 }

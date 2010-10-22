@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class UrlQueueImpl implements UrlQueue {
     protected Long id;
@@ -38,115 +38,147 @@ public class UrlQueueImpl implements UrlQueue {
 
     protected Timestamp createTime;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getId()
      */
     public Long getId() {
         return id;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setId(java.lang.Long)
      */
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getSessionId()
      */
     public String getSessionId() {
         return sessionId;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setSessionId(java.lang.String)
      */
-    public void setSessionId(String sessionId) {
+    public void setSessionId(final String sessionId) {
         this.sessionId = sessionId;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getMethod()
      */
     public String getMethod() {
         return method;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setMethod(java.lang.String)
      */
-    public void setMethod(String method) {
+    public void setMethod(final String method) {
         this.method = method;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getUrl()
      */
     public String getUrl() {
         return url;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setUrl(java.lang.String)
      */
-    public void setUrl(String url) {
+    public void setUrl(final String url) {
         this.url = url;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getParentUrl()
      */
     public String getParentUrl() {
         return parentUrl;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setParentUrl(java.lang.String)
      */
-    public void setParentUrl(String parentUrl) {
+    public void setParentUrl(final String parentUrl) {
         this.parentUrl = parentUrl;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getDepth()
      */
     public Integer getDepth() {
         return depth;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setDepth(java.lang.Integer)
      */
-    public void setDepth(Integer depth) {
+    public void setDepth(final Integer depth) {
         this.depth = depth;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getCreateTime()
      */
     public Timestamp getCreateTime() {
         return createTime;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setCreateTime(java.sql.Timestamp)
      */
-    public void setCreateTime(Timestamp createTime) {
+    public void setCreateTime(final Timestamp createTime) {
         this.createTime = createTime;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#getLastModified()
      */
     public Timestamp getLastModified() {
         return lastModified;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.UrlQueue#setLastModified(java.sql.Timestamp)
      */
-    public void setLastModified(Timestamp lastModified) {
+    public void setLastModified(final Timestamp lastModified) {
         this.lastModified = lastModified;
     }
 }

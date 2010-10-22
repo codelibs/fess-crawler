@@ -19,10 +19,10 @@ import org.seasar.robot.log.LogType;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface LogHelper {
 
-    public abstract void log(LogType key, Object... objs);
+    void log(LogType key, Object... objs);
 
 }

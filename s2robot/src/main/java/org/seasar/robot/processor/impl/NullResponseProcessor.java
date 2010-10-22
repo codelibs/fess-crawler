@@ -20,14 +20,18 @@ import org.seasar.robot.processor.ResponseProcessor;
 
 /**
  * @author kuma
- *
+ * 
  */
 public class NullResponseProcessor implements ResponseProcessor {
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.processor.ResponseProcessor#process(org.seasar.robot.entity.ResponseData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.processor.ResponseProcessor#process(org.seasar.robot
+     * .entity.ResponseData)
      */
-    public void process(ResponseData responseData) {
+    public void process(final ResponseData responseData) {
         // do nothing
     }
 

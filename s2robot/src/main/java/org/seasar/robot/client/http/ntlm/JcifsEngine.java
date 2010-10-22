@@ -33,10 +33,10 @@ import org.apache.http.impl.auth.NTLMEngineException;
  */
 public class JcifsEngine implements NTLMEngine {
 
-    public String generateType1Msg(String domain, String workstation)
+    public String generateType1Msg(final String domain, final String workstation)
             throws NTLMEngineException {
 
-        Type1Message t1m =
+        final Type1Message t1m =
             new Type1Message(
                 Type1Message.getDefaultFlags(),
                 domain,
@@ -44,8 +44,9 @@ public class JcifsEngine implements NTLMEngine {
         return Base64.encode(t1m.toByteArray());
     }
 
-    public String generateType3Msg(String username, String password,
-            String domain, String workstation, String challenge)
+    public String generateType3Msg(final String username,
+            final String password, final String domain,
+            final String workstation, final String challenge)
             throws NTLMEngineException {
         Type2Message t2m;
         try {
@@ -53,7 +54,7 @@ public class JcifsEngine implements NTLMEngine {
         } catch (IOException ex) {
             throw new NTLMEngineException("Invalid Type2 message", ex);
         }
-        Type3Message t3m =
+        final Type3Message t3m =
             new Type3Message(t2m, password, domain, username, workstation, 512);
         return Base64.encode(t3m.toByteArray());
     }

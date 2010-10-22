@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ResultData implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -39,19 +39,19 @@ public class ResultData implements Serializable {
         return data;
     }
 
-    public void setData(byte[] data) {
+    public void setData(final byte[] data) {
         this.data = data;
     }
 
-    public void addUrl(String url) {
+    public void addUrl(final String url) {
         childUrlSet.add(url);
     }
 
-    public void addAllUrl(Collection<String> c) {
+    public void addAllUrl(final Collection<String> c) {
         childUrlSet.addAll(c);
     }
 
-    public void removeUrl(String url) {
+    public void removeUrl(final String url) {
         childUrlSet.remove(url);
     }
 
@@ -59,7 +59,7 @@ public class ResultData implements Serializable {
         return transformerName;
     }
 
-    public void setTransformerName(String transformerName) {
+    public void setTransformerName(final String transformerName) {
         this.transformerName = transformerName;
     }
 
@@ -67,7 +67,7 @@ public class ResultData implements Serializable {
         return childUrlSet;
     }
 
-    public void setChildUrlSet(Set<String> childUrlSet) {
+    public void setChildUrlSet(final Set<String> childUrlSet) {
         this.childUrlSet = childUrlSet;
     }
 
@@ -75,7 +75,7 @@ public class ResultData implements Serializable {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 

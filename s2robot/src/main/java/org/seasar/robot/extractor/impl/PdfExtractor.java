@@ -33,24 +33,28 @@ import org.seasar.robot.extractor.Extractor;
  * Gets a text from .doc file.
  * 
  * @author shinsuke
- *
+ * 
  */
 public class PdfExtractor implements Extractor {
     protected String encoding = "UTF-8";
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
+     * java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
         PDDocument document = null;
         try {
             document = PDDocument.load(in);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Writer output = new OutputStreamWriter(baos, encoding);
-            PDFTextStripper stripper = new PDFTextStripper();
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final Writer output = new OutputStreamWriter(baos, encoding);
+            final PDFTextStripper stripper = new PDFTextStripper();
             stripper.writeText(document, output);
             return new ExtractData(baos.toString(encoding));
         } catch (Exception e) {
@@ -60,6 +64,7 @@ public class PdfExtractor implements Extractor {
                 try {
                     document.close();
                 } catch (IOException e) {
+                    // NOP
                 }
             }
         }
@@ -69,7 +74,7 @@ public class PdfExtractor implements Extractor {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 }

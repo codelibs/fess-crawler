@@ -36,7 +36,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class SitemapsHelper {
 
@@ -50,21 +50,21 @@ public class SitemapsHelper {
      * @param in
      * @return
      */
-    public SitemapSet parse(InputStream in) {
+    public SitemapSet parse(final InputStream in) {
         return parse(in, true);
     }
 
-    protected SitemapSet parse(InputStream in, boolean recursive) {
-        BufferedInputStream bis = new BufferedInputStream(in);
+    protected SitemapSet parse(final InputStream in, final boolean recursive) {
+        final BufferedInputStream bis = new BufferedInputStream(in);
         bis.mark(preloadSize);
 
-        byte[] bytes = new byte[preloadSize];
+        final byte[] bytes = new byte[preloadSize];
         try {
             if (bis.read(bytes) == -1) {
                 throw new RobotSitemapsException("No sitemaps data.");
             }
 
-            String preloadDate = new String(bytes, Constants.UTF_8);
+            final String preloadDate = new String(bytes, Constants.UTF_8);
             if (preloadDate.indexOf("<urlset") >= 0) {
                 // XML Sitemaps
                 bis.reset();
@@ -74,7 +74,7 @@ public class SitemapsHelper {
                 bis.reset();
                 return parseXmlSitemapsIndex(bis);
             } else if (preloadDate.startsWith("http://")
-                    || preloadDate.startsWith("https://")) {
+                || preloadDate.startsWith("https://")) {
                 // Text Sitemaps Index
                 bis.reset();
                 return parseTextSitemaps(bis);
@@ -90,37 +90,37 @@ public class SitemapsHelper {
         }
     }
 
-    protected SitemapSet parseTextSitemaps(InputStream in) {
-        SitemapSet sitemapSet = new SitemapSet();
+    protected SitemapSet parseTextSitemaps(final InputStream in) {
+        final SitemapSet sitemapSet = new SitemapSet();
         sitemapSet.setType(SitemapSet.URLSET);
 
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(in,
-                    Constants.UTF_8));
+            final BufferedReader br =
+                new BufferedReader(new InputStreamReader(in, Constants.UTF_8));
             String line;
             while ((line = br.readLine()) != null) {
-                String url = line.trim();
+                final String url = line.trim();
                 if (StringUtil.isNotBlank(url)
-                        && (url.startsWith("http://") || url
-                                .startsWith("https://"))) {
-                    SitemapUrl sitemapUrl = new SitemapUrl();
+                    && (url.startsWith("http://") || url.startsWith("https://"))) {
+                    final SitemapUrl sitemapUrl = new SitemapUrl();
                     sitemapUrl.setLoc(url);
                     sitemapSet.addSitemap(sitemapUrl);
                 }
             }
             return sitemapSet;
         } catch (Exception e) {
-            throw new RobotSitemapsException("Could not parse Text Sitemaps.",
-                    e);
+            throw new RobotSitemapsException(
+                "Could not parse Text Sitemaps.",
+                e);
         }
 
     }
 
-    protected SitemapSet parseXmlSitemaps(InputStream in) {
-        XmlSitemapsHandler handler = new XmlSitemapsHandler();
+    protected SitemapSet parseXmlSitemaps(final InputStream in) {
+        final XmlSitemapsHandler handler = new XmlSitemapsHandler();
         try {
-            SAXParserFactory spfactory = SAXParserFactory.newInstance();
-            SAXParser parser = spfactory.newSAXParser();
+            final SAXParserFactory spfactory = SAXParserFactory.newInstance();
+            final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
         } catch (Exception e) {
             throw new RobotSitemapsException("Could not parse XML Sitemaps.", e);
@@ -129,6 +129,31 @@ public class SitemapsHelper {
     }
 
     protected static class XmlSitemapsHandler extends DefaultHandler {
+
+        /**
+         * 
+         */
+        private static final String PRIORITY_ELEMENT = "priority";
+
+        /**
+         * 
+         */
+        private static final String CHANGEFREQ_ELEMENT = "changefreq";
+
+        /**
+         * 
+         */
+        private static final String LASTMOD_ELEMENT = "lastmod";
+
+        /**
+         * 
+         */
+        private static final String LOC_ELEMENT = "loc";
+
+        /**
+         * 
+         */
+        private static final String URL_ELEMENT = "url";
 
         private SitemapSet sitemapSet;
 
@@ -141,47 +166,49 @@ public class SitemapsHelper {
             sitemapSet.setType(SitemapSet.URLSET);
         }
 
-        public void startElement(String uri, String localName, String qName,
-                Attributes attributes) {
-            if ("url".equals(qName)) {
+        public void startElement(final String uri, final String localName,
+                final String qName, final Attributes attributes) {
+            if (URL_ELEMENT.equals(qName)) {
                 sitemapUrl = new SitemapUrl();
-            } else if ("loc".equals(qName)) {
+            } else if (LOC_ELEMENT.equals(qName)) {
                 buf = new StringBuilder();
-            } else if ("lastmod".equals(qName)) {
+            } else if (LASTMOD_ELEMENT.equals(qName)) {
                 buf = new StringBuilder();
-            } else if ("changefreq".equals(qName)) {
+            } else if (CHANGEFREQ_ELEMENT.equals(qName)) {
                 buf = new StringBuilder();
-            } else if ("priority".equals(qName)) {
+            } else if (PRIORITY_ELEMENT.equals(qName)) {
                 buf = new StringBuilder();
             }
         }
 
-        public void characters(char[] ch, int offset, int length) {
+        public void characters(final char[] ch, final int offset,
+                final int length) {
             if (buf != null) {
                 buf.append(new String(ch, offset, length));
             }
         }
 
-        public void endElement(String uri, String localName, String qName) {
-            if ("url".equals(qName)) {
+        public void endElement(final String uri, final String localName,
+                final String qName) {
+            if (URL_ELEMENT.equals(qName)) {
                 sitemapSet.addSitemap(sitemapUrl);
                 sitemapUrl = null;
-            } else if ("loc".equals(qName)) {
+            } else if (LOC_ELEMENT.equals(qName)) {
                 if (buf != null) {
                     sitemapUrl.setLoc(buf.toString().trim());
                     buf = null;
                 }
-            } else if ("lastmod".equals(qName)) {
+            } else if (LASTMOD_ELEMENT.equals(qName)) {
                 if (buf != null) {
                     sitemapUrl.setLastmod(buf.toString().trim());
                     buf = null;
                 }
-            } else if ("changefreq".equals(qName)) {
+            } else if (CHANGEFREQ_ELEMENT.equals(qName)) {
                 if (buf != null) {
                     sitemapUrl.setChangefreq(buf.toString().trim());
                     buf = null;
                 }
-            } else if ("priority".equals(qName)) {
+            } else if (PRIORITY_ELEMENT.equals(qName)) {
                 if (buf != null) {
                     sitemapUrl.setPriority(buf.toString().trim());
                     buf = null;
@@ -190,7 +217,7 @@ public class SitemapsHelper {
         }
 
         public void endDocument() {
-
+            // nothing
         }
 
         public SitemapSet getSitemapSet() {
@@ -199,15 +226,16 @@ public class SitemapsHelper {
 
     }
 
-    protected SitemapSet parseXmlSitemapsIndex(InputStream in) {
-        XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
+    protected SitemapSet parseXmlSitemapsIndex(final InputStream in) {
+        final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
         try {
-            SAXParserFactory spfactory = SAXParserFactory.newInstance();
-            SAXParser parser = spfactory.newSAXParser();
+            final SAXParserFactory spfactory = SAXParserFactory.newInstance();
+            final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
         } catch (Exception e) {
             throw new RobotSitemapsException(
-                    "Could not parse XML Sitemaps Index.", e);
+                "Could not parse XML Sitemaps Index.",
+                e);
         }
         return handler.getSitemapSet();
     }
@@ -225,8 +253,8 @@ public class SitemapsHelper {
             sitemapSet.setType(SitemapSet.INDEX);
         }
 
-        public void startElement(String uri, String localName, String qName,
-                Attributes attributes) {
+        public void startElement(final String uri, final String localName,
+                final String qName, final Attributes attributes) {
             if ("sitemap".equals(qName)) {
                 sitemapFile = new SitemapFile();
             } else if ("loc".equals(qName)) {
@@ -236,13 +264,15 @@ public class SitemapsHelper {
             }
         }
 
-        public void characters(char[] ch, int offset, int length) {
+        public void characters(final char[] ch, final int offset,
+                final int length) {
             if (buf != null) {
                 buf.append(new String(ch, offset, length));
             }
         }
 
-        public void endElement(String uri, String localName, String qName) {
+        public void endElement(final String uri, final String localName,
+                final String qName) {
             if ("sitemap".equals(qName)) {
                 sitemapSet.addSitemap(sitemapFile);
                 sitemapFile = null;
@@ -260,7 +290,7 @@ public class SitemapsHelper {
         }
 
         public void endDocument() {
-
+            // nothing
         }
 
         public SitemapSet getSitemapSet() {

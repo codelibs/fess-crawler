@@ -19,61 +19,66 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class SitemapFile implements Sitemap {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Identifies the location of the Sitemap.
-     * This location can be a Sitemap, an Atom file, RSS file or a simple text file.
+     * Identifies the location of the Sitemap. This location can be a Sitemap,
+     * an Atom file, RSS file or a simple text file.
      */
     private String loc;
 
     /**
-     *  Identifies the time that the corresponding Sitemap file was modified. 
-     *  It does not correspond to the time that any of the pages listed in that 
-     *  Sitemap were changed. The value for the lastmod tag should be in  
-     *  W3C Datetime format.
-     *  
-     *  By providing the last modification timestamp, you enable search engine crawlers 
-     *  to retrieve only a subset of the Sitemaps in the index i.e. a crawler may only 
-     *  retrieve Sitemaps that were modified since a certain date. This incremental Sitemap 
-     *  fetching mechanism allows for the rapid discovery of new URLs on very large sites.
+     * Identifies the time that the corresponding Sitemap file was modified. It
+     * does not correspond to the time that any of the pages listed in that
+     * Sitemap were changed. The value for the lastmod tag should be in W3C
+     * Datetime format.
+     * 
+     * By providing the last modification timestamp, you enable search engine
+     * crawlers to retrieve only a subset of the Sitemaps in the index i.e. a
+     * crawler may only retrieve Sitemaps that were modified since a certain
+     * date. This incremental Sitemap fetching mechanism allows for the rapid
+     * discovery of new URLs on very large sites.
      */
     private String lastmod;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.Sitemap#getLoc()
      */
     public String getLoc() {
         return loc;
     }
 
-    public void setLoc(String loc) {
+    public void setLoc(final String loc) {
         this.loc = loc;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.Sitemap#getLastmod()
      */
     public String getLastmod() {
         return lastmod;
     }
 
-    public void setLastmod(String lastmod) {
+    public void setLastmod(final String lastmod) {
         this.lastmod = lastmod;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof SitemapFile)) {
+    public boolean equals(final Object obj) {
+        if (!(obj instanceof SitemapFile)) {
             return false;
         }
-        SitemapFile sitemapUrl = (SitemapFile) obj;
+        final SitemapFile sitemapUrl = (SitemapFile) obj;
         if (StringUtils.equals(loc, sitemapUrl.loc)
-                && StringUtils.equals(lastmod, sitemapUrl.lastmod)) {
+            && StringUtils.equals(lastmod, sitemapUrl.lastmod)) {
             return true;
         }
         return false;

@@ -35,33 +35,36 @@ import org.seasar.robot.extractor.ExtractorFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class TextTransformer extends AbstractTransformer {
 
     protected String charsetName = Constants.UTF_8;
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.transformer.impl.AbstractTransformer#transform(org.seasar.robot.entity.ResponseData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.transformer.impl.AbstractTransformer#transform(org.seasar
+     * .robot.entity.ResponseData)
      */
     @Override
-    public ResultData transform(ResponseData responseData) {
+    public ResultData transform(final ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        ExtractorFactory extractorFactory = SingletonS2Container
-                .getComponent("extractorFactory");
+        final ExtractorFactory extractorFactory =
+            SingletonS2Container.getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new RobotSystemException("Could not find extractorFactory.");
         }
-        Extractor extractor = extractorFactory.getExtractor(responseData
-                .getMimeType());
-        InputStream in = responseData.getResponseBody();
-        Map<String, String> params = new HashMap<String, String>();
+        final Extractor extractor =
+            extractorFactory.getExtractor(responseData.getMimeType());
+        final InputStream in = responseData.getResponseBody();
+        final Map<String, String> params = new HashMap<String, String>();
         params
-                .put(ExtractData.RESOURCE_NAME_KEY,
-                        getResourceName(responseData));
+            .put(ExtractData.RESOURCE_NAME_KEY, getResourceName(responseData));
         params.put(ExtractData.CONTENT_TYPE, responseData.getMimeType());
         String content = null;
         try {
@@ -72,29 +75,33 @@ public class TextTransformer extends AbstractTransformer {
             IOUtils.closeQuietly(in);
         }
 
-        ResultData resultData = new ResultData();
+        final ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
         try {
             resultData.setData(content.getBytes(charsetName));
         } catch (UnsupportedEncodingException e) {
             throw new RobotCrawlAccessException("Unsupported encoding: "
-                    + charsetName, e);
+                + charsetName, e);
         }
         resultData.setEncoding(charsetName);
         return resultData;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity.AccessResultData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity
+     * .AccessResultData)
      */
-    public Object getData(AccessResultData accessResultData) {
+    public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                    + accessResultData.getTransformerName()
-                    + ". This transformer is " + getName() + ".");
+                + accessResultData.getTransformerName()
+                + ". This transformer is " + getName() + ".");
         }
-        byte[] data = accessResultData.getData();
+        final byte[] data = accessResultData.getData();
         if (data == null) {
             return null;
         }
@@ -102,20 +109,20 @@ public class TextTransformer extends AbstractTransformer {
             return new String(data, charsetName);
         } catch (UnsupportedEncodingException e) {
             throw new RobotCrawlAccessException("Unsupported encoding: "
-                    + charsetName, e);
+                + charsetName, e);
         }
     }
 
-    private String getResourceName(ResponseData responseData) {
+    private String getResourceName(final ResponseData responseData) {
         String name = responseData.getUrl();
-        String enc = responseData.getCharSet();
+        final String enc = responseData.getCharSet();
 
         if (name == null || enc == null) {
             return null;
         }
 
         name = name.replaceAll("/+$", "");
-        int idx = name.lastIndexOf("/");
+        final int idx = name.lastIndexOf('/');
         if (idx >= 0) {
             name = name.substring(idx + 1);
         }
@@ -130,7 +137,7 @@ public class TextTransformer extends AbstractTransformer {
         return charsetName;
     }
 
-    public void setCharsetName(String charsetName) {
+    public void setCharsetName(final String charsetName) {
         this.charsetName = charsetName;
     }
 

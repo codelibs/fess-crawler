@@ -21,7 +21,7 @@ import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class RequestHeader implements Serializable {
 
@@ -31,7 +31,7 @@ public class RequestHeader implements Serializable {
 
     private String value;
 
-    public RequestHeader(String name, String value) {
+    public RequestHeader(final String name, final String value) {
         this.name = name;
         this.value = value;
     }
@@ -40,7 +40,7 @@ public class RequestHeader implements Serializable {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -48,7 +48,7 @@ public class RequestHeader implements Serializable {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(final String value) {
         this.value = value;
     }
 

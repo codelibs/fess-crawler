@@ -17,7 +17,7 @@ package org.seasar.robot.extractor;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ExecutionTimeoutException extends ExtractException {
 
@@ -27,21 +27,21 @@ public class ExecutionTimeoutException extends ExtractException {
      * @param message
      * @param cause
      */
-    public ExecutionTimeoutException(String message, Throwable cause) {
+    public ExecutionTimeoutException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
     /**
      * @param message
      */
-    public ExecutionTimeoutException(String message) {
+    public ExecutionTimeoutException(final String message) {
         super(message);
     }
 
     /**
      * @param cause
      */
-    public ExecutionTimeoutException(Throwable cause) {
+    public ExecutionTimeoutException(final Throwable cause) {
         super(cause);
     }
 

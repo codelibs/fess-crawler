@@ -29,12 +29,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class UrlFilterImpl implements UrlFilter {
 
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(UrlFilterImpl.class);
+        .getLogger(UrlFilterImpl.class);
 
     protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
@@ -50,10 +50,12 @@ public class UrlFilterImpl implements UrlFilter {
 
     protected UrlFilterService urlFilterService;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.filter.UrlFilter#addExclude(java.lang.String)
      */
-    public void addExclude(String urlPattern) {
+    public void addExclude(final String urlPattern) {
         try {
             Pattern.compile(urlPattern);
         } catch (Exception e) {
@@ -69,10 +71,12 @@ public class UrlFilterImpl implements UrlFilter {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.filter.UrlFilter#addInclude(java.lang.String)
      */
-    public void addInclude(String urlPattern) {
+    public void addInclude(final String urlPattern) {
         try {
             Pattern.compile(urlPattern);
         } catch (Exception e) {
@@ -88,7 +92,9 @@ public class UrlFilterImpl implements UrlFilter {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.filter.UrlFilter#clear()
      */
     public void clear() {
@@ -99,36 +105,42 @@ public class UrlFilterImpl implements UrlFilter {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.filter.UrlFilter#init(java.lang.String)
      */
-    public void init(String sessionId) {
+    public void init(final String sessionId) {
         this.sessionId = sessionId;
         if (!cachedIncludeList.isEmpty()) {
-            getUrlFilterService().addIncludeUrlFilter(sessionId,
-                    cachedIncludeList);
+            getUrlFilterService().addIncludeUrlFilter(
+                sessionId,
+                cachedIncludeList);
             cachedIncludeList.clear();
         }
         if (!cachedExcludeList.isEmpty()) {
-            getUrlFilterService().addExcludeUrlFilter(sessionId,
-                    cachedExcludeList);
+            getUrlFilterService().addExcludeUrlFilter(
+                sessionId,
+                cachedExcludeList);
             cachedExcludeList.clear();
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.filter.UrlFilter#match(java.lang.String)
      */
-    public boolean match(String url) {
-        List<Pattern> includeList = getUrlFilterService()
-                .getIncludeUrlPatternList(sessionId);
-        List<Pattern> excludeList = getUrlFilterService()
-                .getExcludeUrlPatternList(sessionId);
+    public boolean match(final String url) {
+        final List<Pattern> includeList =
+            getUrlFilterService().getIncludeUrlPatternList(sessionId);
+        final List<Pattern> excludeList =
+            getUrlFilterService().getExcludeUrlPatternList(sessionId);
 
         if (!includeList.isEmpty()) {
             boolean match = false;
             for (Pattern pattern : includeList) {
-                Matcher matcher = pattern.matcher(url);
+                final Matcher matcher = pattern.matcher(url);
                 if (matcher.matches()) {
                     match = true;
                 }
@@ -141,7 +153,7 @@ public class UrlFilterImpl implements UrlFilter {
         if (!excludeList.isEmpty()) {
             boolean match = false;
             for (Pattern pattern : excludeList) {
-                Matcher matcher = pattern.matcher(url);
+                final Matcher matcher = pattern.matcher(url);
                 if (matcher.matches()) {
                     match = true;
                 }
@@ -154,10 +166,12 @@ public class UrlFilterImpl implements UrlFilter {
         return true;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.filter.UrlFilter#processUrl(java.lang.String)
      */
-    public void processUrl(String url) {
+    public void processUrl(final String url) {
         if (includeFilteringPattern != null) {
             addInclude(url.replaceAll(urlPattern, includeFilteringPattern));
         }
@@ -170,7 +184,7 @@ public class UrlFilterImpl implements UrlFilter {
         return urlPattern;
     }
 
-    public void setUrlPattern(String urlPattern) {
+    public void setUrlPattern(final String urlPattern) {
         this.urlPattern = urlPattern;
     }
 
@@ -178,7 +192,7 @@ public class UrlFilterImpl implements UrlFilter {
         return includeFilteringPattern;
     }
 
-    public void setIncludeFilteringPattern(String includeFilteringPattern) {
+    public void setIncludeFilteringPattern(final String includeFilteringPattern) {
         this.includeFilteringPattern = includeFilteringPattern;
     }
 
@@ -186,14 +200,14 @@ public class UrlFilterImpl implements UrlFilter {
         return excludeFilteringPattern;
     }
 
-    public void setExcludeFilteringPattern(String excludeFilteringPattern) {
+    public void setExcludeFilteringPattern(final String excludeFilteringPattern) {
         this.excludeFilteringPattern = excludeFilteringPattern;
     }
 
     public UrlFilterService getUrlFilterService() {
         if (urlFilterService == null) {
-            urlFilterService = SingletonS2Container
-                    .getComponent("urlFilterService");
+            urlFilterService =
+                SingletonS2Container.getComponent("urlFilterService");
             if (urlFilterService == null) {
                 throw new RobotSystemException("urlFilterService is not found.");
             }

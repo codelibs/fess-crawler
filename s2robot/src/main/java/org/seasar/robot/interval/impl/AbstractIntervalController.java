@@ -20,16 +20,18 @@ import org.seasar.robot.interval.IntervalController;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public abstract class AbstractIntervalController implements IntervalController {
 
     protected boolean ignoreException = true;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.interval.IntervalController#delay(int)
      */
-    public void delay(int type) {
+    public void delay(final int type) {
         try {
             switch (type) {
             case PRE_PROCESSING:
@@ -71,7 +73,7 @@ public abstract class AbstractIntervalController implements IntervalController {
         return ignoreException;
     }
 
-    public void setIgnoreException(boolean ignoreException) {
+    public void setIgnoreException(final boolean ignoreException) {
         this.ignoreException = ignoreException;
     }
 }

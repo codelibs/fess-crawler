@@ -20,8 +20,10 @@ import java.util.Set;
 import org.seasar.robot.RobotSystemException;
 
 /**
+ * ChildUrlsException is thrown when having child urls.
+ * 
  * @author shinsuke
- *
+ * 
  */
 public class ChildUrlsException extends RobotSystemException {
 
@@ -29,7 +31,7 @@ public class ChildUrlsException extends RobotSystemException {
 
     private Set<String> childUrlList;
 
-    public ChildUrlsException(Set<String> childUrlList) {
+    public ChildUrlsException(final Set<String> childUrlList) {
         super("Threw child urls(" + childUrlList.size() + ").");
         this.childUrlList = childUrlList;
     }

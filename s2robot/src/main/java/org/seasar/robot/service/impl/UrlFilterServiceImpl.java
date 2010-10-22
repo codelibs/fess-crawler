@@ -25,70 +25,101 @@ import org.seasar.robot.service.UrlFilterService;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class UrlFilterServiceImpl implements UrlFilterService {
 
     @Resource
     protected MemoryDataHelper dataHelper;
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java
+     * .lang.String, java.lang.String)
      */
-    public void addIncludeUrlFilter(String sessionId, String url) {
+    public void addIncludeUrlFilter(final String sessionId, final String url) {
         dataHelper.addIncludeUrlPattern(sessionId, url);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.util.List)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java
+     * .lang.String, java.util.List)
      */
-    public void addIncludeUrlFilter(String sessionId, List<String> urlList) {
+    public void addIncludeUrlFilter(final String sessionId,
+            final List<String> urlList) {
         for (String url : urlList) {
             dataHelper.addIncludeUrlPattern(sessionId, url);
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java
+     * .lang.String, java.lang.String)
      */
-    public void addExcludeUrlFilter(String sessionId, String url) {
+    public void addExcludeUrlFilter(final String sessionId, final String url) {
         dataHelper.addExcludeUrlPattern(sessionId, url);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.util.List)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java
+     * .lang.String, java.util.List)
      */
-    public void addExcludeUrlFilter(String sessionId, List<String> urlList) {
+    public void addExcludeUrlFilter(final String sessionId,
+            final List<String> urlList) {
         for (String url : urlList) {
             dataHelper.addExcludeUrlPattern(sessionId, url);
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.impl.UrlFilterService#delete(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.impl.UrlFilterService#delete(java.lang.String)
      */
-    public void delete(String sessionId) {
+    public void delete(final String sessionId) {
         dataHelper.clearUrlPattern(sessionId);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.impl.UrlFilterService#deleteAll()
      */
     public void deleteAll() {
         dataHelper.clearUrlPattern();
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.impl.UrlFilterService#getIncludeUrlPatternList(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.impl.UrlFilterService#getIncludeUrlPatternList
+     * (java.lang.String)
      */
-    public List<Pattern> getIncludeUrlPatternList(String sessionId) {
+    public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
         return dataHelper.getIncludeUrlPatternList(sessionId);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.impl.UrlFilterService#getExcludeUrlPatternList(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.impl.UrlFilterService#getExcludeUrlPatternList
+     * (java.lang.String)
      */
-    public List<Pattern> getExcludeUrlPatternList(String sessionId) {
+    public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
         return dataHelper.getExcludeUrlPatternList(sessionId);
     }
 

@@ -29,19 +29,23 @@ import org.seasar.robot.processor.ResponseProcessor;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class SitemapsResponseProcessor implements ResponseProcessor {
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.robot.entity.ResponseData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.
+     * robot.entity.ResponseData)
      */
-    public void process(ResponseData responseData) {
-        SitemapsHelper sitemapsHelper = SingletonS2Container
-                .getComponent(SitemapsHelper.class);
-        InputStream responseBody = responseData.getResponseBody();
-        SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
-        Set<String> urlSet = new LinkedHashSet<String>();
+    public void process(final ResponseData responseData) {
+        final SitemapsHelper sitemapsHelper =
+            SingletonS2Container.getComponent(SitemapsHelper.class);
+        final InputStream responseBody = responseData.getResponseBody();
+        final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
+        final Set<String> urlSet = new LinkedHashSet<String>();
         for (Sitemap sitemap : sitemapSet.getSitemaps()) {
             urlSet.add(sitemap.getLoc());
         }

@@ -19,15 +19,15 @@ import java.util.Map;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public abstract class AbstractS2RobotClient implements S2RobotClient {
 
     private Map<String, Object> initParamMap;
 
-    protected <T> T getInitParameter(String key, T defaultValue) {
+    protected <T> T getInitParameter(final String key, final T defaultValue) {
         if (initParamMap != null) {
-            T value = (T) initParamMap.get(key);
+            final T value = (T) initParamMap.get(key);
             if (value != null) {
                 return value;
             }
@@ -35,7 +35,7 @@ public abstract class AbstractS2RobotClient implements S2RobotClient {
         return defaultValue;
     }
 
-    public void setInitParameterMap(Map<String, Object> params) {
+    public void setInitParameterMap(final Map<String, Object> params) {
         this.initParamMap = params;
     }
 

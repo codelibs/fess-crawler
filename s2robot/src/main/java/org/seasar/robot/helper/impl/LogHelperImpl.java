@@ -27,16 +27,19 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class LogHelperImpl implements LogHelper {
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(LogHelperImpl.class);
+        .getLogger(LogHelperImpl.class);
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.helper.LogHelper#log(org.seasar.robot.log.LogType, java.lang.Object)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.helper.LogHelper#log(org.seasar.robot.log.LogType,
+     * java.lang.Object)
      */
-    public void log(LogType key, Object... objs) {
+    public void log(final LogType key, final Object... objs) {
         switch (key) {
         case START_THREAD: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
@@ -44,7 +47,7 @@ public class LogHelperImpl implements LogHelper {
         }
         case START_CRAWLING: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
             if (logger.isInfoEnabled()) {
                 logger.info("Crawling URL: " + urlQueue.getUrl());
             }
@@ -52,7 +55,7 @@ public class LogHelperImpl implements LogHelper {
         }
         case UNSUPPORTED_URL_AT_CRAWLING_STARTED: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
             if (logger.isInfoEnabled()) {
                 logger.info("Unsupported URL: " + urlQueue.getUrl());
             }
@@ -60,16 +63,16 @@ public class LogHelperImpl implements LogHelper {
         }
         case CHECK_LAST_MODIFIED: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
             if (logger.isDebugEnabled()) {
                 logger.debug("Checking the last modified: "
-                        + urlQueue.getLastModified());
+                    + urlQueue.getLastModified());
             }
             break;
         }
         case NOT_MODIFIED: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
             if (logger.isInfoEnabled()) {
                 logger.info("Not modified URL: " + urlQueue.getUrl());
             }
@@ -77,16 +80,16 @@ public class LogHelperImpl implements LogHelper {
         }
         case GET_CONTENT: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
             if (logger.isDebugEnabled()) {
                 logger.debug("Getting the content from URL: "
-                        + urlQueue.getUrl());
+                    + urlQueue.getUrl());
             }
             break;
         }
         case REDIRECT_LOCATION: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
             // ResponseData responseData = (ResponseData) objs[2];
             if (logger.isInfoEnabled()) {
                 logger.info("Redirect to URL: " + urlQueue.getUrl());
@@ -96,17 +99,17 @@ public class LogHelperImpl implements LogHelper {
         case PROCESS_RESPONSE: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
             // UrlQueue urlQueue = (UrlQueue) objs[1];
-            ResponseData responseData = (ResponseData) objs[2];
+            final ResponseData responseData = (ResponseData) objs[2];
             if (logger.isDebugEnabled()) {
                 logger.debug("Processing the response. Http Status: "
-                        + responseData.getHttpStatusCode() + ", Exec Time: "
-                        + responseData.getExecutionTime());
+                    + responseData.getHttpStatusCode() + ", Exec Time: "
+                    + responseData.getExecutionTime());
             }
             break;
         }
         case FINISHED_CRAWLING: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
             if (logger.isDebugEnabled()) {
                 logger.debug("Finished " + urlQueue.getUrl());
             }
@@ -114,49 +117,53 @@ public class LogHelperImpl implements LogHelper {
         }
         case PROCESS_CHILD_URLS_BY_EXCEPTION: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
-            Set<String> childUrlSet = (Set<String>) objs[2];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
+            final Set<String> childUrlSet = (Set<String>) objs[2];
             if (logger.isDebugEnabled()) {
                 for (String url : childUrlSet) {
                     logger.debug("Child URL: " + url + " from "
-                            + urlQueue.getUrl());
+                        + urlQueue.getUrl());
                 }
             }
             break;
         }
         case CRAWLING_ACCESS_EXCEPTION: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
-            RobotCrawlAccessException e = (RobotCrawlAccessException) objs[2];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
+            final RobotCrawlAccessException e =
+                (RobotCrawlAccessException) objs[2];
             if (e.isDebugEnabled()) {
-                logger.debug("Crawling Access Exception at "
-                        + urlQueue.getUrl(), e);
+                logger.debug(
+                    "Crawling Access Exception at " + urlQueue.getUrl(),
+                    e);
             } else if (e.isInfoEnabled()) {
                 logger.info(e.getMessage());
             } else if (e.isWarnEnabled()) {
                 logger.warn(
-                        "Crawling Access Exception at " + urlQueue.getUrl(), e);
+                    "Crawling Access Exception at " + urlQueue.getUrl(),
+                    e);
             } else if (e.isErrorEnabled()) {
-                logger.error("Crawling Access Exception at "
-                        + urlQueue.getUrl(), e);
+                logger.error(
+                    "Crawling Access Exception at " + urlQueue.getUrl(),
+                    e);
             }
             break;
         }
         case CRAWLING_EXCETPION: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
-            Throwable e = (Throwable) objs[2];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
+            final Throwable e = (Throwable) objs[2];
             logger.error("Crawling Exception at " + urlQueue.getUrl(), e);
             break;
         }
         case NO_URL_IN_QUEUE: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
-            UrlQueue urlQueue = (UrlQueue) objs[1];
-            Integer threadCheckCount = (Integer) objs[2];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
+            final Integer threadCheckCount = (Integer) objs[2];
             if (logger.isDebugEnabled()) {
                 if (urlQueue != null && urlQueue.getUrl() != null) {
                     logger.debug(urlQueue.getUrl() + " is not a target url. ("
-                            + threadCheckCount + ")");
+                        + threadCheckCount + ")");
                 } else {
                     logger.debug("The url is null. (" + threadCheckCount + ")");
                 }
@@ -170,24 +177,23 @@ public class LogHelperImpl implements LogHelper {
         case NO_RESPONSE_PROCESSOR: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
             // UrlQueue urlQueue = (UrlQueue) objs[1];
-            ResponseData responseData = (ResponseData) objs[2];
+            final ResponseData responseData = (ResponseData) objs[2];
             // Rule rule = (Rule) objs[3];
             if (logger.isDebugEnabled()) {
                 logger.debug("No ResponseProcessor for ("
-                        + responseData.getUrl() + ", "
-                        + responseData.getMimeType()
-                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+                    + responseData.getUrl() + ", " + responseData.getMimeType()
+                    + "). PLEASE CHECK YOUR CONFIGURATION.");
             }
             break;
         }
         case NO_RULE: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
             // UrlQueue urlQueue = (UrlQueue) objs[1];
-            ResponseData responseData = (ResponseData) objs[2];
+            final ResponseData responseData = (ResponseData) objs[2];
             if (logger.isDebugEnabled()) {
                 logger.debug("No rule for (" + responseData.getUrl() + ", "
-                        + responseData.getMimeType()
-                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+                    + responseData.getMimeType()
+                    + "). PLEASE CHECK YOUR CONFIGURATION.");
             }
             break;
         }

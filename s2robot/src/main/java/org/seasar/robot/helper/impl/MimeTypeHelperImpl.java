@@ -32,10 +32,11 @@ import org.seasar.robot.helper.MimeTypeHelper;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class MimeTypeHelperImpl implements MimeTypeHelper {
-    private static final String MIME_TYPES_RESOURCE_NAME = "/org/seasar/robot/mime/tika-mimetypes.xml";
+    private static final String MIME_TYPES_RESOURCE_NAME =
+        "/org/seasar/robot/mime/tika-mimetypes.xml";
 
     private MimeTypes mimeTypes;
 
@@ -44,31 +45,33 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
             mimeTypes = MimeTypesFactory.create(MIME_TYPES_RESOURCE_NAME);
         } catch (Exception e) {
             throw new RobotSystemException(
-                    "Could not initialize MimeTypeHelper.", e);
+                "Could not initialize MimeTypeHelper.",
+                e);
         }
     }
 
-    public String getContentType(InputStream is, String filename) {
+    public String getContentType(final InputStream is, final String filename) {
         if (StringUtil.isEmpty(filename)) {
             throw new MimeTypeException("The filename is empty.");
         }
-        Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<String, String>();
         params.put(ExtractData.RESOURCE_NAME_KEY, filename);
         return getContentType(is, params);
     }
 
-    public String getContentType(InputStream is, Map<String, String> params) {
-        String filename = params.get(ExtractData.RESOURCE_NAME_KEY);
+    public String getContentType(final InputStream is,
+            final Map<String, String> params) {
+        final String filename = params.get(ExtractData.RESOURCE_NAME_KEY);
         if (StringUtil.isEmpty(filename) && is == null) {
             throw new MimeTypeException(
-                    "The filename or input stream is empty.");
+                "The filename or input stream is empty.");
         }
 
-        Metadata metadata = new Metadata();
+        final Metadata metadata = new Metadata();
         metadata.add(Metadata.RESOURCE_NAME_KEY, filename);
 
         try {
-            MediaType mediaType = mimeTypes.detect(is, metadata);
+            final MediaType mediaType = mimeTypes.detect(is, metadata);
             return mediaType.getType() + "/" + mediaType.getSubtype();
         } catch (IOException e) {
             throw new MimeTypeException("Could not detect a content type.", e);

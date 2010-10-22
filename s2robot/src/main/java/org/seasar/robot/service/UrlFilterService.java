@@ -20,26 +20,24 @@ import java.util.regex.Pattern;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface UrlFilterService {
 
-    public abstract void addIncludeUrlFilter(String sessionId, String url);
+    void addIncludeUrlFilter(String sessionId, String url);
 
-    public abstract void addIncludeUrlFilter(String sessionId,
-            List<String> urlList);
+    void addIncludeUrlFilter(String sessionId, List<String> urlList);
 
-    public abstract void addExcludeUrlFilter(String sessionId, String url);
+    void addExcludeUrlFilter(String sessionId, String url);
 
-    public abstract void addExcludeUrlFilter(String sessionId,
-            List<String> urlList);
+    void addExcludeUrlFilter(String sessionId, List<String> urlList);
 
-    public abstract void delete(String sessionId);
+    void delete(String sessionId);
 
-    public abstract void deleteAll();
+    void deleteAll();
 
-    public abstract List<Pattern> getIncludeUrlPatternList(String sessionId);
+    List<Pattern> getIncludeUrlPatternList(String sessionId);
 
-    public abstract List<Pattern> getExcludeUrlPatternList(String sessionId);
+    List<Pattern> getExcludeUrlPatternList(String sessionId);
 
 }

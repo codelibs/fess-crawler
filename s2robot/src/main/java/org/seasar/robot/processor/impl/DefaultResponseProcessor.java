@@ -18,7 +18,6 @@ package org.seasar.robot.processor.impl;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -38,107 +37,113 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class DefaultResponseProcessor implements ResponseProcessor {
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(DefaultResponseProcessor.class);
+        .getLogger(DefaultResponseProcessor.class);
 
     protected Transformer transformer;
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.robot.entity.ResponseData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.
+     * robot.entity.ResponseData)
      */
-    public void process(ResponseData responseData) {
+    public void process(final ResponseData responseData) {
         if (responseData.getStatus() == Constants.NOT_MODIFIED_STATUS) {
-            UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
-            ResultData resultData = new ResultData();
-            Set<String> emptySet = Collections.emptySet();
+            final UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
+            final ResultData resultData = new ResultData();
+            final Set<String> emptySet = Collections.emptySet();
             resultData.setChildUrlSet(emptySet);
             resultData.setData(new byte[0]);
             resultData.setEncoding(Constants.UTF_8);
             resultData.setTransformerName(Constants.NO_TRANSFORMER);
             processResult(urlQueue, responseData, resultData);
         } else {
-            if (transformer != null) {
-                ResultData resultData = transformer.transform(responseData);
-                if (resultData != null) {
-                    UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
-                    processResult(urlQueue, responseData, resultData);
-                } else {
-                    logger.warn("No data for (" + responseData.getUrl() + ", "
-                            + responseData.getMimeType() + ")");
-                }
-            } else {
+            if (transformer == null) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("No Transformer for (" + responseData.getUrl()
-                            + "). PLEASE CHECK YOUR CONFIGURATION.");
+                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+                }
+            } else {
+                final ResultData resultData =
+                    transformer.transform(responseData);
+                if (resultData == null) {
+                    logger.warn("No data for (" + responseData.getUrl() + ", "
+                        + responseData.getMimeType() + ")");
+                } else {
+                    final UrlQueue urlQueue =
+                        CrawlingParameterUtil.getUrlQueue();
+                    processResult(urlQueue, responseData, resultData);
                 }
             }
         }
     }
 
-    protected void processResult(UrlQueue urlQueue, ResponseData responseData,
-            ResultData resultData) {
-        AccessResult accessResult = SingletonS2Container
-                .getComponent(AccessResult.class);
+    protected void processResult(final UrlQueue urlQueue,
+            final ResponseData responseData, final ResultData resultData) {
+        final AccessResult accessResult =
+            SingletonS2Container.getComponent(AccessResult.class);
         accessResult.init(responseData, resultData);
 
-        S2RobotContext robotContext = CrawlingParameterUtil.getRobotContext();
-        UrlQueueService urlQueueService = CrawlingParameterUtil
-                .getUrlQueueService();
+        final S2RobotContext robotContext =
+            CrawlingParameterUtil.getRobotContext();
+        final UrlQueueService urlQueueService =
+            CrawlingParameterUtil.getUrlQueueService();
         synchronized (robotContext.getAccessCountLock()) {
             if (!urlQueueService.visited(urlQueue)) {
                 if (checkAccessCount(robotContext)) {
-                    //  store
+                    // store
                     CrawlingParameterUtil.getDataService().store(accessResult);
 
-                    //  add and filter urls 
+                    // add and filter urls
                     storeChildUrls(
-                            robotContext,
-                            resultData.getChildUrlSet(),
-                            urlQueue.getUrl(),
-                            urlQueue.getDepth() != null ? urlQueue.getDepth() + 1
-                                    : 1);
+                        robotContext,
+                        resultData.getChildUrlSet(),
+                        urlQueue.getUrl(),
+                        urlQueue.getDepth() == null ? 1
+                            : urlQueue.getDepth() + 1);
 
                     // count up
                     if (robotContext.getMaxAccessCount() > 0) {
                         robotContext.setAccessCount(robotContext
-                                .getAccessCount() + 1);
+                            .getAccessCount() + 1);
                     }
                 } else {
                     // cancel crawling
-                    List<UrlQueue> newUrlQueueList = new ArrayList<UrlQueue>();
+                    final List<UrlQueue> newUrlQueueList =
+                        new ArrayList<UrlQueue>();
                     newUrlQueueList.add(urlQueue);
-                    urlQueueService.offerAll(robotContext.getSessionId(),
-                            newUrlQueueList);
+                    urlQueueService.offerAll(
+                        robotContext.getSessionId(),
+                        newUrlQueueList);
                 }
             }
         }
 
     }
 
-    private boolean checkAccessCount(S2RobotContext robotContext) {
+    private boolean checkAccessCount(final S2RobotContext robotContext) {
         if (robotContext.getMaxAccessCount() > 0) {
-            if (robotContext.getAccessCount() < robotContext
-                    .getMaxAccessCount()) {
-                return true;
-            } else {
-                return false;
-            }
+            return robotContext.getAccessCount() < robotContext
+                .getMaxAccessCount();
         } else {
             return true;
         }
     }
 
-    private void storeChildUrls(S2RobotContext robotContext,
-            Set<String> childUrlList, String url, int depth) {
-        //  add url and filter 
-        List<UrlQueue> childList = new ArrayList<UrlQueue>();
+    private void storeChildUrls(final S2RobotContext robotContext,
+            final Set<String> childUrlList, final String url, final int depth) {
+        // add url and filter
+        final List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (String childUrl : childUrlList) {
             if (robotContext.getUrlFilter().match(childUrl)) {
-                UrlQueue uq = SingletonS2Container.getComponent(UrlQueue.class);
-                uq.setCreateTime(new Timestamp(new Date().getTime()));
+                final UrlQueue uq =
+                    SingletonS2Container.getComponent(UrlQueue.class);
+                uq.setCreateTime(new Timestamp(System.currentTimeMillis()));
                 uq.setDepth(depth);
                 uq.setMethod(Constants.GET_METHOD);
                 uq.setParentUrl(url);
@@ -148,14 +153,15 @@ public class DefaultResponseProcessor implements ResponseProcessor {
             }
         }
         CrawlingParameterUtil.getUrlQueueService().offerAll(
-                robotContext.getSessionId(), childList);
+            robotContext.getSessionId(),
+            childList);
     }
 
     public Transformer getTransformer() {
         return transformer;
     }
 
-    public void setTransformer(Transformer transformer) {
+    public void setTransformer(final Transformer transformer) {
         this.transformer = transformer;
     }
 }

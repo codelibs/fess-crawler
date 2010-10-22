@@ -17,26 +17,26 @@ package org.seasar.robot.entity;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface AccessResultData {
 
-    public abstract Long getId();
+    Long getId();
 
-    public abstract void setId(Long id);
+    void setId(Long id);
 
-    public abstract String getTransformerName();
+    String getTransformerName();
 
-    public abstract void setTransformerName(String transformerName);
+    void setTransformerName(String transformerName);
 
-    public abstract byte[] getData();
+    byte[] getData();
 
-    public abstract String getDataAsString();
+    String getDataAsString();
 
-    public abstract void setData(byte[] data);
+    void setData(byte[] data);
 
-    public String getEncoding();
+    String getEncoding();
 
-    public void setEncoding(String encoding);
+    void setEncoding(String encoding);
 
 }

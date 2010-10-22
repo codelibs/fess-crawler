@@ -19,12 +19,12 @@ import java.io.Serializable;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface Sitemap extends Serializable {
 
-    public abstract String getLoc();
+    String getLoc();
 
-    public abstract String getLastmod();
+    String getLastmod();
 
 }

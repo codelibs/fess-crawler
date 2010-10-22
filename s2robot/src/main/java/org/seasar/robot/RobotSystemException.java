@@ -17,21 +17,21 @@ package org.seasar.robot;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class RobotSystemException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public RobotSystemException(String message, Throwable cause) {
+    public RobotSystemException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public RobotSystemException(String message) {
+    public RobotSystemException(final String message) {
         super(message);
     }
 
-    public RobotSystemException(Throwable cause) {
+    public RobotSystemException(final Throwable cause) {
         super(cause);
     }
 

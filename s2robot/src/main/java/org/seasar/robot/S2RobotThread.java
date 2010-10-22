@@ -45,7 +45,7 @@ import org.seasar.robot.util.CrawlingParameterUtil;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class S2RobotThread implements Runnable {
 
@@ -78,7 +78,7 @@ public class S2RobotThread implements Runnable {
         }
     }
 
-    protected boolean isContinue(int tcCount) {
+    protected boolean isContinue(final int tcCount) {
         if (!SingletonS2ContainerFactory.hasContainer()) {
             // system shutdown
             return false;
@@ -86,10 +86,9 @@ public class S2RobotThread implements Runnable {
 
         boolean isContinue = false;
         if (tcCount < robotContext.maxThreadCheckCount) {
-            if (robotContext.maxAccessCount > 0) {
-                if (robotContext.accessCount >= robotContext.maxAccessCount) {
-                    return false;
-                }
+            if (robotContext.maxAccessCount > 0
+                && robotContext.accessCount >= robotContext.maxAccessCount) {
+                return false;
             }
             isContinue = true;
         }
@@ -102,13 +101,16 @@ public class S2RobotThread implements Runnable {
         return isContinue;
     }
 
-    protected void log(LogHelper logHelper, LogType key, Object... objs) {
+    protected void log(final LogHelper logHelper, final LogType key,
+            final Object... objs) {
         if (logHelper != null) {
             logHelper.log(key, objs);
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Runnable#run()
      */
     public void run() {
@@ -120,19 +122,24 @@ public class S2RobotThread implements Runnable {
         CrawlingParameterUtil.setDataService(dataService);
         try {
             while (robotContext.running && isContinue(threadCheckCount)) {
-                UrlQueue urlQueue = urlQueueService
-                        .poll(robotContext.sessionId);
+                final UrlQueue urlQueue =
+                    urlQueueService.poll(robotContext.sessionId);
                 if (isValid(urlQueue)) {
                     ResponseData responseData = null;
-                    log(logHelper, LogType.START_CRAWLING, robotContext,
-                            urlQueue);
+                    log(
+                        logHelper,
+                        LogType.START_CRAWLING,
+                        robotContext,
+                        urlQueue);
                     try {
-                        S2RobotClient client = getClient(urlQueue.getUrl());
+                        final S2RobotClient client =
+                            getClient(urlQueue.getUrl());
                         if (client == null) {
                             log(
-                                    logHelper,
-                                    LogType.UNSUPPORTED_URL_AT_CRAWLING_STARTED,
-                                    robotContext, urlQueue);
+                                logHelper,
+                                LogType.UNSUPPORTED_URL_AT_CRAWLING_STARTED,
+                                robotContext,
+                                urlQueue);
                             continue;
                         }
 
@@ -143,71 +150,96 @@ public class S2RobotThread implements Runnable {
 
                         if (robotContext.intervalController != null) {
                             robotContext.intervalController
-                                    .delay(IntervalController.PRE_PROCESSING);
+                                .delay(IntervalController.PRE_PROCESSING);
                         }
 
-                        boolean contentUpdated = isContentUpdated(client,
-                                urlQueue);
+                        final boolean contentUpdated =
+                            isContentUpdated(client, urlQueue);
 
                         if (contentUpdated) {
-                            log(logHelper, LogType.GET_CONTENT, robotContext,
-                                    urlQueue);
+                            log(
+                                logHelper,
+                                LogType.GET_CONTENT,
+                                robotContext,
+                                urlQueue);
                             // access an url
-                            long startTime = System.currentTimeMillis();
+                            final long startTime = System.currentTimeMillis();
                             responseData = client.doGet(urlQueue.getUrl());
                             responseData.setExecutionTime(System
-                                    .currentTimeMillis()
-                                    - startTime);
+                                .currentTimeMillis() - startTime);
                             responseData.setParentUrl(urlQueue.getParentUrl());
                             responseData.setSessionId(robotContext.sessionId);
 
-                            if (responseData.getRedirectLocation() != null) {
-                                log(logHelper, LogType.REDIRECT_LOCATION,
-                                        robotContext, urlQueue, responseData);
+                            if (responseData.getRedirectLocation() == null) {
+                                log(
+                                    logHelper,
+                                    LogType.PROCESS_RESPONSE,
+                                    robotContext,
+                                    urlQueue,
+                                    responseData);
+                                processResponse(urlQueue, responseData);
+                            } else {
+                                log(
+                                    logHelper,
+                                    LogType.REDIRECT_LOCATION,
+                                    robotContext,
+                                    urlQueue,
+                                    responseData);
                                 // redirect
                                 synchronized (robotContext.accessCountLock) {
-                                    //  add an url
+                                    // add an url
                                     storeChildUrl(
-                                            responseData.getRedirectLocation(),
-                                            urlQueue.getUrl(),
-                                            urlQueue.getDepth() != null ? urlQueue
-                                                    .getDepth() + 1
-                                                    : 1);
+                                        responseData.getRedirectLocation(),
+                                        urlQueue.getUrl(),
+                                        urlQueue.getDepth() == null ? 1
+                                            : urlQueue.getDepth() + 1);
                                 }
-                            } else {
-                                log(logHelper, LogType.PROCESS_RESPONSE,
-                                        robotContext, urlQueue, responseData);
-                                processResponse(urlQueue, responseData);
                             }
                         }
 
-                        log(logHelper, LogType.FINISHED_CRAWLING, robotContext,
-                                urlQueue);
+                        log(
+                            logHelper,
+                            LogType.FINISHED_CRAWLING,
+                            robotContext,
+                            urlQueue);
                     } catch (ChildUrlsException e) {
-                        Set<String> childUrlSet = e.getChildUrlList();
-                        log(logHelper, LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
-                                robotContext, urlQueue, childUrlSet);
+                        final Set<String> childUrlSet = e.getChildUrlList();
+                        log(
+                            logHelper,
+                            LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
+                            robotContext,
+                            urlQueue,
+                            childUrlSet);
                         synchronized (robotContext.accessCountLock) {
-                            //  add an url
-                            storeChildUrls(childUrlSet, urlQueue.getUrl(),
-                                    urlQueue.getDepth() != null ? urlQueue
-                                            .getDepth() + 1 : 1);
+                            // add an url
+                            storeChildUrls(
+                                childUrlSet,
+                                urlQueue.getUrl(),
+                                urlQueue.getDepth() == null ? 1 : urlQueue
+                                    .getDepth() + 1);
                         }
                     } catch (RobotCrawlAccessException e) {
-                        log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION,
-                                robotContext, urlQueue, e);
+                        log(
+                            logHelper,
+                            LogType.CRAWLING_ACCESS_EXCEPTION,
+                            robotContext,
+                            urlQueue,
+                            e);
                     } catch (Throwable e) {
-                        log(logHelper, LogType.CRAWLING_EXCETPION,
-                                robotContext, urlQueue, e);
+                        log(
+                            logHelper,
+                            LogType.CRAWLING_EXCETPION,
+                            robotContext,
+                            urlQueue,
+                            e);
                     } finally {
                         if (responseData != null) {
                             IOUtils
-                                    .closeQuietly(responseData
-                                            .getResponseBody());
+                                .closeQuietly(responseData.getResponseBody());
                         }
                         if (robotContext.intervalController != null) {
                             robotContext.intervalController
-                                    .delay(IntervalController.POST_PROCESSING);
+                                .delay(IntervalController.POST_PROCESSING);
                         }
                         threadCheckCount = 0; // clear
                         // remove urlQueue from thread
@@ -215,12 +247,16 @@ public class S2RobotThread implements Runnable {
                         finishCrawling();
                     }
                 } else {
-                    log(logHelper, LogType.NO_URL_IN_QUEUE, robotContext,
-                            urlQueue, Integer.valueOf(threadCheckCount));
+                    log(
+                        logHelper,
+                        LogType.NO_URL_IN_QUEUE,
+                        robotContext,
+                        urlQueue,
+                        Integer.valueOf(threadCheckCount));
 
                     if (robotContext.intervalController != null) {
                         robotContext.intervalController
-                                .delay(IntervalController.NO_URL_IN_QUEUE);
+                            .delay(IntervalController.NO_URL_IN_QUEUE);
                     }
 
                     threadCheckCount++;
@@ -229,7 +265,7 @@ public class S2RobotThread implements Runnable {
                 // interval
                 if (robotContext.intervalController != null) {
                     robotContext.intervalController
-                            .delay(IntervalController.WAIT_NEW_URL);
+                        .delay(IntervalController.WAIT_NEW_URL);
                 }
             }
         } finally {
@@ -241,33 +277,27 @@ public class S2RobotThread implements Runnable {
         log(logHelper, LogType.FINISHED_THREAD, robotContext);
     }
 
-    protected S2RobotClient getClient(String url) {
+    protected S2RobotClient getClient(final String url) {
         return clientFactory.getClient(url);
     }
 
-    protected boolean isContentUpdated(S2RobotClient client, UrlQueue urlQueue) {
-        return isContentUpdated(client, urlQueue, null);
-    }
-
-    @Deprecated
-    protected boolean isContentUpdated(S2RobotClient client, UrlQueue urlQueue,
-            ResponseData ignore) {
-        // TODO move the following code at a next version, and then remove this method.
+    protected boolean isContentUpdated(final S2RobotClient client,
+            final UrlQueue urlQueue) {
         if (urlQueue.getLastModified() != null) {
             log(logHelper, LogType.CHECK_LAST_MODIFIED, robotContext, urlQueue);
-            long startTime = System.currentTimeMillis();
+            final long startTime = System.currentTimeMillis();
             ResponseData responseData = null;
             try {
-                //  head method
+                // head method
                 responseData = client.doHead(urlQueue.getUrl());
                 if (responseData != null
-                        && responseData.getLastModified().getTime() <= urlQueue
-                                .getLastModified().getTime()
-                        && responseData.getHttpStatusCode() == 200) {
+                    && responseData.getLastModified().getTime() <= urlQueue
+                        .getLastModified()
+                        .getTime() && responseData.getHttpStatusCode() == 200) {
                     log(logHelper, LogType.NOT_MODIFIED, robotContext, urlQueue);
 
                     responseData.setExecutionTime(System.currentTimeMillis()
-                            - startTime);
+                        - startTime);
                     responseData.setParentUrl(urlQueue.getParentUrl());
                     responseData.setSessionId(robotContext.sessionId);
                     responseData.setStatus(Constants.NOT_MODIFIED_STATUS);
@@ -284,33 +314,45 @@ public class S2RobotThread implements Runnable {
         return true;
     }
 
-    protected void processResponse(UrlQueue urlQueue, ResponseData responseData) {
+    protected void processResponse(final UrlQueue urlQueue,
+            final ResponseData responseData) {
         // get a rule
-        Rule rule = robotContext.ruleManager.getRule(responseData);
-        if (rule != null) {
-            responseData.setRuleId(rule.getRuleId());
-            ResponseProcessor responseProcessor = rule.getResponseProcessor();
-            if (responseProcessor != null) {
-                responseProcessor.process(responseData);
-            } else {
-                log(logHelper, LogType.NO_RESPONSE_PROCESSOR, robotContext,
-                        urlQueue, responseData, rule);
-            }
+        final Rule rule = robotContext.ruleManager.getRule(responseData);
+        if (rule == null) {
+            log(
+                logHelper,
+                LogType.NO_RULE,
+                robotContext,
+                urlQueue,
+                responseData);
         } else {
-            log(logHelper, LogType.NO_RULE, robotContext, urlQueue,
-                    responseData);
+            responseData.setRuleId(rule.getRuleId());
+            final ResponseProcessor responseProcessor =
+                rule.getResponseProcessor();
+            if (responseProcessor == null) {
+                log(
+                    logHelper,
+                    LogType.NO_RESPONSE_PROCESSOR,
+                    robotContext,
+                    urlQueue,
+                    responseData,
+                    rule);
+            } else {
+                responseProcessor.process(responseData);
+            }
         }
 
     }
 
-    protected void storeChildUrls(Set<String> childUrlList, String url,
-            int depth) {
-        //  add url and filter 
-        List<UrlQueue> childList = new ArrayList<UrlQueue>();
+    protected void storeChildUrls(final Set<String> childUrlList,
+            final String url, final int depth) {
+        // add url and filter
+        final List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (String childUrl : childUrlList) {
             if (robotContext.urlFilter.match(childUrl)) {
-                UrlQueue uq = (UrlQueue) container.getComponent(UrlQueue.class);
-                uq.setCreateTime(new Timestamp(new Date().getTime()));
+                final UrlQueue uq =
+                    (UrlQueue) container.getComponent(UrlQueue.class);
+                uq.setCreateTime(new Timestamp(System.currentTimeMillis()));
                 uq.setDepth(depth);
                 uq.setMethod(Constants.GET_METHOD);
                 uq.setParentUrl(url);
@@ -322,11 +364,13 @@ public class S2RobotThread implements Runnable {
         urlQueueService.offerAll(robotContext.sessionId, childList);
     }
 
-    protected void storeChildUrl(String childUrl, String url, int depth) {
-        //  add url and filter 
+    protected void storeChildUrl(final String childUrl, final String url,
+            final int depth) {
+        // add url and filter
         if (robotContext.urlFilter.match(childUrl)) {
-            List<UrlQueue> childList = new ArrayList<UrlQueue>(1);
-            UrlQueue uq = (UrlQueue) container.getComponent(UrlQueue.class);
+            final List<UrlQueue> childList = new ArrayList<UrlQueue>(1);
+            final UrlQueue uq =
+                (UrlQueue) container.getComponent(UrlQueue.class);
             uq.setCreateTime(new Timestamp(new Date().getTime()));
             uq.setDepth(depth);
             uq.setMethod(Constants.GET_METHOD);
@@ -338,7 +382,7 @@ public class S2RobotThread implements Runnable {
         }
     }
 
-    protected boolean isValid(UrlQueue urlQueue) {
+    protected boolean isValid(final UrlQueue urlQueue) {
         if (urlQueue == null) {
             return false;
         }
@@ -348,11 +392,11 @@ public class S2RobotThread implements Runnable {
         }
 
         if (robotContext.getMaxDepth() >= 0
-                && urlQueue.getDepth() > robotContext.getMaxDepth()) {
+            && urlQueue.getDepth() > robotContext.getMaxDepth()) {
             return false;
         }
 
-        //  url filter
+        // url filter
         if (robotContext.urlFilter.match(urlQueue.getUrl())) {
             return true;
         }

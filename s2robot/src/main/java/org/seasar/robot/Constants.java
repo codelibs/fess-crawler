@@ -17,9 +17,9 @@ package org.seasar.robot;
 
 /**
  * @author shinsuke
- *
+ * 
  */
-public class Constants {
+public final class Constants {
     public static final String GET_METHOD = "GET";
 
     public static final String HEAD_METHOD = "HEAD";
@@ -31,4 +31,7 @@ public class Constants {
     public static final String NO_TRANSFORMER = "NONE";
 
     public static final String UTF_8 = "UTF-8";
+
+    private Constants() {
+    }
 }

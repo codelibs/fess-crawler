@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class SitemapSet implements Serializable {
 
@@ -31,15 +31,15 @@ public class SitemapSet implements Serializable {
 
     public static final String INDEX = "Index";
 
-    private List<Sitemap> sitemapList = new ArrayList<Sitemap>();
+    private final List<Sitemap> sitemapList = new ArrayList<Sitemap>();
 
     private String type = URLSET;
 
-    public void addSitemap(Sitemap sitemap) {
+    public void addSitemap(final Sitemap sitemap) {
         sitemapList.add(sitemap);
     }
 
-    public void removeSitemap(Sitemap sitemap) {
+    public void removeSitemap(final Sitemap sitemap) {
         sitemapList.remove(sitemap);
     }
 
@@ -47,7 +47,7 @@ public class SitemapSet implements Serializable {
         return sitemapList.toArray(new Sitemap[sitemapList.size()]);
     }
 
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 

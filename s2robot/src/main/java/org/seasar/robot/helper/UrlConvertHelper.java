@@ -22,25 +22,26 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class UrlConvertHelper {
 
-    protected Map<String, String> convertMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> convertMap =
+        new LinkedHashMap<String, String>();
 
-    public String convert(String url) {
+    public String convert(final String url) {
         if (url == null) {
             return null;
         }
         String convertedUrl = url;
         for (Map.Entry<String, String> entry : convertMap.entrySet()) {
-            convertedUrl = convertedUrl.replaceAll(entry.getKey(), entry
-                    .getValue());
+            convertedUrl =
+                convertedUrl.replaceAll(entry.getKey(), entry.getValue());
         }
         return convertedUrl;
     }
 
-    public void add(String target, String replacement) {
+    public void add(final String target, final String replacement) {
         if (target == null || replacement == null) {
             throw new RobotSystemException("target or replacement are null.");
         }

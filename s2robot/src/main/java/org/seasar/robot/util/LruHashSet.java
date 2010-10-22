@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
         java.io.Serializable {
@@ -33,14 +33,14 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
 
-    public LruHashSet(int limitSize) {
+    public LruHashSet(final int limitSize) {
         map = new LruHashMap<E, Object>(limitSize);
     }
 
     /**
-     * Returns an iterator over the elements in this set.  The elements
-     * are returned in no particular order.
-     *
+     * Returns an iterator over the elements in this set. The elements are
+     * returned in no particular order.
+     * 
      * @return an Iterator over the elements in this set.
      * @see ConcurrentModificationException
      */
@@ -50,7 +50,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Returns the number of elements in this set (its cardinality).
-     *
+     * 
      * @return the number of elements in this set (its cardinality).
      */
     public int size() {
@@ -59,7 +59,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Returns <tt>true</tt> if this set contains no elements.
-     *
+     * 
      * @return <tt>true</tt> if this set contains no elements.
      */
     public boolean isEmpty() {
@@ -68,33 +68,35 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Returns <tt>true</tt> if this set contains the specified element.
-     *
-     * @param o element whose presence in this set is to be tested.
+     * 
+     * @param o
+     *            element whose presence in this set is to be tested.
      * @return <tt>true</tt> if this set contains the specified element.
      */
-    public boolean contains(Object o) {
+    public boolean contains(final Object o) {
         return map.containsKey(o);
     }
 
     /**
-     * Adds the specified element to this set if it is not already
-     * present.
-     *
-     * @param o element to be added to this set.
+     * Adds the specified element to this set if it is not already present.
+     * 
+     * @param o
+     *            element to be added to this set.
      * @return <tt>true</tt> if the set did not already contain the specified
-     * element.
+     *         element.
      */
-    public boolean add(E o) {
+    public boolean add(final E o) {
         return map.put(o, PRESENT) == null;
     }
 
     /**
      * Removes the specified element from this set if it is present.
-     *
-     * @param o object to be removed from this set, if present.
+     * 
+     * @param o
+     *            object to be removed from this set, if present.
      * @return <tt>true</tt> if the set contained the specified element.
      */
-    public boolean remove(Object o) {
+    public boolean remove(final Object o) {
         return map.remove(o) == PRESENT;
     }
 

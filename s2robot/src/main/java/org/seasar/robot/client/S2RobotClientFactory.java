@@ -26,12 +26,13 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class S2RobotClientFactory {
-    protected Map<Pattern, S2RobotClient> clientMap = new HashMap<Pattern, S2RobotClient>();
+    protected Map<Pattern, S2RobotClient> clientMap =
+        new HashMap<Pattern, S2RobotClient>();
 
-    public void addClient(String regex, S2RobotClient client) {
+    public void addClient(final String regex, final S2RobotClient client) {
         if (StringUtil.isBlank(regex)) {
             throw new RobotSystemException("A regular expression is null.");
         }
@@ -41,10 +42,11 @@ public class S2RobotClientFactory {
         clientMap.put(Pattern.compile(regex), client);
     }
 
-    public void addClient(List<String> regexList, S2RobotClient client) {
+    public void addClient(final List<String> regexList,
+            final S2RobotClient client) {
         if (regexList == null || regexList.isEmpty()) {
             throw new RobotSystemException(
-                    "A regular expression list is null or empty.");
+                "A regular expression list is null or empty.");
         }
         if (client == null) {
             throw new RobotSystemException("S2RobotClient is null.");
@@ -56,13 +58,13 @@ public class S2RobotClientFactory {
         }
     }
 
-    public S2RobotClient getClient(String url) {
+    public S2RobotClient getClient(final String url) {
         if (StringUtil.isBlank(url)) {
             return null;
         }
 
         for (Map.Entry<Pattern, S2RobotClient> entry : clientMap.entrySet()) {
-            Matcher matcher = entry.getKey().matcher(url);
+            final Matcher matcher = entry.getKey().matcher(url);
             if (matcher.matches()) {
                 return entry.getValue();
             }
@@ -70,7 +72,7 @@ public class S2RobotClientFactory {
         return null;
     }
 
-    public void setInitParameterMap(Map<String, Object> params) {
+    public void setInitParameterMap(final Map<String, Object> params) {
         if (params != null) {
             for (S2RobotClient client : clientMap.values()) {
                 client.setInitParameterMap(params);

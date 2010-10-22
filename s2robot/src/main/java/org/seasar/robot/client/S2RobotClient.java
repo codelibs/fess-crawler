@@ -21,15 +21,15 @@ import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface S2RobotClient {
 
-    public abstract void setInitParameterMap(Map<String, Object> params);
+    void setInitParameterMap(Map<String, Object> params);
 
-    public abstract ResponseData doGet(String url);
+    ResponseData doGet(String url);
 
-    public abstract ResponseData doHead(String url);
+    ResponseData doHead(String url);
 
     // TODO doPost?
 

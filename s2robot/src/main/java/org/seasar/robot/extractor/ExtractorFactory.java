@@ -24,12 +24,13 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ExtractorFactory {
-    protected Map<String, Extractor> extractorMap = new HashMap<String, Extractor>();
+    protected Map<String, Extractor> extractorMap =
+        new HashMap<String, Extractor>();
 
-    public void addExtractor(String key, Extractor extractor) {
+    public void addExtractor(final String key, final Extractor extractor) {
         if (StringUtil.isBlank(key)) {
             throw new RobotSystemException("The key is null.");
         }
@@ -39,7 +40,8 @@ public class ExtractorFactory {
         extractorMap.put(key, extractor);
     }
 
-    public void addExtractor(List<String> keyList, Extractor extractor) {
+    public void addExtractor(final List<String> keyList,
+            final Extractor extractor) {
         if (keyList == null || keyList.isEmpty()) {
             throw new RobotSystemException("The key list is empty.");
         }
@@ -48,7 +50,7 @@ public class ExtractorFactory {
         }
     }
 
-    public Extractor getExtractor(String key) {
+    public Extractor getExtractor(final String key) {
         return extractorMap.get(key);
     }
 }

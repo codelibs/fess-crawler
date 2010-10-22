@@ -19,64 +19,64 @@ import java.sql.Timestamp;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface AccessResult {
-    public abstract void init(ResponseData responseData, ResultData resultData);
+    void init(ResponseData responseData, ResultData resultData);
 
-    public abstract Long getId();
+    Long getId();
 
-    public abstract void setId(Long id);
+    void setId(Long id);
 
-    public abstract String getSessionId();
+    String getSessionId();
 
-    public abstract void setSessionId(String sessionId);
+    void setSessionId(String sessionId);
 
-    public abstract String getRuleId();
+    String getRuleId();
 
-    public abstract void setRuleId(String ruleId);
+    void setRuleId(String ruleId);
 
-    public abstract String getUrl();
+    String getUrl();
 
-    public abstract void setUrl(String url);
+    void setUrl(String url);
 
-    public abstract String getParentUrl();
+    String getParentUrl();
 
-    public abstract void setParentUrl(String parentUrl);
+    void setParentUrl(String parentUrl);
 
-    public abstract Integer getStatus();
+    Integer getStatus();
 
-    public abstract void setStatus(Integer status);
+    void setStatus(Integer status);
 
-    public abstract Integer getHttpStatusCode();
+    Integer getHttpStatusCode();
 
-    public abstract void setHttpStatusCode(Integer httpStatusCode);
+    void setHttpStatusCode(Integer httpStatusCode);
 
-    public abstract String getMethod();
+    String getMethod();
 
-    public abstract void setMethod(String method);
+    void setMethod(String method);
 
-    public abstract String getMimeType();
+    String getMimeType();
 
-    public abstract void setMimeType(String mimeType);
+    void setMimeType(String mimeType);
 
-    public abstract Timestamp getCreateTime();
+    Timestamp getCreateTime();
 
-    public abstract void setCreateTime(Timestamp createTime);
+    void setCreateTime(Timestamp createTime);
 
-    public abstract Integer getExecutionTime();
+    Integer getExecutionTime();
 
-    public abstract void setExecutionTime(Integer executionTime);
+    void setExecutionTime(Integer executionTime);
 
-    public abstract AccessResultData getAccessResultData();
+    AccessResultData getAccessResultData();
 
-    public abstract void setAccessResultData(AccessResultData accessResultData);
+    void setAccessResultData(AccessResultData accessResultData);
 
-    public abstract Long getContentLength();
+    Long getContentLength();
 
-    public abstract void setContentLength(Long contentLength);
+    void setContentLength(Long contentLength);
 
-    public abstract Timestamp getLastModified();
+    Timestamp getLastModified();
 
-    public abstract void setLastModified(Timestamp lastModified);
+    void setLastModified(Timestamp lastModified);
 }

@@ -28,23 +28,27 @@ import org.seasar.robot.entity.UrlQueue;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class MemoryDataHelper {
-    protected volatile Map<String, Queue<UrlQueue>> urlQueueMap = new HashMap<String, Queue<UrlQueue>>(); // NOPMD
+    protected volatile Map<String, Queue<UrlQueue>> urlQueueMap = // NOPMD
+        new HashMap<String, Queue<UrlQueue>>();
 
-    protected volatile Map<String, Map<String, AccessResult>> sessionMap = new HashMap<String, Map<String, AccessResult>>(); // NOPMD
+    protected volatile Map<String, Map<String, AccessResult>> sessionMap = // NOPMD
+        new HashMap<String, Map<String, AccessResult>>();
 
-    protected volatile Map<String, List<Pattern>> includeUrlPatternMap = new HashMap<String, List<Pattern>>(); // NOPMD
+    protected volatile Map<String, List<Pattern>> includeUrlPatternMap = // NOPMD
+        new HashMap<String, List<Pattern>>();
 
-    protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = new HashMap<String, List<Pattern>>(); // NOPMD
+    protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = // NOPMD
+        new HashMap<String, List<Pattern>>();
 
     public void clear() {
         urlQueueMap.clear();
         sessionMap.clear();
     }
 
-    public synchronized Queue<UrlQueue> getUrlQueueList(String sessionId) {
+    public synchronized Queue<UrlQueue> getUrlQueueList(final String sessionId) {
         Queue<UrlQueue> urlQueueList = urlQueueMap.get(sessionId);
         if (urlQueueList == null) {
             urlQueueList = new LinkedList<UrlQueue>();
@@ -53,14 +57,14 @@ public class MemoryDataHelper {
         return urlQueueList;
     }
 
-    public synchronized void addUrlQueueList(String sessionId,
-            Queue<UrlQueue> urlQueueList) {
-        Queue<UrlQueue> uqList = getUrlQueueList(sessionId);
+    public synchronized void addUrlQueueList(final String sessionId,
+            final Queue<UrlQueue> urlQueueList) {
+        final Queue<UrlQueue> uqList = getUrlQueueList(sessionId);
         uqList.addAll(urlQueueList);
         urlQueueMap.put(sessionId, uqList);
     }
 
-    public synchronized void removeUrlQueueList(String sessionId) {
+    public synchronized void removeUrlQueueList(final String sessionId) {
         urlQueueMap.remove(sessionId);
     }
 
@@ -69,7 +73,7 @@ public class MemoryDataHelper {
     }
 
     public synchronized Map<String, AccessResult> getAccessResultMap(
-            String sessionId) {
+            final String sessionId) {
         Map<String, AccessResult> arMap = sessionMap.get(sessionId);
         if (arMap == null) {
             arMap = new HashMap<String, AccessResult>();
@@ -78,7 +82,7 @@ public class MemoryDataHelper {
         return arMap;
     }
 
-    public synchronized void deleteAccessResultMap(String sessionId) {
+    public synchronized void deleteAccessResultMap(final String sessionId) {
         sessionMap.remove(sessionId);
     }
 
@@ -86,12 +90,12 @@ public class MemoryDataHelper {
         sessionMap.clear();
     }
 
-    public synchronized List<AccessResult> getAccessResultList(String url) {
-        List<AccessResult> acList = new ArrayList<AccessResult>();
+    public synchronized List<AccessResult> getAccessResultList(final String url) {
+        final List<AccessResult> acList = new ArrayList<AccessResult>();
         for (Map.Entry<String, Map<String, AccessResult>> entry : sessionMap
-                .entrySet()) {
+            .entrySet()) {
             if (entry.getValue() != null) {
-                AccessResult ar = entry.getValue().get(url);
+                final AccessResult ar = entry.getValue().get(url);
                 if (ar != null) {
                     acList.add(ar);
                 }
@@ -101,12 +105,13 @@ public class MemoryDataHelper {
         return acList;
     }
 
-    public synchronized void addIncludeUrlPattern(String sessionId, String url) {
-        List<Pattern> patternList = getIncludeUrlPatternList(sessionId);
+    public synchronized void addIncludeUrlPattern(final String sessionId,
+            final String url) {
+        final List<Pattern> patternList = getIncludeUrlPatternList(sessionId);
         patternList.add(Pattern.compile(url));
     }
 
-    public List<Pattern> getIncludeUrlPatternList(String sessionId) {
+    public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
         List<Pattern> patternList = includeUrlPatternMap.get(sessionId);
         if (patternList == null) {
             patternList = new ArrayList<Pattern>();
@@ -115,12 +120,13 @@ public class MemoryDataHelper {
         return patternList;
     }
 
-    public synchronized void addExcludeUrlPattern(String sessionId, String url) {
-        List<Pattern> patternList = getExcludeUrlPatternList(sessionId);
+    public synchronized void addExcludeUrlPattern(final String sessionId,
+            final String url) {
+        final List<Pattern> patternList = getExcludeUrlPatternList(sessionId);
         patternList.add(Pattern.compile(url));
     }
 
-    public List<Pattern> getExcludeUrlPatternList(String sessionId) {
+    public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
         List<Pattern> patternList = excludeUrlPatternMap.get(sessionId);
         if (patternList == null) {
             patternList = new ArrayList<Pattern>();
@@ -129,7 +135,7 @@ public class MemoryDataHelper {
         return patternList;
     }
 
-    public synchronized void clearUrlPattern(String sessionId) {
+    public synchronized void clearUrlPattern(final String sessionId) {
         includeUrlPatternMap.remove(sessionId);
         excludeUrlPatternMap.remove(sessionId);
     }

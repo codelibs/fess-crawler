@@ -23,7 +23,7 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class BasicAuthentication {
     private String host;
@@ -38,8 +38,9 @@ public class BasicAuthentication {
 
     private String password;
 
-    public BasicAuthentication(String host, Integer port, String realm,
-            String scheme, String username, String password) {
+    public BasicAuthentication(final String host, final Integer port,
+            final String realm, final String scheme, final String username,
+            final String password) {
         this.host = host;
         this.port = port;
         this.realm = realm;
@@ -54,10 +55,10 @@ public class BasicAuthentication {
         }
 
         int p;
-        if (port != null) {
-            p = port.intValue();
-        } else {
+        if (port == null) {
             p = AuthScope.ANY_PORT;
+        } else {
+            p = port.intValue();
         }
 
         String r = realm;
@@ -77,15 +78,15 @@ public class BasicAuthentication {
         if (StringUtil.isEmpty(username)) {
             throw new RobotSystemException("username is empty.");
         }
-        return new UsernamePasswordCredentials(username,
-                password != null ? password : "");
+        return new UsernamePasswordCredentials(username, password == null ? ""
+            : password);
     }
 
     public String getHost() {
         return host;
     }
 
-    public void setHost(String host) {
+    public void setHost(final String host) {
         this.host = host;
     }
 
@@ -93,7 +94,7 @@ public class BasicAuthentication {
         return port;
     }
 
-    public void setPort(Integer port) {
+    public void setPort(final Integer port) {
         this.port = port;
     }
 
@@ -101,7 +102,7 @@ public class BasicAuthentication {
         return realm;
     }
 
-    public void setRealm(String realm) {
+    public void setRealm(final String realm) {
         this.realm = realm;
     }
 
@@ -109,7 +110,7 @@ public class BasicAuthentication {
         return scheme;
     }
 
-    public void setScheme(String scheme) {
+    public void setScheme(final String scheme) {
         this.scheme = scheme;
     }
 
@@ -117,7 +118,7 @@ public class BasicAuthentication {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(final String username) {
         this.username = username;
     }
 
@@ -125,7 +126,7 @@ public class BasicAuthentication {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(final String password) {
         this.password = password;
     }
 }

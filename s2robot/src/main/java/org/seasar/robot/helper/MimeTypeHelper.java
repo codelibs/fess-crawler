@@ -20,11 +20,10 @@ import java.util.Map;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface MimeTypeHelper {
-    public abstract String getContentType(InputStream is, String filename);
+    String getContentType(InputStream is, String filename);
 
-    public abstract String getContentType(InputStream is,
-            Map<String, String> params);
+    String getContentType(InputStream is, Map<String, String> params);
 }

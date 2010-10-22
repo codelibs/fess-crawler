@@ -35,14 +35,15 @@ import org.xml.sax.InputSource;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         Extractor {
-    protected Pattern metaCharsetPattern = Pattern
+    protected Pattern metaCharsetPattern =
+        Pattern
             .compile(
-                    "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
+                Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Map<String, String> featureMap = new HashMap<String, String>();
 
@@ -50,34 +51,41 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
 
     protected String targetNodePath = "//HTML/BODY | //@alt | //@title";
 
-    private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
+    private ThreadLocal<CachedXPathAPI> xpathAPI =
+        new ThreadLocal<CachedXPathAPI>();
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
+     * java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
         try {
-            BufferedInputStream bis = new BufferedInputStream(in);
-            String enc = getEncoding(bis);
+            final BufferedInputStream bis = new BufferedInputStream(in);
+            final String enc = getEncoding(bis);
 
-            DOMParser parser = getDomParser();
-            InputSource inputSource = new InputSource(bis);
+            final DOMParser parser = getDomParser();
+            final InputSource inputSource = new InputSource(bis);
             inputSource.setEncoding(enc);
             parser.parse(inputSource);
-            Document document = parser.getDocument();
+            final Document document = parser.getDocument();
 
-            StringBuilder buf = new StringBuilder(255);
-            NodeList nodeList = getXPathAPI().selectNodeList(document,
-                    targetNodePath);
+            final StringBuilder buf = new StringBuilder(255);
+            final NodeList nodeList =
+                getXPathAPI().selectNodeList(document, targetNodePath);
             for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
+                final Node node = nodeList.item(i);
                 buf.append(node.getTextContent()).append(' ');
             }
-            return new ExtractData(buf.toString().replaceAll("\\s+", " ")
-                    .trim());
+            return new ExtractData(buf
+                .toString()
+                .replaceAll("\\s+", " ")
+                .trim());
         } catch (Exception e) {
             throw new ExtractException(e);
         }
@@ -93,12 +101,13 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
     }
 
     protected DOMParser getDomParser() {
-        DOMParser parser = new DOMParser();
+        final DOMParser parser = new DOMParser();
         try {
             // feature
             for (Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry
-                        .getValue()) ? true : false);
+                parser.setFeature(
+                    entry.getKey(),
+                    "true".equalsIgnoreCase(entry.getValue()) ? true : false);
             }
 
             // property
@@ -112,15 +121,20 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         return parser;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.impl.AbstractXmlExtractor#getEncodingPattern()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.extractor.impl.AbstractXmlExtractor#getEncodingPattern()
      */
     @Override
     protected Pattern getEncodingPattern() {
         return metaCharsetPattern;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.extractor.impl.AbstractXmlExtractor#getTagPattern()
      */
     @Override
@@ -129,7 +143,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         return null;
     }
 
-    public void addFeature(String key, String value) {
+    public void addFeature(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new RobotSystemException("key or value is null.");
         }
@@ -137,7 +151,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         featureMap.put(key, value);
     }
 
-    public void addProperty(String key, String value) {
+    public void addProperty(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new RobotSystemException("key or value is null.");
         }
@@ -149,7 +163,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         return featureMap;
     }
 
-    public void setFeatureMap(Map<String, String> featureMap) {
+    public void setFeatureMap(final Map<String, String> featureMap) {
         this.featureMap = featureMap;
     }
 
@@ -157,7 +171,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         return propertyMap;
     }
 
-    public void setPropertyMap(Map<String, String> propertyMap) {
+    public void setPropertyMap(final Map<String, String> propertyMap) {
         this.propertyMap = propertyMap;
     }
 
@@ -169,9 +183,10 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
     }
 
     /**
-     * @param metaCharsetPattern The metaCharsetPattern to set.
+     * @param metaCharsetPattern
+     *            The metaCharsetPattern to set.
      */
-    public void setMetaCharsetPattern(Pattern metaCharsetPattern) {
+    public void setMetaCharsetPattern(final Pattern metaCharsetPattern) {
         this.metaCharsetPattern = metaCharsetPattern;
     }
 
@@ -183,9 +198,10 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
     }
 
     /**
-     * @param targetNodePath The targetNodePath to set.
+     * @param targetNodePath
+     *            The targetNodePath to set.
      */
-    public void setTargetNodePath(String targetNodePath) {
+    public void setTargetNodePath(final String targetNodePath) {
         this.targetNodePath = targetNodePath;
     }
 }

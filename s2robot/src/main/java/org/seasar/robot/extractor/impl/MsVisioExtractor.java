@@ -29,14 +29,18 @@ import org.seasar.robot.extractor.Extractor;
  * Gets a text from . file.
  * 
  * @author shinsuke
- *
+ * 
  */
 public class MsVisioExtractor implements Extractor {
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
+     * java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }

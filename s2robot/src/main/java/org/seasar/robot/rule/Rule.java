@@ -26,10 +26,10 @@ import org.seasar.robot.processor.ResponseProcessor;
  */
 public interface Rule extends Serializable {
 
-    public abstract boolean match(ResponseData responseData);
+    boolean match(ResponseData responseData);
 
-    public abstract String getRuleId();
+    String getRuleId();
 
-    public abstract ResponseProcessor getResponseProcessor();
+    ResponseProcessor getResponseProcessor();
 
 }

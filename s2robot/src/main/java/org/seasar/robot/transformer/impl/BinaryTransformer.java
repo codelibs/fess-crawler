@@ -30,19 +30,23 @@ import org.seasar.robot.entity.ResultData;
  * BinaryTransformer stores WEB data as binary data.
  * 
  * @author shinsuke
- *
+ * 
  */
 public class BinaryTransformer extends AbstractTransformer {
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity.AccessResultData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity
+     * .AccessResultData)
      */
-    public ResultData transform(ResponseData responseData) {
+    public ResultData transform(final ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        ResultData resultData = new ResultData();
+        final ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
         BufferedInputStream bis = null;
 
@@ -53,24 +57,29 @@ public class BinaryTransformer extends AbstractTransformer {
             return resultData;
         } catch (IOException e) {
             throw new RobotSystemException(
-                    "Could not convert the input stream.", e);
+                "Could not convert the input stream.",
+                e);
         } finally {
             IOUtils.closeQuietly(bis);
         }
 
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity.AccessResultData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity
+     * .AccessResultData)
      */
-    public Object getData(AccessResultData accessResultData) {
+    public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                    + accessResultData.getTransformerName()
-                    + ". This transformer is " + getName() + ".");
+                + accessResultData.getTransformerName()
+                + ". This transformer is " + getName() + ".");
         }
-        byte[] data = accessResultData.getData();
+        final byte[] data = accessResultData.getData();
         if (data == null) {
             return null;
         }

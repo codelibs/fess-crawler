@@ -21,14 +21,14 @@ import org.seasar.robot.entity.ResultData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface Transformer {
 
-    public ResultData transform(ResponseData responseData);
+    ResultData transform(ResponseData responseData);
 
-    public Object getData(AccessResultData accessResultData);
+    Object getData(AccessResultData accessResultData);
 
-    public String getName();
+    String getName();
 
 }

@@ -22,16 +22,23 @@ import org.seasar.robot.service.UrlQueueService;
 
 /**
  * @author shinsuke
- *
+ * 
  */
-public class CrawlingParameterUtil {
-    private static final ThreadLocal<UrlQueue> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<UrlQueue>();
+public final class CrawlingParameterUtil {
+    private static final ThreadLocal<UrlQueue> URL_QUEUE_THREAD_LOCAL =
+        new ThreadLocal<UrlQueue>();
 
-    private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL = new ThreadLocal<S2RobotContext>();
+    private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL =
+        new ThreadLocal<S2RobotContext>();
 
-    private static final ThreadLocal<UrlQueueService> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<UrlQueueService>();
+    private static final ThreadLocal<UrlQueueService> URL_QUEUE_SERVICE_THREAD_LOCAL =
+        new ThreadLocal<UrlQueueService>();
 
-    private static final ThreadLocal<DataService> DATA_SERVICE_THREAD_LOCAL = new ThreadLocal<DataService>();
+    private static final ThreadLocal<DataService> DATA_SERVICE_THREAD_LOCAL =
+        new ThreadLocal<DataService>();
+
+    private CrawlingParameterUtil() {
+    }
 
     public static UrlQueue getUrlQueue() {
         if (URL_QUEUE_THREAD_LOCAL != null) {
@@ -40,12 +47,12 @@ public class CrawlingParameterUtil {
         return null;
     }
 
-    public static void setUrlQueue(UrlQueue urlQueue) {
+    public static void setUrlQueue(final UrlQueue urlQueue) {
         if (URL_QUEUE_THREAD_LOCAL != null) {
-            if (urlQueue != null) {
-                URL_QUEUE_THREAD_LOCAL.set(urlQueue);
-            } else {
+            if (urlQueue == null) {
                 URL_QUEUE_THREAD_LOCAL.remove();
+            } else {
+                URL_QUEUE_THREAD_LOCAL.set(urlQueue);
             }
         }
     }
@@ -57,12 +64,12 @@ public class CrawlingParameterUtil {
         return null;
     }
 
-    public static void setRobotContext(S2RobotContext robotContext) {
+    public static void setRobotContext(final S2RobotContext robotContext) {
         if (ROBOT_CONTEXT_THREAD_LOCAL != null) {
-            if (robotContext != null) {
-                ROBOT_CONTEXT_THREAD_LOCAL.set(robotContext);
-            } else {
+            if (robotContext == null) {
                 ROBOT_CONTEXT_THREAD_LOCAL.remove();
+            } else {
+                ROBOT_CONTEXT_THREAD_LOCAL.set(robotContext);
             }
         }
     }
@@ -74,12 +81,12 @@ public class CrawlingParameterUtil {
         return null;
     }
 
-    public static void setUrlQueueService(UrlQueueService urlQueueService) {
+    public static void setUrlQueueService(final UrlQueueService urlQueueService) {
         if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
-            if (urlQueueService != null) {
-                URL_QUEUE_SERVICE_THREAD_LOCAL.set(urlQueueService);
-            } else {
+            if (urlQueueService == null) {
                 URL_QUEUE_SERVICE_THREAD_LOCAL.remove();
+            } else {
+                URL_QUEUE_SERVICE_THREAD_LOCAL.set(urlQueueService);
             }
         }
     }
@@ -91,12 +98,12 @@ public class CrawlingParameterUtil {
         return null;
     }
 
-    public static void setDataService(DataService dataService) {
+    public static void setDataService(final DataService dataService) {
         if (DATA_SERVICE_THREAD_LOCAL != null) {
-            if (dataService != null) {
-                DATA_SERVICE_THREAD_LOCAL.set(dataService);
-            } else {
+            if (dataService == null) {
                 DATA_SERVICE_THREAD_LOCAL.remove();
+            } else {
+                DATA_SERVICE_THREAD_LOCAL.set(dataService);
             }
         }
     }

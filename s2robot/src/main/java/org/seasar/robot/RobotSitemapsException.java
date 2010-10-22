@@ -18,20 +18,20 @@ package org.seasar.robot;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class RobotSitemapsException extends RobotSystemException {
     private static final long serialVersionUID = 1L;
 
-    public RobotSitemapsException(String message, Throwable cause) {
+    public RobotSitemapsException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public RobotSitemapsException(String message) {
+    public RobotSitemapsException(final String message) {
         super(message);
     }
 
-    public RobotSitemapsException(Throwable cause) {
+    public RobotSitemapsException(final Throwable cause) {
         super(cause);
     }
 }

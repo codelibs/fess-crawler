@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
@@ -48,12 +47,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * FileSystemClient is S2RobotClient implementation to crawl files on a file
+ * system.
+ * 
  * @author shinsuke
- *
+ * 
  */
 public class FileSystemClient extends AbstractS2RobotClient {
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(FileSystemClient.class);
+        .getLogger(FileSystemClient.class);
 
     protected String charset = Constants.UTF_8;
 
@@ -61,13 +63,15 @@ public class FileSystemClient extends AbstractS2RobotClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
-    public ResponseData doGet(String uri) {
-        ResponseData responseData = new ResponseData();
+    public ResponseData doGet(final String uri) {
+        final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
-        String filePath = preprocessUri(uri);
+        final String filePath = preprocessUri(uri);
         responseData.setUrl(filePath);
 
         File file = null;
@@ -82,16 +86,18 @@ public class FileSystemClient extends AbstractS2RobotClient {
             responseData.setCharSet(charset);
             responseData.setContentLength(0);
         } else if (file.isFile()) {
-            MimeTypeHelper mimeTypeHelper = SingletonS2Container
-                    .getComponent("mimeTypeHelper");
+            final MimeTypeHelper mimeTypeHelper =
+                SingletonS2Container.getComponent("mimeTypeHelper");
             InputStream is = null;
             try {
                 is = new FileInputStream(file);
-                responseData.setMimeType(mimeTypeHelper.getContentType(is,
-                        file.getName()));
+                responseData.setMimeType(mimeTypeHelper.getContentType(
+                    is,
+                    file.getName()));
             } catch (Exception e) {
-                responseData.setMimeType(mimeTypeHelper.getContentType(null,
-                        file.getName()));
+                responseData.setMimeType(mimeTypeHelper.getContentType(
+                    null,
+                    file.getName()));
             } finally {
                 IOUtils.closeQuietly(is);
             }
@@ -99,13 +105,13 @@ public class FileSystemClient extends AbstractS2RobotClient {
             // check file size
             responseData.setContentLength(file.length());
             if (contentLengthHelper != null) {
-                long maxLength = contentLengthHelper.getMaxLength(responseData
-                        .getMimeType());
+                final long maxLength =
+                    contentLengthHelper
+                        .getMaxLength(responseData.getMimeType());
                 if (responseData.getContentLength() > maxLength) {
                     throw new MaxLengthExceededException("The content length ("
-                            + responseData.getContentLength()
-                            + " byte) is over " + maxLength
-                            + " byte. The url is " + filePath);
+                        + responseData.getContentLength() + " byte) is over "
+                        + maxLength + " byte. The url is " + filePath);
                 }
             }
 
@@ -115,17 +121,18 @@ public class FileSystemClient extends AbstractS2RobotClient {
             if (file.canRead()) {
                 File outputFile = null;
                 try {
-                    outputFile = File.createTempFile(
-                            "s2robot-FileSystemClient-", ".out");
+                    outputFile =
+                        File
+                            .createTempFile("s2robot-FileSystemClient-", ".out");
                     FileUtil.copy(file, outputFile);
                     responseData.setResponseBody(new TemporaryFileInputStream(
-                            outputFile));
+                        outputFile));
                 } catch (Exception e) {
                     logger.warn("I/O Exception.", e);
                     responseData.setHttpStatusCode(500);
                     if (outputFile != null && !outputFile.delete()) {
                         logger.warn("Could not delete "
-                                + outputFile.getAbsolutePath());
+                            + outputFile.getAbsolutePath());
                     }
                 }
             } else {
@@ -133,11 +140,11 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 responseData.setHttpStatusCode(403);
             }
         } else if (file.isDirectory()) {
-            Set<String> childUrlSet = new HashSet<String>();
-            File[] files = file.listFiles();
+            final Set<String> childUrlSet = new HashSet<String>();
+            final File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    String chileUri = f.toURI().toASCIIString();
+                    final String chileUri = f.toURI().toASCIIString();
                     childUrlSet.add(chileUri);
                 }
             }
@@ -151,7 +158,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
         return responseData;
     }
 
-    protected String preprocessUri(String uri) {
+    protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
             throw new RobotSystemException("The uri is empty.");
         }
@@ -161,13 +168,13 @@ public class FileSystemClient extends AbstractS2RobotClient {
             filePath = "file://" + filePath;
         }
 
-        StringBuilder buf = new StringBuilder(filePath.length() + 100);
+        final StringBuilder buf = new StringBuilder(filePath.length() + 100);
         try {
             for (char c : filePath.toCharArray()) {
                 if (c == ' ') {
                     buf.append("%20");
                 } else {
-                    String str = String.valueOf(c);
+                    final String str = String.valueOf(c);
                     if (StringUtils.isAsciiPrintable(str)) {
                         buf.append(c);
                     } else {
@@ -181,21 +188,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
         return buf.toString();
     }
 
-    @Deprecated
-    protected String decodeUri(String uri) {
-        if (StringUtil.isBlank(uri)) {
-            return uri;
-        }
-
-        try {
-            return URLDecoder.decode(uri, charset);
-        } catch (UnsupportedEncodingException e) {
-            throw new RobotSystemException("Unsupported encoding: " + charset,
-                    e);
-        }
-    }
-
-    protected String geCharSet(File file) {
+    protected String geCharSet(final File file) {
         return charset;
     }
 
@@ -203,16 +196,18 @@ public class FileSystemClient extends AbstractS2RobotClient {
         return charset;
     }
 
-    public void setCharset(String charset) {
+    public void setCharset(final String charset) {
         this.charset = charset;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.client.S2RobotClient#doHead(java.lang.String)
      */
-    public ResponseData doHead(String url) {
+    public ResponseData doHead(final String url) {
         try {
-            ResponseData responseData = doGet(url);
+            final ResponseData responseData = doGet(url);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
         } catch (ChildUrlsException e) {

@@ -30,9 +30,10 @@ public class DefaultIntervalController extends AbstractIntervalController {
     protected long delayMillisForWaitingNewUrl = 1000L;
 
     public DefaultIntervalController() {
+        super();
     }
 
-    public DefaultIntervalController(Map<String, Long> params) {
+    public DefaultIntervalController(final Map<String, Long> params) {
         Long millis;
 
         millis = params.get("delayMillisAfterProcessing");
@@ -57,8 +58,11 @@ public class DefaultIntervalController extends AbstractIntervalController {
 
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.interval.impl.AbstractIntervalController#delayAfterProcessing()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.interval.impl.AbstractIntervalController#
+     * delayAfterProcessing()
      */
     @Override
     protected void delayAfterProcessing() {
@@ -71,8 +75,12 @@ public class DefaultIntervalController extends AbstractIntervalController {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.interval.impl.AbstractIntervalController#delayAtNoUrlInQueue()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.interval.impl.AbstractIntervalController#delayAtNoUrlInQueue
+     * ()
      */
     @Override
     protected void delayAtNoUrlInQueue() {
@@ -85,8 +93,11 @@ public class DefaultIntervalController extends AbstractIntervalController {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.interval.impl.AbstractIntervalController#delayBeforeProcessing()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.interval.impl.AbstractIntervalController#
+     * delayBeforeProcessing()
      */
     @Override
     protected void delayBeforeProcessing() {
@@ -99,8 +110,11 @@ public class DefaultIntervalController extends AbstractIntervalController {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.interval.impl.AbstractIntervalController#delayForWaitingNewUrl()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.interval.impl.AbstractIntervalController#
+     * delayForWaitingNewUrl()
      */
     @Override
     protected void delayForWaitingNewUrl() {

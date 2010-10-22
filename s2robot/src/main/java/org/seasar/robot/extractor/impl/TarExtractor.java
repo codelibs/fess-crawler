@@ -38,43 +38,50 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class TarExtractor implements Extractor {
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(TarExtractor.class);
+        .getLogger(TarExtractor.class);
 
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
+     * java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
 
-        MimeTypeHelper mimeTypeHelper = SingletonS2Container
-                .getComponent("mimeTypeHelper");
+        final MimeTypeHelper mimeTypeHelper =
+            SingletonS2Container.getComponent("mimeTypeHelper");
         if (mimeTypeHelper == null) {
             throw new RobotSystemException("MimeTypeHelper is unavailable.");
         }
 
-        ExtractorFactory extractorFactory = SingletonS2Container
-                .getComponent("extractorFactory");
+        final ExtractorFactory extractorFactory =
+            SingletonS2Container.getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new RobotSystemException("ExtractorFactory is unavailable.");
         }
 
-        return new ExtractData(getTextInternal(in, mimeTypeHelper,
-                extractorFactory));
+        return new ExtractData(getTextInternal(
+            in,
+            mimeTypeHelper,
+            extractorFactory));
     }
 
-    protected String getTextInternal(InputStream in,
-            MimeTypeHelper mimeTypeHelper, ExtractorFactory extractorFactory) {
+    protected String getTextInternal(final InputStream in,
+            final MimeTypeHelper mimeTypeHelper,
+            final ExtractorFactory extractorFactory) {
 
-        StringBuilder buf = new StringBuilder(1000);
+        final StringBuilder buf = new StringBuilder(1000);
 
         ArchiveInputStream ais = null;
 
@@ -82,24 +89,26 @@ public class TarExtractor implements Extractor {
             ais = archiveStreamFactory.createArchiveInputStream("tar", in);
             TarArchiveEntry entry = null;
             while ((entry = (TarArchiveEntry) ais.getNextEntry()) != null) {
-                String filename = entry.getName();
-                String mimeType = mimeTypeHelper.getContentType(null, filename);
+                final String filename = entry.getName();
+                final String mimeType =
+                    mimeTypeHelper.getContentType(null, filename);
                 if (mimeType != null) {
-                    Extractor extractor = extractorFactory
-                            .getExtractor(mimeType);
+                    final Extractor extractor =
+                        extractorFactory.getExtractor(mimeType);
                     if (extractor != null) {
                         try {
-                            Map<String, String> map = new HashMap<String, String>();
+                            final Map<String, String> map =
+                                new HashMap<String, String>();
                             map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                             buf.append(extractor.getText(
-                                    new IgnoreCloseInputStream(ais), map)
-                                    .getContent());
+                                new IgnoreCloseInputStream(ais),
+                                map).getContent());
                             buf.append('\n');
                         } catch (Exception e) {
                             if (logger.isDebugEnabled()) {
                                 logger.debug(
-                                        "Exception in an internal extractor.",
-                                        e);
+                                    "Exception in an internal extractor.",
+                                    e);
                             }
                         }
                     }

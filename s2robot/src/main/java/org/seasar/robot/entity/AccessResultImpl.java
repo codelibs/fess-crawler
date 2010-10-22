@@ -25,7 +25,7 @@ import org.seasar.robot.Constants;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class AccessResultImpl implements AccessResult {
     protected Long id;
@@ -57,185 +57,239 @@ public class AccessResultImpl implements AccessResult {
     @Binding(bindingType = BindingType.NONE)
     protected AccessResultData accessResultData;
 
-    public void init(ResponseData responseData, ResultData resultData) {
+    public void init(final ResponseData responseData,
+            final ResultData resultData) {
 
         setCreateTime(new Timestamp(new Date().getTime()));
         if (responseData != null) {
             Beans.copy(responseData, this).execute();
         }
 
-        AccessResultData accessResultData = new AccessResultDataImpl();
+        final AccessResultData accessResultData = new AccessResultDataImpl();
         if (resultData != null) {
             Beans.copy(resultData, accessResultData).execute();
         }
         setAccessResultData(accessResultData);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getId()
      */
     public Long getId() {
         return id;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setId(java.lang.Long)
      */
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getSessionId()
      */
     public String getSessionId() {
         return sessionId;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setSessionId(java.lang.String)
      */
-    public void setSessionId(String sessionId) {
+    public void setSessionId(final String sessionId) {
         this.sessionId = sessionId;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getRuleId()
      */
     public String getRuleId() {
         return ruleId;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setRuleId(java.lang.String)
      */
-    public void setRuleId(String ruleId) {
+    public void setRuleId(final String ruleId) {
         this.ruleId = ruleId;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getUrl()
      */
     public String getUrl() {
         return url;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setUrl(java.lang.String)
      */
-    public void setUrl(String url) {
+    public void setUrl(final String url) {
         this.url = url;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getParentUrl()
      */
     public String getParentUrl() {
         return parentUrl;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setParentUrl(java.lang.String)
      */
-    public void setParentUrl(String parentUrl) {
+    public void setParentUrl(final String parentUrl) {
         this.parentUrl = parentUrl;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getStatus()
      */
     public Integer getStatus() {
         return status;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setStatus(java.lang.Integer)
      */
-    public void setStatus(Integer status) {
+    public void setStatus(final Integer status) {
         this.status = status;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getHttpStatusCode()
      */
     public Integer getHttpStatusCode() {
         return httpStatusCode;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.entity.AccessResult#setHttpStatusCode(java.lang.Integer)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.entity.AccessResult#setHttpStatusCode(java.lang.Integer)
      */
-    public void setHttpStatusCode(Integer httpStatusCode) {
+    public void setHttpStatusCode(final Integer httpStatusCode) {
         this.httpStatusCode = httpStatusCode;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getMethod()
      */
     public String getMethod() {
         return method;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setMethod(java.lang.String)
      */
-    public void setMethod(String method) {
+    public void setMethod(final String method) {
         this.method = method;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getMimeType()
      */
     public String getMimeType() {
         return mimeType;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#setMimeType(java.lang.String)
      */
-    public void setMimeType(String mimeType) {
+    public void setMimeType(final String mimeType) {
         this.mimeType = mimeType;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getCreateTime()
      */
     public Timestamp getCreateTime() {
         return createTime;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.entity.AccessResult#setCreateTime(java.sql.Timestamp)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.entity.AccessResult#setCreateTime(java.sql.Timestamp)
      */
-    public void setCreateTime(Timestamp createTime) {
+    public void setCreateTime(final Timestamp createTime) {
         this.createTime = createTime;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getAccessResultDataAsOne()
      */
     public AccessResultData getAccessResultData() {
         return accessResultData;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.entity.AccessResult#setAccessResultDataAsOne(org.seasar.robot.db.exentity.AccessResultData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.entity.AccessResult#setAccessResultDataAsOne(org.seasar
+     * .robot.db.exentity.AccessResultData)
      */
-    public void setAccessResultData(AccessResultData accessResultDataAsOne) {
+    public void setAccessResultData(final AccessResultData accessResultDataAsOne) {
         this.accessResultData = accessResultDataAsOne;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getExecutionTime()
      */
     public Integer getExecutionTime() {
         return executionTime;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.entity.AccessResult#setExecutionTime(java.lang.Integer)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.entity.AccessResult#setExecutionTime(java.lang.Integer)
      */
-    public void setExecutionTime(Integer executionTime) {
+    public void setExecutionTime(final Integer executionTime) {
         this.executionTime = executionTime;
     }
 
@@ -243,7 +297,7 @@ public class AccessResultImpl implements AccessResult {
         return contentLength;
     }
 
-    public void setContentLength(Long contentLength) {
+    public void setContentLength(final Long contentLength) {
         this.contentLength = contentLength;
     }
 
@@ -251,7 +305,7 @@ public class AccessResultImpl implements AccessResult {
         return lastModified;
     }
 
-    public void setLastModified(Timestamp lastModified) {
+    public void setLastModified(final Timestamp lastModified) {
         this.lastModified = lastModified;
     }
 

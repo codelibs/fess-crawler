@@ -69,13 +69,14 @@ import org.xml.sax.InputSource;
  */
 public class HtmlTransformer extends AbstractTransformer {
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(HtmlTransformer.class);
+        .getLogger(HtmlTransformer.class);
 
     protected Map<String, String> featureMap = new HashMap<String, String>();
 
     protected Map<String, String> propertyMap = new HashMap<String, String>();
 
-    protected Map<String, String> childUrlRuleMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> childUrlRuleMap =
+        new LinkedHashMap<String, String>();
 
     @Binding(bindingType = BindingType.MAY)
     protected String defaultEncoding;
@@ -85,20 +86,22 @@ public class HtmlTransformer extends AbstractTransformer {
     protected int preloadSizeForCharset = 2048;
 
     @Binding(bindingType = BindingType.MAY)
-    protected Pattern invalidUrlPattern = Pattern.compile("^\\s*javascript:|"
-            + "^\\s*mailto:|" + "^\\s*irc:|" + "^\\s*skype:|" + "^\\s*about:|"
-            + "^\\s*fscommand:|" + "^\\s*aim:|" + "^\\s*msnim:|"
-            + "^\\s*news:|" + "^\\s*tel:|" + "^\\s*unsaved:|" + "^\\s*callto:",
-            Pattern.CASE_INSENSITIVE);
+    protected Pattern invalidUrlPattern = Pattern.compile(
+        "^\\s*javascript:|" + "^\\s*mailto:|" + "^\\s*irc:|" + "^\\s*skype:|"
+            + "^\\s*about:|" + "^\\s*fscommand:|" + "^\\s*aim:|"
+            + "^\\s*msnim:|" + "^\\s*news:|" + "^\\s*tel:|" + "^\\s*unsaved:|"
+            + "^\\s*callto:",
+        Pattern.CASE_INSENSITIVE);
 
-    private ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
+    private ThreadLocal<CachedXPathAPI> xpathAPI =
+        new ThreadLocal<CachedXPathAPI>();
 
-    public ResultData transform(ResponseData responseData) {
+    public ResultData transform(final ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        File tempFile = createResponseBodyFile(responseData);
+        final File tempFile = createResponseBodyFile(responseData);
 
         FileInputStream fis = null;
 
@@ -121,12 +124,12 @@ public class HtmlTransformer extends AbstractTransformer {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw new RobotSystemException("Could not load response data: "
-                    + responseData.getUrl(), e);
+                + responseData.getUrl(), e);
         } finally {
             IOUtils.closeQuietly(fis);
         }
 
-        ResultData resultData = new ResultData();
+        final ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
 
         // data
@@ -185,9 +188,9 @@ public class HtmlTransformer extends AbstractTransformer {
         return resultData;
     }
 
-    protected File createResponseBodyFile(ResponseData responseData) {
+    protected File createResponseBodyFile(final ResponseData responseData) {
         File tempFile = null;
-        InputStream is = responseData.getResponseBody();
+        final InputStream is = responseData.getResponseBody();
         FileOutputStream fos = null;
         try {
             tempFile = File.createTempFile("s2robot-HtmlTransformer-", ".html");
@@ -200,8 +203,8 @@ public class HtmlTransformer extends AbstractTransformer {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw new RobotCrawlAccessException(
-                    "Could not read a response body: " + responseData.getUrl(),
-                    e);
+                "Could not read a response body: " + responseData.getUrl(),
+                e);
         } finally {
             IOUtils.closeQuietly(is);
             IOUtils.closeQuietly(fos);
@@ -209,16 +212,16 @@ public class HtmlTransformer extends AbstractTransformer {
         return tempFile;
     }
 
-    protected boolean isHtml(ResponseData responseData) {
-        String mimeType = responseData.getMimeType();
+    protected boolean isHtml(final ResponseData responseData) {
+        final String mimeType = responseData.getMimeType();
         if ("text/html".equals(mimeType)
-                || "application/xhtml+xml".equals(mimeType)) {
+            || "application/xhtml+xml".equals(mimeType)) {
             return true;
         }
         return false;
     }
 
-    public void addChildUrlRule(String tagName, String attrName) {
+    public void addChildUrlRule(final String tagName, final String attrName) {
         if (StringUtil.isNotBlank(tagName) && StringUtil.isNotBlank(attrName)) {
             childUrlRuleMap.put(tagName, attrName);
         }
@@ -233,21 +236,24 @@ public class HtmlTransformer extends AbstractTransformer {
         return cachedXPathAPI;
     }
 
-    protected void storeChildUrls(ResponseData responseData,
-            ResultData resultData) {
+    protected void storeChildUrls(final ResponseData responseData,
+            final ResultData resultData) {
         List<String> urlList = new ArrayList<String>();
         try {
-            DOMParser parser = getDomParser();
+            final DOMParser parser = getDomParser();
             parser.parse(new InputSource(responseData.getResponseBody()));
-            Document document = parser.getDocument();
+            final Document document = parser.getDocument();
             // base href
-            String baseHref = getBaseHref(document);
-            URL url = new URL(baseHref != null ? baseHref
-                    : responseData.getUrl());
+            final String baseHref = getBaseHref(document);
+            final URL url =
+                new URL(baseHref == null ? responseData.getUrl() : baseHref);
             for (Map.Entry<String, String> entry : childUrlRuleMap.entrySet()) {
-                urlList.addAll(getUrlFromTagAttribute(url, document,
-                        entry.getKey(), entry.getValue(),
-                        responseData.getCharSet()));
+                urlList.addAll(getUrlFromTagAttribute(
+                    url,
+                    document,
+                    entry.getKey(),
+                    entry.getValue(),
+                    responseData.getCharSet()));
             }
             urlList = convertChildUrlList(urlList);
         } catch (Exception e) {
@@ -257,16 +263,16 @@ public class HtmlTransformer extends AbstractTransformer {
         }
         resultData.addAllUrl(urlList);
 
-        String u = responseData.getUrl();
+        final String u = responseData.getUrl();
         resultData.removeUrl(u);
         resultData.removeUrl(getDuplicateUrl(u));
     }
 
-    protected List<String> convertChildUrlList(List<String> urlList) {
+    protected List<String> convertChildUrlList(final List<String> urlList) {
         try {
-            UrlConvertHelper urlConvertHelper = SingletonS2Container
-                    .getComponent(UrlConvertHelper.class);
-            List<String> newUrlList = new ArrayList<String>();
+            final UrlConvertHelper urlConvertHelper =
+                SingletonS2Container.getComponent(UrlConvertHelper.class);
+            final List<String> newUrlList = new ArrayList<String>();
             for (String url : urlList) {
                 newUrlList.add(urlConvertHelper.convert(url));
             }
@@ -277,19 +283,21 @@ public class HtmlTransformer extends AbstractTransformer {
         return urlList;
     }
 
-    protected void storeData(ResponseData responseData, ResultData resultData) {
-        byte[] data = InputStreamUtil.getBytes(responseData.getResponseBody());
+    protected void storeData(final ResponseData responseData,
+            final ResultData resultData) {
+        final byte[] data =
+            InputStreamUtil.getBytes(responseData.getResponseBody());
         resultData.setData(data);
         resultData.setEncoding(responseData.getCharSet());
     }
 
-    protected void updateCharset(ResponseData responseData) {
-        String encoding = loadCharset(responseData.getResponseBody());
+    protected void updateCharset(final ResponseData responseData) {
+        final String encoding = loadCharset(responseData.getResponseBody());
         if (encoding == null) {
-            if (defaultEncoding != null) {
-                responseData.setCharSet(defaultEncoding);
-            } else if (responseData.getCharSet() == null) {
+            if (defaultEncoding == null) {
                 responseData.setCharSet(Constants.UTF_8);
+            } else if (responseData.getCharSet() == null) {
+                responseData.setCharSet(defaultEncoding);
             }
         } else {
             responseData.setCharSet(encoding.trim());
@@ -300,7 +308,7 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
-    protected boolean isSupportedCharset(String charsetName) {
+    protected boolean isSupportedCharset(final String charsetName) {
         if (charsetName == null) {
             return false;
         }
@@ -312,15 +320,15 @@ public class HtmlTransformer extends AbstractTransformer {
         return true;
     }
 
-    protected String loadCharset(InputStream inputStream) {
+    protected String loadCharset(final InputStream inputStream) {
         BufferedInputStream bis = null;
         String encoding = null;
         try {
             bis = new BufferedInputStream(inputStream);
-            byte[] buffer = new byte[preloadSizeForCharset];
-            int size = bis.read(buffer);
+            final byte[] buffer = new byte[preloadSizeForCharset];
+            final int size = bis.read(buffer);
             if (size != -1) {
-                String content = new String(buffer, 0, size);
+                final String content = new String(buffer, 0, size);
                 encoding = parseCharset(content);
             }
         } catch (IOException e) {
@@ -328,27 +336,29 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         try {
-            EncodingHelper encodingHelper = SingletonS2Container
-                    .getComponent(EncodingHelper.class);
+            final EncodingHelper encodingHelper =
+                SingletonS2Container.getComponent(EncodingHelper.class);
             encoding = encodingHelper.normalize(encoding);
         } catch (Exception e) {
-            // nothing
+            // NOP
         }
 
         return encoding;
     }
 
-    protected String parseCharset(String content) {
-        Pattern pattern = Pattern.compile("; *charset *= *([a-zA-Z0-9\\-_]+)",
+    protected String parseCharset(final String content) {
+        final Pattern pattern =
+            Pattern.compile(
+                "; *charset *= *([a-zA-Z0-9\\-_]+)",
                 Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(content);
+        final Matcher matcher = pattern.matcher(content);
         if (matcher.find()) {
             return matcher.group(1);
         }
         return null;
     }
 
-    protected String getDuplicateUrl(String url) {
+    protected String getDuplicateUrl(final String url) {
         if (url.endsWith("/")) {
             return url.substring(0, url.length() - 1);
         } else {
@@ -358,12 +368,13 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected DOMParser getDomParser() {
-        DOMParser parser = new DOMParser();
+        final DOMParser parser = new DOMParser();
         try {
             // feature
             for (Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry
-                        .getValue()) ? true : false);
+                parser.setFeature(
+                    entry.getKey(),
+                    "true".equalsIgnoreCase(entry.getValue()) ? true : false);
             }
 
             // property
@@ -377,7 +388,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return parser;
     }
 
-    protected String getBaseHref(Document document) {
+    protected String getBaseHref(final Document document) {
         NodeList list;
         try {
             list = getXPathAPI().selectNodeList(document, "//BASE");
@@ -386,7 +397,7 @@ public class HtmlTransformer extends AbstractTransformer {
             return null;
         }
         if (list.getLength() > 0) {
-            Element element = (Element) list.item(0);
+            final Element element = (Element) list.item(0);
             String attrValue = element.getAttribute("href");
             if (StringUtil.isNotBlank(attrValue)) {
                 // if starting with www, append a protocol
@@ -399,20 +410,24 @@ public class HtmlTransformer extends AbstractTransformer {
         return null;
     }
 
-    protected List<String> getUrlFromTagAttribute(URL url, Document document,
-            String xpath, String attr, String encoding) {
+    protected List<String> getUrlFromTagAttribute(final URL url,
+            final Document document, final String xpath, final String attr,
+            final String encoding) {
         if (logger.isDebugEnabled()) {
             logger.debug("Base URL: " + url);
         }
-        List<String> urlList = new ArrayList<String>();
+        final List<String> urlList = new ArrayList<String>();
         try {
-            NodeList list = getXPathAPI().selectNodeList(document, xpath);
+            final NodeList list = getXPathAPI().selectNodeList(document, xpath);
             for (int i = 0; i < list.getLength(); i++) {
-                Element element = (Element) list.item(i);
-                String attrValue = element.getAttribute(attr);
+                final Element element = (Element) list.item(i);
+                final String attrValue = element.getAttribute(attr);
                 if (isValidPath(attrValue)) {
-                    addChildUrlFromTagAttribute(urlList, url, attrValue,
-                            encoding);
+                    addChildUrlFromTagAttribute(
+                        urlList,
+                        url,
+                        attrValue,
+                        encoding);
                 }
             }
         } catch (TransformerException e) {
@@ -421,12 +436,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return urlList;
     }
 
-    protected void addChildUrlFromTagAttribute(List<String> urlList, URL url,
-            String attrValue, String encoding) {
+    protected void addChildUrlFromTagAttribute(final List<String> urlList,
+            final URL url, final String attrValue, final String encoding) {
         try {
-            URL childUrl = new URL(url, attrValue.trim());
-            String u = encodeUrl(normalizeUrl(childUrl.toExternalForm()),
-                    encoding);
+            final URL childUrl = new URL(url, attrValue.trim());
+            final String u =
+                encodeUrl(normalizeUrl(childUrl.toExternalForm()), encoding);
             if (logger.isDebugEnabled()) {
                 logger.debug(attrValue + " -> " + u);
             }
@@ -445,12 +460,12 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
-    protected String encodeUrl(String url, String enc) {
+    protected String encodeUrl(final String url, final String enc) {
         if (StringUtil.isBlank(url) || StringUtil.isBlank(enc)) {
             return url;
         }
 
-        StringBuilder buf = new StringBuilder(url.length() + 100);
+        final StringBuilder buf = new StringBuilder(url.length() + 100);
         for (char c : url.toCharArray()) {
             if (CharUtil.isUrlChar(c)) {
                 buf.append(c);
@@ -458,13 +473,14 @@ public class HtmlTransformer extends AbstractTransformer {
                 try {
                     buf.append(URLEncoder.encode(String.valueOf(c), enc));
                 } catch (UnsupportedEncodingException e) {
+                    // NOP
                 }
             }
         }
         return buf.toString();
     }
 
-    protected String normalizeUrl(String u) {
+    protected String normalizeUrl(final String u) {
         if (u == null) {
             return null;
         }
@@ -472,7 +488,7 @@ public class HtmlTransformer extends AbstractTransformer {
         // trim
         String url = u.trim();
 
-        int idx = url.indexOf("#");
+        int idx = url.indexOf('#');
         if (idx >= 0) {
             url = url.substring(0, idx);
         }
@@ -482,7 +498,7 @@ public class HtmlTransformer extends AbstractTransformer {
             url = url.replaceFirst(";jsessionid=[a-zA-Z0-9\\.]*", "");
         }
 
-        if (url.indexOf("/../") >= 0 || url.indexOf(" ") >= 0) {
+        if (url.indexOf("/../") >= 0 || url.indexOf(' ') >= 0) {
             // invalid URL
             if (logger.isDebugEnabled()) {
                 logger.debug("INVALID URL: " + url);
@@ -493,12 +509,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return url;
     }
 
-    protected boolean isValidPath(String path) {
+    protected boolean isValidPath(final String path) {
         if (StringUtil.isBlank(path)) {
             return false;
         }
 
-        Matcher matcher = invalidUrlPattern.matcher(path);
+        final Matcher matcher = invalidUrlPattern.matcher(path);
         if (matcher.find()) {
             return false;
         }
@@ -506,7 +522,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return true;
     }
 
-    public void addFeature(String key, String value) {
+    public void addFeature(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new RobotSystemException("key or value is null.");
         }
@@ -514,7 +530,7 @@ public class HtmlTransformer extends AbstractTransformer {
         featureMap.put(key, value);
     }
 
-    public void addProperty(String key, String value) {
+    public void addProperty(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new RobotSystemException("key or value is null.");
         }
@@ -522,35 +538,35 @@ public class HtmlTransformer extends AbstractTransformer {
         propertyMap.put(key, value);
     }
 
-    /** 
+    /**
      * Returns data as HTML content of String.
      * 
      */
-    public Object getData(AccessResultData accessResultData) {
+    public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                    + accessResultData.getTransformerName()
-                    + ". This transformer is " + getName() + ".");
+                + accessResultData.getTransformerName()
+                + ". This transformer is " + getName() + ".");
         }
 
-        byte[] data = accessResultData.getData();
+        final byte[] data = accessResultData.getData();
         if (data == null) {
             return null;
         }
-        String encoding = accessResultData.getEncoding();
+        final String encoding = accessResultData.getEncoding();
         try {
-            return new String(data, encoding != null ? encoding
-                    : Constants.UTF_8);
+            return new String(data, encoding == null ? Constants.UTF_8
+                : encoding);
         } catch (UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + encoding
-                        + ". Changed to " + Constants.UTF_8, e);
+                    + ". Changed to " + Constants.UTF_8, e);
             }
             try {
                 return new String(data, Constants.UTF_8);
             } catch (UnsupportedEncodingException e1) {
-                throw new RobotSystemException("Unexpected exception");
+                throw new RobotSystemException("Unexpected exception", e1);
             }
         }
     }
@@ -559,7 +575,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return featureMap;
     }
 
-    public void setFeatureMap(Map<String, String> featureMap) {
+    public void setFeatureMap(final Map<String, String> featureMap) {
         this.featureMap = featureMap;
     }
 
@@ -567,7 +583,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return propertyMap;
     }
 
-    public void setPropertyMap(Map<String, String> propertyMap) {
+    public void setPropertyMap(final Map<String, String> propertyMap) {
         this.propertyMap = propertyMap;
     }
 
@@ -575,7 +591,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return childUrlRuleMap;
     }
 
-    public void setChildUrlRuleMap(Map<String, String> childUrlRuleMap) {
+    public void setChildUrlRuleMap(final Map<String, String> childUrlRuleMap) {
         this.childUrlRuleMap = childUrlRuleMap;
     }
 
@@ -583,7 +599,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return defaultEncoding;
     }
 
-    public void setDefaultEncoding(String defaultEncoding) {
+    public void setDefaultEncoding(final String defaultEncoding) {
         this.defaultEncoding = defaultEncoding;
     }
 
@@ -591,7 +607,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return preloadSizeForCharset;
     }
 
-    public void setPreloadSizeForCharset(int preloadSizeForCharset) {
+    public void setPreloadSizeForCharset(final int preloadSizeForCharset) {
         this.preloadSizeForCharset = preloadSizeForCharset;
     }
 
@@ -599,7 +615,7 @@ public class HtmlTransformer extends AbstractTransformer {
         return invalidUrlPattern;
     }
 
-    public void setInvalidUrlPattern(Pattern invalidUrlPattern) {
+    public void setInvalidUrlPattern(final Pattern invalidUrlPattern) {
         this.invalidUrlPattern = invalidUrlPattern;
     }
 }

@@ -23,6 +23,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,29 +35,29 @@ import org.seasar.robot.entity.RobotsTxt;
 public class RobotsTxtHelper {
 
     protected static final Pattern USER_AGENT = Pattern
-            .compile("^User-agent:\\s*([^\\s]+)\\s*$");
+        .compile("^User-agent:\\s*([^\\s]+)\\s*$");
 
     protected static final Pattern DISALLOW = Pattern
-            .compile("^Disallow:\\s*([^\\s]*)\\s*$");
+        .compile("^Disallow:\\s*([^\\s]*)\\s*$");
 
     protected static final Pattern ALLOW = Pattern
-            .compile("^Allow:\\s*([^\\s]*)\\s*$");
+        .compile("^Allow:\\s*([^\\s]*)\\s*$");
 
     protected static final Pattern CRAWL_DELAY = Pattern
-            .compile("^Crawl-delay:\\s*([^\\s]+)\\s*$");
+        .compile("^Crawl-delay:\\s*([^\\s]+)\\s*$");
 
     // TODO sitemaps
 
-    public RobotsTxt parse(String text) {
-        String[] lines = text.split("(\\r\\n)|\\r|\\n");
+    public RobotsTxt parse(final String text) {
+        final String[] lines = text.split("(\\r\\n)|\\r|\\n");
         return parse(java.util.Arrays.asList(lines));
     }
 
-    public RobotsTxt parse(InputStream stream) {
+    public RobotsTxt parse(final InputStream stream) {
         return parse(stream, Constants.UTF_8);
     }
 
-    public RobotsTxt parse(InputStream stream, String charsetName) {
+    public RobotsTxt parse(final InputStream stream, final String charsetName) {
         try {
             return parse(new InputStreamReader(stream, charsetName));
         } catch (UnsupportedEncodingException e) {
@@ -64,14 +65,14 @@ public class RobotsTxtHelper {
         }
     }
 
-    public RobotsTxt parse(Reader reader) {
+    public RobotsTxt parse(final Reader reader) {
         BufferedReader br;
         if (reader instanceof BufferedReader) {
             br = (BufferedReader) reader;
         } else {
             br = new BufferedReader(reader);
         }
-        ArrayList<String> lines = new ArrayList<String>();
+        final List<String> lines = new ArrayList<String>();
         String line;
         try {
             while ((line = br.readLine()) != null) {
@@ -83,8 +84,8 @@ public class RobotsTxtHelper {
         }
     }
 
-    protected RobotsTxt parse(List<String> lines) {
-        RobotsTxt robotsTxt = new RobotsTxt();
+    protected RobotsTxt parse(final List<String> lines) {
+        final RobotsTxt robotsTxt = new RobotsTxt();
         RobotsTxt.Directives currentDirectives = null;
         for (String line : lines) {
             line = stripComment(line);
@@ -93,7 +94,7 @@ public class RobotsTxtHelper {
             if (StringUtil.isEmpty(line)) {
                 continue;
             } else if ((value = getValue(USER_AGENT, line)) != null) {
-                String userAgent = value.toLowerCase();
+                final String userAgent = value.toLowerCase(Locale.ENGLISH);
                 currentDirectives = robotsTxt.getDirectives(userAgent, null);
                 if (currentDirectives == null) {
                     currentDirectives = new RobotsTxt.Directives();
@@ -103,8 +104,9 @@ public class RobotsTxtHelper {
                 if (currentDirectives == null) {
                     continue; // the format of robots.txt is invalid
                 }
-                if (value.length() > 0)
+                if (value.length() > 0) {
                     currentDirectives.addDisallow(value);
+                }
             } else if ((value = getValue(ALLOW, line)) != null) {
                 if (currentDirectives == null) {
                     continue; // the format of robots.txt is invalid
@@ -115,8 +117,9 @@ public class RobotsTxtHelper {
                     continue; // the format of robots.txt is invalid
                 }
                 try {
-                    currentDirectives.setCrawlDelay(Math.max(0, Integer
-                            .parseInt(value)));
+                    currentDirectives.setCrawlDelay(Math.max(
+                        0,
+                        Integer.parseInt(value)));
                 } catch (NumberFormatException e) {
                     continue; // the format of robots.txt is invalid
                 }
@@ -125,18 +128,16 @@ public class RobotsTxtHelper {
         return robotsTxt;
     }
 
-    protected String getValue(Pattern pattern, String line) {
-        Matcher m = pattern.matcher(line);
-        if (m.matches()) {
-            if (m.groupCount() > 0) {
-                return m.group(1);
-            }
+    protected String getValue(final Pattern pattern, final String line) {
+        final Matcher m = pattern.matcher(line);
+        if (m.matches() && m.groupCount() > 0) {
+            return m.group(1);
         }
         return null;
     }
 
-    protected String stripComment(String line) {
-        int commentIndex = line.indexOf('#');
+    protected String stripComment(final String line) {
+        final int commentIndex = line.indexOf('#');
         if (commentIndex != -1) {
             return line.substring(0, commentIndex);
         }

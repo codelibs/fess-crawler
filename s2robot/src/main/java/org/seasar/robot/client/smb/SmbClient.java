@@ -81,7 +81,7 @@ public class SmbClient extends AbstractS2RobotClient {
     @InitMethod
     public void init() {
         // user agent
-        NtlmPasswordAuthentication ntlmPasswordAuthentication =
+        final NtlmPasswordAuthentication ntlmPasswordAuthentication =
             getInitParameter(
                 NTLM_PASSWORD_AUTHENTICATION_PROPERTY,
                 this.ntlmPasswordAuthentication);
@@ -100,10 +100,10 @@ public class SmbClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
-    public ResponseData doGet(String uri) {
-        ResponseData responseData = new ResponseData();
+    public ResponseData doGet(final String uri) {
+        final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
-        String filePath = preprocessUri(uri);
+        final String filePath = preprocessUri(uri);
         responseData.setUrl(filePath);
 
         SmbFile file = null;
@@ -119,7 +119,7 @@ public class SmbClient extends AbstractS2RobotClient {
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
             } else if (file.isFile()) {
-                MimeTypeHelper mimeTypeHelper =
+                final MimeTypeHelper mimeTypeHelper =
                     SingletonS2Container.getComponent("mimeTypeHelper");
                 InputStream is = null;
                 try {
@@ -138,7 +138,7 @@ public class SmbClient extends AbstractS2RobotClient {
                 // check file size
                 responseData.setContentLength(file.length());
                 if (contentLengthHelper != null) {
-                    long maxLength =
+                    final long maxLength =
                         contentLengthHelper.getMaxLength(responseData
                             .getMimeType());
                     if (responseData.getContentLength() > maxLength) {
@@ -175,11 +175,11 @@ public class SmbClient extends AbstractS2RobotClient {
                     responseData.setHttpStatusCode(403);
                 }
             } else if (file.isDirectory()) {
-                Set<String> childUrlSet = new HashSet<String>();
-                SmbFile[] files = file.listFiles();
+                final Set<String> childUrlSet = new HashSet<String>();
+                final SmbFile[] files = file.listFiles();
                 if (files != null) {
                     for (SmbFile f : files) {
-                        String chileUri = f.toString();
+                        final String chileUri = f.toString();
                         childUrlSet.add(chileUri);
                     }
                 }
@@ -196,7 +196,7 @@ public class SmbClient extends AbstractS2RobotClient {
         return responseData;
     }
 
-    protected String preprocessUri(String uri) {
+    protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
             throw new RobotSystemException("The uri is empty.");
         }
@@ -206,13 +206,13 @@ public class SmbClient extends AbstractS2RobotClient {
             filePath = "file://" + filePath;
         }
 
-        StringBuilder buf = new StringBuilder(filePath.length() + 100);
+        final StringBuilder buf = new StringBuilder(filePath.length() + 100);
         try {
             for (char c : filePath.toCharArray()) {
                 if (c == ' ') {
                     buf.append("%20");
                 } else {
-                    String str = String.valueOf(c);
+                    final String str = String.valueOf(c);
                     if (StringUtils.isAsciiPrintable(str)) {
                         buf.append(c);
                     } else {
@@ -226,7 +226,7 @@ public class SmbClient extends AbstractS2RobotClient {
         return buf.toString();
     }
 
-    protected String geCharSet(SmbFile file) {
+    protected String geCharSet(final SmbFile file) {
         return charset;
     }
 
@@ -234,7 +234,7 @@ public class SmbClient extends AbstractS2RobotClient {
         return charset;
     }
 
-    public void setCharset(String charset) {
+    public void setCharset(final String charset) {
         this.charset = charset;
     }
 
@@ -243,9 +243,9 @@ public class SmbClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doHead(java.lang.String)
      */
-    public ResponseData doHead(String url) {
+    public ResponseData doHead(final String url) {
         try {
-            ResponseData responseData = doGet(url);
+            final ResponseData responseData = doGet(url);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
         } catch (ChildUrlsException e) {
@@ -253,7 +253,7 @@ public class SmbClient extends AbstractS2RobotClient {
         }
     }
 
-    private void copy(SmbFile src, File dest) {
+    private void copy(final SmbFile src, final File dest) {
         if (dest.exists() && !dest.canWrite()) {
             return;
         }
@@ -262,7 +262,7 @@ public class SmbClient extends AbstractS2RobotClient {
         try {
             in = new BufferedInputStream(new SmbFileInputStream(src));
             out = new BufferedOutputStream(FileOutputStreamUtil.create(dest));
-            byte[] buf = new byte[1024];
+            final byte[] buf = new byte[1024];
             int length;
             while (-1 < (length = in.read(buf))) {
                 out.write(buf, 0, length);

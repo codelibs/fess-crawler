@@ -22,13 +22,13 @@ import java.io.InputStream;
  * This inputstream ignores a close method.
  * 
  * @author shinsuke
- *
+ * 
  */
 public class IgnoreCloseInputStream extends InputStream {
 
-    private InputStream inputStream;
+    private transient InputStream inputStream;
 
-    public IgnoreCloseInputStream(InputStream inputStream) {
+    public IgnoreCloseInputStream(final InputStream inputStream) {
         this.inputStream = inputStream;
     }
 
@@ -40,7 +40,7 @@ public class IgnoreCloseInputStream extends InputStream {
         return inputStream.available();
     }
 
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         return inputStream.equals(obj);
     }
 
@@ -48,7 +48,7 @@ public class IgnoreCloseInputStream extends InputStream {
         return inputStream.hashCode();
     }
 
-    public void mark(int readlimit) {
+    public void mark(final int readlimit) {
         inputStream.mark(readlimit);
     }
 
@@ -60,11 +60,12 @@ public class IgnoreCloseInputStream extends InputStream {
         return inputStream.read();
     }
 
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(final byte[] b, final int off, final int len)
+            throws IOException {
         return inputStream.read(b, off, len);
     }
 
-    public int read(byte[] b) throws IOException {
+    public int read(final byte[] b) throws IOException {
         return inputStream.read(b);
     }
 
@@ -72,7 +73,7 @@ public class IgnoreCloseInputStream extends InputStream {
         inputStream.reset();
     }
 
-    public long skip(long n) throws IOException {
+    public long skip(final long n) throws IOException {
         return inputStream.skip(n);
     }
 

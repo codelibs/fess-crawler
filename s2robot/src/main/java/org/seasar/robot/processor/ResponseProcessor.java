@@ -19,10 +19,10 @@ import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public interface ResponseProcessor {
 
-    public abstract void process(ResponseData responseData);
+    void process(ResponseData responseData);
 
 }

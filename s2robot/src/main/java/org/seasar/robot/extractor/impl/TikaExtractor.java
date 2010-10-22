@@ -50,21 +50,24 @@ import org.xml.sax.SAXException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class TikaExtractor implements Extractor {
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(TikaExtractor.class);
+        .getLogger(TikaExtractor.class);
 
     public String outputEncoding = Constants.UTF_8;
 
     public boolean readAsTextIfFailed = true;
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
+     * java.util.Map)
      */
-    public ExtractData getText(InputStream inputStream,
-            Map<String, String> params) {
+    public ExtractData getText(final InputStream inputStream,
+            final Map<String, String> params) {
         if (inputStream == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
@@ -87,30 +90,36 @@ public class TikaExtractor implements Extractor {
 
             InputStream in = new FileInputStream(tempFile);
 
-            PrintStream originalOutStream = System.out;
-            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            final PrintStream originalOutStream = System.out;
+            final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
             System.setOut(new PrintStream(outStream, true));
-            PrintStream originalErrStream = System.err;
-            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+            final PrintStream originalErrStream = System.err;
+            final ByteArrayOutputStream errStream = new ByteArrayOutputStream();
             System.setErr(new PrintStream(errStream, true));
             try {
-                String resourceName = params != null ? params
-                        .get(ExtractData.RESOURCE_NAME_KEY) : null;
-                String contentType = params != null ? params
-                        .get(ExtractData.CONTENT_TYPE) : null;
-                String contentEncoding = params != null ? params
-                        .get(ExtractData.CONTENT_ENCODING) : null;
+                final String resourceName =
+                    params == null ? null : params
+                        .get(ExtractData.RESOURCE_NAME_KEY);
+                final String contentType =
+                    params == null ? null : params
+                        .get(ExtractData.CONTENT_TYPE);
+                String contentEncoding =
+                    params == null ? null : params
+                        .get(ExtractData.CONTENT_ENCODING);
 
-                Metadata metadata = createMetadata(resourceName, contentType,
-                        contentEncoding);
+                final Metadata metadata =
+                    createMetadata(resourceName, contentType, contentEncoding);
 
-                Parser parser = new AutoDetectParser();
-                ParseContext parseContext = new ParseContext();
+                final Parser parser = new AutoDetectParser();
+                final ParseContext parseContext = new ParseContext();
                 parseContext.set(Parser.class, parser);
 
-                StringWriter writer = new StringWriter();
-                parser.parse(in, new BodyContentHandler(writer), metadata,
-                        parseContext);
+                final StringWriter writer = new StringWriter();
+                parser.parse(
+                    in,
+                    new BodyContentHandler(writer),
+                    metadata,
+                    parseContext);
 
                 String content = normalizeContent(writer);
                 if (StringUtil.isBlank(content)) {
@@ -118,22 +127,28 @@ public class TikaExtractor implements Extractor {
                         // retry without a resource name
                         IOUtils.closeQuietly(in);
                         in = new FileInputStream(tempFile);
-                        Metadata metadata2 = createMetadata(null, contentType,
-                                contentEncoding);
-                        StringWriter writer2 = new StringWriter();
-                        parser.parse(in, new BodyContentHandler(writer2),
-                                metadata2, parseContext);
+                        final Metadata metadata2 =
+                            createMetadata(null, contentType, contentEncoding);
+                        final StringWriter writer2 = new StringWriter();
+                        parser.parse(
+                            in,
+                            new BodyContentHandler(writer2),
+                            metadata2,
+                            parseContext);
                         content = normalizeContent(writer2);
                     }
                     if (StringUtil.isBlank(content) && contentType != null) {
                         // retry without a content type
                         IOUtils.closeQuietly(in);
                         in = new FileInputStream(tempFile);
-                        Metadata metadata3 = createMetadata(null, null,
-                                contentEncoding);
-                        StringWriter writer3 = new StringWriter();
-                        parser.parse(in, new BodyContentHandler(writer3),
-                                metadata3, parseContext);
+                        final Metadata metadata3 =
+                            createMetadata(null, null, contentEncoding);
+                        final StringWriter writer3 = new StringWriter();
+                        parser.parse(
+                            in,
+                            new BodyContentHandler(writer3),
+                            metadata3,
+                            parseContext);
                         content = normalizeContent(writer3);
                     }
 
@@ -144,30 +159,32 @@ public class TikaExtractor implements Extractor {
                         }
                         BufferedReader br = null;
                         try {
-                            br = new BufferedReader(new InputStreamReader(
+                            br =
+                                new BufferedReader(new InputStreamReader(
                                     new FileInputStream(tempFile),
                                     contentEncoding));
-                            StringWriter writer4 = new StringWriter();
+                            final StringWriter writer4 = new StringWriter();
                             String line;
                             while ((line = br.readLine()) != null) {
                                 writer4.write(line
-                                        .replaceAll("\\p{Cntrl}", " ")
-                                        .replaceAll("\\s+", " ").trim());
+                                    .replaceAll("\\p{Cntrl}", " ")
+                                    .replaceAll("\\s+", " ")
+                                    .trim());
                                 writer4.write(' ');
                             }
                             content = writer4.toString().trim();
                         } catch (Exception e) {
                             logger.warn(
-                                    "Could not read "
-                                            + tempFile.getAbsolutePath(), e);
+                                "Could not read " + tempFile.getAbsolutePath(),
+                                e);
                         } finally {
                             IOUtils.closeQuietly(br);
                         }
                     }
                 }
-                ExtractData extractData = new ExtractData(content);
+                final ExtractData extractData = new ExtractData(content);
 
-                String[] names = metadata.names();
+                final String[] names = metadata.names();
                 Arrays.sort(names);
                 for (String name : names) {
                     extractData.putValues(name, metadata.getValues(name));
@@ -175,10 +192,10 @@ public class TikaExtractor implements Extractor {
 
                 return extractData;
             } catch (TikaException e) {
-                Throwable cause = e.getCause();
+                final Throwable cause = e.getCause();
                 if (cause instanceof SAXException) {
-                    Extractor xmlExtractor = SingletonS2Container
-                            .getComponent("xmlExtractor");
+                    final Extractor xmlExtractor =
+                        SingletonS2Container.getComponent("xmlExtractor");
                     if (xmlExtractor != null) {
                         IOUtils.closeQuietly(in);
                         in = new FileInputStream(tempFile);
@@ -196,18 +213,19 @@ public class TikaExtractor implements Extractor {
                 }
                 try {
                     if (logger.isInfoEnabled()) {
-                        byte[] bs = outStream.toByteArray();
+                        final byte[] bs = outStream.toByteArray();
                         if (bs.length != 0) {
                             logger.info(new String(bs, outputEncoding));
                         }
                     }
                     if (logger.isWarnEnabled()) {
-                        byte[] bs = errStream.toByteArray();
+                        final byte[] bs = errStream.toByteArray();
                         if (bs.length != 0) {
                             logger.warn(new String(bs, outputEncoding));
                         }
                     }
                 } catch (Exception e) {
+                    // NOP
                 }
             }
         } catch (Exception e) {
@@ -219,13 +237,13 @@ public class TikaExtractor implements Extractor {
         }
     }
 
-    private String normalizeContent(StringWriter writer2) {
-        return writer2.toString().replaceAll("\\s+", " ").trim();
+    private String normalizeContent(final StringWriter writer) {
+        return writer.toString().replaceAll("\\s+", " ").trim();
     }
 
-    private Metadata createMetadata(String resourceName, String contentType,
-            String contentEncoding) {
-        Metadata metadata = new Metadata();
+    private Metadata createMetadata(final String resourceName,
+            final String contentType, final String contentEncoding) {
+        final Metadata metadata = new Metadata();
         if (StringUtil.isNotEmpty(resourceName)) {
             metadata.set(Metadata.RESOURCE_NAME_KEY, resourceName);
         }

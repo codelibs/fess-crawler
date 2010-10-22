@@ -26,22 +26,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class TemporaryFileInputStream extends InputStream {
     private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(TemporaryFileInputStream.class);
+        .getLogger(TemporaryFileInputStream.class);
 
-    private File tempFile;
+    private final File tempFile;
 
-    private FileInputStream fileInputStream;
+    private final FileInputStream fileInputStream;
 
-    public TemporaryFileInputStream(File tempFile) throws FileNotFoundException {
+    public TemporaryFileInputStream(final File tempFile)
+            throws FileNotFoundException {
         this.tempFile = tempFile;
         fileInputStream = new FileInputStream(tempFile);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.io.InputStream#read()
      */
     @Override
@@ -61,13 +64,13 @@ public class TemporaryFileInputStream extends InputStream {
         } finally {
             if (tempFile.exists() && !tempFile.delete()) {
                 logger.warn("Could not delete a temporary file: "
-                        + tempFile.getAbsolutePath());
+                    + tempFile.getAbsolutePath());
             }
         }
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
+    public synchronized void mark(final int readlimit) {
         fileInputStream.mark(readlimit);
     }
 
@@ -82,7 +85,7 @@ public class TemporaryFileInputStream extends InputStream {
     }
 
     @Override
-    public long skip(long n) throws IOException {
+    public long skip(final long n) throws IOException {
         return fileInputStream.skip(n);
     }
 

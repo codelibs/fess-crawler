@@ -21,26 +21,32 @@ import org.seasar.robot.extractor.Extractor;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class HtmlExtractor extends AbstractXmlExtractor implements Extractor {
 
-    protected Pattern metaCharsetPattern = Pattern
+    protected Pattern metaCharsetPattern =
+        Pattern
             .compile(
-                    "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
+                Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.extractor.impl.AbstractXmlExtractor#getEncodingPattern()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.extractor.impl.AbstractXmlExtractor#getEncodingPattern()
      */
     @Override
     protected Pattern getEncodingPattern() {
         return metaCharsetPattern;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.extractor.impl.AbstractXmlExtractor#getTagPattern()
      */
     @Override
@@ -52,7 +58,7 @@ public class HtmlExtractor extends AbstractXmlExtractor implements Extractor {
         return metaCharsetPattern;
     }
 
-    public void setMetaCharsetPattern(Pattern metaCharsetPattern) {
+    public void setMetaCharsetPattern(final Pattern metaCharsetPattern) {
         this.metaCharsetPattern = metaCharsetPattern;
     }
 
@@ -60,7 +66,7 @@ public class HtmlExtractor extends AbstractXmlExtractor implements Extractor {
         return htmlTagPattern;
     }
 
-    public void setHtmlTagPattern(Pattern htmlTagPattern) {
+    public void setHtmlTagPattern(final Pattern htmlTagPattern) {
         this.htmlTagPattern = htmlTagPattern;
     }
 

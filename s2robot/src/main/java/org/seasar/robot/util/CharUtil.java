@@ -17,36 +17,39 @@ package org.seasar.robot.util;
 
 /**
  * @author shinsuke
- *
+ * 
  */
-public class CharUtil {
-    public static boolean isUrlChar(char c) {
+public final class CharUtil {
+    private CharUtil() {
+    }
+
+    public static boolean isUrlChar(final char c) {
         if ((c >= 'a' && c <= 'z') //
-                || (c >= 'A' && c <= 'Z') //
-                || (c >= '0' && c <= '9') //
-                || c == '.' //
-                || c == '-' //
-                || c == '*' //
-                || c == '_' //
-                || c == ':' // added
-                || c == '/' // added
-                || c == '+' // added
-                || c == '%' // added
-                || c == '=' // added
-                || c == '&' // added
-                || c == '?' // added
-                || c == '#' // added
-                || c == '[' // added
-                || c == ']' // added
-                || c == '@' // added
-                || c == '~' // added
-                || c == '!' // added
-                || c == '$' // added
-                || c == '\'' // added
-                || c == '(' // added
-                || c == ')' // added
-                || c == ',' // added
-                || c == ';' // added
+            || (c >= 'A' && c <= 'Z') //
+            || (c >= '0' && c <= '9') //
+            || c == '.' //
+            || c == '-' //
+            || c == '*' //
+            || c == '_' //
+            || c == ':' // added
+            || c == '/' // added
+            || c == '+' // added
+            || c == '%' // added
+            || c == '=' // added
+            || c == '&' // added
+            || c == '?' // added
+            || c == '#' // added
+            || c == '[' // added
+            || c == ']' // added
+            || c == '@' // added
+            || c == '~' // added
+            || c == '!' // added
+            || c == '$' // added
+            || c == '\'' // added
+            || c == '(' // added
+            || c == ')' // added
+            || c == ',' // added
+            || c == ';' // added
         ) {
             return true;
         } else {

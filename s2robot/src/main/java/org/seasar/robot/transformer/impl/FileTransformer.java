@@ -73,8 +73,8 @@ public class FileTransformer extends HtmlTransformer {
      */
     protected File baseDir;
 
-    protected File createFile(String path) {
-        String[] paths = path.split("/");
+    protected File createFile(final String path) {
+        final String[] paths = path.split("/");
         File targetFile = baseDir;
         for (int i = 0; i < paths.length - 1; i++) {
             File file = new File(targetFile, paths[i]);
@@ -89,8 +89,8 @@ public class FileTransformer extends HtmlTransformer {
                         } else {
                             if (!file.mkdirs()) {
                                 throw new RobotSystemException(
-                                        "Could not create "
-                                                + file.getAbsolutePath());
+                                    "Could not create "
+                                        + file.getAbsolutePath());
                             }
                             break;
                         }
@@ -99,7 +99,7 @@ public class FileTransformer extends HtmlTransformer {
             } else {
                 if (!file.mkdirs()) {
                     throw new RobotSystemException("Could not create "
-                            + file.getAbsolutePath());
+                        + file.getAbsolutePath());
                 }
             }
             targetFile = file;
@@ -121,26 +121,27 @@ public class FileTransformer extends HtmlTransformer {
     }
 
     @Override
-    public void storeData(ResponseData responseData, ResultData resultData) {
+    public void storeData(final ResponseData responseData,
+            final ResultData resultData) {
         resultData.setTransformerName(getName());
 
         initBaseDir();
 
-        String url = responseData.getUrl();
-        String path = getFilePath(url);
+        final String url = responseData.getUrl();
+        final String path = getFilePath(url);
 
         synchronized (this) {
 
-            File file = createFile(path);
+            final File file = createFile(path);
 
-            InputStream is = responseData.getResponseBody();
+            final InputStream is = responseData.getResponseBody();
             OutputStream os = null;
             try {
                 os = new FileOutputStream(file);
                 StreamUtil.drain(is, os);
             } catch (IOException e) {
                 throw new RobotSystemException("Could not store "
-                        + file.getAbsolutePath(), e);
+                    + file.getAbsolutePath(), e);
             } finally {
                 IOUtils.closeQuietly(is);
                 IOUtils.closeQuietly(os);
@@ -150,7 +151,7 @@ public class FileTransformer extends HtmlTransformer {
             resultData.setData(path.getBytes(charsetName));
         } catch (UnsupportedEncodingException e) {
             throw new RobotCrawlAccessException("Invalid charsetName: "
-                    + charsetName, e);
+                + charsetName, e);
         }
         resultData.setEncoding(charsetName);
     }
@@ -162,11 +163,9 @@ public class FileTransformer extends HtmlTransformer {
                 baseDir = new File(".");
             } else {
                 baseDir = new File(path);
-                if (!baseDir.isDirectory()) {
-                    if (!baseDir.mkdirs()) {
-                        throw new RobotSystemException("Could not create "
-                                + baseDir.getAbsolutePath());
-                    }
+                if (!baseDir.isDirectory() && !baseDir.mkdirs()) {
+                    throw new RobotSystemException("Could not create "
+                        + baseDir.getAbsolutePath());
                 }
             }
         }
@@ -178,15 +177,21 @@ public class FileTransformer extends HtmlTransformer {
      * @param url
      * @return
      */
-    protected String getFilePath(String url) {
+    protected String getFilePath(final String url) {
         return url.replaceAll("/+", "/")//
-                .replaceAll("\\./", "")//
-                .replaceAll("\\.\\./", "")//
-                .replaceAll("/$", "/index.html")//
-                .replaceAll("\\?", questionStr)//
-                .replaceAll(":", colonStr)//
-                .replaceAll(";", semicolonStr)//
-                .replaceAll("&", ampersandStr)//
+            .replaceAll("\\./", "")
+            //
+            .replaceAll("\\.\\./", "")
+            //
+            .replaceAll("/$", "/index.html")
+            //
+            .replaceAll("\\?", questionStr)
+            //
+            .replaceAll(":", colonStr)
+            //
+            .replaceAll(";", semicolonStr)
+            //
+            .replaceAll("&", ampersandStr)//
         ;
     }
 
@@ -195,28 +200,28 @@ public class FileTransformer extends HtmlTransformer {
      * 
      */
     @Override
-    public Object getData(AccessResultData accessResultData) {
+    public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                    + accessResultData.getTransformerName()
-                    + ". This transformer is " + getName() + ".");
+                + accessResultData.getTransformerName()
+                + ". This transformer is " + getName() + ".");
         }
 
-        byte[] data = accessResultData.getData();
+        final byte[] data = accessResultData.getData();
         if (data == null) {
             return null;
         }
-        String encoding = accessResultData.getEncoding();
+        final String encoding = accessResultData.getEncoding();
         String filePath;
         try {
-            filePath = new String(data, encoding != null ? encoding
-                    : Constants.UTF_8);
+            filePath =
+                new String(data, encoding == null ? Constants.UTF_8 : encoding);
         } catch (UnsupportedEncodingException e) {
             try {
                 filePath = new String(data, Constants.UTF_8);
             } catch (UnsupportedEncodingException e1) {
-                throw new RobotSystemException("Unexpected exception.");
+                throw new RobotSystemException("Unexpected exception.", e1);
             }
         }
         return new File(baseDir, filePath);
@@ -226,7 +231,7 @@ public class FileTransformer extends HtmlTransformer {
         return path;
     }
 
-    public void setPath(String path) {
+    public void setPath(final String path) {
         this.path = path;
     }
 
@@ -234,7 +239,7 @@ public class FileTransformer extends HtmlTransformer {
         return questionStr;
     }
 
-    public void setQuestionStr(String questionStr) {
+    public void setQuestionStr(final String questionStr) {
         this.questionStr = questionStr;
     }
 
@@ -242,7 +247,7 @@ public class FileTransformer extends HtmlTransformer {
         return colonStr;
     }
 
-    public void setColonStr(String colonStr) {
+    public void setColonStr(final String colonStr) {
         this.colonStr = colonStr;
     }
 
@@ -250,7 +255,7 @@ public class FileTransformer extends HtmlTransformer {
         return semicolonStr;
     }
 
-    public void setSemicolonStr(String semicolonStr) {
+    public void setSemicolonStr(final String semicolonStr) {
         this.semicolonStr = semicolonStr;
     }
 
@@ -258,7 +263,7 @@ public class FileTransformer extends HtmlTransformer {
         return ampersandStr;
     }
 
-    public void setAmpersandStr(String ampersandStr) {
+    public void setAmpersandStr(final String ampersandStr) {
         this.ampersandStr = ampersandStr;
     }
 
@@ -266,7 +271,7 @@ public class FileTransformer extends HtmlTransformer {
         return maxDuplicatedPath;
     }
 
-    public void setMaxDuplicatedPath(int maxDuplicatedPath) {
+    public void setMaxDuplicatedPath(final int maxDuplicatedPath) {
         this.maxDuplicatedPath = maxDuplicatedPath;
     }
 
@@ -274,7 +279,7 @@ public class FileTransformer extends HtmlTransformer {
         return charsetName;
     }
 
-    public void setCharsetName(String charsetName) {
+    public void setCharsetName(final String charsetName) {
         this.charsetName = charsetName;
     }
 }

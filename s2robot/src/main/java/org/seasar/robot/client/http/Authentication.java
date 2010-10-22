@@ -20,15 +20,17 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 
 /**
+ * 
+ * 
  * @author shinsuke
- *
+ * 
  */
 public interface Authentication {
 
-    public abstract AuthScope getAuthScope();
+    AuthScope getAuthScope();
 
-    public abstract Credentials getCredentials();
+    Credentials getCredentials();
 
-    public abstract AuthScheme getAuthScheme();
+    AuthScheme getAuthScheme();
 
 }

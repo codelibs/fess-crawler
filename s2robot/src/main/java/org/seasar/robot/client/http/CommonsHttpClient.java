@@ -46,7 +46,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
-import org.seasar.framework.container.annotation.tiger.InitMethod;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.MaxLengthExceededException;
@@ -136,8 +135,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public String defaultMimeType = "application/octet-stream";
 
-    @InitMethod
-    public void init() {
+    public synchronized void init() {
         if (httpClient != null) {
             return;
         }
@@ -386,6 +384,10 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public ResponseData doHttpMethod(final String url,
             final HttpMethod httpMethod) {
+        if (httpClient == null) {
+            init();
+        }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing " + url);
         }

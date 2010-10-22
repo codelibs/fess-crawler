@@ -64,7 +64,6 @@ import org.apache.http.protocol.HttpContext;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.container.annotation.tiger.DestroyMethod;
-import org.seasar.framework.container.annotation.tiger.InitMethod;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.MaxLengthExceededException;
@@ -169,8 +168,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public Map<String, AuthSchemeFactory> authSchemeFactoryMap;
 
-    @InitMethod
-    public void init() {
+    public synchronized void init() {
         if (httpClient != null) {
             return;
         }
@@ -470,6 +468,10 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public ResponseData doHttpMethod(final String url,
             final HttpUriRequest httpRequest) {
+        if (httpClient == null) {
+            init();
+        }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing " + url);
         }

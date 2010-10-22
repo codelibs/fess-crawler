@@ -42,6 +42,11 @@
 		<property name="charset">"UTF-8"</property>
 	</component>
 
+	<component name="smbClient" class="org.seasar.robot.client.smb.SmbClient" instance="prototype">
+		<property name="charset">"UTF-8"</property>
+		<!-- ntlmPasswordAuthentication -->
+	</component>
+
 <!-- 
 	<component name="httpClient" class="org.seasar.robot.client.http.CommonsHttpClient" instance="prototype">
 		<property name="cookiePolicy">@org.apache.commons.httpclient.cookie.CookiePolicy@BROWSER_COMPATIBILITY</property>
@@ -56,6 +61,10 @@
 		<initMethod name="addClient">
 			<arg>"file:.*"</arg>
 			<arg>fsClient</arg>
+		</initMethod>
+		<initMethod name="addClient">
+			<arg>"smb:.*"</arg>
+			<arg>smbClient</arg>
 		</initMethod>
 	</component>
 

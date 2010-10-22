@@ -40,7 +40,6 @@ import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.container.annotation.tiger.DestroyMethod;
-import org.seasar.framework.container.annotation.tiger.InitMethod;
 import org.seasar.framework.exception.IORuntimeException;
 import org.seasar.framework.util.FileOutputStreamUtil;
 import org.seasar.framework.util.InputStreamUtil;
@@ -76,10 +75,13 @@ public class SmbClient extends AbstractS2RobotClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
-    public NtlmPasswordAuthentication ntlmPasswordAuthentication;
+    public volatile NtlmPasswordAuthentication ntlmPasswordAuthentication;
 
-    @InitMethod
-    public void init() {
+    public synchronized void init() {
+        if (this.ntlmPasswordAuthentication != null) {
+            return;
+        }
+
         // user agent
         final NtlmPasswordAuthentication ntlmPasswordAuthentication =
             getInitParameter(
@@ -101,6 +103,10 @@ public class SmbClient extends AbstractS2RobotClient {
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
     public ResponseData doGet(final String uri) {
+        if (ntlmPasswordAuthentication == null) {
+            init();
+        }
+
         final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
         final String filePath = preprocessUri(uri);

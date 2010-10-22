@@ -26,7 +26,7 @@ import org.seasar.robot.util.S2RobotWebServer;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class CommonsHttpClientTest extends S2TestCase {
     public CommonsHttpClient httpClient;
@@ -68,10 +68,11 @@ public class CommonsHttpClientTest extends S2TestCase {
             urlFilter.init(sessionId);
             robotContext.setUrlFilter(urlFilter);
             CrawlingParameterUtil.setRobotContext(robotContext);
+            httpClient.init();
             httpClient.processRobotsTxt(url);
             assertEquals(1, robotContext.getRobotTxtUrlSet().size());
             assertTrue(robotContext.getRobotTxtUrlSet().contains(
-                    "http://localhost:7070/robots.txt"));
+                "http://localhost:7070/robots.txt"));
             assertFalse(urlFilter.match("http://localhost:7070/admin/"));
             assertFalse(urlFilter.match("http://localhost:7070/websvn/"));
         } finally {
@@ -81,10 +82,12 @@ public class CommonsHttpClientTest extends S2TestCase {
 
     public void test_convertRobotsTxtPathPattern() {
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/"));
-        assertEquals("/index\\.html$",
-                httpClient.convertRobotsTxtPathPattern("/index.html$"));
-        assertEquals(".*index\\.html$",
-                httpClient.convertRobotsTxtPathPattern("index.html$"));
+        assertEquals(
+            "/index\\.html$",
+            httpClient.convertRobotsTxtPathPattern("/index.html$"));
+        assertEquals(
+            ".*index\\.html$",
+            httpClient.convertRobotsTxtPathPattern("index.html$"));
         assertEquals("/\\..*", httpClient.convertRobotsTxtPathPattern("/."));
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/*"));
         assertEquals(".*\\..*", httpClient.convertRobotsTxtPathPattern("."));
@@ -101,7 +104,7 @@ public class CommonsHttpClientTest extends S2TestCase {
             Thread.sleep(100);
             assertNotNull(responseData.getLastModified());
             assertTrue(responseData.getLastModified().getTime() < new Date()
-                    .getTime());
+                .getTime());
         } finally {
             server.stop();
         }

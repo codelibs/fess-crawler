@@ -52,7 +52,6 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -276,7 +275,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 && authentication.getAuthScheme() != null) {
                 final HttpHost targetHost =
                     new HttpHost(authScope.getHost(), authScope.getPort());
-                authCache.put(targetHost, new BasicScheme());
+                authCache.put(targetHost, authentication.getAuthScheme());
                 useAuthCache = true;
             }
         }

@@ -29,7 +29,6 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
-import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
@@ -66,8 +65,8 @@ public class SmbClient extends AbstractS2RobotClient {
     private static final Logger logger = LoggerFactory // NOPMD
         .getLogger(SmbClient.class);
 
-    public static final String NTLM_PASSWORD_AUTHENTICATION_PROPERTY =
-        "ntlmPasswordAuthentication";
+    public static final String SMB_AUTHENTICATIONS_PROPERTY =
+        "smbAuthentications";
 
     protected String charset = Constants.UTF_8;
 
@@ -75,26 +74,31 @@ public class SmbClient extends AbstractS2RobotClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
-    public volatile NtlmPasswordAuthentication ntlmPasswordAuthentication;
+    public volatile SmbAuthenticationHolder smbAuthenticationHolder;
 
     public synchronized void init() {
-        if (this.ntlmPasswordAuthentication != null) {
+        if (smbAuthenticationHolder != null) {
             return;
         }
 
         // user agent
-        final NtlmPasswordAuthentication ntlmPasswordAuthentication =
+        final SmbAuthentication[] smbAuthentications =
             getInitParameter(
-                NTLM_PASSWORD_AUTHENTICATION_PROPERTY,
-                this.ntlmPasswordAuthentication);
-        if (ntlmPasswordAuthentication != null) {
-            this.ntlmPasswordAuthentication = ntlmPasswordAuthentication;
+                SMB_AUTHENTICATIONS_PROPERTY,
+                new SmbAuthentication[0]);
+        if (smbAuthentications != null) {
+            SmbAuthenticationHolder smbAuthenticationHolder =
+                new SmbAuthenticationHolder();
+            for (SmbAuthentication smbAuthentication : smbAuthentications) {
+                smbAuthenticationHolder.add(smbAuthentication);
+            }
+            this.smbAuthenticationHolder = smbAuthenticationHolder;
         }
     }
 
     @DestroyMethod
     public void destroy() {
-        ntlmPasswordAuthentication = null;
+        smbAuthenticationHolder = null;
     }
 
     /*
@@ -103,7 +107,7 @@ public class SmbClient extends AbstractS2RobotClient {
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
     public ResponseData doGet(final String uri) {
-        if (ntlmPasswordAuthentication == null) {
+        if (smbAuthenticationHolder == null) {
             init();
         }
 
@@ -113,8 +117,15 @@ public class SmbClient extends AbstractS2RobotClient {
         responseData.setUrl(filePath);
 
         SmbFile file = null;
+        SmbAuthentication smbAuthentication =
+            smbAuthenticationHolder.get(filePath);
         try {
-            file = new SmbFile(filePath, ntlmPasswordAuthentication);
+            if (smbAuthentication == null) {
+                file = new SmbFile(filePath);
+            } else {
+                file =
+                    new SmbFile(filePath, smbAuthentication.getAuthentication());
+            }
         } catch (MalformedURLException e) {
             logger.warn("Could not parse url: " + filePath, e);
         }

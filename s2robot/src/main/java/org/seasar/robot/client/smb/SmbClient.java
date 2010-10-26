@@ -20,9 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,7 +32,6 @@ import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
@@ -218,29 +215,7 @@ public class SmbClient extends AbstractS2RobotClient {
             throw new RobotSystemException("The uri is empty.");
         }
 
-        String filePath = uri;
-        if (!filePath.startsWith("file:")) {
-            filePath = "file://" + filePath;
-        }
-
-        final StringBuilder buf = new StringBuilder(filePath.length() + 100);
-        try {
-            for (char c : filePath.toCharArray()) {
-                if (c == ' ') {
-                    buf.append("%20");
-                } else {
-                    final String str = String.valueOf(c);
-                    if (StringUtils.isAsciiPrintable(str)) {
-                        buf.append(c);
-                    } else {
-                        buf.append(URLEncoder.encode(str, charset));
-                    }
-                }
-            }
-        } catch (UnsupportedEncodingException e) {
-            return filePath;
-        }
-        return buf.toString();
+        return uri;
     }
 
     protected String geCharSet(final SmbFile file) {

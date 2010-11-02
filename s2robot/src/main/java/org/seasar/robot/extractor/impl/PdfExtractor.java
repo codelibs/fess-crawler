@@ -20,10 +20,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
+import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.apache.pdfbox.util.PDFTextStripper;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.extractor.ExtractException;
@@ -38,6 +46,13 @@ import org.seasar.robot.extractor.Extractor;
 public class PdfExtractor implements Extractor {
     protected String encoding = "UTF-8";
 
+    /**
+     * When true, the parser will skip corrupt pdf objects and
+     */
+    protected boolean force = false;
+
+    protected Map<String, String> passwordMap = new HashMap<String, String>();
+
     /*
      * (non-Javadoc)
      * 
@@ -51,12 +66,36 @@ public class PdfExtractor implements Extractor {
         }
         PDDocument document = null;
         try {
-            document = PDDocument.load(in);
+            document = PDDocument.load(in, null, force);
+            if (document.isEncrypted()) {
+                String password = params.get(ExtractData.PDF_PASSWORD);
+                if (StringUtil.isBlank(password)) {
+                    final String resourceName =
+                        params.get(ExtractData.RESOURCE_NAME_KEY);
+                    if (resourceName != null) {
+                        password = passwordMap.get(resourceName);
+                    }
+                }
+                final StandardDecryptionMaterial sdm =
+                    new StandardDecryptionMaterial(password);
+                document.openProtection(sdm);
+                final AccessPermission ap =
+                    document.getCurrentAccessPermission();
+
+                if (!ap.canExtractContent()) {
+                    throw new IOException(
+                        "You do not have permission to extract text.");
+                }
+            }
+
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             final Writer output = new OutputStreamWriter(baos, encoding);
-            final PDFTextStripper stripper = new PDFTextStripper();
+            final PDFTextStripper stripper = new PDFTextStripper(encoding);
+            stripper.setForceParsing(force);
             stripper.writeText(document, output);
-            return new ExtractData(baos.toString(encoding));
+            output.flush();
+            ExtractData extractData = new ExtractData(baos.toString(encoding));
+            return extractData;
         } catch (Exception e) {
             throw new ExtractException(e);
         } finally {
@@ -70,11 +109,62 @@ public class PdfExtractor implements Extractor {
         }
     }
 
+    private void extractMetadata(PDDocument document, ExtractData extractData)
+            throws TikaException {
+        PDDocumentInformation info = document.getDocumentInformation();
+        addMetadata(extractData, Metadata.TITLE, info.getTitle());
+        addMetadata(extractData, Metadata.AUTHOR, info.getAuthor());
+        addMetadata(extractData, Metadata.CREATOR, info.getCreator());
+        addMetadata(extractData, Metadata.KEYWORDS, info.getKeywords());
+        addMetadata(extractData, "producer", info.getProducer());
+        addMetadata(extractData, Metadata.SUBJECT, info.getSubject());
+        addMetadata(extractData, "trapped", info.getTrapped());
+        try {
+            addMetadata(extractData, "created", info.getCreationDate());
+        } catch (IOException e) {
+            // Invalid date format, just ignore
+        }
+        try {
+            Calendar modified = info.getModificationDate();
+            addMetadata(
+                extractData,
+                Metadata.LAST_MODIFIED.toString(),
+                modified);
+        } catch (IOException e) {
+            // Invalid date format, just ignore
+        }
+    }
+
+    private void addMetadata(ExtractData extractData, String name, String value) {
+        if (value != null) {
+            extractData.putValue(name, value);
+        }
+    }
+
+    private void addMetadata(ExtractData extractData, String name,
+            Calendar value) {
+        if (value != null) {
+            extractData.putValue(name, value.getTime().toString());
+        }
+    }
+
     public String getEncoding() {
         return encoding;
     }
 
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
+
+    public void setForce(boolean force) {
+        this.force = force;
+    }
+
+    public void addPassword(String resourceName, String password) {
+        passwordMap.put(resourceName, password);
     }
 }

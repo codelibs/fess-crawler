@@ -32,11 +32,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class TikaExtractorTest extends S2TestCase {
     private static final Logger logger = LoggerFactory
-            .getLogger(TikaExtractorTest.class);
+        .getLogger(TikaExtractorTest.class);
 
     public TikaExtractor tikaExtractor;
 
@@ -64,8 +64,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_html() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.html");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -74,8 +74,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_html_sjis() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.html");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -84,8 +84,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_msword() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.doc");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -94,8 +94,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_msexcel() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.xls");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/msoffice/test.xls");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -104,8 +104,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_mspowerpoint() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.ppt");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/msoffice/test.ppt");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -114,8 +114,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_zip() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/zip/test.zip");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/zip/test.zip");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -125,8 +125,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_tar() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/tar/test.tar");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/tar/test.tar");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -136,8 +136,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_targz() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/gz/test.tar.gz");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/gz/test.tar.gz");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -147,8 +147,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_xml() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.xml");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -158,8 +158,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_xml_sjis() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.xml");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test_sjis.xml");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test_sjis.xml");
         ExtractData extractData = tikaExtractor.getText(in, params);
@@ -170,8 +170,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_xml_entity() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_entity.xml");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test_entity.xml");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -180,9 +180,10 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_xml_broken() throws UnsupportedEncodingException {
-        InputStream in = new ByteArrayInputStream(
+        InputStream in =
+            new ByteArrayInputStream(
                 "<?xml encoding=\"UTF-8\"/><hoge>テスト<br></hoge>"
-                        .getBytes(Constants.UTF_8));
+                    .getBytes(Constants.UTF_8));
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -191,8 +192,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_java() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.java");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.java");
         Map<String, String> params = new HashMap<String, String>();
         params.put("Content-Type", "text/plain");
         params.put("resourceName", "test.java");
@@ -204,8 +205,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_java_1() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.java");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.java");
         Map<String, String> params = new HashMap<String, String>();
         params.put("Content-Type", "text/plain");
         ExtractData extractData = tikaExtractor.getText(in, params);
@@ -216,8 +217,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_java_2() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.java");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.java");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.java");
         ExtractData extractData = tikaExtractor.getText(in, params);
@@ -228,8 +229,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_java_3() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.java");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.java");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -238,8 +239,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_java_4() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.java");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.java");
         Map<String, String> params = new HashMap<String, String>();
         params.put("Content-Type", "text/x-java-source");
         ExtractData extractData = tikaExtractor.getText(in, params);
@@ -250,8 +251,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_js() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.js");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.js");
         Map<String, String> params = new HashMap<String, String>();
         params.put("Content-Type", "text/plain");
         params.put("resourceName", "test.js");
@@ -263,8 +264,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_c() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.c");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.c");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -273,8 +274,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_cpp() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.cpp");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.cpp");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -283,8 +284,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_h() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.h");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.h");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -293,8 +294,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_hpp() {
-        InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/program/test.hpp");
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/program/test.hpp");
         ExtractData extractData = tikaExtractor.getText(in, null);
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -317,8 +318,7 @@ public class TikaExtractorTest extends S2TestCase {
         String content = extractData.getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
-        // TODO assertEquals(extractData.getValues("title")[0], "タイトル");
-        // TODO assertTrue(content.contains("テスト"));
+        assertTrue(content.contains("テスト"));
     }
 
     public void test_getTika_null() {

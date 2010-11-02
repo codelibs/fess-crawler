@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -59,6 +60,9 @@ public class TikaExtractor implements Extractor {
     public String outputEncoding = Constants.UTF_8;
 
     public boolean readAsTextIfFailed = true;
+
+    protected Map<String, String> pdfPasswordMap =
+        new HashMap<String, String>();
 
     /*
      * (non-Javadoc)
@@ -109,6 +113,17 @@ public class TikaExtractor implements Extractor {
 
                 final Metadata metadata =
                     createMetadata(resourceName, contentType, contentEncoding);
+
+                // password for pdf
+                String pdfPassword =
+                    params == null ? null : params
+                        .get(ExtractData.PDF_PASSWORD);
+                if (pdfPassword != null) {
+                    metadata.add(ExtractData.PDF_PASSWORD, pdfPassword);
+                } else if (resourceName != null) {
+                    pdfPassword = pdfPasswordMap.get(resourceName);
+                    metadata.add(ExtractData.PDF_PASSWORD, pdfPassword);
+                }
 
                 final Parser parser = new AutoDetectParser();
                 final ParseContext parseContext = new ParseContext();
@@ -256,4 +271,7 @@ public class TikaExtractor implements Extractor {
         return metadata;
     }
 
+    public void addPdfPassword(String resourceName, String password) {
+        pdfPasswordMap.put(resourceName, password);
+    }
 }

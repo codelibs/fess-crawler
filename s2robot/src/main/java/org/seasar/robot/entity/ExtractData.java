@@ -26,6 +26,7 @@ import org.apache.tika.metadata.HttpHeaders;
 import org.apache.tika.metadata.MSOffice;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.apache.tika.metadata.TikaMimeKeys;
+import org.apache.tika.parser.pdf.PDFParser;
 
 /**
  * @author shinsuke
@@ -35,6 +36,8 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
         MSOffice, TikaMetadataKeys, TikaMimeKeys, Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String PDF_PASSWORD = PDFParser.PASSWORD;
 
     protected Map<String, String[]> metadata = new HashMap<String, String[]>();
 
@@ -50,6 +53,10 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
 
     public void putValues(final String key, final String[] values) {
         metadata.put(key, values);
+    }
+
+    public void putValue(final String key, final String value) {
+        metadata.put(key, new String[] { value });
     }
 
     public String[] getValues(final String key) {

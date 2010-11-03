@@ -328,6 +328,13 @@
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-parsers</artifactId>
       <version>0.8-20101102</version>
+      <exclusions>
+        <!-- netcdf causes a problem.. -->
+        <exclusion>
+          <groupId>edu.ucar</groupId>
+          <artifactId>netcdf</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>

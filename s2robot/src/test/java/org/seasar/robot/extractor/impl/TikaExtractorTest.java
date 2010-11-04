@@ -329,4 +329,68 @@ public class TikaExtractorTest extends S2TestCase {
             // NOP
         }
     }
+
+    public void test_getPdfPassword_null() {
+        String url;
+        String resourceName;
+
+        url = null;
+        resourceName = null;
+        assertNull(tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = null;
+        assertNull(tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = "hoge2.pdf";
+        assertNull(tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = null;
+        resourceName = "hoge2.pdf";
+        assertNull(tikaExtractor.getPdfPassword(url, resourceName));
+    }
+
+    public void test_getPdfPassword() {
+        String url;
+        String resourceName;
+        tikaExtractor.addPdfPassword(".*hoge1.pdf", "password");
+        tikaExtractor.addPdfPassword("fuga.pdf", "PASSWORD");
+
+        url = null;
+        resourceName = null;
+        assertNull(tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = null;
+        assertEquals(
+            "password",
+            tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = "hoge2.pdf";
+        assertEquals(
+            "password",
+            tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = null;
+        resourceName = "hoge2.pdf";
+        assertNull(tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = null;
+        resourceName = "hoge1.pdf";
+        assertEquals(
+            "password",
+            tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = "http://test.com/fuga.pdf";
+        resourceName = null;
+        assertNull(tikaExtractor.getPdfPassword(url, resourceName));
+
+        url = null;
+        resourceName = "fuga.pdf";
+        assertEquals(
+            "PASSWORD",
+            tikaExtractor.getPdfPassword(url, resourceName));
+    }
 }

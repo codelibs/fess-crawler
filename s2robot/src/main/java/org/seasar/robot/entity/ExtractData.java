@@ -37,6 +37,8 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
 
     private static final long serialVersionUID = 1L;
 
+    public static final String URL = "url";
+
     public static final String PDF_PASSWORD = PDFParser.PASSWORD;
 
     protected Map<String, String[]> metadata = new HashMap<String, String[]>();

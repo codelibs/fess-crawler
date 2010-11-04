@@ -69,22 +69,23 @@ public class PdfExtractor implements Extractor {
             document = PDDocument.load(in, null, force);
             if (document.isEncrypted()) {
                 String password = params.get(ExtractData.PDF_PASSWORD);
-                if (StringUtil.isBlank(password)) {
-                    final String resourceName =
-                        params.get(ExtractData.RESOURCE_NAME_KEY);
-                    if (resourceName != null) {
-                        password = passwordMap.get(resourceName);
-                    }
+                if (password == null) {
+                    password =
+                        getPassword(
+                            params.get(ExtractData.URL),
+                            params.get(ExtractData.RESOURCE_NAME_KEY));
                 }
-                final StandardDecryptionMaterial sdm =
-                    new StandardDecryptionMaterial(password);
-                document.openProtection(sdm);
-                final AccessPermission ap =
-                    document.getCurrentAccessPermission();
+                if (password != null) {
+                    final StandardDecryptionMaterial sdm =
+                        new StandardDecryptionMaterial(password);
+                    document.openProtection(sdm);
+                    final AccessPermission ap =
+                        document.getCurrentAccessPermission();
 
-                if (!ap.canExtractContent()) {
-                    throw new IOException(
-                        "You do not have permission to extract text.");
+                    if (!ap.canExtractContent()) {
+                        throw new IOException(
+                            "You do not have permission to extract text.");
+                    }
                 }
             }
 
@@ -164,7 +165,30 @@ public class PdfExtractor implements Extractor {
         this.force = force;
     }
 
-    public void addPassword(String resourceName, String password) {
-        passwordMap.put(resourceName, password);
+    public void addPassword(String regex, String password) {
+        passwordMap.put(regex, password);
+    }
+
+    String getPassword(String url, String resourceName) {
+        if (passwordMap.size() == 0) {
+            return null;
+        }
+
+        String value = null;
+        if (StringUtil.isNotEmpty(url)) {
+            value = url;
+        } else if (StringUtil.isNotEmpty(resourceName)) {
+            value = resourceName;
+        }
+
+        if (value != null) {
+            for (Map.Entry<String, String> entry : passwordMap.entrySet()) {
+                if (value.matches(entry.getKey())) {
+                    return entry.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 }

@@ -118,10 +118,13 @@ public class TikaExtractor implements Extractor {
                 String pdfPassword =
                     params == null ? null : params
                         .get(ExtractData.PDF_PASSWORD);
+                if (pdfPassword == null) {
+                    pdfPassword =
+                        getPdfPassword(
+                            params.get(ExtractData.URL),
+                            resourceName);
+                }
                 if (pdfPassword != null) {
-                    metadata.add(ExtractData.PDF_PASSWORD, pdfPassword);
-                } else if (resourceName != null) {
-                    pdfPassword = pdfPasswordMap.get(resourceName);
                     metadata.add(ExtractData.PDF_PASSWORD, pdfPassword);
                 }
 
@@ -256,6 +259,29 @@ public class TikaExtractor implements Extractor {
         return writer.toString().replaceAll("\\s+", " ").trim();
     }
 
+    String getPdfPassword(String url, String resourceName) {
+        if (pdfPasswordMap.size() == 0) {
+            return null;
+        }
+
+        String value = null;
+        if (StringUtil.isNotEmpty(url)) {
+            value = url;
+        } else if (StringUtil.isNotEmpty(resourceName)) {
+            value = resourceName;
+        }
+
+        if (value != null) {
+            for (Map.Entry<String, String> entry : pdfPasswordMap.entrySet()) {
+                if (value.matches(entry.getKey())) {
+                    return entry.getValue();
+                }
+            }
+        }
+
+        return null;
+    }
+
     private Metadata createMetadata(final String resourceName,
             final String contentType, final String contentEncoding) {
         final Metadata metadata = new Metadata();
@@ -271,7 +297,7 @@ public class TikaExtractor implements Extractor {
         return metadata;
     }
 
-    public void addPdfPassword(String resourceName, String password) {
-        pdfPasswordMap.put(resourceName, password);
+    public void addPdfPassword(String regex, String password) {
+        pdfPasswordMap.put(regex, password);
     }
 }

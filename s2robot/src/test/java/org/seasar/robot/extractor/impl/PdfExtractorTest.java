@@ -26,11 +26,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class PdfExtractorTest extends S2TestCase {
     private static final Logger logger = LoggerFactory
-            .getLogger(PdfExtractorTest.class);
+        .getLogger(PdfExtractorTest.class);
 
     public PdfExtractor pdfExtractor;
 
@@ -54,5 +54,61 @@ public class PdfExtractorTest extends S2TestCase {
         } catch (RobotSystemException e) {
             // NOP
         }
+    }
+
+    public void test_getPassword_null() {
+        String url;
+        String resourceName;
+
+        url = null;
+        resourceName = null;
+        assertNull(pdfExtractor.getPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = null;
+        assertNull(pdfExtractor.getPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = "hoge2.pdf";
+        assertNull(pdfExtractor.getPassword(url, resourceName));
+
+        url = null;
+        resourceName = "hoge2.pdf";
+        assertNull(pdfExtractor.getPassword(url, resourceName));
+    }
+
+    public void test_getPassword() {
+        String url;
+        String resourceName;
+        pdfExtractor.addPassword(".*hoge1.pdf", "password");
+        pdfExtractor.addPassword("fuga.pdf", "PASSWORD");
+
+        url = null;
+        resourceName = null;
+        assertNull(pdfExtractor.getPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = null;
+        assertEquals("password", pdfExtractor.getPassword(url, resourceName));
+
+        url = "http://test.com/hoge1.pdf";
+        resourceName = "hoge2.pdf";
+        assertEquals("password", pdfExtractor.getPassword(url, resourceName));
+
+        url = null;
+        resourceName = "hoge2.pdf";
+        assertNull(pdfExtractor.getPassword(url, resourceName));
+
+        url = null;
+        resourceName = "hoge1.pdf";
+        assertEquals("password", pdfExtractor.getPassword(url, resourceName));
+
+        url = "http://test.com/fuga.pdf";
+        resourceName = null;
+        assertNull(pdfExtractor.getPassword(url, resourceName));
+
+        url = null;
+        resourceName = "fuga.pdf";
+        assertEquals("PASSWORD", pdfExtractor.getPassword(url, resourceName));
     }
 }

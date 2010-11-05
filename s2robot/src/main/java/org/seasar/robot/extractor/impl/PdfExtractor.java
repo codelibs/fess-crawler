@@ -67,7 +67,7 @@ public class PdfExtractor implements Extractor {
         PDDocument document = null;
         try {
             document = PDDocument.load(in, null, force);
-            if (document.isEncrypted()) {
+            if (document.isEncrypted() && params != null) {
                 String password = params.get(ExtractData.PDF_PASSWORD);
                 if (password == null) {
                     password =

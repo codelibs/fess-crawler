@@ -118,7 +118,7 @@ public class TikaExtractor implements Extractor {
                 String pdfPassword =
                     params == null ? null : params
                         .get(ExtractData.PDF_PASSWORD);
-                if (pdfPassword == null) {
+                if (pdfPassword == null && params != null) {
                     pdfPassword =
                         getPdfPassword(
                             params.get(ExtractData.URL),

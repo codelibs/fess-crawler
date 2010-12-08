@@ -9,15 +9,13 @@
 
 * Maven リポジトリ
 
-    {{{https://www.seasar.org/maven/maven2/org/seasar/robot/}https://www.seasar.org/maven/maven2/org/seasar/robot/}}
+    {{{http://maven.seasar.org/maven2/org/seasar/robot/}http://maven.seasar.org/maven2/org/seasar/robot/}}
 
-* S2Robot 0.1.0
+* Maven スナップショットリポジトリ
 
-*--*-----*--------*---------*
-|  | ZIP | TAR.GZ | TAR.BZ2 |
-*--*-----*--------*---------*
-| S2Robot | {{{/download/2009-08-30/s2-robot-0.1.0-src.zip}s2-robot-0.1.0-src.zip}} | {{{/download/2009-08-30/s2-robot-0.1.0-src.tar.gz}s2-robot-0.1.0-src.tar.gz}} | {{{/download/2009-08-30/s2-robot-0.1.0-src.tar.bz2}s2-robot-0.1.0-src.tar.bz2}} |
-*--*-----*--------*---------*
-| S2Robot DB | {{{/download/2009-08-30/s2-robot-db-0.1.0-src.zip}s2-robot-db-0.1.0-src.zip}} | {{{/download/2009-08-30/s2-robot-db-0.1.0-src.tar.gz}s2-robot-db-0.1.0-src.tar.gz}} | {{{/download/2009-08-30/s2-robot-db-0.1.0-src.tar.bz2}s2-robot-db-0.1.0-src.tar.bz2}} |
-*--*-----*--------*---------*
+    {{{http://maven.seasar.org/maven2-snapshot/org/seasar/robot/}http://maven.seasar.org/maven2-snapshot/org/seasar/robot/}}
+
+* SVN リポジトリ
+
+    {{{https://www.seasar.org/svn/sandbox/s2robot/trunk/}https://www.seasar.org/svn/sandbox/s2robot/trunk/}}
 

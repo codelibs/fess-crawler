@@ -5,4 +5,10 @@
 	<include path="aop.dicon"/>
     <include path="s2robot.dicon"/>
 
+	<component name="tikaExtractorForPdfPassword" class="org.seasar.robot.extractor.impl.TikaExtractor">
+		<initMethod name="addPdfPassword">
+			<arg>".*test_.*.pdf"</arg>
+			<arg>"word"</arg>
+		</initMethod>
+	</component>
 </components>

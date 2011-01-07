@@ -63,6 +63,21 @@ public class TikaExtractorTest extends S2TestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    // public void test_getTika_pdf_pass() {
+    // InputStream in =
+    // ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
+    // TikaExtractor extractor =
+    // (TikaExtractor) getContainer().getComponent(
+    // "tikaExtractorForPdfPassword");
+    // Map<String, String> params = new HashMap<String, String>();
+    // params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
+    // ExtractData extractData = extractor.getText(in, params);
+    // String content = extractData.getContent();
+    // IOUtils.closeQuietly(in);
+    // logger.info(content);
+    // assertTrue(content.contains("テスト"));
+    // }
+
     public void test_getTika_html() {
         InputStream in =
             ResourceUtil.getResourceAsStream("extractor/test_utf8.html");

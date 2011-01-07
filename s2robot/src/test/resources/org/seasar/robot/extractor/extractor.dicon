@@ -12,7 +12,12 @@
 	<component name="msPowerPointExtractor" class="org.seasar.robot.extractor.impl.MsPowerPointExtractor"/>
 	<component name="msPublisherExtractor" class="org.seasar.robot.extractor.impl.MsPublisherExtractor"/>
 	<component name="msVisioExtractor" class="org.seasar.robot.extractor.impl.MsVisioExtractor"/>
-	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor"/>
+	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor">
+		<initMethod name="addPassword">
+			<arg>".*test_.*.pdf"</arg>
+			<arg>"pass"</arg>
+		</initMethod>
+	</component>
 	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
 	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
 	<component name="zipExtractor" class="org.seasar.robot.extractor.impl.ZipExtractor"/>

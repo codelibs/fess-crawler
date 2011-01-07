@@ -16,11 +16,14 @@
 package org.seasar.robot.extractor.impl;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.ExtractData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,17 @@ public class PdfExtractorTest extends S2TestCase {
     public void test_getText() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
         String content = pdfExtractor.getText(in, null).getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
+    public void test_getText_pass() {
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
+        String content = pdfExtractor.getText(in, params).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));

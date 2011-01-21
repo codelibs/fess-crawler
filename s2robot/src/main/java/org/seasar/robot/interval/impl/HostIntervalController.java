@@ -71,7 +71,7 @@ public class HostIntervalController extends DefaultIntervalController {
             if (lastTime == null) {
                 return;
             }
-            synchronized (this) {
+            synchronized (lastTime) {
                 while (true) {
                     final long currentTime = System.currentTimeMillis();
                     final long delayTime =

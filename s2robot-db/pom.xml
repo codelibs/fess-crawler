@@ -16,7 +16,7 @@
         <database>h2</database>
         <databaseGroupId>com.h2database</databaseGroupId>
         <databaseArtifactId>h2</databaseArtifactId>
-        <databaseVersion>1.2.124</databaseVersion>
+        <databaseVersion>1.2.147</databaseVersion>
       </properties>
     </profile>
     <profile>
@@ -25,7 +25,7 @@
         <database>mysql</database>
         <databaseGroupId>mysql</databaseGroupId>
         <databaseArtifactId>mysql-connector-java</databaseArtifactId>
-        <databaseVersion>5.1.10</databaseVersion>
+        <databaseVersion>5.1.14</databaseVersion>
       </properties>
     </profile>
   </profiles>
@@ -147,6 +147,11 @@
       <id>maven.seasar.org</id>
       <name>The Seasar Foundation Maven2 Repository</name>
       <url>http://maven.seasar.org/maven2</url>
+    </repository>
+    <repository>
+      <id>maven-snapshot.seasar.org</id>
+      <name>The Seasar Foundation Maven2 Snapshot Repository</name>
+      <url>http://maven.seasar.org/maven2-snapshot</url>
     </repository>
   </repositories>
   <dependencies>

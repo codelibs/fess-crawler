@@ -1,22 +1,30 @@
 package org.seasar.robot.dbflute.twowaysql.node;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.seasar.robot.dbflute.exception.IfCommentDifferentTypeComparisonException;
-import org.seasar.robot.dbflute.exception.IfCommentEmptyExpressionException;
-import org.seasar.robot.dbflute.exception.IfCommentIllegalParameterBeanSpecificationException;
-import org.seasar.robot.dbflute.exception.IfCommentNotBooleanResultException;
-import org.seasar.robot.dbflute.exception.IfCommentNotFoundMethodException;
-import org.seasar.robot.dbflute.exception.IfCommentNotFoundPropertyException;
-import org.seasar.robot.dbflute.exception.IfCommentNullPointerException;
-import org.seasar.robot.dbflute.exception.IfCommentUnsupportedExpressionException;
-import org.seasar.robot.dbflute.exception.IfCommentUnsupportedTypeComparisonException;
+import org.seasar.robot.dbflute.cbean.SimpleMapPmb;
 import org.seasar.robot.dbflute.jdbc.Classification;
+import org.seasar.robot.dbflute.jdbc.ClassificationMeta;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentDifferentTypeComparisonException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentEmptyExpressionException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentIllegalParameterBeanSpecificationException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentListIndexNotNumberException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentListIndexOutOfBoundsException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNotBooleanResultException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNotFoundMethodException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNotFoundPropertyException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNullPointerException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentPropertyReadFailureException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentUnsupportedExpressionException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentUnsupportedTypeComparisonException;
 import org.seasar.robot.dbflute.twowaysql.pmbean.ParameterBean;
 import org.seasar.robot.dbflute.unit.PlainTestCase;
 import org.seasar.robot.dbflute.util.DfTypeUtil;
+import org.seasar.robot.dbflute.util.DfReflectionUtil.ReflectionFailureException;
 
 /**
  * 
@@ -83,13 +91,13 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
     public void test_evaluate_date() {
         // ## Arrange ##
         BasePmb pmb = new BasePmb();
-        pmb.setBirthdate(DfTypeUtil.toDateFlexibly("2009/11/22"));
+        pmb.setBirthdate(DfTypeUtil.toDate("2009/11/22"));
         String expression = "pmb.birthdate == date '2009/11/22'";
         IfCommentEvaluator evaluator = createEvaluator(pmb, expression);
 
         // ## Act && Assert ##
         assertTrue(evaluator.evaluate());
-        pmb.setBirthdate(DfTypeUtil.toDateFlexibly("2009/10/12"));
+        pmb.setBirthdate(DfTypeUtil.toDate("2009/10/12"));
         assertFalse(evaluator.evaluate());
     }
 
@@ -344,7 +352,7 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
     public void test_lessThan_date() {
         // ## Arrange ##
         BasePmb pmb = new BasePmb();
-        Date birthdate = DfTypeUtil.toTimestampFlexibly("2009/12/24 12:34:56");
+        Date birthdate = DfTypeUtil.toTimestamp("2009/12/24 12:34:56");
         pmb.setBirthdate(birthdate);
 
         // ## Act && Assert ##
@@ -427,7 +435,7 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
     public void test_lessEqual_date() {
         // ## Arrange ##
         BasePmb pmb = new BasePmb();
-        Date birthdate = DfTypeUtil.toTimestampFlexibly("2009/12/24 12:34:56.123");
+        Date birthdate = DfTypeUtil.toTimestamp("2009/12/24 12:34:56.123");
         pmb.setBirthdate(birthdate);
 
         // ## Act && Assert ##
@@ -570,6 +578,28 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
         createEvaluator("foo", "pmbb != null").evaluate(); // no exception
     }
 
+    public void test_evaluate_IfCommentPropertyReadFailureException() {
+        // ## Arrange ##
+        BasePmb pmb = new BasePmb() {
+            @Override
+            public String getMemberName() { // not accessible
+                throw null;
+            }
+        };
+
+        // ## Act ##
+        try {
+            createEvaluator(pmb, "pmb.memberName == null").evaluate();
+
+            // ## Assert ##
+            fail();
+        } catch (IfCommentPropertyReadFailureException e) {
+            // OK
+            log(e.getMessage());
+            assertEquals(ReflectionFailureException.class, e.getCause().getCause().getClass());
+        }
+    }
+
     public void test_evaluate_notFoundMethodProperty() {
         // ## Arrange ##
         BasePmb pmb = new BasePmb();
@@ -702,6 +732,133 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
     }
 
     // ===================================================================================
+    //                                                                                List
+    //                                                                                ====
+    public void test_evaluate_list_basic() {
+        // ## Arrange ##
+        BasePmb pmb = new BasePmb();
+        List<NextPmb> ls = new ArrayList<NextPmb>();
+        {
+            NextPmb nextPmb = new NextPmb();
+            nextPmb.setExistsLogin(false);
+            ls.add(nextPmb);
+        }
+        {
+            NextPmb nextPmb = new NextPmb();
+            nextPmb.setExistsLogin(true);
+            ls.add(nextPmb);
+        }
+        {
+            NextPmb nextPmb = new NextPmb();
+            nextPmb.setExistsLogin(false);
+            ls.add(nextPmb);
+        }
+        pmb.setListPmb(ls);
+
+        // ## Act && Assert ##
+        assertFalse(createEvaluator(pmb, "pmb.listPmb.get(0).existsLogin").evaluate());
+        assertTrue(createEvaluator(pmb, "pmb.listPmb.get(1).existsLogin").evaluate());
+        assertFalse(createEvaluator(pmb, "pmb.listPmb.get(2).existsLogin").evaluate());
+    }
+
+    public void test_evaluate_list_notNumber() {
+        // ## Arrange ##
+        BasePmb pmb = new BasePmb();
+        List<NextPmb> ls = new ArrayList<NextPmb>();
+        NextPmb nextPmb = new NextPmb();
+        nextPmb.setExistsLogin(false);
+        ls.add(nextPmb);
+        pmb.setListPmb(ls);
+
+        // ## Act ##
+        createEvaluator(pmb, "pmb.listPmb.get(0).existsLogin").evaluate(); // no exception
+        try {
+            createEvaluator(pmb, "pmb.listPmb.get(index).existsLogin").evaluate();
+
+            // ## Assert ##
+            fail();
+        } catch (IfCommentListIndexNotNumberException e) {
+            // OK
+            log(e.getMessage());
+        }
+    }
+
+    public void test_evaluate_list_outOfBounds() {
+        // ## Arrange ##
+        BasePmb pmb = new BasePmb();
+        List<NextPmb> ls = new ArrayList<NextPmb>();
+        NextPmb nextPmb = new NextPmb();
+        nextPmb.setExistsLogin(false);
+        ls.add(nextPmb);
+        pmb.setListPmb(ls);
+
+        // ## Act ##
+        createEvaluator(pmb, "pmb.listPmb.get(0).existsLogin").evaluate(); // no exception
+        try {
+            createEvaluator(pmb, "pmb.listPmb.get(1).existsLogin").evaluate();
+
+            // ## Assert ##
+            fail();
+        } catch (IfCommentListIndexOutOfBoundsException e) {
+            // OK
+            log(e.getMessage());
+        }
+    }
+
+    // ===================================================================================
+    //                                                                              MapPmb
+    //                                                                              ======
+    public void test_evaluate_mappmb_basic() {
+        // ## Arrange ##
+        SimpleMapPmb<Integer> pmb = new SimpleMapPmb<Integer>();
+        pmb.addParameter("fooKey", 3);
+
+        // ## Act && Assert ##
+        assertTrue(createEvaluator(pmb, "pmb.fooKey > 2").evaluate());
+        assertFalse(createEvaluator(pmb, "pmb.fooKey > 3").evaluate());
+    }
+
+    public void test_evaluate_mappmb_notKey() {
+        // ## Arrange ##
+        SimpleMapPmb<Integer> pmb = new SimpleMapPmb<Integer>();
+        pmb.addParameter("notKey", 3);
+
+        // ## Act ##
+        try {
+            createEvaluator(pmb, "pmb.fooKey > 2").evaluate();
+
+            // ## Assert ##
+            fail();
+        } catch (IfCommentNotFoundPropertyException e) {
+            // OK
+            log(e.getMessage());
+        }
+    }
+
+    // ===================================================================================
+    //                                                                                 Map
+    //                                                                                 ===
+    public void test_evaluate_map_basic() {
+        // ## Arrange ##
+        BasePmb pmb = new BasePmb();
+        pmb.putMapPmb("fooKey", 3);
+
+        // ## Act && Assert ##
+        assertTrue(createEvaluator(pmb, "pmb.mapPmb.fooKey > 2").evaluate());
+        assertFalse(createEvaluator(pmb, "pmb.mapPmb.fooKey > 3").evaluate());
+    }
+
+    public void test_evaluate_map_notKey() {
+        // ## Arrange ##
+        BasePmb pmb = new BasePmb();
+        pmb.putMapPmb("notKey", 3);
+
+        // ## Act && Assert ##
+        assertTrue(createEvaluator(pmb, "pmb.mapPmb.fooKey == null").evaluate());
+        assertFalse(createEvaluator(pmb, "pmb.mapPmb.fooKey != null").evaluate());
+    }
+
+    // ===================================================================================
     //                                                                             Various
     //                                                                             =======
     public void test_evaluate_trim() {
@@ -721,7 +878,7 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
         // ## Arrange ##
         BasePmb pmb = new BasePmb();
         pmb.setMemberId(2);
-        pmb.setBirthdate(DfTypeUtil.toDateFlexibly("2008/11/22"));
+        pmb.setBirthdate(DfTypeUtil.toDate("2008/11/22"));
 
         // ## Act && Assert ##
         assertTrue(createEvaluator(pmb, "3 > pmb.memberId").evaluate());
@@ -729,16 +886,6 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
         assertTrue(createEvaluator(pmb, "3 > pmb.memberId && date '2009/11/22' > pmb.birthdate").evaluate());
         assertTrue(createEvaluator(pmb, "pmb.memberId < 3 && date '2009/11/22' > pmb.birthdate").evaluate());
         assertTrue(createEvaluator(pmb, "3 == pmb.memberId || date '2009/11/22' > pmb.birthdate").evaluate());
-    }
-
-    public void test_evaluate_map() {
-        // ## Arrange ##
-        BasePmb pmb = new BasePmb();
-        pmb.putMapPmb("fooKey", 3);
-
-        // ## Act && Assert ##
-        assertTrue(createEvaluator(pmb, "pmb.mapPmb.fooKey > 2").evaluate());
-        assertFalse(createEvaluator(pmb, "pmb.mapPmb.fooKey > 3").evaluate());
     }
 
     public void test_evaluate_scalarPmb() {
@@ -766,15 +913,15 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
             return null;
         }
 
-        public DataType dataType() {
-            return null;
-        }
-
         public String code() {
             return "Pixy";
         }
 
         public String alias() {
+            return null;
+        }
+
+        public ClassificationMeta meta() {
             return null;
         }
     }
@@ -787,7 +934,7 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
             public Object find(String name) {
                 return pmb;
             }
-        }, expression, "select foo from bar");
+        }, expression, "select foo from bar", null);
     }
 
     protected static class BasePmb implements ParameterBean {
@@ -797,6 +944,7 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
         private Date _birthdate;
         private NextPmb _nextPmb;
         private Map<String, Integer> _mapPmb = new HashMap<String, Integer>();
+        private List<NextPmb> _listPmb;
 
         public void checkSafetyResult(int safetyMaxResultSize) {
 
@@ -809,7 +957,7 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder();
-            sb.append(getClass().getSimpleName()).append(":");
+            sb.append(DfTypeUtil.toClassTitle(this)).append(":");
             sb.append(xbuildColumnString());
             return sb.toString();
         }
@@ -874,6 +1022,14 @@ public class IfCommentEvaluatorTest extends PlainTestCase {
 
         public void putMapPmb(String key, Integer value) {
             this._mapPmb.put(key, value);
+        }
+
+        public List<NextPmb> getListPmb() {
+            return _listPmb;
+        }
+
+        public void setListPmb(List<NextPmb> listPmb) {
+            this._listPmb = listPmb;
         }
     }
 

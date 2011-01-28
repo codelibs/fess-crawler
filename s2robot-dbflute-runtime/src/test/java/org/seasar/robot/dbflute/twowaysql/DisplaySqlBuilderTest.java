@@ -16,7 +16,7 @@ public class DisplaySqlBuilderTest extends PlainTestCase {
 
     public void test_getBindVariableText_dateFormat_basic() {
         // ## Arrange ##
-        Date date = DfTypeUtil.toDateFlexibly("2009-10-27");
+        Date date = DfTypeUtil.toDate("2009-10-27");
 
         // ## Act ##
         String actual = DisplaySqlBuilder.getBindVariableText(date, null, null);
@@ -28,7 +28,7 @@ public class DisplaySqlBuilderTest extends PlainTestCase {
     public void test_getBindVariableText_dateFormat_custom() {
         // ## Arrange ##
         String format = "date $df:{yyyy-MM-dd}";
-        Date date = DfTypeUtil.toDateFlexibly("2009-10-27");
+        Date date = DfTypeUtil.toDate("2009-10-27");
 
         // ## Act ##
         String actual = DisplaySqlBuilder.getBindVariableText(date, format, null);
@@ -40,7 +40,7 @@ public class DisplaySqlBuilderTest extends PlainTestCase {
     public void test_getBindVariableText_timestampFormat_basic() {
         // ## Arrange ##
         String format = "yyyy-MM-dd HH:mm:ss.SSS";
-        Timestamp timestamp = DfTypeUtil.toTimestampFlexibly("2009-10-27 16:22:23.123");
+        Timestamp timestamp = DfTypeUtil.toTimestamp("2009-10-27 16:22:23.123");
 
         // ## Act ##
         String actual = DisplaySqlBuilder.getBindVariableText(timestamp, null, format);
@@ -52,7 +52,7 @@ public class DisplaySqlBuilderTest extends PlainTestCase {
     public void test_getBindVariableText_timestampFormat_custom() {
         // ## Arrange ##
         String format = "timestamp $df:{yyyy-MM-dd HH:mm:ss.SSS}";
-        Timestamp timestamp = DfTypeUtil.toTimestampFlexibly("2009-10-27 16:22:23.123");
+        Timestamp timestamp = DfTypeUtil.toTimestamp("2009-10-27 16:22:23.123");
 
         // ## Act ##
         String actual = DisplaySqlBuilder.getBindVariableText(timestamp, null, format);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,41 @@ package org.seasar.robot.dbflute.dbway;
 public class WayOfUnknown implements DBWay {
 
     // ===================================================================================
+    //                                                                        Sequence Way
+    //                                                                        ============
+    public String buildSequenceNextValSql(String sequenceName) {
+        return null;
+    }
+
+    // ===================================================================================
     //                                                                       Identity Info
     //                                                                       =============
     public String getIdentitySelectSql() {
         return null;
     }
-    
+
+    // ===================================================================================
+    //                                                                         SQL Support
+    //                                                                         ===========
+    public boolean isBlockCommentSupported() {
+        return true; // as default for unknown
+    }
+
+    public boolean isLineCommentSupported() {
+        return true; // as default for unknown
+    }
+
+    // ===================================================================================
+    //                                                                        JDBC Support
+    //                                                                        ============
+    public boolean isScrollableCursorSupported() {
+        return true; // as default for unknown
+    }
+
     // ===================================================================================
     //                                                                   SQLException Info
     //                                                                   =================
     public boolean isUniqueConstraintException(String sqlState, Integer errorCode) {
-        return false; // Unknown
+        return false;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.seasar.robot.dbflute.s2dao.metadata.impl;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.seasar.robot.dbflute.helper.beans.DfBeanDesc;
 import org.seasar.robot.dbflute.helper.beans.DfPropertyDesc;
@@ -28,34 +27,36 @@ import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaDataFactory;
 import org.seasar.robot.dbflute.s2dao.metadata.TnRelationPropertyType;
 import org.seasar.robot.dbflute.s2dao.metadata.TnRelationPropertyTypeFactory;
+import org.seasar.robot.dbflute.util.DfCollectionUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnRelationPropertyTypeFactoryImpl implements TnRelationPropertyTypeFactory {
 
-    protected Class<?> beanClass;
+    protected Class<?> _beanClass;
 
-    protected TnBeanAnnotationReader beanAnnotationReader;
+    protected TnBeanAnnotationReader _beanAnnotationReader;
 
-    protected TnBeanMetaDataFactory beanMetaDataFactory;
+    protected TnBeanMetaDataFactory _beanMetaDataFactory;
 
-    protected DatabaseMetaData databaseMetaData;
+    protected DatabaseMetaData _databaseMetaData;
 
-    protected int relationNestLevel;
+    protected int _relationNestLevel;
 
-    protected boolean isStopRelationCreation;
+    protected boolean _stopRelationCreation;
 
     public TnRelationPropertyTypeFactoryImpl(Class<?> beanClass, TnBeanAnnotationReader beanAnnotationReader,
             TnBeanMetaDataFactory beanMetaDataFactory, DatabaseMetaData databaseMetaData, int relationNestLevel,
-            boolean isStopRelationCreation) {
-        this.beanClass = beanClass;
-        this.beanAnnotationReader = beanAnnotationReader;
-        this.beanMetaDataFactory = beanMetaDataFactory;
-        this.databaseMetaData = databaseMetaData;
-        this.relationNestLevel = relationNestLevel;
-        this.isStopRelationCreation = isStopRelationCreation;
+            boolean stopRelationCreation) {
+        this._beanClass = beanClass;
+        this._beanAnnotationReader = beanAnnotationReader;
+        this._beanMetaDataFactory = beanMetaDataFactory;
+        this._databaseMetaData = databaseMetaData;
+        this._relationNestLevel = relationNestLevel;
+        this._stopRelationCreation = stopRelationCreation;
     }
 
     public TnRelationPropertyType[] createRelationPropertyTypes() {
@@ -64,7 +65,7 @@ public class TnRelationPropertyTypeFactoryImpl implements TnRelationPropertyType
         final List<String> proppertyNameList = beanDesc.getProppertyNameList();
         for (String proppertyName : proppertyNameList) {
             final DfPropertyDesc pd = beanDesc.getPropertyDesc(proppertyName);
-            if (isStopRelationCreation || !isRelationProperty(pd)) {
+            if (_stopRelationCreation || !isRelationProperty(pd)) {
                 continue;
             }
             TnRelationPropertyType rpt = createRelationPropertyType(pd);
@@ -74,17 +75,16 @@ public class TnRelationPropertyTypeFactoryImpl implements TnRelationPropertyType
     }
 
     protected TnRelationPropertyType createRelationPropertyType(DfPropertyDesc propertyDesc) {
-        String[] myKeys = new String[0];
-        String[] yourKeys = new String[0];
-        int relno = beanAnnotationReader.getRelationNo(propertyDesc);
-        String relkeys = beanAnnotationReader.getRelationKey(propertyDesc);
+        final String[] myKeys;
+        final String[] yourKeys;
+        final int relno = _beanAnnotationReader.getRelationNo(propertyDesc);
+        final String relkeys = _beanAnnotationReader.getRelationKey(propertyDesc);
         if (relkeys != null) {
-            StringTokenizer st = new StringTokenizer(relkeys, " \t\n\r\f,");
-            List<String> myKeyList = new ArrayList<String>();
-            List<String> yourKeyList = new ArrayList<String>();
-            while (st.hasMoreTokens()) {
-                String token = st.nextToken();
-                int index = token.indexOf(':');
+            final List<String> myKeyList = DfCollectionUtil.newArrayList();
+            final List<String> yourKeyList = DfCollectionUtil.newArrayList();
+            final List<String> tokenList = Srl.splitListTrimmed(relkeys, ",");
+            for (String token : tokenList) {
+                final int index = token.indexOf(':');
                 if (index > 0) {
                     myKeyList.add(token.substring(0, index));
                     yourKeyList.add(token.substring(index + 1));
@@ -95,23 +95,26 @@ public class TnRelationPropertyTypeFactoryImpl implements TnRelationPropertyType
             }
             myKeys = (String[]) myKeyList.toArray(new String[myKeyList.size()]);
             yourKeys = (String[]) yourKeyList.toArray(new String[yourKeyList.size()]);
+        } else {
+            myKeys = new String[0];
+            yourKeys = new String[0];
         }
         final TnBeanMetaData beanMetaData = createRelationBeanMetaData(propertyDesc.getPropertyType());
-        DfPropertyDesc pd = propertyDesc;
+        final DfPropertyDesc pd = propertyDesc;
         final TnRelationPropertyType rpt = new TnRelationPropertyTypeImpl(pd, relno, myKeys, yourKeys, beanMetaData);
         return rpt;
     }
 
     protected TnBeanMetaData createRelationBeanMetaData(final Class<?> relationBeanClass) {
-        return beanMetaDataFactory.createBeanMetaData(databaseMetaData, relationBeanClass, relationNestLevel + 1);
+        return _beanMetaDataFactory.createBeanMetaData(_databaseMetaData, relationBeanClass, _relationNestLevel + 1);
     }
 
     protected boolean isRelationProperty(DfPropertyDesc propertyDesc) {
-        return beanAnnotationReader.hasRelationNo(propertyDesc);
+        return _beanAnnotationReader.hasRelationNo(propertyDesc);
     }
 
     protected DfBeanDesc getBeanDesc() {
-        return DfBeanDescFactory.getBeanDesc(beanClass);
+        return DfBeanDescFactory.getBeanDesc(_beanClass);
     }
 
 }

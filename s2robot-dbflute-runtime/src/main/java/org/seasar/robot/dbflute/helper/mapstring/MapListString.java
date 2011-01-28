@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * MapList-String.
- * <p>
- * <pre>
- * # Interface that offers generation of map and list from the following character strings (map list string). 
- * # 
- * #   ex) map:{key1=value1,key2=list:{value21,value22,value23},key3=map:{key31=value31}}
- * #   ex) list:{key1=value1,key2=list:{value21,value22,value23},key3=map:{key31=value31}}
- * # 
+ * The string for map and list.
+ * <pre> 
+ * ex) map-string
+ *   map:{key1=value1,key2=list:{value21,value22,value23},key3=map:{key31=value31}}
+ * 
+ * ex) list-string
+ *   list:{key1=value1,key2=list:{value21,value22,value23},key3=map:{key31=value31}}
  * </pre>
- *
  * @author jflute
  */
 public interface MapListString {
 
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
     /** Default of map-mark. */
     public static final String DEFAULT_MAP_MARK = "map:";
 
@@ -45,73 +46,43 @@ public interface MapListString {
     /** Default of end-brace. */
     public static final String DEFAULT_END_BRACE = "}";
 
-    /** Default of delimter. */
+    /** Default of delimiter. */
     public static final String DEFAULT_DELIMITER = ";";
 
     /** Default of equal. */
     public static final String DEFAULT_EQUAL = "=";
 
-    // ==========================================================================================
-    //                                                                                     Setter
-    //                                                                                     ======
+    // ===================================================================================
+    //                                                                               Build
+    //                                                                               =====
     /**
-     * Set map-mark.
-     * 
-     * @param mapMark Map-mark. (NotNull)
+     * Build map-string from map.
+     * @param map The instance of map. (NotNull)
+     * @return The string as map expression. (NotNull)
      */
-    public void setMapMark(String mapMark);
+    String buildMapString(Map<String, ? extends Object> map);
 
     /**
-     * Set list-mark.
-     * 
-     * @param listMark List-mark. (NotNull)
+     * Build list-string from list.
+     * @param list The instance of list. (NotNull)
+     * @return The string as list expression. (NotNull)
      */
-    public void setListMark(String listMark);
+    String buildListString(List<? extends Object> list);
 
-    /**
-     * Set start brace.
-     * 
-     * @param startBrace Start brace. (NotNull)
-     */
-    public void setStartBrace(String startBrace);
-
-    /**
-     * Set end brace.
-     * 
-     * @param endBrace End brace. (NotNull)
-     */
-    public void setEndBrace(String endBrace);
-
-    /**
-     * Set delimiter.
-     * 
-     * @param delimiter Delimiter. (NotNull)
-     */
-    public void setDelimiter(String delimiter);
-
-    /**
-     * Set equal.
-     * 
-     * @param equal Equal. (NotNull)
-     */
-    public void setEqual(String equal);
-    
-    // ==========================================================================================
-    //                                                                                   Generate
-    //                                                                                   ========
+    // ===================================================================================
+    //                                                                            Generate
+    //                                                                            ========
     /**
      * Generate map from map-string.
-     * 
      * @param mapString Map-string (NotNull)
      * @return Generated map. (NotNull)
      */
-    public Map<String, Object> generateMap(String mapString);
+    Map<String, Object> generateMap(String mapString);
 
     /**
      * Generate map from list-string. {Implement}
-     * 
      * @param listString List-string (NotNull)
      * @return Generated list. (NotNull)
      */
-    public List<Object> generateList(String listString);
+    List<Object> generateList(String listString);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.cbean.FetchBean;
 import org.seasar.robot.dbflute.cbean.FetchNarrowingBean;
-import org.seasar.robot.dbflute.exception.DangerousResultSizeException;
+import org.seasar.robot.dbflute.exception.FetchingOverSafetySizeException;
+import org.seasar.robot.dbflute.exception.handler.SQLExceptionHandler;
+import org.seasar.robot.dbflute.jdbc.FetchBean;
 import org.seasar.robot.dbflute.jdbc.PlainResultSetWrapper;
 import org.seasar.robot.dbflute.resource.ResourceContext;
-import org.seasar.robot.dbflute.resource.SQLExceptionHandler;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnFetchAssistResultSet extends PlainResultSetWrapper {
@@ -42,7 +42,13 @@ public class TnFetchAssistResultSet extends PlainResultSetWrapper {
     /** The bean of fetch. (NotNull) */
     protected final FetchBean _fetchBean;
 
-    /** The bean of fetch narrowing. (Nullable) */
+    /** The max size of safety result. (derived from fetchBean) */
+    protected final int _safetyResultMaxSize;
+
+    /** Is the safety check valid? (derived from fetchBean) */
+    protected final boolean _safetyCheckValid;
+
+    /** The bean of fetch narrowing. (NullAllowed) */
     protected final FetchNarrowingBean _fetchNarrowingBean;
 
     /** Does it offset by cursor forcedly? */
@@ -82,6 +88,11 @@ public class TnFetchAssistResultSet extends PlainResultSetWrapper {
 
         _resultSet = resultSet;
         _fetchBean = fetchBean;
+
+        // derived before fetching for performance
+        _safetyResultMaxSize = fetchBean.getSafetyMaxResultSize();
+        _safetyCheckValid = _safetyResultMaxSize > 0;
+
         _fetchNarrowingBean = fetchBean instanceof FetchNarrowingBean ? (FetchNarrowingBean) fetchBean : null;
         _offsetByCursorForcedly = offsetByCursorForcedly;
         _limitByCursorForcedly = limitByCursorForcedly;
@@ -152,13 +163,16 @@ public class TnFetchAssistResultSet extends PlainResultSetWrapper {
      */
     @Override
     public boolean next() throws SQLException {
-        if (_db2 && _skipToCursorEnd) { // [DBFLUTE-243]
+        if (_db2 && _skipToCursorEnd) {
+            // because DB2 closes cursor when cursor end automatically [DBFLUTE-243]
             return false;
         }
         final boolean hasNext = super.next();
         ++_requestCounter;
         if (!isAvailableLimitLoopCount()) {
-            checkSafetyResultIfNeed(hasNext);
+            if (_safetyCheckValid) {
+                checkSafetyResult(hasNext);
+            }
             return hasNext;
         }
 
@@ -166,7 +180,9 @@ public class TnFetchAssistResultSet extends PlainResultSetWrapper {
         final int loopCount = getFetchNarrowingLoopCount();
         if (hasNext && _fetchCounter < skipStartIndex + loopCount) {
             ++_fetchCounter;
-            checkSafetyResultIfNeed(true);
+            if (_safetyCheckValid) {
+                checkSafetyResult(true);
+            }
             return true;
         } else {
             return false;
@@ -186,23 +202,16 @@ public class TnFetchAssistResultSet extends PlainResultSetWrapper {
         return false;
     }
 
-    protected void checkSafetyResultIfNeed(boolean hasNext) {
-        final int safetyMaxResultSize = getSafetyMaxResultSize();
-        if (hasNext && safetyMaxResultSize > 0 && _requestCounter > safetyMaxResultSize) {
-            String msg = "You've been in Danger Zone:";
-            msg = msg + " safetyMaxResultSize=" + safetyMaxResultSize;
-            throw new DangerousResultSizeException(msg, safetyMaxResultSize);
+    protected void checkSafetyResult(boolean hasNext) {
+        if (hasNext && _requestCounter > _safetyResultMaxSize) {
+            throwFetchingOverSafetySizeException();
         }
     }
 
-    // ===================================================================================
-    //                                                                          Fetch Bean
-    //                                                                          ==========
-    /**
-     * @return The max size of safety result.
-     */
-    public int getSafetyMaxResultSize() {
-        return _fetchBean.getSafetyMaxResultSize();
+    protected void throwFetchingOverSafetySizeException() {
+        // here simple message because an entry method catches this
+        String msg = "The fetching was over the specified safety size: " + _safetyResultMaxSize;
+        throw new FetchingOverSafetySizeException(msg, _safetyResultMaxSize);
     }
 
     // ===================================================================================
@@ -283,12 +292,16 @@ public class TnFetchAssistResultSet extends PlainResultSetWrapper {
             return !(_resultSet.getType() == ResultSet.TYPE_FORWARD_ONLY);
         } catch (SQLException e) {
             handleSQLException(e, null);
-            return false;// unreachable
+            return false; // unreachable
         }
     }
 
     protected void handleSQLException(SQLException e, Statement statement) {
-        new SQLExceptionHandler().handleSQLException(e, statement);
+        createSQLExceptionHandler().handleSQLException(e, statement);
+    }
+
+    protected SQLExceptionHandler createSQLExceptionHandler() {
+        return ResourceContext.createSQLExceptionHandler();
     }
 
     // ===================================================================================

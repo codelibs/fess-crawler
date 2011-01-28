@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,49 @@
  */
 package org.seasar.robot.dbflute.cbean.coption;
 
+import java.io.Serializable;
+import java.util.List;
+
 import org.seasar.robot.dbflute.cbean.coption.parts.SplitOptionParts;
-import org.seasar.robot.dbflute.cbean.coption.parts.ToSingleByteOptionParts;
-import org.seasar.robot.dbflute.cbean.coption.parts.ToUpperLowerCaseOptionParts;
-import org.seasar.robot.dbflute.cbean.coption.parts.local.JapaneseOptionPartsAgent;
-import org.seasar.robot.dbflute.util.DfStringUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
  * The class of simple-string-option.
  * @author jflute
  */
-public class SimpleStringOption implements ConditionOption {
+public class SimpleStringOption implements ConditionOption, Serializable {
 
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     protected SplitOptionParts _splitOptionParts;
-    protected ToUpperLowerCaseOptionParts _toUpperLowerCaseOptionParts;
-    protected ToSingleByteOptionParts _toSingleByteCaseOptionParts;
-    protected JapaneseOptionPartsAgent _japaneseOptionPartsAgent;
 
-    // =====================================================================================
-    //                                                                           Rear Option
-    //                                                                           ===========
+    // ===================================================================================
+    //                                                                         Rear Option
+    //                                                                         ===========
     public String getRearOption() {
         return "";
     }
 
-    // =====================================================================================
-    //                                                                                 Split
-    //                                                                                 =====
+    // ===================================================================================
+    //                                                                               Split
+    //                                                                               =====
+    protected SimpleStringOption doSplitByBlank() {
+        getSplitOptionParts().splitByBlank();
+        return this;
+    }
+
+    protected SimpleStringOption doSplitByBlank(int splitLimitCount) {
+        getSplitOptionParts().splitByBlank(splitLimitCount);
+        return this;
+    }
+
     protected SimpleStringOption doSplitBySpace() {
         getSplitOptionParts().splitBySpace();
         return this;
@@ -72,11 +88,25 @@ public class SimpleStringOption implements ConditionOption {
         return this;
     }
 
+    protected SimpleStringOption doSplitByVarious(List<String> delimiterList) {
+        getSplitOptionParts().splitByVarious(delimiterList);
+        return this;
+    }
+
+    protected SimpleStringOption doSplitByVarious(List<String> delimiterList, int splitLimitCount) {
+        getSplitOptionParts().splitByVarious(delimiterList, splitLimitCount);
+        return this;
+    }
+
     protected SplitOptionParts getSplitOptionParts() {
         if (_splitOptionParts == null) {
-            _splitOptionParts = new SplitOptionParts();
+            _splitOptionParts = createSplitOptionParts();
         }
         return _splitOptionParts;
+    }
+
+    protected SplitOptionParts createSplitOptionParts() {
+        return new SplitOptionParts();
     }
 
     public boolean isSplit() {
@@ -87,97 +117,31 @@ public class SimpleStringOption implements ConditionOption {
         return getSplitOptionParts().generateSplitValueArray(value);
     }
 
-    // =====================================================================================
-    //                                                                   To Upper/Lower Case
-    //                                                                   ===================
-    protected SimpleStringOption doToUpperCase() {
-        getToUpperLowerCaseOptionParts().toUpperCase();
-        return this;
-    }
-
-    protected SimpleStringOption doToLowerCase() {
-        getToUpperLowerCaseOptionParts().toLowerCase();
-        return this;
-    }
-
-    protected ToUpperLowerCaseOptionParts getToUpperLowerCaseOptionParts() {
-        if (_toUpperLowerCaseOptionParts == null) {
-            _toUpperLowerCaseOptionParts = new ToUpperLowerCaseOptionParts();
-        }
-        return _toUpperLowerCaseOptionParts;
-    }
-
-    // =====================================================================================
-    //                                                                        To Single Byte
-    //                                                                        ==============
-    protected SimpleStringOption doToSingleByteSpace() {
-        getToSingleByteOptionParts().toSingleByteSpace();
-        return this;
-    }
-
-    protected SimpleStringOption doToSingleByteAlphabetNumber() {
-        getToSingleByteOptionParts().toSingleByteAlphabetNumber();
-        return this;
-    }
-
-    protected SimpleStringOption doToSingleByteAlphabetNumberMark() {
-        getToSingleByteOptionParts().toSingleByteAlphabetNumberMark();
-        return this;
-    }
-
-    protected ToSingleByteOptionParts getToSingleByteOptionParts() {
-        if (_toSingleByteCaseOptionParts == null) {
-            _toSingleByteCaseOptionParts = new ToSingleByteOptionParts();
-        }
-        return _toSingleByteCaseOptionParts;
-    }
-
-    // =====================================================================================
-    //                                                                        To Double Byte
-    //                                                                        ==============
-
-    // =====================================================================================
-    //                                                                              Japanese
-    //                                                                              ========
-    protected JapaneseOptionPartsAgent doLocalJapanese() {
-        return getJapaneseOptionPartsAgent();
-    }
-
-    protected JapaneseOptionPartsAgent getJapaneseOptionPartsAgent() {
-        if (_japaneseOptionPartsAgent == null) {
-            _japaneseOptionPartsAgent = new JapaneseOptionPartsAgent();
-        }
-        return _japaneseOptionPartsAgent;
-    }
-
-    // =====================================================================================
-    //                                                                            Real Value
-    //                                                                            ==========
+    // ===================================================================================
+    //                                                                          Real Value
+    //                                                                          ==========
     public String generateRealValue(String value) {
-        value = getToUpperLowerCaseOptionParts().generateRealValue(value);
-        value = getToSingleByteOptionParts().generateRealValue(value);
-        value = getJapaneseOptionPartsAgent().generateRealValue(value);
         return value;
     }
 
-    // =====================================================================================
-    //                                                                        General Helper
-    //                                                                        ==============
+    // ===================================================================================
+    //                                                                      General Helper
+    //                                                                      ==============
     protected String replace(String text, String fromText, String toText) {
-	    return DfStringUtil.replace(text, fromText, toText);
+        return Srl.replace(text, fromText, toText);
     }
 
-    // =====================================================================================
-    //                                                                              DeepCopy
-    //                                                                              ========
+    // ===================================================================================
+    //                                                                           Deep Copy
+    //                                                                           =========
     public Object createDeepCopy() {
         final SimpleStringOption deepCopy = newDeepCopyInstance();
-        deepCopy._splitOptionParts = _splitOptionParts != null ? (SplitOptionParts)_splitOptionParts.createDeepCopy() : null;
-        deepCopy._toUpperLowerCaseOptionParts = _toUpperLowerCaseOptionParts != null ? (ToUpperLowerCaseOptionParts)_toUpperLowerCaseOptionParts.createDeepCopy() : null;
-        deepCopy._toSingleByteCaseOptionParts = _toSingleByteCaseOptionParts != null ? (ToSingleByteOptionParts)_toSingleByteCaseOptionParts.createDeepCopy() : null;
-        deepCopy._japaneseOptionPartsAgent = _japaneseOptionPartsAgent != null ? (JapaneseOptionPartsAgent)_japaneseOptionPartsAgent.createDeepCopy() : null;
+        if (_splitOptionParts != null) {
+            deepCopy._splitOptionParts = (SplitOptionParts) _splitOptionParts;
+        }
         return deepCopy;
     }
+
     protected SimpleStringOption newDeepCopyInstance() {
         return new SimpleStringOption();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.seasar.robot.dbflute.dbway.WayOfMySQL;
 import org.seasar.robot.dbflute.dbway.WayOfOracle;
 import org.seasar.robot.dbflute.dbway.WayOfPostgreSQL;
 import org.seasar.robot.dbflute.dbway.WayOfSQLServer;
+import org.seasar.robot.dbflute.dbway.WayOfSQLite;
+import org.seasar.robot.dbflute.dbway.WayOfSybase;
 import org.seasar.robot.dbflute.dbway.WayOfUnknown;
 
 /**
@@ -39,15 +41,17 @@ public enum DBDef {
     // ===================================================================================
     //                                                                                ENUM
     //                                                                                ====
-    MySQL("mysql", null, new WayOfMySQL())
-    , PostgreSQL("postgresql", "postgre", new WayOfPostgreSQL())
-    , Oracle("oracle", null, new WayOfOracle())
-    , DB2("db2", null, new WayOfDB2())
-    , SQLServer("sqlserver", "mssql", new WayOfSQLServer())
-    , FireBird("firebird", null, new WayOfFirebird())
-    , H2("h2", null, new WayOfH2())
-    , Derby("derby", null, new WayOfDerby())
-    , MSAccess("msaccess", null, new WayOfMSAccess())
+    MySQL("mysql", null, new WayOfMySQL()) // supported
+    , PostgreSQL("postgresql", "postgre", new WayOfPostgreSQL()) // supported
+    , Oracle("oracle", null, new WayOfOracle()) // supported
+    , DB2("db2", null, new WayOfDB2()) // supported
+    , SQLServer("sqlserver", "mssql", new WayOfSQLServer()) // supported
+    , H2("h2", null, new WayOfH2()) // supported
+    , Derby("derby", null, new WayOfDerby()) // supported
+    , SQLite("sqlite", null, new WayOfSQLite()) // sub supported
+    , MSAccess("msaccess", null, new WayOfMSAccess()) // sub supported
+    , FireBird("firebird", null, new WayOfFirebird()) // a-little-bit supported
+    , Sybase("sybase", null, new WayOfSybase()) // a-little-bit supported
     , Unknown("unknown", null, new WayOfUnknown());
 
     // ===================================================================================
@@ -72,8 +76,8 @@ public enum DBDef {
     }
 
     /**
-     * @param code The code of the DB. (Nullable: If the code is null, it returns null)
-     * @return The instance that has the code. (Nullable)
+     * @param code The code of the DB. (NullAllowed: If the code is null, it returns null)
+     * @return The instance that has the code. (NullAllowed)
      */
     public static DBDef codeOf(String code) {
         if (code == null) {
@@ -93,7 +97,7 @@ public enum DBDef {
     /** The code of the DB. (NotNull) */
     private String _code;
 
-    /** The code alias of the DB. (Nullable) */
+    /** The code alias of the DB. (NullAllowed) */
     private String _codeAlias;
 
     /** The way of the DB. (NotNull) */
@@ -104,7 +108,7 @@ public enum DBDef {
     //                                                                         ===========
     /**
      * @param code The code of the DB. (NotNull)
-     * @param codeAlias The code alias of the DB. (Nullable)
+     * @param codeAlias The code alias of the DB. (NullAllowed)
      */
     private DBDef(String code, String codeAlias, DBWay dbway) {
         _code = code;
@@ -123,7 +127,7 @@ public enum DBDef {
     }
 
     /**
-     * @return The code alias of the DB. (Nullable)
+     * @return The code alias of the DB. (NullAllowed)
      */
     private String codeAlias() {
         return _codeAlias;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.dbflute.helper;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -26,38 +27,53 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jflute
  * @param <VALUE> The type of value.
  */
-public class StringKeyMap<VALUE> implements Map<String, VALUE> {
+public class StringKeyMap<VALUE> implements Map<String, VALUE>, Serializable {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected final Map<String, VALUE> _internalMap;
+    protected final Map<String, VALUE> _searchMap;
 
-    protected boolean _removeUnderscore;
+    // these maps always have same size of search map if it's valid
+    protected final Map<String, VALUE> _plainMap; // invalid if concurrent
+    protected final Map<String, String> _searchPlainKeyMap; // same life-cycle as plainMap
+
+    protected boolean _flexible;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    protected StringKeyMap(boolean removeUnderscore, boolean order, boolean concurrent) {
+    protected StringKeyMap(boolean flexible, boolean order, boolean concurrent) {
         if (order && concurrent) {
             String msg = "The 'order' and 'concurrent' should not be both true at the same time!";
             throw new IllegalStateException(msg);
         }
-        _removeUnderscore = removeUnderscore;
+        _flexible = flexible;
         if (concurrent) {
-            _internalMap = newConcurrentHashMap();
+            _searchMap = newConcurrentHashMap();
+            _plainMap = null; // invalid if concurrent
+            _searchPlainKeyMap = null; // same life-cycle as plainMap
         } else {
             if (order) {
-                _internalMap = newLinkedHashMap();
+                _searchMap = newLinkedHashMap();
+                _plainMap = newLinkedHashMap();
             } else {
-                _internalMap = newHashMap();
+                _searchMap = newHashMap();
+                _plainMap = newHashMap();
             }
+            _searchPlainKeyMap = newHashMap();
         }
     }
 
     /**
      * Create The map of string key as case insensitive. <br />
-     * You can set null value.
+     * You can set null key and value. And plain keys to be set is kept.
      * @param <VALUE> The type of value.
      * @return The map of string key as case insensitive. (NotNull)
      */
@@ -67,7 +83,7 @@ public class StringKeyMap<VALUE> implements Map<String, VALUE> {
 
     /**
      * Create The map of string key as case insensitive and concurrent. <br />
-     * You cannot set null value.
+     * You cannot set null key and value. And plain keys to be set is NOT kept.
      * @param <VALUE> The type of value.
      * @return The map of string key as case insensitive and concurrent. (NotNull)
      */
@@ -75,19 +91,43 @@ public class StringKeyMap<VALUE> implements Map<String, VALUE> {
         return new StringKeyMap<VALUE>(false, false, true);
     }
 
-    public static <VALUE> StringKeyMap<VALUE> createAsCaseInsensitiveOrder() {
+    /**
+     * Create The map of string key as case insensitive and ordered. <br />
+     * You can set null key and value. And plain keys to be set is kept.
+     * @param <VALUE> The type of value.
+     * @return The map of string key as case insensitive and ordered. (NotNull)
+     */
+    public static <VALUE> StringKeyMap<VALUE> createAsCaseInsensitiveOrdered() {
         return new StringKeyMap<VALUE>(false, true, false);
     }
 
+    /**
+     * Create The map of string key as flexible. <br />
+     * You can set null key and value. And plain keys to be set is kept.
+     * @param <VALUE> The type of value.
+     * @return The map of string key as flexible. (NotNull)
+     */
     public static <VALUE> StringKeyMap<VALUE> createAsFlexible() {
         return new StringKeyMap<VALUE>(true, false, false);
     }
 
+    /**
+     * Create The map of string key as flexible and concurrent. <br />
+     * You cannot set null key and value. And plain keys to be set is NOT kept.
+     * @param <VALUE> The type of value.
+     * @return The map of string key as flexible and concurrent. (NotNull)
+     */
     public static <VALUE> StringKeyMap<VALUE> createAsFlexibleConcurrent() {
         return new StringKeyMap<VALUE>(true, false, true);
     }
 
-    public static <VALUE> StringKeyMap<VALUE> createAsFlexibleOrder() {
+    /**
+     * Create The map of string key as flexible and ordered. <br />
+     * You can set null key and value. And plain keys to be set is kept.
+     * @param <VALUE> The type of value.
+     * @return The map of string key as flexible and ordered. (NotNull)
+     */
+    public static <VALUE> StringKeyMap<VALUE> createAsFlexibleOrdered() {
         return new StringKeyMap<VALUE>(true, true, false);
     }
 
@@ -99,26 +139,32 @@ public class StringKeyMap<VALUE> implements Map<String, VALUE> {
     //                                           -----------
     public VALUE get(Object key) {
         final String stringKey = convertStringKey(key);
-        if (stringKey != null) {
-            return _internalMap.get(stringKey);
-        }
-        return null;
+        return _searchMap.get(stringKey);
     }
 
     public VALUE put(String key, VALUE value) {
         final String stringKey = convertStringKey(key);
-        if (stringKey != null) {
-            return _internalMap.put(stringKey, value);
+        if (_plainMap != null) { // non thread safe
+            final String plainKey = generatePlainKey(key, stringKey);
+            _plainMap.put(plainKey, value);
+            _searchPlainKeyMap.put(stringKey, plainKey);
         }
-        return null;
+        return _searchMap.put(stringKey, value);
     }
 
     public VALUE remove(Object key) {
         final String stringKey = convertStringKey(key);
-        if (stringKey != null) {
-            return _internalMap.remove(stringKey);
+        if (_plainMap != null) { // non thread safe
+            final String plainKey = generatePlainKey(key, stringKey);
+            _plainMap.remove(plainKey);
+            _searchPlainKeyMap.remove(stringKey);
         }
-        return null;
+        return _searchMap.remove(stringKey);
+    }
+
+    protected String generatePlainKey(Object key, String stringKey) {
+        final String plainKey = _searchPlainKeyMap.get(stringKey);
+        return (plainKey != null ? plainKey : (key != null ? key.toString() : null));
     }
 
     public final void putAll(Map<? extends String, ? extends VALUE> map) {
@@ -131,38 +177,78 @@ public class StringKeyMap<VALUE> implements Map<String, VALUE> {
     }
 
     public boolean containsKey(Object key) {
-        return get(key) != null;
+        final String stringKey = convertStringKey(key);
+        return _searchMap.containsKey(stringKey);
     }
 
     // -----------------------------------------------------
     //                                              Delegate
     //                                              --------
     public void clear() {
-        _internalMap.clear();
+        if (_plainMap != null) {
+            _plainMap.clear();
+            _searchPlainKeyMap.clear();
+        }
+        _searchMap.clear();
     }
 
     public int size() {
-        return _internalMap.size();
+        return _searchMap.size();
     }
 
     public boolean isEmpty() {
-        return _internalMap.isEmpty();
+        return _searchMap.isEmpty();
     }
 
     public Set<String> keySet() {
-        return _internalMap.keySet();
+        if (_plainMap != null) {
+            return _plainMap.keySet();
+        }
+        return _searchMap.keySet();
     }
 
     public Collection<VALUE> values() {
-        return _internalMap.values();
+        return _searchMap.values();
     }
 
     public boolean containsValue(Object obj) {
-        return _internalMap.containsValue(obj);
+        return _searchMap.containsValue(obj);
     }
 
     public Set<Entry<String, VALUE>> entrySet() {
-        return _internalMap.entrySet();
+        if (_plainMap != null) {
+            return _plainMap.entrySet();
+        }
+        return _searchMap.entrySet();
+    }
+
+    // ===================================================================================
+    //                                                                    Original Utility
+    //                                                                    ================
+    public boolean equalsUnderCharOption(StringKeyMap<VALUE> map) { // ignores ordered
+        if (map == null) {
+            return false;
+        }
+        if (size() != map.size()) {
+            return false;
+        }
+        final Set<Entry<String, VALUE>> entrySet = map.entrySet();
+        for (Entry<String, VALUE> entry : entrySet) {
+            if (!containsKey(entry.getKey())) {
+                return false;
+            }
+            final VALUE value = get(entry.getKey());
+            if (value != null) {
+                if (!value.equals(entry.getValue())) {
+                    return false;
+                }
+            } else {
+                if (entry.getValue() != null) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // ===================================================================================
@@ -172,12 +258,27 @@ public class StringKeyMap<VALUE> implements Map<String, VALUE> {
         if (!(key instanceof String)) {
             return null;
         }
-        return toLowerCase(removeUnderscore((String) key));
+        return toLowerCase(removeConnector((String) key));
     }
 
-    protected String removeUnderscore(String value) {
-        if (_removeUnderscore) {
-            return replace(value, "_", "");
+    protected String removeConnector(String value) {
+        if (value == null) {
+            return null;
+        }
+        if (_flexible) {
+            // both side quotations
+            if (isSingleQuoted(value)) {
+                value = unquoteSingle(value);
+            } else if (isDoubleQuoted(value)) {
+                value = unquoteDouble(value);
+            }
+
+            // a main target mark when flexible
+            value = replace(value, "_", "");
+
+            // non-compilable marks in Java
+            value = replace(value, "-", "");
+            value = replace(value, " ", "");
         }
         return value;
     }
@@ -189,28 +290,53 @@ public class StringKeyMap<VALUE> implements Map<String, VALUE> {
     // ===================================================================================
     //                                                                      General Helper
     //                                                                      ==============
-    protected static String replace(String text, String fromText, String toText) {
-        if (text == null || fromText == null || toText == null) {
-            return null;
-        }
-        StringBuilder sb = new StringBuilder(100);
+    // copied from DBFlute's utilities for independence of this class
+    protected static String replace(String str, String fromStr, String toStr) {
+        StringBuilder sb = null; // lazy load
         int pos = 0;
         int pos2 = 0;
-        while (true) {
-            pos = text.indexOf(fromText, pos2);
-            if (pos == 0) {
-                sb.append(toText);
-                pos2 = fromText.length();
-            } else if (pos > 0) {
-                sb.append(text.substring(pos2, pos));
-                sb.append(toText);
-                pos2 = pos + fromText.length();
-            } else {
-                sb.append(text.substring(pos2));
-                break;
+        do {
+            pos = str.indexOf(fromStr, pos2);
+            if (pos2 == 0 && pos < 0) { // first loop and not found
+                return str; // without creating StringBuilder 
             }
+            if (sb == null) {
+                sb = new StringBuilder();
+            }
+            if (pos == 0) {
+                sb.append(toStr);
+                pos2 = fromStr.length();
+            } else if (pos > 0) {
+                sb.append(str.substring(pos2, pos));
+                sb.append(toStr);
+                pos2 = pos + fromStr.length();
+            } else { // (pos < 0) second or after loop only
+                sb.append(str.substring(pos2));
+                return sb.toString();
+            }
+        } while (true);
+    }
+
+    protected static boolean isSingleQuoted(String str) {
+        return str.length() > 1 && str.startsWith("'") && str.endsWith("'");
+    }
+
+    protected static boolean isDoubleQuoted(String str) {
+        return str.length() > 1 && str.startsWith("\"") && str.endsWith("\"");
+    }
+
+    protected static String unquoteSingle(String str) {
+        if (!isSingleQuoted(str)) {
+            return str;
         }
-        return sb.toString();
+        return str.substring("'".length(), str.length() - "'".length());
+    }
+
+    protected static String unquoteDouble(String str) {
+        if (!isDoubleQuoted(str)) {
+            return str;
+        }
+        return str.substring("\"".length(), str.length() - "\"".length());
     }
 
     protected static <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
@@ -230,16 +356,34 @@ public class StringKeyMap<VALUE> implements Map<String, VALUE> {
     //                                                                      ==============
     @Override
     public boolean equals(Object obj) {
-        return _internalMap.equals(obj);
+        if (obj instanceof StringKeyMap<?>) {
+            @SuppressWarnings("unchecked")
+            final StringKeyMap<Object> map = (StringKeyMap<Object>) obj;
+            if (size() != map.size()) {
+                return false;
+            }
+            final Map<?, ?> myMap = _plainMap != null ? _plainMap : _searchMap;
+            final Map<?, ?> yourMap = map._plainMap != null ? map._plainMap : map._searchMap;
+            return myMap.equals(yourMap);
+        } else if (obj instanceof Map<?, ?>) {
+            @SuppressWarnings("unchecked")
+            final Map<Object, Object> map = (Map<Object, Object>) obj;
+            if (size() != map.size()) {
+                return false;
+            }
+            return _plainMap != null ? _plainMap.equals(map) : _searchMap.equals(map);
+        } else {
+            return false;
+        }
     }
 
     @Override
     public int hashCode() {
-        return _internalMap.hashCode();
+        return _plainMap != null ? _plainMap.hashCode() : _searchMap.hashCode();
     }
 
     @Override
     public String toString() {
-        return _internalMap.toString();
+        return _plainMap != null ? _plainMap.toString() : _searchMap.toString();
     }
 }

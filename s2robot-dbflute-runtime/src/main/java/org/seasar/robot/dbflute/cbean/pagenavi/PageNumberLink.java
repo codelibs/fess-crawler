@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.seasar.robot.dbflute.cbean.pagenavi;
 
+import java.io.Serializable;
+
 /**
  * The class of page number link.
  * @author jflute
  */
-public class PageNumberLink implements java.io.Serializable {
+public class PageNumberLink implements Serializable {
 
     // ===================================================================================
     //                                                                          Definition
@@ -56,14 +58,14 @@ public class PageNumberLink implements java.io.Serializable {
     /**
      * @return The view string of all attribute values. (NotNull)
      */
-	 @Override
+    @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer();
-
-        sb.append(" pageNumberElement=").append(_pageNumberElement);
-        sb.append(" pageNumberLinkHref=").append(_pageNumberLinkHref);
-        sb.append(" current=").append(_current);
-
+        sb.append("{");
+        sb.append("pageNumberElement=").append(_pageNumberElement);
+        sb.append(", pageNumberLinkHref=").append(_pageNumberLinkHref);
+        sb.append(", current=").append(_current);
+        sb.append("}");
         return sb.toString();
     }
 

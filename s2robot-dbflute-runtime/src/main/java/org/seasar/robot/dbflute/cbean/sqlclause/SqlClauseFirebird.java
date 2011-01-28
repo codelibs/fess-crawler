@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,35 @@ package org.seasar.robot.dbflute.cbean.sqlclause;
  */
 public class SqlClauseFirebird extends AbstractSqlClause {
 
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     /** String of fetch-scope as select-hint. */
     protected String _fetchScopeSelectHint = "";
 
     /** String of lock as sql-suffix. */
     protected String _lockSqlSuffix = "";
 
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor.
-     * 
-     * @param tableName Table name. (NotNull)
+     * @param tableDbName The DB name of table. (NotNull)
      **/
-    public SqlClauseFirebird(String tableName) {
-        super(tableName);
+    public SqlClauseFirebird(String tableDbName) {
+        super(tableDbName);
     }
 
+    // ===================================================================================
+    //                                                                 FetchScope Override
+    //                                                                 ===================
     /**
      * {@inheritDoc}
      */
@@ -67,20 +81,22 @@ public class SqlClauseFirebird extends AbstractSqlClause {
         _fetchScopeSelectHint = "";
     }
 
+    // ===================================================================================
+    //                                                                       Lock Override
+    //                                                                       =============
     /**
      * {@inheritDoc}
-     * 
-     * @return this. (NotNull)
      */
     public SqlClause lockForUpdate() {
         _lockSqlSuffix = " for update with lock";
         return this;
     }
 
+    // ===================================================================================
+    //                                                                       Hint Override
+    //                                                                       =============
     /**
      * {@inheritDoc}
-     * 
-     * @return Select-hint. (NotNull)
      */
     protected String createSelectHint() {
         return _fetchScopeSelectHint;
@@ -88,8 +104,6 @@ public class SqlClauseFirebird extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * 
-     * @return From-base-table-hint. {select * from table [from-base-table-hint] where ...} (NotNull)
      */
     protected String createFromBaseTableHint() {
         return "";
@@ -97,8 +111,6 @@ public class SqlClauseFirebird extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * 
-     * @return From-hint. (NotNull)
      */
     protected String createFromHint() {
         return "";
@@ -106,8 +118,6 @@ public class SqlClauseFirebird extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * 
-     * @return Sql-suffix. (NotNull)
      */
     protected String createSqlSuffix() {
         return _lockSqlSuffix;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.dbflute.cbean.grouping;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,28 +24,34 @@ import java.util.List;
  * @param <ENTITY> The type of entity.
  * @author jflute
  */
-public class GroupingRowResource<ENTITY> {
+public class GroupingRowResource<ENTITY> implements Serializable {
 
-    // =====================================================================================
-    //                                                                             Attribute
-    //                                                                             =========
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     protected List<ENTITY> _groupingRowList = new ArrayList<ENTITY>();
     protected int _elementCurrentIndex;
     protected int _breakCount;
 
-    // =====================================================================================
-    //                                                                           Easy-to-Use
-    //                                                                           ===========
+    // ===================================================================================
+    //                                                                         Easy-to-Use
+    //                                                                         ===========
     /**
      * @return Does the list of grouping row size up the break count?
      */
     public boolean isSizeUpBreakCount() {
-        return _elementCurrentIndex == (_breakCount-1);
+        return _elementCurrentIndex == (_breakCount - 1);
     }
 
-    // =====================================================================================
-    //                                                                              Accessor
-    //                                                                              ========
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
     /**
      * @return The list of grouping row. (NotNull and NotEmpty)
      */

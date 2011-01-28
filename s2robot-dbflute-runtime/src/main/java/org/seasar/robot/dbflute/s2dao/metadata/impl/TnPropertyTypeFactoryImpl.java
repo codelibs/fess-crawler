@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,36 @@ import java.util.List;
 
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnSqlName;
 import org.seasar.robot.dbflute.helper.beans.DfBeanDesc;
 import org.seasar.robot.dbflute.helper.beans.DfPropertyDesc;
+import org.seasar.robot.dbflute.jdbc.Classification;
+import org.seasar.robot.dbflute.s2dao.metadata.TnAbstractPropertyTypeFactory;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanAnnotationReader;
 import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
-import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypeFactory;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnPropertyTypeFactoryImpl extends TnAbstractPropertyTypeFactory {
 
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     protected DBMeta _dbmeta;
 
-    public TnPropertyTypeFactoryImpl(Class<?> beanClass, TnBeanAnnotationReader beanAnnotationReader,
-            TnValueTypeFactory valueTypeFactory) {
-        super(beanClass, beanAnnotationReader, valueTypeFactory);
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
+    public TnPropertyTypeFactoryImpl(Class<?> beanClass, TnBeanAnnotationReader beanAnnotationReader) {
+        super(beanClass, beanAnnotationReader);
         initializeResources();
     }
 
+    // -----------------------------------------------------
+    //                                Initialization Support
+    //                                ----------------------
     protected void initializeResources() {
         if (isEntity()) {
             _dbmeta = findDBMeta();
@@ -47,23 +57,22 @@ public class TnPropertyTypeFactoryImpl extends TnAbstractPropertyTypeFactory {
     }
 
     protected boolean isEntity() {
-        return Entity.class.isAssignableFrom(beanClass);
-    }
-
-    protected boolean hasDBMeta() {
-        return _dbmeta != null;
+        return Entity.class.isAssignableFrom(_beanClass);
     }
 
     protected DBMeta findDBMeta() {
         try {
-            final Entity entity = (Entity) beanClass.newInstance();
+            final Entity entity = (Entity) _beanClass.newInstance();
             return entity.getDBMeta();
         } catch (Exception e) {
-            String msg = "beanClass.newInstance() threw the exception: beanClass=" + beanClass;
-            throw new RuntimeException(msg, e);
+            String msg = "beanClass.newInstance() threw the exception: beanClass=" + _beanClass;
+            throw new IllegalStateException(msg, e);
         }
     }
 
+    // ===================================================================================
+    //                                                                      Implementation
+    //                                                                      ==============
     public TnPropertyType[] createBeanPropertyTypes() {
         final List<TnPropertyType> list = new ArrayList<TnPropertyType>();
         final DfBeanDesc beanDesc = getBeanDesc();
@@ -71,12 +80,24 @@ public class TnPropertyTypeFactoryImpl extends TnAbstractPropertyTypeFactory {
         for (String proppertyName : proppertyNameList) {
             final DfPropertyDesc pd = beanDesc.getPropertyDesc(proppertyName);
 
-            // Read-only property is unnecessary!
-            if (!pd.hasWriteMethod()) {
+            // read-only property (that is NOT column) is unnecessary!
+            if (!pd.isWritable()) {
+                // If the property is treated as column, a writer method may be unnecessary.
+                // For example, target column of classification setting forced
+                // is set by classification writer method.
+                if (!isColumn(pd)) {
+                    continue;
+                }
+            }
+
+            // classification property is unnecessary!
+            // (because native type is valid)
+            if (isClassification(pd)) {
                 continue;
             }
 
-            // Relation property is unnecessary!
+            // relation property is unnecessary!
+            // (because a relation mapping is other process)
             if (isRelation(pd)) {
                 continue;
             }
@@ -89,7 +110,18 @@ public class TnPropertyTypeFactoryImpl extends TnAbstractPropertyTypeFactory {
         return list.toArray(new TnPropertyType[list.size()]);
     }
 
-    @Override
+    // ===================================================================================
+    //                                                                       Assist Helper
+    //                                                                       =============
+    protected boolean isColumn(DfPropertyDesc propertyDesc) {
+        // no DBMeta means the property is NOT column (for example, derived-column)
+        return hasDBMeta() ? _dbmeta.hasColumn(propertyDesc.getPropertyName()) : false;
+    }
+
+    protected boolean isClassification(DfPropertyDesc propertyDesc) {
+        return Classification.class.isAssignableFrom(propertyDesc.getPropertyType());
+    }
+
     protected boolean isRelation(DfPropertyDesc propertyDesc) {
         final String propertyName = propertyDesc.getPropertyName();
         if (hasDBMeta() && (_dbmeta.hasForeign(propertyName) || _dbmeta.hasReferrer(propertyName))) {
@@ -99,10 +131,9 @@ public class TnPropertyTypeFactoryImpl extends TnAbstractPropertyTypeFactory {
     }
 
     protected boolean hasRelationNoAnnotation(DfPropertyDesc propertyDesc) {
-        return beanAnnotationReader.hasRelationNo(propertyDesc);
+        return _beanAnnotationReader.hasRelationNo(propertyDesc);
     }
 
-    @Override
     protected boolean isPrimaryKey(DfPropertyDesc propertyDesc) {
         final String propertyName = propertyDesc.getPropertyName();
         if (hasDBMeta() && _dbmeta.hasPrimaryKey() && _dbmeta.hasColumn(propertyName)) {
@@ -114,20 +145,29 @@ public class TnPropertyTypeFactoryImpl extends TnAbstractPropertyTypeFactory {
     }
 
     protected boolean hasIdAnnotation(DfPropertyDesc propertyDesc) {
-        return beanAnnotationReader.getId(propertyDesc) != null;
+        return _beanAnnotationReader.getId(propertyDesc) != null;
     }
 
-    @Override
     protected boolean isPersistent(TnPropertyType propertyType) {
         final String propertyName = propertyType.getPropertyName();
         final DfPropertyDesc propertyDesc = propertyType.getPropertyDesc();
-        if ((hasDBMeta() && _dbmeta.hasColumn(propertyName)) || hasColumnAnnotation(propertyDesc)) {
-            return true;
-        }
-        return false;
+        return (hasDBMeta() && _dbmeta.hasColumn(propertyName)) || hasColumnAnnotation(propertyDesc);
     }
 
     protected boolean hasColumnAnnotation(DfPropertyDesc propertyDesc) {
-        return beanAnnotationReader.getColumnAnnotation(propertyDesc) != null;
+        return _beanAnnotationReader.getColumnAnnotation(propertyDesc) != null;
+    }
+
+    protected boolean hasDBMeta() {
+        return _dbmeta != null;
+    }
+
+    @Override
+    protected ColumnSqlName getColumnSqlName(String columnDbName) {
+        if (hasDBMeta() && _dbmeta.hasColumn(columnDbName)) {
+            return _dbmeta.findColumnInfo(columnDbName).getColumnSqlName();
+        } else {
+            return new ColumnSqlName(columnDbName);
+        }
     }
 }

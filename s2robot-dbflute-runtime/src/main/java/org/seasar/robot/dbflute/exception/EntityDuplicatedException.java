@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.seasar.robot.dbflute.exception;
 
 /**
  * The exception of when the entity has been duplicated.
- * 
  * @author jflute
  */
 public class EntityDuplicatedException extends RecordHasOverlappedException {

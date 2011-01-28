@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.seasar.robot.dbflute.s2dao.metadata;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public interface TnPropertyTypeFactoryBuilder {

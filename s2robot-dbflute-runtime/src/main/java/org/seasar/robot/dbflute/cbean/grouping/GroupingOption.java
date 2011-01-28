@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,16 @@ package org.seasar.robot.dbflute.cbean.grouping;
  */
 public class GroupingOption<ENTITY> {
 
-    // =====================================================================================
-    //                                                                             Attribute
-    //                                                                             =========
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     protected int _elementCount;
 
     protected GroupingRowEndDeterminer<ENTITY> _groupingRowEndDeterminer;
 
-    // =====================================================================================
-    //                                                                           Constructor
-    //                                                                           ===========
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor. You should set the determiner of grouping row end after you create the instance.
      */
@@ -46,9 +46,9 @@ public class GroupingOption<ENTITY> {
         _elementCount = elementCount;
     }
 
-    // =====================================================================================
-    //                                                                              Accessor
-    //                                                                              ========
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
     public int getElementCount() {
         return this._elementCount;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,23 @@
  */
 package org.seasar.robot.dbflute.bhv.core.command;
 
+import org.seasar.robot.dbflute.bhv.UpdateOption;
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
 import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
+import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
-import org.seasar.robot.dbflute.s2dao.sqlcommand.TnUpdateModifiedOnlyCommand;
-
+import org.seasar.robot.dbflute.s2dao.sqlcommand.TnUpdateEntityDynamicCommand;
 
 /**
  * @author jflute
  */
 public class UpdateEntityCommand extends AbstractEntityCommand {
+
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
+    /** The option of update. (NotRequired) */
+    protected UpdateOption<? extends ConditionBean> _updateOption;
 
     // ===================================================================================
     //                                                                   Basic Information
@@ -48,20 +55,36 @@ public class UpdateEntityCommand extends AbstractEntityCommand {
 
     protected SqlExecution createUpdateEntitySqlExecution(TnBeanMetaData bmd) {
         final String[] propertyNames = getPersistentPropertyNames(bmd);
-        return createUpdateModifiedOnlyCommand(bmd, propertyNames);
+        return createUpdateEntityDynamicCommand(bmd, propertyNames);
     }
 
-    protected TnUpdateModifiedOnlyCommand createUpdateModifiedOnlyCommand(TnBeanMetaData bmd, String[] propertyNames) {
-        final TnUpdateModifiedOnlyCommand cmd = new TnUpdateModifiedOnlyCommand(_dataSource, _statementFactory);
-        cmd.setBeanMetaData(bmd);// Extension Point!
+    protected TnUpdateEntityDynamicCommand createUpdateEntityDynamicCommand(TnBeanMetaData bmd, String[] propertyNames) {
+        final TnUpdateEntityDynamicCommand cmd = new TnUpdateEntityDynamicCommand(_dataSource, _statementFactory);
+        cmd.setBeanMetaData(bmd);
         cmd.setTargetDBMeta(findDBMeta());
         cmd.setPropertyNames(propertyNames);
         cmd.setOptimisticLockHandling(isOptimisticLockHandling());
-        cmd.setVersionNoAutoIncrementOnMemory(isOptimisticLockHandling());
+        cmd.setVersionNoAutoIncrementOnMemory(isVersionNoAutoIncrementOnMemory());
         return cmd;
     }
-    
+
     protected boolean isOptimisticLockHandling() {
         return true;
+    }
+
+    protected boolean isVersionNoAutoIncrementOnMemory() {
+        return isOptimisticLockHandling();
+    }
+
+    @Override
+    protected Object[] doGetSqlExecutionArgument() {
+        return new Object[] { _entity, _updateOption };
+    }
+
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
+    public void setUpdateOption(UpdateOption<? extends ConditionBean> updateOption) {
+        _updateOption = updateOption;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
  * @param <LOCAL_RELATION_TRACE> The type of local relation trace.
  */
 @SuppressWarnings("unchecked")
-public class HierarchyBasicRequest<LOCAL_ENTITY extends Entity, LOCAL_RELATION_TRACE extends DBMeta.RelationTrace> extends HierarchyRequest<LOCAL_ENTITY> {
+public class HierarchyBasicRequest<LOCAL_ENTITY extends Entity, LOCAL_RELATION_TRACE extends DBMeta.RelationTrace>
+        extends HierarchyRequest<LOCAL_ENTITY> {
 
     // ===================================================================================
     //                                                                           Attribute
@@ -81,13 +82,14 @@ public class HierarchyBasicRequest<LOCAL_ENTITY extends Entity, LOCAL_RELATION_T
         final Object target = destinationDBMeta;
         java.lang.reflect.Method method = null;
         try {
-            method = target.getClass().getMethod("createRelationTrace", new Class[]{DBMeta.RelationTraceFixHandler.class});
+            method = target.getClass().getMethod("createRelationTrace",
+                    new Class[] { DBMeta.RelationTraceFixHandler.class });
         } catch (NoSuchMethodException e) {
             String msg = "Not found method: method=createRelationTrace(DBMeta.RelationTraceFixHandler)";
             throw new IllegalStateException(msg, e);
         }
         try {
-            return (LOCAL_RELATION_TRACE)method.invoke(target, new Object[]{handler});
+            return (LOCAL_RELATION_TRACE) method.invoke(target, new Object[] { handler });
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(e);
         } catch (java.lang.reflect.InvocationTargetException e) {

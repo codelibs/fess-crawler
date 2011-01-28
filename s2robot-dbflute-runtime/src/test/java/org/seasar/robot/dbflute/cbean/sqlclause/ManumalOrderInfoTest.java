@@ -3,7 +3,7 @@ package org.seasar.robot.dbflute.cbean.sqlclause;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.seasar.robot.dbflute.cbean.sqlclause.OrderByClause.ManumalOrderInfo;
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause.ManumalOrderInfo;
 import org.seasar.robot.dbflute.unit.PlainTestCase;
 
 /**

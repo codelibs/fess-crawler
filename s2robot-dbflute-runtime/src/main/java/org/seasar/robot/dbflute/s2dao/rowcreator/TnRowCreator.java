@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,43 +18,32 @@ package org.seasar.robot.dbflute.s2dao.rowcreator;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.Set;
 
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
-import org.seasar.robot.dbflute.s2dao.metadata.TnDtoMetaData;
-import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
+import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyMapping;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public interface TnRowCreator {
 
     /**
      * @param rs Result set. (NotNull)
-     * @param columnPropertyTypeMap The map of row property cache. The key is String(columnName) and the value is PropertyType. (NotNull)
+     * @param columnPropertyTypeMap The map of row property cache. The key is String(columnName) and the value is a PropertyMapping. (NotNull)
      * @param beanClass Bean class. (NotNull)
      * @return Created row. (NotNull)
      * @throws SQLException
      */
-    Object createRow(ResultSet rs, Map<String, TnPropertyType> columnPropertyTypeMap, Class<?> beanClass)
+    Object createRow(ResultSet rs, Map<String, TnPropertyMapping> columnPropertyTypeMap, Class<?> beanClass)
             throws SQLException;
 
     /**
-     * @param columnNames The set of column name. (NotNull)
+     * @param selectColumnMap The name map of select column. {flexible-name = column-DB-name} (NotNull)
      * @param beanMetaData Bean meta data. (NotNull)
-     * @return The map of row property cache. The key is String(columnName) and the value is PropertyType. (NotNull)
+     * @return The map of row property cache. The key is String(columnName) and the value is a PropertyMapping. (NotNull)
      * @throws SQLException
      */
-    Map<String, TnPropertyType> createPropertyCache(Set<String> columnNames, TnBeanMetaData beanMetaData)
-            throws SQLException;
-
-    /**
-     * @param columnNames The set of column name. (NotNull)
-     * @param dtoMetaData Dto meta data. (NotNull)
-     * @return The map of property cache. Map{String(columnName), PropertyType} (NotNull)
-     * @throws SQLException
-     */
-    Map<String, TnPropertyType> createPropertyCache(Set<String> columnNames, TnDtoMetaData dtoMetaData)
+    Map<String, TnPropertyMapping> createPropertyCache(Map<String, String> selectColumnMap, TnBeanMetaData beanMetaData)
             throws SQLException;
 }

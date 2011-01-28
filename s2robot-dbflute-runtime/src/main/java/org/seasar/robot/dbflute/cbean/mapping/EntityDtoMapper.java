@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.seasar.robot.dbflute.cbean.mapping;
 
 /**
- * The mapper of entity to DTO.
+ * The map-per of entity to DTO.
  * @param <ENTITY> The type of entity.
  * @param <DTO> The type of DTO.
  * @author jflute
@@ -28,5 +28,5 @@ public interface EntityDtoMapper<ENTITY, DTO> {
      * @param entity Entity. (NotNull)
      * @return Data transfer object. (NotNull)
      */
-    public DTO map(ENTITY entity);
+    DTO map(ENTITY entity);
 }

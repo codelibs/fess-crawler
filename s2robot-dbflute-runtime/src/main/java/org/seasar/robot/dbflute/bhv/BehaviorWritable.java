@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.seasar.robot.dbflute.bhv;
 import java.util.List;
 
 import org.seasar.robot.dbflute.Entity;
+import org.seasar.robot.dbflute.cbean.ConditionBean;
 
 /**
  * The interface of behavior-writable.
@@ -26,91 +27,147 @@ import org.seasar.robot.dbflute.Entity;
 public interface BehaviorWritable extends BehaviorReadable {
 
     // =====================================================================================
-    //                                                                   Basic Entity Update
-    //                                                                   ===================
+    //                                                                         Entity Update
+    //                                                                         =============
     /**
-     * Create.
-     * @param entity Entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
+     * Create the entity. <br />
+     * An interface dispatch for insert() or varyingInsert().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param option The option of insert. (NullAllowed: if null, same as insert())
      */
-    void create(org.seasar.robot.dbflute.Entity entity);
+    void create(Entity entity, InsertOption<? extends ConditionBean> option);
 
     /**
-     * Modify.
-     * @param entity Entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyUpdatedException When the entity has already been updated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
+     * Modify the entity. <br />
+     * An interface dispatch for update() or varyingUpdate().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param option The option of update. (NullAllowed: if null, same as update())
      */
-    void modify(org.seasar.robot.dbflute.Entity entity);
+    void modify(Entity entity, UpdateOption<? extends ConditionBean> option);
 
     /**
-     * Modify non-strict.
-     * @param entity Entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
+     * Modify the entity non-strictly. <br />
+     * An interface dispatch for updateNonstrict() or varyingUpdateNonstrict(). <br />
+     * However if it's non optimistic lock table, this is same as modify().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param option The option of update. (NullAllowed: if null, same as updateNonstrict())
      */
-    void modifyNonstrict(Entity entity);
+    void modifyNonstrict(Entity entity, UpdateOption<? extends ConditionBean> option);
 
     /**
-     * Create or modify. <br />
-     * {modify: modified only} <br />
-     * This method is faster than createOrModifyAfterSelect().
-     * @param entity Entity. This must contain primary-key value at least(Except use identity). (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyUpdatedException When the entity has already been updated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
+     * Create or modify the entity. <br />
+     * An interface dispatch for insertOrUpdate() or varyingInsertOrUpdate().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param insertOption The option of insert. (NullAllowed)
+     * @param updateOption The option of update. (NullAllowed)
      */
-    void createOrModify(org.seasar.robot.dbflute.Entity entity);
+    void createOrModify(Entity entity, InsertOption<? extends ConditionBean> insertOption,
+            UpdateOption<? extends ConditionBean> updateOption);
 
     /**
-     * Create or modify non-strict. <br />
-     * {modify: modified only} <br />
-     * This method is faster than createOrModifyAfterSelect().
-     * @param entity Entity. This must contain primary-key value at least(Except use identity). (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException When the entity already exists. (Unique Constraint Violation)
+     * Create or modify the entity non-strictly. <br />
+     * An interface dispatch for insertOrUpdateNonstrict() or varyingInsertOrUpdateNonstrict(). <br />
+     * However if it's non optimistic lock table, this is same as createOrModify().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param insertOption The option of insert. (NullAllowed)
+     * @param updateOption The option of update. (NullAllowed)
      */
-    void createOrModifyNonstrict(org.seasar.robot.dbflute.Entity entity);
+    void createOrModifyNonstrict(Entity entity, InsertOption<? extends ConditionBean> insertOption,
+            UpdateOption<? extends ConditionBean> updateOption);
 
     /**
-     * Remove.
-     * @param entity Entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyUpdatedException When the entity has already been updated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
+     * Remove the entity. <br />
+     * An interface dispatch for delete() or varyingDelete().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param option The option of delete. (NullAllowed: if null, same as delete())
      */
-    void remove(org.seasar.robot.dbflute.Entity entity);
+    void remove(Entity entity, DeleteOption<? extends ConditionBean> option);
+
+    /**
+     * Remove the entity non-strictly. <br />
+     * An interface dispatch for deleteNonstrict() or varyingDeleteNonstrict().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param option The option of delete. (NullAllowed: if null, same as deleteNonstrict())
+     */
+    void removeNonstrict(Entity entity, DeleteOption<? extends ConditionBean> option);
 
     // =====================================================================================
-    //                                                                    Basic Batch Update
-    //                                                                    ==================
+    //                                                                          Batch Update
+    //                                                                          ============
     /**
-     * Lump create the list.
-     * @param entityList The list of entity. (NotNull and NotEmpty)
+     * Lump-create the list. <br />
+     * An interface dispatch for batchInsert() or varyingBatchInsert().
+     * @param entityList The list of corresponding entity. (NotNull and NotEmpty)
+     * @param option The option of insert. (NullAllowed: if null, same as batchInsert())
      * @return The array of created count.
      */
-    int[] lumpCreate(List<Entity> entityList);
+    int[] lumpCreate(List<Entity> entityList, InsertOption<? extends ConditionBean> option);
 
     /**
-     * Lump modify the list.
-     * @param entityList The list of entity. (NotNull and NotEmpty)
+     * Lump-modify the list. <br />
+     * An interface dispatch for batchUpdate() or varyingBatchUpdate().
+     * @param entityList The list of corresponding entity. (NotNull and NotEmpty)
+     * @param option The option of update. (NullAllowed: if null, same as batchUpdate())
      * @return Modified count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyUpdatedException When the entity has already been updated. And Only when s2dao's version is over 1.0.47 (contains 1.0.47).
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
-    int[] lumpModify(List<Entity> entityList);
+    int[] lumpModify(List<Entity> entityList, UpdateOption<? extends ConditionBean> option);
 
     /**
-     * Lump remove the list.
-     * @param entityList The list of entity. (NotNull and NotEmpty)
-     * @return Removed count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyUpdatedException When the entity has already been updated. And Only when s2dao's version is over 1.0.47 (contains 1.0.47).
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
+     * Lump-modify the list non-strictly. <br />
+     * An interface dispatch for batchUpdateNonstrict() or varyingBatchUpdateNonstrict().
+     * @param entityList The list of corresponding entity. (NotNull and NotEmpty)
+     * @param option The option of update. (NullAllowed: if null, same as batchUpdateNonstrict())
+     * @return Modified count.
      */
-    int[] lumpRemove(List<Entity> entityList);
+    int[] lumpModifyNonstrict(List<Entity> entityList, UpdateOption<? extends ConditionBean> option);
+
+    /**
+     * Lump-remove the list. <br />
+     * An interface dispatch for batchDelete() or varyingBatchDelete().
+     * @param entityList The list of entity. (NotNull and NotEmpty)
+     * @param option The option of delete. (NullAllowed: if null, same as batchDelete())
+     * @return Removed count.
+     */
+    int[] lumpRemove(List<Entity> entityList, DeleteOption<? extends ConditionBean> option);
+
+    /**
+     * Lump-remove the list non-strictly. <br />
+     * An interface dispatch for batchDeleteNonstrict() or varyingBatchDeleteNonstrict().
+     * @param entityList The list of corresponding entity. (NotNull and NotEmpty)
+     * @param option The option of delete. (NullAllowed: if null, same as batchDeleteNonstrict())
+     * @return Removed count.
+     */
+    int[] lumpRemoveNonstrict(List<Entity> entityList, DeleteOption<? extends ConditionBean> option);
+
+    // =====================================================================================
+    //                                                                          Query Update
+    //                                                                          ============
+    /**
+     * Range-create entities. <br />
+     * An interface dispatch for queryInsert() or varyingQueryInsert().
+     * @param setupper The set-upper for query-insert. (NotNull)
+     * @param option The option of update. (NullAllowed: if null, same as queryUpdate())
+     * @return Modified count.
+     */
+    int rangeCreate(QueryInsertSetupper<? extends Entity, ? extends ConditionBean> setupper,
+            InsertOption<? extends ConditionBean> option);
+
+    /**
+     * Range-modify entities. <br />
+     * An interface dispatch for queryUpdate() or varyingQueryUpdate().
+     * @param entity The instance of corresponding entity. (NotNull)
+     * @param cb The corresponding condition-bean for query. (NotNull)
+     * @param option The option of update. (NullAllowed: if null, same as queryUpdate())
+     * @return Modified count.
+     */
+    int rangeModify(Entity entity, ConditionBean cb, UpdateOption<? extends ConditionBean> option);
+
+    /**
+     * Range-modify entities. <br />
+     * An interface dispatch for queryDelete() or varyingQueryDelete().
+     * @param cb The corresponding condition-bean for query. (NotNull)
+     * @param option The option of delete. (NullAllowed: if null, same as queryDelete())
+     * @return Removed count.
+     */
+    int rangeRemove(ConditionBean cb, DeleteOption<? extends ConditionBean> option);
 }

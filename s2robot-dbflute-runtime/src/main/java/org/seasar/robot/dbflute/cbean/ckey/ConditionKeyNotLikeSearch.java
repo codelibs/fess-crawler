@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,106 +15,55 @@
  */
 package org.seasar.robot.dbflute.cbean.ckey;
 
-import java.util.List;
-
 import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
 import org.seasar.robot.dbflute.cbean.coption.LikeSearchOption;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.robot.dbflute.cbean.sqlclause.WhereClauseArranger;
 import org.seasar.robot.dbflute.dbway.ExtensionOperand;
 
 /**
  * The condition-key of notLikeSearch.
  * @author jflute
  */
-public class ConditionKeyNotLikeSearch extends ConditionKey {
+public class ConditionKeyNotLikeSearch extends ConditionKeyLikeSearch {
 
-    /**
-     * Constructor.
-     */
-    protected ConditionKeyNotLikeSearch() {
-        _conditionKey = "notLikeSearch";
-        _operand = "not like";
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
+    @Override
+    protected String defineConditionKey() {
+        return "notLikeSearch";
     }
 
-    /**
-     * Is valid registration?
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param callerName Caller name. (NotNull)
-     * @return Determination.
-     */
-    public boolean isValidRegistration(ConditionValue conditionValue, Object value, String callerName) {
-        if (value == null) {
-            return false;
-        }
-        return true;
+    @Override
+    protected String defineOperand() {
+        return "not like";
     }
 
-    /**
-     * This method implements super#doAddWhereClause().
-     * @param conditionList Condition list. (NotNull)
-     * @param columnName Column name. (NotNull)
-     * @param value Condition value. (NotNull)
-     */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value) {
-        throw new UnsupportedOperationException("doAddWhereClause without condition-option is unsupported!!!");
+    // ===================================================================================
+    //                                                                      Implementation
+    //                                                                      ==============
+
+    @Override
+    protected String getLocation(ConditionValue value) {
+        return value.getNotLikeSearchLatestLocation();
     }
 
-    /**
-     * This method implements super#doAddWhereClause().
-     * @param conditionList Condition list. (NotNull)
-     * @param columnName Column name. (NotNull)
-     * @param value Condition value. (NotNull)
-     * @param option Condition option. (NotNull)
-     */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value, ConditionOption option) {
-        if (option == null) {
-            String msg = "The argument[option] should not be null: columnName=" + columnName + " value=" + value;
-            throw new IllegalArgumentException(msg);
-        }
-        if (!(option instanceof LikeSearchOption)) {
-            String msg = "The argument[option] should be LikeSearchOption: columnName=" + columnName + " value=" + value;
-            throw new IllegalArgumentException(msg);
-        }
-        final String location = value.getNotLikeSearchLocation(); // from NotLikeSearch
-        final LikeSearchOption myOption = (LikeSearchOption)option;
-        final String rearOption = myOption.getRearOption();
-        final ExtensionOperand extOperand = myOption.getExtensionOperand();
-        String operand = extOperand != null ? extOperand.operand() : null;
-        if (operand == null || operand.trim().length() == 0) {
-            operand = getOperand();
-        } else {
-            operand = "not " + operand; // because this is for NotLikeSearch
-        }
-        final WhereClauseArranger arranger = myOption.getWhereClauseArranger();
-        final String clause;
-        if (arranger != null) {
-            clause = arranger.arrange(columnName, operand, buildBindExpression(location, null), rearOption);
-        } else {
-            clause = buildBindClauseWithRearOption(columnName, operand, location, rearOption);
-        }
-        conditionList.add(clause);
+    @Override
+    protected String getRealOperand(LikeSearchOption option) {
+        final ExtensionOperand extOperand = option.getExtensionOperand();
+        final String operand = extOperand != null ? extOperand.operand() : null;
+        return operand != null ? "not " + operand : getOperand();
     }
 
-    /**
-     * This method implements super#doSetupConditionValue().
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param location Location. (NotNull)
-     */
-    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location) {
-        throw new UnsupportedOperationException("doSetupConditionValue without condition-option is unsupported!!!");
-    }
-
-    /**
-     * This method implements super#doSetupConditionValue().
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param location Location. (NotNull)
-     * @param option Condition option. (NotNull)
-     */
-    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location, ConditionOption option) {
-        conditionValue.setNotLikeSearch((String)value, (LikeSearchOption)option).setNotLikeSearchLocation(location);
+    @Override
+    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location,
+            ConditionOption option) {
+        conditionValue.setupNotLikeSearch((String) value, (LikeSearchOption) option, location);
     }
 }

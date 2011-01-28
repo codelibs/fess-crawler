@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package org.seasar.robot.dbflute.dbmeta;
 import java.util.List;
 import java.util.Map;
 
+import org.seasar.robot.dbflute.DBDef;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.dbmeta.info.ForeignInfo;
 import org.seasar.robot.dbflute.dbmeta.info.ReferrerInfo;
 import org.seasar.robot.dbflute.dbmeta.info.RelationInfo;
 import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.robot.dbflute.helper.mapstring.MapListString;
-import org.seasar.robot.dbflute.helper.mapstring.MapStringBuilder;
+import org.seasar.robot.dbflute.dbmeta.name.TableSqlName;
 
 /**
  * The interface of DB meta.
@@ -55,25 +55,48 @@ public interface DBMeta {
     public static final String MAP_STRING_EQUAL = "@=";
 
     // ===================================================================================
+    //                                                                               DBDef
+    //                                                                               =====
+    /**
+     * Get the current DB definition.
+     * @return The current DB definition. (NotNull)
+     */
+    DBDef getCurrentDBDef();
+
+    // ===================================================================================
     //                                                                          Table Info
     //                                                                          ==========
     /**
-     * Get table DB name.
-     * @return Table DB name. (NotNull)
+     * Get the DB name of the table.
+     * @return The DB name of the table. (NotNull)
      */
-    public String getTableDbName();
+    String getTableDbName();
 
     /**
-     * Get table property name(JavaBeansRule).
-     * @return Table property name(JavaBeansRule). (NotNull)
+     * Get the property name(JavaBeansRule) of table.
+     * @return The property name(JavaBeansRule) of table. (NotNull)
      */
-    public String getTablePropertyName();
+    String getTablePropertyName();
 
     /**
-     * Get table SQL name.
-     * @return Table SQL name. (NotNull)
+     * Get the SQL name of table.
+     * @return The SQL name of table. (NotNull)
      */
-    public String getTableSqlName();
+    TableSqlName getTableSqlName();
+
+    /**
+     * Get the alias of the table.
+     * @return The alias of the table. (NullAllowed: when it cannot get an alias from meta)
+     */
+    String getTableAlias();
+
+    /**
+     * Get the comment of the table. <br />
+     * If the real comment contains the alias,
+     * this result does NOT contain it and its delimiter.  
+     * @return The comment of the table. (NullAllowed: when it cannot get a comment from meta)
+     */
+    String getTableComment();
 
     // ===================================================================================
     //                                                                         Column Info
@@ -83,7 +106,7 @@ public interface DBMeta {
      * @param columnFlexibleName The flexible name of the column. (NotNull)
      * @return Determination.
      */
-    public boolean hasColumn(String columnFlexibleName);
+    boolean hasColumn(String columnFlexibleName);
 
     /**
      * Find the information of the column by the flexible name of the column.
@@ -94,35 +117,38 @@ public interface DBMeta {
      * </pre>
      * @param columnFlexibleName The flexible name of the column. (NotNull)
      * @return The information of the column. (NotNull)
-     */ 
-    public ColumnInfo findColumnInfo(String columnFlexibleName);
+     */
+    ColumnInfo findColumnInfo(String columnFlexibleName);
 
     /**
      * Get the list of column information.
      * @return The list of column information. (NotNull and NotEmpty)
      */
-    public List<ColumnInfo> getColumnInfoList();
+    List<ColumnInfo> getColumnInfoList();
 
     // ===================================================================================
     //                                                                         Unique Info
     //                                                                         ===========
     /**
-     * Get primary unique info.
+     * Get primary unique info that means unique info for primary key. <br />
+     * If this table does not have primary-key, this method throws UnsupportedOperationException.
      * @return Primary unique info. (NotNull)
      */
-    public UniqueInfo getPrimaryUniqueInfo();
+    UniqueInfo getPrimaryUniqueInfo();
 
     /**
      * Has primary-key?
      * @return Determination.
      */
-    public boolean hasPrimaryKey();
+    boolean hasPrimaryKey();
 
     /**
-     * Has two or more primary-keys?
+     * Has compound primary-key? <br />
+     * If this table does not have primary-key in the first place,
+     * this method returns false. 
      * @return Determination.
      */
-    public boolean hasTwoOrMorePrimaryKeys();
+    boolean hasCompoundPrimaryKey();
 
     // ===================================================================================
     //                                                                       Relation Info
@@ -134,8 +160,8 @@ public interface DBMeta {
      * Find relation info.
      * @param relationPropertyName The flexible name of the relation property. (NotNull)
      * @return Relation info. (NotNull)
-     */ 
-    public RelationInfo findRelationInfo(String relationPropertyName);
+     */
+    RelationInfo findRelationInfo(String relationPropertyName);
 
     // -----------------------------------------------------
     //                                       Foreign Element
@@ -145,27 +171,27 @@ public interface DBMeta {
      * @param foreignPropName The flexible name of the foreign property. (NotNull)
      * @return Determination. (NotNull)
      */
-    public boolean hasForeign(String foreignPropName);
+    boolean hasForeign(String foreignPropName);
 
     /**
      * Find foreign DB meta.
      * @param foreignPropName The flexible name of the foreign property. (NotNull)
      * @return Foreign DBMeta. (NotNull)
      */
-    public DBMeta findForeignDBMeta(String foreignPropName);
+    DBMeta findForeignDBMeta(String foreignPropName);
 
     /**
      * Find foreign info.
      * @param foreignPropName The flexible name of the foreign property. (NotNull)
      * @return Foreign info. (NotNull)
      */
-    public ForeignInfo findForeignInfo(String foreignPropName);
+    ForeignInfo findForeignInfo(String foreignPropName);
 
     /**
      * Get the list of foreign information.
      * @return The list of foreign information. (NotNull)
      */
-    public List<ForeignInfo> getForeignInfoList();
+    List<ForeignInfo> getForeignInfoList();
 
     // -----------------------------------------------------
     //                                      Referrer Element
@@ -174,28 +200,28 @@ public interface DBMeta {
      * Has referrer?
      * @param referrerPropertyName The flexible name of the referrer property. (NotNull)
      * @return Determination. (NotNull)
-     */ 
-    public boolean hasReferrer(String referrerPropertyName);
+     */
+    boolean hasReferrer(String referrerPropertyName);
 
     /**
      * Find referrer DB meta.
      * @param referrerPropertyName The flexible name of the referrer property. (NotNull)
      * @return Referrer DBMeta. (NotNull)
-     */ 
-    public DBMeta findReferrerDBMeta(String referrerPropertyName);
+     */
+    DBMeta findReferrerDBMeta(String referrerPropertyName);
 
     /**
      * Find referrer information.
      * @param referrerPropertyName The flexible name of the referrer property. (NotNull)
      * @return Referrer information. (NotNull)
-     */ 
-    public ReferrerInfo findReferrerInfo(String referrerPropertyName);
+     */
+    ReferrerInfo findReferrerInfo(String referrerPropertyName);
 
     /**
      * Get the list of referrer information.
      * @return The list of referrer information. (NotNull)
      */
-    public List<ReferrerInfo> getReferrerInfoList();
+    List<ReferrerInfo> getReferrerInfoList();
 
     // -----------------------------------------------------
     //                                        Relation Trace
@@ -209,17 +235,17 @@ public interface DBMeta {
          * Get the trace of relation.
          * @return The trace of relation as the list of relation info. (NotNull)
          */
-        public List<RelationInfo> getTraceRelation();
+        List<RelationInfo> getTraceRelation();
 
         /**
          * Get the trace of column.
-         * @return The trace of column as column info. (Nullable)
+         * @return The trace of column as column info. (NullAllowed)
          */
-        public ColumnInfo getTraceColumn();
+        ColumnInfo getTraceColumn();
     }
 
     public static interface RelationTraceFixHandler {
-        public void handleFixedTrace(RelationTrace relationTrace);
+        void handleFixedTrace(RelationTrace relationTrace);
     }
 
     // ===================================================================================
@@ -229,7 +255,7 @@ public interface DBMeta {
      * Has identity?
      * @return Determination.
      */
-    public boolean hasIdentity();
+    boolean hasIdentity();
 
     // ===================================================================================
     //                                                                       Sequence Info
@@ -238,73 +264,109 @@ public interface DBMeta {
      * Has sequence?
      * @return Determination.
      */
-    public boolean hasSequence();
+    boolean hasSequence();
 
     /**
-     * Get the SQL string for getting next value of sequence.
-     * @return The SQL string for getting next value of sequence. (Nullable: If it does not have sequence, returns null.)
+     * Get the sequence name.
+     * @return The sequence name. (NullAllowed: If it does not have sequence, returns null.)
      */
-    public String getSequenceNextValSql();
+    String getSequenceName();
+
+    /**
+     * Get the SQL for next value of sequence.
+     * @return The SQL for next value of sequence. (NullAllowed: If it does not have sequence, returns null.)
+     */
+    String getSequenceNextValSql();
+
+    /**
+     * Get the increment size of sequence.
+     * @return The increment size of sequence. (NullAllowed: If it is unknown, returns null.)
+     */
+    Integer getSequenceIncrementSize();
+
+    /**
+     * Get the cache size of sequence. (The cache means sequence cache on DBFlute)
+     * @return The cache size of sequence. (NullAllowed: If it does not use cache, returns null.)
+     */
+    Integer getSequenceCacheSize();
 
     // ===================================================================================
     //                                                                Optimistic Lock Info
     //                                                                ====================
     /**
-     * Has version no?
+     * Does the table have a column for version no?
      * @return Determination.
      */
-    public boolean hasVersionNo();
+    boolean hasVersionNo();
 
     /**
      * Get the column information of version no.
-     * @return The column information of version no. (Nullable: If it doesn't have the column, return null.)
+     * @return The column information of version no. (NullAllowed: If it doesn't have the column, return null.)
      */
-    public ColumnInfo getVersionNoColumnInfo();
+    ColumnInfo getVersionNoColumnInfo();
 
     /**
-     * Has update date?
+     * Does the table have a column for update date?
      * @return Determination.
      */
-    public boolean hasUpdateDate();
+    boolean hasUpdateDate();
 
     /**
      * Get the column information of update date.
-     * @return The column information of update date. (Nullable: If it doesn't have the column, return null.)
+     * @return The column information of update date. (NullAllowed: If it doesn't have the column, return null.)
      */
-    public ColumnInfo getUpdateDateColumnInfo();
+    ColumnInfo getUpdateDateColumnInfo();
 
     // ===================================================================================
     //                                                                  Common Column Info
     //                                                                  ==================
     /**
-     * Has common column?
+     * Does the table have common columns?
      * @return Determination.
      */
-    public boolean hasCommonColumn();
+    boolean hasCommonColumn();
+
+    /**
+     * Get the list of common column.
+     * @return The list of column info. (NotNull)
+     */
+    List<ColumnInfo> getCommonColumnInfoList();
+
+    /**
+     * Get the list of common column auto-setup before insert.
+     * @return The list of column info. (NotNull)
+     */
+    List<ColumnInfo> getCommonColumnInfoBeforeInsertList();
+
+    /**
+     * Get the list of common column auto-setup before update.
+     * @return The list of column info. (NotNull)
+     */
+    List<ColumnInfo> getCommonColumnInfoBeforeUpdateList();
 
     // ===================================================================================
     //                                                                       Name Handling
     //                                                                       =============
     /**
-     * Has object of flexible name? {Target objects are TABLE and COLUMN}
+     * Does the table have an object for the flexible name? {Target objects are TABLE and COLUMN}
      * @param flexibleName The flexible name. (NotNull and NotEmpty)
      * @return Determination.
      */
-    public boolean hasFlexibleName(String flexibleName);
+    boolean hasFlexibleName(String flexibleName);
 
     /**
      * Find DB name by flexible name. {Target objects are TABLE and COLUMN}
      * @param flexibleName The flexible name. (NotNull and NotEmpty)
      * @return The DB name of anything. (NotNull and NotEmpty)
      */
-    public String findDbName(String flexibleName);
+    String findDbName(String flexibleName);
 
     /**
      * Find property name(JavaBeansRule) by flexible name. {Target objects are TABLE and COLUMN}
      * @param flexibleName The flexible name. (NotNull and NotEmpty)
      * @return The DB name of anything. (NotNull and NotEmpty)
      */
-    public String findPropertyName(String flexibleName);
+    String findPropertyName(String flexibleName);
 
     // ===================================================================================
     //                                                                           Type Name
@@ -312,26 +374,26 @@ public interface DBMeta {
     /**
      * Get the type name of entity.
      * @return The type name of entity. (NotNull)
-     */ 
-    public String getEntityTypeName();
+     */
+    String getEntityTypeName();
 
     /**
      * Get the type name of condition-bean.
-     * @return The type name of condition-bean. (Nullable: If the condition-bean does not exist)
-     */ 
-    public String getConditionBeanTypeName();
+     * @return The type name of condition-bean. (NullAllowed: If the condition-bean does not exist)
+     */
+    String getConditionBeanTypeName();
 
     /**
      * Get the type name of DAO.
-     * @return The type name of DAO. (Nullable: If the DAO does not exist)
-     */ 
-    public String getDaoTypeName();
+     * @return The type name of DAO. (NullAllowed: If the DAO does not exist)
+     */
+    String getDaoTypeName();
 
     /**
      * Get the type name of behavior.
-     * @return The type name of behavior. (Nullable: If the behavior does not exist)
-     */ 
-    public String getBehaviorTypeName();
+     * @return The type name of behavior. (NullAllowed: If the behavior does not exist)
+     */
+    String getBehaviorTypeName();
 
     // ===================================================================================
     //                                                                         Object Type
@@ -339,8 +401,8 @@ public interface DBMeta {
     /**
      * Get the type of entity.
      * @return The type of entity. (NotNull)
-     */ 
-    public Class<? extends Entity> getEntityType();
+     */
+    Class<? extends Entity> getEntityType();
 
     // ===================================================================================
     //                                                                     Object Instance
@@ -348,8 +410,8 @@ public interface DBMeta {
     /**
      * New the instance of entity.
      * @return The instance of entity. (NotNull)
-     */ 
-    public Entity newEntity();
+     */
+    Entity newEntity();
 
     // ===================================================================================
     //                                                                     Entity Handling
@@ -358,164 +420,59 @@ public interface DBMeta {
     //                                                Accept
     //                                                ------
     /**
-     * Accept primary-key map.
-     * The column that column-value map-string doesn't have the value of is reflected as null.
-     * The column that column-value map-string doesn't have the key of is NOT updated nothing.
+     * Accept the map of primary-keys. map:{[column-name] = [value]}
      * @param entity Target entity. (NotNull)
-     * @param primaryKeyMap Primary-key map. (NotNull and NotEmpty)
+     * @param primaryKeyMap The value map of primary-keys. (NotNull and NotEmpty)
      */
-    public void acceptPrimaryKeyMap(Entity entity, Map<String, ? extends Object> primaryKeyMap);
-
-    /**
-     * Accept primary-key map-string.
-     * The column that column-value map-string doesn't have the value of is reflected as null.
-     * The column that column-value map-string doesn't have the key of is NOT updated nothing.
-     * @param entity Target entity. (NotNull)
-     * @param primaryKeyMapString Primary-key map-string. (NotNull)
-     */
-    public void acceptPrimaryKeyMapString(Entity entity, String primaryKeyMapString);
-
-    /**
-     * Accept column-value map.
-     * The column that column-value map-string doesn't have the value of is reflected as null.
-     * The column that column-value map-string doesn't have the key of is NOT updated nothing.
-     * @param entity Target entity. (NotNull)
-     * @param columnValueMap Column-value map. (NotNull and NotEmpty)
-     */
-    public void acceptColumnValueMap(Entity entity, Map<String, ? extends Object> columnValueMap);
-
-    /**
-     * Accept column-value map-string.
-     * The column that column-value map-string doesn't have the value of is reflected as null.
-     * The column that column-value map-string doesn't have the key of is NOT updated nothing.
-     * @param entity Target entity. (NotNull)
-     * @param columnValueMapString Column-value map-string. (NotNull)
-     */
-    public void acceptColumnValueMapString(Entity entity, String columnValueMapString);
+    void acceptPrimaryKeyMap(Entity entity, Map<String, ? extends Object> primaryKeyMap);
 
     // -----------------------------------------------------
     //                                               Extract
     //                                               -------
     /**
-     * Extract primary-key map-string. Delimiter is at-mark and semicolon.
-     * <p>
-     * <pre>
-     * ex) Uses that this method have.
-     *   final String primaryKeyMapString = LdBookDbm.extractPrimaryKeyMapString(entity);
-     *   final LdBook entity = dao.selectEntity(new LdBookCB().acceptPrimaryKeyMapString(primaryKeyMapString));
-     *   ... // as primary key for condition.
-     * </pre>
-     * 
+     * Extract the map of primary-keys. map:{[column-name] = [value]}
      * @param entity Target entity. (NotNull)
-     * @return Primary-key map-string. (NotNull)
+     * @return The value map of primary-keys. (NotNull)
      */
-    public String extractPrimaryKeyMapString(Entity entity);
+    Map<String, Object> extractPrimaryKeyMap(Entity entity);
 
     /**
-     * Extract primary-key map-string.
+     * Extract The map of all columns. map:{[column-name] = [value]}
      * @param entity Target entity. (NotNull)
-     * @param startBrace Start-brace. (NotNull)
-     * @param endBrace End-brace. (NotNull)
-     * @param delimiter Delimiter. (NotNull)
-     * @param equal Equal. (NotNull)
-     * @return Primary-key map-string. (NotNull)
+     * @return The map of all columns. (NotNull)
      */
-    public String extractPrimaryKeyMapString(Entity entity, String startBrace, String endBrace, String delimiter, String equal);
+    Map<String, Object> extractAllColumnMap(Entity entity);
 
-    /**
-     * Extract column-value map-string. Delimiter is at-mark and semicolon.
-     * @param entity Target entity. (NotNull)
-     * @return Column-value map-string. (NotNull)
-     */
-    public String extractColumnValueMapString(Entity entity);
-
-    /**
-     * Extract column-value map-string.
-     * @param entity Target entity. (NotNull)
-     * @param startBrace Start-brace. (NotNull)
-     * @param endBrace End-brace. (NotNull)
-     * @param delimiter Delimiter. (NotNull)
-     * @param equal Equal. (NotNull)
-     * @return Column-value map-string. (NotNull)
-     */
-    public String extractColumnValueMapString(Entity entity, String startBrace, String endBrace, String delimiter, String equal);
-
-    // -----------------------------------------------------
-    //                                               Convert
-    //                                               -------
-    /**
-     * Convert entity to column value as list.
-     * @param entity Target entity. (NotNull)
-     * @return The list of column value. (NotNull)
-     */
-    public List<Object> convertToColumnValueList(Entity entity);
-
-    /**
-     * Convert entity to column value as map.
-     * @param entity Target entity. (NotNull)
-     * @return The map of column value. (NotNull)
-     */
-    public Map<String, Object> convertToColumnValueMap(Entity entity);
-
-    /**
-     * Convert entity to column string-value as list.
-     * @param entity Target entity. (NotNull)
-     * @return The list of column string-value. (NotNull)
-     */
-    public List<String> convertToColumnStringValueList(Entity entity);
-
-    /**
-     * Convert entity to column string-value as map.
-     * @param entity Target entity. (NotNull)
-     * @return The map of column string-value. (NotNull)
-     */
-    public Map<String, String> convertToColumnStringValueMap(Entity entity);
-
-    // ===================================================================================
-    //                                                                          Map String
-    //                                                                          ==========
-    /**
-     * Create map list string that is prepared. (for INTERNAL)
-     * @return Map list string that is prepared. (NotNull)
-     */
-    public MapListString createMapListString();
-
-    /**
-     * Create map string builder that is prepared. (for INTERNAL)
-     * @return Map string builder that is prepared. (NotNull)
-     */
-    public MapStringBuilder createMapStringBuilder();
-    
     // ===================================================================================
     //                                                               Entity Property Setup
     //                                                               =====================
     // It's very INTERNAL!
     /**
-     * Has the setupper of entity property by the name of property? <br />
+     * Has the set-upper of entity property by the name of property? <br />
      * Comparing is so flexible. {Ignore cases and underscore}
      * @param propertyName The name of the property. (NotNull)
      * @return Determination.
      */
-     public boolean hasEntityPropertySetupper(String propertyName);
-     
+    boolean hasEntityPropertySetupper(String propertyName);
+
     /**
      * Set up entity property. (for INTERNAL)
      * @param propertyName The name of the property. (NotNull)
      * @param entity The entity for the property. (NotNull)
-     * @param value The value of the property. (Nullable)
+     * @param value The value of the property. (NullAllowed)
      */
-    public void setupEntityProperty(String propertyName, Object entity, Object value);
-    
+    void setupEntityProperty(String propertyName, Object entity, Object value);
+
     /**
-     * The setupper of entity property. <br />
+     * The set-upper of entity property. <br />
      * This class is for Internal. Don't use this!
      * @param <ENTITY_TYPE> The type of entity.
      */
     public interface Eps<ENTITY_TYPE extends Entity> {
-        
+
         /**
          * @param entity Entity. (NotNull)
-         * @param value Value. (Nullable)
+         * @param value Value. (NullAllowed)
          */
         void setup(ENTITY_TYPE entity, Object value);
     }

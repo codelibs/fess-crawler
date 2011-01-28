@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
+import org.seasar.robot.dbflute.exception.handler.SQLExceptionHandler;
 import org.seasar.robot.dbflute.jdbc.StatementConfig;
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlContext;
-import org.seasar.robot.dbflute.resource.SQLExceptionHandler;
+import org.seasar.robot.dbflute.resource.ResourceContext;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnStatementFactoryImpl implements StatementFactory {
@@ -45,8 +46,8 @@ public class TnStatementFactoryImpl implements StatementFactory {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected StatementConfig defaultStatementConfig;
-    protected boolean internalDebug;
+    protected StatementConfig _defaultStatementConfig;
+    protected boolean _internalDebug;
 
     // ===================================================================================
     //                                                                         Constructor
@@ -63,18 +64,18 @@ public class TnStatementFactoryImpl implements StatementFactory {
             final int resultSetType;
             if (config != null && config.hasResultSetType()) {
                 resultSetType = config.getResultSetType();
-            } else if (defaultStatementConfig != null && defaultStatementConfig.hasResultSetType()) {
-                resultSetType = defaultStatementConfig.getResultSetType();
+            } else if (_defaultStatementConfig != null && _defaultStatementConfig.hasResultSetType()) {
+                resultSetType = _defaultStatementConfig.getResultSetType();
             } else {
                 resultSetType = java.sql.ResultSet.TYPE_FORWARD_ONLY;
             }
             final int resultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
-            if (internalDebug) {
+            if (isInternalDebugEnabled()) {
                 _log.debug("...Creating prepareStatement(sql, " + resultSetType + ", " + resultSetConcurrency + ")");
             }
             final PreparedStatement ps = conn.prepareStatement(sql, resultSetType, resultSetConcurrency);
             if (config != null && config.hasStatementOptions()) {
-                if (internalDebug) {
+                if (isInternalDebugEnabled()) {
                     _log.debug("...Setting statement config as request: " + config);
                 }
                 reflectStatementOptions(config, ps);
@@ -107,11 +108,11 @@ public class TnStatementFactoryImpl implements StatementFactory {
     }
 
     protected void reflectDefaultOptionsToStatementIfNeeds(PreparedStatement ps) {
-        if (defaultStatementConfig != null && defaultStatementConfig.hasStatementOptions()) {
-            if (internalDebug) {
-                _log.debug("...Setting statement config as default: " + defaultStatementConfig);
+        if (_defaultStatementConfig != null && _defaultStatementConfig.hasStatementOptions()) {
+            if (isInternalDebugEnabled()) {
+                _log.debug("...Setting statement config as default: " + _defaultStatementConfig);
             }
-            reflectStatementOptions(defaultStatementConfig, ps);
+            reflectStatementOptions(_defaultStatementConfig, ps);
             return;
         }
     }
@@ -142,17 +143,28 @@ public class TnStatementFactoryImpl implements StatementFactory {
     }
 
     protected void handleSQLException(SQLException e, Statement statement) {
-        new SQLExceptionHandler().handleSQLException(e, statement);
+        createSQLExceptionHandler().handleSQLException(e, statement);
+    }
+
+    protected SQLExceptionHandler createSQLExceptionHandler() {
+        return ResourceContext.createSQLExceptionHandler();
+    }
+
+    // ===================================================================================
+    //                                                                      Internal Debug
+    //                                                                      ==============
+    private boolean isInternalDebugEnabled() { // because log instance is private
+        return _internalDebug && _log.isDebugEnabled();
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
     public void setDefaultStatementConfig(StatementConfig defaultStatementConfig) {
-        this.defaultStatementConfig = defaultStatementConfig;
+        this._defaultStatementConfig = defaultStatementConfig;
     }
 
     public void setInternalDebug(boolean internalDebug) {
-        this.internalDebug = internalDebug;
+        this._internalDebug = internalDebug;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,12 @@ import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
 public class SelectCountCBCommand extends AbstractSelectCBCommand<Integer> {
 
     // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
+    /** Is it unique-count select? (NotNull) */
+    protected Boolean _uniqueCount;
+
+    // ===================================================================================
     //                                                                   Basic Information
     //                                                                   =================
     public String getCommandName() {
@@ -43,7 +49,7 @@ public class SelectCountCBCommand extends AbstractSelectCBCommand<Integer> {
     public void beforeGettingSqlExecution() {
         assertStatus("beforeGettingSqlExecution");
         final ConditionBean cb = _conditionBean;
-        cb.xsetupSelectCountIgnoreFetchScope(); // *Point!
+        cb.xsetupSelectCountIgnoreFetchScope(_uniqueCount); // *Point!
         ConditionBeanContext.setConditionBeanOnThread(cb);
     }
 
@@ -63,13 +69,35 @@ public class SelectCountCBCommand extends AbstractSelectCBCommand<Integer> {
     // ===================================================================================
     //                                                               SqlExecution Handling
     //                                                               =====================
+    @Override
+    public String buildSqlExecutionKey() {
+        return super.buildSqlExecutionKey() + ":" + (_uniqueCount ? "unique" : "plain");
+    }
+
     public SqlExecutionCreator createSqlExecutionCreator() {
         assertStatus("createSqlExecutionCreator");
         return new SqlExecutionCreator() {
             public SqlExecution createSqlExecution() {
-                TnResultSetHandler handler = createObjectResultSetHandler(getCommandReturnType());
-                return createSelectCBExecution(_conditionBeanType, handler);
+                TnResultSetHandler handler = createScalarResultSetHandler(getCommandReturnType());
+                return createSelectCBExecution(_conditionBean.getClass(), handler);
             }
         };
+    }
+
+    // ===================================================================================
+    //                                                                       Assert Helper
+    //                                                                       =============
+    protected void assertStatus(String methodName) {
+        super.assertStatus(methodName);
+        if (_uniqueCount == null) {
+            throw new IllegalStateException(buildAssertMessage("_uniqueCount", methodName));
+        }
+    }
+
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
+    public void setUniqueCount(boolean uniqueCount) {
+        _uniqueCount = uniqueCount;
     }
 }

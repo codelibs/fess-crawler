@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,17 @@ import org.seasar.robot.dbflute.cbean.ConditionBean;
  */
 public interface SqlClauseCreator {
 
-	/**
-	 * Create SQL clause. {for condition-bean}
-	 * @param cb Condition-bean. (NotNull) 
-	 * @return SQL clause. (NotNull)
-	 */
-    public SqlClause createSqlClause(ConditionBean cb);
+    /**
+     * Create SQL clause. {for condition-bean}
+     * @param cb Condition-bean. (NotNull) 
+     * @return SQL clause. (NotNull)
+     */
+    SqlClause createSqlClause(ConditionBean cb);
 
-	/**
-	 * Create SQL clause.
-	 * @param tableDbName The DB name of table. (NotNull) 
-	 * @return SQL clause. (NotNull)
-	 */
-    public SqlClause createSqlClause(String tableDbName);
+    /**
+     * Create SQL clause.
+     * @param tableDbName The DB name of table. (NotNull) 
+     * @return SQL clause. (NotNull)
+     */
+    SqlClause createSqlClause(String tableDbName);
 }

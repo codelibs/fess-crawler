@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@ public class DangerousResultSizeException extends RuntimeException {
     /** The max size of safety result. */
     protected int _safetyMaxResultSize;
 
-    /** The actual size of result. */
-    protected int _actualResultSize;
-
     /**
      * Constructor.
      * @param msg Exception message. (NotNull)
@@ -43,13 +40,12 @@ public class DangerousResultSizeException extends RuntimeException {
     /**
      * Constructor.
      * @param msg Exception message. (NotNull)
+     * @param cause Throwable. (NullAllowed)
      * @param safetyMaxResultSize The max size of safety result. (NotZero, ZotMinus)
-     * @param actualResultSize The actual size of result. (NotZero, ZotMinus, GraeterThanMaxSize)
      */
-    public DangerousResultSizeException(String msg, int safetyMaxResultSize, int actualResultSize) {
-        super(msg);
+    public DangerousResultSizeException(String msg, Throwable cause, int safetyMaxResultSize) {
+        super(msg, cause);
         this._safetyMaxResultSize = safetyMaxResultSize;
-        this._actualResultSize = actualResultSize;
     }
 
     /**
@@ -58,13 +54,5 @@ public class DangerousResultSizeException extends RuntimeException {
      */
     public int getSafetyMaxResultSize() {
         return _safetyMaxResultSize;
-    }
-
-    /**
-     * Get the actual size of result.
-     * @return The actual size of result. (If the value is minus, it means it's unknown)
-     */
-    public int getActualResultSize() {
-        return _actualResultSize;
     }
 }

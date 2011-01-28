@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,17 @@ package org.seasar.robot.dbflute.bhv.core;
 import javax.sql.DataSource;
 
 import org.seasar.robot.dbflute.DBDef;
+import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCacheHandler;
+import org.seasar.robot.dbflute.bhv.outsidesql.factory.OutsideSqlExecutorFactory;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseCreator;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
+import org.seasar.robot.dbflute.exception.factory.SQLExceptionHandlerFactory;
+import org.seasar.robot.dbflute.exception.thrower.BehaviorExceptionThrower;
+import org.seasar.robot.dbflute.jdbc.SQLExceptionDigger;
 import org.seasar.robot.dbflute.jdbc.StatementConfig;
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 import org.seasar.robot.dbflute.resource.ResourceParameter;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaDataFactory;
-import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypeFactory;
 import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
 
 /**
@@ -48,7 +52,10 @@ public interface InvokerAssistant {
     DBMetaProvider assistDBMetaProvider();
 
     /**
-     * @return The create of SQL clause. (NotNull)
+     * Assist the creator of SQL clause. <br />
+     * This is only used in internal world of DBFlute (to judge unique-constraint).
+     * So condition-bean does not use this.
+     * @return The instance of creator. (NotNull)
      */
     SqlClauseCreator assistSqlClauseCreator();
 
@@ -63,22 +70,38 @@ public interface InvokerAssistant {
     TnBeanMetaDataFactory assistBeanMetaDataFactory();
 
     /**
-     * @return The factory of value type. (NotNull)
-     */
-    TnValueTypeFactory assistValueTypeFactory();
-
-    /**
-     * @return The factory of SQL analyzer. (NotNull)
+     * Assist the factory of SQL analyzer. <br />
+     * This factory is also used on ConditionBean.toDisplaySql().
+     * So this method should be state-less.
+     * @return The instance of factory. (NotNull)
      */
     SqlAnalyzerFactory assistSqlAnalyzerFactory();
 
     /**
-     * @return The parameter of resource. (NotNull)
+     * Assist the factory of outside SQL executor.
+     * @return The instance of factory. (NotNull)
      */
-    ResourceParameter assistResourceParameter();
+    OutsideSqlExecutorFactory assistOutsideSqlExecutorFactory();
 
     /**
-     * @return The encoding of SQL files. (NotNull)
+     * @return The digger of SQLException. (NotNull)
+     */
+    SQLExceptionDigger assistSQLExceptionDigger();
+
+    /**
+     * Assist the factory of SQLException handler.
+     * @return The instance of factory. (NotNull)
+     */
+    SQLExceptionHandlerFactory assistSQLExceptionHandlerFactory();
+
+    /**
+     * Assist the handler of sequence cache.
+     * @return The instance of handler. (NotNull)
+     */
+    SequenceCacheHandler assistSequenceCacheHandler();
+
+    /**
+     * @return The encoding of SQL file. (NotNull)
      */
     String assistSqlFileEncoding();
 
@@ -86,6 +109,16 @@ public interface InvokerAssistant {
      * @return The default configuration of statement. (NotNull)
      */
     StatementConfig assistDefaultStatementConfig();
+
+    /**
+     * @return The thrower of behavior exception. (NotNull)
+     */
+    BehaviorExceptionThrower assistBehaviorExceptionThrower();
+
+    /**
+     * @return The parameter of resource. (NotNull)
+     */
+    ResourceParameter assistResourceParameter();
 
     /**
      * To be disposable.

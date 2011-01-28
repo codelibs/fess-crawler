@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
-
 /**
  * The information of unique constraint.
  * @author jflute
@@ -31,9 +30,9 @@ public class UniqueInfo {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected final DBMeta dbmeta;
-    protected final List<ColumnInfo> uniqueColumnList;
-    protected final boolean primary;
+    protected final DBMeta _dbmeta;
+    protected final List<ColumnInfo> _uniqueColumnList;
+    protected final boolean _primary;
 
     // ===================================================================================
     //                                                                         Constructor
@@ -41,9 +40,9 @@ public class UniqueInfo {
     public UniqueInfo(DBMeta dbmeta, List<ColumnInfo> uniqueColumnList, boolean primary) {
         assertObjectNotNull("dbmeta", dbmeta);
         assertObjectNotNull("uniqueColumnList", uniqueColumnList);
-        this.dbmeta = dbmeta;
-        this.uniqueColumnList = uniqueColumnList;
-        this.primary = primary;
+        this._dbmeta = dbmeta;
+        this._uniqueColumnList = uniqueColumnList;
+        this._primary = primary;
     }
 
     // ===================================================================================
@@ -54,7 +53,7 @@ public class UniqueInfo {
     }
 
     protected boolean containsColumn(String columnName) {
-        for (final Iterator<ColumnInfo> ite = uniqueColumnList.iterator(); ite.hasNext(); ) {
+        for (final Iterator<ColumnInfo> ite = _uniqueColumnList.iterator(); ite.hasNext();) {
             final ColumnInfo columnInfo = ite.next();
             if (columnInfo.getColumnDbName().equals(columnName)) {
                 return true;
@@ -66,12 +65,6 @@ public class UniqueInfo {
     // ===================================================================================
     //                                                                       Assert Helper
     //                                                                       =============
-    /**
-     * Assert that the object is not null.
-     * @param variableName Variable name. (NotNull)
-     * @param value Value. (NotNull)
-     * @exception IllegalArgumentException
-     */
     protected void assertObjectNotNull(String variableName, Object value) {
         if (variableName == null) {
             String msg = "The value should not be null: variableName=null value=" + value;
@@ -87,32 +80,32 @@ public class UniqueInfo {
     //                                                                      Basic Override
     //                                                                      ==============
     public int hashCode() {
-        return dbmeta.hashCode() + uniqueColumnList.hashCode();
+        return _dbmeta.hashCode() + _uniqueColumnList.hashCode();
     }
 
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof UniqueInfo)) {
             return false;
         }
-        final UniqueInfo target = (UniqueInfo)obj;
-        if (!this.dbmeta.equals(target.getDBMeta())) {
+        final UniqueInfo target = (UniqueInfo) obj;
+        if (!this._dbmeta.equals(target.getDBMeta())) {
             return false;
         }
-        if (!this.uniqueColumnList.equals(target.getUniqueColumnList())) {
+        if (!this._uniqueColumnList.equals(target.getUniqueColumnList())) {
             return false;
         }
         return true;
     }
 
     public String toString() {
-        return dbmeta.getTableDbName() + "." + uniqueColumnList;
+        return _dbmeta.getTableDbName() + "." + _uniqueColumnList;
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
     public DBMeta getDBMeta() {
-        return dbmeta;
+        return _dbmeta;
     }
 
     /**
@@ -120,7 +113,7 @@ public class UniqueInfo {
      * @return The list of unique column. (NotNull)
      */
     public List<ColumnInfo> getUniqueColumnList() {
-        return new ArrayList<ColumnInfo>(uniqueColumnList); // as snapshot
+        return new ArrayList<ColumnInfo>(_uniqueColumnList); // as snapshot
     }
 
     /**
@@ -128,14 +121,14 @@ public class UniqueInfo {
      * @return The column information of the first in primary columns. (NotNull)
      */
     public ColumnInfo getFirstColumn() {
-        return this.uniqueColumnList.get(0);
+        return this._uniqueColumnList.get(0);
     }
 
     public boolean isTwoOrMore() {
-        return this.uniqueColumnList.size() > 1;
+        return this._uniqueColumnList.size() > 1;
     }
 
     public boolean isPrimary() {
-        return this.primary;
+        return this._primary;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.dbflute.cbean.sqlclause;
 
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause;
+
 /**
  * SqlClause for DB2.
  * @author jflute
@@ -22,32 +24,60 @@ package org.seasar.robot.dbflute.cbean.sqlclause;
 public class SqlClauseDb2 extends AbstractSqlClause {
 
     // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** String of fetch-first as sql-suffix. */
-    protected String _fetchFirstSqlSuffix = "";
+    /** String of fetch-scope as select-hint. */
+    protected String _fetchScopeSelectHint = "";
 
-    /** String of lock as from-hint. */
+    /** String of fetch-scope as sql-suffix. */
+    protected String _fetchScopeSqlSuffix = "";
+
+    /** String of lock as sql-suffix. */
     protected String _lockSqlSuffix = "";
+
+    /** The bind value for paging as 'from'. */
+    protected Integer _pagingBindFrom;
+
+    /** The bind value for paging as 'to'. */
+    protected Integer _pagingBindTo;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
     /**
      * Constructor.
-     * @param tableName Table name. (NotNull)
+     * @param tableDbName The DB name of table. (NotNull)
      **/
-    public SqlClauseDb2(String tableName) {
-        super(tableName);
+    public SqlClauseDb2(String tableDbName) {
+        super(tableDbName);
+    }
+
+    // ===================================================================================
+    //                                                                Main Clause Override
+    //                                                                ====================
+    @Override
+    protected String prepareUnionClause(String selectClause) {
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Remove select-hint comment from select clause of union
+        // for fetch-scope with union().
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        selectClause = replace(selectClause, SELECT_HINT, "");
+        return super.prepareUnionClause(selectClause);
     }
 
     // ===================================================================================
     //                                                                    OrderBy Override
     //                                                                    ================
-	@Override
+    @Override
     protected OrderByClause.OrderByNullsSetupper createOrderByNullsSetupper() {
-	    return createOrderByNullsSetupperByCaseWhen();
-	}
+        return createOrderByNullsSetupperByCaseWhen();
+    }
 
     // ===================================================================================
     //                                                                 FetchScope Override
@@ -56,42 +86,50 @@ public class SqlClauseDb2 extends AbstractSqlClause {
      * {@inheritDoc}
      */
     protected void doFetchFirst() {
-        if (isFetchSizeSupported()) {
-            _fetchFirstSqlSuffix = " fetch first " + getFetchSize() + " rows only";
-        }
-    }
-
-    /**
-     * {@inheritDoc} {Unsupported!}
-     */
-    protected void doFetchPage() {
-        if (isFetchSizeSupported()) {
-            if (isFetchStartIndexSupported()) {
-                _fetchFirstSqlSuffix = " fetch first " + getFetchSize() + " rows only";
-            } else {
-                _fetchFirstSqlSuffix = " fetch first " + getPageEndIndex() + " rows only";
-            }
-        }
-    }
-
-    /**
-     * {@inheritDoc} {Unsupported!}
-     */
-    protected void doClearFetchPageClause() {
-        _fetchFirstSqlSuffix = "";
-    }
-
-    /**
-     * The override.
-     * @return Determination.
-     */
-    public boolean isFetchStartIndexSupported() {
-        return false;
+        doFetchPage();
     }
 
     /**
      * {@inheritDoc}
-     * @return this. (NotNull)
+     */
+    protected void doFetchPage() {
+        final RownumPagingProcessor processor = createRownumPagingProcessor(getRownumExpression());
+        processor.processRowNumberPaging();
+        _fetchScopeSelectHint = processor.getSelectHint();
+        _fetchScopeSqlSuffix = processor.getSqlSuffix();
+        _pagingBindFrom = processor.getPagingBindFrom();
+        _pagingBindTo = processor.getPagingBindTo();
+    }
+
+    protected RownumPagingProcessor createRownumPagingProcessor(String expression) {
+        final RownumPagingProcessor processor = new RownumPagingProcessor(expression);
+        if (isBindPagingCondition()) {
+            processor.useBindVariable();
+        }
+        return processor;
+    }
+
+    protected boolean isBindPagingCondition() {
+        return true; // as default
+    }
+
+    protected String getRownumExpression() {
+        return "row_number() over()";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected void doClearFetchPageClause() {
+        _fetchScopeSelectHint = "";
+        _fetchScopeSqlSuffix = "";
+    }
+
+    // ===================================================================================
+    //                                                                       Lock Override
+    //                                                                       =============
+    /**
+     * {@inheritDoc}
      */
     public SqlClause lockForUpdate() {
         _lockSqlSuffix = " for update with RS";
@@ -103,15 +141,13 @@ public class SqlClauseDb2 extends AbstractSqlClause {
     //                                                                       =============
     /**
      * {@inheritDoc}
-     * @return Select-hint. (NotNull)
      */
     protected String createSelectHint() {
-        return "";
+        return _fetchScopeSelectHint;
     }
 
     /**
      * {@inheritDoc}
-     * @return From-base-table-hint. {select * from table [from-base-table-hint] where ...} (NotNull)
      */
     protected String createFromBaseTableHint() {
         return "";
@@ -119,7 +155,6 @@ public class SqlClauseDb2 extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return From-hint. (NotNull)
      */
     protected String createFromHint() {
         return "";
@@ -127,10 +162,9 @@ public class SqlClauseDb2 extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return Sql-suffix. (NotNull)
      */
     protected String createSqlSuffix() {
-        return _fetchFirstSqlSuffix + _lockSqlSuffix;
+        return _fetchScopeSqlSuffix + _lockSqlSuffix;
     }
 
     // [DBFlute-0.7.9]
@@ -151,5 +185,17 @@ public class SqlClauseDb2 extends AbstractSqlClause {
 
     public void lockWithUR() {
         _lockSqlSuffix = " with UR";
+    }
+
+    // [DBFlute-0.9.6.9]
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
+    public Integer getPagingBindFrom() { // for parameter comment
+        return _pagingBindFrom;
+    }
+
+    public Integer getPagingBindTo() { // for parameter comment
+        return _pagingBindTo;
     }
 }

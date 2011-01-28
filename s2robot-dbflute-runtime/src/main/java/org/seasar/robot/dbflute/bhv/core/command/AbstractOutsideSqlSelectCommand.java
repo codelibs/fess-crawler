@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  */
 package org.seasar.robot.dbflute.bhv.core.command;
 
+import java.util.Map;
+
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
 import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
 import org.seasar.robot.dbflute.bhv.core.execution.OutsideSqlSelectExecution;
 import org.seasar.robot.dbflute.cbean.FetchAssistContext;
-import org.seasar.robot.dbflute.cbean.FetchBean;
 import org.seasar.robot.dbflute.cbean.FetchNarrowingBean;
+import org.seasar.robot.dbflute.jdbc.FetchBean;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlContext;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
@@ -48,9 +50,7 @@ public abstract class AbstractOutsideSqlSelectCommand<RESULT> extends AbstractOu
     //                                                                    ================
     public void beforeGettingSqlExecution() {
         assertStatus("beforeGettingSqlExecution");
-        final OutsideSqlContext outsideSqlContext = createOutsideSqlContext();
-        setupOutsideSqlContext(outsideSqlContext);
-        OutsideSqlContext.setOutsideSqlContextOnThread(outsideSqlContext);
+        OutsideSqlContext.setOutsideSqlContextOnThread(createOutsideSqlContext());
 
         // Set up fetchNarrowingBean.
         final Object pmb = _parameterBean;
@@ -58,23 +58,13 @@ public abstract class AbstractOutsideSqlSelectCommand<RESULT> extends AbstractOu
         setupFetchBean(pmb, option);
     }
 
-    protected void setupOutsideSqlContext(OutsideSqlContext outsideSqlContext) {
-        final String path = _outsideSqlPath;
-        final Object pmb = _parameterBean;
+    @Override
+    protected void setupOutsideSqlContextProperty(OutsideSqlContext outsideSqlContext) {
+        super.setupOutsideSqlContextProperty(outsideSqlContext);
+        outsideSqlContext.setResultType(getResultType());
         final OutsideSqlOption option = _outsideSqlOption;
-        final Class<?> resultType = getResultType();
         final boolean autoPagingLogging = (option.isAutoPaging() || option.isSourcePagingRequestTypeAuto());
-        outsideSqlContext.setOutsideSqlPath(path);
-        outsideSqlContext.setParameterBean(pmb);
-        outsideSqlContext.setResultType(resultType);
-        outsideSqlContext.setMethodName(getCommandName());
-        outsideSqlContext.setStatementConfig(option.getStatementConfig());
-        outsideSqlContext.setTableDbName(option.getTableDbName());
-        outsideSqlContext.setDynamicBinding(option.isDynamicBinding());
-        outsideSqlContext.setOffsetByCursorForcedly(option.isAutoPaging());
-        outsideSqlContext.setLimitByCursorForcedly(option.isAutoPaging());
         outsideSqlContext.setAutoPagingLogging(autoPagingLogging); // for logging
-        outsideSqlContext.setupBehaviorQueryPathIfNeeds();
     }
 
     protected void setupFetchBean(Object pmb, OutsideSqlOption option) {
@@ -123,15 +113,9 @@ public abstract class AbstractOutsideSqlSelectCommand<RESULT> extends AbstractOu
         // - - - - - - - - - - - - - - - - - - - - - - -
         // The attribute of Specified-OutsideSqlContext.
         // - - - - - - - - - - - - - - - - - - - - - - -
+        final Object pmb = outsideSqlContext.getParameterBean();
         final String suffix = buildDbmsSuffix();
         final String sql = outsideSqlContext.readFilteredOutsideSql(_sqlFileEncoding, suffix);
-        final Object pmb = outsideSqlContext.getParameterBean();
-
-        // - - - - - - - - - - - - - - -
-        // The attribute of SqlCommand.
-        // - - - - - - - - - - - - - - -
-        final String[] argNames = (pmb != null ? new String[] { "pmb" } : new String[] {});
-        final Class<?>[] argTypes = (pmb != null ? new Class<?>[] { pmb.getClass() } : new Class<?>[] {});
 
         // - - - - - - - - - - - - -
         // Create ResultSetHandler.
@@ -141,16 +125,18 @@ public abstract class AbstractOutsideSqlSelectCommand<RESULT> extends AbstractOu
         // - - - - - - - - - - -
         // Create SqlExecution.
         // - - - - - - - - - - -
-        return createOutsideSqlSelectExecution(handler, argNames, argTypes, sql);
+        final OutsideSqlSelectExecution execution = createOutsideSqlSelectExecution(pmb, sql, handler);
+        execution.setRemoveBlockComment(isRemoveBlockComment(outsideSqlContext));
+        execution.setRemoveLineComment(isRemoveLineComment(outsideSqlContext));
+        execution.setFormatSql(outsideSqlContext.isFormatSql());
+        execution.setOutsideSqlFilter(_outsideSqlFilter);
+        return execution;
     }
 
-    protected OutsideSqlSelectExecution createOutsideSqlSelectExecution(TnResultSetHandler handler, String[] argNames,
-            Class<?>[] argTypes, String sql) {
-        final OutsideSqlSelectExecution cmd = new OutsideSqlSelectExecution(_dataSource, _statementFactory, handler);
-        cmd.setArgNames(argNames);
-        cmd.setArgTypes(argTypes);
-        cmd.setSql(sql);
-        return cmd;
+    protected OutsideSqlSelectExecution createOutsideSqlSelectExecution(Object pmbTypeObj, String sql,
+            TnResultSetHandler handler) {
+        final Map<String, Class<?>> argNameTypeMap = createBeanArgNameTypeMap(pmbTypeObj);
+        return new OutsideSqlSelectExecution(_dataSource, _statementFactory, argNameTypeMap, sql, handler);
     }
 
     public Object[] getSqlExecutionArgument() {

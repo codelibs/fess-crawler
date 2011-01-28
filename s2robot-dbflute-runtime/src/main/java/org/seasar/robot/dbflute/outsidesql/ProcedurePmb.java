@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,24 @@ import org.seasar.robot.dbflute.twowaysql.pmbean.ParameterBean;
 public interface ProcedurePmb extends ParameterBean {
 
     /**
-     * Get the value of procedure name.
-     * @return The value of procedure name. (NotNull)
+     * Get the value of procedure name for calling.
+     * @return The string expression of procedure name. (NotNull)
      */
     String getProcedureName();
+
+    /**
+     * Does it escape the procedure statement? <br />
+     * If true, 'call SP_FOO()' to '{call = SP_FOO()}'. <br />
+     * This default value should be true basically.
+     * @return Determination.
+     */
+    boolean isEscapeStatement();
+
+    /**
+     * Does it call the procedure statement by select statement? <br />
+     * If true, '{call SP_FOO()}' to 'select * from SP_FOO()'. <br />
+     * This default value is resolved by generator automatically.
+     * @return Determination.
+     */
+    boolean isCalledBySelect();
 }

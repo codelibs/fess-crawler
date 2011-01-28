@@ -1,6 +1,10 @@
 package org.seasar.robot.dbflute.cbean.coption;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.seasar.robot.dbflute.unit.PlainTestCase;
+import org.seasar.robot.dbflute.util.DfCollectionUtil;
 
 /**
  * @author jflute
@@ -56,6 +60,81 @@ public class LikeSearchOptionTest extends PlainTestCase {
 
         // ## Assert ##
         assertEquals("escape '/'", rearOption.trim());
+    }
+
+    // ===================================================================================
+    //                                                                            Split By
+    //                                                                            ========
+    public void test_splitBy_blank() {
+        // ## Arrange ##
+        final LikeSearchOption option = new LikeSearchOption();
+
+        // ## Act ##
+        option.splitByBlank();
+        List<String> actual = Arrays.asList(option.generateSplitValueArray("FOO B　AR\tQU\rX\nQUU\r\nX"));
+
+        // ## Assert ##
+        assertEquals(Arrays.asList("FOO", "B", "AR", "QU", "X", "QUU", "X"), actual);
+    }
+
+    public void test_splitBy_blank_limit() {
+        // ## Arrange ##
+        final LikeSearchOption option = new LikeSearchOption();
+
+        // ## Act ##
+        option.splitByBlank(3);
+        List<String> actual = Arrays.asList(option.generateSplitValueArray("FOO B　AR\tQU\rX\nQUU\r\nX"));
+
+        // ## Assert ##
+        assertEquals(Arrays.asList("FOO", "B", "AR"), actual);
+    }
+
+    public void test_splitBy_space() {
+        // ## Arrange ##
+        final LikeSearchOption option = new LikeSearchOption();
+
+        // ## Act ##
+        option.splitBySpace();
+        String[] actual = option.generateSplitValueArray("FOO B　AR\tQUX\nQUUX");
+
+        // ## Assert ##
+        assertEquals(Arrays.asList("FOO", "B　AR\tQUX\nQUUX"), Arrays.asList(actual));
+    }
+
+    public void test_splitBy_spaceContainsDoubleByte() {
+        // ## Arrange ##
+        final LikeSearchOption option = new LikeSearchOption();
+
+        // ## Act ##
+        option.splitBySpaceContainsDoubleByte();
+        String[] actual = option.generateSplitValueArray("FOO B　AR\tQUX\nQUUX");
+
+        // ## Assert ##
+        assertEquals(Arrays.asList("FOO", "B", "AR\tQUX\nQUUX"), Arrays.asList(actual));
+    }
+
+    public void test_splitBy_various_onlyone() {
+        // ## Arrange ##
+        final LikeSearchOption option = new LikeSearchOption();
+
+        // ## Act ##
+        option.splitByVarious(DfCollectionUtil.newArrayList("\t"));
+        String[] actual = option.generateSplitValueArray("FOO B　AR\tQUX\nQUUX");
+
+        // ## Assert ##
+        assertEquals(Arrays.asList("FOO B　AR", "QUX\nQUUX"), Arrays.asList(actual));
+    }
+
+    public void test_splitBy_various_several() {
+        // ## Arrange ##
+        final LikeSearchOption option = new LikeSearchOption();
+
+        // ## Act ##
+        option.splitByVarious(DfCollectionUtil.newArrayList("\t", "X"));
+        String[] actual = option.generateSplitValueArray("FOO B　AR\tQUX\nQUUX");
+
+        // ## Assert ##
+        assertEquals(Arrays.asList("FOO B　AR", "QU", "\nQUU"), Arrays.asList(actual));
     }
 
     // ===================================================================================
@@ -127,5 +206,54 @@ public class LikeSearchOptionTest extends PlainTestCase {
             log("realValue=" + realValue);
             assertEquals("abc|%def|_ghijk||l", realValue);
         }
+    }
+
+    // ===================================================================================
+    //                                                                      Basic Override
+    //                                                                      ==============
+    public void test_toString_basic() {
+        // ## Arrange ##
+        LikeSearchOption option = createOption();
+        option.likePrefix();
+
+        // ## Act ##
+        String actual = option.toString();
+
+        // ## Assert ##
+        log(actual);
+        assertTrue(actual.contains("escape=|"));
+    }
+
+    public void test_toString_split_basic() {
+        // ## Arrange ##
+        LikeSearchOption option = createOption();
+        option.likePrefix().splitByPipeLine();
+
+        // ## Act ##
+        String actual = option.toString();
+
+        // ## Assert ##
+        log(actual);
+        assertTrue(actual.contains("split=true(and)"));
+    }
+
+    public void test_toString_split_or() {
+        // ## Arrange ##
+        LikeSearchOption option = createOption();
+        option.likePrefix().splitByPipeLine().asOrSplit();
+
+        // ## Act ##
+        String actual = option.toString();
+
+        // ## Assert ##
+        log(actual);
+        assertTrue(actual.contains("split=true(or)"));
+    }
+
+    // ===================================================================================
+    //                                                                         Test Helper
+    //                                                                         ===========
+    protected LikeSearchOption createOption() {
+        return new LikeSearchOption();
     }
 }

@@ -11,6 +11,45 @@ import org.seasar.robot.dbflute.unit.PlainTestCase;
  */
 public class DfCollectionUtilTest extends PlainTestCase {
 
+    // ===================================================================================
+    //                                                                                List
+    //                                                                                ====
+    public void test_newArrayList_dynamicArg() {
+        // ## Arrange & Act ##
+        List<String> list = DfCollectionUtil.newArrayList("foo", "bar");
+
+        // ## Assert ##
+        assertEquals(2, list.size());
+        assertEquals("foo", list.get(0));
+        assertEquals("bar", list.get(1));
+    }
+
+    public void test_newArrayList_collection() {
+        // ## Arrange ##
+        String[] array = new String[] { "foo", "bar" };
+
+        // ## Act ##
+        List<String> list = DfCollectionUtil.newArrayList(array);
+
+        // ## Assert ##
+        assertEquals(2, list.size());
+        assertEquals("foo", list.get(0));
+        assertEquals("bar", list.get(1));
+    }
+
+    public void test_newArrayList_stringArray() {
+        // ## Arrange ##
+        List<String> res = DfCollectionUtil.newArrayList("foo", "bar");
+
+        // ## Act ##
+        List<String> list = DfCollectionUtil.newArrayList(res);
+
+        // ## Assert ##
+        assertEquals(2, list.size());
+        assertEquals("foo", list.get(0));
+        assertEquals("bar", list.get(1));
+    }
+
     public void test_splitByLimit_basic() {
         // ## Arrange ##
         List<String> value = new ArrayList<String>();

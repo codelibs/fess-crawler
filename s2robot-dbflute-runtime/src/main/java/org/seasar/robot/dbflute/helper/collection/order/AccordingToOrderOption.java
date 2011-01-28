@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ public class AccordingToOrderOption<ELEMENT_TYPE, ID_TYPE> {
     // ===================================================================================
     //                                                                         Easy-to-Use
     //                                                                         ===========
-    public void setupOrderedResource(List<ID_TYPE> orderedUniqueIdList, AccordingToOrderIdExtractor<ELEMENT_TYPE, ID_TYPE> idExtractor) {
+    public void setupOrderedResource(List<ID_TYPE> orderedUniqueIdList,
+            AccordingToOrderIdExtractor<ELEMENT_TYPE, ID_TYPE> idExtractor) {
         setOrderedUniqueIdList(orderedUniqueIdList);
         setIdExtractor(idExtractor);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * governing permissions and limitations under the License.
  */
 package org.seasar.robot.dbflute.cbean;
+
+import org.seasar.robot.dbflute.jdbc.FetchBean;
 
 /**
  * The context for fetch-assist.
@@ -31,7 +33,7 @@ public class FetchAssistContext {
     //                                                                          ==========
     /**
      * Get fetch-bean on thread.
-     * @return The instance of fetch-bean. (Nullable)
+     * @return The instance of fetch-bean. (NullAllowed)
      */
     public static FetchBean getFetchBeanOnThread() {
         return _threadLocal.get();
@@ -69,7 +71,7 @@ public class FetchAssistContext {
     //                                                                ====================
     /**
      * Get fetch-narrowing-bean on thread.
-     * @return The instance of fetch-narrowing-bean. (Nullable)
+     * @return The instance of fetch-narrowing-bean. (NullAllowed)
      */
     public static FetchNarrowingBean getFetchNarrowingBeanOnThread() {
         if (isExistFetchBeanOnThread()) {

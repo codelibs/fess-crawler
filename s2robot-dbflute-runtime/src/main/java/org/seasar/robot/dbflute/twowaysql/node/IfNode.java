@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,26 @@
  */
 package org.seasar.robot.dbflute.twowaysql.node;
 
-import org.seasar.robot.dbflute.exception.IfCommentWrongExpressionException;
 import org.seasar.robot.dbflute.twowaysql.context.CommandContext;
-import org.seasar.robot.dbflute.util.DfStringUtil;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
  * @author jflute
  */
-public class IfNode extends ContainerNode {
+public class IfNode extends ScopeNode implements LoopAcceptable, SqlConnectorAdjustable {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    public static final String PREFIX = "IF ";
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected String _expression;
-    protected ElseNode _elseNode;
-    protected String _specifiedSql;
+    protected final String _expression;
+    protected final String _specifiedSql;
+    protected ElseNode _elseNode; // lazy setting
 
     // ===================================================================================
     //                                                                         Constructor
@@ -43,42 +48,46 @@ public class IfNode extends ContainerNode {
     //                                                                              Accept
     //                                                                              ======
     public void accept(CommandContext ctx) {
-        doAcceptByEvaluator(ctx);
+        doAcceptByEvaluator(ctx, null);
     }
 
-    protected void doAcceptByEvaluator(CommandContext ctx) {
-        final IfCommentEvaluator evaluator = createIfCommentEvaluator(ctx, _expression);
-        boolean result = false;
-        try {
-            result = evaluator.evaluate();
-        } catch (IfCommentWrongExpressionException e) {
-            final String replaced = replace(_expression, "pmb.", "pmb.parameterMap.");
-            final IfCommentEvaluator another = createIfCommentEvaluator(ctx, replaced);
-            try {
-                result = another.evaluate();
-            } catch (IfCommentWrongExpressionException ignored) {
-                throw e;
-            }
-        }
+    public void accept(CommandContext ctx, LoopInfo loopInfo) {
+        doAcceptByEvaluator(ctx, loopInfo);
+    }
+
+    protected void doAcceptByEvaluator(CommandContext ctx, LoopInfo loopInfo) {
+        final IfCommentEvaluator evaluator = createIfCommentEvaluator(ctx, loopInfo);
+        final boolean result = evaluator.evaluate();
         if (result) {
-            super.accept(ctx);
+            processAcceptingChildren(ctx, loopInfo);
             ctx.setEnabled(true);
         } else if (_elseNode != null) {
-            _elseNode.accept(ctx);
-            ctx.setEnabled(true);
+            if (loopInfo != null) {
+                _elseNode.accept(ctx, loopInfo);
+            } else {
+                _elseNode.accept(ctx);
+            }
         }
     }
 
-    protected IfCommentEvaluator createIfCommentEvaluator(final CommandContext ctx, String expression) {
+    protected IfCommentEvaluator createIfCommentEvaluator(final CommandContext ctx, final LoopInfo loopInfo) {
         return new IfCommentEvaluator(new ParameterFinder() {
             public Object find(String name) {
                 return ctx.getArg(name);
             }
-        }, expression, _specifiedSql);
+        }, _expression, _specifiedSql, loopInfo);
     }
 
     protected String replace(String text, String fromText, String toText) {
-        return DfStringUtil.replace(text, fromText, toText);
+        return Srl.replace(text, fromText, toText);
+    }
+
+    // ===================================================================================
+    //                                                                      Basic Override
+    //                                                                      ==============
+    @Override
+    public String toString() {
+        return DfTypeUtil.toClassTitle(this) + ":{" + _expression + ", " + _elseNode + "}";
     }
 
     // ===================================================================================

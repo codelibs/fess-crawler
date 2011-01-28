@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,24 @@
  */
 package org.seasar.robot.dbflute.bhv.core.command;
 
+import org.seasar.robot.dbflute.bhv.DeleteOption;
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
 import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
+import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
-import org.seasar.robot.dbflute.s2dao.sqlcommand.TnDeleteAutoStaticCommand;
+import org.seasar.robot.dbflute.s2dao.sqlcommand.TnDeleteEntityStaticCommand;
 
 /**
  * @author jflute
  */
 public class DeleteEntityCommand extends AbstractEntityCommand {
+
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
+    /** The option of delete. (NotRequired) */
+    protected DeleteOption<? extends ConditionBean> _deleteOption;
 
     // ===================================================================================
     //                                                                   Basic Information
@@ -36,6 +44,12 @@ public class DeleteEntityCommand extends AbstractEntityCommand {
     // ===================================================================================
     //                                                               SqlExecution Handling
     //                                                               =====================
+    @Override
+    public String buildSqlExecutionKey() {
+        // no special unique key for options
+        return super.buildSqlExecutionKey();
+    }
+
     public SqlExecutionCreator createSqlExecutionCreator() {
         assertStatus("createSqlExecutionCreator");
         return new SqlExecutionCreator() {
@@ -48,16 +62,28 @@ public class DeleteEntityCommand extends AbstractEntityCommand {
 
     protected SqlExecution createDeleteEntitySqlExecution(TnBeanMetaData bmd) {
         final String[] propertyNames = getPersistentPropertyNames(bmd);
-        return createDeleteAutoStaticCommand(bmd, propertyNames);
+        return createDeleteEntityStaticCommand(bmd, propertyNames);
     }
 
-    protected TnDeleteAutoStaticCommand createDeleteAutoStaticCommand(TnBeanMetaData bmd, String[] propertyNames) {
+    protected TnDeleteEntityStaticCommand createDeleteEntityStaticCommand(TnBeanMetaData bmd, String[] propertyNames) {
         final DBMeta dbmata = findDBMeta();
         final boolean opt = isOptimisticLockHandling();
-        return new TnDeleteAutoStaticCommand(_dataSource, _statementFactory, bmd, dbmata, propertyNames, opt);
+        return new TnDeleteEntityStaticCommand(_dataSource, _statementFactory, bmd, dbmata, propertyNames, opt);
     }
 
     protected boolean isOptimisticLockHandling() {
         return true;
+    }
+
+    @Override
+    protected Object[] doGetSqlExecutionArgument() {
+        return new Object[] { _entity, _deleteOption };
+    }
+
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
+    public void setDeleteOption(DeleteOption<? extends ConditionBean> deleteOption) {
+        _deleteOption = deleteOption;
     }
 }

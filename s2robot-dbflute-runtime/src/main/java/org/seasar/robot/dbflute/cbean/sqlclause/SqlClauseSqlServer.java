@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,19 @@
  */
 package org.seasar.robot.dbflute.cbean.sqlclause;
 
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause;
+
 /**
- * SqlClause for MSSQL.
+ * SqlClause for SQL Server.
  * @author jflute
  */
 public class SqlClauseSqlServer extends AbstractSqlClause {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                           Attribute
@@ -35,19 +43,38 @@ public class SqlClauseSqlServer extends AbstractSqlClause {
     //                                                                         ===========
     /**
      * Constructor.
-     * @param tableName Table name. (NotNull)
+     * @param tableDbName The DB name of table. (NotNull)
      **/
-    public SqlClauseSqlServer(String tableName) {
-        super(tableName);
+    public SqlClauseSqlServer(String tableDbName) {
+        super(tableDbName);
+    }
+
+    // ===================================================================================
+    //                                                                Main Clause Override
+    //                                                                ====================
+    @Override
+    protected boolean isUnionNormalSelectEnclosingRequired() {
+        return true;
+    }
+
+    // ===================================================================================
+    //                                                               Clause Parts Override
+    //                                                               =====================
+    @Override
+    protected void appendSelectHint(StringBuilder sb) {
+        if (needsUnionNormalSelectEnclosing()) {
+            return; // because clause should be enclosed when union normal select
+        }
+        super.appendSelectHint(sb);
     }
 
     // ===================================================================================
     //                                                                    OrderBy Override
     //                                                                    ================
-	@Override
+    @Override
     protected OrderByClause.OrderByNullsSetupper createOrderByNullsSetupper() {
-	    return createOrderByNullsSetupperByCaseWhen();
-	}
+        return createOrderByNullsSetupperByCaseWhen();
+    }
 
     // ===================================================================================
     //                                                                 FetchScope Override
@@ -92,8 +119,7 @@ public class SqlClauseSqlServer extends AbstractSqlClause {
     //                                                                       Lock Override
     //                                                                       =============
     /**
-     * {@inheritDoc} {Implement}
-     * @return this. (NotNull)
+     * {@inheritDoc}
      */
     public SqlClause lockForUpdate() {
         _lockFromHint = " with (updlock)";
@@ -105,7 +131,6 @@ public class SqlClauseSqlServer extends AbstractSqlClause {
     //                                                                       =============
     /**
      * {@inheritDoc}
-     * @return Select-hint. (NotNull)
      */
     protected String createSelectHint() {
         return _fetchFirstSelectHint;
@@ -113,7 +138,6 @@ public class SqlClauseSqlServer extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return From-base-table-hint. {select * from table [from-base-table-hint] where ...} (NotNull)
      */
     protected String createFromBaseTableHint() {
         return _lockFromHint;
@@ -121,7 +145,6 @@ public class SqlClauseSqlServer extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return From-hint. (NotNull)
      */
     protected String createFromHint() {
         return "";
@@ -129,7 +152,6 @@ public class SqlClauseSqlServer extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return Sql-suffix. (NotNull)
      */
     protected String createSqlSuffix() {
         return "";

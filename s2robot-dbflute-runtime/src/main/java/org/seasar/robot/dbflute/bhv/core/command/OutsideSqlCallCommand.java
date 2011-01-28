@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,12 @@ import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlContext;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
-import org.seasar.robot.dbflute.s2dao.procedure.TnProcedureMetaData;
-import org.seasar.robot.dbflute.s2dao.procedure.TnProcedureMetaDataFactory;
+import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
+import org.seasar.robot.dbflute.s2dao.metadata.TnProcedureMetaData;
+import org.seasar.robot.dbflute.s2dao.metadata.TnProcedureMetaDataFactory;
+import org.seasar.robot.dbflute.s2dao.rshandler.TnMapListResultSetHandler;
 import org.seasar.robot.dbflute.s2dao.sqlcommand.TnProcedureCommand;
+import org.seasar.robot.dbflute.s2dao.sqlcommand.TnProcedureCommand.TnProcedureResultSetHandlerFactory;
 
 /**
  * The behavior command for OutsideSql.execute().
@@ -57,20 +60,7 @@ public class OutsideSqlCallCommand extends AbstractOutsideSqlCommand<Void> {
     //                                                                    ================
     public void beforeGettingSqlExecution() {
         assertStatus("beforeGettingSqlExecution");
-        final String path = _outsideSqlPath;
-        final Object pmb = _parameterBean;
-        final OutsideSqlOption option = _outsideSqlOption;
-        final OutsideSqlContext outsideSqlContext = createOutsideSqlContext();
-        outsideSqlContext.setDynamicBinding(option.isDynamicBinding());
-        outsideSqlContext.setOffsetByCursorForcedly(option.isAutoPaging());
-        outsideSqlContext.setLimitByCursorForcedly(option.isAutoPaging());
-        outsideSqlContext.setOutsideSqlPath(path);
-        outsideSqlContext.setParameterBean(pmb);
-        outsideSqlContext.setMethodName(getCommandName());
-        outsideSqlContext.setStatementConfig(option.getStatementConfig());
-        outsideSqlContext.setTableDbName(option.getTableDbName());
-		outsideSqlContext.setupBehaviorQueryPathIfNeeds();
-        OutsideSqlContext.setOutsideSqlContextOnThread(outsideSqlContext);
+        OutsideSqlContext.setOutsideSqlContextOnThread(createOutsideSqlContext());
     }
 
     public void afterExecuting() {
@@ -97,12 +87,12 @@ public class OutsideSqlCallCommand extends AbstractOutsideSqlCommand<Void> {
         return new SqlExecutionCreator() {
             public SqlExecution createSqlExecution() {
                 final OutsideSqlContext outsideSqlContext = OutsideSqlContext.getOutsideSqlContextOnThread();
-                return createOutsideSqlCallCommand(outsideSqlContext);
+                return createOutsideSqlProcedureExecution(outsideSqlContext);
             }
         };
     }
 
-    protected SqlExecution createOutsideSqlCallCommand(OutsideSqlContext outsideSqlContext) {
+    protected SqlExecution createOutsideSqlProcedureExecution(OutsideSqlContext outsideSqlContext) {
         // - - - - - - - - - - - - - - - - - - - - - - -
         // The attribute of Specified-OutsideSqlContext.
         // - - - - - - - - - - - - - - - - - - - - - - -
@@ -113,7 +103,6 @@ public class OutsideSqlCallCommand extends AbstractOutsideSqlCommand<Void> {
         // The attribute of SqlCommand.
         // - - - - - - - - - - - - - - -
         final TnProcedureMetaDataFactory factory = createProcedureMetaDataFactory();
-        factory.setValueTypeFactory(_valueTypeFactory);
         final Class<?> pmbType = (pmb != null ? pmb.getClass() : null);
         final TnProcedureMetaData metaData = factory.createProcedureMetaData(procedureName, pmbType);
         return createProcedureCommand(metaData);
@@ -124,13 +113,27 @@ public class OutsideSqlCallCommand extends AbstractOutsideSqlCommand<Void> {
     }
 
     protected TnProcedureCommand createProcedureCommand(TnProcedureMetaData metaData) {
-        // Because a procedure command does not use result set handler.
-        final TnResultSetHandler resultSetHandler = new InternalNullResultSetHandler(); 
-        return new TnProcedureCommand(_dataSource, resultSetHandler, _statementFactory, metaData);
+        final TnProcedureResultSetHandlerFactory factory = createProcedureResultSetHandlerFactory();
+        final TnProcedureCommand cmd = new TnProcedureCommand(_dataSource, _statementFactory, metaData, factory);
+        cmd.setOutsideSqlFilter(_outsideSqlFilter);
+        return cmd;
+    }
+
+    protected TnProcedureResultSetHandlerFactory createProcedureResultSetHandlerFactory() {
+        return new TnProcedureResultSetHandlerFactory() {
+            public TnResultSetHandler createBeanHandler(Class<?> beanClass) {
+                final TnBeanMetaData beanMetaData = _beanMetaDataFactory.createBeanMetaData(beanClass);
+                return createBeanListResultSetHandler(beanMetaData);
+            }
+
+            public TnResultSetHandler createMapHandler() {
+                return new TnMapListResultSetHandler();
+            }
+        };
     }
 
     // /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // InternalProcedureCommand switches argument so this is unnecessary actually!
+    // TnProcedureCommand switches argument so this is unnecessary actually!
     // - - - - - - - - - -/
     public Object[] getSqlExecutionArgument() {
         return new Object[] { _parameterBean };

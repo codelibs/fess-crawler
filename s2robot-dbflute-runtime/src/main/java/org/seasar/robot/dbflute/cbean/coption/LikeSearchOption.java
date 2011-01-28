@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.seasar.robot.dbflute.cbean.coption;
 
+import java.util.List;
+
 import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.cbean.coption.parts.local.JapaneseOptionPartsAgent;
-import org.seasar.robot.dbflute.cbean.sqlclause.WhereClauseArranger;
+import org.seasar.robot.dbflute.cbean.sqlclause.query.QueryClauseArranger;
 import org.seasar.robot.dbflute.dbway.ExtensionOperand;
 import org.seasar.robot.dbflute.resource.ResourceContext;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * The option of like search.
@@ -30,6 +32,9 @@ public class LikeSearchOption extends SimpleStringOption {
     // ===================================================================================
     //                                                                          Definition
     //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
     protected static final String LIKE_PREFIX = "prefix";
     protected static final String LIKE_SUFFIX = "suffix";
     protected static final String LIKE_CONTAIN = "contain";
@@ -44,6 +49,7 @@ public class LikeSearchOption extends SimpleStringOption {
     // ===================================================================================
     //                                                                         Rear Option
     //                                                                         ===========
+    @Override
     public String getRearOption() {
         if (_escape == null || _escape.trim().length() == 0) {
             return "";
@@ -54,18 +60,30 @@ public class LikeSearchOption extends SimpleStringOption {
     // ===================================================================================
     //                                                                                Like
     //                                                                                ====
+    /**
+     * Set up prefix-search. {like 'foo%' escape '|'}
+     * @return this. (NotNull)
+     */
     public LikeSearchOption likePrefix() {
         _like = LIKE_PREFIX;
         doLikeAutoEscape();
         return this;
     }
 
+    /**
+     * Set up suffix-search. {like '%foo' escape '|'}
+     * @return this. (NotNull)
+     */
     public LikeSearchOption likeSuffix() {
         _like = LIKE_SUFFIX;
         doLikeAutoEscape();
         return this;
     }
 
+    /**
+     * Set up contain-search. {like '%foo%' escape '|'}
+     * @return this. (NotNull)
+     */
     public LikeSearchOption likeContain() {
         _like = LIKE_CONTAIN;
         doLikeAutoEscape();
@@ -80,7 +98,7 @@ public class LikeSearchOption extends SimpleStringOption {
     //                                                                              Escape
     //                                                                              ======
     /**
-     * Escape like search by PipeLine '|'.
+     * Escape like search by pipeLine '|'.
      * @return The option of like search. (NotNull)
      */
     public LikeSearchOption escape() {
@@ -115,30 +133,98 @@ public class LikeSearchOption extends SimpleStringOption {
     // ===================================================================================
     //                                                                               Split
     //                                                                               =====
+    /**
+     * Split a value as several condition by blank (space, full-width space, tab, CR, LF).
+     * @return this.
+     */
+    public LikeSearchOption splitByBlank() {
+        return (LikeSearchOption) doSplitByBlank();
+    }
+
+    /**
+     * Split a value as several condition with limit by blank.
+     * @param splitLimitCount The limit count of split. (NotZero, NotMinus)
+     * @return this.
+     */
+    public LikeSearchOption splitByBlank(int splitLimitCount) {
+        return (LikeSearchOption) doSplitByBlank(splitLimitCount);
+    }
+
+    /**
+     * Split a value as several condition by space.
+     * @return this.
+     */
     public LikeSearchOption splitBySpace() {
         return (LikeSearchOption) doSplitBySpace();
     }
 
+    /**
+     * Split a value as several condition with limit by space.
+     * @param splitLimitCount The limit count of split. (NotZero, NotMinus)
+     * @return this.
+     */
     public LikeSearchOption splitBySpace(int splitLimitCount) {
         return (LikeSearchOption) doSplitBySpace(splitLimitCount);
     }
 
+    /**
+     * Split a value as several condition by space that contains full-width space.
+     * @return this.
+     */
     public LikeSearchOption splitBySpaceContainsDoubleByte() {
         return (LikeSearchOption) doSplitBySpaceContainsDoubleByte();
     }
 
+    /**
+     * Split a value as several condition by space that contains full-width space.
+     * @param splitLimitCount The limit count of split. (NotZero, NotMinus)
+     * @return this.
+     */
     public LikeSearchOption splitBySpaceContainsDoubleByte(int splitLimitCount) {
         return (LikeSearchOption) doSplitBySpaceContainsDoubleByte(splitLimitCount);
     }
 
+    /**
+     * Split a value as several condition by pipeline.
+     * @return this.
+     */
     public LikeSearchOption splitByPipeLine() {
         return (LikeSearchOption) doSplitByPipeLine();
     }
 
+    /**
+     * Split a value as several condition by pipeline.
+     * @param splitLimitCount The limit count of split. (NotZero, NotMinus)
+     * @return this.
+     */
     public LikeSearchOption splitByPipeLine(int splitLimitCount) {
         return (LikeSearchOption) doSplitByPipeLine(splitLimitCount);
     }
 
+    /**
+     * Split a value as several condition by specified various delimiters.
+     * @param delimiterList The list of delimiter for split. (NotNull, NotEmpty)
+     * @return this.
+     */
+    public LikeSearchOption splitByVarious(List<String> delimiterList) {
+        return (LikeSearchOption) doSplitByVarious(delimiterList);
+    }
+
+    /**
+     * Split a value as several condition by specified various delimiters.
+     * @param delimiterList The list of delimiter for split. (NotNull, NotEmpty)
+     * @param splitLimitCount The limit count of split. (NotZero, NotMinus)
+     * @return this.
+     */
+    public LikeSearchOption splitByVarious(List<String> delimiterList, int splitLimitCount) {
+        return (LikeSearchOption) doSplitByVarious(delimiterList, splitLimitCount);
+    }
+
+    /**
+     * Split as OR condition. <br >
+     * You should call this with a splitByXxx method.
+     * @return this.
+     */
     public LikeSearchOption asOrSplit() {
         _asOrSplit = true;
         return this;
@@ -149,45 +235,9 @@ public class LikeSearchOption extends SimpleStringOption {
     }
 
     // ===================================================================================
-    //                                                                 To Upper/Lower Case
-    //                                                                 ===================
-    public LikeSearchOption toUpperCase() {
-        return (LikeSearchOption) doToUpperCase();
-    }
-
-    public LikeSearchOption toLowerCase() {
-        return (LikeSearchOption) doToLowerCase();
-    }
-
-    // ===================================================================================
-    //                                                                      To Single Byte
-    //                                                                      ==============
-    public LikeSearchOption toSingleByteSpace() {
-        return (LikeSearchOption) doToSingleByteSpace();
-    }
-
-    public LikeSearchOption toSingleByteAlphabetNumber() {
-        return (LikeSearchOption) doToSingleByteAlphabetNumber();
-    }
-
-    public LikeSearchOption toSingleByteAlphabetNumberMark() {
-        return (LikeSearchOption) doToSingleByteAlphabetNumberMark();
-    }
-
-    // ===================================================================================
-    //                                                                      To Double Byte
-    //                                                                      ==============
-
-    // ===================================================================================
-    //                                                                            Japanese
-    //                                                                            ========
-    public JapaneseOptionPartsAgent localJapanese() {
-        return doLocalJapanese();
-    }
-
-    // ===================================================================================
     //                                                                          Real Value
     //                                                                          ==========
+    @Override
     public String generateRealValue(String value) {
         value = super.generateRealValue(value);
 
@@ -196,10 +246,14 @@ public class LikeSearchOption extends SimpleStringOption {
             String tmp = replace(value, _escape, _escape + _escape);
             tmp = replace(tmp, "%", _escape + "%");
             tmp = replace(tmp, "_", _escape + "_");
-            if (isCurrentDBDef(DBDef.Oracle)) {
-                tmp = replace(tmp, "\uff05", _escape + "\uff05");
-                tmp = replace(tmp, "\uff3f", _escape + "\uff3f");
-            }
+
+            // escape double-byte wild-cards
+            // Oracle and DB2 treat these symbols as wild-card
+            // but other DBMS ignore unused escape characters
+            // so if-statement does not exist here
+            tmp = replace(tmp, "\uff05", _escape + "\uff05");
+            tmp = replace(tmp, "\uff3f", _escape + "\uff3f");
+
             value = tmp;
         }
         final String wildCard = "%";
@@ -221,6 +275,7 @@ public class LikeSearchOption extends SimpleStringOption {
         return ResourceContext.isCurrentDBDef(currentDBDef);
     }
 
+    @Override
     protected SimpleStringOption newDeepCopyInstance() {
         return new LikeSearchOption();
     }
@@ -230,7 +285,7 @@ public class LikeSearchOption extends SimpleStringOption {
     //                                                                   =================
     /**
      * Get the operand for extension.
-     * @return The operand for extension. (Nullable: If the value is null, it means no extension)
+     * @return The operand for extension. (NullAllowed: If the value is null, it means no extension)
      */
     public ExtensionOperand getExtensionOperand() { // for application extension
         return null; // as default
@@ -241,17 +296,19 @@ public class LikeSearchOption extends SimpleStringOption {
     //                                                               =====================
     /**
      * Get the arranger of where clause.
-     * @return The arranger of where clause. (Nullable: If the value is null, it means no arrangement)
+     * @return The arranger of where clause. (NullAllowed: If the value is null, it means no arrangement)
      */
-    public WhereClauseArranger getWhereClauseArranger() { // for application extension
+    public QueryClauseArranger getWhereClauseArranger() { // for application extension
         return null; // as default
     }
-    
+
     // ===================================================================================
     //                                                                      Basic Override
     //                                                                      ==============
     @Override
     public String toString() {
-        return "like=" + _like + ", escape=" + _escape + ", split=" + isSplit() + ", asOrSplit = " + _asOrSplit;
+        final String title = DfTypeUtil.toClassTitle(this);
+        final String split = (isSplit() ? (_asOrSplit ? "true(or)" : "true(and)") : "false");
+        return title + ":{like=" + _like + ", escape=" + _escape + ", split=" + split + "}";
     }
 }

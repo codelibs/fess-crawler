@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,33 @@
  */
 package org.seasar.robot.dbflute.helper;
 
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jflute
  */
-public class StringSet implements Set<String> {
+public class StringSet implements Set<String>, Serializable {
 
     // ===================================================================================
     //                                                                          Definition
     //                                                                          ==========
-    protected static final Object DUMMY_VALUE = new Object();
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    /** The dummy value for internal map value. */
+    protected static final Object DUMMY_VALUE = new SerializableDummyObject();
+
+    protected static class SerializableDummyObject implements Serializable {
+        private static final long serialVersionUID = 1L;
+    }
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected final Map<String, Object> _internalMap;
-
-    protected boolean _removeUnderscore;
+    protected final StringKeyMap<Object> _stringKeyMap;
 
     // ===================================================================================
     //                                                                         Constructor
@@ -48,14 +51,25 @@ public class StringSet implements Set<String> {
             String msg = "The 'order' and 'concurrent' should not be both true at the same time!";
             throw new IllegalStateException(msg);
         }
-        _removeUnderscore = removeUnderscore;
         if (concurrent) {
-            _internalMap = newConcurrentHashMap();
+            if (removeUnderscore) {
+                _stringKeyMap = StringKeyMap.createAsFlexibleConcurrent();
+            } else {
+                _stringKeyMap = StringKeyMap.createAsCaseInsensitiveConcurrent();
+            }
         } else {
             if (order) {
-                _internalMap = newLinkedHashMap();
+                if (removeUnderscore) {
+                    _stringKeyMap = StringKeyMap.createAsFlexibleOrdered();
+                } else {
+                    _stringKeyMap = StringKeyMap.createAsCaseInsensitiveOrdered();
+                }
             } else {
-                _internalMap = newHashMap();
+                if (removeUnderscore) {
+                    _stringKeyMap = StringKeyMap.createAsFlexible();
+                } else {
+                    _stringKeyMap = StringKeyMap.createAsCaseInsensitive();
+                }
             }
         }
     }
@@ -68,7 +82,7 @@ public class StringSet implements Set<String> {
         return new StringSet(false, false, true);
     }
 
-    public static StringSet createAsCaseInsensitiveOrder() {
+    public static StringSet createAsCaseInsensitiveOrdered() {
         return new StringSet(false, true, false);
     }
 
@@ -80,53 +94,41 @@ public class StringSet implements Set<String> {
         return new StringSet(true, false, true);
     }
 
-    public static StringSet createAsFlexibleOrder() {
+    public static StringSet createAsFlexibleOrdered() {
         return new StringSet(true, true, false);
     }
 
     // ===================================================================================
-    //                                                                        Map Emulator
+    //                                                                        Set Emulator
     //                                                                        ============
     // -----------------------------------------------------
     //                                           Key Related
     //                                           -----------
     public boolean add(String value) {
-        final String stringValue = convertStringKey(value);
-        if (stringValue != null) {
-            return _internalMap.put(stringValue, DUMMY_VALUE) != null;
-        }
-        return false;
+        return _stringKeyMap.put(value, DUMMY_VALUE) == null;
     }
 
     public boolean remove(Object value) {
-        final String stringValue = convertStringKey(value);
-        if (stringValue != null) {
-            return _internalMap.remove(stringValue) != null;
-        }
-        return false;
+        return _stringKeyMap.remove(value) != null;
     }
 
     public boolean contains(Object value) {
-        final String stringValue = convertStringKey(value);
-        if (stringValue != null) {
-            return _internalMap.containsKey(stringValue);
-        }
-        return false;
+        return _stringKeyMap.containsKey(value);
     }
 
     // -----------------------------------------------------
     //                                              Delegate
     //                                              --------
     public void clear() {
-        _internalMap.clear();
+        _stringKeyMap.clear();
     }
 
     public int size() {
-        return _internalMap.size();
+        return _stringKeyMap.size();
     }
 
     public boolean isEmpty() {
-        return _internalMap.isEmpty();
+        return _stringKeyMap.isEmpty();
     }
 
     public boolean addAll(Collection<? extends String> c) {
@@ -159,7 +161,7 @@ public class StringSet implements Set<String> {
     }
 
     public Iterator<String> iterator() {
-        return _internalMap.keySet().iterator();
+        return _stringKeyMap.keySet().iterator();
     }
 
     public boolean retainAll(Collection<?> c) {
@@ -175,71 +177,24 @@ public class StringSet implements Set<String> {
     }
 
     public Object[] toArray() {
-        return _internalMap.keySet().toArray();
+        return _stringKeyMap.keySet().toArray();
     }
 
     public <T> T[] toArray(T[] a) {
-        return _internalMap.keySet().toArray(a);
+        return _stringKeyMap.keySet().toArray(a);
     }
 
     // ===================================================================================
-    //                                                                       Key Converter
-    //                                                                       =============
-    protected String convertStringKey(Object value) {
-        if (!(value instanceof String)) {
-            return null;
+    //                                                                    Original Utility
+    //                                                                    ================
+    public boolean equalsUnderCharOption(StringSet set) { // ignores ordered
+        if (set == null) {
+            return false;
         }
-        return toLowerCase(removeUnderscore((String) value));
-    }
-
-    protected String removeUnderscore(String value) {
-        if (_removeUnderscore) {
-            return replace(value, "_", "");
+        if (size() != set.size()) {
+            return false;
         }
-        return value;
-    }
-
-    protected String toLowerCase(String value) {
-        return value.toLowerCase();
-    }
-
-    // ===================================================================================
-    //                                                                      General Helper
-    //                                                                      ==============
-    protected static String replace(String text, String fromText, String toText) {
-        if (text == null || fromText == null || toText == null) {
-            return null;
-        }
-        StringBuilder sb = new StringBuilder(100);
-        int pos = 0;
-        int pos2 = 0;
-        while (true) {
-            pos = text.indexOf(fromText, pos2);
-            if (pos == 0) {
-                sb.append(toText);
-                pos2 = fromText.length();
-            } else if (pos > 0) {
-                sb.append(text.substring(pos2, pos));
-                sb.append(toText);
-                pos2 = pos + fromText.length();
-            } else {
-                sb.append(text.substring(pos2));
-                break;
-            }
-        }
-        return sb.toString();
-    }
-
-    protected static <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
-        return new ConcurrentHashMap<KEY, VALUE>();
-    }
-
-    protected static <KEY, VALUE> HashMap<KEY, VALUE> newLinkedHashMap() {
-        return new LinkedHashMap<KEY, VALUE>();
-    }
-
-    protected static <KEY, VALUE> HashMap<KEY, VALUE> newHashMap() {
-        return new HashMap<KEY, VALUE>();
+        return _stringKeyMap.equalsUnderCharOption(set._stringKeyMap);
     }
 
     // ===================================================================================
@@ -247,16 +202,26 @@ public class StringSet implements Set<String> {
     //                                                                      ==============
     @Override
     public boolean equals(Object obj) {
-        return _internalMap.keySet().equals(obj);
+        if (obj instanceof StringSet) {
+            final StringSet set = (StringSet) obj;
+            if (size() != set.size()) {
+                return false;
+            }
+            return _stringKeyMap.equals(set._stringKeyMap);
+        } else if (obj instanceof Set<?>) {
+            return _stringKeyMap.keySet().equals(obj);
+        } else {
+            return false;
+        }
     }
 
     @Override
     public int hashCode() {
-        return _internalMap.keySet().hashCode();
+        return _stringKeyMap.keySet().hashCode();
     }
 
     @Override
     public String toString() {
-        return _internalMap.keySet().toString();
+        return _stringKeyMap.keySet().toString();
     }
 }

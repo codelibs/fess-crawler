@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@ import java.util.List;
 import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
 import org.seasar.robot.dbflute.cbean.coption.LikeSearchOption;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.robot.dbflute.cbean.sqlclause.WhereClauseArranger;
+import org.seasar.robot.dbflute.cbean.sqlclause.query.QueryClause;
+import org.seasar.robot.dbflute.cbean.sqlclause.query.QueryClauseArranger;
+import org.seasar.robot.dbflute.cbean.sqlclause.query.StringQueryClause;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnRealName;
 import org.seasar.robot.dbflute.dbway.ExtensionOperand;
 
 /**
@@ -29,90 +32,106 @@ import org.seasar.robot.dbflute.dbway.ExtensionOperand;
  */
 public class ConditionKeyLikeSearch extends ConditionKey {
 
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor.
      */
     protected ConditionKeyLikeSearch() {
-        _conditionKey = "likeSearch";
-        _operand = "like";
+        _conditionKey = defineConditionKey();
+        _operand = defineOperand();
+    }
+
+    protected String defineConditionKey() {
+        return "likeSearch";
+    }
+
+    protected String defineOperand() {
+        return "like";
+    }
+
+    // ===================================================================================
+    //                                                                      Implementation
+    //                                                                      ==============
+    /**
+     * {@inheritDoc}
+     */
+    protected boolean doIsValidRegistration(ConditionValue cvalue, Object value, ColumnRealName callerName) {
+        return value != null;
     }
 
     /**
-     * Is valid registration?
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param callerName Caller name. (NotNull)
-     * @return Determination.
+     * {@inheritDoc}
      */
-    public boolean isValidRegistration(ConditionValue conditionValue, Object value, String callerName) {
-        if (value == null) {
-            return false;
-        }
-        return true;
+    protected void doAddWhereClause(List<QueryClause> conditionList, ColumnRealName columnRealName, ConditionValue value) {
+        throw new UnsupportedOperationException();
     }
 
     /**
-     * This method implements super#doAddWhereClause().
-     * @param conditionList Condition list. (NotNull)
-     * @param columnName Column name. (NotNull)
-     * @param value Condition value. (NotNull)
+     * {@inheritDoc}
      */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value) {
-        throw new UnsupportedOperationException("doAddWhereClause without condition-option is unsupported!!!");
-    }
-
-    /**
-     * This method implements super#doAddWhereClause().
-     * @param conditionList Condition list. (NotNull)
-     * @param columnName Column name. (NotNull)
-     * @param value Condition value. (NotNull)
-     * @param option Condition option. (NotNull)
-     */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value, ConditionOption option) {
-        if (option == null) {
-            String msg = "The argument[option] should not be null: columnName=" + columnName + " value=" + value;
-            throw new IllegalArgumentException(msg);
-        }
-        if (!(option instanceof LikeSearchOption)) {
-            String msg = "The argument[option] should be LikeSearchOption: columnName=" + columnName + " value=" + value;
-            throw new IllegalArgumentException(msg);
-        }
-        final String location = value.getLikeSearchLocation();
-        final LikeSearchOption myOption = (LikeSearchOption)option;
+    protected void doAddWhereClause(List<QueryClause> conditionList, ColumnRealName columnRealName,
+            ConditionValue value, ConditionOption option) {
+        assertWhereClauseArgument(columnRealName, value, option);
+        final String location = getLocation(value);
+        final LikeSearchOption myOption = (LikeSearchOption) option;
         final String rearOption = myOption.getRearOption();
-        final ExtensionOperand extOperand = myOption.getExtensionOperand();
-        String operand = extOperand != null ? extOperand.operand() : null;
-        if (operand == null || operand.trim().length() == 0) {
-            operand = getOperand();
-        }
-        final WhereClauseArranger arranger = myOption.getWhereClauseArranger();
-        final String clause;
+        final String realOperand = getRealOperand(myOption);
+        final QueryClauseArranger arranger = myOption.getWhereClauseArranger();
+        final QueryClause clause;
         if (arranger != null) {
-            clause = arranger.arrange(columnName, operand, buildBindExpression(location, null), rearOption);
+            final String bindExpression = buildBindExpression(location, null);
+            final String arranged = arranger.arrange(columnRealName, realOperand, bindExpression, rearOption);
+            clause = new StringQueryClause(arranged);
         } else {
-            clause = buildBindClauseWithRearOption(columnName, operand, location, rearOption);
+            clause = buildBindClause(columnRealName, realOperand, location, rearOption);
         }
         conditionList.add(clause);
     }
 
-    /**
-     * This method implements super#doSetupConditionValue().
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param location Location. (NotNull)
-     */
-    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location) {
-        throw new UnsupportedOperationException("doSetupConditionValue without condition-option is unsupported!!!");
+    protected void assertWhereClauseArgument(ColumnRealName columnRealName, ConditionValue value, ConditionOption option) {
+        if (option == null) {
+            String msg = "The argument 'option' should not be null:";
+            msg = msg + " columnName=" + columnRealName + " value=" + value;
+            throw new IllegalArgumentException(msg);
+        }
+        if (!(option instanceof LikeSearchOption)) {
+            String msg = "The argument 'option' should be LikeSearchOption:";
+            msg = msg + " columnName=" + columnRealName + " value=" + value;
+            msg = msg + " option=" + option;
+            throw new IllegalArgumentException(msg);
+        }
+    }
+
+    protected String getLocation(ConditionValue value) {
+        return value.getLikeSearchLatestLocation();
+    }
+
+    protected String getRealOperand(LikeSearchOption option) {
+        final ExtensionOperand extOperand = option.getExtensionOperand();
+        final String operand = extOperand != null ? extOperand.operand() : null;
+        return operand != null ? operand : getOperand();
     }
 
     /**
-     * This method implements super#doSetupConditionValue().
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param location Location. (NotNull)
-     * @param option Condition option. (NotNull)
+     * {@inheritDoc}
      */
-    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location, ConditionOption option) {
-        conditionValue.setLikeSearch((String)value, (LikeSearchOption)option).setLikeSearchLocation(location);
+    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location,
+            ConditionOption option) {
+        conditionValue.setupLikeSearch((String) value, (LikeSearchOption) option, location);
     }
 }

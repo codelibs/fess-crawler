@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,92 +19,44 @@ import java.lang.reflect.Array;
 import java.util.List;
 
 import org.seasar.robot.dbflute.twowaysql.context.CommandContext;
-import org.seasar.robot.dbflute.twowaysql.node.NodeUtil.IllegalParameterBeanHandler;
-import org.seasar.robot.dbflute.twowaysql.pmbean.ParameterBean;
-import org.seasar.robot.dbflute.util.DfStringUtil;
+import org.seasar.robot.dbflute.twowaysql.node.ValueAndTypeSetupper.CommentType;
 
 /**
  * @author jflute
  */
-public class BindVariableNode extends AbstractNode {
-
-    // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
-    protected String _expression;
-    protected String _testValue;
-    protected List<String> _nameList;
-    protected String _specifiedSql;
-    protected boolean _blockNullParameter;
+public class BindVariableNode extends VariableNode {
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
     public BindVariableNode(String expression, String testValue, String specifiedSql, boolean blockNullParameter) {
-        this._expression = expression;
-        this._testValue = testValue;
-        this._nameList = DfStringUtil.splitList(expression, ".");
-        this._specifiedSql = specifiedSql;
-        this._blockNullParameter = blockNullParameter;
+        super(expression, testValue, specifiedSql, blockNullParameter);
     }
 
     // ===================================================================================
     //                                                                              Accept
     //                                                                              ======
-    public void accept(CommandContext ctx) {
-        final String firstName = _nameList.get(0);
-        assertFirstName(ctx, firstName);
-        final Object value = ctx.getArg(firstName);
-        final Class<?> clazz = ctx.getArgType(firstName);
-        final ValueAndType valueAndType = new ValueAndType();
-        valueAndType.setTargetValue(value);
-        valueAndType.setTargetType(clazz);
-        setupValueAndType(valueAndType);
-
-        if (_blockNullParameter && valueAndType.getTargetValue() == null) {
-            throwBindOrEmbeddedParameterNullValueException(valueAndType);
-        }
-        if (!isInScope()) {
-            // Main Root
-            ctx.addSql("?", valueAndType.getTargetValue(), valueAndType.getTargetType());
-        } else {
-            if (List.class.isAssignableFrom(valueAndType.getTargetType())) {
-                bindArray(ctx, ((List<?>) valueAndType.getTargetValue()).toArray());
-            } else if (valueAndType.getTargetType().isArray()) {
-                bindArray(ctx, valueAndType.getTargetValue());
+    @Override
+    protected void doProcess(CommandContext ctx, ValueAndType valueAndType) {
+        final Object finalValue = valueAndType.getTargetValue();
+        final Class<?> finalType = valueAndType.getTargetType();
+        if (isInScope()) {
+            if (finalValue == null) { // in-scope does not allow null value
+                throwBindOrEmbeddedCommentParameterNullValueException(valueAndType);
+            }
+            if (List.class.isAssignableFrom(finalType)) {
+                bindArray(ctx, ((List<?>) finalValue).toArray());
+            } else if (finalType.isArray()) {
+                bindArray(ctx, finalValue);
             } else {
-                ctx.addSql("?", valueAndType.getTargetValue(), valueAndType.getTargetType());
+                throwBindOrEmbeddedCommentInScopeNotListException(valueAndType);
+            }
+        } else {
+            ctx.addSql("?", finalValue, finalType); // if null, bind as null
+            if (isAcceptableLike()) {
+                setupRearOption(ctx, valueAndType);
             }
         }
-        if (valueAndType.isValidRearOption()) {
-            ctx.addSql(valueAndType.buildRearOptionOnSql());
-        }
-    }
-
-    protected void assertFirstName(final CommandContext ctx, String firstName) {
-        NodeUtil.assertParameterBeanName(firstName, new ParameterFinder() {
-            public Object find(String name) {
-                return ctx.getArg(name);
-            }
-        }, new IllegalParameterBeanHandler() {
-            public void handle(ParameterBean pmb) {
-                throwBindOrEmbeddedCommentIllegalParameterBeanSpecificationException(pmb);
-            }
-        });
-    }
-
-    protected void setupValueAndType(ValueAndType valueAndType) {
-        final ValueAndTypeSetupper setuper = new ValueAndTypeSetupper(_expression, _nameList, _specifiedSql, true);
-        setuper.setupValueAndType(valueAndType);
-    }
-
-    protected void throwBindOrEmbeddedParameterNullValueException(ValueAndType valueAndType) {
-        NodeUtil.throwBindOrEmbeddedCommentParameterNullValueException(_expression, valueAndType.getTargetType(),
-                _specifiedSql, true);
-    }
-
-    protected boolean isInScope() {
-        return _testValue != null && _testValue.startsWith("(") && _testValue.endsWith(")");
     }
 
     protected void bindArray(CommandContext ctx, Object array) {
@@ -113,7 +65,7 @@ public class BindVariableNode extends AbstractNode {
         }
         final int length = Array.getLength(array);
         if (length == 0) {
-            throwBindOrEmbeddedParameterEmptyListException();
+            throwBindOrEmbeddedCommentParameterEmptyListException();
         }
         Class<?> clazz = null;
         for (int i = 0; i < length; ++i) {
@@ -124,34 +76,28 @@ public class BindVariableNode extends AbstractNode {
             }
         }
         if (clazz == null) {
-            throwBindOrEmbeddedParameterNullOnlyListException();
+            throwBindOrEmbeddedCommentParameterNullOnlyListException();
         }
-        boolean existsValidElements = false;
         ctx.addSql("(");
+        int validCount = 0;
         for (int i = 0; i < length; ++i) {
             final Object currentElement = Array.get(array, i);
             if (currentElement != null) {
-                if (!existsValidElements) {
-                    ctx.addSql("?", currentElement, clazz);
-                    existsValidElements = true;
-                } else {
-                    ctx.addSql(", ?", currentElement, clazz);
+                if (validCount > 0) {
+                    ctx.addSql(", ");
                 }
+                ctx.addSql("?", currentElement, clazz);
+                ++validCount;
             }
         }
         ctx.addSql(")");
     }
 
-    protected void throwBindOrEmbeddedCommentIllegalParameterBeanSpecificationException(ParameterBean pmb) {
-        NodeUtil.throwBindOrEmbeddedCommentIllegalParameterBeanSpecificationException(_expression, _specifiedSql, true,
-                pmb);
-    }
-
-    protected void throwBindOrEmbeddedParameterEmptyListException() {
-        NodeUtil.throwBindOrEmbeddedCommentParameterEmptyListException(_expression, _specifiedSql, true);
-    }
-
-    protected void throwBindOrEmbeddedParameterNullOnlyListException() {
-        NodeUtil.throwBindOrEmbeddedCommentParameterNullOnlyListException(_expression, _specifiedSql, true);
+    // ===================================================================================
+    //                                                                      Implementation
+    //                                                                      ==============
+    @Override
+    protected CommentType getCommentType() {
+        return CommentType.BIND;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,43 @@
  */
 package org.seasar.robot.dbflute.s2dao.metadata;
 
+import java.util.List;
 import java.util.Set;
 
+import org.seasar.robot.dbflute.dbmeta.name.ColumnSqlName;
 import org.seasar.robot.dbflute.s2dao.identity.TnIdentifierGenerator;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
-public interface TnBeanMetaData extends TnDtoMetaData {
+public interface TnBeanMetaData {
+
+    /**
+     * Get the type of bean.
+     * @return The type of bean. (NotNull) 
+     */
+    Class<?> getBeanClass();
+
+    /**
+     * Get the list of property type.
+     * @return The list of property type. (NotNull)
+     */
+    List<TnPropertyType> getPropertyTypeList();
+
+    /**
+     * Get the property type by the key as case insensitive.
+     * @param propertyName The name of property. (NotNull)
+     * @return The type of property. (NullAllowed)
+     */
+    TnPropertyType getPropertyType(String propertyName);
+
+    /**
+     * Does it has the property type by the key as case insensitive.
+     * @param propertyName The name of property. (NotNull)
+     * @return Determination.
+     */
+    boolean hasPropertyType(String propertyName);
 
     String getTableName();
 
@@ -57,7 +85,9 @@ public interface TnBeanMetaData extends TnDtoMetaData {
 
     int getPrimaryKeySize();
 
-    String getPrimaryKey(int index);
+    String getPrimaryKeyDbName(int index);
+
+    ColumnSqlName getPrimaryKeySqlName(int index);
 
     int getIdentifierGeneratorSize();
 

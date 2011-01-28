@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.seasar.robot.dbflute.helper.StringKeyMap;
 import org.seasar.robot.dbflute.helper.beans.DfBeanDesc;
@@ -37,11 +37,11 @@ import org.seasar.robot.dbflute.helper.beans.exception.DfBeanFieldNotFoundExcept
 import org.seasar.robot.dbflute.helper.beans.exception.DfBeanMethodNotFoundException;
 import org.seasar.robot.dbflute.helper.beans.exception.DfBeanPropertyNotFoundException;
 import org.seasar.robot.dbflute.util.DfReflectionUtil;
-import org.seasar.robot.dbflute.util.DfStringUtil;
 import org.seasar.robot.dbflute.util.DfTypeUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class DfBeanDescImpl implements DfBeanDesc {
@@ -55,14 +55,14 @@ public class DfBeanDescImpl implements DfBeanDesc {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    private Class<?> beanClass;
-    private Constructor<?>[] constructors;
+    private Class<?> _beanClass;
+    private Constructor<?>[] _constructors;
 
-    private StringKeyMap<DfPropertyDesc> propertyDescMap = StringKeyMap.createAsCaseInsensitive();
-    private Map<String, Method[]> methodsMap = new ConcurrentHashMap<String, Method[]>();
-    private Map<String, Field> fieldMap = new ConcurrentHashMap<String, Field>();
+    private StringKeyMap<DfPropertyDesc> _propertyDescMap = StringKeyMap.createAsCaseInsensitive();
+    private Map<String, Method[]> _methodsMap = new HashMap<String, Method[]>();
+    private Map<String, Field> _fieldMap = new HashMap<String, Field>();
 
-    private transient Set<String> invalidPropertyNames = new HashSet<String>();
+    private transient Set<String> _invalidPropertyNames = new HashSet<String>();
 
     // ===================================================================================
     //                                                                         Constructor
@@ -72,8 +72,8 @@ public class DfBeanDescImpl implements DfBeanDesc {
             String msg = "The argument 'beanClass' should not be null!";
             throw new IllegalArgumentException(msg);
         }
-        this.beanClass = beanClass;
-        constructors = beanClass.getConstructors();
+        this._beanClass = beanClass;
+        _constructors = beanClass.getConstructors();
         setupPropertyDescs();
         setupMethods();
         setupFields();
@@ -83,7 +83,7 @@ public class DfBeanDescImpl implements DfBeanDesc {
     //                                                                                Bean
     //                                                                                ====
     public Class<?> getBeanClass() {
-        return beanClass;
+        return _beanClass;
     }
 
     // ===================================================================================
@@ -101,16 +101,16 @@ public class DfBeanDescImpl implements DfBeanDesc {
         if (constructor != null) {
             return constructor;
         }
-        throw new DfBeanConstructorNotFoundException(beanClass, args);
+        throw new DfBeanConstructorNotFoundException(_beanClass, args);
     }
 
     public Constructor<?> getConstructor(final Class<?>[] paramTypes) {
-        for (int i = 0; i < constructors.length; ++i) {
-            if (Arrays.equals(paramTypes, constructors[i].getParameterTypes())) {
-                return constructors[i];
+        for (int i = 0; i < _constructors.length; ++i) {
+            if (Arrays.equals(paramTypes, _constructors[i].getParameterTypes())) {
+                return _constructors[i];
             }
         }
-        throw new DfBeanConstructorNotFoundException(beanClass, paramTypes);
+        throw new DfBeanConstructorNotFoundException(_beanClass, paramTypes);
     }
 
     // ===================================================================================
@@ -123,40 +123,40 @@ public class DfBeanDescImpl implements DfBeanDesc {
     public DfPropertyDesc getPropertyDesc(String propertyName) throws DfBeanPropertyNotFoundException {
         DfPropertyDesc pd = getPropertyDescInternally(propertyName);
         if (pd == null) {
-            throw new DfBeanPropertyNotFoundException(beanClass, propertyName);
+            throw new DfBeanPropertyNotFoundException(_beanClass, propertyName);
         }
         return pd;
     }
 
     private DfPropertyDesc getPropertyDescInternally(String propertyName) {
-        return propertyDescMap.get(propertyName);
+        return _propertyDescMap.get(propertyName);
     }
 
     public int getPropertyDescSize() {
-        return propertyDescMap.size();
+        return _propertyDescMap.size();
     }
 
     public List<String> getProppertyNameList() {
-        return new ArrayList<String>(propertyDescMap.keySet());
+        return new ArrayList<String>(_propertyDescMap.keySet());
     }
 
     // ===================================================================================
     //                                                                               Field
     //                                                                               =====
     public boolean hasField(String fieldName) {
-        return fieldMap.get(fieldName) != null;
+        return _fieldMap.get(fieldName) != null;
     }
 
     public Field getField(String fieldName) {
-        Field field = (Field) fieldMap.get(fieldName);
+        Field field = (Field) _fieldMap.get(fieldName);
         if (field == null) {
-            throw new DfBeanFieldNotFoundException(beanClass, fieldName);
+            throw new DfBeanFieldNotFoundException(_beanClass, fieldName);
         }
         return field;
     }
 
     public int getFieldSize() {
-        return fieldMap.size();
+        return _fieldMap.size();
     }
 
     // ===================================================================================
@@ -175,11 +175,11 @@ public class DfBeanDescImpl implements DfBeanDesc {
         if (method != null) {
             return method;
         }
-        throw new DfBeanMethodNotFoundException(beanClass, methodName, paramTypes);
+        throw new DfBeanMethodNotFoundException(_beanClass, methodName, paramTypes);
     }
 
     public Method getMethodNoException(final String methodName, final Class<?>[] paramTypes) {
-        final Method[] methods = (Method[]) methodsMap.get(methodName);
+        final Method[] methods = (Method[]) _methodsMap.get(methodName);
         if (methods == null) {
             return null;
         }
@@ -192,149 +192,20 @@ public class DfBeanDescImpl implements DfBeanDesc {
     }
 
     public Method[] getMethods(String methodName) throws DfBeanMethodNotFoundException {
-
-        Method[] methods = (Method[]) methodsMap.get(methodName);
+        Method[] methods = (Method[]) _methodsMap.get(methodName);
         if (methods == null) {
-            throw new DfBeanMethodNotFoundException(beanClass, methodName, null);
+            throw new DfBeanMethodNotFoundException(_beanClass, methodName, null);
         }
         return methods;
     }
 
     public boolean hasMethod(String methodName) {
-        return methodsMap.get(methodName) != null;
+        return _methodsMap.get(methodName) != null;
     }
 
     public String[] getMethodNames() {
-        return (String[]) methodsMap.keySet().toArray(new String[methodsMap.size()]);
+        return (String[]) _methodsMap.keySet().toArray(new String[_methodsMap.size()]);
     }
-
-    //
-    //    public String[] getConstructorParameterNames(final Class[] parameterTypes) {
-    //        return getConstructorParameterNames(getConstructor(parameterTypes));
-    //    }
-    //
-    //    public String[] getConstructorParameterNames(final Constructor constructor) {
-    //        if (constructorParameterNamesCache == null) {
-    //            constructorParameterNamesCache = createConstructorParameterNamesCache();
-    //        }
-    //
-    //        if (!constructorParameterNamesCache.containsKey(constructor)) {
-    //            throw new ConstructorNotFoundRuntimeException(beanClass, constructor.getParameterTypes());
-    //        }
-    //        return (String[]) constructorParameterNamesCache.get(constructor);
-    //
-    //    }
-    //
-    //    public String[] getMethodParameterNamesNoException(final String methodName, final Class[] parameterTypes) {
-    //        return getMethodParameterNamesNoException(getMethod(methodName, parameterTypes));
-    //    }
-    //
-    //    public String[] getMethodParameterNames(final String methodName, final Class[] parameterTypes) {
-    //        return getMethodParameterNames(getMethod(methodName, parameterTypes));
-    //    }
-    //
-    //    public String[] getMethodParameterNames(final Method method) {
-    //        String[] names = getMethodParameterNamesNoException(method);
-    //        if (names == null || names.length != method.getParameterTypes().length) {
-    //            throw new IllegalDiiguRuntimeException();
-    //        }
-    //        return names;
-    //    }
-    //
-    //    public String[] getMethodParameterNamesNoException(final Method method) {
-    //        if (methodParameterNamesCache == null) {
-    //            methodParameterNamesCache = createMethodParameterNamesCache();
-    //        }
-    //
-    //        if (!methodParameterNamesCache.containsKey(method)) {
-    //            throw new MethodNotFoundRuntimeException(beanClass, method.getName(), method.getParameterTypes());
-    //        }
-    //        return (String[]) methodParameterNamesCache.get(method);
-    //    }
-    //
-    //    private Map createConstructorParameterNamesCache() {
-    //        final Map map = new HashMap();
-    //        final ClassPool pool = ClassPoolUtil.getClassPool(beanClass);
-    //        for (int i = 0; i < constructors.length; ++i) {
-    //            final Constructor constructor = constructors[i];
-    //            if (constructor.getParameterTypes().length == 0) {
-    //                map.put(constructor, EMPTY_STRING_ARRAY);
-    //                continue;
-    //            }
-    //            final CtClass clazz = ClassPoolUtil.toCtClass(pool, constructor.getDeclaringClass());
-    //            final CtClass[] parameterTypes = ClassPoolUtil.toCtClassArray(pool, constructor.getParameterTypes());
-    //            try {
-    //                final String[] names = getParameterNames(clazz.getDeclaredConstructor(parameterTypes));
-    //                map.put(constructor, names);
-    //            } catch (final NotFoundException e) {
-    //                _log.debug("The constructor was not found: class=" + beanClass.getName() + " constructor="
-    //                        + constructor);
-    //            }
-    //        }
-    //        return map;
-    //    }
-    //
-    //    private Map createMethodParameterNamesCache() {
-    //        final Map map = new HashMap();
-    //        final ClassPool pool = ClassPoolUtil.getClassPool(beanClass);
-    //        for (final Iterator it = methodsCache.values().iterator(); it.hasNext();) {
-    //            final Method[] methods = (Method[]) it.next();
-    //            for (int i = 0; i < methods.length; ++i) {
-    //                final Method method = methods[i];
-    //                if (method.getParameterTypes().length == 0) {
-    //                    map.put(methods[i], EMPTY_STRING_ARRAY);
-    //                    continue;
-    //                }
-    //                final CtClass clazz = ClassPoolUtil.toCtClass(pool, method.getDeclaringClass());
-    //                final CtClass[] parameterTypes = ClassPoolUtil.toCtClassArray(pool, method.getParameterTypes());
-    //                try {
-    //                    final String[] names = getParameterNames(clazz.getDeclaredMethod(method.getName(), parameterTypes));
-    //                    map.put(methods[i], names);
-    //                } catch (final NotFoundException e) {
-    //                    _log.debug("The method was not found: class=" + beanClass.getName() + " method=" + method);
-    //                }
-    //            }
-    //        }
-    //        return map;
-    //    }
-    //
-    //    private String[] getParameterNames(final CtBehavior behavior) throws NotFoundException {
-    //        final MethodInfo methodInfo = behavior.getMethodInfo();
-    //        final ParameterAnnotationsAttribute attribute = (ParameterAnnotationsAttribute) methodInfo
-    //                .getAttribute(ParameterAnnotationsAttribute.visibleTag);
-    //        if (attribute == null) {
-    //            return null;
-    //        }
-    //        final int numParameters = behavior.getParameterTypes().length;
-    //        final String[] parameterNames = new String[numParameters];
-    //        final Annotation[][] annotationsArray = attribute.getAnnotations();
-    //        if (annotationsArray == null || annotationsArray.length != numParameters) {
-    //            return null;
-    //        }
-    //        for (int i = 0; i < numParameters; ++i) {
-    //            final String parameterName = getParameterName(annotationsArray[i]);
-    //            if (parameterName == null) {
-    //                return null;
-    //            }
-    //            parameterNames[i] = parameterName;
-    //        }
-    //        return parameterNames;
-    //    }
-    //
-    //    private String getParameterName(final Annotation[] annotations) {
-    //        Annotation nameAnnotation = null;
-    //        for (int i = 0; i < annotations.length; ++i) {
-    //            final Annotation annotation = annotations[i];
-    //            if (PARAMETER_NAME_ANNOTATION.equals(annotation.getTypeName())) {
-    //                nameAnnotation = annotation;
-    //                break;
-    //            }
-    //        }
-    //        if (nameAnnotation == null) {
-    //            return null;
-    //        }
-    //        return ((StringMemberValue) nameAnnotation.getMemberValue("value")).getValue();
-    //    }
 
     // ===================================================================================
     //                                                                          Reflection
@@ -358,8 +229,8 @@ public class DfBeanDescImpl implements DfBeanDesc {
     //                                                                       Assist Helper
     //                                                                       =============
     private Constructor<?> findSuitableConstructor(Object[] args) {
-        outerLoop: for (int i = 0; i < constructors.length; ++i) {
-            Class<?>[] paramTypes = constructors[i].getParameterTypes();
+        outerLoop: for (int i = 0; i < _constructors.length; ++i) {
+            Class<?>[] paramTypes = _constructors[i].getParameterTypes();
             if (paramTypes.length != args.length) {
                 continue;
             }
@@ -369,14 +240,14 @@ public class DfBeanDescImpl implements DfBeanDesc {
                 }
                 continue outerLoop;
             }
-            return constructors[i];
+            return _constructors[i];
         }
         return null;
     }
 
     private Constructor<?> findSuitableConstructorAdjustNumber(Object[] args) {
-        outerLoop: for (int i = 0; i < constructors.length; ++i) {
-            Class<?>[] paramTypes = constructors[i].getParameterTypes();
+        outerLoop: for (int i = 0; i < _constructors.length; ++i) {
+            Class<?>[] paramTypes = _constructors[i].getParameterTypes();
             if (paramTypes.length != args.length) {
                 continue;
             }
@@ -387,7 +258,7 @@ public class DfBeanDescImpl implements DfBeanDesc {
                 }
                 continue outerLoop;
             }
-            return constructors[i];
+            return _constructors[i];
         }
         return null;
     }
@@ -432,53 +303,44 @@ public class DfBeanDescImpl implements DfBeanDesc {
     }
 
     private void setupPropertyDescs() {
-        Method[] methods = beanClass.getMethods();
+        final Method[] methods = _beanClass.getMethods();
         for (int i = 0; i < methods.length; i++) {
-            Method m = methods[i];
+            final Method m = methods[i];
             if (DfReflectionUtil.isBridgeMethod(m) || DfReflectionUtil.isSyntheticMethod(m)) {
                 continue;
             }
-            String methodName = m.getName();
+            final String methodName = m.getName();
             if (methodName.startsWith("get")) {
                 if (m.getParameterTypes().length != 0 || methodName.equals("getClass")
                         || m.getReturnType() == void.class) {
                     continue;
                 }
-                String propertyName = decapitalizePropertyName(methodName.substring(3));
+                final String propertyName = initBeansProp(methodName.substring(3));
                 setupReadMethod(m, propertyName);
             } else if (methodName.startsWith("is")) {
                 if (m.getParameterTypes().length != 0 || !m.getReturnType().equals(Boolean.TYPE)
                         && !m.getReturnType().equals(Boolean.class)) {
                     continue;
                 }
-                String propertyName = decapitalizePropertyName(methodName.substring(2));
+                final String propertyName = initBeansProp(methodName.substring(2));
                 setupReadMethod(m, propertyName);
             } else if (methodName.startsWith("set")) {
                 if (m.getParameterTypes().length != 1 || methodName.equals("setClass")
                         || m.getReturnType() != void.class) {
                     continue;
                 }
-                String propertyName = decapitalizePropertyName(methodName.substring(3));
+                final String propertyName = initBeansProp(methodName.substring(3));
                 setupWriteMethod(m, propertyName);
             }
         }
-        for (Iterator<String> i = invalidPropertyNames.iterator(); i.hasNext();) {
-            propertyDescMap.remove(i.next());
+        for (Iterator<String> i = _invalidPropertyNames.iterator(); i.hasNext();) {
+            _propertyDescMap.remove(i.next());
         }
-        invalidPropertyNames.clear();
+        _invalidPropertyNames.clear();
     }
 
-    private static String decapitalizePropertyName(String name) {
-        if (DfStringUtil.isNullOrEmpty(name)) {
-            return name;
-        }
-        if (name.length() > 1 && Character.isUpperCase(name.charAt(1)) && Character.isUpperCase(name.charAt(0))) {
-
-            return name;
-        }
-        char chars[] = name.toCharArray();
-        chars[0] = Character.toLowerCase(chars[0]);
-        return new String(chars);
+    private static String initBeansProp(String name) {
+        return Srl.initBeansProp(name);
     }
 
     private void addPropertyDesc(DfPropertyDesc propertyDesc) {
@@ -486,7 +348,7 @@ public class DfBeanDescImpl implements DfBeanDesc {
             String msg = "The argument 'propertyDesc' should not be null!";
             throw new IllegalArgumentException(msg);
         }
-        propertyDescMap.put(propertyDesc.getPropertyName(), propertyDesc);
+        _propertyDescMap.put(propertyDesc.getPropertyName(), propertyDesc);
     }
 
     private void setupReadMethod(Method readMethod, String propertyName) {
@@ -494,7 +356,7 @@ public class DfBeanDescImpl implements DfBeanDesc {
         DfPropertyDesc propDesc = getPropertyDescInternally(propertyName);
         if (propDesc != null) {
             if (!propDesc.getPropertyType().equals(propertyType)) {
-                invalidPropertyNames.add(propertyName);
+                _invalidPropertyNames.add(propertyName);
             } else {
                 propDesc.setReadMethod(readMethod);
             }
@@ -509,7 +371,7 @@ public class DfBeanDescImpl implements DfBeanDesc {
         DfPropertyDesc propDesc = getPropertyDescInternally(propertyName);
         if (propDesc != null) {
             if (!propDesc.getPropertyType().equals(propertyType)) {
-                invalidPropertyNames.add(propertyName);
+                _invalidPropertyNames.add(propertyName);
             } else {
                 propDesc.setWriteMethod(writeMethod);
             }
@@ -532,7 +394,7 @@ public class DfBeanDescImpl implements DfBeanDesc {
         if (method != null) {
             return method;
         }
-        throw new DfBeanMethodNotFoundException(beanClass, methodName, args);
+        throw new DfBeanMethodNotFoundException(_beanClass, methodName, args);
     }
 
     private Method findSuitableMethod(Method[] methods, Object[] args) {
@@ -572,9 +434,9 @@ public class DfBeanDescImpl implements DfBeanDesc {
 
     private void setupMethods() {
         final Map<String, List<Method>> methodListMap = new LinkedHashMap<String, List<Method>>();
-        final Method[] methods = beanClass.getMethods();
+        final Method[] methods = _beanClass.getMethods();
         for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
+            final Method method = methods[i];
             if (DfReflectionUtil.isBridgeMethod(method) || DfReflectionUtil.isSyntheticMethod(method)) {
                 continue;
             }
@@ -586,11 +448,11 @@ public class DfBeanDescImpl implements DfBeanDesc {
             }
             list.add(method);
         }
-        final Set<Entry<String,List<Method>>> entrySet = methodListMap.entrySet();
+        final Set<Entry<String, List<Method>>> entrySet = methodListMap.entrySet();
         for (Entry<String, List<Method>> entry : entrySet) {
             final String key = entry.getKey();
             final List<Method> methodList = entry.getValue();
-            methodsMap.put(key, methodList.toArray(new Method[methodList.size()]));
+            _methodsMap.put(key, methodList.toArray(new Method[methodList.size()]));
         }
     }
 
@@ -604,7 +466,7 @@ public class DfBeanDescImpl implements DfBeanDesc {
      * fieldCache_.put(fname, field); } } } }
      */
     private void setupFields() {
-        setupFields(beanClass);
+        setupFields(_beanClass);
     }
 
     private void setupFields(Class<?> targetClass) {
@@ -617,41 +479,41 @@ public class DfBeanDescImpl implements DfBeanDesc {
 
     private void setupFieldsByInterface(Class<?> interfaceClass) {
         addFields(interfaceClass);
-        Class<?>[] interfaces = interfaceClass.getInterfaces();
+        final Class<?>[] interfaces = interfaceClass.getInterfaces();
         for (int i = 0; i < interfaces.length; ++i) {
             setupFieldsByInterface(interfaces[i]);
         }
     }
 
     private void addFields(Class<?> clazz) {
-        Field[] fields = clazz.getDeclaredFields();
+        final Field[] fields = clazz.getDeclaredFields();
         for (int i = 0; i < fields.length; ++i) {
-            Field field = fields[i];
-            String fname = field.getName();
-            if (!fieldMap.containsKey(fname)) {
-                field.setAccessible(true);
-                fieldMap.put(fname, field);
-                if (DfReflectionUtil.isInstanceField(field)) {
-                    if (hasPropertyDesc(fname)) {
-                        DfPropertyDesc pd = getPropertyDesc(field.getName());
-                        pd.setField(field);
-                    } else if (DfReflectionUtil.isPublicField(field)) {
-                        DfPropertyDesc pd = new DfPropertyDescImpl(field.getName(), field.getType(), null, null, field,
-                                this);
-                        propertyDescMap.put(fname, pd);
-                    }
+            final Field field = fields[i];
+            final String fname = field.getName();
+            if (_fieldMap.containsKey(fname)) { // target class's fields have priority  
+                continue;
+            }
+            field.setAccessible(true);
+            _fieldMap.put(fname, field);
+            if (DfReflectionUtil.isInstanceVariableField(field)) {
+                if (hasPropertyDesc(fname)) {
+                    final DfPropertyDesc pd = getPropertyDesc(fname);
+                    pd.setField(field);
+                } else if (DfReflectionUtil.isPublicField(field)) {
+                    final DfPropertyDesc pd = new DfPropertyDescImpl(fname, field.getType(), null, null, field, this);
+                    _propertyDescMap.put(fname, pd);
                 }
             }
         }
     }
 
     private void setupFieldsByClass(Class<?> targetClass) {
-        addFields(targetClass);
-        Class<?>[] interfaces = targetClass.getInterfaces();
+        addFields(targetClass); // should be set up at first
+        final Class<?>[] interfaces = targetClass.getInterfaces();
         for (int i = 0; i < interfaces.length; ++i) {
             setupFieldsByInterface(interfaces[i]);
         }
-        Class<?> superClass = targetClass.getSuperclass();
+        final Class<?> superClass = targetClass.getSuperclass();
         if (superClass != Object.class && superClass != null) {
             setupFieldsByClass(superClass);
         }

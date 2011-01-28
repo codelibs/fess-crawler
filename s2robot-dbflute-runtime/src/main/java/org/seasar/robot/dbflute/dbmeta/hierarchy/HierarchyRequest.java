@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.seasar.robot.dbflute.dbmeta.hierarchy.basic.HierarchySourceEntityColu
 import org.seasar.robot.dbflute.dbmeta.hierarchy.basic.HierarchySourceEntityListIterator;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.dbmeta.info.RelationInfo;
+import org.seasar.robot.dbflute.util.DfSystemUtil;
 
 /**
  * The request of hierarchy.
@@ -139,13 +140,13 @@ public class HierarchyRequest<LOCAL_ENTITY extends Entity> {
      */
     protected void setupElement(ColumnInfo sourceColumnInfo, ColumnInfo destinationColumnInfo) {
         if (alreadyRegisteredSourceColumnInfoSet4Check.contains(sourceColumnInfo)) {
-            String msg = "The wrong sourceColumnInfo!" + getLineSeparator();
-            msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + getLineSeparator();
-            msg = msg + "The source column has already been registered:" + getLineSeparator();
-            msg = msg + "- - - - -" + getLineSeparator();
-            msg = msg + " sourceColumnInfo=" + sourceColumnInfo + getLineSeparator();
-            msg = msg + " registeredColumnInfo=" + alreadyRegisteredSourceColumnInfoSet4Check + getLineSeparator();
-            msg = msg + "* * * * * * * * * */" + getLineSeparator();
+            String msg = "The wrong sourceColumnInfo!" + ln();
+            msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
+            msg = msg + "The source column has already been registered:" + ln();
+            msg = msg + "- - - - -" + ln();
+            msg = msg + " sourceColumnInfo=" + sourceColumnInfo + ln();
+            msg = msg + " registeredColumnInfo=" + alreadyRegisteredSourceColumnInfoSet4Check + ln();
+            msg = msg + "* * * * * * * * * */" + ln();
             throw new IllegalStateException(msg);
         }
         alreadyRegisteredSourceColumnInfoSet4Check.add(sourceColumnInfo);
@@ -188,14 +189,14 @@ public class HierarchyRequest<LOCAL_ENTITY extends Entity> {
         final DBMeta expectedDBMeta = firstSourceColumnInfo4Check.getDBMeta();
         final DBMeta actualDBMeta = sourceColumnInfo.getDBMeta();
         if (!expectedDBMeta.equals(actualDBMeta)) {
-            String msg = "The wrong sourceColumnInfo!" + getLineSeparator();
-            msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + getLineSeparator();
+            String msg = "The wrong sourceColumnInfo!" + ln();
+            msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
             msg = msg + "The dbmeta of sourceColumnInfo is difference from";
-            msg = msg + " the one of Your First Source Column Info:" + getLineSeparator();
-            msg = msg + "- - - - -" + getLineSeparator();
-            msg = msg + "sourceColumnInfo=" + sourceColumnInfo + getLineSeparator();
-            msg = msg + "firstSourceColumnInfo4Check=" + firstSourceColumnInfo4Check + getLineSeparator();
-            msg = msg + "* * * * * * * * * */" + getLineSeparator();
+            msg = msg + " the one of Your First Source Column Info:" + ln();
+            msg = msg + "- - - - -" + ln();
+            msg = msg + "sourceColumnInfo=" + sourceColumnInfo + ln();
+            msg = msg + "firstSourceColumnInfo4Check=" + firstSourceColumnInfo4Check + ln();
+            msg = msg + "* * * * * * * * * */" + ln();
             throw new IllegalStateException(msg);
         }
     }
@@ -212,14 +213,14 @@ public class HierarchyRequest<LOCAL_ENTITY extends Entity> {
                 final DBMeta actualDBMeta = currentElement().getDestinationDBMeta();
                 final DBMeta expectedDBMeta = destinationDBMeta;
                 if (!expectedDBMeta.equals(actualDBMeta)) {
-                    String msg = "The wrong destinationColumnInfo!" + getLineSeparator();
-                    msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + getLineSeparator();
+                    String msg = "The wrong destinationColumnInfo!" + ln();
+                    msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
                     msg = msg + "The dbmeta of destinationColumnInfo is difference from";
-                    msg = msg + " the one of Your Local Entity:" + getLineSeparator();
-                    msg = msg + "- - - - -" + getLineSeparator();
-                    msg = msg + "destinationColumnInfo=" + currentElement.getDestinationColumnInfo() + getLineSeparator();
-                    msg = msg + "localEntity=" + destinationDBMeta.getEntityTypeName() + getLineSeparator();
-                    msg = msg + "* * * * * * * * * */" + getLineSeparator();
+                    msg = msg + " the one of Your Local Entity:" + ln();
+                    msg = msg + "- - - - -" + ln();
+                    msg = msg + "destinationColumnInfo=" + currentElement.getDestinationColumnInfo() + ln();
+                    msg = msg + "localEntity=" + destinationDBMeta.getEntityTypeName() + ln();
+                    msg = msg + "* * * * * * * * * */" + ln();
                     throw new IllegalStateException(msg);
                 }
             }
@@ -312,10 +313,9 @@ public class HierarchyRequest<LOCAL_ENTITY extends Entity> {
     //                                                                              ======
     /**
      * Get the value of line separator.
-     * 
      * @return The value of line separator. (NotNull)
      */
-    protected String getLineSeparator() {
-        return System.getProperty("line.separator");
+    protected String ln() {
+        return DfSystemUtil.getLineSeparator();
     }
 }

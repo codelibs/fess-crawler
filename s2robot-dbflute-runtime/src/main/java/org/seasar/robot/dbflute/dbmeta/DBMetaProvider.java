@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ public interface DBMetaProvider {
     /**
      * Provide the DB meta.
      * @param tableFlexibleName The flexible name of table. (NotNull)
-     * @return The instance of DB meta. (Nullable: If the DB meta is not found, it returns null)
+     * @return The instance of DB meta. (NullAllowed: If the DB meta is not found, it returns null)
      */
-    public DBMeta provideDBMeta(String tableFlexibleName);
+    DBMeta provideDBMeta(String tableFlexibleName);
 
     /**
      * Provide the DB meta.
@@ -34,5 +34,5 @@ public interface DBMetaProvider {
      * @return The instance of DB meta. (NotNull)
      * @exception org.seasar.robot.dbflute.exception.DBMetaNotFoundException When the DB meta is not found.
      */
-    public DBMeta provideDBMetaChecked(String tableFlexibleName);
+    DBMeta provideDBMetaChecked(String tableFlexibleName);
 }

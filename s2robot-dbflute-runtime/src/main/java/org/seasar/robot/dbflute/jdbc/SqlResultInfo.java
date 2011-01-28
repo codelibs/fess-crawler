@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,12 @@ public class SqlResultInfo {
         this._commandName = commandName;
     }
 
+    /**
+     * Get the SQL for display. <br />
+     * If the statement is batch-update, this value
+     * contains only a part of batch statements.
+     * @return The string of SQL. (NullAllowed: for example, when batch logging is limited by option)
+     */
     public String getDisplaySql() {
         return _displaySql;
     }

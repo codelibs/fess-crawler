@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import org.seasar.robot.dbflute.helper.character.JapaneseCharacter;
 public class JapaneseCharacterImpl implements JapaneseCharacter {
 
     // Double-byte Katakana
-    protected static final String TABLE_ZENKANA = 
-              "\u3002\u300c\u300d\u3001\u30fb\u30f2\u30a1\u30a3\u30a5"
+    protected static final String TABLE_ZENKANA = "\u3002\u300c\u300d\u3001\u30fb\u30f2\u30a1\u30a3\u30a5"
             + "\u30a7\u30a9\u30e3\u30e5\u30e7\u30c3\u30fc\u30a2\u30a4"
             + "\u30a6\u30a8\u30aa\u30ab\u30ad\u30af\u30b1\u30b3\u30b5"
             + "\u30b7\u30b9\u30bb\u30bd\u30bf\u30c1\u30c4\u30c6\u30c8"
@@ -34,17 +33,10 @@ public class JapaneseCharacterImpl implements JapaneseCharacter {
             + "\u30e9\u30ea\u30eb\u30ec\u30ed\u30ef\u30f3\u309b\u309c";
 
     // (uff71 - uff9d)
-    protected static final String DEF_DOUBLE_BYTE_VOICED_SOUND_NORMAL_KATAKANA = 
-            "\u30a2\u30a4\u30f4\u30a8\u30aa" +
-            "\u30ac\u30ae\u30b0\u30b2\u30b4" +
-            "\u30b6\u30b8\u30ba\u30bc\u30be" +
-            "\u30c0\u30c2\u30c5\u30c7\u30c9" +
-            "\u30ca\u30cb\u30cc\u30cd\u30ce" +
-            "\u30d0\u30d3\u30d6\u30d9\u30dc" +
-            "\u30de\u30df\u30e0\u30e1\u30e2" +
-            "\u30e4\u30e6\u30e8" +
-            "\u30e9\u30ea\u30eb\u30ec\u30ed" +
-            "\u30ef\u30f3";
+    protected static final String DEF_DOUBLE_BYTE_VOICED_SOUND_NORMAL_KATAKANA = "\u30a2\u30a4\u30f4\u30a8\u30aa"
+            + "\u30ac\u30ae\u30b0\u30b2\u30b4" + "\u30b6\u30b8\u30ba\u30bc\u30be" + "\u30c0\u30c2\u30c5\u30c7\u30c9"
+            + "\u30ca\u30cb\u30cc\u30cd\u30ce" + "\u30d0\u30d3\u30d6\u30d9\u30dc" + "\u30de\u30df\u30e0\u30e1\u30e2"
+            + "\u30e4\u30e6\u30e8" + "\u30e9\u30ea\u30eb\u30ec\u30ed" + "\u30ef\u30f3";
 
     // (uff66 - uff6f)
     protected static final String DEF_DOUBLE_BYTE_VOICED_SOUND_SPECIAL_KATAKANA = "\u30fa\u30a1\u30a3\u30a5\u30a7\u30a9\u30e3\u30e5\u30e7";

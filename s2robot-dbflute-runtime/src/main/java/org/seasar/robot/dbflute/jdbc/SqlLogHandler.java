@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ public interface SqlLogHandler {
      * </p>
      * @param executedSql The executed SQL. (NotNull)
      * @param displaySql The SQL for display. (NotNull)
-     * @param args The arguments of the SQL. (Nullable)
-     * @param argTypes The argument types of the SQL. (Nullable)
+     * @param args The arguments of the SQL. (NullAllowed)
+     * @param argTypes The argument types of the SQL. (NullAllowed)
      */
     void handle(String executedSql, String displaySql, Object[] args, Class<?>[] argTypes);
 }

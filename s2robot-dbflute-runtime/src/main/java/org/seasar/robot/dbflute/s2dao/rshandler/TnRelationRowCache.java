@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnRelationRowCache {
@@ -46,7 +46,7 @@ public class TnRelationRowCache {
     /**
      * @param relno The relation number.
      * @param key The key of relation. (NotNull)
-     * @return The relation row. (Nullable)
+     * @return The relation row. (NullAllowed)
      */
     public Object getRelationRow(int relno, TnRelationKey key) {
         return getRowMap(relno).get(key);
@@ -55,7 +55,7 @@ public class TnRelationRowCache {
     /**
      * @param relno The relation number.
      * @param key The key of relation. (NotNull)
-     * @param row The relation row. (Nullable)
+     * @param row The relation row. (NullAllowed)
      */
     public void addRelationRow(int relno, TnRelationKey key, Object row) {
         getRowMap(relno).put(key, row);

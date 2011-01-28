@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,35 @@ package org.seasar.robot.dbflute.dbway;
 public class WayOfOracle implements DBWay {
 
     // ===================================================================================
+    //                                                                        Sequence Way
+    //                                                                        ============
+    public String buildSequenceNextValSql(String sequenceName) {
+        return "select " + sequenceName + ".nextval from dual";
+    }
+
+    // ===================================================================================
     //                                                                       Identity Info
     //                                                                       =============
     public String getIdentitySelectSql() {
         return null;
+    }
+
+    // ===================================================================================
+    //                                                                         SQL Support
+    //                                                                         ===========
+    public boolean isBlockCommentSupported() {
+        return true;
+    }
+
+    public boolean isLineCommentSupported() {
+        return true;
+    }
+
+    // ===================================================================================
+    //                                                                        JDBC Support
+    //                                                                        ============
+    public boolean isScrollableCursorSupported() {
+        return true;
     }
 
     // ===================================================================================

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.dbflute.bhv.core;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -24,14 +25,21 @@ import org.seasar.robot.dbflute.CallbackContext;
 import org.seasar.robot.dbflute.DBDef;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.XLog;
+import org.seasar.robot.dbflute.bhv.BehaviorReadable;
+import org.seasar.robot.dbflute.bhv.BehaviorWritable;
+import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCacheHandler;
 import org.seasar.robot.dbflute.bhv.outsidesql.OutsideSqlBasicExecutor;
-import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
+import org.seasar.robot.dbflute.bhv.outsidesql.factory.OutsideSqlExecutorFactory;
 import org.seasar.robot.dbflute.cbean.FetchAssistContext;
 import org.seasar.robot.dbflute.cbean.FetchNarrowingBean;
+import org.seasar.robot.dbflute.cbean.PagingInvoker;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
+import org.seasar.robot.dbflute.exception.SQLFailureException;
+import org.seasar.robot.dbflute.exception.thrower.BehaviorExceptionThrower;
 import org.seasar.robot.dbflute.helper.stacktrace.InvokeNameExtractingResource;
 import org.seasar.robot.dbflute.helper.stacktrace.InvokeNameResult;
 import org.seasar.robot.dbflute.helper.stacktrace.impl.InvokeNameExtractorImpl;
+import org.seasar.robot.dbflute.jdbc.SQLExceptionDigger;
 import org.seasar.robot.dbflute.jdbc.SqlResultHandler;
 import org.seasar.robot.dbflute.jdbc.SqlResultInfo;
 import org.seasar.robot.dbflute.jdbc.StatementConfig;
@@ -50,8 +58,10 @@ import org.seasar.robot.dbflute.util.DfTypeUtil;
  *   o isExecutionCacheEmpty();
  *   o getExecutionCacheSize();
  *   o injectComponentProperty(BehaviorCommandComponentSetup behaviorCommand);
- *   o createOutsideSqlBasicExecutor(String tableDbName);
  *   o invoke(BehaviorCommand behaviorCommand);
+ *   o createOutsideSqlBasicExecutor(String tableDbName);
+ *   o createBehaviorExceptionThrower();
+ *   o getSequenceCacheHandler();
  * </pre>
  * @author jflute
  */
@@ -68,7 +78,8 @@ public class BehaviorCommandInvoker {
     // -----------------------------------------------------
     //                                       Execution Cache
     //                                       ---------------
-    protected final Map<String, SqlExecution> _executionMap = new ConcurrentHashMap<String, SqlExecution>();
+    /** The map of SQL execution. (dispose target) */
+    protected final Map<String, SqlExecution> _executionMap = newConcurrentHashMap();
 
     // ===================================================================================
     //                                                                         Constructor
@@ -103,26 +114,12 @@ public class BehaviorCommandInvoker {
         behaviorCommand.setDataSource(_invokerAssistant.assistDataSource());
         behaviorCommand.setStatementFactory(_invokerAssistant.assistStatementFactory());
         behaviorCommand.setBeanMetaDataFactory(_invokerAssistant.assistBeanMetaDataFactory());
-        behaviorCommand.setValueTypeFactory(_invokerAssistant.assistValueTypeFactory());
         behaviorCommand.setSqlFileEncoding(getSqlFileEncoding());
     }
 
     protected String getSqlFileEncoding() {
         assertInvokerAssistant();
         return _invokerAssistant.assistSqlFileEncoding();
-    }
-
-    // ===================================================================================
-    //                                                                          OutsideSql
-    //                                                                          ==========
-    /**
-     * @param tableDbName The DB name of table. (NotNull)
-     * @return The basic executor of outside SQL. (NotNull) 
-     */
-    public OutsideSqlBasicExecutor createOutsideSqlBasicExecutor(String tableDbName) {
-        final DBDef dbDef = _invokerAssistant.assistCurrentDBDef();
-        final StatementConfig statementConfig = _invokerAssistant.assistDefaultStatementConfig();
-        return new OutsideSqlBasicExecutor(this, tableDbName, dbDef, statementConfig);
     }
 
     // ===================================================================================
@@ -133,24 +130,24 @@ public class BehaviorCommandInvoker {
      * This method is an entry point!
      * @param <RESULT> The type of result.
      * @param behaviorCommand The command of behavior. (NotNull)
-     * @return The result object. (Nullable)
+     * @return The result object. (NullAllowed)
      */
     public <RESULT> RESULT invoke(BehaviorCommand<RESULT> behaviorCommand) {
-        clearContext();
+        initializeContext();
         try {
             return dispatchInvoking(behaviorCommand);
         } finally {
-            clearContext();
+            closeContext();
         }
     }
 
     /**
      * @param <RESULT> The type of result.
      * @param behaviorCommand The command of behavior. (NotNull)
-     * @return The result object. (Nullable)
+     * @return The result object. (NullAllowed)
      */
     protected <RESULT> RESULT dispatchInvoking(BehaviorCommand<RESULT> behaviorCommand) {
-        setupResourceContext();
+        setupResourceContext(behaviorCommand);
         final boolean logEnabled = isLogEnabled();
 
         // - - - - - - - - - - - - -
@@ -173,6 +170,8 @@ public class BehaviorCommandInvoker {
         try {
             final Object[] args = behaviorCommand.getSqlExecutionArgument();
             ret = executeSql(execution, args);
+        } catch (RuntimeException cause) {
+            handleExecutionException(cause);
         } finally {
             behaviorCommand.afterExecuting();
         }
@@ -187,9 +186,9 @@ public class BehaviorCommandInvoker {
         // Convert and Return!
         // - - - - - - - - - -
         if (retType.isPrimitive()) {
-            ret = convertPrimitiveWrapper(retType, ret);
+            ret = convertPrimitiveWrapper(ret, retType);
         } else if (Number.class.isAssignableFrom(retType)) {
-            ret = convertNumber(retType, ret);
+            ret = convertNumber(ret, retType);
         }
 
         // - - - - - - - - - - - -
@@ -205,13 +204,15 @@ public class BehaviorCommandInvoker {
         return result;
     }
 
-    protected void setupResourceContext() {
+    protected <RESULT> void setupResourceContext(BehaviorCommand<RESULT> behaviorCommand) {
         assertInvokerAssistant();
-        ResourceContext resourceContext = new ResourceContext();
+        final ResourceContext resourceContext = new ResourceContext();
+        resourceContext.setBehaviorCommand(behaviorCommand);
         resourceContext.setCurrentDBDef(_invokerAssistant.assistCurrentDBDef());
         resourceContext.setDBMetaProvider(_invokerAssistant.assistDBMetaProvider());
         resourceContext.setSqlClauseCreator(_invokerAssistant.assistSqlClauseCreator());
         resourceContext.setSqlAnalyzerFactory(_invokerAssistant.assistSqlAnalyzerFactory());
+        resourceContext.setSQLExceptionHandlerFactory(_invokerAssistant.assistSQLExceptionHandlerFactory());
         resourceContext.setResourceParameter(_invokerAssistant.assistResourceParameter());
         ResourceContext.setResourceContextOnThread(resourceContext);
     }
@@ -225,14 +226,31 @@ public class BehaviorCommandInvoker {
     }
 
     protected long systemTime() {
-        return System.currentTimeMillis(); // for calculating performance
+        return DfSystemUtil.currentTimeMillis(); // for calculating performance
+    }
+
+    protected void handleExecutionException(RuntimeException cause) {
+        if (cause instanceof SQLFailureException) {
+            throw cause;
+        }
+        final SQLExceptionDigger digger = getSQLExceptionDigger();
+        final SQLException sqlEx = digger.digUp(cause);
+        if (sqlEx != null) {
+            handleSQLException(sqlEx);
+        } else {
+            throw cause;
+        }
+    }
+
+    protected void handleSQLException(SQLException e) {
+        ResourceContext.createSQLExceptionHandler().handleSQLException(e);
     }
 
     protected <RESULT> void callbackSqlResultHanler(BehaviorCommand<RESULT> behaviorCommand,
             boolean existsSqlResultHandler, SqlResultHandler sqlResultHander, Object ret, long before, long after) {
         if (existsSqlResultHandler) {
-            final String displaySql = (String) InternalMapContext.getObject("df:DisplaySql");
-            SqlResultInfo info = new SqlResultInfo();
+            final String displaySql = InternalMapContext.getResultInfoDisplaySql();
+            final SqlResultInfo info = new SqlResultInfo();
             info.setResult(ret);
             info.setTableDbName(behaviorCommand.getTableDbName());
             info.setCommandName(behaviorCommand.getCommandName());
@@ -298,16 +316,16 @@ public class BehaviorCommandInvoker {
             execution = getSqlExecution(key);
             if (execution != null) {
                 if (isLogEnabled()) {
-                    log("...Getting sqlExecution as cache because the previous thread have already initialized.");
+                    log("...Getting sqlExecution as cache because the previous thread has already initialized.");
                 }
                 return execution;
             }
             if (isLogEnabled()) {
                 log("...Initializing sqlExecution for the key '" + key + "'");
             }
-            _executionMap.put(key, executionCreator.createSqlExecution());
+            execution = executionCreator.createSqlExecution();
+            _executionMap.put(key, execution);
         }
-        execution = getSqlExecution(key);
         if (execution == null) {
             String msg = "sqlExecutionCreator.createSqlCommand() should not return null:";
             msg = msg + " sqlExecutionCreator=" + executionCreator + " key=" + key;
@@ -326,8 +344,8 @@ public class BehaviorCommandInvoker {
     //                                                                      ==============
     protected <RESULT> void logSqlExecution(BehaviorCommand<RESULT> behaviorCommand, SqlExecution execution,
             long beforeCmd, long afterCmd) {
-        log("SqlExecution Initialization Cost: [" + DfTraceViewUtil.convertToPerformanceView(afterCmd - beforeCmd)
-                + "]");
+        final String view = DfTraceViewUtil.convertToPerformanceView(afterCmd - beforeCmd);
+        log("SqlExecution Initialization Cost: [" + view + "]");
     }
 
     // ===================================================================================
@@ -354,7 +372,7 @@ public class BehaviorCommandInvoker {
                 invokeMethodName);
 
         // Save behavior invoke name for error message.
-        putObjectToMapContext("df:BehaviorInvokeName", expWithoutKakko + "()");
+        InternalMapContext.setBehaviorInvokeName(expWithoutKakko + "()");
 
         final String equalBorder = buildFitBorder("", "=", expWithoutKakko, false);
         final String callerExpression = expWithoutKakko + "()";
@@ -414,12 +432,12 @@ public class BehaviorCommandInvoker {
 
         // Save client invoke name for error message.
         if (clientInvokeName.trim().length() > 0) {
-            putObjectToMapContext("df:ClientInvokeName", clientInvokeName);
+            InternalMapContext.setClientInvokeName(clientInvokeName);
         }
 
         // Save by-pass invoke name for error message.
         if (byPassInvokeName.trim().length() > 0) {
-            putObjectToMapContext("df:ByPassInvokeName", byPassInvokeName);
+            InternalMapContext.setByPassInvokeName(byPassInvokeName);
         }
 
         final StringBuilder sb = new StringBuilder();
@@ -567,10 +585,12 @@ public class BehaviorCommandInvoker {
     }
 
     protected List<InvokeNameResult> extractBehaviorInvoke(StackTraceElement[] stackTrace) {
-        final String[] names = new String[] { "Bhv", "BehaviorReadable", "BehaviorWritable", "PagingInvoker" };
+        final String readableName = DfTypeUtil.toClassTitle(BehaviorReadable.class);
+        final String writableName = DfTypeUtil.toClassTitle(BehaviorWritable.class);
+        final String pagingInvokerName = DfTypeUtil.toClassTitle(PagingInvoker.class);
+        final String[] names = new String[] { "Bhv", "BhvAp", readableName, writableName, pagingInvokerName };
         final List<String> suffixList = Arrays.asList(names);
-        final List<String> keywordList = Arrays
-                .asList(new String[] { "Bhv$", "BehaviorReadable$", "BehaviorWritable$" });
+        final List<String> keywordList = Arrays.asList(new String[] { "Bhv$", readableName + "$", writableName + "$" });
         final List<String> ousideSql1List = Arrays.asList(new String[] { "OutsideSql" });
         final List<String> ousideSql2List = Arrays.asList(new String[] { "Executor" });
         final List<String> ousideSql3List = Arrays.asList(new String[] { "Executor$" });
@@ -591,7 +611,13 @@ public class BehaviorCommandInvoker {
             }
 
             public String filterSimpleClassName(String simpleClassName) {
-                return removeBasePrefixFromSimpleClassName(simpleClassName);
+                if (simpleClassName.endsWith(readableName)) {
+                    return readableName;
+                } else if (simpleClassName.endsWith(writableName)) {
+                    return writableName;
+                } else {
+                    return removeBasePrefixFromSimpleClassName(simpleClassName);
+                }
             }
 
             public boolean isUseAdditionalInfo() {
@@ -720,7 +746,11 @@ public class BehaviorCommandInvoker {
                             ++loopCount;
                         }
                         sb.insert(0, "{").append("}");
-                        log(prefix + "all-updated=(" + resultCount + ") result=" + sb + "]");
+                        if (resultCount >= 0) {
+                            log(prefix + "all-updated=(" + resultCount + ") result=" + sb + "]");
+                        } else { // minus
+                            log(prefix + "result=" + sb + "]"); // for example, Oracle
+                        }
                     }
                 }
             } else {
@@ -750,6 +780,38 @@ public class BehaviorCommandInvoker {
     // ===================================================================================
     //                                                                      Context Helper
     //                                                                      ==============
+    protected void initializeContext() {
+        if (ResourceContext.isExistResourceContextOnThread()) { // means recursive invoking
+            saveAllContextOnThread();
+        }
+        clearAllCurrentContext();
+    }
+
+    protected void closeContext() {
+        if (FetchAssistContext.isExistFetchNarrowingBeanOnThread()) {
+            // /- - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // Because there is possible that fetch narrowing has been
+            // ignored for manualPaging of outsideSql.
+            // - - - - - - - - - -/
+            final FetchNarrowingBean fnbean = FetchAssistContext.getFetchNarrowingBeanOnThread();
+            fnbean.restoreIgnoredFetchNarrowing();
+        }
+        clearAllCurrentContext();
+        restoreAllContextOnThreadIfExists();
+    }
+
+    protected void saveAllContextOnThread() {
+        ContextStack.saveAllContextOnThread();
+    }
+
+    protected void restoreAllContextOnThreadIfExists() {
+        ContextStack.restoreAllContextOnThreadIfExists();
+    }
+
+    protected void clearAllCurrentContext() {
+        ContextStack.clearAllCurrentContext();
+    }
+
     protected OutsideSqlContext getOutsideSqlContext() {
         if (!OutsideSqlContext.isExistOutsideSqlContextOnThread()) {
             return null;
@@ -762,39 +824,6 @@ public class BehaviorCommandInvoker {
             return null;
         }
         return CallbackContext.getCallbackContextOnThread().getSqlResultHandler();
-    }
-
-    protected void putObjectToMapContext(String key, Object value) {
-        InternalMapContext.setObject(key, value);
-    }
-
-    protected void clearContext() {
-        if (OutsideSqlContext.isExistOutsideSqlContextOnThread()) {
-            OutsideSqlContext.clearOutsideSqlContextOnThread();
-        }
-        if (FetchAssistContext.isExistFetchBeanOnThread()) {
-            if (FetchAssistContext.isExistFetchNarrowingBeanOnThread()) {
-                // /- - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                // Because there is possible that fetch narrowing has been
-                // ignored for manualPaging of outsideSql.
-                // - - - - - - - - - -/
-                final FetchNarrowingBean fnbean = FetchAssistContext.getFetchNarrowingBeanOnThread();
-                fnbean.restoreIgnoredFetchNarrowing();
-            }
-            FetchAssistContext.clearFetchBeanOnThread();
-        }
-        if (ConditionBeanContext.isExistConditionBeanOnThread()) {
-            ConditionBeanContext.clearConditionBeanOnThread();
-        }
-        if (ConditionBeanContext.isExistEntityRowHandlerOnThread()) {
-            ConditionBeanContext.clearEntityRowHandlerOnThread();
-        }
-        if (InternalMapContext.isExistInternalMapContextOnThread()) {
-            InternalMapContext.clearInternalMapContextOnThread();
-        }
-        if (ResourceContext.isExistResourceContextOnThread()) {
-            ResourceContext.clearResourceContextOnThread();
-        }
     }
 
     // ===================================================================================
@@ -817,21 +846,59 @@ public class BehaviorCommandInvoker {
     }
 
     // ===================================================================================
-    //                                                                      General Helper
+    //                                                                          OutsideSql
+    //                                                                          ==========
+    /**
+     * @param tableDbName The DB name of table. (NotNull)
+     * @return The basic executor of outside SQL. (NotNull) 
+     */
+    public OutsideSqlBasicExecutor createOutsideSqlBasicExecutor(String tableDbName) {
+        final OutsideSqlExecutorFactory factory = _invokerAssistant.assistOutsideSqlExecutorFactory();
+        final DBDef dbdef = _invokerAssistant.assistCurrentDBDef();
+        final StatementConfig config = _invokerAssistant.assistDefaultStatementConfig();
+        return factory.createBasic(this, tableDbName, dbdef, config, null); // for an entry instance
+    }
+
+    // ===================================================================================
+    //                                                                 SQLException Digger
+    //                                                                 ===================
+    /**
+     * @return The digger of SQLException. (NotNull)
+     */
+    public SQLExceptionDigger getSQLExceptionDigger() {
+        return _invokerAssistant.assistSQLExceptionDigger();
+    }
+
+    // ===================================================================================
+    //                                                                      Sequence Cache
     //                                                                      ==============
-    protected String ln() {
-        return DfSystemUtil.getLineSeparator();
+    /**
+     * Get the handler of sequence cache.
+     * @return The handler of sequence cache. (NotNull)
+     */
+    public SequenceCacheHandler getSequenceCacheHandler() {
+        return _invokerAssistant.assistSequenceCacheHandler();
+    }
+
+    // ===================================================================================
+    //                                                                   Exception Thrower
+    //                                                                   =================
+    /**
+     * @return The thrower of behavior exception. (NotNull)
+     */
+    public BehaviorExceptionThrower createBehaviorExceptionThrower() {
+        return _invokerAssistant.assistBehaviorExceptionThrower();
     }
 
     // ===================================================================================
     //                                                                      Convert Helper
     //                                                                      ==============
-    protected Object convertPrimitiveWrapper(Class<?> retType, Object ret) {
-        return DfTypeUtil.toWrapper(retType, ret);
+    protected Object convertPrimitiveWrapper(Object ret, Class<?> retType) {
+        return DfTypeUtil.toWrapper(ret, retType);
     }
 
-    protected Object convertNumber(Class<?> retType, Object ret) {
-        return DfTypeUtil.toNumber(retType, ret);
+    protected Object convertNumber(Object ret, Class<?> retType) {
+        return DfTypeUtil.toNumber(ret, retType);
     }
 
     // ===================================================================================
@@ -858,6 +925,17 @@ public class BehaviorCommandInvoker {
             String msg = "The attribute 'invokerAssistant' should not be null!";
             throw new IllegalStateException(msg);
         }
+    }
+
+    // ===================================================================================
+    //                                                                      General Helper
+    //                                                                      ==============
+    protected <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
+        return new ConcurrentHashMap<KEY, VALUE>();
+    }
+
+    protected String ln() {
+        return DfSystemUtil.getLineSeparator();
     }
 
     // ===================================================================================

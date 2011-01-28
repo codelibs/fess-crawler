@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,21 @@ import java.util.Map;
 
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
-
 /**
  * The class of referrer information.
  * @author jflute
  */
 public interface RelationInfo {
 
-    public String getRelationPropertyName();
+    String getRelationPropertyName();
 
-    public DBMeta getLocalDBMeta();
+    DBMeta getLocalDBMeta();
 
-    public DBMeta getTargetDBMeta();
+    DBMeta getTargetDBMeta();
 
-    public Map<ColumnInfo, ColumnInfo> getLocalTargetColumnInfoMap();
+    Map<ColumnInfo, ColumnInfo> getLocalTargetColumnInfoMap();
 
-    public boolean isOneToOne();
+    boolean isOneToOne();
 
-    public boolean isReferrer();
+    boolean isReferrer();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class CallbackContext {
 
     /**
      * Get callback-context on thread.
-     * @return The context of callback. (Nullable)
+     * @return The context of callback. (NullAllowed)
      */
     public static CallbackContext getCallbackContextOnThread() {
         return (CallbackContext) _threadLocal.get();
@@ -89,7 +89,7 @@ public class CallbackContext {
      *     }
      * });
      * </pre>
-     * @param sqlLogHandler The handler of SQL log. (Nullable)
+     * @param sqlLogHandler The handler of SQL log. (NullAllowed)
      */
     public void setSqlLogHandler(SqlLogHandler sqlLogHandler) {
         this._sqlLogHandler = sqlLogHandler;
@@ -109,7 +109,7 @@ public class CallbackContext {
      *     }
      * });
      * </pre>
-     * @param sqlResultHandler The handler of SQL result. (Nullable)
+     * @param sqlResultHandler The handler of SQL result. (NullAllowed)
      */
     public void setSqlResultHandler(SqlResultHandler sqlResultHandler) {
         this._sqlResultHandler = sqlResultHandler;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.dbflute.cbean.sqlclause;
 
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause;
+
 /**
  * SqlClause for Default.
  * @author jflute
@@ -22,8 +24,17 @@ package org.seasar.robot.dbflute.cbean.sqlclause;
 public class SqlClauseDerby extends AbstractSqlClause {
 
     // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
+
+    // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
+    /** String of fetch-scope as sql-suffix. */
+    protected String _fetchScopeSqlSuffix = "";
+
     /** String of lock as sql-suffix. */
     protected String _lockSqlSuffix = "";
 
@@ -32,19 +43,19 @@ public class SqlClauseDerby extends AbstractSqlClause {
     //                                                                         ===========
     /**
      * Constructor.
-     * @param tableName Table name. (NotNull)
+     * @param tableDbName The DB name of table. (NotNull)
      **/
-    public SqlClauseDerby(String tableName) {
-        super(tableName);
+    public SqlClauseDerby(String tableDbName) {
+        super(tableDbName);
     }
 
     // ===================================================================================
     //                                                                    OrderBy Override
     //                                                                    ================
-	@Override
+    @Override
     protected OrderByClause.OrderByNullsSetupper createOrderByNullsSetupper() {
-	    return createOrderByNullsSetupperByCaseWhen();
-	}
+        return createOrderByNullsSetupperByCaseWhen();
+    }
 
     // ===================================================================================
     //                                                                 FetchScope Override
@@ -53,42 +64,27 @@ public class SqlClauseDerby extends AbstractSqlClause {
      * {@inheritDoc}
      */
     protected void doFetchFirst() {
+        doFetchPage();
     }
 
     /**
      * {@inheritDoc}
      */
     protected void doFetchPage() {
+        final int offset = getPageStartIndex();
+        final int fetchSize = getFetchSize();
+        _fetchScopeSqlSuffix = " offset " + offset + " rows fetch next " + fetchSize + " rows only";
     }
 
     /**
      * {@inheritDoc}
      */
     protected void doClearFetchPageClause() {
-    }
-
-    /**
-     * The override.
-     * 
-     * @return Determination.
-     */
-    public boolean isFetchStartIndexSupported() {
-        return false; // Default
-    }
-
-    /**
-     * The override.
-     * 
-     * @return Determination.
-     */
-    public boolean isFetchSizeSupported() {
-        return false; // Default
+        _fetchScopeSqlSuffix = "";
     }
 
     /**
      * {@inheritDoc}
-     * 
-     * @return this. (NotNull)
      */
     public SqlClause lockForUpdate() {
         _lockSqlSuffix = " for update";
@@ -97,8 +93,6 @@ public class SqlClauseDerby extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * 
-     * @return Select-hint. (NotNull)
      */
     protected String createSelectHint() {
         return "";
@@ -106,8 +100,6 @@ public class SqlClauseDerby extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * 
-     * @return From-base-table-hint. {select * from table [from-base-table-hint] where ...} (NotNull)
      */
     protected String createFromBaseTableHint() {
         return "";
@@ -115,8 +107,6 @@ public class SqlClauseDerby extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * 
-     * @return From-hint. (NotNull)
      */
     protected String createFromHint() {
         return "";
@@ -124,10 +114,8 @@ public class SqlClauseDerby extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * 
-     * @return Sql-suffix. (NotNull)
      */
     protected String createSqlSuffix() {
-        return _lockSqlSuffix;
+        return _fetchScopeSqlSuffix + _lockSqlSuffix;
     }
 }

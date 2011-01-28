@@ -8,5 +8,6 @@ import org.seasar.robot.dbflute.cbean.SubQuery;
  * @param <CB> The type of condition-bean.
  */
 public interface HpSSQSetupper<CB extends ConditionBean> {
+
     void setup(String function, SubQuery<CB> subQuery);
 }

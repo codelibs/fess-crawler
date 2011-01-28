@@ -12,10 +12,10 @@ import java.util.concurrent.Future;
 
 import org.seasar.robot.dbflute.CallbackContext;
 import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.cbean.FetchAssistContext;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
 import org.seasar.robot.dbflute.cbean.EntityRowHandler;
+import org.seasar.robot.dbflute.cbean.FetchAssistContext;
 import org.seasar.robot.dbflute.jdbc.SqlResultHandler;
 import org.seasar.robot.dbflute.jdbc.SqlResultInfo;
 import org.seasar.robot.dbflute.mock.MockConditionBean;
@@ -39,7 +39,7 @@ public class BehaviorCommandInvokerTest extends PlainTestCase {
         final Object[] args = new Object[] { "foo", "bar" };
         BehaviorCommandInvoker invoker = new BehaviorCommandInvoker() {
             @Override
-            protected void setupResourceContext() {
+            protected <RESULT> void setupResourceContext(BehaviorCommand<RESULT> behaviorCommand) {
                 markList.add("setupResourceContext");
             }
 
@@ -120,7 +120,7 @@ public class BehaviorCommandInvokerTest extends PlainTestCase {
         final Object[] args = new Object[] { "foo", "bar" };
         BehaviorCommandInvoker invoker = new BehaviorCommandInvoker() {
             @Override
-            protected void setupResourceContext() {
+            protected <RESULT> void setupResourceContext(BehaviorCommand<RESULT> behaviorCommand) {
                 markList.add("setupResourceContext");
             }
 
@@ -201,7 +201,7 @@ public class BehaviorCommandInvokerTest extends PlainTestCase {
         final Object[] args = new Object[] { "foo", "bar" };
         BehaviorCommandInvoker invoker = new BehaviorCommandInvoker() {
             @Override
-            protected void setupResourceContext() {
+            protected <RESULT> void setupResourceContext(BehaviorCommand<RESULT> behaviorCommand) {
                 markList.add("setupResourceContext");
             }
 
@@ -267,7 +267,7 @@ public class BehaviorCommandInvokerTest extends PlainTestCase {
                 }
             });
             CallbackContext.setCallbackContextOnThread(callbackContext);
-            InternalMapContext.setObject("df:DisplaySql", "select ...");
+            InternalMapContext.setResultInfoDisplaySql("select ...");
             actualResult = invoker.dispatchInvoking(new MockBehaviorCommand() {
                 @Override
                 public Object[] getSqlExecutionArgument() {
@@ -296,7 +296,7 @@ public class BehaviorCommandInvokerTest extends PlainTestCase {
         final List<String> markList = new ArrayList<String>();
         BehaviorCommandInvoker invoker = new BehaviorCommandInvoker() {
             @Override
-            protected void setupResourceContext() {
+            protected <RESULT> void setupResourceContext(BehaviorCommand<RESULT> behaviorCommand) {
                 markList.add("setupResourceContext");
             }
 
@@ -525,7 +525,7 @@ public class BehaviorCommandInvokerTest extends PlainTestCase {
         assertTrue(ResourceContext.isExistResourceContextOnThread());
 
         // ## Act ##
-        invoker.clearContext();
+        invoker.clearAllCurrentContext();
 
         // ## Assert ##
         assertFalse(OutsideSqlContext.isExistOutsideSqlContextOnThread());
@@ -555,7 +555,7 @@ public class BehaviorCommandInvokerTest extends PlainTestCase {
         final Object ret = new Object();
         final HashSet<String> markSet = new HashSet<String>();
         try {
-            InternalMapContext.setObject("df:DisplaySql", "select ...");
+            InternalMapContext.setResultInfoDisplaySql("select ...");
 
             // ## Act & Assert ##
             invoker.callbackSqlResultHanler(new MockBehaviorCommand() {

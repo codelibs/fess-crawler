@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,11 +49,11 @@ public class OutsideSqlSelectCursorCommand extends AbstractOutsideSqlSelectComma
     //                                                                    Process Callback
     //                                                                    ================
     @Override
-    protected void setupOutsideSqlContext(OutsideSqlContext outsideSqlContext) {
-        super.setupOutsideSqlContext(outsideSqlContext);
+    protected void setupOutsideSqlContextProperty(OutsideSqlContext outsideSqlContext) {
+        super.setupOutsideSqlContextProperty(outsideSqlContext);
         outsideSqlContext.setCursorHandler(_cursorHandler);
     }
-    
+
     // ===================================================================================
     //                                                                     Extension Point
     //                                                                     ===============

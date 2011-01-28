@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,25 @@ package org.seasar.robot.dbflute.bhv.core.command;
 
 import java.util.List;
 
+import org.seasar.robot.dbflute.bhv.InsertOption;
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
 import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
+import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
-import org.seasar.robot.dbflute.s2dao.sqlcommand.TnInsertAutoDynamicCommand;
+import org.seasar.robot.dbflute.s2dao.sqlcommand.TnInsertEntityDynamicCommand;
 
 /**
  * @author jflute
  */
 public class InsertEntityCommand extends AbstractEntityCommand {
+
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
+    /** The option of insert. (NotRequired) */
+    protected InsertOption<? extends ConditionBean> _insertOption;
 
     // ===================================================================================
     //                                                                   Basic Information
@@ -55,13 +63,11 @@ public class InsertEntityCommand extends AbstractEntityCommand {
             return nonPrimaryKeySqlExecution;
         }
         final String[] propertyNames = getPersistentPropertyNames(bmd);
-        return createInsertAutoDynamicCommand(bmd, propertyNames);
+        return createInsertEntityDynamicCommand(bmd, propertyNames);
     }
 
-    protected TnInsertAutoDynamicCommand createInsertAutoDynamicCommand(TnBeanMetaData bmd, String[] propertyNames) {
-        final TnInsertAutoDynamicCommand cmd = new TnInsertAutoDynamicCommand();
-        cmd.setDataSource(_dataSource);
-        cmd.setStatementFactory(_statementFactory);
+    protected TnInsertEntityDynamicCommand createInsertEntityDynamicCommand(TnBeanMetaData bmd, String[] propertyNames) {
+        final TnInsertEntityDynamicCommand cmd = new TnInsertEntityDynamicCommand(_dataSource, _statementFactory);
         cmd.setBeanMetaData(bmd);
         cmd.setTargetDBMeta(findDBMeta());
         cmd.setPropertyNames(propertyNames);
@@ -80,7 +86,7 @@ public class InsertEntityCommand extends AbstractEntityCommand {
         final List<ColumnInfo> columnInfoList = dbmeta.getColumnInfoList();
         final StringBuilder columnDefSb = new StringBuilder();
         for (org.seasar.robot.dbflute.dbmeta.info.ColumnInfo columnInfo : columnInfoList) {
-            columnDefSb.append(", ").append(columnInfo.getColumnDbName());
+            columnDefSb.append(", ").append(columnInfo.getColumnSqlName());
         }
         columnDefSb.delete(0, ", ".length()).insert(0, "(").append(")");
         final StringBuilder columnValuesSb = new StringBuilder();
@@ -89,6 +95,18 @@ public class InsertEntityCommand extends AbstractEntityCommand {
         }
         columnValuesSb.delete(0, ", ".length()).insert(0, "(").append(")");
         final String sql = "insert into " + dbmeta.getTableSqlName() + columnDefSb + " values" + columnValuesSb;
-        return createUpdateDynamicCommand(new String[] { "pmb" }, new Class<?>[] { _entityType }, sql);
+        return createOutsideSqlExecuteExecution(_entity.getClass(), sql);
+    }
+
+    @Override
+    protected Object[] doGetSqlExecutionArgument() {
+        return new Object[] { _entity, _insertOption };
+    }
+
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
+    public void setInsertOption(InsertOption<? extends ConditionBean> insertOption) {
+        _insertOption = insertOption;
     }
 }

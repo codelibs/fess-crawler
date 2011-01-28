@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,28 @@ import java.util.List;
 import java.util.Map;
 
 import org.seasar.robot.dbflute.cbean.coption.LikeSearchOption;
-import org.seasar.robot.dbflute.exception.BindVariableCommentNotFoundPropertyException;
-import org.seasar.robot.dbflute.exception.EmbeddedValueCommentNotFoundPropertyException;
-import org.seasar.robot.dbflute.exception.IllegalOutsideSqlOperationException;
-import org.seasar.robot.dbflute.exception.RequiredOptionNotFoundException;
+import org.seasar.robot.dbflute.exception.factory.ExceptionMessageBuilder;
 import org.seasar.robot.dbflute.helper.beans.DfBeanDesc;
 import org.seasar.robot.dbflute.helper.beans.DfPropertyDesc;
+import org.seasar.robot.dbflute.helper.beans.exception.DfBeanIllegalPropertyException;
 import org.seasar.robot.dbflute.helper.beans.factory.DfBeanDescFactory;
+import org.seasar.robot.dbflute.twowaysql.exception.BindVariableCommentListIndexNotNumberException;
+import org.seasar.robot.dbflute.twowaysql.exception.BindVariableCommentListIndexOutOfBoundsException;
+import org.seasar.robot.dbflute.twowaysql.exception.BindVariableCommentNotFoundPropertyException;
+import org.seasar.robot.dbflute.twowaysql.exception.BindVariableCommentPropertyReadFailureException;
+import org.seasar.robot.dbflute.twowaysql.exception.EmbeddedVariableCommentListIndexNotNumberException;
+import org.seasar.robot.dbflute.twowaysql.exception.EmbeddedVariableCommentListIndexOutOfBoundsException;
+import org.seasar.robot.dbflute.twowaysql.exception.EmbeddedVariableCommentNotFoundPropertyException;
+import org.seasar.robot.dbflute.twowaysql.exception.EmbeddedVariableCommentPropertyReadFailureException;
+import org.seasar.robot.dbflute.twowaysql.exception.ForCommentListIndexNotNumberException;
+import org.seasar.robot.dbflute.twowaysql.exception.ForCommentListIndexOutOfBoundsException;
+import org.seasar.robot.dbflute.twowaysql.exception.ForCommentNotFoundPropertyException;
+import org.seasar.robot.dbflute.twowaysql.exception.ForCommentPropertyReadFailureException;
 import org.seasar.robot.dbflute.twowaysql.pmbean.MapParameterBean;
-import org.seasar.robot.dbflute.util.DfStringUtil;
+import org.seasar.robot.dbflute.util.DfReflectionUtil;
 import org.seasar.robot.dbflute.util.DfSystemUtil;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
  * @author jflute
@@ -37,239 +49,313 @@ import org.seasar.robot.dbflute.util.DfSystemUtil;
 public class ValueAndTypeSetupper {
 
     // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    protected static final String LIKE_SEARCH_OPTION_SUFFIX = "InternalLikeSearchOption";
+
+    // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected String _expression;
     protected List<String> _nameList;
-    protected String _specifiedSql;
-    protected boolean _bind;
+    protected String _expression; // for logging only
+    protected String _specifiedSql; // for logging only
+    protected CommentType _commentType; // for logging only
+
+    public enum CommentType {
+        BIND("bind variable comment", "Bind Variable Comment") // bind
+        , EMBEDDED("embedded variable comment", "Embedded Variable Comment") // embedded
+        , FORCOMMENT("FOR comment", "FOR COMMENT") // for comment
+        ;
+        private String _textName;
+        private String _titleName;
+
+        private CommentType(String commentName, String titleName) {
+            _textName = commentName;
+            _titleName = titleName;
+        }
+
+        public String textName() {
+            return _textName;
+        }
+
+        public String titleName() {
+            return _titleName;
+        }
+    }
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public ValueAndTypeSetupper(String expression, List<String> nameList, String specifiedSql, boolean bind) {
-        this._expression = expression;
+    /**
+     * Constructor.
+     * @param nameList The list of property names. (NotNull)
+     * @param expression The expression of the comment for logging only. (NotNull)
+     * @param specifiedSql The specified SQL for logging only. (NotNull)
+     * @param commentType The type of comment for logging only. (NotNull)
+     */
+    public ValueAndTypeSetupper(List<String> nameList, String expression, String specifiedSql, CommentType commentType) {
         this._nameList = nameList;
+        this._expression = expression;
         this._specifiedSql = specifiedSql;
-        this._bind = bind;
+        this._commentType = commentType;
     }
 
     // ===================================================================================
     //                                                                              Set up
     //                                                                              ======
     public void setupValueAndType(ValueAndType valueAndType) {
-        Object value = valueAndType.getTargetValue();
-        Class<?> clazz = valueAndType.getTargetType();
+        Object value = valueAndType.getFirstValue();
+        if (value == null) { // if null, do nothing
+            return;
+        }
+        Class<?> clazz = valueAndType.getFirstType(); // if value is not null, required 
 
         // LikeSearchOption handling here is for OutsideSql.
         LikeSearchOption likeSearchOption = null;
-        String rearOption = null;
 
-        for (int pos = 1; pos < _nameList.size(); ++pos) {
+        for (int pos = 1; pos < _nameList.size(); pos++) {
             if (value == null) {
                 break;
             }
             final String currentName = _nameList.get(pos);
-            if (pos == 1) {// at the First Loop
-                final DfBeanDesc beanDesc = DfBeanDescFactory.getBeanDesc(clazz);
-                if (hasLikeSearchOption(beanDesc, currentName)) {
-                    likeSearchOption = getLikeSearchOption(beanDesc, currentName, value);
+            final DfBeanDesc beanDesc = DfBeanDescFactory.getBeanDesc(clazz);
+            if (hasLikeSearchProperty(beanDesc, currentName, value)) {
+                final LikeSearchOption currentOption = getLikeSearchOption(beanDesc, currentName, value);
+                if (currentOption != null) { // if exists, override option
+                    likeSearchOption = currentOption;
+                }
+            }
+            if (beanDesc.hasPropertyDesc(currentName)) { // main case
+                final DfPropertyDesc pd = beanDesc.getPropertyDesc(currentName);
+                value = getPropertyValue(clazz, value, currentName, pd);
+                clazz = (value != null ? value.getClass() : pd.getPropertyType());
+                continue;
+            }
+            if (MapParameterBean.class.isInstance(value)) { // used by union-query internally
+                final Map<?, ?> map = ((MapParameterBean<?>) value).getParameterMap();
+                // if the key does not exist, it does not process
+                // (different specification with Map)
+                if (map.containsKey(currentName)) {
+                    value = map.get(currentName);
+                    clazz = (value != null ? value.getClass() : null);
+                    continue;
                 }
             }
             if (Map.class.isInstance(value)) {
                 final Map<?, ?> map = (Map<?, ?>) value;
-                value = map.get(_nameList.get(pos));
-                if (isLastLoop4LikeSearch(pos, likeSearchOption) && isValidStringValue(value)) { // at the Last Loop
-                    value = likeSearchOption.generateRealValue((String) value);
-                    rearOption = likeSearchOption.getRearOption();
-                }
-                clazz = (value != null ? value.getClass() : clazz);
+                // if the key does not exist, treated same as a null value
+                value = map.get(currentName);
+                clazz = (value != null ? value.getClass() : null);
                 continue;
             }
-            final DfBeanDesc beanDesc = DfBeanDescFactory.getBeanDesc(clazz);
-            if (beanDesc.hasPropertyDesc(currentName)) {
-                final DfPropertyDesc pd = beanDesc.getPropertyDesc(currentName);
-                value = getPropertyValue(clazz, value, currentName, pd);
-                if (isLastLoop4LikeSearch(pos, likeSearchOption) && isValidStringValue(value)) { // at the Last Loop
-                    value = likeSearchOption.generateRealValue((String) value);
-                    rearOption = likeSearchOption.getRearOption();
-                }
-                clazz = (value != null ? value.getClass() : pd.getPropertyType());
-                continue;
-            }
-            final String methodName = "get" + initCap(currentName);
-            if (beanDesc.hasMethod(methodName)) { // basically unused because of using propertyDesc before
-                final Method method = beanDesc.getMethod(methodName);
-                value = invokeGetter(method, value);
-                clazz = method.getReturnType();
-                continue;
-            }
-            if (pos == 1 && MapParameterBean.class.isAssignableFrom(clazz)) {
-                final MapParameterBean pmb = (MapParameterBean) value;
-                final Map<String, Object> map = pmb.getParameterMap();
-                final Object elementValue = (map != null ? map.get(_nameList.get(pos)) : null);
-                if (elementValue != null) {
-                    value = elementValue;
-                    clazz = value.getClass();
+            if (List.class.isInstance(value)) {
+                if (currentName.startsWith("get(") && currentName.endsWith(")")) {
+                    final List<?> list = (List<?>) value;
+                    final String exp = Srl.extractScopeFirst(currentName, "get(", ")").getContent();
+                    try {
+                        final Integer index = DfTypeUtil.toInteger(exp);
+                        value = list.get(index);
+                    } catch (NumberFormatException e) {
+                        throwListIndexNotNumberException(exp, e);
+                    } catch (IndexOutOfBoundsException e) {
+                        throwListIndexOutOfBoundsException(exp, e);
+                    }
+                    clazz = (value != null ? value.getClass() : null);
                     continue;
                 }
             }
-            throwBindOrEmbeddedCommentNotFoundPropertyException(_expression, clazz, currentName, _specifiedSql, _bind);
+            throwNotFoundPropertyException(clazz, currentName);
         }
         valueAndType.setTargetValue(value);
         valueAndType.setTargetType(clazz);
-        valueAndType.setRearOption(rearOption);
+        valueAndType.setLikeSearchOption(likeSearchOption);
     }
 
-    // for OutsideSql
-    protected boolean isLastLoop4LikeSearch(int pos, LikeSearchOption likeSearchOption) {
-        return _nameList.size() == (pos + 1) && likeSearchOption != null;
-    }
-
-    protected boolean isValidStringValue(Object value) {
-        return value != null && value instanceof String && ((String) value).length() > 0;
-    }
-
-    // for OutsideSql
-    protected boolean hasLikeSearchOption(DfBeanDesc beanDesc, String currentName) {
-        return beanDesc.hasPropertyDesc(currentName + "InternalLikeSearchOption");
-    }
-
-    // for OutsideSql
-    protected LikeSearchOption getLikeSearchOption(DfBeanDesc beanDesc, String currentName, Object resourceBean) {
-        final DfPropertyDesc pb = beanDesc.getPropertyDesc(currentName + "InternalLikeSearchOption");
-        final LikeSearchOption option = (LikeSearchOption) pb.getValue(resourceBean);
-        if (option == null) {
-            throwLikeSearchOptionNotFoundException(resourceBean, currentName);
+    // -----------------------------------------------------
+    //                             LikeSearch for OutsideSql
+    //                             -------------------------
+    protected boolean hasLikeSearchProperty(DfBeanDesc beanDesc, String currentName, Object pmb) {
+        final String propertyName = buildLikeSearchPropertyName(currentName);
+        boolean result = false;
+        if (beanDesc.hasPropertyDesc(propertyName)) { // main case
+            result = true;
+        } else if (MapParameterBean.class.isInstance(pmb)) {
+            final Map<?, ?> map = ((MapParameterBean<?>) pmb).getParameterMap();
+            result = map.containsKey(propertyName);
+        } else if (Map.class.isInstance(pmb)) {
+            result = ((Map<?, ?>) pmb).containsKey(propertyName);
         }
-        if (option.isSplit()) {
-            throwOutsideSqlLikeSearchOptionSplitUnavailableException(option, resourceBean, currentName);
+        return result;
+    }
+
+    protected LikeSearchOption getLikeSearchOption(DfBeanDesc beanDesc, String currentName, Object pmb) {
+        final String propertyName = buildLikeSearchPropertyName(currentName);
+        final LikeSearchOption option;
+        if (beanDesc.hasPropertyDesc(propertyName)) { // main case
+            final DfPropertyDesc pb = beanDesc.getPropertyDesc(propertyName);
+            option = (LikeSearchOption) pb.getValue(pmb);
+        } else if (MapParameterBean.class.isInstance(pmb)) {
+            final Map<?, ?> map = ((MapParameterBean<?>) pmb).getParameterMap();
+            option = (LikeSearchOption) map.get(propertyName);
+        } else if (Map.class.isInstance(pmb)) {
+            option = (LikeSearchOption) ((Map<?, ?>) pmb).get(propertyName);
+        } else { // no way
+            String msg = "Not found the like search property: name=" + propertyName;
+            throw new IllegalStateException(msg);
         }
+        // no check here for various situation
+        // (parameter-bean checks option's existence and wrong operation)
         return option;
     }
 
-    // for OutsideSql
-    protected void throwLikeSearchOptionNotFoundException(Object resourceBean, String currentName) {
-        String msg = "Look! Read the message below." + ln();
-        msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
-        msg = msg + "The likeSearchOption was Not Found! (Should not be null!)" + ln();
-        msg = msg + ln();
-        msg = msg + "[Advice]" + ln();
-        msg = msg + "Please confirm your method call:" + ln();
-        final String beanName = resourceBean.getClass().getSimpleName();
-        final String methodName = "set" + initCap(currentName) + "_LikeSearch(value, likeSearchOption);";
-        msg = msg + "    " + beanName + "." + methodName + ln();
-        msg = msg + ln();
-        msg = msg + "[Target ParameterBean]" + ln() + resourceBean + ln();
-        msg = msg + "* * * * * * * * * */";
-        throw new RequiredOptionNotFoundException(msg);
+    protected String buildLikeSearchPropertyName(String resourceName) {
+        return resourceName + LIKE_SEARCH_OPTION_SUFFIX;
     }
 
-    // for OutsideSql
-    protected void throwOutsideSqlLikeSearchOptionSplitUnavailableException(LikeSearchOption option,
-            Object resourceBean, String currentName) {
-        String msg = "Look! Read the message below." + ln();
-        msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
-        msg = msg + "The splitByXxx() of LikeSearchOption is unavailable at OutsideSql!" + ln();
-        msg = msg + ln();
-        msg = msg + "[Advice]" + ln();
-        msg = msg + "Please confirm your method call:" + ln();
-        msg = msg + "  For example:" + ln();
-        msg = msg + "    before (x):" + ln();
-        final String beanName = resourceBean.getClass().getSimpleName();
-        final String methodName = "set" + initCap(currentName) + "_LikeSearch(value, likeSearchOption);";
-        msg = msg + "      " + beanName + " pmb = new " + beanName + "();" + ln();
-        msg = msg + "      LikeSearchOption likeSearchOption = new LikeSearchOption().likeContain();" + ln();
-        msg = msg + "      likeSearchOption.splitBySpace(); // *No! Don't invoke this!" + ln();
-        msg = msg + "      pmb." + methodName + ln();
-        msg = msg + "    after  (o):" + ln();
-        msg = msg + "      " + beanName + " pmb = new " + beanName + "();" + ln();
-        msg = msg + "      LikeSearchOption likeSearchOption = new LikeSearchOption().likeContain();" + ln();
-        msg = msg + "      pmb." + methodName + ln();
-        msg = msg + ln();
-        msg = msg + "[Target LikeSearchOption]" + ln() + option + ln();
-        msg = msg + ln();
-        msg = msg + "[Target ParameterBean]" + ln() + resourceBean + ln();
-        msg = msg + "* * * * * * * * * */";
-        throw new IllegalOutsideSqlOperationException(msg);
+    // -----------------------------------------------------
+    //                                         Assist Helper
+    //                                         -------------
+    protected boolean isLastLoop(int pos) {
+        return _nameList.size() == (pos + 1);
     }
 
     protected Object getPropertyValue(Class<?> beanType, Object beanValue, String currentName, DfPropertyDesc pd) {
         try {
             return pd.getValue(beanValue);
-        } catch (RuntimeException e) {
-            throwPropertyHandlingFailureException(beanType, beanValue, currentName, _expression, _specifiedSql, _bind,
-                    e);
-            return null;// unreachable
+        } catch (DfBeanIllegalPropertyException e) {
+            throwPropertyReadFailureException(beanType, currentName, e);
+            return null; // unreachable
         }
-    }
-
-    protected void throwPropertyHandlingFailureException(Class<?> beanType, Object beanValue, String currentName,
-            String expression, String specifiedSql, boolean bind, Exception e) {
-        String msg = "Look! Read the message below." + ln();
-        msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
-        msg = msg + "The handlig of the property was failed!" + ln();
-        msg = msg + ln();
-        msg = msg + "[Advice]" + ln();
-        msg = msg + "This is the Framework Exception!" + ln();
-        msg = msg + ln();
-        msg = msg + "[" + (bind ? "Bind Variable" : "Embedded Value") + " Comment Expression]" + ln() + expression
-                + ln();
-        msg = msg + ln();
-        msg = msg + "[Bean Type]" + ln() + beanType + ln();
-        msg = msg + ln();
-        msg = msg + "[Bean Value]" + ln() + beanValue + ln();
-        msg = msg + ln();
-        msg = msg + "[Property Name]" + ln() + currentName + ln();
-        msg = msg + ln();
-        msg = msg + "[Specified SQL]" + ln() + specifiedSql + ln();
-        msg = msg + "* * * * * * * * * */";
-        throw new IllegalStateException(msg, e);
     }
 
     protected Object invokeGetter(Method method, Object target) {
-        try {
-            return method.invoke(target, (Object[]) null);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            throw new RuntimeException(e);
+        return DfReflectionUtil.invoke(method, target, null);
+    }
+
+    protected void throwPropertyReadFailureException(Class<?> targetType, String propertyName,
+            DfBeanIllegalPropertyException e) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("Failed to read the property on the " + _commentType.textName() + "!");
+        br.addItem("Advice");
+        br.addElement("Please confirm your comment properties.");
+        br.addElement("(readable? accessbile? and so on...)");
+        br.addItem(_commentType.titleName());
+        br.addElement(_expression);
+        br.addItem("Illegal Property");
+        br.addElement(DfTypeUtil.toClassTitle(targetType) + "." + propertyName);
+        br.addItem("Exception Message");
+        br.addElement(e.getClass());
+        br.addElement(e.getMessage());
+        final Throwable cause = e.getCause();
+        if (cause != null) { // basically DfBeanIllegalPropertyException has its cause
+            br.addElement(cause.getClass());
+            br.addElement(cause.getMessage());
+            final Throwable nextCause = cause.getCause();
+            if (nextCause != null) {
+                br.addElement(nextCause.getClass());
+                br.addElement(nextCause.getMessage());
+            }
+        }
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        if (CommentType.BIND.equals(_commentType)) {
+            throw new BindVariableCommentPropertyReadFailureException(msg, e);
+        } else if (CommentType.EMBEDDED.equals(_commentType)) {
+            throw new EmbeddedVariableCommentPropertyReadFailureException(msg, e);
+        } else if (CommentType.FORCOMMENT.equals(_commentType)) {
+            throw new ForCommentPropertyReadFailureException(msg, e);
+        } else { // no way
+            throw new BindVariableCommentPropertyReadFailureException(msg, e);
         }
     }
 
-    protected void throwBindOrEmbeddedCommentNotFoundPropertyException(String expression, Class<?> targetType,
-            String notFoundProperty, String specifiedSql, boolean bind) {
-        String msg = "Look! Read the message below." + ln();
-        msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
-        msg = msg + "The property on the " + (bind ? "bind variable" : "embedded value") + " comment was Not Found!"
-                + ln();
-        msg = msg + ln();
-        msg = msg + "[Advice]" + ln();
-        msg = msg + "Please confirm the existence of your property on your arguments." + ln();
-        msg = msg + "Abd has the property had misspelling?" + ln();
-        msg = msg + ln();
-        msg = msg + "[" + (bind ? "Bind Variable" : "Embedded Value") + " Comment Expression]" + ln() + expression
-                + ln();
-        msg = msg + ln();
-        msg = msg + "[NotFound Property]" + ln() + (targetType != null ? targetType.getName() + "#" : "")
-                + notFoundProperty + ln();
-        msg = msg + ln();
-        msg = msg + "[Specified SQL]" + ln() + specifiedSql + ln();
-        msg = msg + "* * * * * * * * * */";
-        if (bind) {
+    protected void throwNotFoundPropertyException(Class<?> targetType, String notFoundProperty) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("The property on the " + _commentType.textName() + " was not found!");
+        br.addItem("Advice");
+        br.addElement("Please confirm the existence of your property on your arguments.");
+        br.addElement("And has the property had misspelling?");
+        br.addItem(_commentType.titleName());
+        br.addElement(_expression);
+        br.addItem("NotFound Property");
+        br.addElement((targetType != null ? targetType.getName() + "#" : "") + notFoundProperty);
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        if (CommentType.BIND.equals(_commentType)) {
             throw new BindVariableCommentNotFoundPropertyException(msg);
-        } else {
-            throw new EmbeddedValueCommentNotFoundPropertyException(msg);
+        } else if (CommentType.EMBEDDED.equals(_commentType)) {
+            throw new EmbeddedVariableCommentNotFoundPropertyException(msg);
+        } else if (CommentType.FORCOMMENT.equals(_commentType)) {
+            throw new ForCommentNotFoundPropertyException(msg);
+        } else { // no way
+            throw new BindVariableCommentNotFoundPropertyException(msg);
         }
+    }
+
+    protected void throwListIndexNotNumberException(String notNumberIndex, NumberFormatException e) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("The list index on the " + _commentType.textName() + " was not number!");
+        br.addItem("Advice");
+        br.addElement("Please confirm the index on your comment.");
+        br.addItem(_commentType.titleName());
+        br.addElement(_expression);
+        br.addItem("NotNumber Index");
+        br.addElement(notNumberIndex);
+        br.addItem("NumberFormatException");
+        br.addElement(e.getMessage());
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        if (CommentType.BIND.equals(_commentType)) {
+            throw new BindVariableCommentListIndexNotNumberException(msg, e);
+        } else if (CommentType.EMBEDDED.equals(_commentType)) {
+            throw new EmbeddedVariableCommentListIndexNotNumberException(msg, e);
+        } else if (CommentType.FORCOMMENT.equals(_commentType)) {
+            throw new ForCommentListIndexNotNumberException(msg, e);
+        } else { // no way
+            throw new BindVariableCommentListIndexNotNumberException(msg, e);
+        }
+    }
+
+    protected void throwListIndexOutOfBoundsException(String numberIndex, IndexOutOfBoundsException e) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("The list index on the " + _commentType.textName() + " was out of bounds!");
+        br.addItem("Advice");
+        br.addElement("Please confirm the index on your comment.");
+        br.addItem(_commentType.titleName());
+        br.addElement(_expression);
+        br.addItem("OutOfBounds Index");
+        br.addElement(numberIndex);
+        br.addItem("IndexOutOfBoundsException");
+        br.addElement(e.getMessage());
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        if (CommentType.BIND.equals(_commentType)) {
+            throw new BindVariableCommentListIndexOutOfBoundsException(msg, e);
+        } else if (CommentType.EMBEDDED.equals(_commentType)) {
+            throw new EmbeddedVariableCommentListIndexOutOfBoundsException(msg, e);
+        } else if (CommentType.FORCOMMENT.equals(_commentType)) {
+            throw new ForCommentListIndexOutOfBoundsException(msg, e);
+        } else { // no way
+            throw new BindVariableCommentListIndexOutOfBoundsException(msg, e);
+        }
+    }
+
+    // ===================================================================================
+    //                                                                    Exception Helper
+    //                                                                    ================
+    protected ExceptionMessageBuilder createExceptionMessageBuilder() {
+        return new ExceptionMessageBuilder();
     }
 
     // ===================================================================================
     //                                                                      General Helper
     //                                                                      ==============
     protected String initCap(String name) {
-        return DfStringUtil.initCap(name);
+        return Srl.initCap(name);
     }
 
     protected String ln() {

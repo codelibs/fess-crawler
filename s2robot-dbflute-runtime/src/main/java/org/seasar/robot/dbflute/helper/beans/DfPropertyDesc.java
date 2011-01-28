@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,13 @@ package org.seasar.robot.dbflute.helper.beans;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import org.seasar.robot.dbflute.helper.beans.exception.DfBeanIllegalPropertyException;
-
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
-public interface DfPropertyDesc {
+public interface DfPropertyDesc extends DfPropertyAccessor {
 
     DfBeanDesc getBeanDesc();
-    
-    String getPropertyName();
-
-    Class<?> getPropertyType();
 
     Method getReadMethod();
 
@@ -44,17 +38,9 @@ public interface DfPropertyDesc {
 
     boolean hasWriteMethod();
 
-    boolean isReadable();
-
-    boolean isWritable();
-
     Field getField();
 
     void setField(Field field);
-
-    Object getValue(Object target) throws IllegalStateException;
-
-    void setValue(Object target, Object value) throws DfBeanIllegalPropertyException, IllegalStateException;
 
     Object convertIfNeed(Object value);
 }

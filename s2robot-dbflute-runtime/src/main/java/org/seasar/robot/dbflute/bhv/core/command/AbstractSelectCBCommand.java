@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  */
 package org.seasar.robot.dbflute.bhv.core.command;
 
-import org.seasar.robot.dbflute.bhv.core.SqlExecution;
+import java.util.Map;
+
 import org.seasar.robot.dbflute.bhv.core.execution.SelectCBExecution;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
-
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * @author jflute
@@ -31,10 +32,7 @@ public abstract class AbstractSelectCBCommand<RESULT> extends AbstractBehaviorCo
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** The type of condition-bean. (Derived from conditionBean) */
-    protected Class<? extends ConditionBean> _conditionBeanType;
-
-    /** The instance of condition-bean. (Required) */
+    /** The instance of condition-bean. (NotNull) */
     protected ConditionBean _conditionBean;
 
     // ===================================================================================
@@ -61,18 +59,17 @@ public abstract class AbstractSelectCBCommand<RESULT> extends AbstractBehaviorCo
     //                                                               =====================
     public String buildSqlExecutionKey() {
         assertStatus("buildSqlExecutionKey");
-        return _tableDbName + ":" + getCommandName() + "(" + _conditionBeanType.getSimpleName() + ")";
+        final String cbName = DfTypeUtil.toClassTitle(_conditionBean);
+        return _tableDbName + ":" + getCommandName() + "(" + cbName + ")";
     }
 
-    protected SqlExecution createSelectCBExecution(Class<? extends ConditionBean> cbType, TnResultSetHandler handler) {
-        return createSelectCBExecution(handler, new String[] { "pmb" }, new Class<?>[] { cbType });
+    protected SelectCBExecution createSelectCBExecution(Class<? extends ConditionBean> cbType,
+            TnResultSetHandler handler) {
+        return createSelectCBExecution(createBeanArgNameTypeMap(cbType), handler);
     }
 
-    protected SelectCBExecution createSelectCBExecution(TnResultSetHandler handler, String[] argNames, Class<?>[] argTypes) {
-        final SelectCBExecution cmd = new SelectCBExecution(_dataSource, _statementFactory, handler);
-        cmd.setArgNames(argNames);
-        cmd.setArgTypes(argTypes);
-        return cmd;
+    protected SelectCBExecution createSelectCBExecution(Map<String, Class<?>> argNameTypeMap, TnResultSetHandler handler) {
+        return new SelectCBExecution(_dataSource, _statementFactory, argNameTypeMap, handler);
     }
 
     public Object[] getSqlExecutionArgument() {
@@ -101,9 +98,10 @@ public abstract class AbstractSelectCBCommand<RESULT> extends AbstractBehaviorCo
     protected void assertStatus(String methodName) {
         assertBasicProperty(methodName);
         assertComponentProperty(methodName);
-        if (_conditionBeanType == null) {
-            throw new IllegalStateException(buildAssertMessage("_conditionBeanType", methodName));
-        }
+        assertConditionBeanProperty(methodName);
+    }
+
+    protected void assertConditionBeanProperty(String methodName) {
         if (_conditionBean == null) {
             throw new IllegalStateException(buildAssertMessage("_conditionBean", methodName));
         }
@@ -112,10 +110,6 @@ public abstract class AbstractSelectCBCommand<RESULT> extends AbstractBehaviorCo
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
-    public void setConditionBeanType(Class<? extends ConditionBean> conditionBeanType) {
-        _conditionBeanType = conditionBeanType;
-    }
-
     public void setConditionBean(ConditionBean conditionBean) {
         _conditionBean = conditionBean;
     }

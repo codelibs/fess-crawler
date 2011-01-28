@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 package org.seasar.robot.dbflute.cbean;
 
 /**
+ * The interface of union-query.
  * <pre>
  * cb.union(new UnionQuery&lt;FooCB&gt;() {
- *     public void query(MemberCB unionCB) {
- *         unionCB.query().setXxx_Yyy...
+ *     public void query(FooCB unionCB) {
+ *         unionCB.query().setFoo...
  *     }
  * }
  * </pre>
@@ -27,12 +28,12 @@ package org.seasar.robot.dbflute.cbean;
  * @param <UNION_CB> The type of condition-bean for union.
  */
 public interface UnionQuery<UNION_CB extends ConditionBean> {
-    
+
     /**
      * Set up your query condition for union. <br />
      * Don't call the method 'setupSelect_Xxx()' and 'addOrderBy_Xxx...()'
      * and they are ignored if you call.
      * @param unionCB The condition-bean for union. (NotNull)
      */
-    public void query(UNION_CB unionCB);
+    void query(UNION_CB unionCB);
 }

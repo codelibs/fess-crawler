@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 package org.seasar.robot.dbflute.cbean;
 
 /**
+ * The interface of sub-query.
  * <pre>
- * cb.query.existsBarList(new SubQuery&lt;FooCB&gt;() {
- *     public void query(FooCB subCB) {
- *         subCB.query().setXxx_Yyy...
+ * cb.query.existsBarList(new SubQuery&lt;BarCB&gt;() {
+ *     public void query(BarCB subCB) {
+ *         subCB.query().setBar...
  *     }
  * }
  * </pre>
@@ -27,12 +28,12 @@ package org.seasar.robot.dbflute.cbean;
  * @param <SUB_CB> The type of condition-bean for sub-query.
  */
 public interface SubQuery<SUB_CB extends ConditionBean> {
-    
+
     /**
      * Set up your query condition for sub-query. <br />
      * Don't call the method 'setupSelect_Xxx()' and 'addOrderBy_Xxx...()'
      * and they are ignored if you call.
      * @param subCB The condition-bean for sub-query. (NotNull)
      */
-    public void query(SUB_CB subCB);
+    void query(SUB_CB subCB);
 }

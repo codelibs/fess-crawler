@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.dbflute.twowaysql.node;
 
+import org.seasar.robot.dbflute.cbean.coption.LikeSearchOption;
+
 /**
  * @author jflute
  */
@@ -23,24 +25,75 @@ public class ValueAndType {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
+    protected Object _firstValue;
+    protected Class<?> _firstType;
     protected Object _targetValue;
     protected Class<?> _targetType;
-    protected String _rearOption;
+    protected LikeSearchOption _likeSearchOption;
 
     // ===================================================================================
     //                                                                         Rear Option
     //                                                                         ===========
-    public boolean isValidRearOption() {
-        return _targetValue != null && _rearOption != null && _rearOption.trim().length() > 0;
+    public void filterValueByOptionIfNeeds() {
+        if (_likeSearchOption == null) {
+            return;
+        }
+        if (_targetValue == null) {
+            return;
+        }
+        if (_targetValue instanceof String) {
+            _targetValue = _likeSearchOption.generateRealValue((String) _targetValue);
+        }
     }
 
     public String buildRearOptionOnSql() {
-        return " " + _rearOption.trim() + " ";
+        if (_likeSearchOption == null) {
+            return null;
+        }
+        if (_targetValue == null) {
+            return null;
+        }
+        if (_targetValue instanceof String) {
+            final String rearOption = _likeSearchOption.getRearOption();
+            return " " + rearOption.trim() + " ";
+        } else {
+            return null;
+        }
+    }
+
+    protected void inheritLikeSearchOptionIfNeeds(LoopInfo loopInfo) {
+        if (loopInfo == null) {
+            return;
+        }
+        final LikeSearchOption current = getLikeSearchOption();
+        if (current != null) {
+            return;
+        }
+        final LikeSearchOption parent = loopInfo.getLikeSearchOption();
+        if (parent != null) {
+            setLikeSearchOption(parent); // inherit
+        }
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
+    public Object getFirstValue() {
+        return _firstValue;
+    }
+
+    public void setFirstValue(Object firstValue) {
+        this._firstValue = firstValue;
+    }
+
+    public Class<?> getFirstType() {
+        return _firstType;
+    }
+
+    public void setFirstType(Class<?> firstType) {
+        this._firstType = firstType;
+    }
+
     public Object getTargetValue() {
         return _targetValue;
     }
@@ -57,11 +110,11 @@ public class ValueAndType {
         this._targetType = targetType;
     }
 
-    public String getRearOption() {
-        return _rearOption;
+    public LikeSearchOption getLikeSearchOption() {
+        return _likeSearchOption;
     }
 
-    public void setRearOption(String rearOption) {
-        this._rearOption = rearOption;
+    public void setLikeSearchOption(LikeSearchOption likeSearchOption) {
+        this._likeSearchOption = likeSearchOption;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  */
 package org.seasar.robot.dbflute.twowaysql.node;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.seasar.robot.dbflute.twowaysql.context.CommandContext;
+import org.seasar.robot.dbflute.util.DfCollectionUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
  * @author jflute
@@ -28,7 +29,7 @@ public abstract class AbstractNode implements Node {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    private List<Node> children = new ArrayList<Node>();
+    private List<Node> _children = DfCollectionUtil.newArrayList();
 
     // ===================================================================================
     //                                                                         Constructor
@@ -40,18 +41,18 @@ public abstract class AbstractNode implements Node {
     //                                                                      Child Handling
     //                                                                      ==============
     public int getChildSize() {
-        return children.size();
+        return _children.size();
     }
 
     public Node getChild(int index) {
-        return (Node) children.get(index);
+        return (Node) _children.get(index);
     }
 
     public void addChild(Node node) {
-        children.add(node);
+        _children.add(node);
     }
 
-    protected boolean isBeginChildContextAndValidCoondition(CommandContext ctx, String sql) {
-        return ctx.isBeginChildContext() && sql != null && sql.trim().length() > 0;
+    protected boolean isBeginChildAndValidSql(CommandContext ctx, String sql) {
+        return ctx.isBeginChild() && Srl.is_NotNull_and_NotTrimmedEmpty(sql);
     }
 }

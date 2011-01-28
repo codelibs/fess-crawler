@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.seasar.robot.dbflute.util.DfReflectionUtil;
 import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class DfPropertyDescImpl implements DfPropertyDesc {
@@ -57,7 +57,6 @@ public class DfPropertyDescImpl implements DfPropertyDesc {
     //                                                                         ===========
     public DfPropertyDescImpl(String propertyName, Class<?> propertyType, Method readMethod, Method writeMethod,
             DfBeanDesc beanDesc) {
-
         this(propertyName, propertyType, readMethod, writeMethod, null, beanDesc);
     }
 
@@ -174,6 +173,50 @@ public class DfPropertyDescImpl implements DfPropertyDesc {
     }
 
     // ===================================================================================
+    //                                                                               Value
+    //                                                                               =====
+    /**
+     * {@inheritDoc}
+     */
+    public final Object getValue(Object target) {
+        try {
+            if (!readable) {
+                final Class<?> beanClass = beanDesc.getBeanClass();
+                String msg = DfTypeUtil.toClassTitle(beanClass) + "." + propertyName;
+                msg = msg + " is not readable.";
+                throw new IllegalStateException(msg);
+            } else if (hasReadMethod()) {
+                return DfReflectionUtil.invoke(readMethod, target, EMPTY_ARGS);
+            } else {
+                return DfReflectionUtil.getValue(field, target);
+            }
+        } catch (Throwable t) {
+            throw new DfBeanIllegalPropertyException(beanDesc.getBeanClass(), propertyName, t);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void setValue(Object target, Object value) {
+        try {
+            value = convertIfNeed(value);
+            if (!writable) {
+                final Class<?> beanClass = beanDesc.getBeanClass();
+                String msg = DfTypeUtil.toClassTitle(beanClass) + "." + propertyName;
+                msg = msg + " is not writable.";
+                throw new IllegalStateException(msg);
+            } else if (hasWriteMethod()) {
+                DfReflectionUtil.invoke(writeMethod, target, new Object[] { value });
+            } else {
+                DfReflectionUtil.setValue(field, target, value);
+            }
+        } catch (Throwable t) {
+            throw new DfBeanIllegalPropertyException(beanDesc.getBeanClass(), propertyName, t);
+        }
+    }
+
+    // ===================================================================================
     //                                                                       Determination
     //                                                                       =============
     public boolean isReadable() {
@@ -185,50 +228,8 @@ public class DfPropertyDescImpl implements DfPropertyDesc {
     }
 
     // ===================================================================================
-    //                                                                               Value
-    //                                                                               =====
-    public final Object getValue(Object target) {
-        try {
-            if (!readable) {
-                throw new IllegalStateException(propertyName + " is not readable.");
-            } else if (hasReadMethod()) {
-                return DfReflectionUtil.invoke(readMethod, target, EMPTY_ARGS);
-            } else {
-                return DfReflectionUtil.getValue(field, target);
-            }
-        } catch (Throwable t) {
-            throw new DfBeanIllegalPropertyException(beanDesc.getBeanClass(), propertyName, t);
-        }
-    }
-
-    public final void setValue(Object target, Object value) {
-        try {
-            value = convertIfNeed(value);
-            if (!writable) {
-                throw new IllegalStateException(propertyName + " is not writable.");
-            } else if (hasWriteMethod()) {
-                DfReflectionUtil.invoke(writeMethod, target, new Object[] { value });
-            } else {
-                DfReflectionUtil.setValue(field, target, value);
-            }
-        } catch (Throwable t) {
-            throw new DfBeanIllegalPropertyException(beanDesc.getBeanClass(), propertyName, t);
-        }
-    }
-
-    public final String toString() {
-        StringBuffer buf = new StringBuffer();
-        buf.append("propertyName=");
-        buf.append(propertyName);
-        buf.append(",propertyType=");
-        buf.append(propertyType.getName());
-        buf.append(",readMethod=");
-        buf.append(readMethod != null ? readMethod.getName() : "null");
-        buf.append(",writeMethod=");
-        buf.append(writeMethod != null ? writeMethod.getName() : "null");
-        return buf.toString();
-    }
-
+    //                                                                             Convert
+    //                                                                             =======
     public Object convertIfNeed(Object arg) {
         if (propertyType.isPrimitive()) {
             return convertPrimitiveWrapper(arg);
@@ -249,11 +250,11 @@ public class DfPropertyDescImpl implements DfPropertyDesc {
     }
 
     private Object convertPrimitiveWrapper(Object arg) {
-        return DfTypeUtil.convertPrimitiveWrapper(propertyType, arg);
+        return DfTypeUtil.toWrapper(arg, propertyType);
     }
 
     private Object convertNumber(Object arg) {
-        return DfTypeUtil.toNumber(propertyType, arg);
+        return DfTypeUtil.toNumber(arg, propertyType);
     }
 
     private Object convertDate(Object arg) {
@@ -277,5 +278,22 @@ public class DfPropertyDescImpl implements DfPropertyDesc {
             return DfReflectionUtil.invoke(valueOfMethod, null, new Object[] { arg });
         }
         return arg;
+    }
+
+    // ===================================================================================
+    //                                                                      Basic Override
+    //                                                                      ==============
+    @Override
+    public final String toString() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("propertyName=");
+        buf.append(propertyName);
+        buf.append(",propertyType=");
+        buf.append(propertyType.getName());
+        buf.append(",readMethod=");
+        buf.append(readMethod != null ? readMethod.getName() : "null");
+        buf.append(",writeMethod=");
+        buf.append(writeMethod != null ? writeMethod.getName() : "null");
+        return buf.toString();
     }
 }

@@ -6,12 +6,19 @@ import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.dbflute.cbean.OrderByBean;
 import org.seasar.robot.dbflute.cbean.PagingBean;
+import org.seasar.robot.dbflute.cbean.PagingInvoker;
 import org.seasar.robot.dbflute.cbean.UnionQuery;
-import org.seasar.robot.dbflute.cbean.sqlclause.OrderByClause;
+import org.seasar.robot.dbflute.cbean.chelper.HpCBPurpose;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause;
+import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.jdbc.StatementConfig;
 
 public class MockConditionBean implements ConditionBean {
+
+    public DBMeta getDBMeta() {
+        return null;
+    }
 
     public void acceptPrimaryKeyMap(Map<String, ? extends Object> primaryKeyMap) {
     }
@@ -70,8 +77,15 @@ public class MockConditionBean implements ConditionBean {
         return null;
     }
 
-    public ConditionBean xsetupSelectCountIgnoreFetchScope() {
+    public ConditionBean xsetupSelectCountIgnoreFetchScope(boolean uniqueCount) {
         return null;
+    }
+
+    public boolean canPagingCountLater() {
+        return false;
+    }
+
+    public void enablePagingCountLater() {
     }
 
     public boolean canPagingReSelect() {
@@ -93,6 +107,10 @@ public class MockConditionBean implements ConditionBean {
         return null;
     }
 
+    public <ENTITY> PagingInvoker<ENTITY> createPagingInvoker(String tableDbName) {
+        return null;
+    }
+
     public int getFetchPageNumber() {
         return 0;
     }
@@ -111,10 +129,6 @@ public class MockConditionBean implements ConditionBean {
 
     public int getPageStartIndex() {
         return 0;
-    }
-
-    public boolean isCountLater() {
-        return false;
     }
 
     public boolean isFetchScopeEffective() {
@@ -169,7 +183,7 @@ public class MockConditionBean implements ConditionBean {
         return null;
     }
 
-    public OrderByClause getSqlComponentOfOrderByClause() {
+    public OrderByClause getOrderByComponent() {
         return null;
     }
 
@@ -192,9 +206,26 @@ public class MockConditionBean implements ConditionBean {
         return false;
     }
 
+    public void invokeSetupSelect(String foreignPropertyNamePath) {
+    }
+
+    public Map<String, Object> getFreeParameterMap() {
+        return null;
+    }
+
     public void xregisterFreeParameter(String key, Object value) {
     }
 
     public void xregisterUnionQuerySynchronizer(UnionQuery<ConditionBean> unionQuerySynchronizer) {
+    }
+
+    public void allowEmptyStringQuery() {
+    }
+
+    public void checkInvalidQuery() {
+    }
+
+    public HpCBPurpose getPurpose() {
+        return null;
     }
 }

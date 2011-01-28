@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ public class SQLFailureException extends RuntimeException {
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
-    protected SQLException sqlEx;
+    protected final SQLException _sqlEx;
 
     /**
      * Constructor.
@@ -35,10 +35,14 @@ public class SQLFailureException extends RuntimeException {
      */
     public SQLFailureException(String msg, SQLException cause) {
         super(msg, cause);
-        sqlEx = cause;
+        _sqlEx = cause;
     }
-	
+
+    /**
+     * Get the SQLException.
+     * @return The instance of SQLException. (NotNull)
+     */
     public SQLException getSQLException() {
-        return sqlEx;
+        return _sqlEx;
     }
 }

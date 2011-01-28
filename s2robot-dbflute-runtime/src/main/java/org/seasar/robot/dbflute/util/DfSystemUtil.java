@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,26 @@ public class DfSystemUtil {
     //                                                                      Line Separator
     //                                                                      ==============
     public static String getLineSeparator() {
+        return "\n";
         // /- - - - - - - - - - - - - - - - - - - - - -
         // Because 'CR + LF' caused many trouble!
-		// And Now 'LF' have little trouble. 
-		// 
+        // And now 'LF' have little trouble. 
+        // 
         // return System.getProperty("line.separator");
         // - - - - - - - - - -/
-		return "\n";
+    }
+
+    // ===================================================================================
+    //                                                                        Current Time
+    //                                                                        ============
+    public static long currentTimeMillis() {
+        return System.currentTimeMillis();
+    }
+
+    // ===================================================================================
+    //                                                                          Array Copy
+    //                                                                          ==========
+    public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
+        System.arraycopy(src, srcPos, dest, destPos, length);
     }
 }

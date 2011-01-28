@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package org.seasar.robot.dbflute.cbean.ckey;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
+import org.seasar.robot.dbflute.cbean.sqlclause.query.QueryClause;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnRealName;
 
 /**
  * The condition-key of lessThan.
@@ -28,9 +28,15 @@ import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
  */
 public class ConditionKeyLessThan extends ConditionKey {
 
-    /** Log-instance. */
-    private static final Log _log = LogFactory.getLog(ConditionKeyLessThan.class);
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor.
      */
@@ -39,19 +45,22 @@ public class ConditionKeyLessThan extends ConditionKey {
         _operand = "<";
     }
 
+    // ===================================================================================
+    //                                                                      Implementation
+    //                                                                      ==============
     /**
      * {@inheritDoc}
      */
-    public boolean isValidRegistration(ConditionValue conditionValue, Object value, String callerName) {
+    protected boolean doIsValidRegistration(ConditionValue cvalue, Object value, ColumnRealName callerName) {
         if (value == null) {
             return false;
         }
-        if (conditionValue.hasLessThan()) {
-            if (conditionValue.equalLessThan(value)) {
-                _log.debug("The value has already registered at " + callerName + ": value=" + value);
+        if (cvalue.isFixedQuery() && cvalue.hasLessThan()) {
+            if (cvalue.equalLessThan(value)) {
+                noticeRegistered(callerName, value);
                 return false;
             } else {
-                conditionValue.overrideLessThan(value);
+                cvalue.overrideLessThan(value);
                 return false;
             }
         }
@@ -61,23 +70,23 @@ public class ConditionKeyLessThan extends ConditionKey {
     /**
      * {@inheritDoc}
      */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value) {
-        conditionList.add(buildBindClause(columnName, value.getLessThanLocation()));
+    protected void doAddWhereClause(List<QueryClause> conditionList, ColumnRealName columnRealName, ConditionValue value) {
+        conditionList.add(buildBindClause(columnRealName, value.getLessThanLatestLocation()));
     }
 
     /**
      * {@inheritDoc}
      */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value,
-            ConditionOption option) {
-        throw new UnsupportedOperationException("doAddWhereClause that has ConditionOption is unsupported!!!");
+    protected void doAddWhereClause(List<QueryClause> conditionList, ColumnRealName columnRealName,
+            ConditionValue value, ConditionOption option) {
+        throw new UnsupportedOperationException();
     }
 
     /**
      * {@inheritDoc}
      */
     protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location) {
-        conditionValue.setLessThan(value).setLessThanLocation(location);
+        conditionValue.setupLessThan(value, location);
     }
 
     /**
@@ -85,6 +94,6 @@ public class ConditionKeyLessThan extends ConditionKey {
      */
     protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location,
             ConditionOption option) {
-        throw new UnsupportedOperationException("doSetupConditionValue with condition-option is unsupported!!!");
+        throw new UnsupportedOperationException();
     }
 }

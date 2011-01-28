@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,58 +22,54 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.seasar.robot.dbflute.cbean.FetchAssistContext;
-import org.seasar.robot.dbflute.cbean.FetchBean;
 import org.seasar.robot.dbflute.cbean.FetchNarrowingBean;
+import org.seasar.robot.dbflute.jdbc.FetchBean;
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlContext;
+import org.seasar.robot.dbflute.resource.ResourceContext;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnFetchAssistResultSet;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
-public class TnBasicSelectHandler extends TnBasicHandler {
+public class TnBasicSelectHandler extends TnBasicParameterHandler {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Log instance for internal debug. (XLog is used instead for execute-status log) */
+    private static final Log _log = LogFactory.getLog(TnBasicSelectHandler.class);
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    private TnResultSetHandler resultSetHandler;
+    protected final TnResultSetHandler _resultSetHandler;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
     public TnBasicSelectHandler(DataSource dataSource, String sql, TnResultSetHandler resultSetHandler,
             StatementFactory statementFactory) {
-        super(dataSource, statementFactory);
-        setSql(sql);
-        setResultSetHandler(resultSetHandler);
+        super(dataSource, statementFactory, sql);
+        _resultSetHandler = resultSetHandler;
     }
 
     // ===================================================================================
     //                                                                             Execute
     //                                                                             =======
-    public Object execute(Object[] args) {
-        return execute(args, getArgTypes(args));
-    }
-
-    public Object execute(Object[] args, Class<?>[] argTypes) {
-        Connection conn = getConnection();
-        try {
-            return execute(conn, args, argTypes);
-        } finally {
-            close(conn);
-        }
-    }
-
-    public Object execute(Connection conn, Object[] args, Class<?>[] argTypes) {
+    @Override
+    protected Object doExecute(Connection conn, Object[] args, Class<?>[] argTypes) {
         logSql(args, argTypes);
         PreparedStatement ps = null;
         try {
             ps = prepareStatement(conn);
-            bindArgs(ps, args, argTypes);
-            return execute(ps);
+            bindArgs(conn, ps, args, argTypes);
+            return queryResult(ps);
         } catch (SQLException e) {
             handleSQLException(e, ps);
             return null; // unreachable
@@ -82,26 +78,26 @@ public class TnBasicSelectHandler extends TnBasicHandler {
         }
     }
 
-    protected Object execute(PreparedStatement ps) throws SQLException {
-        if (resultSetHandler == null) {
-            throw new IllegalStateException("The resultSetHandler should not be null!");
-        }
-        ResultSet resultSet = null;
+    protected Object queryResult(PreparedStatement ps) throws SQLException {
+        ResultSet rs = null;
         try {
-            resultSet = createResultSet(ps);
-            return resultSetHandler.handle(resultSet);
+            rs = executeQuery(ps);
+            return _resultSetHandler.handle(rs);
         } finally {
-            close(resultSet);
+            close(rs);
         }
     }
 
-    protected ResultSet createResultSet(PreparedStatement ps) throws SQLException {
+    protected ResultSet executeQuery(PreparedStatement ps) throws SQLException {
         // /- - - - - - - - - - - - - - - - - - - - - - - - - - -
         // All select statements on DBFlute use this result set. 
         // - - - - - - - - - -/
-        final ResultSet resultSet = ps.executeQuery();
+        final ResultSet rs = ps.executeQuery();
         if (!isUseFunctionalResultSet()) {
-            return resultSet;
+            return rs;
+        }
+        if (isInternalDebugEnabled()) {
+            _log.debug("...Wrapping result set by functional one");
         }
         final FetchBean selbean = FetchAssistContext.getFetchBeanOnThread();
         final TnFetchAssistResultSet wrapper;
@@ -109,9 +105,9 @@ public class TnBasicSelectHandler extends TnBasicHandler {
             final OutsideSqlContext context = OutsideSqlContext.getOutsideSqlContextOnThread();
             final boolean offsetByCursorForcedly = context.isOffsetByCursorForcedly();
             final boolean limitByCursorForcedly = context.isLimitByCursorForcedly();
-            wrapper = createFunctionalResultSet(resultSet, selbean, offsetByCursorForcedly, limitByCursorForcedly);
+            wrapper = createFunctionalResultSet(rs, selbean, offsetByCursorForcedly, limitByCursorForcedly);
         } else {
-            wrapper = createFunctionalResultSet(resultSet, selbean, false, false);
+            wrapper = createFunctionalResultSet(rs, selbean, false, false);
         }
         return wrapper;
     }
@@ -142,19 +138,15 @@ public class TnBasicSelectHandler extends TnBasicHandler {
         return false;
     }
 
-    protected TnFetchAssistResultSet createFunctionalResultSet(ResultSet resultSet, FetchBean fcbean,
-            boolean offsetByCursorForcedly, boolean limitByCursorForcedly) {
-        return new TnFetchAssistResultSet(resultSet, fcbean, offsetByCursorForcedly, limitByCursorForcedly);
+    protected TnFetchAssistResultSet createFunctionalResultSet(ResultSet rs, FetchBean fcbean, boolean offset,
+            boolean limit) {
+        return new TnFetchAssistResultSet(rs, fcbean, offset, limit);
     }
 
     // ===================================================================================
-    //                                                                            Accessor
-    //                                                                            ========
-    public TnResultSetHandler getResultSetHandler() {
-        return resultSetHandler;
-    }
-
-    public void setResultSetHandler(TnResultSetHandler resultSetHandler) {
-        this.resultSetHandler = resultSetHandler;
+    //                                                                      Internal Debug
+    //                                                                      ==============
+    private boolean isInternalDebugEnabled() { // because log instance is private
+        return ResourceContext.isInternalDebug() && _log.isDebugEnabled();
     }
 }

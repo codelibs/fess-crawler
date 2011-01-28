@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,5 +28,5 @@ public interface GroupingRowEndDeterminer<ENTITY> {
      * @param nextEntity The entity of next element. (NotNull and the rowResource does not contain yet)
      * @return Whether the grouping row is end. (If the value is true, break grouping row and the nextEntity is registered to next row)
      */
-    public boolean determine(GroupingRowResource<ENTITY> rowResource, ENTITY nextEntity);
+    boolean determine(GroupingRowResource<ENTITY> rowResource, ENTITY nextEntity);
 }

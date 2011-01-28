@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,36 +25,72 @@ import java.util.Map;
 public class WayOfPostgreSQL implements DBWay {
 
     // ===================================================================================
+    //                                                                        Sequence Way
+    //                                                                        ============
+    public String buildSequenceNextValSql(String sequenceName) {
+        return "select nextval ('" + sequenceName + "')";
+    }
+
+    // ===================================================================================
     //                                                                       Identity Info
     //                                                                       =============
     public String getIdentitySelectSql() {
         return null;
     }
-    
+
+    // ===================================================================================
+    //                                                                         SQL Support
+    //                                                                         ===========
+    public boolean isBlockCommentSupported() {
+        return true;
+    }
+
+    public boolean isLineCommentSupported() {
+        return true;
+    }
+
+    // ===================================================================================
+    //                                                                        JDBC Support
+    //                                                                        ============
+    public boolean isScrollableCursorSupported() {
+        return true;
+    }
+
     // ===================================================================================
     //                                                                   SQLException Info
     //                                                                   =================
     public boolean isUniqueConstraintException(String sqlState, Integer errorCode) {
         return "23505".equals(sqlState);
     }
-    
+
     // ===================================================================================
     //                                                                Extension Definition
     //                                                                ====================
     public enum OperandOfLikeSearch implements ExtensionOperand {
-        BASIC("like")
-        , CASE_INSENSITIVE("ilike")
-        , FULL_TEXT_SEARCH("%%")
-        , OLD_FULL_TEXT_SEARCH("@@")
-        ;
+        BASIC("like"), CASE_INSENSITIVE("ilike"), FULL_TEXT_SEARCH("%%"), OLD_FULL_TEXT_SEARCH("@@");
         private static final Map<String, OperandOfLikeSearch> _codeValueMap = new HashMap<String, OperandOfLikeSearch>();
-        static { for (OperandOfLikeSearch value : values()) { _codeValueMap.put(value.code().toLowerCase(), value); } }
-        private String _code;
-        private OperandOfLikeSearch(String code) { _code = code; }
-        public String code() { return _code; }
-        public static OperandOfLikeSearch codeOf(Object code) {
-            if (code == null) { return null; } return _codeValueMap.get(code.toString().toLowerCase());
+        static {
+            for (OperandOfLikeSearch value : values()) {
+                _codeValueMap.put(value.code().toLowerCase(), value);
+            }
         }
+        private String _code;
+
+        private OperandOfLikeSearch(String code) {
+            _code = code;
+        }
+
+        public String code() {
+            return _code;
+        }
+
+        public static OperandOfLikeSearch codeOf(Object code) {
+            if (code == null) {
+                return null;
+            }
+            return _codeValueMap.get(code.toString().toLowerCase());
+        }
+
         public String operand() {
             return _code;
         }

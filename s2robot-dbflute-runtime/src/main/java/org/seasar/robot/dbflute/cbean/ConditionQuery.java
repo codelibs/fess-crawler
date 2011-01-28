@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package org.seasar.robot.dbflute.cbean;
 
+import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnRealName;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnSqlName;
+import org.seasar.robot.dbflute.exception.ConditionInvokingFailureException;
 
 /**
  * The condition-query as interface.
@@ -28,84 +32,83 @@ public interface ConditionQuery {
     //                                                                  Important Accessor
     //                                                                  ==================
     /**
-     * Get table DB-name.
-     * @return Table DB-name. (NotNull)
+     * Get table DB name.
+     * @return Table DB name. (NotNull)
      */
-    public String getTableDbName();
-	
-    /**
-     * Get table SQL-name.
-     * @return Table SQL-name. (NotNull)
-     */
-    public String getTableSqlName();
+    String getTableDbName();
+
+    // internal getter methods start with 'x'
+    // not to be same as column names 
 
     /**
-     * Get real alias name(that has nest level mark).
-     * @return Real alias name. (NotNull)
+     * Convert to the column real name. (with real alias name)
+     * @param columnDbName The DB name of column. (NotNull)
+     * @return the column real name. (NotNull)
      */
-    public String getRealAliasName();
+    ColumnRealName toColumnRealName(String columnDbName);
 
     /**
-     * Get real column name(with real alias name).
-     * @param columnName Column name without alias name. (NotNull)
-     * @return Real column name. (NotNull)
+     * Convert to the column SQL name.
+     * @param columnDbName The DB name of column. (NotNull)
+     * @return the column SQL name. (NotNull)
      */
-    public String getRealColumnName(String columnName);
+    ColumnSqlName toColumnSqlName(String columnDbName);
 
     /**
      * Get the referrer query.
-     * @return The referrer query. (Nullable: If null, this is base query)
+     * @return The condition-query of referrer table. (NullAllowed: If null, this is base query)
      */
-    public ConditionQuery getReferrerQuery();
+    ConditionQuery xgetReferrerQuery();
 
     /**
-     * Get sql clause.
-     * @return Sql clause. (NotNull)
+     * Get the SqlClause.
+     * @return The instance of SqlClause. (NotNull)
      */
-    public SqlClause getSqlClause();
+    SqlClause xgetSqlClause();
 
     /**
-     * Get alias name.
-     * @return Alias name. (NotNull)
+     * Get the alias name for this query.
+     * @return The alias name for this query. (NotNull)
      */
-    public String getAliasName();
+    String xgetAliasName();
+
+    // nest level is old style
+    // so basically unused now 
+    /**
+     * Get the nest level of relation.
+     * @return The nest level of relation.
+     */
+    int xgetNestLevel();
 
     /**
-     * Get nest level.
-     * @return Nest level.
+     * Get the nest level for next relation.
+     * @return The nest level for next relation.
      */
-    public int getNestLevel();
+    int xgetNextNestLevel();
 
     /**
-     * Get next nest level.
-     * @return Next nest level.
-     */
-    public int getNextNestLevel();
-
-    /**
-     * Is base query?
-     * @param query Condition query. (NotNull)
+     * Is this a base query?
      * @return Determination.
      */
-    public boolean isBaseQuery(ConditionQuery query);
+    boolean isBaseQuery();
 
-	/**
-	 * Get the level of subQuery.
-	 * @return The level of subQuery.
-	 */
-	public int getSubQueryLevel();
-	
     /**
      * Get the property name of foreign relation.
      * @return The property name of foreign relation. (NotNull)
      */
-    public String getForeignPropertyName();
+    String xgetForeignPropertyName();
 
     /**
-     * Get the path of foreign relation.
-     * @return The path of foreign relation. (NotNull)
+     * Get the path of foreign relation. ex) _0_1
+     * @return The path of foreign relation. (NullAllowed)
      */
-    public String getRelationPath();
+    String xgetRelationPath();
+
+    /**
+     * Get the base location of this condition-query.
+     * @return The base location of this condition-query. (NotNull)
+     */
+    String xgetLocationBase();
 
     // ===================================================================================
     //                                                                 Reflection Invoking
@@ -114,28 +117,60 @@ public interface ConditionQuery {
      * Invoke getting value.
      * @param columnFlexibleName The flexible name of the column. (NotNull and NotEmpty)
      * @return The conditionValue. (NotNull)
+     * @throws ConditionInvokingFailureException When the method to the column is not found and the method is failed.
      */
-    public ConditionValue invokeValue(String columnFlexibleName);
+    ConditionValue invokeValue(String columnFlexibleName);
 
     /**
      * Invoke setting query. {ResolveRelation}
      * @param columnFlexibleName The flexible name of the column allowed to contain relations. (NotNull and NotEmpty)
      * @param conditionKeyName The name of the conditionKey. (NotNull)
      * @param value The value of the condition. (NotNull)
+     * @throws ConditionInvokingFailureException When the method to the column is not found and the method is failed.
      */
-    public void invokeQuery(String columnFlexibleName, String conditionKeyName, Object value);
+    void invokeQuery(String columnFlexibleName, String conditionKeyName, Object value);
+
+    /**
+     * Invoke setting query with option. {ResolveRelation}
+     * @param columnFlexibleName The flexible name of the column allowed to contain relations. (NotNull and NotEmpty)
+     * @param conditionKeyName The name of the conditionKey. (NotNull)
+     * @param value The value of the condition. (NotNull)
+     * @param option The option of the condition. (NotNull)
+     * @throws ConditionInvokingFailureException When the method to the column is not found and the method is failed.
+     */
+    void invokeQuery(String columnFlexibleName, String conditionKeyName, Object value, ConditionOption option);
+
+    /**
+     * Invoke setting query of equal. {ResolveRelation}
+     * @param columnFlexibleName The flexible name of the column allowed to contain relations. (NotNull and NotEmpty)
+     * @param value The value of the condition. (NotNull)
+     * @throws ConditionInvokingFailureException When the method to the column is not found and the method is failed.
+     */
+    void invokeQueryEqual(String columnFlexibleName, Object value);
 
     /**
      * Invoke adding orderBy. {ResolveRelation}
      * @param columnFlexibleName The flexible name of the column allowed to contain relations. (NotNull and NotEmpty)
      * @param isAsc Is it ascend?
+     * @throws ConditionInvokingFailureException When the method to the column is not found and the method is failed.
      */
-    public void invokeOrderBy(String columnFlexibleName, boolean isAsc);
+    void invokeOrderBy(String columnFlexibleName, boolean isAsc);
 
     /**
-     * Invoke getting foreign conditionQuery.
-     * @param foreignPropertyName The property name of the foreign relation. (NotNull and NotEmpty)
+     * Invoke getting foreign condition-query. <br />
+     * A method with parameters (using fixed condition) is unsupported.
+     * @param foreignPropertyName The property name(s), can contain '.' , of the foreign relation. (NotNull and NotEmpty)
      * @return The conditionQuery of the foreign relation as interface. (NotNull)
+     * @throws ConditionInvokingFailureException When the method to the property is not found and the method is failed.
      */
-    public ConditionQuery invokeForeignCQ(String foreignPropertyName);
+    ConditionQuery invokeForeignCQ(String foreignPropertyName);
+
+    /**
+     * Invoke determining foreign condition-query existence?
+     * A method with parameters (using fixed condition) is unsupported.
+     * @param foreignPropertyName The property name(s), can contain '.' , of the foreign relation. (NotNull and NotEmpty)
+     * @return The conditionQuery of the foreign relation as interface. (NotNull)
+     * @throws ConditionInvokingFailureException When the method to the property is not found and the method is failed.
+     */
+    boolean invokeHasForeignCQ(String foreignPropertyName);
 }

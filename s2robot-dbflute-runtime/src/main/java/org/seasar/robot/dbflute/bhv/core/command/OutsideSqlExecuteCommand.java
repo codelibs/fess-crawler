@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.seasar.robot.dbflute.bhv.core.command;
 
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
 import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
+import org.seasar.robot.dbflute.bhv.core.execution.OutsideSqlExecuteExecution;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlContext;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
 
@@ -53,20 +54,7 @@ public class OutsideSqlExecuteCommand extends AbstractOutsideSqlCommand<Integer>
     //                                                                    ================
     public void beforeGettingSqlExecution() {
         assertStatus("beforeGettingSqlExecution");
-        final String path = _outsideSqlPath;
-        final Object pmb = _parameterBean;
-        final OutsideSqlOption option = _outsideSqlOption;
-        final OutsideSqlContext outsideSqlContext = createOutsideSqlContext();
-        outsideSqlContext.setDynamicBinding(option.isDynamicBinding());
-        outsideSqlContext.setOffsetByCursorForcedly(option.isAutoPaging());
-        outsideSqlContext.setLimitByCursorForcedly(option.isAutoPaging());
-        outsideSqlContext.setOutsideSqlPath(path);
-        outsideSqlContext.setParameterBean(pmb);
-        outsideSqlContext.setMethodName(getCommandName());
-        outsideSqlContext.setStatementConfig(option.getStatementConfig());
-        outsideSqlContext.setTableDbName(option.getTableDbName());
-		outsideSqlContext.setupBehaviorQueryPathIfNeeds();
-        OutsideSqlContext.setOutsideSqlContextOnThread(outsideSqlContext);
+        OutsideSqlContext.setOutsideSqlContextOnThread(createOutsideSqlContext());
     }
 
     public void afterExecuting() {
@@ -99,20 +87,16 @@ public class OutsideSqlExecuteCommand extends AbstractOutsideSqlCommand<Integer>
     }
 
     protected SqlExecution createOutsideSqlExecuteExecution(OutsideSqlContext outsideSqlContext) {
-        // - - - - - - - - - - - - - - - - - - - - - - -
-        // The attribute of Specified-OutsideSqlContext.
-        // - - - - - - - - - - - - - - - - - - - - - - -
+        final Object pmb = outsideSqlContext.getParameterBean();
         final String suffix = buildDbmsSuffix();
         final String sql = outsideSqlContext.readFilteredOutsideSql(_sqlFileEncoding, suffix);
-        final Object pmb = outsideSqlContext.getParameterBean();
 
-        // - - - - - - - - - - - - - - -
-        // The attribute of SqlCommand.
-        // - - - - - - - - - - - - - - -
-        final String[] argNames = (pmb != null ? new String[] {"pmb"} : new String[]{});
-        final Class<?>[] argTypes = (pmb != null ? new Class<?>[] {pmb.getClass()} : new Class<?>[]{});
-
-        return createUpdateDynamicCommand(argNames, argTypes, sql);
+        final OutsideSqlExecuteExecution execution = createOutsideSqlExecuteExecution(pmb, sql);
+        execution.setOutsideSqlFilter(_outsideSqlFilter);
+        execution.setRemoveBlockComment(isRemoveBlockComment(outsideSqlContext));
+        execution.setRemoveLineComment(isRemoveLineComment(outsideSqlContext));
+        execution.setFormatSql(outsideSqlContext.isFormatSql());
+        return execution;
     }
 
     public Object[] getSqlExecutionArgument() {

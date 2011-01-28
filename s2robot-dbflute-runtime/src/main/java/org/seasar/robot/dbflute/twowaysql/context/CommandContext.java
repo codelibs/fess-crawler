@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,9 @@ public interface CommandContext {
 
     void setEnabled(boolean enabled);
 
-    boolean isBeginChildContext();
+    boolean isBeginChild();
 
-    boolean isAlreadySkippedPrefix();
+    boolean isAlreadySkippedConnector();
 
-    void setAlreadySkippedPrefix(boolean alreadySkippedPrefix);
+    void setAlreadySkippedConnector(boolean alreadySkippedConnector);
 }

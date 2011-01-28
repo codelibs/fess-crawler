@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * @author jflute
@@ -42,7 +43,7 @@ public class SelectScalarCBCommand<RESULT> extends AbstractSelectCBCommand<RESUL
     //                                                                   =================
     public String getCommandName() {
         assertStatus("getCommandName");
-        final String resultTypeName = _resultType.getSimpleName();
+        final String resultTypeName = DfTypeUtil.toClassTitle(_resultType);
         final String scalarMethodName = _selectClauseType.toString().toLowerCase();
         return "scalarSelect(" + resultTypeName + ")." + scalarMethodName;
     }
@@ -82,8 +83,8 @@ public class SelectScalarCBCommand<RESULT> extends AbstractSelectCBCommand<RESUL
         assertStatus("createSqlExecutionCreator");
         return new SqlExecutionCreator() {
             public SqlExecution createSqlExecution() {
-                TnResultSetHandler handler = createObjectResultSetHandler(getCommandReturnType());
-                return createSelectCBExecution(_conditionBeanType, handler);
+                TnResultSetHandler handler = createScalarResultSetHandler(getCommandReturnType());
+                return createSelectCBExecution(_conditionBean.getClass(), handler);
             }
         };
     }

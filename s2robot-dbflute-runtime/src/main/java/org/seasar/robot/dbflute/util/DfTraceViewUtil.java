@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,23 @@ public class DfTraceViewUtil {
 
     /**
      * Convert to performance view.
-     * @param afterMinusBefore The value of after-minus-before millisecond.
-     * @return Performance view. (ex. 1m23s456ms) (NotNull)
+     * @param after_minus_before The difference between before time and after time.
+     * @return The view string to show performance. (ex. 1m23s456ms) (NotNull)
      */
-    public static String convertToPerformanceView(long afterMinusBefore) {
-        if (afterMinusBefore < 0) {
-            return String.valueOf(afterMinusBefore);
+    public static String convertToPerformanceView(long after_minus_before) {
+        if (after_minus_before < 0) {
+            // no exception because this method is basically for logging
+            return String.valueOf(after_minus_before);
         }
 
-        long sec = afterMinusBefore / 1000;
+        // this code was written when jflute was very young
+        // (it remains without refactoring)
+        long sec = after_minus_before / 1000;
         final long min = sec / 60;
         sec = sec % 60;
-        final long mil = afterMinusBefore % 1000;
+        final long mil = after_minus_before % 1000;
 
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         if (min >= 10) { // Minute
             sb.append(min).append("m");
         } else if (min < 10 && min >= 0) {
@@ -54,26 +57,6 @@ public class DfTraceViewUtil {
             sb.append("00").append(mil).append("ms");
         }
 
-        return sb.toString();
-    }
-
-    /**
-     * Convert object array to string view.
-     * @param objArray The array of object. (Nullable)
-     * @return The string divided with comma. (NotNull: If the argument is null, returns empty string.)
-     */
-    public static String convertObjectArrayToStringView(Object[] objArray) {
-        if (objArray == null) {
-            return "";
-        }
-        final StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < objArray.length; i++) {
-            if (i == 0) {
-                sb.append(objArray[i]);
-            } else {
-                sb.append(", ").append(objArray[i]);
-            }
-        }
         return sb.toString();
     }
 }

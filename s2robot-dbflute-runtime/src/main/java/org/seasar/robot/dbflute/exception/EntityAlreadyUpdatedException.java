@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,36 +23,37 @@ public class EntityAlreadyUpdatedException extends SQLFailureException {
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
-    
+
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    private Object bean;
+    // legacy of S2Dao
+    private Object _bean;
 
-    private int rows;
-    
+    private int _rows;
+
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
     /**
      * Constructor.
-     * @param bean Bean. (NotNull)
-     * @param rows Rows.
+     * @param bean The instance of entity. (NotNull)
+     * @param rows The row count returned by update process. (basically zero)
      */
     public EntityAlreadyUpdatedException(Object bean, int rows) {
         super("The entity already been updated: rows=" + rows + ", bean=" + bean, null);
-        this.bean = bean;
-        this.rows = rows;
+        this._bean = bean;
+        this._rows = rows;
     }
-    
+
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
     public Object getBean() {
-        return bean;
+        return _bean;
     }
 
     public int getRows() {
-        return rows;
+        return _rows;
     }
 }

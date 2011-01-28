@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,51 +28,54 @@ import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
 import org.seasar.robot.dbflute.twowaysql.context.CommandContext;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
-public class TnCommandContextHandler extends TnBasicHandler {
+public class TnCommandContextHandler extends TnAbstractBasicSqlHandler {
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected CommandContext commandContext;
-    protected List<TnPropertyType> propertyTypeList;
+    /** The context of command. (NotNull) */
+    protected final CommandContext _commandContext;
+
+    /** The list of bound property type in first scope. (NullAllowed) */
+    protected List<TnPropertyType> _firstBoundPropTypeList;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public TnCommandContextHandler(DataSource dataSource, StatementFactory statementFactory,
+    public TnCommandContextHandler(DataSource dataSource, StatementFactory statementFactory, String sql,
             CommandContext commandContext) {
-        super(dataSource, statementFactory);
-        this.commandContext = commandContext;
-        setSql(commandContext.getSql());
+        super(dataSource, statementFactory, sql);
+        assertObjectNotNull("commandContext", commandContext);
+        _commandContext = commandContext;
     }
 
     // ===================================================================================
     //                                                                             Execute
     //                                                                             =======
     public int execute(Object[] args) {
-        final Connection connection = getConnection();
+        final Connection conn = getConnection();
         try {
-            return execute(connection, commandContext);
+            return doExecute(conn, _commandContext);
         } finally {
-            close(connection);
+            close(conn);
         }
     }
 
-    protected int execute(Connection connection, CommandContext context) {
-        logSql(context.getBindVariables(), getArgTypes(context.getBindVariables()));
-        final PreparedStatement ps = prepareStatement(connection);
+    protected int doExecute(Connection conn, CommandContext ctx) {
+        logSql(ctx.getBindVariables(), getArgTypes(ctx.getBindVariables()));
+        final PreparedStatement ps = prepareStatement(conn);
         int ret = -1;
         try {
-            final Object[] bindVariables = context.getBindVariables();
-            final Class<?>[] bindVariableTypes = context.getBindVariableTypes();
-            if (hasPropertyTypeList()) {
-                final int index = bindFirstScope(ps, bindVariables, bindVariableTypes);
-                bindSecondScope(ps, bindVariables, bindVariableTypes, index);
+            final Object[] bindVariables = ctx.getBindVariables();
+            final Class<?>[] bindVariableTypes = ctx.getBindVariableTypes();
+            if (hasBoundPropertyTypeList()) { // basically for queryUpdate()
+                final int index = bindFirstScope(conn, ps, bindVariables, bindVariableTypes);
+                bindSecondScope(conn, ps, bindVariables, bindVariableTypes, index);
             } else {
-                bindArgs(ps, bindVariables, bindVariableTypes);
+                bindArgs(conn, ps, bindVariables, bindVariableTypes);
             }
             ret = executeUpdate(ps);
         } finally {
@@ -81,35 +84,41 @@ public class TnCommandContextHandler extends TnBasicHandler {
         return ret;
     }
 
-    protected boolean hasPropertyTypeList() {
-        return propertyTypeList != null && !propertyTypeList.isEmpty();
+    protected boolean hasBoundPropertyTypeList() {
+        return _firstBoundPropTypeList != null && !_firstBoundPropTypeList.isEmpty();
     }
 
-    protected int bindFirstScope(PreparedStatement ps, Object[] bindVariables, Class<?>[] bindVariableTypes) {
+    // ===================================================================================
+    //                                                                          Bind Scope
+    //                                                                          ==========
+    protected int bindFirstScope(Connection conn, PreparedStatement ps, Object[] bindVariables,
+            Class<?>[] bindVariableTypes) {
         final List<Object> firstVariableList = new ArrayList<Object>();
         final List<ValueType> firstValueTypeList = new ArrayList<ValueType>();
         int index = 0;
-        for (TnPropertyType propertyType : propertyTypeList) {
+        for (TnPropertyType propertyType : _firstBoundPropTypeList) {
             firstVariableList.add(bindVariables[index]);
             firstValueTypeList.add(propertyType.getValueType());
             ++index;
         }
-        bindArgs(ps, firstVariableList.toArray(), firstValueTypeList.toArray(new ValueType[0]));
+        bindArgs(conn, ps, firstVariableList.toArray(), firstValueTypeList.toArray(new ValueType[0]));
         return index;
     }
 
-    protected void bindSecondScope(PreparedStatement ps, Object[] bindVariables, Class<?>[] bindVariableTypes, int index) {
-        bindArgs(ps, bindVariables, bindVariableTypes, index);
+    protected void bindSecondScope(Connection conn, PreparedStatement ps, Object[] bindVariables,
+            Class<?>[] bindVariableTypes, int index) {
+        bindArgs(conn, ps, bindVariables, bindVariableTypes, index);
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
-    public List<TnPropertyType> getPropertyTypeList() {
-        return propertyTypeList;
-    }
-
-    public void setPropertyTypeList(List<TnPropertyType> propertyTypeList) {
-        this.propertyTypeList = propertyTypeList;
+    /**
+     * Set the list of bound property type in first scope. <br />
+     * You can specify original value types for properties in first scope.
+     * @param firstBoundPropTypeList The list of bound property type. (NullAllowed)
+     */
+    public void setFirstBoundPropTypeList(List<TnPropertyType> firstBoundPropTypeList) {
+        _firstBoundPropTypeList = firstBoundPropTypeList;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,37 +49,24 @@ public interface BehaviorReadable {
     //                                                                        New Instance
     //                                                                        ============
     /**
-     * New entity.
+     * New entity instance.
      * @return Entity. (NotNull)
      */
     Entity newEntity();
 
     /**
-     * New condition-bean.
+     * New condition-bean instance.
      * @return Condition-bean. (NotNull)
      */
     ConditionBean newConditionBean();
 
     // ===================================================================================
-    //                                                                       Basic Get All
-    //                                                                       =============
-    /**
-     * Get count all.
-     * @return Count all.
-     * @deprecated Sorry! Please use selectCount(emptyCB)
-     */
-    int getCountAll();
-
-    // ===================================================================================
     //                                                                    Basic Read Count
     //                                                                    ================
     /**
-     * Read count by condition-bean.
-     * <pre>
-     * If the argument 'condition-bean' is effective about fetch-scope,
-     * this method invoke select count ignoring the fetch-scope.
-     * </pre>
-     * @param cb Condition-bean. This condition-bean should not be set up about fetch-scope. (NotNull)
+     * Read count by condition-bean. <br />
+     * An interface dispatch for selectCount().
+     * @param cb The instance of corresponding condition-bean. (NotNull)
      * @return Read count. (NotNull)
      */
     int readCount(ConditionBean cb);
@@ -88,19 +75,18 @@ public interface BehaviorReadable {
     //                                                                   Basic Read Entity
     //                                                                   =================
     /**
-     * Read entity by condition-bean.
-     * @param cb Condition-bean. (NotNull)
+     * Read entity by condition-bean. <br />
+     * An interface dispatch for selectEntity().
+     * @param cb The instance of corresponding condition-bean. (NotNull)
      * @return Read entity. (Nullalble)
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     Entity readEntity(ConditionBean cb);
 
     /**
-     * Read simple entity by condition-bean with deleted check.
-     * @param cb Condition-bean. (NotNull)
+     * Read simple entity by condition-bean with deleted check. <br />
+     * An interface dispatch for selectEntityWithDeletedCheck().
+     * @param cb The instance of corresponding condition-bean. (NotNull)
      * @return Read entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException When the entity has been duplicated.
      */
     Entity readEntityWithDeletedCheck(ConditionBean cb);
 
@@ -108,15 +94,17 @@ public interface BehaviorReadable {
     //                                                                     Basic Read List
     //                                                                     ===============
     /**
-     * Read list as result-bean.
-     * @param cb Condition-bean. (NotNull)
+     * Read list as result-bean. <br />
+     * An interface dispatch for selectList().
+     * @param cb The instance of corresponding condition-bean. (NotNull)
      * @return The list of entity as result-bean. If the select result is zero, it returns empty list. (NotNull)
      */
     ListResultBean<? extends Entity> readList(ConditionBean cb);
 
     /**
-     * Read page as result-bean.
-     * @param cb Condition-bean. (NotNull)
+     * Read page as result-bean. <br />
+     * An interface dispatch for selectPage().
+     * @param cb The instance of corresponding condition-bean. (NotNull)
      * @return The page of entity as result-bean. (NotNull)
      */
     PagingResultBean<? extends Entity> readPage(final ConditionBean cb);
@@ -125,16 +113,17 @@ public interface BehaviorReadable {
     //                                                                            Sequence
     //                                                                            ========
     /**
-     * Read next value of sequence.
+     * Read next value of sequence. <br />
+     * An interface dispatch for selectNextVal().
      * @return The next value of sequence. (NotNull)
      */
-    java.math.BigDecimal readNextVal();
+    Number readNextVal();
 
     // ===================================================================================
     //                                                                             Warm Up
     //                                                                             =======
     /**
-     * Warm up the command of behavior.
+     * Warm up the command of behavior. {Internal}
      */
     void warmUpCommand();
 }

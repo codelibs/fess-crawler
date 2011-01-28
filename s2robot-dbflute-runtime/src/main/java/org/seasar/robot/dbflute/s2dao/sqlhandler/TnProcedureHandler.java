@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,95 +18,211 @@ package org.seasar.robot.dbflute.s2dao.sqlhandler;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.seasar.robot.dbflute.helper.StringKeyMap;
+import org.seasar.robot.dbflute.jdbc.FetchBean;
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 import org.seasar.robot.dbflute.jdbc.ValueType;
+import org.seasar.robot.dbflute.s2dao.jdbc.TnFetchAssistResultSet;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
-import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
-import org.seasar.robot.dbflute.s2dao.metadata.impl.TnPropertyTypeImpl;
-import org.seasar.robot.dbflute.s2dao.procedure.TnProcedureMetaData;
-import org.seasar.robot.dbflute.s2dao.procedure.TnProcedureParameterType;
-import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypes;
+import org.seasar.robot.dbflute.s2dao.metadata.TnProcedureMetaData;
+import org.seasar.robot.dbflute.s2dao.metadata.TnProcedureParameterType;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
-public class TnProcedureHandler extends TnBasicSelectHandler {
+public class TnProcedureHandler extends TnAbstractBasicSqlHandler {
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    private TnProcedureMetaData procedureMetaData;
-		
+    private TnProcedureMetaData _procedureMetaData;
+    private TnProcedureResultSetHandlerProvider _resultSetHandlerProvider;
+
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public TnProcedureHandler(final DataSource dataSource, final String sql,
-            final TnResultSetHandler resultSetHandler, final StatementFactory statementFactory,
-            final TnProcedureMetaData procedureMetaData) {
-        super(dataSource, sql, resultSetHandler, statementFactory);
-        this.procedureMetaData = procedureMetaData;
+    public TnProcedureHandler(DataSource dataSource, StatementFactory statementFactory, String sql,
+            TnProcedureMetaData procedureMetaData, TnProcedureResultSetHandlerProvider resultSetHandlerProvider) {
+        super(dataSource, statementFactory, sql);
+        assertObjectNotNull("procedureMetaData", procedureMetaData);
+        assertObjectNotNull("resultSetHandlerProvider", resultSetHandlerProvider);
+        _procedureMetaData = procedureMetaData;
+        _resultSetHandlerProvider = resultSetHandlerProvider;
     }
-	
+
+    public static interface TnProcedureResultSetHandlerProvider { // is needed to construct an instance
+        TnResultSetHandler provideResultSetHandler(TnProcedureParameterType ppt);
+    }
+
     // ===================================================================================
     //                                                                             Execute
     //                                                                             =======
-    @SuppressWarnings("unchecked")
-    public Object execute(final Connection connection, final Object[] args, final Class[] argTypes) {
-        final Object dto = getArgumentDto(args);
+    public Object execute(final Object[] args) {
+        final Class<?>[] argTypes = getArgTypes(args);
+        final Object pmb = getParameterBean(args);
         logSql(args, argTypes);
+        Connection conn = null;
         CallableStatement cs = null;
         try {
-            cs = prepareCallableStatement(connection);
-            bindArgs(cs, dto);
-            Object returnValue = null; 
-            if (cs.execute()) {
-                final ResultSet resultSet = cs.getResultSet();
-                if (resultSet != null) {
-                    final TnResultSetHandler handler = createReturnResultSetHandler(resultSet);
+            conn = getConnection();
+            cs = prepareCallableStatement(conn);
+            bindArgs(conn, cs, pmb);
+
+            // Execute the procedure!
+            // The return means whether the first result is a (not-parameter) result set.
+            final boolean executed = cs.execute();
+
+            handleNotParamResult(conn, cs, pmb, executed); // should be before out-parameter handling
+            handleOutParameter(conn, cs, pmb, executed);
+            return pmb;
+        } catch (SQLException e) {
+            handleSQLException(e, cs);
+            return null; // unreachable
+        } finally {
+            close(cs);
+            close(conn);
+        }
+    }
+
+    protected Object getParameterBean(Object[] args) {
+        if (args.length == 0) {
+            return null;
+        }
+        if (args.length == 1) {
+            if (args[0] == null) {
+                throw new IllegalStateException("args[0] should not be null!");
+            }
+            return args[0];
+        }
+        throw new IllegalStateException("The size of args should be 1: " + args.length);
+    }
+
+    protected CallableStatement prepareCallableStatement(final Connection connection) {
+        if (_sql == null) {
+            throw new IllegalStateException("The SQL should not be null!");
+        }
+        return _statementFactory.createCallableStatement(connection, _sql);
+    }
+
+    protected void bindArgs(Connection conn, CallableStatement cs, Object dto) throws SQLException {
+        if (dto == null) {
+            return;
+        }
+        int i = 0;
+        for (TnProcedureParameterType ppt : _procedureMetaData.getBindParameterTypeList()) {
+            final ValueType valueType = ppt.getValueType();
+            final int bindIndex = (i + 1);
+            // if INOUT parameter, both are true
+            if (ppt.isOutType()) {
+                valueType.registerOutParameter(conn, cs, bindIndex);
+            }
+            if (ppt.isInType()) {
+                // bind as PreparedStatement
+                // because CallableStatement's setter might be unsupported
+                // (for example, PostgreSQL JDBC Driver for JDBC 3.0)
+                final Object value = ppt.getValue(dto);
+                valueType.bindValue(conn, cs, bindIndex, value);
+            }
+            // either must be true
+            ++i;
+        }
+    }
+
+    /**
+     * Handle not-parameter result set, for example, MySQL, DB2 and (MS) SQLServer.
+     * @param conn The connection for the database. (NotNull)
+     * @param cs The statement of procedure. (NotNull)
+     * @param pmb The parameter bean from arguments. (NotNull)
+     * @param executed The return value of execute() that means whether the first result is a result set. 
+     * @throws SQLException
+     */
+    protected void handleNotParamResult(Connection conn, CallableStatement cs, Object pmb, boolean executed)
+            throws SQLException {
+        if (pmb == null) {
+            return;
+        }
+        if (!executed) {
+            if (!cs.getMoreResults()) { // just in case
+                return;
+            }
+        }
+        final List<TnProcedureParameterType> resultList = _procedureMetaData.getNotParamResultTypeList();
+        ResultSet rs = null;
+        for (TnProcedureParameterType ppt : resultList) {
+            try {
+                rs = cs.getResultSet();
+                if (rs == null) {
+                    break;
+                }
+                rs = wrapResultSetIfNeeds(pmb, rs);
+                final TnResultSetHandler handler = createResultSetHandler(pmb, ppt);
+                final Object beanList = handler.handle(rs);
+                ppt.setValue(pmb, beanList);
+                if (!cs.getMoreResults()) {
+                    break;
+                }
+            } finally {
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle result set for out-parameter.
+     * @param conn The connection for the database. (NotNull)
+     * @param cs The statement of procedure. (NotNull)
+     * @param pmb The parameter bean from arguments. (NotNull)
+     * @param executed The return value of execute() that means whether the first result is a result set.
+     * @throws SQLException
+     */
+    protected void handleOutParameter(Connection conn, CallableStatement cs, Object pmb, boolean executed)
+            throws SQLException {
+        if (pmb == null) {
+            return;
+        }
+        int index = 0;
+        for (TnProcedureParameterType ppt : _procedureMetaData.getBindParameterTypeList()) {
+            final ValueType valueType = ppt.getValueType();
+            if (ppt.isOutType()) {
+                Object value = valueType.getValue(cs, index + 1);
+                if (value instanceof ResultSet) {
+                    final ResultSet rs = wrapResultSetIfNeeds(pmb, (ResultSet) value);
+                    final TnResultSetHandler handler = createResultSetHandler(pmb, ppt);
                     try {
-                        returnValue = handler.handle(resultSet);
+                        value = handler.handle(rs);
                     } finally {
-                        if (resultSet != null) {
-                            resultSet.close();
+                        if (rs != null) {
+                            rs.close();
                         }
                     }
                 }
+                ppt.setValue(pmb, value);
             }
-            return handleOutParameters(cs, dto, returnValue);
-        } catch (SQLException e) {
-            handleSQLException(e, cs);
-            return null;// unreachable
-        } finally {
-            close(cs);
+            ++index;
         }
     }
 
-    protected TnResultSetHandler createReturnResultSetHandler(ResultSet resultSet) {
-        return new InternalMapListResultSetHandler();
-    }
-
+    // ===================================================================================
+    //                                                                          DisplaySql
+    //                                                                          ==========
     @Override
-    protected String getDisplaySql(final Object[] args) {// for Procedure Call
-        String sql = getSql();
-        Object dto = getArgumentDto(args);
+    protected String buildDisplaySql(final Object[] args) { // for procedure call
+        final String sql = _sql;
+        final Object dto = getParameterBean(args);
         if (args == null || dto == null) {
             return sql;
         }
-        StringBuilder sb = new StringBuilder(100);
+        final StringBuilder sb = new StringBuilder(100);
         int pos = 0;
         int pos2 = 0;
-        for (TnProcedureParameterType ppt : procedureMetaData.parameterTypes()) {
+        for (TnProcedureParameterType ppt : _procedureMetaData.getBindParameterTypeList()) {
             if ((pos2 = sql.indexOf('?', pos)) < 0) {
                 break;
             }
@@ -122,127 +238,21 @@ public class TnProcedureHandler extends TnBasicSelectHandler {
         return sb.toString();
     }
 
-    protected CallableStatement prepareCallableStatement(final Connection connection) {
-        if (getSql() == null) { throw new IllegalStateException("The SQL should not be null!"); }
-        return getStatementFactory().createCallableStatement(connection, getSql());
+    // ===================================================================================
+    //                                                                    ResultSetHandler
+    //                                                                    ================
+    protected TnResultSetHandler createResultSetHandler(Object pmb, TnProcedureParameterType ppt) {
+        return _resultSetHandlerProvider.provideResultSetHandler(ppt);
     }
 
-    protected void bindArgs(final CallableStatement cs, final Object dto) throws SQLException {
-        if (dto == null) { return; }
-        int i = 0;
-        for (TnProcedureParameterType ppt : procedureMetaData.parameterTypes()) {
-            final ValueType valueType = ppt.getValueType();
-            if (ppt.isOutType()) {
-                valueType.registerOutParameter(cs, i + 1);
+    protected ResultSet wrapResultSetIfNeeds(Object pmb, ResultSet rs) {
+        if (pmb instanceof FetchBean) {
+            final FetchBean fcbean = (FetchBean) pmb;
+            final int safetyMaxResultSize = fcbean.getSafetyMaxResultSize();
+            if (safetyMaxResultSize > 0) { // wrap for check safety
+                return new TnFetchAssistResultSet(rs, fcbean, false, false);
             }
-            if (ppt.isInType()) {
-                final Object value = ppt.getValue(dto);
-                valueType.bindValue(cs, i + 1, value);
-            }
-            ++i;
         }
-    }
-
-    protected Object handleResultSet(final CallableStatement cs) throws SQLException {
-        ResultSet rs = null;
-        try {
-            rs = getResultSet(cs);
-            return getResultSetHandler().handle(rs);
-        } finally {
-            close(rs);
-        }
-    }
-
-    protected ResultSet getResultSet(Statement statement)  {
-        try {
-            return statement.getResultSet();
-        } catch (SQLException e) {
-            handleSQLException(e, statement);
-            return null;// unreachable
-        }
-    }
-
-    protected Object handleOutParameters(final CallableStatement cs, final Object dto, Object returnValue) throws SQLException {
-        if (dto == null) {
-            return null;
-        }
-        int i = 0;
-        for (TnProcedureParameterType ppt : procedureMetaData.parameterTypes()) {
-            final ValueType valueType = ppt.getValueType();
-            if (ppt.isOutType()) {
-                Object value = valueType.getValue(cs, i + 1);
-                if (value instanceof ResultSet) {
-                    final ResultSet resultSet = (ResultSet) value;
-                    final TnResultSetHandler handler = createOutParameterResultSetHandler(ppt, resultSet);
-                    try {
-                        value = handler.handle(resultSet);
-                    } finally {
-                        if (resultSet != null) {
-                            resultSet.close();
-                        }
-                    }
-                }
-                ppt.setValue(dto, value);
-            } else if (ppt.isReturnType()) {
-                ppt.setValue(dto, returnValue);
-            }
-            ++i;
-        }
-        return dto;
-    }
-
-    protected Object getArgumentDto(Object[] args) {
-        if (args.length == 0) {
-            return null;
-        }
-        if (args.length == 1) {
-            if (args[0] == null) {
-                throw new IllegalArgumentException("args[0] should not be null!");
-            }
-            return args[0];
-        }
-        throw new IllegalArgumentException("args");
-    }
-
-    protected TnResultSetHandler createOutParameterResultSetHandler(TnProcedureParameterType ppt, ResultSet resultSet) {
-        return new InternalMapListResultSetHandler();
-    }
-
-	// ===================================================================================
-    //                                                              Map Result Set Handler
-    //                                                              ======================
-    protected static abstract class InternalAbstractMapResultSetHandler implements TnResultSetHandler {
-
-        protected Map<String, Object> createRow(ResultSet rs, TnPropertyType[] propertyTypes) throws SQLException {
-            Map<String, Object> row = StringKeyMap.createAsFlexible();
-            for (int i = 0; i < propertyTypes.length; ++i) {
-                Object value = propertyTypes[i].getValueType().getValue(rs, i + 1);
-                row.put(propertyTypes[i].getPropertyName(), value);
-            }
-            return row;
-        }
-
-        protected TnPropertyType[] createPropertyTypes(ResultSetMetaData rsmd) throws SQLException {
-            int count = rsmd.getColumnCount();
-            TnPropertyType[] propertyTypes = new TnPropertyType[count];
-            for (int i = 0; i < count; ++i) {
-                String propertyName = rsmd.getColumnLabel(i + 1);
-                ValueType valueType = TnValueTypes.getValueType(rsmd.getColumnType(i + 1));
-                propertyTypes[i] = new TnPropertyTypeImpl(propertyName, valueType);
-            }
-            return propertyTypes;
-        }
-    }
-
-    protected static class InternalMapListResultSetHandler extends InternalAbstractMapResultSetHandler {
-
-        public Object handle(ResultSet resultSet) throws SQLException {
-            TnPropertyType[] propertyTypes = createPropertyTypes(resultSet.getMetaData());
-            List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-            while (resultSet.next()) {
-                list.add(createRow(resultSet, propertyTypes));
-            }
-            return list;
-        }
+        return rs;
     }
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta.MapStringValueAnalyzer;
 import org.seasar.robot.dbflute.jdbc.Classification;
+import org.seasar.robot.dbflute.jdbc.ClassificationMeta;
 import org.seasar.robot.dbflute.unit.PlainTestCase;
 
 /**
@@ -56,7 +57,7 @@ public class AbstractDBMetaTest extends PlainTestCase {
             return obj instanceof String && obj.equals("bar") ? BAR : null;
         }
 
-        public DataType dataType() {
+        public ClassificationMeta meta() {
             return null;
         }
     }

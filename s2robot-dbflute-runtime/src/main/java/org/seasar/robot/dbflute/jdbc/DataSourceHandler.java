@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public interface DataSourceHandler {
 
     /**
      * Get the connection from the data source.
-     * @param dataSource The data source. (NotNull)
+     * @param dataSource The data source for a database connection. (NotNull)
      * @return The database connection. (NotNull)
      * @throws java.sql.SQLException
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,23 @@
  */
 package org.seasar.robot.dbflute.cbean.sqlclause;
 
+import org.seasar.robot.dbflute.cbean.sqlclause.query.QueryClauseArranger;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnRealName;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnSqlName;
 
 /**
  * SqlClause for Oracle.
  * @author jflute
  */
 public class SqlClauseOracle extends AbstractSqlClause {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                           Attribute
@@ -36,30 +45,34 @@ public class SqlClauseOracle extends AbstractSqlClause {
     /** String of lock as sql-suffix. */
     protected String _lockSqlSuffix = "";
 
+    /** The bind value for paging as 'from'. */
+    protected Integer _pagingBindFrom;
+
+    /** The bind value for paging as 'to'. */
+    protected Integer _pagingBindTo;
+
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
     /**
      * Constructor.
-     * @param tableName Table name. (NotNull)
+     * @param tableDbName The DB name of table. (NotNull)
      **/
-    public SqlClauseOracle(String tableName) {
-        super(tableName);
+    public SqlClauseOracle(String tableDbName) {
+        super(tableDbName);
     }
 
     // ===================================================================================
-    //                                                          Database Original Override
-    //                                                          ==========================
+    //                                                                Main Clause Override
+    //                                                                ====================
     @Override
-    protected String buildUnionClause(String selectClause) {
-
+    protected String prepareUnionClause(String selectClause) {
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // Remove select-hint comment from select clause of union
         // for fetch-scope with union().
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-        selectClause = replaceString(selectClause, SELECT_HINT, "");
-        return super.buildUnionClause(selectClause);
+        selectClause = replace(selectClause, SELECT_HINT, "");
+        return super.prepareUnionClause(selectClause);
     }
 
     // ===================================================================================
@@ -76,22 +89,28 @@ public class SqlClauseOracle extends AbstractSqlClause {
      * {@inheritDoc}
      */
     protected void doFetchPage() {
-        if (!isFetchStartIndexSupported() && !isFetchSizeSupported()) {
-            return;
+        final RownumPagingProcessor processor = createRownumPagingProcessor(getRownumExpression());
+        processor.processRowNumberPaging();
+        _fetchScopeSelectHint = processor.getSelectHint();
+        _fetchScopeSqlSuffix = processor.getSqlSuffix();
+        _pagingBindFrom = processor.getPagingBindFrom();
+        _pagingBindTo = processor.getPagingBindTo();
+    }
+
+    protected RownumPagingProcessor createRownumPagingProcessor(String expression) {
+        final RownumPagingProcessor processor = new RownumPagingProcessor(expression);
+        if (isBindPagingCondition()) {
+            processor.useBindVariable();
         }
-        String ln = ln();
-        _fetchScopeSelectHint = " * from (select base.*, rownum as rn from (" + ln + "select";
-        _fetchScopeSqlSuffix = "";
-        if (isFetchStartIndexSupported()) {
-            _fetchScopeSqlSuffix = ") base )" + ln + " where rn > " + getPageStartIndex();
-        }
-        if (isFetchSizeSupported()) {
-            if (isFetchStartIndexSupported()) {
-                _fetchScopeSqlSuffix = _fetchScopeSqlSuffix + " and rn <= " + getPageEndIndex();
-            } else {
-                _fetchScopeSqlSuffix = ") base )" + ln + " where rn <= " + getPageEndIndex();
-            }
-        }
+        return processor;
+    }
+
+    protected boolean isBindPagingCondition() {
+        return true; // as default
+    }
+
+    protected String getRownumExpression() {
+        return "rownum";
     }
 
     /**
@@ -107,16 +126,16 @@ public class SqlClauseOracle extends AbstractSqlClause {
     //                                                                       =============
     /**
      * {@inheritDoc}
-     * @return this. (NotNull)
      */
     public SqlClause lockForUpdate() {
-        final DBMeta dbmeta = findDBMeta(_tableName);
+        final DBMeta dbmeta = findDBMeta(_tableDbName);
+        final String basePointAliasName = getBasePointAliasName();
         if (dbmeta.hasPrimaryKey()) {
-            final String primaryKeyColumnName = dbmeta.getPrimaryUniqueInfo().getFirstColumn().getColumnDbName();
-            _lockSqlSuffix = " for update of " + getLocalTableAliasName() + "." + primaryKeyColumnName;
+            final ColumnSqlName primaryKeyName = dbmeta.getPrimaryUniqueInfo().getFirstColumn().getColumnSqlName();
+            _lockSqlSuffix = " for update of " + basePointAliasName + "." + primaryKeyName;
         } else {
-            final String randomColumnName = ((ColumnInfo) dbmeta.getColumnInfoList().get(0)).getColumnDbName();
-            _lockSqlSuffix = " for update of " + getLocalTableAliasName() + "." + randomColumnName;
+            final ColumnSqlName randomColumnName = ((ColumnInfo) dbmeta.getColumnInfoList().get(0)).getColumnSqlName();
+            _lockSqlSuffix = " for update of " + basePointAliasName + "." + randomColumnName;
         }
         return this;
     }
@@ -126,7 +145,6 @@ public class SqlClauseOracle extends AbstractSqlClause {
     //                                                                       =============
     /**
      * {@inheritDoc}
-     * @return Select-hint. (NotNull)
      */
     protected String createSelectHint() {
         return _fetchScopeSelectHint;
@@ -134,7 +152,6 @@ public class SqlClauseOracle extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return From-base-table-hint. {select * from table [from-base-table-hint] where ...} (NotNull)
      */
     protected String createFromBaseTableHint() {
         return "";
@@ -142,7 +159,6 @@ public class SqlClauseOracle extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return From-hint. (NotNull)
      */
     protected String createFromHint() {
         return "";
@@ -150,7 +166,6 @@ public class SqlClauseOracle extends AbstractSqlClause {
 
     /**
      * {@inheritDoc}
-     * @return Sql-suffix. (NotNull)
      */
     protected String createSqlSuffix() {
         return _fetchScopeSqlSuffix + _lockSqlSuffix;
@@ -184,21 +199,33 @@ public class SqlClauseOracle extends AbstractSqlClause {
     // ===================================================================================
     //                                                                    Full-Text Search
     //                                                                    ================
-    public WhereClauseArranger createFullTextSearchClauseArranger() {
+    public QueryClauseArranger createFullTextSearchClauseArranger() {
         return new FullTextSearchClauseArranger();
     }
 
-    protected static class FullTextSearchClauseArranger implements WhereClauseArranger {
-        public String arrange(String columnName, String operand, String bindExpression, String rearOption) {
-            return "contains(" + columnName + ", " + bindExpression + ") > 0";
+    protected static class FullTextSearchClauseArranger implements QueryClauseArranger {
+        public String arrange(ColumnRealName columnRealName, String operand, String bindExpression, String rearOption) {
+            return "contains(" + columnRealName + ", " + bindExpression + ") > 0";
         }
     }
 
     public String escapeFullTextSearchValue(String conditionValue) {
         if (conditionValue.contains("}")) {
-            conditionValue = replaceString(conditionValue, "}", "}}");
+            conditionValue = replace(conditionValue, "}", "}}");
         }
         conditionValue = "{" + conditionValue + "}";
         return conditionValue;
+    }
+
+    // [DBFlute-0.9.6.9]
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
+    public Integer getPagingBindFrom() { // for parameter comment
+        return _pagingBindFrom;
+    }
+
+    public Integer getPagingBindTo() { // for parameter comment
+        return _pagingBindTo;
     }
 }

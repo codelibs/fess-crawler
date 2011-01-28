@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,21 @@
  */
 package org.seasar.robot.dbflute.bhv.core.command;
 
+import org.seasar.robot.dbflute.bhv.DeleteOption;
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
-import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
-import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
-import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
-import org.seasar.robot.dbflute.s2dao.sqlcommand.TnDeleteQueryAutoDynamicCommand;
+import org.seasar.robot.dbflute.s2dao.sqlcommand.TnQueryDeleteDynamicCommand;
 
 /**
  * @author jflute
  */
-public class QueryDeleteCBCommand extends AbstractBehaviorCommand<Integer> {
+public class QueryDeleteCBCommand extends AbstractQueryEntityCBCommand {
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** The type of condition-bean. (Derived from conditionBean) */
-    protected Class<? extends ConditionBean> _conditionBeanType;
-
-    /** The instance of condition-bean. (Required) */
-    protected ConditionBean _conditionBean;
+    /** The option of delete. (NullAllowed) */
+    protected DeleteOption<? extends ConditionBean> _deleteOption;
 
     // ===================================================================================
     //                                                                   Basic Information
@@ -43,108 +38,32 @@ public class QueryDeleteCBCommand extends AbstractBehaviorCommand<Integer> {
         return "queryDelete";
     }
 
-    public Class<?> getCommandReturnType() {
-        return int.class;
-    }
-
-    // ===================================================================================
-    //                                                                  Detail Information
-    //                                                                  ==================
-    public boolean isConditionBean() {
-        return true;
-    }
-
-    public boolean isOutsideSql() {
-        return false;
-    }
-
-    public boolean isProcedure() {
-        return false;
-    }
-
-    public boolean isSelect() {
-        return false;
-    }
-
-    public boolean isSelectCount() {
-        return false;
-    }
-
-    // ===================================================================================
-    //                                                                    Process Callback
-    //                                                                    ================
-    public void beforeGettingSqlExecution() {
-        assertStatus("beforeGettingSqlExecution");
-        final ConditionBean cb = _conditionBean;
-        ConditionBeanContext.setConditionBeanOnThread(cb);
-    }
-
-    public void afterExecuting() {
-    }
-
     // ===================================================================================
     //                                                               SqlExecution Handling
     //                                                               =====================
-    public String buildSqlExecutionKey() {
-        assertStatus("buildSqlExecutionKey");
-        return _tableDbName + ":" + getCommandName() + "(" + _conditionBeanType.getSimpleName() + ")";
+
+    @Override
+    protected SqlExecution createQueryEntityCBExecution() {
+        return new TnQueryDeleteDynamicCommand(_dataSource, _statementFactory);
     }
 
-    public SqlExecutionCreator createSqlExecutionCreator() {
-        assertStatus("createSqlExecutionCreator");
-        return new SqlExecutionCreator() {
-            public SqlExecution createSqlExecution() {
-                return createQueryDeleteCBExecution(_conditionBeanType);
-            }
-        };
-    }
-
-    protected SqlExecution createQueryDeleteCBExecution(Class<? extends ConditionBean> cbType) {
-        return new TnDeleteQueryAutoDynamicCommand(_dataSource, _statementFactory);
-    }
-
-    public Object[] getSqlExecutionArgument() {
-        assertStatus("getSqlExecutionArgument");
-        return new Object[] { _conditionBean };
-    }
-
-    // ===================================================================================
-    //                                                                Argument Information
-    //                                                                ====================
-    public ConditionBean getConditionBean() {
-        return _conditionBean;
-    }
-
-    public String getOutsideSqlPath() {
-        return null;
-    }
-
-    public OutsideSqlOption getOutsideSqlOption() {
-        return null;
+    @Override
+    protected Object[] doGetSqlExecutionArgument() {
+        return new Object[] { _conditionBean, _deleteOption };
     }
 
     // ===================================================================================
     //                                                                       Assert Helper
     //                                                                       =============
-    protected void assertStatus(String methodName) {
-        assertBasicProperty(methodName);
-        assertComponentProperty(methodName);
-        if (_conditionBeanType == null) {
-            throw new IllegalStateException(buildAssertMessage("_conditionBeanType", methodName));
-        }
-        if (_conditionBean == null) {
-            throw new IllegalStateException(buildAssertMessage("_conditionBean", methodName));
-        }
+    @Override
+    protected void assertEntityProperty(String methodName) {
+        // entity is not used here
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
-    public void setConditionBeanType(Class<? extends ConditionBean> conditionBeanType) {
-        _conditionBeanType = conditionBeanType;
-    }
-
-    public void setConditionBean(ConditionBean conditionBean) {
-        _conditionBean = conditionBean;
+    public void setDeleteOption(DeleteOption<? extends ConditionBean> deleteOption) {
+        _deleteOption = deleteOption;
     }
 }

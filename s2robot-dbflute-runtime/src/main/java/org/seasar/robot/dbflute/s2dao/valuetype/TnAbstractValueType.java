@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,56 @@
 package org.seasar.robot.dbflute.s2dao.valuetype;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.seasar.robot.dbflute.jdbc.ValueType;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public abstract class TnAbstractValueType implements ValueType {
 
-    private int sqlType;
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
+    protected int _sqlType;
 
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
     public TnAbstractValueType(int sqlType) {
-        this.sqlType = sqlType;
+        this._sqlType = sqlType;
     }
 
+    // ===================================================================================
+    //                                                                        Null Setting
+    //                                                                        ============
     protected void setNull(PreparedStatement ps, int index) throws SQLException {
-        ps.setNull(index, sqlType);
+        ps.setNull(index, _sqlType);
     }
 
     protected void setNull(CallableStatement cs, String parameterName) throws SQLException {
-        cs.setNull(parameterName, sqlType);
+        cs.setNull(parameterName, _sqlType);
     }
 
-    public void registerOutParameter(CallableStatement cs, int index) throws SQLException {
-        cs.registerOutParameter(index, sqlType);
+    // ===================================================================================
+    //                                                                       Out Parameter
+    //                                                                       =============
+    public void registerOutParameter(Connection conn, CallableStatement cs, int index) throws SQLException {
+        cs.registerOutParameter(index, _sqlType);
     }
 
-    public void registerOutParameter(CallableStatement cs, String parameterName) throws SQLException {
-        cs.registerOutParameter(parameterName, sqlType);
+    public void registerOutParameter(Connection conn, CallableStatement cs, String parameterName) throws SQLException {
+        cs.registerOutParameter(parameterName, _sqlType);
     }
 
+    // ===================================================================================
+    //                                                                            SQL Type
+    //                                                                            ========
     public int getSqlType() {
-        return sqlType;
+        return _sqlType;
     }
 }

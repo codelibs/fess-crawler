@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@ package org.seasar.robot.dbflute.bhv.core.command;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
 
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
@@ -28,6 +25,7 @@ import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
 import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * @author jflute
@@ -37,10 +35,7 @@ public abstract class AbstractEntityCommand extends AbstractBehaviorCommand<Inte
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** The type of entity. (Required) */
-    protected Class<? extends Entity> _entityType;
-
-    /** The instance of condition-bean. (Required) */
+    /** The instance of condition-bean. (NotNull: but null allowed only when queryDelete() specially) */
     protected Entity _entity;
 
     // ===================================================================================
@@ -80,7 +75,7 @@ public abstract class AbstractEntityCommand extends AbstractBehaviorCommand<Inte
     //                                          BeanMetaData
     //                                          ------------
     protected TnBeanMetaData createBeanMetaData() {
-        return _beanMetaDataFactory.createBeanMetaData(_entityType);
+        return _beanMetaDataFactory.createBeanMetaData(_entity.getClass());
     }
 
     // ===================================================================================
@@ -97,13 +92,16 @@ public abstract class AbstractEntityCommand extends AbstractBehaviorCommand<Inte
     //                                                               =====================
     public String buildSqlExecutionKey() {
         assertStatus("buildSqlExecutionKey");
-        return _tableDbName + ":" + getCommandName() + "(" + _entityType.getSimpleName() + ")";
+        final String entityName = DfTypeUtil.toClassTitle(_entity);
+        return _tableDbName + ":" + getCommandName() + "(" + entityName + ")";
     }
 
     public Object[] getSqlExecutionArgument() {
         assertStatus("getSqlExecutionArgument");
-        return new Object[] { _entity };
+        return doGetSqlExecutionArgument();
     }
+
+    protected abstract Object[] doGetSqlExecutionArgument();
 
     // ===================================================================================
     //                                                                Argument Information
@@ -126,16 +124,14 @@ public abstract class AbstractEntityCommand extends AbstractBehaviorCommand<Inte
     /**
      * Find DB meta. <br />
      * Basically this method should be called when initializing only.
-     * @return DB meta. (Nullable: If the entity does not its DB meta)
+     * @return DB meta. (NullAllowed: If the entity does not its DB meta)
      */
     protected DBMeta findDBMeta() {
-        // /- - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        // Cannot use the handler of DBMeta instance
-        // because the customize-entity is contained to find here.
+        // /- - - - - - - - - - - - - - - - - - - - - - - - 
+        // get from the entity instance 
+        // because the customize-entity is contained here.
         // - - - - - - - - - -/
-        //DBMetaInstanceHandler.findDBMeta(_tableDbName);
-
-        final Class<?> beanType = _entityType;
+        final Class<?> beanType = _entity.getClass();
         if (beanType == null) {
             return null;
         }
@@ -176,10 +172,8 @@ public abstract class AbstractEntityCommand extends AbstractBehaviorCommand<Inte
 
     private String[] createNonOrderedPropertyNames(TnBeanMetaData bmd) {
         final List<String> propertyNameList = new ArrayList<String>();
-        final Map<String, TnPropertyType> propertyTypeMap = bmd.getPropertyTypeMap();
-        final Set<Entry<String, TnPropertyType>> entrySet = propertyTypeMap.entrySet();
-        for (Entry<String, TnPropertyType> entry : entrySet) {
-            final TnPropertyType pt = entry.getValue();
+        final List<TnPropertyType> ptList = bmd.getPropertyTypeList();
+        for (TnPropertyType pt : ptList) {
             if (pt.isPersistent()) {
                 propertyNameList.add(pt.getPropertyName());
             }
@@ -193,9 +187,10 @@ public abstract class AbstractEntityCommand extends AbstractBehaviorCommand<Inte
     protected void assertStatus(String methodName) {
         assertBasicProperty(methodName);
         assertComponentProperty(methodName);
-        if (_entityType == null) {
-            throw new IllegalStateException(buildAssertMessage("_entityType", methodName));
-        }
+        assertEntityProperty(methodName);
+    }
+
+    protected void assertEntityProperty(String methodName) {
         if (_entity == null) {
             throw new IllegalStateException(buildAssertMessage("_entity", methodName));
         }
@@ -204,10 +199,6 @@ public abstract class AbstractEntityCommand extends AbstractBehaviorCommand<Inte
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
-    public void setEntityType(Class<? extends Entity> entityType) {
-        _entityType = entityType;
-    }
-
     public void setEntity(Entity entity) {
         _entity = entity;
     }

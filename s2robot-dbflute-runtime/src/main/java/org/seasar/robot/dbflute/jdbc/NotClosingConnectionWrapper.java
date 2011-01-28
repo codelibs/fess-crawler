@@ -31,6 +31,13 @@ public class NotClosingConnectionWrapper implements Connection {
     }
 
     // ===================================================================================
+    //                                                                   Actual Connection
+    //                                                                   =================
+    public Connection getActualConnection() {
+        return _actualConnection;
+    }
+
+    // ===================================================================================
     //                                                                      Implementation
     //                                                                      ==============
     public void clearWarnings() throws SQLException {

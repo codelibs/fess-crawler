@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ package org.seasar.robot.dbflute.dbway;
  * @author jflute
  */
 public interface ExtensionOperand {
-    
+
     /**
      * Get the value of operand.
-     * @return The value of operand. (Nullable)
+     * @return The value of operand. (NullAllowed)
      */
     String operand();
 }

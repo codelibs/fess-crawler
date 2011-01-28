@@ -8,5 +8,11 @@ import org.seasar.robot.dbflute.cbean.SpecifyQuery;
  * @param <CB> The type of condition-bean.
  */
 public interface HpColQyHandler<CB extends ConditionBean> {
-    void handle(SpecifyQuery<CB> rightSp, String operand);
+
+    /**
+     * @param rightSp The specification for right column. (NotNull)
+     * @param operand The operand for column comparison. (NotNull)
+     * @return The calculator for right column. (NotNull)
+     */
+    HpCalculator handle(SpecifyQuery<CB> rightSp, String operand);
 }

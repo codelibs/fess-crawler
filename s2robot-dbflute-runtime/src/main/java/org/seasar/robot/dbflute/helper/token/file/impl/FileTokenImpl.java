@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.seasar.robot.dbflute.helper.token.line.LineMakingOption;
 import org.seasar.robot.dbflute.helper.token.line.LineToken;
 import org.seasar.robot.dbflute.helper.token.line.LineTokenizingOption;
 import org.seasar.robot.dbflute.helper.token.line.impl.LineTokenImpl;
-import org.seasar.robot.dbflute.util.DfStringUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
  * @author jflute
@@ -322,7 +322,7 @@ public class FileTokenImpl implements FileToken {
         if (value.endsWith("\"")) {
             value = value.substring(0, value.length() - 1);
         }
-        value = DfStringUtil.replace(value, "\"\"", "\"");
+        value = Srl.replace(value, "\"\"", "\"");
         return value;
     }
 

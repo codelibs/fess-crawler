@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.seasar.robot.dbflute.jdbc;
 
 /**
- * The definition of classification. <br />
+ * The basic interface of classification. <br />
  * It's an internal interface for DBFlute runtime.
  * @author jflute
  */
@@ -33,20 +33,12 @@ public interface Classification {
     String name();
 
     /**
-     * @return The code of the classification. (Nullable: when an alias is not specified in its setting)
+     * @return The code of the classification. (NullAllowed: when an alias is not specified in its setting)
      */
     String alias();
 
     /**
-     * @return The data type of the classification. (NotNull)
+     * @return The meta of the classification. (NotNull)
      */
-    DataType dataType();
-
-    /**
-     * The data type of a classification.
-     * @author jflute
-     */
-    public enum DataType {
-        String, Number;
-    }
+    ClassificationMeta meta();
 }

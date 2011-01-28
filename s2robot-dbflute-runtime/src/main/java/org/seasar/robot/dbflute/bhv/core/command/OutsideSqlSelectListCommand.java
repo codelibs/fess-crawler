@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,10 +62,10 @@ public class OutsideSqlSelectListCommand<ENTITY> extends AbstractOutsideSqlSelec
     //                                      ----------------
     protected TnResultSetHandler createOutsideSqlBeanListResultSetHandler(TnBeanMetaData bmd) {
         final ValueType valueType = TnValueTypes.getValueType(_entityType);
-        if (valueType == null || !valueType.equals(TnValueTypes.OBJECT)) {
-            return createObjectListResultSetHandler(valueType);
+        if (!valueType.equals(TnValueTypes.DEFAULT_OBJECT)) {
+            return createScalarListResultSetHandler(valueType);
         }
-        return createBeanListMetaDataResultSetHandler(bmd);
+        return createBeanListResultSetHandler(bmd);
     }
 
     // ===================================================================================

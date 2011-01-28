@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ public interface CommonColumnAutoSetupper {
      * Handle common columns of insert if it needs.
      * @param targetEntity Target entity that the type is entity interface. (NotNull)
      */
-    public void handleCommonColumnOfInsertIfNeeds(Entity targetEntity);
+    void handleCommonColumnOfInsertIfNeeds(Entity targetEntity);
 
     /**
      * Handle common columns of update if it needs.
      * @param targetEntity Target entity that the type is entity interface. (NotNull)
      */
-    public void handleCommonColumnOfUpdateIfNeeds(Entity targetEntity);
+    void handleCommonColumnOfUpdateIfNeeds(Entity targetEntity);
 }

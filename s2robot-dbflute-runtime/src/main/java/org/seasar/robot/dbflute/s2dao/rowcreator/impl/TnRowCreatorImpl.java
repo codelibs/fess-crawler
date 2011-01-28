@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,18 @@
 package org.seasar.robot.dbflute.s2dao.rowcreator.impl;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
 
+import org.seasar.robot.dbflute.helper.StringKeyMap;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
-import org.seasar.robot.dbflute.s2dao.metadata.TnDtoMetaData;
+import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyMapping;
 import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
 import org.seasar.robot.dbflute.s2dao.rowcreator.TnRowCreator;
 import org.seasar.robot.dbflute.util.DfReflectionUtil;
-import org.seasar.robot.dbflute.util.DfStringUtil;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public abstract class TnRowCreatorImpl implements TnRowCreator {
@@ -49,110 +46,48 @@ public abstract class TnRowCreatorImpl implements TnRowCreator {
     //                                                  Bean
     //                                                  ----
     /**
-     * @param columnNames The set of column name. (NotNull)
-     * @param beanMetaData Bean meta data. (NotNull)
-     * @return The map of property cache. Map{String(columnName), PropertyType} (NotNull)
-     * @throws SQLException
+     * {@inheritDoc}
      */
-    public Map<String, TnPropertyType> createPropertyCache(Set<String> columnNames, TnBeanMetaData beanMetaData)
-            throws SQLException {
-        // - - - - - - - 
-        // Entry Point!
-        // - - - - - - -
-        final Map<String, TnPropertyType> proprertyCache = newPropertyCache();
-        setupPropertyCache(proprertyCache, columnNames, beanMetaData);
-        return proprertyCache;
-    }
-
-    protected void setupPropertyCache(Map<String, TnPropertyType> proprertyCache, Set<String> columnNames,
+    public Map<String, TnPropertyMapping> createPropertyCache(Map<String, String> selectColumnMap,
             TnBeanMetaData beanMetaData) throws SQLException {
-        final Map<String, TnPropertyType> propertyTypeMap = beanMetaData.getPropertyTypeMap();
-        final Set<Entry<String, TnPropertyType>> entrySet = propertyTypeMap.entrySet();
-        for (Entry<String, TnPropertyType> entry : entrySet) {
-            final TnPropertyType pt = entry.getValue();
-            if (!isTargetProperty(pt)) {
-                continue;
-            }
-            setupPropertyCacheElement(proprertyCache, columnNames, pt);
-        }
-    }
-
-    protected void setupPropertyCacheElement(Map<String, TnPropertyType> proprertyCache, Set<String> columnNames,
-            TnPropertyType pt) throws SQLException {
-        if (columnNames.contains(pt.getColumnName())) {
-            proprertyCache.put(pt.getColumnName(), pt);
-        } else if (columnNames.contains(pt.getPropertyName())) {
-            proprertyCache.put(pt.getPropertyName(), pt);
-        } else if (!pt.isPersistent()) {
-            setupPropertyCacheNotPersistentElement(proprertyCache, columnNames, pt);
-        }
-    }
-
-    protected void setupPropertyCacheNotPersistentElement(Map<String, TnPropertyType> proprertyCache,
-            Set<String> columnNames, TnPropertyType pt) throws SQLException {
-        for (Iterator<String> iter = columnNames.iterator(); iter.hasNext();) {
-            String columnName = (String) iter.next();
-            String columnName2 = DfStringUtil.replace(columnName, "_", "");
-            if (columnName2.equalsIgnoreCase(pt.getColumnName())) {
-                proprertyCache.put(columnName, pt);
-                break;
-            }
-        }
-    }
-
-    // -----------------------------------------------------
-    //                                                   Dto
-    //                                                   ---
-    /**
-     * @param columnNames The set of column name. (NotNull)
-     * @param dtoMetaData DTO meta data. (NotNull)
-     * @return The map of property cache. Map{String(columnName), PropertyType} (NotNull)
-     * @throws SQLException
-     */
-    public Map<String, TnPropertyType> createPropertyCache(Set<String> columnNames, TnDtoMetaData dtoMetaData)
-            throws SQLException {
         // - - - - - - - 
         // Entry Point!
         // - - - - - - -
-        final Map<String, TnPropertyType> proprertyCache = newPropertyCache();
-        setupPropertyCache(proprertyCache, columnNames, dtoMetaData);
+        final Map<String, TnPropertyMapping> proprertyCache = newPropertyCache();
+        setupPropertyCache(proprertyCache, selectColumnMap, beanMetaData);
         return proprertyCache;
     }
 
-    protected void setupPropertyCache(Map<String, TnPropertyType> proprertyCache, Set<String> columnNames,
-            TnDtoMetaData dtoMetaData) throws SQLException {
-        final Map<String, TnPropertyType> propertyTypeMap = dtoMetaData.getPropertyTypeMap();
-        final Set<Entry<String, TnPropertyType>> entrySet = propertyTypeMap.entrySet();
-        for (Entry<String, TnPropertyType> entry : entrySet) {
-            final TnPropertyType pt = entry.getValue();
-            if (!isTargetProperty(pt)) {
-                continue;
+    protected void setupPropertyCache(Map<String, TnPropertyMapping> proprertyCache,
+            Map<String, String> selectColumnMap, TnBeanMetaData beanMetaData) throws SQLException {
+        final List<TnPropertyType> ptList = beanMetaData.getPropertyTypeList();
+        for (TnPropertyType pt : ptList) { // already been filtered as data properties only
+            setupPropertyCacheElement(proprertyCache, selectColumnMap, pt);
+        }
+    }
+
+    protected void setupPropertyCacheElement(Map<String, TnPropertyMapping> proprertyCache,
+            Map<String, String> selectColumnMap, TnPropertyType pt) throws SQLException {
+        final String columnDbName = pt.getColumnDbName();
+        if (pt.isPersistent()) {
+            if (selectColumnMap.containsKey(columnDbName)) { // basically true if persistent
+                // the column DB name is same as selected name
+                proprertyCache.put(columnDbName, pt);
             }
-            if (columnNames.contains(pt.getColumnName())) {
-                proprertyCache.put(pt.getColumnName(), pt);
-            } else if (columnNames.contains(pt.getPropertyName())) {
-                proprertyCache.put(pt.getPropertyName(), pt);
-            } else {
-                final String possibleName = DfStringUtil.decamelizePropertyName(pt.getPropertyName());
-                if (columnNames.contains(possibleName)) {
-                    proprertyCache.put(possibleName, pt);
-                }
+        } else {
+            if (selectColumnMap.containsKey(columnDbName)) {
+                // for example, the column DB name is property name when derived-referrer
+                // so you should switch the name to selected name
+                proprertyCache.put(selectColumnMap.get(columnDbName), pt);
             }
         }
+        // only a column that is not persistent and non-selected property
     }
 
     // -----------------------------------------------------
     //                                                Common
     //                                                ------
-    protected Map<String, TnPropertyType> newPropertyCache() {
-        return new HashMap<String, TnPropertyType>();
-    }
-
-    // ===================================================================================
-    //                                                                     Extension Point
-    //                                                                     ===============
-    protected boolean isTargetProperty(TnPropertyType pt) throws SQLException {
-        // If the property is not writable, the property is out of target!
-        return pt.getPropertyDesc().isWritable();
+    protected Map<String, TnPropertyMapping> newPropertyCache() {
+        return StringKeyMap.createAsCaseInsensitive();
     }
 }

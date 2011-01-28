@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class GeneralCharacterImpl implements GeneralCharacter {
             if (currentChar >= 0xff01 && currentChar <= 0xff5e) {
                 sb.append(toSingleByteCharacter(currentChar));
 
-            // It needs to  append more mark...
+                // It needs to  append more mark...
             } else if (currentChar == '\u2019' || currentChar == '\u2018' || currentChar == '\u2032') {
                 sb.append('\'');
             } else if (currentChar == '\u201d' || currentChar == '\u201c' || currentChar == '\u2033') {

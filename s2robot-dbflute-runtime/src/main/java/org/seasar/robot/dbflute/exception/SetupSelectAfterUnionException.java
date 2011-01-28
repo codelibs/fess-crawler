@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.seasar.robot.dbflute.exception;
 
 /**
- * The exception of when the method of set-up-select is invoked after invoking the method of union.
+ * The exception of when the method of set-up-select is called after union.
  * @author jflute
  */
 public class SetupSelectAfterUnionException extends RuntimeException {

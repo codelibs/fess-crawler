@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ public class BatchEntityAlreadyUpdatedException extends EntityAlreadyUpdatedExce
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
-    
+
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
@@ -34,8 +34,8 @@ public class BatchEntityAlreadyUpdatedException extends EntityAlreadyUpdatedExce
     //                                                                         ===========
     /**
      * Constructor.
-     * @param bean Bean. (NotNull)
-     * @param rows Rows(Update count per One entity).
+     * @param bean The instance of entity. (NotNull)
+     * @param rows The row count returned by update process. (basically zero)
      * @param batchUpdateCount Batch update count(Total).
      */
     public BatchEntityAlreadyUpdatedException(Object bean, int rows, Integer batchUpdateCount) {

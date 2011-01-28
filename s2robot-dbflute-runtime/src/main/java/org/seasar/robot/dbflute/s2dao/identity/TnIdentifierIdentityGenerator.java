@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.seasar.robot.dbflute.resource.ResourceContext;
 import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnIdentifierIdentityGenerator extends TnIdentifierAbstractGenerator {
@@ -37,12 +37,12 @@ public class TnIdentifierIdentityGenerator extends TnIdentifierAbstractGenerator
     //                                                                      Implementation
     //                                                                      ==============
     public void setIdentifier(Object bean, DataSource ds) {
-        String identitySelectSql = ResourceContext.currentDBDef().dbway().getIdentitySelectSql();
+        final String identitySelectSql = ResourceContext.currentDBDef().dbway().getIdentitySelectSql();
         if (identitySelectSql == null) {
             String msg = "Identity is unsupported at the DB: " + ResourceContext.currentDBDef();
             throw new IllegalStateException(msg);
         }
-        Object value = executeSql(ds, identitySelectSql, null);
+        final Object value = executeSql(ds, identitySelectSql, null);
         reflectIdentifier(bean, value);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,49 @@ package org.seasar.robot.dbflute.dbway;
 public class WayOfSQLServer implements DBWay {
 
     // ===================================================================================
+    //                                                                        Sequence Way
+    //                                                                        ============
+    public String buildSequenceNextValSql(String sequenceName) {
+        return null;
+    }
+
+    // ===================================================================================
     //                                                                       Identity Info
     //                                                                       =============
     public String getIdentitySelectSql() {
         return "select @@identity";
     }
-    
+
+    public String buildIdentityDisableSql(String tableSqlName) {
+        return buildIdentityOnOffSql(tableSqlName, true);
+    }
+
+    public String buildIdentityEnableSql(String tableSqlName) {
+        return buildIdentityOnOffSql(tableSqlName, false);
+    }
+
+    protected String buildIdentityOnOffSql(String tableSqlName, boolean insertOn) {
+        return "set identity_insert " + tableSqlName + " " + (insertOn ? "on" : "off");
+    }
+
+    // ===================================================================================
+    //                                                                         SQL Support
+    //                                                                         ===========
+    public boolean isBlockCommentSupported() {
+        return true;
+    }
+
+    public boolean isLineCommentSupported() {
+        return true;
+    }
+
+    // ===================================================================================
+    //                                                                        JDBC Support
+    //                                                                        ============
+    public boolean isScrollableCursorSupported() {
+        return true;
+    }
+
     // ===================================================================================
     //                                                                   SQLException Info
     //                                                                   =================

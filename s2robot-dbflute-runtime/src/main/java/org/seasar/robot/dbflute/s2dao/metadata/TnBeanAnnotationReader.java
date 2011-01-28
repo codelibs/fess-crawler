@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.seasar.robot.dbflute.s2dao.metadata;
 import org.seasar.robot.dbflute.helper.beans.DfPropertyDesc;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public interface TnBeanAnnotationReader {
@@ -39,5 +39,10 @@ public interface TnBeanAnnotationReader {
 
     String getRelationKey(DfPropertyDesc pd);
 
+    /**
+     * Get the name of plug-in value type.
+     * @param pd The description of property. (NotNull)
+     * @return The name of plug-in value type. (NullAllowed)
+     */
     String getValueType(DfPropertyDesc pd);
 }

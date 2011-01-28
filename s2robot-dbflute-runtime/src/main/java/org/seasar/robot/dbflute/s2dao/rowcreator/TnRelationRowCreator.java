@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@ package org.seasar.robot.dbflute.s2dao.rowcreator;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.Set;
 
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
-import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
+import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyMapping;
 import org.seasar.robot.dbflute.s2dao.metadata.TnRelationPropertyType;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public interface TnRelationRowCreator {
@@ -33,23 +32,22 @@ public interface TnRelationRowCreator {
     /**
      * @param rs Result set. (NotNull)
      * @param rpt The type of relation property. (NotNull)
-     * @param columnNames The set of column name. (NotNull)
-     * @param relKeyValues The map of relation key values. (Nullable)
-     * @param relationPropertyCache The map of relation property cache. Map{String(relationNoSuffix), Map{String(columnName), PropertyType}} (NotNull)
-     * @return Created relation row. (Nullable)
+     * @param selectColumnMap The name map of select column. map:{flexibleName = columnDbName} (NotNull)
+     * @param relKeyValues The map of relation key values. The key is relation column name. (NullAllowed)
+     * @param relationPropertyCache The map of relation property cache. map:{relationNoSuffix = map:{columnName = PropertyMapping}} (NotNull)
+     * @return Created relation row. (NullAllowed)
      * @throws SQLException
      */
-    Object createRelationRow(ResultSet rs, TnRelationPropertyType rpt, Set<String> columnNames,
-            Map<String, Object> relKeyValues, Map<String, Map<String, TnPropertyType>> relationPropertyCache)
+    Object createRelationRow(ResultSet rs, TnRelationPropertyType rpt, Map<String, String> selectColumnMap,
+            Map<String, Object> relKeyValues, Map<String, Map<String, TnPropertyMapping>> relationPropertyCache)
             throws SQLException;
 
     /**
-     * @param columnNames The set of column name. (NotNull)
+     * @param selectColumnMap The name map of select column. map:{flexibleName = columnDbName} (NotNull)
      * @param bmd Bean meta data of base object. (NotNull)
-     * @return The map of relation property cache. Map{String(relationNoSuffix), Map{String(columnName), PropertyType}} (NotNull)
+     * @return The map of relation property cache. map:{relationNoSuffix = map:{columnName = PropertyMapping}} (NotNull)
      * @throws SQLException
      */
-    Map<String, Map<String, TnPropertyType>> createPropertyCache(Set<String> columnNames, TnBeanMetaData bmd)
-            throws SQLException;
-
+    Map<String, Map<String, TnPropertyMapping>> createPropertyCache(Map<String, String> selectColumnMap,
+            TnBeanMetaData bmd) throws SQLException;
 }

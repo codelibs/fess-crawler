@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.helper.beans.DfPropertyDesc;
+import org.seasar.robot.dbflute.resource.ResourceContext;
 import org.seasar.robot.dbflute.s2dao.identity.TnIdentifierGenerator;
 import org.seasar.robot.dbflute.s2dao.identity.TnIdentifierGeneratorFactory;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
 import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
 import org.seasar.robot.dbflute.s2dao.metadata.impl.TnBeanMetaDataFactoryImpl;
 import org.seasar.robot.dbflute.s2dao.metadata.impl.TnBeanMetaDataImpl;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * The extension of the factory of bean meta data.
  * @author jflute
  */
 public class TnBeanMetaDataFactoryExtension extends TnBeanMetaDataFactoryImpl {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Log instance for internal debug. (XLog should be used instead for execute-status log) */
+    private static final Log _log = LogFactory.getLog(TnBeanMetaDataFactoryExtension.class);
 
     // ===================================================================================
     //                                                                           Attribute
@@ -102,23 +112,29 @@ public class TnBeanMetaDataFactoryExtension extends TnBeanMetaDataFactoryImpl {
     //                                                               BeanMetaData Creation
     //                                                               =====================
     @Override
-    protected TnBeanMetaDataImpl createBeanMetaDataImpl() {
+    protected TnBeanMetaDataImpl createBeanMetaDataImpl(Class<?> beanClass) {
         // /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
         // for ConditionBean and insert() and update() and delete() and so on...
         // = = = = = = = = = =/
-        return new TnBeanMetaDataImpl() {
+        return new TnBeanMetaDataImpl(beanClass) {
+            /** The internal list of identifier generator. Elements of this list should be added when initializing. */
             protected final List<TnIdentifierGenerator> _internalIdentifierGeneratorList = new ArrayList<TnIdentifierGenerator>();
+
+            /** The internal map of identifier generator by property name. */
             protected final Map<String, TnIdentifierGenerator> _internalIdentifierGeneratorsByPropertyName = newConcurrentHashMap();
 
             // /= = = = = = =
             // for cache
             // = = = = =/
             @Override
-            public void initialize() { // for Cache
+            public void initialize() { // non thread safe so this is called immediately after creation 
                 final Class<?> myBeanClass = getBeanClass();
                 if (isDBFluteEntity(myBeanClass)) {
                     final TnBeanMetaData cachedMeta = getMetaFromCache(myBeanClass);
                     if (cachedMeta == null) {
+                        if (isInternalDebugEnabled()) {
+                            _log.debug("...Caching the bean: " + DfTypeUtil.toClassTitle(myBeanClass));
+                        }
                         _metaMap.put(myBeanClass, this);
                     }
                 }
@@ -129,12 +145,12 @@ public class TnBeanMetaDataFactoryExtension extends TnBeanMetaDataFactoryImpl {
             // for insert()
             // = = = = =/
             // The attributes 'identifierGenerators' and 'identifierGeneratorsByPropertyName'
-            // of super class are unused. It prepares original atributes here.
+            // of super class are unused. It prepares original attributes here.
             @Override
-            protected void setupIdentifierGenerator(TnPropertyType propertyType) {
+            protected void setupIdentifierGenerator(TnPropertyType propertyType) { // only called in the initialize() process
                 final DfPropertyDesc pd = propertyType.getPropertyDesc();
                 final String propertyName = propertyType.getPropertyName();
-                final String idType = beanAnnotationReader.getId(pd);
+                final String idType = _beanAnnotationReader.getId(pd);
                 final TnIdentifierGenerator generator = createInternalIdentifierGenerator(propertyType, idType);
                 _internalIdentifierGeneratorList.add(generator);
                 _internalIdentifierGeneratorsByPropertyName.put(propertyName, generator);
@@ -170,14 +186,11 @@ public class TnBeanMetaDataFactoryExtension extends TnBeanMetaDataFactoryImpl {
      */
     @Override
     protected int getLimitRelationNestLevel() {
-        return 2; // for Compatible to old version DBFlute
-    }
-
-    // ===================================================================================
-    //                                                                      General Helper
-    //                                                                      ==============
-    protected <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
-        return new ConcurrentHashMap<KEY, VALUE>();
+        // for Compatible to old version DBFlute
+        // and this is actually unused on ConditionBean for now
+        // CB covers an infinity nest level scope by its own original way
+        // this method is used only when you use runtime classes as plain S2Dao
+        return 2;
     }
 
     // ===================================================================================
@@ -189,5 +202,19 @@ public class TnBeanMetaDataFactoryExtension extends TnBeanMetaDataFactoryImpl {
 
     protected TnBeanMetaData getMetaFromCache(Class<?> beanClass) {
         return _metaMap.get(beanClass);
+    }
+
+    // ===================================================================================
+    //                                                                      Internal Debug
+    //                                                                      ==============
+    private boolean isInternalDebugEnabled() { // because log instance is private
+        return ResourceContext.isInternalDebug() && _log.isDebugEnabled();
+    }
+
+    // ===================================================================================
+    //                                                                      General Helper
+    //                                                                      ==============
+    protected <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
+        return new ConcurrentHashMap<KEY, VALUE>();
     }
 }

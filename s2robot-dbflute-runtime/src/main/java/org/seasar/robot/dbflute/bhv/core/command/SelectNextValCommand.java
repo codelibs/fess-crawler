@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,23 @@
  */
 package org.seasar.robot.dbflute.bhv.core.command;
 
+import java.util.Map;
+
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
 import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
-import org.seasar.robot.dbflute.bhv.core.execution.BasicSelectExecution;
+import org.seasar.robot.dbflute.bhv.core.execution.SelectSimpleExecution;
+import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCache;
+import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCacheHandler;
+import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCache.SequenceRealExecutor;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
+import org.seasar.robot.dbflute.exception.SequenceCacheIncrementSizeInvalidException;
+import org.seasar.robot.dbflute.exception.SequenceSelectIllegalStateException;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
 
-
 /**
+ * The command to select next values of sequence for primary key.
  * @author jflute
  * @param <RESULT> The type of result.
  */
@@ -35,9 +42,12 @@ public class SelectNextValCommand<RESULT> extends AbstractBehaviorCommand<RESULT
     //                                                                           =========
     /** The type of result. (NotNull) */
     protected Class<RESULT> _resultType;
-    
+
     /** The provider of DB meta. (NotNull) */
     protected DBMeta _dbmeta;
+
+    /** The handler of sequence cache. (NotNull) */
+    protected SequenceCacheHandler _sequenceCacheHandler;
 
     // ===================================================================================
     //                                                                   Basic Information
@@ -94,7 +104,7 @@ public class SelectNextValCommand<RESULT> extends AbstractBehaviorCommand<RESULT
         assertStatus("createSqlExecutionCreator");
         return new SqlExecutionCreator() {
             public SqlExecution createSqlExecution() {
-                TnResultSetHandler handler = createObjectResultSetHandler(_resultType);
+                final TnResultSetHandler handler = createDynamicScalarResultSetHandler(_resultType);
                 return createSelectNextValExecution(handler);
             }
         };
@@ -102,36 +112,110 @@ public class SelectNextValCommand<RESULT> extends AbstractBehaviorCommand<RESULT
 
     protected SqlExecution createSelectNextValExecution(TnResultSetHandler handler) {
         assertStatus("createSelectNextValExecution");
-        final DBMeta dbmeta = findDBMeta();
-        if (!dbmeta.hasSequence()) {
-            String msg = "If the method 'selectNextVal()' exists, DBMeta.hasSequence() should return true:";
-            msg = msg + " dbmeta.hasSequence()=" + dbmeta.hasSequence();
-            throw new IllegalStateException(msg);
+        final DBMeta dbmeta = _dbmeta;
+        assertTableHasSequence();
+        String sql = getSequenceNextValSql(); // filtered later
+        assertSequenceReturnsNotNull(sql, dbmeta);
+
+        // handling for sequence cache
+        final SequenceCache sequenceCache = findSequenceCache(dbmeta);
+        sql = prepareSequenceCache(sql, sequenceCache);
+
+        return createSequenceExecution(handler, sql, sequenceCache);
+    }
+
+    protected String getSequenceNextValSql() {
+        return _dbmeta.getSequenceNextValSql();
+    }
+
+    protected String prepareSequenceCache(String sql, SequenceCache sequenceCache) {
+        final DBMeta dbmeta = _dbmeta;
+        final Integer incrementSize = dbmeta.getSequenceIncrementSize();
+        final Integer cacheSize = dbmeta.getSequenceCacheSize();
+        return doPrepareSequenceCache(sql, sequenceCache, incrementSize, cacheSize);
+    }
+
+    protected String doPrepareSequenceCache(String sql, SequenceCache sequenceCache, Integer incrementSize,
+            Integer cacheSize) {
+        if (sequenceCache != null) {
+            final DBMeta dbmeta = _dbmeta;
+            if (incrementSize != null) {
+                assertIncrementSizeNotMinusAndNotZero(incrementSize, dbmeta);
+                // cacheSize is not null here because the sequence cache has been found
+                sql = _sequenceCacheHandler.filterNextValSql(cacheSize, incrementSize, sql);
+            }
         }
-        final String nextValSql = dbmeta.getSequenceNextValSql();
+        return sql;
+    }
+
+    protected void assertTableHasSequence() {
+        if (!_dbmeta.hasSequence()) {
+            String msg = "If it uses sequence, the table should be related to a sequence:";
+            msg = msg + " table=" + _dbmeta.getTableDbName() + " sequence=" + _dbmeta.getSequenceName();
+            throw new SequenceSelectIllegalStateException(msg);
+        }
+    }
+
+    protected void assertSequenceReturnsNotNull(String nextValSql, DBMeta dbmeta) {
         if (nextValSql == null) {
-            String msg = "If the method 'selectNextVal()' exists, DBMeta.getSequenceNextValSql() should not return null:";
-            msg = msg + " dbmeta.getSequenceNextValSql()=" + dbmeta.getSequenceNextValSql();
-            throw new IllegalStateException(msg);
+            String msg = "If it uses sequence, SQL for next value should exist:";
+            msg = msg + " table=" + dbmeta.getTableDbName() + " sequence=" + dbmeta.getSequenceName();
+            throw new SequenceSelectIllegalStateException(msg);
         }
-        return createBasicSelectExecution(handler, new String[]{}, new Class<?>[]{}, nextValSql);
     }
 
-    protected BasicSelectExecution createBasicSelectExecution(TnResultSetHandler handler, String[] argNames, Class<?>[] argTypes, String sql) {
-        final BasicSelectExecution cmd = new BasicSelectExecution(_dataSource, _statementFactory, handler);
-        cmd.setArgNames(argNames);
-        cmd.setArgTypes(argTypes);
-        cmd.setSql(sql);
+    protected SequenceCache findSequenceCache(DBMeta dbmeta) {
+        final String tableName = dbmeta.getTableDbName();
+        final String sequenceName = dbmeta.getSequenceName();
+        final Integer cacheSize = dbmeta.getSequenceCacheSize();
+        final Integer incrementSize = dbmeta.getSequenceIncrementSize();
+        return doFindSequenceCache(tableName, sequenceName, cacheSize, incrementSize);
+    }
+
+    protected SequenceCache doFindSequenceCache(String tableName, String sequenceName, Integer cacheSize,
+            Integer incrementSize) {
+        return _sequenceCacheHandler.findSequenceCache(tableName, sequenceName, _dataSource, _resultType, cacheSize,
+                incrementSize);
+    }
+
+    protected void assertIncrementSizeNotMinusAndNotZero(Integer incrementSize, DBMeta dbmeta) { // precondition: not null
+        if (incrementSize <= 0) {
+            String msg = "The increment size should not be minus or zero if you use sequence cache:";
+            msg = msg + " table=" + dbmeta.getTableDbName() + " sequence=" + dbmeta.getSequenceName();
+            msg = msg + " cacheSize=" + dbmeta.getSequenceCacheSize();
+            msg = msg + " incrementSize=" + dbmeta.getSequenceIncrementSize();
+            throw new SequenceCacheIncrementSizeInvalidException(msg);
+        }
+    }
+
+    protected SelectSimpleExecution createSequenceExecution(TnResultSetHandler handler, String sql,
+            final SequenceCache sequenceCache) {
+        final Map<String, Class<?>> argNameTypeMap = newArgNameTypeMap();
+        final SelectSimpleExecution cmd;
+        if (sequenceCache != null) {
+            cmd = new SelectSimpleExecution(_dataSource, _statementFactory, argNameTypeMap, sql, handler) {
+                @Override
+                public Object execute(final Object[] args) {
+                    return sequenceCache.nextval(new SequenceRealExecutor() {
+                        public Object execute() {
+                            return executeSuperExecute(args);
+                        }
+                    });
+                }
+
+                protected Object executeSuperExecute(Object[] args) {
+                    return super.execute(args);
+                }
+            };
+        } else {
+            cmd = new SelectSimpleExecution(_dataSource, _statementFactory, argNameTypeMap, sql, handler);
+        }
         return cmd;
-    }
-
-    protected DBMeta findDBMeta() {
-        return _dbmeta;
     }
 
     public Object[] getSqlExecutionArgument() {
         assertStatus("getSqlExecutionArgument");
-        return new Object[]{};
+        return new Object[] {};
     }
 
     // ===================================================================================
@@ -169,5 +253,9 @@ public class SelectNextValCommand<RESULT> extends AbstractBehaviorCommand<RESULT
 
     public void setDBMeta(DBMeta dbmeta) {
         _dbmeta = dbmeta;
+    }
+
+    public void setSequenceCacheHandler(SequenceCacheHandler sequenceCacheHandler) {
+        _sequenceCacheHandler = sequenceCacheHandler;
     }
 }

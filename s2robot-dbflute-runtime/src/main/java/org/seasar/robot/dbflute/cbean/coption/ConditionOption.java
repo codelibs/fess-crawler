@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,5 +20,10 @@ package org.seasar.robot.dbflute.cbean.coption;
  * @author jflute
  */
 public interface ConditionOption {
-    public String getRearOption();
+
+    /**
+     * Get the string expression of rear option.
+     * @return The string for rear option. (NotNull, AllowedEmpty)
+     */
+    String getRearOption();
 }

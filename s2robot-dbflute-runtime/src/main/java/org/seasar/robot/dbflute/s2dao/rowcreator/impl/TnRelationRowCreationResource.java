@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,14 @@ package org.seasar.robot.dbflute.s2dao.rowcreator.impl;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
-import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
+import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyMapping;
 import org.seasar.robot.dbflute.s2dao.metadata.TnRelationPropertyType;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnRelationRowCreationResource {
@@ -35,54 +34,54 @@ public class TnRelationRowCreationResource {
     //                                                                           Attribute
     //                                                                           =========
     /** Result set. */
-    protected ResultSet resultSet;
+    protected ResultSet _resultSet;
 
     /** Relation row. Initialized at first or initialized after. */
-    protected Object row;
+    protected Object _row;
 
     /** Relation property type. */
-    protected TnRelationPropertyType relationPropertyType;
+    protected TnRelationPropertyType _relationPropertyType;
 
-    /** The set of column name. */
-    protected Set<String> columnNames;
+    /** The name map of select column. */
+    protected Map<String, String> _selectColumnMap;
 
-    /** The map of relation key values. */
-    protected Map<String, Object> relKeyValues;
+    /** The map of relation key values. The key is relation column name. */
+    protected Map<String, Object> _relKeyValues;
 
-    /** The map of relation property cache. */
-    protected Map<String, Map<String, TnPropertyType>> relationPropertyCache;// Map<String(relationNoSuffix), Map<String(columnName), PropertyType>>
+    /** The map of relation property cache. (keys are relationNoSuffix, columnName) */
+    protected Map<String, Map<String, TnPropertyMapping>> _relationPropertyCache;
 
     /** The suffix of base object. */
-    protected String baseSuffix;
+    protected String _baseSuffix;
 
     /** The suffix of relation no. */
-    protected String relationNoSuffix;
+    protected String _relationNoSuffix;
 
     /** The limit of relation nest level. */
-    protected int limitRelationNestLevel;
+    protected int _limitRelationNestLevel;
 
     /** The current relation nest level. Default is one. */
-    protected int currentRelationNestLevel;
+    protected int _currentRelationNestLevel;
 
-    /** Current property type. This variable is temporary. */
-    protected TnPropertyType currentPropertyType;
+    /** Current property mapping. This variable is temporary. */
+    protected TnPropertyMapping _currentPropertyMapping;
 
     /** The count of valid value. */
-    protected int validValueCount;
+    protected int _validValueCount;
 
     /** Does it create dead link? */
-    protected boolean createDeadLink;
+    protected boolean _createDeadLink;
 
     /** The backup of relation property type. The element type is RelationPropertyType. */
-    protected Stack<TnRelationPropertyType> relationPropertyTypeBackup;
+    protected Stack<TnRelationPropertyType> _relationPropertyTypeBackup;
 
     /** The backup of base suffix. The element type is String. */
-    protected Stack<String> baseSuffixBackup;
+    protected Stack<String> _baseSuffixBackup;
 
     /** The backup of base suffix. The element type is String. */
-    protected Stack<String> relationSuffixBackup;
-    
-    /** The map of select index. (Nullable) */
+    protected Stack<String> _relationSuffixBackup;
+
+    /** The map of select index. (NullAllowed) */
     protected Map<String, Integer> _selectIndexMap;
 
     // ===================================================================================
@@ -92,18 +91,18 @@ public class TnRelationRowCreationResource {
     //                                                   row
     //                                                   ---
     public boolean hasRowInstance() {
-        return row != null;
+        return _row != null;
     }
 
     public void clearRowInstance() {
-        row = null;
+        _row = null;
     }
 
     // -----------------------------------------------------
     //                                  relationPropertyType
     //                                  --------------------
     public TnBeanMetaData getRelationBeanMetaData() {
-        return relationPropertyType.getBeanMetaData();
+        return _relationPropertyType.getBeanMetaData();
     }
 
     public boolean hasNextRelationProperty() {
@@ -119,36 +118,36 @@ public class TnRelationRowCreationResource {
     }
 
     protected Stack<TnRelationPropertyType> getOrCreateRelationPropertyTypeBackup() {
-        if (relationPropertyTypeBackup == null) {
-            relationPropertyTypeBackup = new Stack<TnRelationPropertyType>();
+        if (_relationPropertyTypeBackup == null) {
+            _relationPropertyTypeBackup = new Stack<TnRelationPropertyType>();
         }
-        return relationPropertyTypeBackup;
+        return _relationPropertyTypeBackup;
     }
 
     // -----------------------------------------------------
-    //                                           columnNames
-    //                                           -----------
-    public boolean containsColumnName(String columnName) {
-        return columnNames.contains(columnName);
+    //                                       selectColumnSet
+    //                                       ---------------
+    public boolean containsSelectColumn(String columnName) {
+        return _selectColumnMap.containsKey(columnName);
     }
 
     // -----------------------------------------------------
     //                                          relKeyValues
     //                                          ------------
     public boolean existsRelKeyValues() {
-        return relKeyValues != null;
+        return _relKeyValues != null;
     }
 
     public boolean containsRelKeyValue(String key) {
-        return relKeyValues.containsKey(key);
+        return _relKeyValues.containsKey(key);
     }
 
     public boolean containsRelKeyValueIfExists(String key) {
-        return existsRelKeyValues() && relKeyValues.containsKey(key);
+        return existsRelKeyValues() && _relKeyValues.containsKey(key);
     }
 
     public Object extractRelKeyValue(String key) {
-        return relKeyValues.get(key);
+        return _relKeyValues.get(key);
     }
 
     // -----------------------------------------------------
@@ -156,45 +155,45 @@ public class TnRelationRowCreationResource {
     //                                 ---------------------
     // The type of relationPropertyCache is Map<String(relationNoSuffix), Map<String(columnName), PropertyType>>.
     public void initializePropertyCacheElement() {
-        relationPropertyCache.put(relationNoSuffix, new HashMap<String, TnPropertyType>());
+        _relationPropertyCache.put(_relationNoSuffix, new HashMap<String, TnPropertyMapping>());
     }
 
     public boolean hasPropertyCacheElement() {
-        final Map<String, TnPropertyType> propertyCacheElement = extractPropertyCacheElement();
+        final Map<String, TnPropertyMapping> propertyCacheElement = extractPropertyCacheElement();
         return propertyCacheElement != null && !propertyCacheElement.isEmpty();
     }
 
-    public Map<String, TnPropertyType> extractPropertyCacheElement() {
-        return relationPropertyCache.get(relationNoSuffix);
+    public Map<String, TnPropertyMapping> extractPropertyCacheElement() {
+        return _relationPropertyCache.get(_relationNoSuffix);
     }
 
     public void savePropertyCacheElement() {
         if (!hasPropertyCacheElement()) {
             initializePropertyCacheElement();
         }
-        final Map<String, TnPropertyType> propertyCacheElement = extractPropertyCacheElement();
+        final Map<String, TnPropertyMapping> propertyCacheElement = extractPropertyCacheElement();
         final String columnName = buildRelationColumnName();
         if (propertyCacheElement.containsKey(columnName)) {
             return;
         }
-        propertyCacheElement.put(columnName, currentPropertyType);
+        propertyCacheElement.put(columnName, _currentPropertyMapping);
     }
 
     // -----------------------------------------------------
     //                                                suffix
     //                                                ------
     public String buildRelationColumnName() {
-        return currentPropertyType.getColumnName() + relationNoSuffix;
+        return _currentPropertyMapping.getColumnDbName() + _relationNoSuffix;
     }
 
     public void addRelationNoSuffix(String additionalRelationNoSuffix) {
-        relationNoSuffix = relationNoSuffix + additionalRelationNoSuffix;
+        _relationNoSuffix = _relationNoSuffix + additionalRelationNoSuffix;
     }
 
     public void backupSuffixAndPrepare(String baseSuffix, String additionalRelationNoSuffix) {
         backupBaseSuffix();
         backupRelationNoSuffix();
-        this.baseSuffix = baseSuffix;
+        this._baseSuffix = baseSuffix;
         addRelationNoSuffix(additionalRelationNoSuffix);
     }
 
@@ -212,10 +211,10 @@ public class TnRelationRowCreationResource {
     }
 
     protected Stack<String> getOrCreateBaseSuffixBackup() {
-        if (baseSuffixBackup == null) {
-            baseSuffixBackup = new Stack<String>();
+        if (_baseSuffixBackup == null) {
+            _baseSuffixBackup = new Stack<String>();
         }
-        return baseSuffixBackup;
+        return _baseSuffixBackup;
     }
 
     protected void backupRelationNoSuffix() {
@@ -227,139 +226,139 @@ public class TnRelationRowCreationResource {
     }
 
     protected Stack<String> getOrCreateRelationNoSuffixBackup() {
-        if (relationSuffixBackup == null) {
-            relationSuffixBackup = new Stack<String>();
+        if (_relationSuffixBackup == null) {
+            _relationSuffixBackup = new Stack<String>();
         }
-        return relationSuffixBackup;
+        return _relationSuffixBackup;
     }
 
     // -----------------------------------------------------
     //                                     relationNestLevel
     //                                     -----------------
     public boolean hasNextRelationLevel() {
-        return currentRelationNestLevel < limitRelationNestLevel;
+        return _currentRelationNestLevel < _limitRelationNestLevel;
     }
 
     public void incrementCurrentRelationNestLevel() {
-        ++currentRelationNestLevel;
+        ++_currentRelationNestLevel;
     }
 
     public void decrementCurrentRelationNestLevel() {
-        --currentRelationNestLevel;
+        --_currentRelationNestLevel;
     }
 
     // -----------------------------------------------------
     //                                       validValueCount
     //                                       ---------------
     public void incrementValidValueCount() {
-        ++validValueCount;
+        ++_validValueCount;
     }
 
     public void clearValidValueCount() {
-        validValueCount = 0;
+        _validValueCount = 0;
     }
 
     public boolean hasValidValueCount() {
-        return validValueCount > 0;
+        return _validValueCount > 0;
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
     public ResultSet getResultSet() {
-        return resultSet;
+        return _resultSet;
     }
 
     public void setResultSet(ResultSet resultSet) {
-        this.resultSet = resultSet;
+        this._resultSet = resultSet;
     }
 
-    public Set<String> getColumnNames() {
-        return columnNames;
+    public Map<String, String> getSelectColumnMap() {
+        return _selectColumnMap;
     }
 
-    public void setColumnNames(Set<String> columnNames) {
-        this.columnNames = columnNames;
+    public void setSelectColumnMap(Map<String, String> selectColumnMap) {
+        this._selectColumnMap = selectColumnMap;
     }
 
     public Map<String, Object> getRelKeyValues() {
-        return this.relKeyValues;
+        return this._relKeyValues;
     }
 
     public void setRelKeyValues(Map<String, Object> relKeyValues) {
-        this.relKeyValues = relKeyValues;
+        this._relKeyValues = relKeyValues;
     }
 
     public Object getRow() {
-        return row;
+        return _row;
     }
 
     public void setRow(Object row) {
-        this.row = row;
+        this._row = row;
     }
 
     public TnRelationPropertyType getRelationPropertyType() {
-        return relationPropertyType;
+        return _relationPropertyType;
     }
 
     public void setRelationPropertyType(TnRelationPropertyType rpt) {
-        this.relationPropertyType = rpt;
+        this._relationPropertyType = rpt;
     }
 
-    public Map<String, Map<String, TnPropertyType>> getRelationPropertyCache() {
-        return relationPropertyCache;
+    public Map<String, Map<String, TnPropertyMapping>> getRelationPropertyCache() {
+        return _relationPropertyCache;
     }
 
-    public void setRelationPropertyCache(Map<String, Map<String, TnPropertyType>> relationPropertyCache) {
-        this.relationPropertyCache = relationPropertyCache;
+    public void setRelationPropertyCache(Map<String, Map<String, TnPropertyMapping>> relationPropertyCache) {
+        this._relationPropertyCache = relationPropertyCache;
     }
 
     public String getBaseSuffix() {
-        return baseSuffix;
+        return _baseSuffix;
     }
 
     public void setBaseSuffix(String baseSuffix) {
-        this.baseSuffix = baseSuffix;
+        this._baseSuffix = baseSuffix;
     }
 
     public String getRelationNoSuffix() {
-        return relationNoSuffix;
+        return _relationNoSuffix;
     }
 
     public void setRelationNoSuffix(String relationNoSuffix) {
-        this.relationNoSuffix = relationNoSuffix;
+        this._relationNoSuffix = relationNoSuffix;
     }
 
     public int getLimitRelationNestLevel() {
-        return limitRelationNestLevel;
+        return _limitRelationNestLevel;
     }
 
     public void setLimitRelationNestLevel(int limitRelationNestLevel) {
-        this.limitRelationNestLevel = limitRelationNestLevel;
+        this._limitRelationNestLevel = limitRelationNestLevel;
     }
 
     public int getCurrentRelationNestLevel() {
-        return currentRelationNestLevel;
+        return _currentRelationNestLevel;
     }
 
     public void setCurrentRelationNestLevel(int currentRelationNestLevel) {
-        this.currentRelationNestLevel = currentRelationNestLevel;
+        this._currentRelationNestLevel = currentRelationNestLevel;
     }
 
-    public TnPropertyType getCurrentPropertyType() {
-        return currentPropertyType;
+    public TnPropertyMapping getCurrentPropertyMapping() {
+        return _currentPropertyMapping;
     }
 
-    public void setCurrentPropertyType(TnPropertyType propertyType) {
-        this.currentPropertyType = propertyType;
+    public void setCurrentPropertyType(TnPropertyMapping propertyType) {
+        this._currentPropertyMapping = propertyType;
     }
 
     public boolean isCreateDeadLink() {
-        return createDeadLink;
+        return _createDeadLink;
     }
 
     public void setCreateDeadLink(boolean createDeadLink) {
-        this.createDeadLink = createDeadLink;
+        this._createDeadLink = createDeadLink;
     }
 
     public Map<String, Integer> getSelectIndexMap() {

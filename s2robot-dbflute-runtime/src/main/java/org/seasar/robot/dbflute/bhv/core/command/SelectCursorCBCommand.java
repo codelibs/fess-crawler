@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,13 @@ import java.util.List;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.bhv.core.SqlExecution;
 import org.seasar.robot.dbflute.bhv.core.SqlExecutionCreator;
-import org.seasar.robot.dbflute.cbean.FetchAssistContext;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
 import org.seasar.robot.dbflute.cbean.EntityRowHandler;
+import org.seasar.robot.dbflute.cbean.FetchAssistContext;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * @author jflute
@@ -36,10 +37,10 @@ public class SelectCursorCBCommand<ENTITY extends Entity> extends AbstractSelect
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** The type of entity. (Required) */
+    /** The type of entity. (NotNull) */
     protected Class<ENTITY> _entityType;
 
-    /** The handler of entity row. (Required) */
+    /** The handler of entity row. (NotNull) */
     protected EntityRowHandler<ENTITY> _entityRowHandler;
 
     // ===================================================================================
@@ -80,7 +81,10 @@ public class SelectCursorCBCommand<ENTITY extends Entity> extends AbstractSelect
     //                                                               =====================
     @Override
     public String buildSqlExecutionKey() {
-        return super.buildSqlExecutionKey() + ":" + _entityRowHandler.getClass().getName();
+        // entity row handler uses name (not simple) because of no-name inner class
+        final String handlerName = _entityRowHandler.getClass().getName();
+        final String entityName = DfTypeUtil.toClassTitle(_entityType);
+        return super.buildSqlExecutionKey() + ":" + handlerName + ":" + entityName;
     }
 
     public SqlExecutionCreator createSqlExecutionCreator() {
@@ -88,8 +92,8 @@ public class SelectCursorCBCommand<ENTITY extends Entity> extends AbstractSelect
         return new SqlExecutionCreator() {
             public SqlExecution createSqlExecution() {
                 TnBeanMetaData bmd = createBeanMetaData();
-                TnResultSetHandler handler = createBeanCursorMetaDataResultSetHandler(bmd);
-                return createSelectCBExecution(_conditionBeanType, handler);
+                TnResultSetHandler handler = createBeanCursorResultSetHandler(bmd);
+                return createSelectCBExecution(_conditionBean.getClass(), handler);
             }
         };
     }

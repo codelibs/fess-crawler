@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,43 @@ package org.seasar.robot.dbflute.dbway;
 public interface DBWay {
 
     // ===================================================================================
+    //                                                                        Sequence Way
+    //                                                                        ============
+    /**
+     * Build the SQL for next value of sequence with a sequence name.
+     * @param sequenceName The sequence name. (NotNull)
+     * @return The SQL for next value of sequence. (NullAllowed: if sequence is unsupported)
+     */
+    String buildSequenceNextValSql(String sequenceName);
+
+    // ===================================================================================
     //                                                                        Identity Way
     //                                                                        ============
     /**
-     * Get the SQL string for getting inserted value of identity.
-     * @return The SQL string for getting inserted value of sequence. (Nullable: If it does not have identity, returns null.)
+     * Get the SQL for getting inserted value of identity.
+     * @return The SQL for getting inserted value of sequence. (NullAllowed: If it does not have identity, returns null.)
      */
     String getIdentitySelectSql();
-    
+
+    // ===================================================================================
+    //                                                                         SQL Support
+    //                                                                         ===========
+    boolean isBlockCommentSupported();
+
+    boolean isLineCommentSupported();
+
+    // ===================================================================================
+    //                                                                        JDBC Support
+    //                                                                        ============
+    boolean isScrollableCursorSupported();
+
     // ===================================================================================
     //                                                                   SQLException Info
     //                                                                   =================
     /**
      * Is the SQLException from unique constraint? {Use both SQLState and ErrorCode}
-     * @param sqlState SQLState of the SQLException. (Nullable)
-     * @param errorCode ErrorCode of the SQLException. (Nullable)
+     * @param sqlState SQLState of the SQLException. (NullAllowed)
+     * @param errorCode ErrorCode of the SQLException. (NullAllowed)
      * @return Is the SQLException from unique constraint?
      */
     boolean isUniqueConstraintException(String sqlState, Integer errorCode);

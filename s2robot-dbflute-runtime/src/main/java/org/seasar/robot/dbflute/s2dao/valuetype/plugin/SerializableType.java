@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  */
 package org.seasar.robot.dbflute.s2dao.valuetype.plugin;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,7 +25,7 @@ import java.sql.SQLException;
 import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class SerializableType extends BytesType {
@@ -36,72 +34,43 @@ public class SerializableType extends BytesType {
         super(trait);
     }
 
-    public Object getValue(final ResultSet resultSet, final int index) throws SQLException {
-        return deserialize(super.getValue(resultSet, index));
+    @Override
+    public Object getValue(ResultSet rs, final int index) throws SQLException {
+        return deserialize(super.getValue(rs, index));
     }
 
-    public Object getValue(final ResultSet resultSet, final String columnName) throws SQLException {
-        return deserialize(super.getValue(resultSet, columnName));
+    @Override
+    public Object getValue(ResultSet rs, final String columnName) throws SQLException {
+        return deserialize(super.getValue(rs, columnName));
     }
 
-    public Object getValue(final CallableStatement cs, final int index) throws SQLException {
+    @Override
+    public Object getValue(CallableStatement cs, final int index) throws SQLException {
         return deserialize(super.getValue(cs, index));
     }
 
-    public Object getValue(final CallableStatement cs, final String parameterName) throws SQLException {
+    @Override
+    public Object getValue(CallableStatement cs, final String parameterName) throws SQLException {
         return deserialize(super.getValue(cs, parameterName));
     }
 
-    public void bindValue(final PreparedStatement ps, final int index, final Object value) throws SQLException {
-        super.bindValue(ps, index, serialize(value));
-    }
-
-    public void bindValue(final CallableStatement cs, final String parameterName, final Object value)
+    @Override
+    public void bindValue(Connection conn, PreparedStatement ps, final int index, final Object value)
             throws SQLException {
-        super.bindValue(cs, parameterName, serialize(value));
+        super.bindValue(conn, ps, index, serialize(value));
     }
 
-    protected byte[] serialize(final Object o) throws SQLException {
-        if (o == null) {
-            return null;
-        }
-        try {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(o);
-            try {
-                return baos.toByteArray();
-            } finally {
-                oos.close();
-            }
-        } catch (final Exception e) {
-            String msg = "The Exception occurred: object=" + o;
-            throw new IllegalStateException(msg, e);
-        }
+    @Override
+    public void bindValue(Connection conn, CallableStatement cs, final String parameterName, final Object value)
+            throws SQLException {
+        super.bindValue(conn, cs, parameterName, serialize(value));
     }
 
-    protected Object deserialize(final Object bytes) throws SQLException {
-        if (bytes == null) {
-            return null;
-        }
-        try {
-            final ByteArrayInputStream bais = new ByteArrayInputStream((byte[]) bytes);
-            final ObjectInputStream ois = new ObjectInputStream(bais);
-            try {
-                return ois.readObject();
-            } finally {
-                ois.close();
-            }
-        } catch (final Exception e) {
-            String msg = "The Exception occurred: object=" + bytes;
-            throw new IllegalStateException(msg, e);
-        }
+    protected byte[] serialize(final Object obj) throws SQLException {
+        return DfTypeUtil.toBinary((Serializable) obj);
     }
 
-    public String toText(Object value) {
-        if (value == null) {
-            return DfTypeUtil.nullText();
-        }
-        return DfTypeUtil.toText(value);
+    protected Serializable deserialize(final Object bytes) throws SQLException {
+        return DfTypeUtil.toSerializable((byte[]) bytes);
     }
 }

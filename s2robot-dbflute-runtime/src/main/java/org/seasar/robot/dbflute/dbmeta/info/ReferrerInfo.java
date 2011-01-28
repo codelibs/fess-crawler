@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,17 @@
  */
 package org.seasar.robot.dbflute.dbmeta.info;
 
-import java.util.Arrays;
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
-
+import org.seasar.robot.dbflute.util.DfReflectionUtil;
+import org.seasar.robot.dbflute.util.Srl;
 
 /**
  * The information of referrer relation.
@@ -33,75 +36,101 @@ public class ReferrerInfo implements RelationInfo {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected final String referrerPropertyName;
-    protected final DBMeta localDBMeta;
-    protected final DBMeta referrerDBMeta;
-    protected final Map<ColumnInfo, ColumnInfo> localReferrerColumnInfoMap;
-    protected final Map<ColumnInfo, ColumnInfo> referrerLocalColumnInfoMap;
-    protected final boolean oneToOne;
+    protected final String _referrerPropertyName;
+    protected final DBMeta _localDBMeta;
+    protected final DBMeta _referrerDBMeta;
+    protected final Map<ColumnInfo, ColumnInfo> _localReferrerColumnInfoMap;
+    protected final Map<ColumnInfo, ColumnInfo> _referrerLocalColumnInfoMap;
+    protected final boolean _oneToOne;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public ReferrerInfo(String referrerPropertyName, DBMeta localDBMeta, DBMeta referrerDBMeta
-                      , Map<ColumnInfo, ColumnInfo> localReferrerColumnInfoMap
-                      , boolean oneToOne) {
+    public ReferrerInfo(String referrerPropertyName, DBMeta localDBMeta, DBMeta referrerDBMeta,
+            Map<ColumnInfo, ColumnInfo> localReferrerColumnInfoMap, boolean oneToOne) {
         assertObjectNotNull("referrerPropertyName", referrerPropertyName);
         assertObjectNotNull("localDBMeta", localDBMeta);
         assertObjectNotNull("referrerDBMeta", referrerDBMeta);
         assertObjectNotNull("localReferrerColumnInfoMap", localReferrerColumnInfoMap);
-        this.referrerPropertyName = referrerPropertyName;
-        this.localDBMeta = localDBMeta;
-        this.referrerDBMeta = referrerDBMeta;
-        this.localReferrerColumnInfoMap = localReferrerColumnInfoMap;
+        this._referrerPropertyName = referrerPropertyName;
+        this._localDBMeta = localDBMeta;
+        this._referrerDBMeta = referrerDBMeta;
+        this._localReferrerColumnInfoMap = localReferrerColumnInfoMap;
         final Set<ColumnInfo> keySet = localReferrerColumnInfoMap.keySet();
-        referrerLocalColumnInfoMap = new LinkedHashMap<ColumnInfo, ColumnInfo>();
-        for (final Iterator<ColumnInfo> ite = keySet.iterator(); ite.hasNext(); ) {
+        _referrerLocalColumnInfoMap = new LinkedHashMap<ColumnInfo, ColumnInfo>();
+        for (final Iterator<ColumnInfo> ite = keySet.iterator(); ite.hasNext();) {
             final ColumnInfo key = ite.next();
             final ColumnInfo value = localReferrerColumnInfoMap.get(key);
-            referrerLocalColumnInfoMap.put(value, key);
+            _referrerLocalColumnInfoMap.put(value, key);
         }
-        this.oneToOne = oneToOne;
+        this._oneToOne = oneToOne;
     }
-    
+
     // ===================================================================================
     //                                                                              Finder
     //                                                                              ======
     public ColumnInfo findLocalByReferrer(String referrerColumnDbName) {
-        final ColumnInfo keyColumnInfo = referrerDBMeta.findColumnInfo(referrerColumnDbName);
-        final ColumnInfo resultColumnInfo = (ColumnInfo)referrerLocalColumnInfoMap.get(keyColumnInfo);
+        final ColumnInfo keyColumnInfo = _referrerDBMeta.findColumnInfo(referrerColumnDbName);
+        final ColumnInfo resultColumnInfo = (ColumnInfo) _referrerLocalColumnInfoMap.get(keyColumnInfo);
         if (resultColumnInfo == null) {
             String msg = "Not found by referrerColumnDbName in referrerLocalColumnInfoMap:";
-            msg = msg + " referrerColumnDbName=" + referrerColumnDbName + " referrerLocalColumnInfoMap=" + referrerLocalColumnInfoMap;
+            msg = msg + " referrerColumnDbName=" + referrerColumnDbName + " referrerLocalColumnInfoMap="
+                    + _referrerLocalColumnInfoMap;
             throw new IllegalArgumentException(msg);
         }
         return resultColumnInfo;
     }
 
     public ColumnInfo findReferrerByLocal(String localColumnDbName) {
-        final ColumnInfo keyColumnInfo = localDBMeta.findColumnInfo(localColumnDbName);
-        final ColumnInfo resultColumnInfo = (ColumnInfo)localReferrerColumnInfoMap.get(keyColumnInfo);
+        final ColumnInfo keyColumnInfo = _localDBMeta.findColumnInfo(localColumnDbName);
+        final ColumnInfo resultColumnInfo = (ColumnInfo) _localReferrerColumnInfoMap.get(keyColumnInfo);
         if (resultColumnInfo == null) {
             String msg = "Not found by localColumnDbName in localReferrerColumnInfoMap:";
-            msg = msg + " localColumnDbName=" + localColumnDbName + " localReferrerColumnInfoMap=" + localReferrerColumnInfoMap;
+            msg = msg + " localColumnDbName=" + localColumnDbName + " localReferrerColumnInfoMap="
+                    + _localReferrerColumnInfoMap;
             throw new IllegalArgumentException(msg);
         }
         return resultColumnInfo;
     }
 
     // ===================================================================================
-    //                                                                              Finder
-    //                                                                              ======
-    public java.lang.reflect.Method findSetter() {
-        return findMethod(localDBMeta.getEntityType(), "set" + buildInitCapPropertyName(), new Class[] { java.util.List.class });
+    //                                                                          Reflection
+    //                                                                          ==========
+    @SuppressWarnings("unchecked")
+    public <PROPERTY extends List> PROPERTY read(Entity localEntity) {
+        return (PROPERTY) invokeMethod(reader(), localEntity, new Object[] {});
     }
 
-    public java.lang.reflect.Method findGetter() {
-        return findMethod(localDBMeta.getEntityType(), "get" + buildInitCapPropertyName(), new Class[] {});
+    public Method reader() {
+        final Class<? extends Entity> localType = _localDBMeta.getEntityType();
+        final String methodName = buildAccessorName("get");
+        final Method method = findMethod(localType, methodName, new Class[] {});
+        if (method == null) {
+            String msg = "Failed to find the method by the name:";
+            msg = msg + " methodName=" + methodName;
+            throw new IllegalStateException(msg);
+        }
+        return method;
     }
 
-    protected String buildInitCapPropertyName() {
-        return initCap(this.referrerPropertyName);
+    public void write(Entity localEntity, List<? extends Entity> referrerEntityList) {
+        invokeMethod(writer(), localEntity, new Object[] { referrerEntityList });
+    }
+
+    public Method writer() {
+        final Class<? extends Entity> localType = _localDBMeta.getEntityType();
+        final String methodName = buildAccessorName("set");
+        final Method method = findMethod(localType, methodName, new Class[] { List.class });
+        if (method == null) {
+            String msg = "Failed to find the method by the name:";
+            msg = msg + " methodName=" + methodName;
+            throw new IllegalStateException(msg);
+        }
+        return method;
+    }
+
+    protected String buildAccessorName(String prefix) {
+        return prefix + initCap(_referrerPropertyName);
     }
 
     // ===================================================================================
@@ -127,24 +156,17 @@ public class ReferrerInfo implements RelationInfo {
     //                                                                      General Helper
     //                                                                      ==============
     protected String initCap(final String name) {
-        return name.substring(0, 1).toUpperCase() + name.substring(1);
+        return Srl.initCap(name);
     }
 
-    protected java.lang.reflect.Method findMethod(Class<?> clazz, String methodName, Class<?>[] argTypes) {
-        try {
-            return clazz.getMethod(methodName, argTypes);
-        } catch (NoSuchMethodException ex) {
-            String msg = "class=" + clazz + " method=" + methodName + "-" + Arrays.asList(argTypes);
-            throw new RuntimeException(msg, ex);
-        }
+    protected Method findMethod(Class<?> clazz, String methodName, Class<?>[] argTypes) {
+        return DfReflectionUtil.getAccessibleMethod(clazz, methodName, argTypes);
     }
 
-    /**
-     * Assert that the object is not null.
-     * @param variableName Variable name. (NotNull)
-     * @param value Value. (NotNull)
-     * @exception IllegalArgumentException
-     */
+    protected Object invokeMethod(Method method, Object target, Object[] args) {
+        return DfReflectionUtil.invoke(method, target, args);
+    }
+
     protected void assertObjectNotNull(String variableName, Object value) {
         if (variableName == null) {
             String msg = "The value should not be null: variableName=null value=" + value;
@@ -160,54 +182,82 @@ public class ReferrerInfo implements RelationInfo {
     //                                                                      Basic Override
     //                                                                      ==============
     public int hashCode() {
-        return referrerPropertyName.hashCode() + localDBMeta.hashCode() + referrerDBMeta.hashCode();
+        return _referrerPropertyName.hashCode() + _localDBMeta.hashCode() + _referrerDBMeta.hashCode();
     }
 
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof ReferrerInfo)) {
             return false;
         }
-        final ReferrerInfo target = (ReferrerInfo)obj;
-        if (!this.referrerPropertyName.equals(target.getReferrerPropertyName())) {
+        final ReferrerInfo target = (ReferrerInfo) obj;
+        if (!this._referrerPropertyName.equals(target.getReferrerPropertyName())) {
             return false;
         }
-        if (!this.localDBMeta.equals(target.getLocalDBMeta())) {
+        if (!this._localDBMeta.equals(target.getLocalDBMeta())) {
             return false;
         }
-        if (!this.referrerDBMeta.equals(target.getReferrerDBMeta())) {
+        if (!this._referrerDBMeta.equals(target.getReferrerDBMeta())) {
             return false;
         }
         return true;
     }
 
     public String toString() {
-        return localDBMeta.getTableDbName() + "." + referrerPropertyName + "<-" + referrerDBMeta.getTableDbName();
+        return _localDBMeta.getTableDbName() + "." + _referrerPropertyName + "<-" + _referrerDBMeta.getTableDbName();
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
+    /**
+     * Get the property name of the foreign relation. <br />
+     * For example, if the relation MEMBER and PURCHASE, this returns 'purchaseList'.
+     * @return The string for property name. (NotNull)
+     */
     public String getReferrerPropertyName() {
-        return referrerPropertyName;
+        return _referrerPropertyName;
     }
 
+    /**
+     * Get the DB meta of the local table. <br />
+     * For example, if the relation MEMBER and MEMBER_STATUS, this returns MEMBER's one.
+     * @return The DB meta singleton instance. (NotNull)
+     */
     public DBMeta getLocalDBMeta() {
-        return localDBMeta;
+        return _localDBMeta;
     }
 
+    /**
+     * Get the DB meta of the referrer table. <br />
+     * For example, if the relation MEMBER and MEMBER_STATUS, this returns MEMBER_STATUS's one.
+     * @return The DB meta singleton instance. (NotNull)
+     */
     public DBMeta getReferrerDBMeta() {
-        return referrerDBMeta;
+        return _referrerDBMeta;
     }
 
+    /**
+     * Get the read-only map, key is a local column info, value is a referrer column info.
+     * @return The read-only map. (NotNull)
+     */
     public Map<ColumnInfo, ColumnInfo> getLocalReferrerColumnInfoMap() {
-        return new LinkedHashMap<ColumnInfo, ColumnInfo>(localReferrerColumnInfoMap); // as snapshot
+        return new LinkedHashMap<ColumnInfo, ColumnInfo>(_localReferrerColumnInfoMap); // as snapshot
     }
 
+    /**
+     * Get the read-only map, key is a referrer column info, value is a column column info.
+     * @return The read-only map. (NotNull)
+     */
     public Map<ColumnInfo, ColumnInfo> getReferrerLocalColumnInfoMap() {
-        return new LinkedHashMap<ColumnInfo, ColumnInfo>(referrerLocalColumnInfoMap); // as snapshot
+        return new LinkedHashMap<ColumnInfo, ColumnInfo>(_referrerLocalColumnInfoMap); // as snapshot
     }
 
+    /**
+     * Does the relation is one-to-one? <br />
+     * But basically this returns false because DBFlute treats one-to-one relations as a foreign relation.  
+     * @return Determination.
+     */
     public boolean isOneToOne() {
-        return oneToOne;
+        return _oneToOne;
     }
 }

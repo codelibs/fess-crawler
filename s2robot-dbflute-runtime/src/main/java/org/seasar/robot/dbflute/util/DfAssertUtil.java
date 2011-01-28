@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class DfAssertUtil {
     public static void assertStringNotNullAndNotTrimmedEmpty(String variableName, String value) {
         assertObjectNotNull("variableName", variableName);
         assertObjectNotNull("value", value);
-        if (value.trim().length() ==0) {
+        if (value.trim().length() == 0) {
             String msg = "The value should not be empty: variableName=" + variableName + " value=" + value;
             throw new IllegalArgumentException(msg);
         }

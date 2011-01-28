@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,10 +64,10 @@ public class ResultBeanBuilder<ENTITY> {
         rb.setTableDbName(_tableDbName);
         rb.setAllRecordCount(selectedList.size());
         rb.setSelectedList(selectedList);
-        rb.setOrderByClause(cb.getSqlComponentOfOrderByClause());
+        rb.setOrderByClause(cb.getOrderByComponent());
         return rb;
     }
-    
+
     /**
      * Build the result bean of list as empty. {for CB}
      * @param pb The bean of paging. (NotNull)
@@ -78,7 +78,7 @@ public class ResultBeanBuilder<ENTITY> {
         rb.setTableDbName(_tableDbName);
         rb.setAllRecordCount(0);
         rb.setSelectedList(newEmptyList());
-        rb.setOrderByClause(pb.getSqlComponentOfOrderByClause());
+        rb.setOrderByClause(pb.getOrderByComponent());
         return rb;
     }
 
@@ -98,7 +98,7 @@ public class ResultBeanBuilder<ENTITY> {
         rb.setTableDbName(_tableDbName);
         rb.setAllRecordCount(allRecordCount);
         rb.setSelectedList(selectedList);
-        rb.setOrderByClause(pb.getSqlComponentOfOrderByClause());
+        rb.setOrderByClause(pb.getOrderByComponent());
         rb.setPageSize(pb.getFetchSize());
         rb.setCurrentPageNumber(pb.getFetchPageNumber());
         return rb;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.seasar.robot.dbflute.cbean.grouping.GroupingRowEndDeterminer;
 import org.seasar.robot.dbflute.cbean.grouping.GroupingRowResource;
 import org.seasar.robot.dbflute.cbean.grouping.GroupingRowSetupper;
 import org.seasar.robot.dbflute.cbean.mapping.EntityDtoMapper;
-import org.seasar.robot.dbflute.cbean.sqlclause.OrderByClause;
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause;
 
 /**
  * The result bean for list.
@@ -45,7 +45,7 @@ public class ListResultBean<ENTITY> implements List<ENTITY>, Serializable {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** The value of table db-name. (Nullable: If it's null, it means 'Not Selected Yet'.) */
+    /** The value of table db-name. (NullAllowed: If it's null, it means 'Not Selected Yet'.) */
     protected String _tableDbName;
 
     /** The value of all record count. */
@@ -70,9 +70,36 @@ public class ListResultBean<ENTITY> implements List<ENTITY>, Serializable {
     //                                                                            Grouping
     //                                                                            ========
     /**
-     * Group the list. This method needs the property 'selectedList' only.
+     * Split the list per group. <br />
+     * This method needs the property 'selectedList' only.
+     * <pre>
+     * ex) grouping per three records
+     * GroupingOption&lt;Member&gt; groupingOption = new GroupingOption&lt;Member&gt;(<span style="color: #FD4747">3</span>);
+     * List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span style="color: #FD4747">groupingList</span>(new GroupingRowSetupper&lt;List&lt;Member&gt;, Member&gt;() {
+     *     public List&lt;Member&gt; setup(GroupingRowResource&lt;Member&gt; groupingRowResource) {
+     *         return new ArrayList&lt;Member&gt;(groupingRowResource.getGroupingRowList());
+     *     }
+     * }, groupingOption);
+     * 
+     * ex) grouping per initial character of MEMBER_NAME
+     * <span style="color: #3F7E5E">// the breakCount is unnecessary in this case</span>
+     * GroupingOption&lt;Member&gt; groupingOption = new GroupingOption&lt;Member&gt;();
+     * groupingOption.setGroupingRowEndDeterminer(new GroupingRowEndDeterminer&lt;Member&gt;() {
+     *     public boolean <span style="color: #FD4747">determine</span>(GroupingRowResource&lt;Member&gt; rowResource, Member nextEntity) {
+     *         Member currentEntity = rowResource.getCurrentEntity();
+     *         String currentInitChar = currentEntity.getMemberName().substring(0, 1);
+     *         String nextInitChar = nextEntity.getMemberName().substring(0, 1);
+     *         return !currentInitChar.equalsIgnoreCase(nextInitChar);
+     *     }
+     * });
+     * List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span style="color: #FD4747">groupingList</span>(new GroupingRowSetupper&lt;List&lt;Member&gt;, Member&gt;() {
+     *     public List&lt;Member&gt; setup(GroupingRowResource&lt;Member&gt; groupingRowResource) {
+     *         return new ArrayList&lt;Member&gt;(groupingRowResource.getGroupingRowList());
+     *     }
+     * }, groupingOption);
+     * </pre>
      * @param <ROW> The type of row.
-     * @param groupingRowSetupper The setupper of grouping row. (NotNull)
+     * @param groupingRowSetupper The set-upper of grouping row. (NotNull)
      * @param groupingOption The option of grouping. (NotNull and it requires the breakCount or the determiner)
      * @return The grouped list. (NotNull)
      */
@@ -132,6 +159,25 @@ public class ListResultBean<ENTITY> implements List<ENTITY>, Serializable {
     // ===================================================================================
     //                                                                             Mapping
     //                                                                             =======
+    /**
+     * Map the entity list to the list of other object. <br />
+     * This method needs the property 'selectedList' only.
+     * <pre>
+     * ListResultBean&lt;MemberDto&gt; dtoList
+     *         = entityList.<span style="color: #FD4747">mappingList</span>(new EntityDtoMapper&lt;Member, MemberDto&gt;() {
+     *     public MemberDto map(Member entity) {
+     *         MemberDto dto = new MemberDto();
+     *         dto.setMemberId(entity.getMemberId());
+     *         dto.setMemberName(entity.getMemberName());
+     *         ...
+     *         return dto;
+     *     }
+     * });
+     * </pre>
+     * @param <DTO> The type of DTO.
+     * @param entityDtoMapper The map-per for entity and DTO. (NotNull)
+     * @return The new mapped list as result bean. (NotNull)
+     */
     public <DTO> ListResultBean<DTO> mappingList(EntityDtoMapper<ENTITY, DTO> entityDtoMapper) {
         final ListResultBean<DTO> mappingList = new ListResultBean<DTO>();
         for (ENTITY entity : _selectedList) {
@@ -169,7 +215,7 @@ public class ListResultBean<ENTITY> implements List<ENTITY>, Serializable {
     }
 
     /**
-     * @param other Other entity. (Nullable)
+     * @param other Other entity. (NullAllowed)
      * @return Comparing result. If other is null, returns false.
      */
     public boolean equals(Object other) {
@@ -303,7 +349,7 @@ public class ListResultBean<ENTITY> implements List<ENTITY>, Serializable {
     //                                                                            ========
     /**
      * Get the value of tableDbName.
-     * @return The value of tableDbName. (Nullable: If it's null, it means 'Not Selected Yet'.)
+     * @return The value of tableDbName. (NullAllowed: If it's null, it means 'Not Selected Yet'.)
      */
     public String getTableDbName() {
         return _tableDbName;

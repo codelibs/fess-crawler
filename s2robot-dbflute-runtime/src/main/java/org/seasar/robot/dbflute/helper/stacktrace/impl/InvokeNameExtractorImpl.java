@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ public class InvokeNameExtractorImpl implements InvokeNameExtractor {
         String simpleClassName = null;
         String methodName = null;
         int lineNumber = 0;
-        int foundIndex = -1; // The minus one means 'Not Found'.
-        int foundFirstIndex = -1; // The minus one means 'Not Found'.
+        int foundIndex = -1; // The minus one means 'not found'.
+        int foundFirstIndex = -1; // The minus one means 'not found'.
         boolean onTarget = false;
         boolean existsDuplicate = false;
         for (int i = resource.getStartIndex(); i < _stackTrace.length; i++) {

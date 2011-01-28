@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,10 @@ public interface SqlResultHandler {
      * Handle the SQL result.
      * <pre>
      * [SqlResultInfo]
-     * o result : The result(mapped object) of executed SQL. (Nullable)
+     * o result : The result(mapped object) of executed SQL. (NullAllowed)
      * o tableDbName : The DB name of table of executed behavior. (NotNull)
      * o commandName : The name of executed command. (for display only) (NotNull)
-     * o displaySql : The latest executed SQL for display. (for display only) (Nullable: if the SQL would be not executed)
+     * o displaySql : The latest executed SQL for display. (for display only) (NullAllowed: if the SQL would be not executed)
      * o beforeTimeMillis : The time in millisecond before executing command(after initializing executions).
      * o afterTimeMillis : The time in millisecond after executing command(after mapping entities).
      * </pre>

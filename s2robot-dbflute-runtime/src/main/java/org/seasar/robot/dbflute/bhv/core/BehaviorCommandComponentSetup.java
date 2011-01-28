@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,17 @@ import javax.sql.DataSource;
 
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaDataFactory;
-import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypeFactory;
 
 /**
  * @author jflute
  */
 public interface BehaviorCommandComponentSetup {
 
-    public void setDataSource(DataSource dataSource);
-    public void setStatementFactory(StatementFactory statementFactory);
-    public void setBeanMetaDataFactory(TnBeanMetaDataFactory beanMetaDataFactory);
-    public void setValueTypeFactory(TnValueTypeFactory valueTypeFactory);
-    public void setSqlFileEncoding(String sqlFileEncoding);
+    void setDataSource(DataSource dataSource);
+
+    void setStatementFactory(StatementFactory statementFactory);
+
+    void setBeanMetaDataFactory(TnBeanMetaDataFactory beanMetaDataFactory);
+
+    void setSqlFileEncoding(String sqlFileEncoding);
 }

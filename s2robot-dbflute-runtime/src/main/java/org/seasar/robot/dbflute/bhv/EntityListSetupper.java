@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@ import java.util.List;
 
 import org.seasar.robot.dbflute.Entity;
 
-
 /**
- * The interface of entity list set-upper.
+ * The set-upper of entity list.
  * @param <ENTITY> The type of entity.
  * @author jflute
  */

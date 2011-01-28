@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package org.seasar.robot.dbflute.cbean.ckey;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
 import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
+import org.seasar.robot.dbflute.cbean.sqlclause.query.QueryClause;
+import org.seasar.robot.dbflute.dbmeta.name.ColumnRealName;
 
 /**
  * The condition-key of isNull.
@@ -28,9 +28,15 @@ import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
  */
 public class ConditionKeyIsNull extends ConditionKey {
 
-    /** Log-instance. */
-    private static final Log _log = LogFactory.getLog(ConditionKeyIsNull.class);
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor.
      */
@@ -39,65 +45,47 @@ public class ConditionKeyIsNull extends ConditionKey {
         _operand = "is null";
     }
 
+    // ===================================================================================
+    //                                                                      Implementation
+    //                                                                      ==============
     /**
-     * Is valid registration?
-     * 
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param callerName Caller name. (NotNull)
-     * @return Determination.
+     * {@inheritDoc}
      */
-    public boolean isValidRegistration(ConditionValue conditionValue, Object value, String callerName) {
-        if (conditionValue.hasIsNull()) {
-            _log.debug("The value has already registered at " + callerName);
+    protected boolean doIsValidRegistration(ConditionValue cvalue, Object value, ColumnRealName callerName) {
+        if (cvalue.isFixedQuery() && cvalue.hasIsNull()) {
+            noticeRegistered(callerName, value);
             return false;
         }
         return true;
     }
 
     /**
-     * This method implements super#doAddWhereClause().
-     * 
-     * @param conditionList Condition list. (NotNull)
-     * @param columnName Column name. (NotNull)
-     * @param value Condition value. (NotNull)
+     * {@inheritDoc}
      */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value) {
-        conditionList.add(buildClauseWithoutValue(columnName));
+    protected void doAddWhereClause(List<QueryClause> conditionList, ColumnRealName columnRealName, ConditionValue value) {
+        conditionList.add(buildClauseWithoutValue(columnRealName));
     }
 
     /**
-     * This method implements super#doAddWhereClause().
-     * 
-     * @param conditionList Condition list. (NotNull)
-     * @param columnName Column name. (NotNull)
-     * @param value Condition value. (NotNull)
-     * @param option Condition option. (NotNull)
+     * {@inheritDoc}
      */
-    protected void doAddWhereClause(List<String> conditionList, String columnName, ConditionValue value, ConditionOption option) {
-        throw new UnsupportedOperationException("doAddWhereClause that has ConditionOption is unsupported!!!");
+    protected void doAddWhereClause(List<QueryClause> conditionList, ColumnRealName columnRealName,
+            ConditionValue value, ConditionOption option) {
+        throw new UnsupportedOperationException();
     }
 
     /**
-     * This method implements super#doSetupConditionValue().
-     * 
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param location Location. (NotNull)
+     * {@inheritDoc}
      */
     protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location) {
-        conditionValue.setIsNull(DUMMY_OBJECT).setIsNullLocation(location);
+        conditionValue.setIsNull(DUMMY_OBJECT);
     }
 
     /**
-     * This method implements super#doSetupConditionValue().
-     * 
-     * @param conditionValue Condition value. (NotNull)
-     * @param value Value. (NotNull)
-     * @param location Location. (NotNull)
-     * @param option Condition option. (NotNull)
+     * {@inheritDoc}
      */
-    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location, ConditionOption option) {
-        throw new UnsupportedOperationException("doSetupConditionValue with condition-option is unsupported!!!");
+    protected void doSetupConditionValue(ConditionValue conditionValue, Object value, String location,
+            ConditionOption option) {
+        throw new UnsupportedOperationException();
     }
 }

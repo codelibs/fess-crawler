@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,25 @@
  */
 package org.seasar.robot.dbflute.cbean;
 
-import org.seasar.robot.dbflute.cbean.sqlclause.OrderByClause;
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause;
 
 /**
- * The order-by-bean.
+ * The bean for order-by.
  * @author jflute
  */
 public interface OrderByBean {
-
-    /**
-     * Get sql component of order-by clause.
-     * @return Sql component of order-by clause. (NotNull)
-     */
-    OrderByClause getSqlComponentOfOrderByClause();
 
     /**
      * Get order-by clause.
      * @return Order-by clause. (NotNull)
      */
     String getOrderByClause();
+
+    /**
+     * Get the component of order-by clause.
+     * @return The component of order-by clause. (NotNull)
+     */
+    OrderByClause getOrderByComponent();
 
     /**
      * Clear order-by.

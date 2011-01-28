@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,19 @@ package org.seasar.robot.dbflute.bhv.outsidesql;
 import java.util.List;
 
 import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.bhv.core.BehaviorCommand;
 import org.seasar.robot.dbflute.bhv.core.BehaviorCommandInvoker;
-import org.seasar.robot.dbflute.bhv.core.command.OutsideSqlSelectListCommand;
+import org.seasar.robot.dbflute.bhv.outsidesql.factory.OutsideSqlExecutorFactory;
 import org.seasar.robot.dbflute.cbean.ListResultBean;
 import org.seasar.robot.dbflute.cbean.PagingBean;
 import org.seasar.robot.dbflute.cbean.PagingHandler;
 import org.seasar.robot.dbflute.cbean.PagingInvoker;
 import org.seasar.robot.dbflute.cbean.PagingResultBean;
-import org.seasar.robot.dbflute.cbean.ResultBeanBuilder;
+import org.seasar.robot.dbflute.exception.EntityDuplicatedException;
+import org.seasar.robot.dbflute.exception.FetchingOverSafetySizeException;
+import org.seasar.robot.dbflute.exception.PagingOverSafetySizeException;
+import org.seasar.robot.dbflute.exception.thrower.BehaviorExceptionThrower;
 import org.seasar.robot.dbflute.jdbc.StatementConfig;
 import org.seasar.robot.dbflute.outsidesql.OutsideSqlOption;
-
 
 /**
  * The paging executor of outside-SQL.
@@ -43,120 +44,95 @@ public class OutsideSqlPagingExecutor {
     /** The invoker of behavior command. (NotNull) */
     protected final BehaviorCommandInvoker _behaviorCommandInvoker;
 
-    /** The option of outside-SQL. (NotNull) */
-    protected final OutsideSqlOption _outsideSqlOption;
-
     /** The DB name of table. (NotNull) */
     protected final String _tableDbName;
 
-	/** The current database definition. (NotNull) */
+    /** The current database definition. (NotNull) */
     protected final DBDef _currentDBDef;
-	
-	/** The default configuration of statement. (Nullable) */
-	protected final StatementConfig _defaultStatementConfig;
+
+    /** The default configuration of statement. (NullAllowed) */
+    protected final StatementConfig _defaultStatementConfig;
+
+    /** The option of outside-SQL. (NotNull) */
+    protected final OutsideSqlOption _outsideSqlOption;
+
+    /** The factory of outside-SQL executor. (NotNull) */
+    protected final OutsideSqlExecutorFactory _outsideSqlExecutorFactory;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public OutsideSqlPagingExecutor(BehaviorCommandInvoker behaviorCommandInvoker
-                                  , OutsideSqlOption outsideSqlOption
-                                  , String tableDbName
-                                  , DBDef currentDBDef
-                                  , StatementConfig defaultStatementConfig) {
-        this._behaviorCommandInvoker = behaviorCommandInvoker;
-        this._outsideSqlOption = outsideSqlOption;
-        this._tableDbName = tableDbName;
-        this._currentDBDef = currentDBDef;
-        this._defaultStatementConfig = defaultStatementConfig;
+    public OutsideSqlPagingExecutor(BehaviorCommandInvoker behaviorCommandInvoker, String tableDbName,
+            DBDef currentDBDef, StatementConfig defaultStatementConfig, OutsideSqlOption outsideSqlOption,
+            OutsideSqlExecutorFactory outsideSqlExecutorFactory) {
+        _behaviorCommandInvoker = behaviorCommandInvoker;
+        _tableDbName = tableDbName;
+        _currentDBDef = currentDBDef;
+        _defaultStatementConfig = defaultStatementConfig;
+        _outsideSqlOption = outsideSqlOption;
+        _outsideSqlExecutorFactory = outsideSqlExecutorFactory;
     }
 
     // ===================================================================================
     //                                                                              Select
     //                                                                              ======
     /**
-     * Select list with paging.
-     * <p>
-     * The SQL should have Paging without Count. <br />
-     * You do not need to use pagingBean's isPaging() method on your 'Parameter Comment'. <br />
+     * Select page by the outside-SQL. <br />
+     * (both count-select and paging-select are executed)
      * <pre>
-     * - - - - - - - - - - - - - - - - - - - - - - -
-     * ex) Your Correct SQL {MySQL and manualPaging}
-     * - - - - - - - - - - - - - - - - - - - - - - -
-     * # select member.MEMBER_ID
-     * #      , member.MEMBER_NAME
-     * #      , memberStatus.MEMBER_STATUS_NAME
-     * #   from MEMBER member
-     * #     left outer join MEMBER_STATUS memberStatus
-     * #       on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
-     * #  /*BEGIN&#42;/where
-     * #    /*IF pmb.memberId != null&#42;/member.MEMBER_ID = /*pmb.memberId&#42;/'123'/*END&#42;/
-     * #    /*IF pmb.memberName != null&#42;/and member.MEMBER_NAME like /*pmb.memberName&#42;/'Billy' || '%'/*END&#42;/
-     * #  /*END&#42;/
-     * #  order by member.UPDATE_DATETIME desc
-     * #  limit /*$pmb.pageStartIndex&#42;/80, /*$pmb.fetchSize&#42;/20
-     * # 
-     * o If it's autoPaging, the line of 'limit 80, 20' is unnecessary!
+     * String path = MemberBhv.PATH_selectSimpleMember;
+     * SimpleMemberPmb pmb = new SimpleMemberPmb();
+     * pmb.setMemberName_PrefixSearch("S");
+     * pmb.paging(20, 3); <span style="color: #3F7E5E">// 20 records per a page and current page number is 3</span>
+     * Class&lt;SimpleMember&gt; entityType = SimpleMember.class;
+     * PagingResultBean&lt;SimpleMember&gt; page
+     *     = memberBhv.outsideSql().manualPaging().<span style="color: #FD4747">selectPage</span>(path, pmb, entityType);
+     * int allRecordCount = page.getAllRecordCount();
+     * int allPageCount = page.getAllPageCount();
+     * boolean isExistPrePage = page.isExistPrePage();
+     * boolean isExistNextPage = page.isExistNextPage();
+     * ...
+     * for (SimpleMember member : page) {
+     *     ... = member.get...();
+     * }
      * </pre>
-     * @param <ENTITY> The type of entity.
-     * @param path The path of SQL that executes count and paging. (NotNull)
-     * @param pmb The bean of paging parameter. (NotNull)
-     * @param entityType The type of result entity. (NotNull)
-     * @return The result bean of paged list. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.OutsideSqlNotFoundException When the outside-SQL is not found.
-     */
-    public <ENTITY> ListResultBean<ENTITY> selectList(String path, PagingBean pmb, Class<ENTITY> entityType) {
-        setupScrollableCursorIfNeeds();
-        List<ENTITY> resultList = invoke(createSelectListCommand(path, pmb, entityType));
-        return new ResultBeanBuilder<ENTITY>(_tableDbName).buildListResultBean(resultList);
-    }
-
-    /**
-     * Select page.
-     * <p>
-     * The SQL should have Count and Paging. <br />
-     * You can realize by pagingBean's isPaging() method on your 'Parameter Comment'. For example, 'IF Comment'. <br />
-     * It returns false when it executes Count. And it returns true when it executes Paging. <br />
+     * The parameter-bean needs to extend SimplePagingBean.
+     * The way to generate it is following:
      * <pre>
-     * - - - - - - - - - - - - - - - - - - - - - - -
-     * ex) Your Correct SQL {MySQL and manualPaging}
-     * - - - - - - - - - - - - - - - - - - - - - - -
-     * # /*IF pmb.isPaging()&#42;/
-     * # select member.MEMBER_ID
-     * #      , member.MEMBER_NAME
-     * #      , memberStatus.MEMBER_STATUS_NAME
-     * # -- ELSE select count(*)
-     * # /*END&#42;/
-     * #   from MEMBER member
-     * #     /*IF pmb.isPaging()&#42;/
-     * #     left outer join MEMBER_STATUS memberStatus
-     * #       on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
-     * #     /*END&#42;/
-     * #  /*BEGIN&#42;/where
-     * #    /*IF pmb.memberId != null&#42;/member.MEMBER_ID = /*pmb.memberId&#42;/'123'/*END&#42;/
-     * #    /*IF pmb.memberName != null&#42;/and member.MEMBER_NAME like /*pmb.memberName&#42;/'Billy' || '%'/*END&#42;/
-     * #  /*END&#42;/
-     * #  /*IF pmb.isPaging()&#42;/
-     * #  order by member.UPDATE_DATETIME desc
-     * #  /*END&#42;/
-     * #  /*IF pmb.isPaging()&#42;/
-     * #  limit /*$pmb.pageStartIndex&#42;/80, /*$pmb.fetchSize&#42;/20
-     * #  /*END&#42;/
-     * # 
-     * o If it's autoPaging, the line of 'limit 80, 20' is unnecessary!
-     * 
-     * - - - - - - - - - - - - - - - - - - - - - - - - -
-     * ex) Wrong SQL {part 1}
-     *     -- Line comment before ELSE comment --
-     * - - - - - - - - - - - - - - - - - - - - - - - - -
-     * # /*IF pmb.isPaging()&#42;/
-     * # select member.MEMBER_ID
-     * #      , member.MEMBER_NAME -- The name of member...    *NG
-     * #      -- The status name of member...                  *NG
-     * #      , memberStatus.MEMBER_STATUS_NAME
-     * # -- ELSE select count(*)
-     * # /*END&#42;/
-     * # ...
-     * o It's restriction...Sorry
+     * <span style="color: #3F7E5E">-- !df:pmb extends SPB!</span>
+     * <span style="color: #3F7E5E">-- !!Integer memberId!!</span>
+     * <span style="color: #3F7E5E">-- !!...!!</span>
+     * </pre>
+     * You can realize by pagingBean's isPaging() method on your 'Parameter Comment'.
+     * It returns false when it executes Count. And it returns true when it executes Paging.
+     * <pre>
+     * ex) ManualPaging and MySQL
+     * <span style="color: #3F7E5E">/*IF pmb.isPaging()&#42;/</span>
+     * select member.MEMBER_ID
+     *      , member.MEMBER_NAME
+     *      , memberStatus.MEMBER_STATUS_NAME
+     * <span style="color: #3F7E5E">-- ELSE select count(*)</span>
+     * <span style="color: #3F7E5E">/*END&#42;/</span>
+     *   from MEMBER member
+     *     <span style="color: #3F7E5E">/*IF pmb.isPaging()&#42;/</span>
+     *     left outer join MEMBER_STATUS memberStatus
+     *       on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+     *     <span style="color: #3F7E5E">/*END&#42;/</span>
+     *  <span style="color: #3F7E5E">/*BEGIN&#42;/</span>
+     *  where
+     *    <span style="color: #3F7E5E">/*IF pmb.memberId != null&#42;/</span>
+     *    member.MEMBER_ID = <span style="color: #3F7E5E">/*pmb.memberId&#42;/</span>'123'
+     *    <span style="color: #3F7E5E">/*END&#42;/</span>
+     *    <span style="color: #3F7E5E">/*IF pmb.memberName != null&#42;/</span>
+     *    and member.MEMBER_NAME like <span style="color: #3F7E5E">/*pmb.memberName&#42;/</span>'Billy%'
+     *    <span style="color: #3F7E5E">/*END&#42;/</span>
+     *  <span style="color: #3F7E5E">/*END&#42;/</span>
+     *  <span style="color: #3F7E5E">/*IF pmb.isPaging()&#42;/</span>
+     *  order by member.UPDATE_DATETIME desc
+     *  <span style="color: #3F7E5E">/*END&#42;/</span>
+     *  <span style="color: #3F7E5E">/*IF pmb.isPaging()&#42;/</span>
+     *  limit <span style="color: #3F7E5E">/*$pmb.pageStartIndex&#42;/</span>80, <span style="color: #3F7E5E">/*$pmb.fetchSize&#42;/</span>20
+     *  <span style="color: #3F7E5E">/*END&#42;/</span>
      * </pre>
      * @param <ENTITY> The type of entity.
      * @param path The path of SQL that executes count and paging. (NotNull)
@@ -164,31 +140,57 @@ public class OutsideSqlPagingExecutor {
      * @param entityType The type of result entity. (NotNull)
      * @return The result bean of paging. (NotNull)
      * @exception org.seasar.robot.dbflute.exception.OutsideSqlNotFoundException When the outside-SQL is not found.
+     * @exception org.seasar.robot.dbflute.exception.DangerousResultSizeException When the result size is over the specified safety size.
      */
-    public <ENTITY> PagingResultBean<ENTITY> selectPage(final String path
-                                                      , final PagingBean pmb
-                                                      , final Class<ENTITY> entityType) {
+    public <ENTITY> PagingResultBean<ENTITY> selectPage(String path, PagingBean pmb, Class<ENTITY> entityType) {
+        try {
+            final PagingHandler<ENTITY> handler = createPagingHandler(path, pmb, entityType);
+            final PagingInvoker<ENTITY> invoker = createPagingInvoker(pmb);
+            return invoker.invokePaging(handler);
+        } catch (PagingOverSafetySizeException e) {
+            createBhvExThrower().throwDangerousResultSizeException(pmb, e);
+            return null; // unreachable
+        }
+    }
+
+    protected <ENTITY> PagingHandler<ENTITY> createPagingHandler(final String path, final PagingBean pmb,
+            final Class<ENTITY> entityType) {
         final OutsideSqlEntityExecutor<PagingBean> countExecutor = createCountExecutor();
-        final PagingHandler<ENTITY> handler = new PagingHandler<ENTITY>() {
+        return new PagingHandler<ENTITY>() {
             public PagingBean getPagingBean() {
                 return pmb;
             }
+
             public int count() {
                 pmb.xsetPaging(false);
-                return countExecutor.selectEntityWithDeletedCheck(path, pmb, Integer.class);
+                try {
+                    return countExecutor.selectEntityWithDeletedCheck(path, pmb, Integer.class);
+                } catch (EntityDuplicatedException e) { // means switching the select clause failed
+                    throwPagingCountSelectNotCountException(path, pmb, entityType, e);
+                    return -1; // unreachable
+                }
             }
+
             public List<ENTITY> paging() {
                 pmb.xsetPaging(true);
-                return selectList(path, pmb, entityType);
+                return doSelectList(path, pmb, entityType);
             }
         };
-        final PagingInvoker<ENTITY> invoker = new PagingInvoker<ENTITY>(_tableDbName);
-        return invoker.invokePaging(handler);
     }
 
     protected OutsideSqlEntityExecutor<PagingBean> createCountExecutor() {
         final OutsideSqlOption countOption = _outsideSqlOption.copyOptionWithoutPaging();
-        return new OutsideSqlEntityExecutor<PagingBean>(_behaviorCommandInvoker, countOption, _tableDbName, _currentDBDef);
+        return _outsideSqlExecutorFactory.createEntity(_behaviorCommandInvoker, _tableDbName, _currentDBDef,
+                _defaultStatementConfig, countOption);
+    }
+
+    protected <ENTITY> void throwPagingCountSelectNotCountException(String path, PagingBean pmb,
+            Class<ENTITY> entityType, EntityDuplicatedException e) {
+        createBhvExThrower().throwPagingCountSelectNotCountException(_tableDbName, path, pmb, entityType, e);
+    }
+
+    protected <ENTITY> PagingInvoker<ENTITY> createPagingInvoker(PagingBean pmb) {
+        return pmb.createPagingInvoker(_tableDbName);
     }
 
     protected void setupScrollableCursorIfNeeds() {
@@ -206,47 +208,127 @@ public class OutsideSqlPagingExecutor {
             statementConfig = new StatementConfig();
             configure(statementConfig);
         }
-        statementConfig.typeScrollInsensitive();
-    }
-
-    // ===================================================================================
-    //                                                                    Behavior Command
-    //                                                                    ================
-    protected <ENTITY> BehaviorCommand<List<ENTITY>> createSelectListCommand(String path, Object pmb, Class<ENTITY> entityType) {
-        return xsetupCommand(new OutsideSqlSelectListCommand<ENTITY>(), path, pmb, entityType);
-    }
-
-    private <ENTITY> OutsideSqlSelectListCommand<ENTITY> xsetupCommand(OutsideSqlSelectListCommand<ENTITY> command, String path, Object pmb, Class<ENTITY> entityType) {
-        command.setTableDbName(_tableDbName);
-        _behaviorCommandInvoker.injectComponentProperty(command);
-        command.setOutsideSqlPath(path);
-        command.setParameterBean(pmb);
-        command.setOutsideSqlOption(_outsideSqlOption);
-        command.setCurrentDBDef(_currentDBDef);
-        command.setEntityType(entityType);
-        return command;
+        if (_currentDBDef.dbway().isScrollableCursorSupported()) {
+            statementConfig.typeScrollInsensitive();
+        } else {
+            statementConfig.typeForwardOnly();
+        }
     }
 
     /**
-     * Invoke the command of behavior.
-     * @param <RESULT> The type of result.
-     * @param behaviorCommand The command of behavior. (NotNull)
-     * @return The instance of result. (Nullable)
+     * Select list with paging by the outside-SQL. (count-select is not executed, only paging-select)<br />
+     * <pre>
+     * String path = MemberBhv.PATH_selectSimpleMember;
+     * SimpleMemberPmb pmb = new SimpleMemberPmb();
+     * pmb.setMemberName_PrefixSearch("S");
+     * pmb.paging(20, 3); <span style="color: #3F7E5E">// 20 records per a page and current page number is 3</span>
+     * Class&lt;SimpleMember&gt; entityType = SimpleMember.class;
+     * ListResultBean&lt;SimpleMember&gt; memberList
+     *     = memberBhv.outsideSql().manualPaging().<span style="color: #FD4747">selectList</span>(path, pmb, entityType);
+     * for (SimpleMember member : memberList) {
+     *     ... = member.get...();
+     * }
+     * </pre>
+     * The parameter-bean needs to extend SimplePagingBean.
+     * The way to generate it is following:
+     * <pre>
+     * <span style="color: #3F7E5E">-- !df:pmb extends SPB!</span>
+     * <span style="color: #3F7E5E">-- !!Integer memberId!!</span>
+     * <span style="color: #3F7E5E">-- !!...!!</span>
+     * </pre>
+     * You don't need to use pagingBean's isPaging() method on your 'Parameter Comment'.
+     * <pre>
+     * ex) ManualPaging and MySQL 
+     * select member.MEMBER_ID
+     *      , member.MEMBER_NAME
+     *      , memberStatus.MEMBER_STATUS_NAME
+     *   from MEMBER member
+     *     left outer join MEMBER_STATUS memberStatus
+     *       on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+     *  <span style="color: #3F7E5E">/*BEGIN&#42;/</span>
+     *  where
+     *    <span style="color: #3F7E5E">/*IF pmb.memberId != null&#42;/</span>
+     *    member.MEMBER_ID = <span style="color: #3F7E5E">/*pmb.memberId&#42;/</span>'123'
+     *    <span style="color: #3F7E5E">/*END&#42;/</span>
+     *    <span style="color: #3F7E5E">/*IF pmb.memberName != null&#42;/</span>
+     *    and member.MEMBER_NAME like <span style="color: #3F7E5E">/*pmb.memberName&#42;/</span>'Billy%'
+     *    <span style="color: #3F7E5E">/*END&#42;/</span>
+     *  <span style="color: #3F7E5E">/*END&#42;/</span>
+     *  order by member.UPDATE_DATETIME desc
+     *  limit <span style="color: #3F7E5E">/*$pmb.pageStartIndex&#42;/</span>80, <span style="color: #3F7E5E">/*$pmb.fetchSize&#42;/</span>20
+     * </pre>
+     * @param <ENTITY> The type of entity.
+     * @param path The path of SQL that executes count and paging. (NotNull)
+     * @param pmb The bean of paging parameter. (NotNull)
+     * @param entityType The type of result entity. (NotNull)
+     * @return The result bean of paged list. (NotNull)
+     * @exception org.seasar.robot.dbflute.exception.OutsideSqlNotFoundException When the outside-SQL is not found.
+     * @exception org.seasar.robot.dbflute.exception.DangerousResultSizeException When the result size is over the specified safety size.
      */
-    protected <RESULT> RESULT invoke(BehaviorCommand<RESULT> behaviorCommand) {
-        return _behaviorCommandInvoker.invoke(behaviorCommand);
+    public <ENTITY> ListResultBean<ENTITY> selectList(String path, PagingBean pmb, Class<ENTITY> entityType) {
+        return doSelectList(path, pmb, entityType);
+    }
+
+    protected <ENTITY> ListResultBean<ENTITY> doSelectList(String path, PagingBean pmb, Class<ENTITY> entityType) {
+        setupScrollableCursorIfNeeds();
+        try {
+            return createBasicExecutor().selectList(path, pmb, entityType);
+        } catch (FetchingOverSafetySizeException e) {
+            createBhvExThrower().throwDangerousResultSizeException(pmb, e);
+            return null; // unreachable
+        }
+    }
+
+    protected OutsideSqlBasicExecutor createBasicExecutor() {
+        return _outsideSqlExecutorFactory.createBasic(_behaviorCommandInvoker, _tableDbName, _currentDBDef,
+                _defaultStatementConfig, _outsideSqlOption);
     }
 
     // ===================================================================================
     //                                                                              Option
     //                                                                              ======
-    public OutsideSqlPagingExecutor configure(StatementConfig statementConfig) {
-		_outsideSqlOption.setStatementConfig(statementConfig);
+    /**
+     * Set up remove-block-comment for this outside-SQL.
+     * @return this. (NotNull)
+     */
+    public OutsideSqlPagingExecutor removeBlockComment() {
+        _outsideSqlOption.removeBlockComment();
         return this;
     }
 
-    public OutsideSqlPagingExecutor dynamicBinding() {
-        _outsideSqlOption.dynamicBinding();
+    /**
+     * Set up remove-line-comment for this outside-SQL.
+     * @return this. (NotNull)
+     */
+    public OutsideSqlPagingExecutor removeLineComment() {
+        _outsideSqlOption.removeLineComment();
         return this;
+    }
+
+    /**
+     * Set up format-SQL for this outside-SQL. <br />
+     * (For example, empty lines removed)
+     * @return this. (NotNull)
+     */
+    public OutsideSqlPagingExecutor formatSql() {
+        _outsideSqlOption.formatSql();
+        return this;
+    }
+
+    /**
+     * Configure statement JDBC options. (For example, queryTimeout, fetchSize, ...)
+     * @param statementConfig The configuration of statement. (NullAllowed)
+     * @return this. (NotNull)
+     */
+    public OutsideSqlPagingExecutor configure(StatementConfig statementConfig) {
+        _outsideSqlOption.setStatementConfig(statementConfig);
+        return this;
+    }
+
+    // ===================================================================================
+    //                                                                    Exception Helper
+    //                                                                    ================
+    protected BehaviorExceptionThrower createBhvExThrower() {
+        return _behaviorCommandInvoker.createBehaviorExceptionThrower();
     }
 }

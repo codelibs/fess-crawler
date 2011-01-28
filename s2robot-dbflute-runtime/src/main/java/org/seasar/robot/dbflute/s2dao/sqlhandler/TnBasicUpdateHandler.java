@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,39 +23,27 @@ import javax.sql.DataSource;
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
-public class TnBasicUpdateHandler extends TnBasicHandler {
+public class TnBasicUpdateHandler extends TnBasicParameterHandler {
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public TnBasicUpdateHandler(DataSource dataSource, String sql, StatementFactory statementFactory) {
-        super(dataSource, sql, statementFactory);
+    public TnBasicUpdateHandler(DataSource dataSource, StatementFactory statementFactory, String sql) {
+        super(dataSource, statementFactory, sql);
     }
 
     // ===================================================================================
     //                                                                             Execute
     //                                                                             =======
-    public int execute(Object[] args) {
-        return execute(args, getArgTypes(args));
-    }
-
-    public int execute(Object[] args, Class<?>[] argTypes) {
-        Connection connection = getConnection();
-        try {
-            return execute(connection, args, argTypes);
-        } finally {
-            close(connection);
-        }
-    }
-
-    public int execute(Connection connection, Object[] args, Class<?>[] argTypes) {
+    @Override
+    protected Object doExecute(Connection conn, Object[] args, Class<?>[] argTypes) {
         logSql(args, argTypes);
-        PreparedStatement ps = prepareStatement(connection);
+        final PreparedStatement ps = prepareStatement(conn);
         try {
-            bindArgs(ps, args, argTypes);
+            bindArgs(conn, ps, args, argTypes);
             return executeUpdate(ps);
         } finally {
             close(ps);

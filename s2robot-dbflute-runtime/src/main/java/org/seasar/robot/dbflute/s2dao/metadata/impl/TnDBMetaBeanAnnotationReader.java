@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.seasar.robot.dbflute.s2dao.metadata.TnBeanAnnotationReader;
 import org.seasar.robot.dbflute.util.DfReflectionUtil;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnDBMetaBeanAnnotationReader implements TnBeanAnnotationReader {
@@ -40,37 +40,35 @@ public class TnDBMetaBeanAnnotationReader implements TnBeanAnnotationReader {
     // ===================================================================================
     //                                                                          Definition
     //                                                                          ==========
-    public String VALUE_TYPE_SUFFIX = "_VALUE_TYPE";
+    public static final String VALUE_TYPE_SUFFIX = TnFieldBeanAnnotationReader.VALUE_TYPE_SUFFIX;
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    protected final Class<?> beanClass;
-    protected final boolean simpleType;
-    protected final TnFieldBeanAnnotationReader fieldBeanAnnotationReader;
-    protected final DBMeta dbmeta;
-    protected final DfBeanDesc beanDesc;
+    protected final Class<?> _beanClass;
+    protected final boolean _simpleType;
+    protected final TnFieldBeanAnnotationReader _fieldBeanAnnotationReader;
+    protected final DBMeta _dbmeta;
+    protected final DfBeanDesc _beanDesc;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
     public TnDBMetaBeanAnnotationReader(Class<?> beanClass) {
-        this.beanClass = beanClass;
-        simpleType = isSimpleType(beanClass);
-        if (simpleType) {
-            dbmeta = null;
-            beanDesc = null;
-            fieldBeanAnnotationReader = null;
-            return;
-        }
-        if (!Entity.class.isAssignableFrom(beanClass)) {
-            fieldBeanAnnotationReader = new TnFieldBeanAnnotationReader(beanClass);
-            dbmeta = null;
-            beanDesc = null;
-        } else {
-            fieldBeanAnnotationReader = null;
-            this.dbmeta = ((Entity) DfReflectionUtil.newInstance(beanClass)).getDBMeta();
-            this.beanDesc = DfBeanDescFactory.getBeanDesc(beanClass);
+        _beanClass = beanClass;
+        _simpleType = isSimpleType(beanClass);
+        if (_simpleType) {
+            _fieldBeanAnnotationReader = null;
+            _dbmeta = null;
+            _beanDesc = null;
+        } else if (!Entity.class.isAssignableFrom(beanClass)) {
+            _fieldBeanAnnotationReader = new TnFieldBeanAnnotationReader(beanClass);
+            _dbmeta = null;
+            _beanDesc = null;
+        } else { // mainly here for DBFlute
+            _fieldBeanAnnotationReader = null;
+            _dbmeta = ((Entity) DfReflectionUtil.newInstance(beanClass)).getDBMeta();
+            _beanDesc = DfBeanDescFactory.getBeanDesc(beanClass);
         }
     }
 
@@ -87,92 +85,92 @@ public class TnDBMetaBeanAnnotationReader implements TnBeanAnnotationReader {
      * {@inheritDoc}}
      */
     public String getColumnAnnotation(DfPropertyDesc pd) {
-        if (simpleType) {
+        if (_simpleType) {
             return null;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getColumnAnnotation(pd);
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getColumnAnnotation(pd);
         }
-        if (!dbmeta.hasColumn(pd.getPropertyName())) {
+        if (!_dbmeta.hasColumn(pd.getPropertyName())) {
             return null;
         }
-        return dbmeta.findColumnInfo(pd.getPropertyName()).getColumnDbName();
+        return _dbmeta.findColumnInfo(pd.getPropertyName()).getColumnDbName();
     }
 
     /**
      * {@inheritDoc}}
      */
     public String getTableAnnotation() {
-        if (simpleType) {
+        if (_simpleType) {
             return null;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getTableAnnotation();
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getTableAnnotation();
         }
-        return dbmeta.getTableDbName();
+        return _dbmeta.getTableDbName();
     }
 
     public String getVersionNoPropertyName() {
-        if (simpleType) {
+        if (_simpleType) {
             return null;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getVersionNoPropertyName();
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getVersionNoPropertyName();
         }
-        if (!dbmeta.hasVersionNo()) {
+        if (!_dbmeta.hasVersionNo()) {
             return null;
         }
-        return dbmeta.getVersionNoColumnInfo().getPropertyName();
+        return _dbmeta.getVersionNoColumnInfo().getPropertyName();
     }
 
     public String getTimestampPropertyName() {
-        if (simpleType) {
+        if (_simpleType) {
             return null;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getTimestampPropertyName();
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getTimestampPropertyName();
         }
-        if (!dbmeta.hasUpdateDate()) {
+        if (!_dbmeta.hasUpdateDate()) {
             return null;
         }
-        return dbmeta.getUpdateDateColumnInfo().getPropertyName();
+        return _dbmeta.getUpdateDateColumnInfo().getPropertyName();
     }
 
     public String getId(DfPropertyDesc pd) {
-        if (simpleType) {
+        if (_simpleType) {
             return null;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getId(pd);
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getId(pd);
         }
-        if (!dbmeta.hasColumn(pd.getPropertyName())) {
+        if (!_dbmeta.hasColumn(pd.getPropertyName())) {
             return null;
         }
-        ColumnInfo columnInfo = dbmeta.findColumnInfo(pd.getPropertyName());
+        final ColumnInfo columnInfo = _dbmeta.findColumnInfo(pd.getPropertyName());
 
         // Identity only here because Sequence is handled by an other component.
-        if (dbmeta.hasIdentity() && columnInfo.isAutoIncrement()) {
+        if (_dbmeta.hasIdentity() && columnInfo.isAutoIncrement()) {
             return "identity";
         }
         return null;
     }
 
     public String getRelationKey(DfPropertyDesc pd) {
-        if (simpleType) {
+        if (_simpleType) {
             return null;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getRelationKey(pd);
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getRelationKey(pd);
         }
-        if (!dbmeta.hasForeign(pd.getPropertyName())) {
+        if (!_dbmeta.hasForeign(pd.getPropertyName())) {
             return null;
         }
-        ForeignInfo foreignInfo = dbmeta.findForeignInfo(pd.getPropertyName());
-        Map<ColumnInfo, ColumnInfo> localForeignColumnInfoMap = foreignInfo.getLocalForeignColumnInfoMap();
-        Set<ColumnInfo> keySet = localForeignColumnInfoMap.keySet();
-        StringBuilder sb = new StringBuilder();
+        final ForeignInfo foreignInfo = _dbmeta.findForeignInfo(pd.getPropertyName());
+        final Map<ColumnInfo, ColumnInfo> localForeignColumnInfoMap = foreignInfo.getLocalForeignColumnInfoMap();
+        final Set<ColumnInfo> keySet = localForeignColumnInfoMap.keySet();
+        final StringBuilder sb = new StringBuilder();
         for (ColumnInfo localColumnInfo : keySet) {
-            ColumnInfo foreignColumnInfo = localForeignColumnInfoMap.get(localColumnInfo);
+            final ColumnInfo foreignColumnInfo = localForeignColumnInfoMap.get(localColumnInfo);
             if (sb.length() > 0) {
                 sb.append(", ");
             }
@@ -183,38 +181,38 @@ public class TnDBMetaBeanAnnotationReader implements TnBeanAnnotationReader {
     }
 
     public int getRelationNo(DfPropertyDesc pd) {
-        if (simpleType) {
+        if (_simpleType) {
             return 0;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getRelationNo(pd);
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getRelationNo(pd);
         }
-        ForeignInfo foreignInfo = dbmeta.findForeignInfo(pd.getPropertyName());
+        final ForeignInfo foreignInfo = _dbmeta.findForeignInfo(pd.getPropertyName());
         return foreignInfo.getRelationNo();
     }
 
     public boolean hasRelationNo(DfPropertyDesc pd) {
-        if (simpleType) {
+        if (_simpleType) {
             return false;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.hasRelationNo(pd);
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.hasRelationNo(pd);
         }
-        return dbmeta.hasForeign(pd.getPropertyName());
+        return _dbmeta.hasForeign(pd.getPropertyName());
     }
 
     public String getValueType(DfPropertyDesc pd) {
-        if (simpleType) {
+        if (_simpleType) {
             return null;
         }
-        if (fieldBeanAnnotationReader != null) {
-            return fieldBeanAnnotationReader.getValueType(pd);
+        if (_fieldBeanAnnotationReader != null) {
+            return _fieldBeanAnnotationReader.getValueType(pd);
         }
 
         // ValueType is for user customization so this should not be handled by DBMeta.
-        String valueTypeKey = pd.getPropertyName() + VALUE_TYPE_SUFFIX;
-        if (beanDesc.hasField(valueTypeKey)) {
-            Field field = beanDesc.getField(valueTypeKey);
+        final String valueTypeKey = pd.getPropertyName() + VALUE_TYPE_SUFFIX;
+        if (_beanDesc.hasField(valueTypeKey)) {
+            Field field = _beanDesc.getField(valueTypeKey);
             return (String) DfReflectionUtil.getValue(field, null);
         }
         return null;

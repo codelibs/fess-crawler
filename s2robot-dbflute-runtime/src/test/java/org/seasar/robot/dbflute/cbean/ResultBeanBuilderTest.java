@@ -12,7 +12,7 @@ public class ResultBeanBuilderTest extends PlainTestCase {
         // ## Arrange ##
         SimplePagingBean pb = new SimplePagingBean();
         pb.fetchFirst(30);
-        pb.getSqlClause().registerOrderBy("aaa", "aaa", true);
+        pb.getSqlClause().registerOrderBy("aaa", true);
         ResultBeanBuilder<String> tgt = createTarget();
 
         // ## Act ##

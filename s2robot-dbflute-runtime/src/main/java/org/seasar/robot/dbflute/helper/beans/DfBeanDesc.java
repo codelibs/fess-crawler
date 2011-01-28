@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.seasar.robot.dbflute.helper.beans.exception.DfBeanMethodNotFoundExcep
 import org.seasar.robot.dbflute.helper.beans.exception.DfBeanPropertyNotFoundException;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public interface DfBeanDesc {
@@ -34,6 +34,9 @@ public interface DfBeanDesc {
     // ===================================================================================
     //                                                                                Bean
     //                                                                                ====
+    /**
+     * @return The class for bean. (NotNull)
+     */
     Class<?> getBeanClass();
 
     // ===================================================================================
@@ -42,7 +45,7 @@ public interface DfBeanDesc {
     Constructor<?> getSuitableConstructor(Object[] args) throws DfBeanConstructorNotFoundException;
 
     Constructor<?> getConstructor(Class<?>[] paramTypes);
-    
+
     // ===================================================================================
     //                                                                            Property
     //                                                                            ========
@@ -51,9 +54,9 @@ public interface DfBeanDesc {
     DfPropertyDesc getPropertyDesc(String propertyName) throws DfBeanPropertyNotFoundException;
 
     int getPropertyDescSize();
-    
+
     List<String> getProppertyNameList();
-    
+
     // ===================================================================================
     //                                                                               Field
     //                                                                               =====
@@ -62,6 +65,7 @@ public interface DfBeanDesc {
     Field getField(String fieldName) throws DfBeanFieldNotFoundException;
 
     int getFieldSize();
+
     // ===================================================================================
     //                                                                              Method
     //                                                                              ======
@@ -78,11 +82,13 @@ public interface DfBeanDesc {
     boolean hasMethod(String methodName);
 
     String[] getMethodNames();
-    
+
     // ===================================================================================
     //                                                                          Reflection
     //                                                                          ==========
     Object newInstance(Object[] args) throws DfBeanConstructorNotFoundException;
+
     Object invoke(Object target, String methodName, Object[] args) throws DfBeanMethodNotFoundException;
+
     Object getFieldValue(String fieldName, Object target) throws DfBeanFieldNotFoundException;
 }

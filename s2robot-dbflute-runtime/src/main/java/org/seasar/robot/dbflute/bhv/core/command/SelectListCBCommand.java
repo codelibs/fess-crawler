@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
 import org.seasar.robot.dbflute.cbean.FetchAssistContext;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnResultSetHandler;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaData;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * @author jflute
@@ -73,13 +74,19 @@ public class SelectListCBCommand<ENTITY extends Entity> extends AbstractSelectCB
     // ===================================================================================
     //                                                               SqlExecution Handling
     //                                                               =====================
+    @Override
+    public String buildSqlExecutionKey() {
+        final String entityName = DfTypeUtil.toClassTitle(_entityType);
+        return super.buildSqlExecutionKey() + ":" + entityName;
+    }
+
     public SqlExecutionCreator createSqlExecutionCreator() {
         assertStatus("createSqlExecutionCreator");
         return new SqlExecutionCreator() {
             public SqlExecution createSqlExecution() {
                 TnBeanMetaData bmd = createBeanMetaData();
-                TnResultSetHandler handler = createBeanListMetaDataResultSetHandler(bmd);
-                return createSelectCBExecution(_conditionBeanType, handler);
+                TnResultSetHandler handler = createBeanListResultSetHandler(bmd);
+                return createSelectCBExecution(_conditionBean.getClass(), handler);
             }
         };
     }

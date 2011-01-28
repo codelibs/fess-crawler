@@ -18,7 +18,7 @@ public class PagingInvokerTest extends PlainTestCase {
         // ## Arrange ##
         final List<String> selectedList = new ArrayList<String>();
         final SimplePagingBean pagingBean = new SimplePagingBean();
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         PagingInvoker<String> tgt = createTarget();
 
@@ -53,12 +53,14 @@ public class PagingInvokerTest extends PlainTestCase {
         // ## Arrange ##
         final List<String> selectedList = new ArrayList<String>();
         final SimplePagingBean pagingBean = new SimplePagingBean() {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isCountLater() {
+            public boolean canPagingCountLater() {
                 return true;
             }
         };
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         PagingInvoker<String> tgt = createTarget();
 
@@ -94,7 +96,7 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 19);
         final SimplePagingBean pagingBean = new SimplePagingBean();
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         PagingInvoker<String> tgt = createTarget();
 
@@ -130,12 +132,14 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 19);
         final SimplePagingBean pagingBean = new SimplePagingBean() {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isCountLater() {
+            public boolean canPagingCountLater() {
                 return true;
             }
         };
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         PagingInvoker<String> tgt = createTarget();
 
@@ -171,12 +175,14 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 20);
         final SimplePagingBean pagingBean = new SimplePagingBean() {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isCountLater() {
+            public boolean canPagingCountLater() {
                 return true;
             }
         };
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         PagingInvoker<String> tgt = createTarget();
 
@@ -212,7 +218,7 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 20);
         final SimplePagingBean pagingBean = new SimplePagingBean();
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         PagingInvoker<String> tgt = createTarget();
 
@@ -248,12 +254,14 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 19);
         final SimplePagingBean pagingBean = new SimplePagingBean() {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isCountLater() {
+            public boolean canPagingCountLater() {
                 return true;
             }
         };
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         pagingBean.fetchPage(2);
         PagingInvoker<String> tgt = createTarget();
@@ -290,7 +298,7 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 20);
         final SimplePagingBean pagingBean = new SimplePagingBean();
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         PagingInvoker<String> tgt = createTarget();
 
@@ -326,12 +334,14 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 19);
         final SimplePagingBean pagingBean = new SimplePagingBean() {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isCountLater() {
+            public boolean canPagingCountLater() {
                 return true;
             }
         };
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         pagingBean.fetchPage(3);
         PagingInvoker<String> tgt = createTarget();
@@ -368,12 +378,14 @@ public class PagingInvokerTest extends PlainTestCase {
         final List<String> selectedList = new ArrayList<String>();
         fillList(selectedList, 20);
         final SimplePagingBean pagingBean = new SimplePagingBean() {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isCountLater() {
+            public boolean canPagingCountLater() {
                 return true;
             }
         };
-        pagingBean.getSqlClause().registerOrderBy("aaa", "bbb", true);
+        pagingBean.getSqlClause().registerOrderBy("aaa", true);
         pagingBean.fetchFirst(20);
         pagingBean.fetchPage(3);
         PagingInvoker<String> tgt = createTarget();
@@ -443,14 +455,14 @@ public class PagingInvokerTest extends PlainTestCase {
         // ## Act & Assert ##
         pagingBean.fetchPage(1);
         fillList(selectedList, 28);
-        assertEquals(28, tgt.deriveAllRecordCountFromLastPageValues(selectedList, pagingBean));
+        assertEquals(28, tgt.deriveAllRecordCountByLastPage(selectedList, pagingBean));
         fillList(selectedList, 30);
-        assertEquals(30, tgt.deriveAllRecordCountFromLastPageValues(selectedList, pagingBean));
+        assertEquals(30, tgt.deriveAllRecordCountByLastPage(selectedList, pagingBean));
         pagingBean.fetchPage(2);
         fillList(selectedList, 28);
-        assertEquals(58, tgt.deriveAllRecordCountFromLastPageValues(selectedList, pagingBean));
+        assertEquals(58, tgt.deriveAllRecordCountByLastPage(selectedList, pagingBean));
         fillList(selectedList, 30);
-        assertEquals(60, tgt.deriveAllRecordCountFromLastPageValues(selectedList, pagingBean));
+        assertEquals(60, tgt.deriveAllRecordCountByLastPage(selectedList, pagingBean));
     }
 
     // ===================================================================================

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.seasar.robot.dbflute.resource;
 
 /**
- * The context of internal resource.
+ * The parameters as internal resource.
  * @author jflute
  */
 public class ResourceParameter {
@@ -27,6 +27,7 @@ public class ResourceParameter {
     protected String _outsideSqlPackage;
     protected String _logDateFormat;
     protected String _logTimestampFormat;
+    protected boolean _internalDebug;
 
     // ===================================================================================
     //                                                                            Accessor
@@ -53,5 +54,13 @@ public class ResourceParameter {
 
     public void setLogTimestampFormat(String logTimestampFormat) {
         _logTimestampFormat = logTimestampFormat;
+    }
+
+    public boolean isInternalDebug() {
+        return _internalDebug;
+    }
+
+    public void setInternalDebug(boolean internalDebug) {
+        _internalDebug = internalDebug;
     }
 }

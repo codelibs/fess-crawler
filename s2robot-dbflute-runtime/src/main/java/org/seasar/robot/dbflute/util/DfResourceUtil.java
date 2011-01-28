@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class DfResourceUtil {
@@ -138,10 +138,10 @@ public class DfResourceUtil {
         try {
             in = url.openStream();
         } catch (IOException e) {
-            String msg = url.getClass().getSimpleName() + "#openStream() threw the IO exception!";
+            String msg = DfTypeUtil.toClassTitle(url) + "#openStream() threw the IO exception!";
             throw new IllegalStateException(msg, e);
         }
-        DfResourceUtil.makeFileAndClose(in, outputFilename);
+        makeFileAndClose(in, outputFilename);
     }
 
     // ===================================================================================
@@ -219,14 +219,14 @@ public class DfResourceUtil {
         try {
             fileOutputStream = new FileOutputStream(outputFile, false);
         } catch (FileNotFoundException e) {
-            String msg = "new FileOutputStream(outputFile, false) threw the " + e.getClass().getSimpleName();
+            String msg = "new FileOutputStream(outputFile, false) threw the " + DfTypeUtil.toClassTitle(e);
             msg = msg + ": outputFilename=" + outputFilename;
             throw new IllegalStateException(msg, e);
         }
         try {
             fileOutputStream.write(bytes);
         } catch (IOException e) {
-            String msg = "fileOutputStream.write(toBytes) threw the " + e.getClass().getSimpleName();
+            String msg = "fileOutputStream.write(toBytes) threw the " + DfTypeUtil.toClassTitle(e);
             msg = msg + ": outputFilename=" + outputFilename;
             throw new IllegalStateException(msg, e);
         } finally {

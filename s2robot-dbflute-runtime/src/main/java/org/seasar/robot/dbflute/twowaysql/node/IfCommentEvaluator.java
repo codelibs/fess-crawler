@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,27 +22,32 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.seasar.robot.dbflute.exception.IfCommentDifferentTypeComparisonException;
-import org.seasar.robot.dbflute.exception.IfCommentEmptyExpressionException;
-import org.seasar.robot.dbflute.exception.IfCommentIllegalParameterBeanSpecificationException;
-import org.seasar.robot.dbflute.exception.IfCommentNotBooleanResultException;
-import org.seasar.robot.dbflute.exception.IfCommentNotFoundMethodException;
-import org.seasar.robot.dbflute.exception.IfCommentNotFoundPropertyException;
-import org.seasar.robot.dbflute.exception.IfCommentNullPointerException;
-import org.seasar.robot.dbflute.exception.IfCommentUnsupportedExpressionException;
-import org.seasar.robot.dbflute.exception.IfCommentUnsupportedTypeComparisonException;
+import org.seasar.robot.dbflute.exception.factory.ExceptionMessageBuilder;
 import org.seasar.robot.dbflute.helper.beans.DfBeanDesc;
 import org.seasar.robot.dbflute.helper.beans.DfPropertyDesc;
+import org.seasar.robot.dbflute.helper.beans.exception.DfBeanIllegalPropertyException;
 import org.seasar.robot.dbflute.helper.beans.exception.DfBeanMethodNotFoundException;
-import org.seasar.robot.dbflute.helper.beans.exception.DfBeanPropertyNotFoundException;
 import org.seasar.robot.dbflute.helper.beans.factory.DfBeanDescFactory;
-import org.seasar.robot.dbflute.twowaysql.node.NodeUtil.IllegalParameterBeanHandler;
-import org.seasar.robot.dbflute.twowaysql.pmbean.ParameterBean;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentDifferentTypeComparisonException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentEmptyExpressionException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentIllegalParameterBeanSpecificationException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentListIndexNotNumberException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentListIndexOutOfBoundsException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentMethodInvocationFailureException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNotBooleanResultException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNotFoundMethodException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNotFoundPropertyException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentNullPointerException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentPropertyReadFailureException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentUnsupportedExpressionException;
+import org.seasar.robot.dbflute.twowaysql.exception.IfCommentUnsupportedTypeComparisonException;
+import org.seasar.robot.dbflute.twowaysql.pmbean.MapParameterBean;
 import org.seasar.robot.dbflute.util.DfReflectionUtil;
-import org.seasar.robot.dbflute.util.DfStringUtil;
 import org.seasar.robot.dbflute.util.DfSystemUtil;
 import org.seasar.robot.dbflute.util.DfTypeUtil;
-import org.seasar.robot.dbflute.util.DfTypeUtil.ToTimestampFlexiblyParseException;
+import org.seasar.robot.dbflute.util.Srl;
+import org.seasar.robot.dbflute.util.DfReflectionUtil.ReflectionFailureException;
+import org.seasar.robot.dbflute.util.DfTypeUtil.ParseTimestampException;
 
 /**
  * @author jflute
@@ -69,14 +74,16 @@ public class IfCommentEvaluator {
     private ParameterFinder _finder;
     private String _expression;
     private String _specifiedSql;
+    private LoopInfo _loopInfo;
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public IfCommentEvaluator(ParameterFinder finder, String expression, String specifiedSql) {
+    public IfCommentEvaluator(ParameterFinder finder, String expression, String specifiedSql, LoopInfo loopInfo) {
         this._finder = finder;
         this._expression = expression;
         this._specifiedSql = specifiedSql;
+        this._loopInfo = loopInfo;
     }
 
     // ===================================================================================
@@ -112,9 +119,12 @@ public class IfCommentEvaluator {
         if (_expression == null || _expression.trim().length() == 0) {
             throwIfCommentEmptyExpressionException();
         }
-        String filtered = DfStringUtil.replace(_expression, "()", "");
-        if (filtered.contains("(") || filtered.contains(")")) {
-            throwIfCommentUnsupportedExpressionException();
+        {
+            String filtered = Srl.replace(_expression, "()", "");
+            filtered = Srl.replace(filtered, ".get(", "");
+            if (filtered.contains("(")) {
+                throwIfCommentUnsupportedExpressionException();
+            }
         }
         if (_expression.contains(AND) && _expression.contains(OR)) {
             throwIfCommentUnsupportedExpressionException();
@@ -289,8 +299,8 @@ public class IfCommentEvaluator {
                 if (rearValue.startsWith(quote) && rearValue.endsWith(quote)) {
                     final String literal = rearValue.substring(qlen, rearValue.length() - qlen).trim();
                     try {
-                        return DfTypeUtil.toTimestampFlexibly(literal);
-                    } catch (ToTimestampFlexiblyParseException ignored) {
+                        return DfTypeUtil.toTimestamp(literal);
+                    } catch (ParseTimestampException ignored) {
                     }
                 }
             }
@@ -301,7 +311,7 @@ public class IfCommentEvaluator {
         }
         final List<String> propertyList = new ArrayList<String>();
         String preProperty = setupPropertyList(piece, propertyList);
-        Object baseObject = _finder.find(preProperty);
+        Object baseObject = findBaseObject(preProperty);
         for (String property : propertyList) {
             baseObject = processOneProperty(baseObject, preProperty, property);
             preProperty = property;
@@ -326,7 +336,7 @@ public class IfCommentEvaluator {
         }
         final List<String> propertyList = new ArrayList<String>();
         String preProperty = setupPropertyList(piece, propertyList);
-        Object baseObject = _finder.find(preProperty);
+        Object baseObject = findBaseObject(preProperty);
         for (String property : propertyList) {
             baseObject = processOneProperty(baseObject, preProperty, property);
             preProperty = property;
@@ -342,33 +352,58 @@ public class IfCommentEvaluator {
         return piece.startsWith("pmb");
     }
 
-    protected String setupPropertyList(String piece, List<String> emptyPropertyList) {
+    /**
+     * @param piece The piece of condition. (NotNull)
+     * @param propertyList The list of property except first property. (NotNull, FirstEmpty)
+     * @return The first property. (NotNull)
+     */
+    protected String setupPropertyList(String piece, List<String> propertyList) {
         final List<String> splitList = splitList(piece, ".");
         String firstName = null;
         for (int i = 0; i < splitList.size(); i++) {
+            final String token = splitList.get(i);
             if (i == 0) {
-                assertFirstName(splitList.get(i));
+                assertFirstName(token);
+                firstName = token;
                 continue;
             }
-            emptyPropertyList.add(splitList.get(i));
+            propertyList.add(token);
         }
         return firstName;
     }
 
     protected void assertFirstName(String firstName) {
-        NodeUtil.assertParameterBeanName(firstName, _finder, new IllegalParameterBeanHandler() {
-            public void handle(ParameterBean pmb) {
-                throwIfCommentIllegalParameterBeanSpecificationException();
-            }
-        });
+        if (isLoopCurrentVariable(firstName)) {
+            return;
+        }
+        if (NodeUtil.isCurrentVariableOutOfScope(firstName, isInLoop())) {
+            throwLoopCurrentVariableOutOfForCommentException();
+        }
+        final Object firstArg = _finder.find(firstName); // get from plain context
+        if (NodeUtil.isWrongParameterBeanName(firstName, firstArg)) {
+            throwIfCommentIllegalParameterBeanSpecificationException();
+        }
     }
 
-    protected Object processOneProperty(Object baseObject, String preProperty, String property) {
+    protected void throwLoopCurrentVariableOutOfForCommentException() {
+        NodeUtil.throwLoopCurrentVariableOutOfForCommentException(_expression, _specifiedSql);
+    }
+
+    protected Object processOneProperty(Object baseObject, String firstProperty, String property) {
         if (baseObject == null) {
-            throwIfCommentNullPointerException(preProperty);
+            throwIfCommentNullPointerException(firstProperty);
         }
         final DfBeanDesc beanDesc = DfBeanDescFactory.getBeanDesc(baseObject.getClass());
-        if (property.endsWith(METHOD_SUFFIX)) {
+        if (beanDesc.hasPropertyDesc(property)) { // main case
+            final DfPropertyDesc propertyDesc = beanDesc.getPropertyDesc(property);
+            try {
+                return propertyDesc.getValue(baseObject);
+            } catch (DfBeanIllegalPropertyException e) {
+                throwIfCommentPropertyReadFailureException(baseObject, propertyDesc.getPropertyName(), e);
+                return null; // unreachable
+            }
+        }
+        if (property.endsWith(METHOD_SUFFIX)) { // sub-main case
             final String methodName = property.substring(0, property.length() - METHOD_SUFFIX.length());
             try {
                 final Method method = beanDesc.getMethod(methodName);
@@ -376,21 +411,64 @@ public class IfCommentEvaluator {
             } catch (DfBeanMethodNotFoundException e) {
                 throwIfCommentNotFoundMethodException(baseObject, methodName);
                 return null; // unreachable
+            } catch (ReflectionFailureException e) {
+                throwIfCommentMethodInvocationFailureException(baseObject, methodName, e);
+                return null; // unreachable
             }
-        } else {
-            if (Map.class.isInstance(baseObject)) {
-                final Map<?, ?> map = (Map<?, ?>) baseObject;
+        }
+        if (MapParameterBean.class.isInstance(baseObject)) { // used by union-query internally
+            // if the key does not exist, it does not process
+            // (different specification with Map)
+            final Map<?, ?> map = ((MapParameterBean<?>) baseObject).getParameterMap();
+            if (map.containsKey(property)) {
                 return map.get(property);
-            } else {
+            }
+        }
+        if (Map.class.isInstance(baseObject)) {
+            // if the key does not exist, treated same as a null value
+            final Map<?, ?> map = (Map<?, ?>) baseObject;
+            return map.get(property);
+        }
+        if (List.class.isInstance(baseObject)) {
+            if (property.startsWith("get(") && property.endsWith(")")) {
+                final List<?> list = (List<?>) baseObject;
+                final String exp = Srl.extractScopeFirst(property, "get(", ")").getContent();
                 try {
-                    final DfPropertyDesc propertyDesc = beanDesc.getPropertyDesc(property);
-                    return propertyDesc.getValue(baseObject);
-                } catch (DfBeanPropertyNotFoundException e) {
-                    throwIfCommentNotFoundPropertyException(baseObject, property);
+                    final Integer index = DfTypeUtil.toInteger(exp);
+                    return list.get(index);
+                } catch (NumberFormatException e) {
+                    throwIfCommentListIndexNotNumberException(list, exp, e);
+                    return null; // unreachable
+                } catch (IndexOutOfBoundsException e) {
+                    throwIfCommentListIndexOutOfBoundsException(list, exp, e);
                     return null; // unreachable
                 }
             }
         }
+        throwIfCommentNotFoundPropertyException(baseObject, property);
+        return null; // unreachable
+    }
+
+    // ===================================================================================
+    //                                                                         Base Object
+    //                                                                         ===========
+    protected Object findBaseObject(String firstName) {
+        if (isLoopCurrentVariable(firstName)) {
+            return _loopInfo.getCurrentParameter();
+        } else {
+            return _finder.find(firstName);
+        }
+    }
+
+    // ===================================================================================
+    //                                                                           Loop Info
+    //                                                                           =========
+    protected boolean isInLoop() {
+        return _loopInfo != null;
+    }
+
+    protected boolean isLoopCurrentVariable(String firstName) {
+        return isInLoop() && ForNode.CURRENT_VARIABLE.equals(firstName);
     }
 
     // ===================================================================================
@@ -403,11 +481,11 @@ public class IfCommentEvaluator {
         msg = msg + ln();
         msg = msg + "[Advice]" + ln();
         msg = msg + "Please confirm your IF comment." + ln();
-        msg = msg + "  For example, wrong and correct IF comment is as below:" + ln();
-        msg = msg + "    /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
-        msg = msg + "    (x) - /*IF */" + ln();
-        msg = msg + "    (o) - /*IF pmb.memberId != null*/" + ln();
-        msg = msg + "    - - - - - - - - - -/" + ln();
+        msg = msg + "For example, wrong and correct IF comment is as below:" + ln();
+        msg = msg + "  /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
+        msg = msg + "  (x) - /*IF */" + ln();
+        msg = msg + "  (o) - /*IF pmb.memberId != null*/" + ln();
+        msg = msg + "  - - - - - - - - - -/" + ln();
         msg = msg + ln();
         msg = msg + "[IF Comment Expression]" + ln() + _expression + ln();
         msg = msg + ln();
@@ -425,29 +503,29 @@ public class IfCommentEvaluator {
         msg = msg + ln();
         msg = msg + "[Advice]" + ln();
         msg = msg + "Please confirm your unsupported IF comment." + ln();
-        msg = msg + "  For example, unsupported examples:" + ln();
-        msg = msg + "    (x:andOr) - /*IF (pmb.fooId != null || pmb.barId != null) && pmb.fooName != null*/" + ln();
-        msg = msg + "    (x:argsMethod) - /*IF pmb.buildFooId(123)*/" + ln();
-        msg = msg + "    (x:stringLiteral) - /*IF pmb.fooName == 'Pixy' || pmb.fooName == \"Pixy\"*/" + ln();
-        msg = msg + "    (x:singleEqual) - /*IF pmb.fooId = null*/ --> /*IF pmb.fooId == null*/" + ln();
-        msg = msg + "    (x:anotherNot) - /*IF pmb.fooId <> null*/ --> /*IF pmb.fooId != null*/" + ln();
-        msg = msg + "    (x:doubleQuotation) - /*IF pmb.fooName == \"Pixy\"*/ --> /*IF pmb.fooName == 'Pixy'*/" + ln();
-        msg = msg + "    " + ln();
+        msg = msg + "For example, unsupported examples:" + ln();
+        msg = msg + "  (x:andOr) - /*IF (pmb.fooId != null || pmb.barId != null) && pmb.fooName != null*/" + ln();
+        msg = msg + "  (x:argsMethod) - /*IF pmb.buildFooId(123)*/" + ln();
+        msg = msg + "  (x:stringLiteral) - /*IF pmb.fooName == 'Pixy' || pmb.fooName == \"Pixy\"*/" + ln();
+        msg = msg + "  (x:singleEqual) - /*IF pmb.fooId = null*/ --> /*IF pmb.fooId == null*/" + ln();
+        msg = msg + "  (x:anotherNot) - /*IF pmb.fooId <> null*/ --> /*IF pmb.fooId != null*/" + ln();
+        msg = msg + "  (x:doubleQuotation) - /*IF pmb.fooName == \"Pixy\"*/ --> /*IF pmb.fooName == 'Pixy'*/" + ln();
+        msg = msg + "  " + ln();
         msg = msg + "If you want to write a complex condition, write an ExParameterBean property." + ln();
         msg = msg + "And use the property in IF comment." + ln();
-        msg = msg + "  For example, ExParameterBean original property:" + ln();
-        msg = msg + "    ex) ExParameterBean (your original property)" + ln();
-        msg = msg + "    /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
-        msg = msg + "    public boolean isOriginalMemberProperty() {" + ln();
-        msg = msg + "        return (getMemberId() != null || getBirthdate() != null) && getMemberName() != null);"
+        msg = msg + "For example, ExParameterBean original property:" + ln();
+        msg = msg + "  ex) ExParameterBean (your original property)" + ln();
+        msg = msg + "  /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
+        msg = msg + "  public boolean isOriginalMemberProperty() {" + ln();
+        msg = msg + "      return (getMemberId() != null || getBirthdate() != null) && getMemberName() != null);"
                 + ln();
-        msg = msg + "    }" + ln();
-        msg = msg + "    - - - - - - - - - -/" + ln();
-        msg = msg + "    " + ln();
-        msg = msg + "    ex) IF comment" + ln();
-        msg = msg + "    /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
-        msg = msg + "    /*IF pmb.originalMemberProperty*/" + ln();
-        msg = msg + "    - - - - - - - - - -/" + ln();
+        msg = msg + "  }" + ln();
+        msg = msg + "  - - - - - - - - - -/" + ln();
+        msg = msg + "  " + ln();
+        msg = msg + "  ex) IF comment" + ln();
+        msg = msg + "  /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
+        msg = msg + "  /*IF pmb.originalMemberProperty*/" + ln();
+        msg = msg + "  - - - - - - - - - -/" + ln();
         msg = msg + ln();
         msg = msg + "[IF Comment Expression]" + ln() + _expression + ln();
         msg = msg + ln();
@@ -465,12 +543,12 @@ public class IfCommentEvaluator {
         msg = msg + ln();
         msg = msg + "[Advice]" + ln();
         msg = msg + "Please confirm your IF comment." + ln();
-        msg = msg + "  For example, wrong and correct IF comment is as below:" + ln();
-        msg = msg + "    (x) - /*IF pmb,memberId != null*/" + ln();
-        msg = msg + "    (x) - /*IF p mb.memberId != null*/" + ln();
-        msg = msg + "    (x) - /*IF pmb:memberId != null*/" + ln();
-        msg = msg + "    (x) - /*IF pnb.memberId != null*/" + ln();
-        msg = msg + "    (o) - /*IF pmb.memberId != null*/" + ln();
+        msg = msg + "For example, wrong and correct IF comment is as below:" + ln();
+        msg = msg + "  (x) - /*IF pmb,memberId != null*/" + ln();
+        msg = msg + "  (x) - /*IF p mb.memberId != null*/" + ln();
+        msg = msg + "  (x) - /*IF pmb:memberId != null*/" + ln();
+        msg = msg + "  (x) - /*IF pnb.memberId != null*/" + ln();
+        msg = msg + "  (o) - /*IF pmb.memberId != null*/" + ln();
         msg = msg + ln();
         msg = msg + "[IF Comment Expression]" + ln() + _expression + ln();
         msg = msg + ln();
@@ -481,30 +559,78 @@ public class IfCommentEvaluator {
         throw new IfCommentIllegalParameterBeanSpecificationException(msg);
     }
 
+    protected void throwIfCommentPropertyReadFailureException(Object baseObject, String propertyName,
+            DfBeanIllegalPropertyException e) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("Failed to read the property on the IF comment!");
+        br.addItem("Advice");
+        br.addElement("Please confirm your IF comment properties.");
+        br.addElement("(readable? accessbile? and so on...)");
+        br.addItem("IF Comment");
+        br.addElement(_expression);
+        br.addItem("Illegal Property");
+        br.addElement(DfTypeUtil.toClassTitle(baseObject) + "." + propertyName);
+        br.addItem("Exception Message");
+        br.addElement(e.getClass());
+        br.addElement(e.getMessage());
+        final Throwable cause = e.getCause();
+        if (cause != null) { // basically DfBeanIllegalPropertyException has its cause
+            br.addElement(cause.getClass());
+            br.addElement(cause.getMessage());
+            final Throwable nextCause = cause.getCause();
+            if (nextCause != null) {
+                br.addElement(nextCause.getClass());
+                br.addElement(nextCause.getMessage());
+            }
+        }
+        br.addItem("Specified ParameterBean");
+        br.addElement(getDisplayParameterBean());
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        throw new IfCommentPropertyReadFailureException(msg, e);
+    }
+
     protected void throwIfCommentNotFoundMethodException(Object baseObject, String notFoundMethod) {
-        String msg = "Look! Read the message below." + ln();
-        msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
-        msg = msg + "The IF comment method was not found!" + ln();
-        msg = msg + ln();
-        msg = msg + "[Advice]" + ln();
-        msg = msg + "Please confirm your IF comment properties." + ln();
-        msg = msg + "  For example, wrong and correct IF comment is as below:" + ln();
-        msg = msg + "    /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
-        msg = msg + "    (x) - /*IF pmb.getMemborWame() != null*/" + ln();
-        msg = msg + "    (o) - /*IF pmb.getMemberName() != null*/" + ln();
-        msg = msg + "    - - - - - - - - - -/" + ln();
-        msg = msg + ln();
-        msg = msg + "[IF Comment Expression]" + ln() + _expression + ln();
-        msg = msg + ln();
-        msg = msg + "[Not Found Method]" + ln();
-        msg = msg + (baseObject != null ? baseObject.getClass().getSimpleName() + "." : "");
-        msg = msg + notFoundMethod + "()" + ln();
-        msg = msg + ln();
-        msg = msg + "[Specified ParameterBean]" + ln() + getDisplayParameterBean() + ln();
-        msg = msg + ln();
-        msg = msg + "[Specified SQL]" + ln() + _specifiedSql + ln();
-        msg = msg + "* * * * * * * * * */";
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("The method on the IF comment was not found!");
+        br.addItem("Advice");
+        br.addElement("Please confirm your IF comment properties.");
+        br.addElement("For example, wrong and correct IF comment is as below:");
+        br.addElement("  /- - - - - - - - - - - - - - - - - - - - - - - - - - ");
+        br.addElement("  (x) - /*IF pmb.getMemborWame() != null*/");
+        br.addElement("  (o) - /*IF pmb.getMemberName() != null*/");
+        br.addElement("  - - - - - - - - - -/");
+        br.addItem("IF Comment");
+        br.addElement(_expression);
+        br.addItem("NotFound Method");
+        br.addElement(DfTypeUtil.toClassTitle(baseObject) + "." + notFoundMethod + "()");
+        br.addItem("Specified ParameterBean");
+        br.addElement(getDisplayParameterBean());
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
         throw new IfCommentNotFoundMethodException(msg);
+    }
+
+    protected void throwIfCommentMethodInvocationFailureException(Object baseObject, String methodName,
+            ReflectionFailureException e) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("Failed to invoke the method on the IF comment!");
+        br.addItem("Advice");
+        br.addElement("Please confirm the method implementation on your comment.");
+        br.addItem("IF Comment");
+        br.addElement(_expression);
+        br.addItem("Failure Method");
+        br.addElement(DfTypeUtil.toClassTitle(baseObject) + "." + methodName + "()");
+        br.addItem("Exception Message");
+        br.addElement(e.getMessage());
+        br.addItem("Specified ParameterBean");
+        br.addElement(getDisplayParameterBean());
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        throw new IfCommentMethodInvocationFailureException(msg, e);
     }
 
     protected void throwIfCommentNotFoundPropertyException(Object baseObject, String notFoundProperty) {
@@ -514,16 +640,16 @@ public class IfCommentEvaluator {
         msg = msg + ln();
         msg = msg + "[Advice]" + ln();
         msg = msg + "Please confirm your IF comment properties." + ln();
-        msg = msg + "  For example, wrong and correct IF comment is as below:" + ln();
-        msg = msg + "    /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
-        msg = msg + "    (x) - /*IF pmb.memderBame != null*/" + ln();
-        msg = msg + "    (o) - /*IF pmb.memberName != null*/" + ln();
-        msg = msg + "    - - - - - - - - - -/" + ln();
+        msg = msg + "For example, wrong and correct IF comment is as below:" + ln();
+        msg = msg + "  /- - - - - - - - - - - - - - - - - - - - - - - - - - " + ln();
+        msg = msg + "  (x) - /*IF pmb.memderBame != null*/" + ln();
+        msg = msg + "  (o) - /*IF pmb.memberName != null*/" + ln();
+        msg = msg + "  - - - - - - - - - -/" + ln();
         msg = msg + ln();
         msg = msg + "[IF Comment Expression]" + ln() + _expression + ln();
         msg = msg + ln();
-        msg = msg + "[Not Found Property]" + ln();
-        msg = msg + (baseObject != null ? baseObject.getClass().getSimpleName() + "." : "");
+        msg = msg + "[not found Property]" + ln();
+        msg = msg + (baseObject != null ? DfTypeUtil.toClassTitle(baseObject) + "." : "");
         msg = msg + notFoundProperty + ln();
         msg = msg + ln();
         msg = msg + "[Specified ParameterBean]" + ln() + getDisplayParameterBean() + ln();
@@ -536,7 +662,7 @@ public class IfCommentEvaluator {
     protected void throwIfCommentNullPointerException(String nullProperty) {
         String msg = "Look! Read the message below." + ln();
         msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln();
-        msg = msg + "The IF comment had the null pointer!" + ln();
+        msg = msg + "The IF comment met the null pointer!" + ln();
         msg = msg + ln();
         msg = msg + "[Advice]" + ln();
         msg = msg + "Please confirm your IF comment and its property values." + ln();
@@ -623,8 +749,61 @@ public class IfCommentEvaluator {
         throw new IfCommentNotBooleanResultException(msg);
     }
 
+    protected void throwIfCommentListIndexNotNumberException(List<?> list, String notNumberIndex,
+            NumberFormatException e) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("The list index on the IF comment was not number!");
+        br.addItem("Advice");
+        br.addElement("Please confirm the index on your comment.");
+        br.addItem("IF Comment");
+        br.addElement(_expression);
+        br.addItem("Target List");
+        br.addElement(list);
+        br.addItem("NotNumber Index");
+        br.addElement(notNumberIndex);
+        br.addItem("NumberFormatException");
+        br.addElement(e.getMessage());
+        br.addItem("Specified ParameterBean");
+        br.addElement(getDisplayParameterBean());
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        throw new IfCommentListIndexNotNumberException(msg, e);
+    }
+
+    protected void throwIfCommentListIndexOutOfBoundsException(List<?> list, String numberIndex,
+            IndexOutOfBoundsException e) {
+        final ExceptionMessageBuilder br = createExceptionMessageBuilder();
+        br.addNotice("The list index on the IF comment was out of bounds!");
+        br.addItem("Advice");
+        br.addElement("Please confirm the index on your comment.");
+        br.addItem("IF Comment");
+        br.addElement(_expression);
+        br.addItem("Target List");
+        br.addElement(list);
+        br.addItem("OutOfBounds Index");
+        br.addElement(numberIndex);
+        br.addItem("IndexOutOfBoundsException");
+        br.addElement(e.getMessage());
+        br.addItem("Specified ParameterBean");
+        br.addElement(getDisplayParameterBean());
+        br.addItem("Specified SQL");
+        br.addElement(_specifiedSql);
+        final String msg = br.buildExceptionMessage();
+        throw new IfCommentListIndexOutOfBoundsException(msg, e);
+    }
+
     protected Object getDisplayParameterBean() {
-        return _finder.find("pmb");
+        // basically these exceptions are for debug,
+        // so it can show the values of parameter-bean
+        return findBaseObject("pmb");
+    }
+
+    // ===================================================================================
+    //                                                                    Exception Helper
+    //                                                                    ================
+    protected ExceptionMessageBuilder createExceptionMessageBuilder() {
+        return new ExceptionMessageBuilder();
     }
 
     // ===================================================================================
@@ -635,7 +814,7 @@ public class IfCommentEvaluator {
     }
 
     protected List<String> splitList(String str, String delimiter) {
-        return DfStringUtil.splitList(str, delimiter);
+        return Srl.splitList(str, delimiter);
     }
 
     // ===================================================================================

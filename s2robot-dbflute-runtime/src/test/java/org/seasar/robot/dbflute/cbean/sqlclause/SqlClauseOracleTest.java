@@ -15,6 +15,8 @@ public class SqlClauseOracleTest extends PlainTestCase {
         // ## Arrange ##
         final Set<String> markSet = new HashSet<String>();
         SqlClauseOracle target = new SqlClauseOracle("test") {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public SqlClause lockForUpdate() {
                 _lockSqlSuffix = " for update of dummy";
@@ -41,6 +43,8 @@ public class SqlClauseOracleTest extends PlainTestCase {
         // ## Arrange ##
         final Set<String> markSet = new HashSet<String>();
         SqlClauseOracle target = new SqlClauseOracle("test") {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public SqlClause lockForUpdate() {
                 _lockSqlSuffix = " for update of dummy";

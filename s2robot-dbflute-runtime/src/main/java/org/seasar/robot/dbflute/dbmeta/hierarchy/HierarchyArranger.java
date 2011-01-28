@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.dbmeta.info.ForeignInfo;
 import org.seasar.robot.dbflute.dbmeta.info.ReferrerInfo;
 import org.seasar.robot.dbflute.dbmeta.info.RelationInfo;
+import org.seasar.robot.dbflute.util.DfSystemUtil;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * The arranger of hierarchy.
@@ -286,7 +288,7 @@ public class HierarchyArranger<LOCAL_ENTITY extends Entity> {
         final Set<Entry<String, Entity>> entrySet = alreadyRegisteredEntityMap.entrySet();
         for (Entry<String, Entity> entry : entrySet) {
             final Entity currentRegisteredEntity = entry.getValue();
-            currentRegisteredEntity.clearModifiedPropertyNames();
+            currentRegisteredEntity.clearModifiedInfo();
         }
 
         return localTableList;
@@ -541,7 +543,7 @@ public class HierarchyArranger<LOCAL_ENTITY extends Entity> {
 
     @SuppressWarnings("unchecked")
     protected java.util.List<Entity> extractReferrerList(Entity entity, ReferrerInfo referrerInfo) {
-        return (java.util.List<Entity>) invoke(referrerInfo.findGetter(), entity, new Object[] {});
+        return (java.util.List<Entity>) invoke(referrerInfo.reader(), entity, new Object[] {});
     }
 
     // ===================================================================================
@@ -565,7 +567,7 @@ public class HierarchyArranger<LOCAL_ENTITY extends Entity> {
             msg = msg + " table=" + entity.getTableDbName() + " column=" + columnDbName;
             throw new IllegalStateException(msg);
         }
-        invoke(entity.getDBMeta().findColumnInfo(columnDbName).findSetter(), entity, new Object[] { columnValue });
+        invoke(entity.getDBMeta().findColumnInfo(columnDbName).writer(), entity, new Object[] { columnValue });
     }
 
     protected void injectColumnValueMapToDestination(Entity entity, final Map<String, Object> columnValueMap) {
@@ -585,7 +587,7 @@ public class HierarchyArranger<LOCAL_ENTITY extends Entity> {
     }
 
     protected void injectReferrerList(Entity entity, ReferrerInfo referrerInfo, java.util.List<Entity> referrerList) {
-        invoke(referrerInfo.findSetter(), entity, new Object[] { referrerList });
+        invoke(referrerInfo.writer(), entity, new Object[] { referrerList });
     }
 
     protected void injectForeignPrimaryKey(Entity foreignEntity, Map<String, Object> foreigPrimaryKeyMap) {
@@ -663,22 +665,21 @@ public class HierarchyArranger<LOCAL_ENTITY extends Entity> {
         try {
             return method.invoke(target, args);
         } catch (RuntimeException e) {
-            final String lineSeparator = System.getProperty("line.separator");
+            final String ln = DfSystemUtil.getLineSeparator();
             final Class<?>[] parameterTypes = method.getParameterTypes();
-            String msg = "Invoking method threw the exception:" + lineSeparator;
-            msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * *" + lineSeparator;
-            msg = msg + "[" + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()]"
-                    + lineSeparator;
-            msg = msg + " methodArgTypes     = {" + createTypeViewFromTypeArray(parameterTypes) + "}" + lineSeparator;
-            msg = msg + " specifiedArgValues = {" + createValueViewFromValueArray(args) + "}" + lineSeparator;
-            msg = msg + " specifiedArgTypes  = {" + createTypeViewFromValueArray(args) + "}" + lineSeparator;
+            String msg = "Invoking method threw the exception:" + ln;
+            msg = msg + "/* * * * * * * * * * * * * * * * * * * * * * * * * * * *" + ln;
+            msg = msg + "[" + DfTypeUtil.toClassTitle(method.getDeclaringClass()) + "." + method.getName() + "()]" + ln;
+            msg = msg + " methodArgTypes     = {" + createTypeViewFromTypeArray(parameterTypes) + "}" + ln;
+            msg = msg + " specifiedArgValues = {" + createValueViewFromValueArray(args) + "}" + ln;
+            msg = msg + " specifiedArgTypes  = {" + createTypeViewFromValueArray(args) + "}" + ln;
             if (parameterTypes.length > 0 && args.length > 0 && args[0] != null
                     && !parameterTypes[0].equals(args[0].getClass())) {
-                msg = msg + " " + lineSeparator;
+                msg = msg + " " + ln;
                 final String compareString = "{" + parameterTypes[0] + " -- " + args[0].getClass() + "}";
-                msg = msg + " *Warning! The argType is ummatched: " + compareString + lineSeparator;
+                msg = msg + " *Warning! The argType is ummatched: " + compareString + ln;
             }
-            msg = msg + "* * * * * * * * * */" + lineSeparator;
+            msg = msg + "* * * * * * * * * */" + ln;
             throw new RuntimeException(msg, e);
         } catch (java.lang.reflect.InvocationTargetException ex) {
             Throwable t = ex.getCause();
@@ -713,7 +714,7 @@ public class HierarchyArranger<LOCAL_ENTITY extends Entity> {
         final StringBuffer sb = new StringBuffer();
         for (int i = 0; i < array.length; i++) {
             final Object value = array[i];
-            final String typeName = value != null ? value.getClass().getSimpleName() : "null";
+            final String typeName = value != null ? DfTypeUtil.toClassTitle(value) : "null";
             if (sb.length() == 0) {
                 sb.append(typeName);
             } else {
@@ -728,9 +729,9 @@ public class HierarchyArranger<LOCAL_ENTITY extends Entity> {
         for (int i = 0; i < array.length; i++) {
             final Class<?> type = array[i];
             if (sb.length() == 0) {
-                sb.append(type.getSimpleName());
+                sb.append(DfTypeUtil.toClassTitle(type));
             } else {
-                sb.append(", ").append(type.getSimpleName());
+                sb.append(", ").append(DfTypeUtil.toClassTitle(type));
             }
         }
         return sb.toString();

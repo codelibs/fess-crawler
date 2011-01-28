@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import org.seasar.robot.dbflute.jdbc.ValueType;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * @author jflute
@@ -58,7 +59,7 @@ public class DisplaySqlBuilder {
         if (args == null || args.length == 0) {
             return sql;
         }
-        StringBuilder buf = new StringBuilder(sql.length() + args.length * 15);
+        StringBuilder sb = new StringBuilder(sql.length() + args.length * 15);
         int pos = 0;
         int pos2 = 0;
         int pos3 = 0;
@@ -74,10 +75,10 @@ public class DisplaySqlBuilder {
             pos6 = sql.indexOf("*/", pos5 + 1);
             if (pos > 0) {
                 if (pos3 >= 0 && pos3 < pos && pos < pos4) {
-                    buf.append(sql.substring(pos2, pos4 + 1));
+                    sb.append(sql.substring(pos2, pos4 + 1));
                     pos2 = pos4 + 1;
                 } else if (pos5 >= 0 && pos5 < pos && pos < pos6) {
-                    buf.append(sql.substring(pos2, pos6 + 1));
+                    sb.append(sql.substring(pos2, pos6 + 1));
                     pos2 = pos6 + 1;
                 } else {
                     if (args.length <= index) {
@@ -85,17 +86,17 @@ public class DisplaySqlBuilder {
                         msg = msg + " size=" + args.length + " sql=" + sql;
                         throw new IllegalStateException(msg);
                     }
-                    buf.append(sql.substring(pos2, pos));
-                    buf.append(getBindVariableText(args[index], valueTypes[index], logDateFormat, logTimestampFormat));
+                    sb.append(sql.substring(pos2, pos));
+                    sb.append(getBindVariableText(args[index], valueTypes[index], logDateFormat, logTimestampFormat));
                     pos2 = pos + 1;
                     index++;
                 }
             } else {
-                buf.append(sql.substring(pos2));
+                sb.append(sql.substring(pos2));
                 break;
             }
         }
-        return buf.toString();
+        return sb.toString();
     }
 
     // ===================================================================================
@@ -162,22 +163,36 @@ public class DisplaySqlBuilder {
 
     protected static String buildTimestampText(Object bindVariable, String logTimestampFormat) {
         final String format = logTimestampFormat != null ? logTimestampFormat : DEFAULT_TIMESTAMP_FORMAT;
-        final DateFormatResource resource = analyzeDateFormat(format);
-        final DateFormat sdf = createDateFormat(resource);
-        return quote(sdf.format((java.util.Date) bindVariable), resource);
+        final java.util.Date date = (java.util.Date) bindVariable;
+        return processDateDisplay(date, format);
     }
 
     protected static String buildTimeText(Object bindVariable) {
-        final String defaultFormat = DEFAULT_TIME_FORMAT;
-        final DateFormat sdf = createDateFormat(defaultFormat);
-        return quote(sdf.format((java.util.Date) bindVariable));
+        final String format = DEFAULT_TIME_FORMAT;
+        final java.util.Date date = (java.util.Date) bindVariable;
+        final DateFormat df = createDateFormat(format);
+        return quote(df.format(date));
     }
 
     protected static String buildDateText(Object bindVariable, String logDateFormat) {
         final String format = logDateFormat != null ? logDateFormat : DEFAULT_DATE_FORMAT;
+        final java.util.Date date = (java.util.Date) bindVariable;
+        return processDateDisplay(date, format);
+    }
+
+    protected static String processDateDisplay(java.util.Date date, String format) {
         final DateFormatResource resource = analyzeDateFormat(format);
-        final DateFormat sdf = createDateFormat(resource);
-        return quote(sdf.format((java.util.Date) bindVariable), resource);
+        final DateFormat df = createDateFormat(resource);
+        String disp = df.format(date);
+        if (isBCPrefixTarget(date, resource)) {
+            disp = "BC" + disp; // fixed, not use 'G'
+        }
+        return quote(disp, resource);
+    }
+
+    protected static boolean isBCPrefixTarget(java.util.Date date, DateFormatResource resource) {
+        final String format = resource.getFormat();
+        return DfTypeUtil.isDateBC(date) && format.startsWith("yyyy") && !format.contains("G");
     }
 
     protected static DateFormat createDateFormat(String format) {

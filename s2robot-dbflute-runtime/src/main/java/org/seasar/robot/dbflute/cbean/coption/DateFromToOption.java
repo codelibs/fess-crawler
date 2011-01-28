@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,19 @@ package org.seasar.robot.dbflute.cbean.coption;
  * <pre>
  * ex) fromDate:{2007/04/10 08:24:53} toDate:{2007/04/16 14:36:29}
  *
- *   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
  *   new DateFromToOption(); 
- *     --&gt; column &gt;= '2007/04/10 00:00:00' and column &lt; '2007/04/17 00:00:00'
- *   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
- * 
+ *     --&gt; column &gt;= '2007/04/10 00:00:00'
+ *     and column &lt; '2007/04/17 00:00:00'
  * </pre>
  * @author jflute
  */
 public class DateFromToOption extends FromToOption {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                         Constructor

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,87 +15,98 @@
  */
 package org.seasar.robot.dbflute.s2dao.metadata.impl;
 
+import org.seasar.robot.dbflute.dbmeta.name.ColumnSqlName;
+import org.seasar.robot.dbflute.helper.beans.DfPropertyAccessor;
 import org.seasar.robot.dbflute.helper.beans.DfPropertyDesc;
 import org.seasar.robot.dbflute.jdbc.ValueType;
 import org.seasar.robot.dbflute.s2dao.metadata.TnPropertyType;
 import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypes;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
- * {Refers to Seasar and Extends its class}
+ * {Created with reference to S2Container's utility and extended for DBFlute}
  * @author jflute
  */
 public class TnPropertyTypeImpl implements TnPropertyType {
 
-    private DfPropertyDesc propertyDesc;
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
+    protected final DfPropertyDesc _propertyDesc;
+    protected final String _propertyName;
+    protected final String _columnDbName;
+    protected final ColumnSqlName _columnSqlName;
+    protected final ValueType _valueType;
+    protected boolean _primaryKey = false;
+    protected boolean _persistent = true;
 
-    private String propertyName;
-
-    private String columnName;
-
-    private ValueType valueType;
-
-    private boolean primaryKey = false;
-
-    private boolean persistent = true;
-
+    // ===================================================================================
+    //                                                                         Constructor
+    //                                                                         ===========
     public TnPropertyTypeImpl(DfPropertyDesc propertyDesc) {
-        this(propertyDesc, TnValueTypes.OBJECT, propertyDesc.getPropertyName());
+        // for non persistent property (for example, relation)
+        this(propertyDesc, TnValueTypes.DEFAULT_OBJECT, propertyDesc.getPropertyName(), new ColumnSqlName(propertyDesc
+                .getPropertyName()));
     }
 
-    public TnPropertyTypeImpl(DfPropertyDesc propertyDesc, ValueType valueType) {
-        this(propertyDesc, valueType, propertyDesc.getPropertyName());
+    public TnPropertyTypeImpl(DfPropertyDesc propertyDesc, ValueType valueType, String columnDbName,
+            ColumnSqlName columnSqlName) {
+        this._propertyDesc = propertyDesc;
+        this._propertyName = propertyDesc.getPropertyName();
+        this._valueType = valueType;
+        this._columnDbName = columnDbName;
+        this._columnSqlName = columnSqlName;
     }
 
-    public TnPropertyTypeImpl(DfPropertyDesc propertyDesc, ValueType valueType, String columnName) {
-        this.propertyDesc = propertyDesc;
-        this.propertyName = propertyDesc.getPropertyName();
-        this.valueType = valueType;
-        this.columnName = columnName;
+    // ===================================================================================
+    //                                                                      Basic Override
+    //                                                                      ==============
+    @Override
+    public String toString() {
+        return DfTypeUtil.toClassTitle(this) + ":{" + _propertyName + "(" + _columnDbName + "), "
+                + DfTypeUtil.toClassTitle(_valueType) + ", " + _primaryKey + ", " + _persistent + "}";
     }
 
-    public TnPropertyTypeImpl(String propertyName, ValueType valueType) {
-        this(propertyName, valueType, propertyName);
-    }
-
-    public TnPropertyTypeImpl(String propertyName, ValueType valueType, String columnName) {
-        this.propertyName = propertyName;
-        this.valueType = valueType;
-        this.columnName = columnName;
+    // ===================================================================================
+    //                                                                            Accessor
+    //                                                                            ========
+    public DfPropertyAccessor getPropertyAccessor() {
+        return _propertyDesc;
     }
 
     public DfPropertyDesc getPropertyDesc() {
-        return propertyDesc;
+        return _propertyDesc;
     }
 
     public String getPropertyName() {
-        return propertyName;
+        return _propertyName;
     }
 
-    public String getColumnName() {
-        return columnName;
+    public String getColumnDbName() {
+        return _columnDbName;
     }
 
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
+    public ColumnSqlName getColumnSqlName() {
+        return _columnSqlName;
     }
 
     public ValueType getValueType() {
-        return valueType;
+        return _valueType;
     }
 
     public boolean isPrimaryKey() {
-        return primaryKey;
+        return _primaryKey;
     }
 
     public void setPrimaryKey(boolean primaryKey) {
-        this.primaryKey = primaryKey;
+        this._primaryKey = primaryKey;
     }
 
     public boolean isPersistent() {
-        return persistent;
+        return _persistent;
     }
 
     public void setPersistent(boolean persistent) {
-        this.persistent = persistent;
+        this._persistent = persistent;
     }
 }

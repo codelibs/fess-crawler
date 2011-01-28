@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2011 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,28 @@
  */
 package org.seasar.robot.dbflute.cbean;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.seasar.robot.dbflute.cbean.sqlclause.OrderByClause;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseDefault;
+import org.seasar.robot.dbflute.cbean.sqlclause.orderby.OrderByClause;
 import org.seasar.robot.dbflute.exception.PagingPageSizeNotPlusException;
 import org.seasar.robot.dbflute.twowaysql.pmbean.MapParameterBean;
 import org.seasar.robot.dbflute.util.DfSystemUtil;
 
 /**
- * The simple paging-bean.
+ * The simple implementation of paging-bean.
  * @author jflute
  */
-public class SimplePagingBean implements PagingBean, MapParameterBean {
+public class SimplePagingBean implements PagingBean, MapParameterBean<Object>, Serializable {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                           Attribute
@@ -37,10 +44,11 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
     /** SQL clause instance. */
     protected final SqlClause _sqlClause;
     {
-        _sqlClause = new SqlClauseDefault("Dummy");
+        // use only paging methods and order-by methods
+        _sqlClause = new SqlClauseDefault("dummy");
     }
 
-    /** The map of parameter. (Nullable) */
+    /** The map of parameter. (NullAllowed) */
     protected Map<String, Object> _parameterMap;
 
     /** The max size of safety result. */
@@ -50,16 +58,13 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
     protected boolean _paging = true;
 
     /** Is the count executed later? */
-    protected boolean _countLater;
+    protected boolean _pagingCountLater;
 
     /** Can the paging re-select? */
-    protected boolean _canPagingReSelect = true;
+    protected boolean _pagingReSelect = true;
 
     /** Is fetch narrowing valid? */
     protected boolean _fetchNarrowing = true;
-
-    /** The map for parameter. */
-    protected Map<String, Object> _map;
 
     // ===================================================================================
     //                                                        Implementation of PagingBean
@@ -77,8 +82,15 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
     /**
      * {@inheritDoc}
      */
-    public boolean isCountLater() { // for framework
-        return _countLater;
+    public boolean canPagingCountLater() { // for framework
+        return _pagingCountLater;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean canPagingReSelect() { // for framework
+        return _pagingReSelect;
     }
 
     // -----------------------------------------------------
@@ -132,15 +144,15 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
     /**
      * {@inheritDoc}
      */
-    public void disablePagingReSelect() {
-        _canPagingReSelect = false;
+    public void enablePagingCountLater() {
+        _pagingCountLater = true;
     }
 
     /**
      * {@inheritDoc}
      */
-    public boolean canPagingReSelect() {
-        return _canPagingReSelect;
+    public void disablePagingReSelect() {
+        _pagingReSelect = false;
     }
 
     // -----------------------------------------------------
@@ -168,6 +180,16 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
     public PagingBean fetchPage(int fetchPageNumber) {
         getSqlClause().fetchPage(fetchPageNumber);
         return this;
+    }
+
+    // -----------------------------------------------------
+    //                                       Paging Resource
+    //                                       ---------------
+    /**
+     * {@inheritDoc}
+     */
+    public <ENTITY> PagingInvoker<ENTITY> createPagingInvoker(String tableDbName) {
+        return new PagingInvoker<ENTITY>(tableDbName);
     }
 
     // -----------------------------------------------------
@@ -280,18 +302,20 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
     // ===================================================================================
     //                                                       Implementation of OrderByBean
     //                                                       =============================
-    /**
-     * {@inheritDoc}
-     */
-    public OrderByClause getSqlComponentOfOrderByClause() {
-        return getSqlClause().getSqlComponentOfOrderByClause();
-    }
-
+    // basically unused because this class does not have order-by registration I/F
+    // (you can use these methods if you implements original methods at your sub-class of this class)
     /**
      * {@inheritDoc}
      */
     public String getOrderByClause() {
         return getSqlClause().getOrderByClause();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public OrderByClause getOrderByComponent() {
+        return getSqlClause().getOrderByComponent();
     }
 
     /**
@@ -335,19 +359,24 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
      * {@inheritDoc}
      */
     public Map<String, Object> getParameterMap() {
+        initializeParameterMapIfNeeds();
         return _parameterMap;
     }
 
     /**
      * Add the parameter to the map.
      * @param key The key of parameter. (NotNull)
-     * @param value The value of parameter. (Nullable)
+     * @param value The value of parameter. (NullAllowed)
      */
     public void addParameter(String key, Object value) {
+        initializeParameterMapIfNeeds();
+        _parameterMap.put(key, value);
+    }
+
+    protected void initializeParameterMapIfNeeds() {
         if (_parameterMap == null) {
             _parameterMap = new LinkedHashMap<String, Object>();
         }
-        _parameterMap.put(key, value);
     }
 
     // ===================================================================================
@@ -364,8 +393,8 @@ public class SimplePagingBean implements PagingBean, MapParameterBean {
     //                                             SqlClause
     //                                             ---------
     /**
-     * Get sqlClause.
-     * @return SqlClause. (NotNull)
+     * Get SQL clause instance. {Internal}<br />
+     * @return SQL clause. (NotNull)
      */
     protected SqlClause getSqlClause() {
         return _sqlClause;

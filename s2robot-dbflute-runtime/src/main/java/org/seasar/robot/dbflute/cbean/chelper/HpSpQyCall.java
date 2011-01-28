@@ -12,11 +12,11 @@ public interface HpSpQyCall<CQ extends ConditionQuery> {
      * Does it have its own query?
      * @return Determination.
      */
-    public boolean has();
+    boolean has();
 
     /**
      * Delegate query method.
      * @return The condition-query. (NotNull)
      */
-    public CQ qy();
+    CQ qy();
 }

@@ -27,9 +27,6 @@ import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypes;
  */
 public class BsAccessResultDiffCursor {
 
-    // ===================================================================================
-    //                                                                          Definition
-    //                                                                          ==========
     // -----------------------------------------------------
     //                                        Column DB Name
     //                                        --------------
@@ -103,6 +100,11 @@ public class BsAccessResultDiffCursor {
         return TnValueTypes.getValueType(type);
     }
 
+    protected ValueType vt(Class<?> type, String name) {
+        ValueType valueType = TnValueTypes.getPluginValueType(name);
+        return valueType != null ? valueType : vt(type);
+    }
+
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
@@ -148,7 +150,7 @@ public class BsAccessResultDiffCursor {
     //                                                                  ==================
     /**
      * Get the value of id.
-     * @return The value of id. (Nullable)
+     * @return The value of id. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public Long getId() throws SQLException {
@@ -157,7 +159,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of sessionId.
-     * @return The value of sessionId. (Nullable)
+     * @return The value of sessionId. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public String getSessionId() throws SQLException {
@@ -166,7 +168,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of ruleId.
-     * @return The value of ruleId. (Nullable)
+     * @return The value of ruleId. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public String getRuleId() throws SQLException {
@@ -175,7 +177,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of url.
-     * @return The value of url. (Nullable)
+     * @return The value of url. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public String getUrl() throws SQLException {
@@ -184,7 +186,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of parentUrl.
-     * @return The value of parentUrl. (Nullable)
+     * @return The value of parentUrl. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public String getParentUrl() throws SQLException {
@@ -193,7 +195,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of status.
-     * @return The value of status. (Nullable)
+     * @return The value of status. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public Integer getStatus() throws SQLException {
@@ -202,7 +204,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of httpStatusCode.
-     * @return The value of httpStatusCode. (Nullable)
+     * @return The value of httpStatusCode. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public Integer getHttpStatusCode() throws SQLException {
@@ -212,7 +214,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of method.
-     * @return The value of method. (Nullable)
+     * @return The value of method. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public String getMethod() throws SQLException {
@@ -221,7 +223,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of mimeType.
-     * @return The value of mimeType. (Nullable)
+     * @return The value of mimeType. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public String getMimeType() throws SQLException {
@@ -230,7 +232,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of contentLength.
-     * @return The value of contentLength. (Nullable)
+     * @return The value of contentLength. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public Long getContentLength() throws SQLException {
@@ -239,7 +241,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of executionTime.
-     * @return The value of executionTime. (Nullable)
+     * @return The value of executionTime. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public Integer getExecutionTime() throws SQLException {
@@ -248,7 +250,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of createTime.
-     * @return The value of createTime. (Nullable)
+     * @return The value of createTime. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public java.sql.Timestamp getCreateTime() throws SQLException {

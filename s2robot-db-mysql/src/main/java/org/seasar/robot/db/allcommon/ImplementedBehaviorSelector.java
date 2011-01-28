@@ -16,8 +16,8 @@
 package org.seasar.robot.db.allcommon;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,6 +27,7 @@ import org.seasar.robot.dbflute.BehaviorSelector;
 import org.seasar.robot.dbflute.bhv.BehaviorReadable;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.util.DfTraceViewUtil;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * The implementation of behavior selector.
@@ -45,33 +46,10 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     //                                                                           Attribute
     //                                                                           =========
     /** The cache of behavior. */
-    protected Map<Class<? extends BehaviorReadable>, BehaviorReadable> _behaviorCache = newHashMap();
+    protected final Map<Class<? extends BehaviorReadable>, BehaviorReadable> _behaviorCache = newConcurrentHashMap();
 
     /** The container of Seasar. */
     protected S2Container _container;
-
-    // ===================================================================================
-    //                                                                           Component
-    //                                                                           =========
-    @SuppressWarnings("unchecked")
-    public <COMPONENT> COMPONENT getComponent(Class<COMPONENT> componentType) {
-        assertObjectNotNull("componentType", componentType);
-        assertObjectNotNull("_container", _container);
-        try {
-            return (COMPONENT) _container.getComponent(componentType);
-        } catch (ComponentNotFoundRuntimeException e) { // Normally it doesn't come.
-            final COMPONENT component;
-            try {
-                // for HotDeploy Mode
-                component = (COMPONENT) _container.getRoot().getComponent(
-                        componentType);
-            } catch (ComponentNotFoundRuntimeException ignored) {
-                throw e;
-            }
-            _container = _container.getRoot(); // Change container.
-            return component;
-        }
-    }
 
     // ===================================================================================
     //                                                                          Initialize
@@ -86,8 +64,7 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
         long before = 0;
         if (_log.isInfoEnabled()) {
             before = System.currentTimeMillis();
-            _log
-                    .info("/= = = = = = = = = = = = = = = = = initializeConditionBeanMetaData()");
+            _log.info("/= = = = = = = = = = = = = = = = = initializeConditionBeanMetaData()");
         }
         for (DBMeta dbmeta : dbmetas) {
             final BehaviorReadable bhv = byName(dbmeta.getTableDbName());
@@ -167,14 +144,41 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     }
 
     // ===================================================================================
+    //                                                                           Component
+    //                                                                           =========
+    @SuppressWarnings("unchecked")
+    protected <COMPONENT> COMPONENT getComponent(Class<COMPONENT> componentType) { // only for behavior
+        assertObjectNotNull("componentType", componentType);
+        assertObjectNotNull("_container", _container);
+        try {
+            return (COMPONENT) _container.getComponent(componentType);
+        } catch (ComponentNotFoundRuntimeException e) { // Normally it doesn't come.
+            final COMPONENT component;
+            try {
+                // for HotDeploy Mode
+                component = (COMPONENT) _container.getRoot().getComponent(
+                        componentType);
+            } catch (ComponentNotFoundRuntimeException ignored) {
+                throw e;
+            }
+            _container = _container.getRoot(); // Change container.
+            return component;
+        }
+    }
+
+    // ===================================================================================
     //                                                                      General Helper
     //                                                                      ==============
     protected String initUncap(String str) {
         return str.substring(0, 1).toLowerCase() + str.substring(1);
     }
 
-    protected <KEY, VALUE> HashMap<KEY, VALUE> newHashMap() {
-        return new HashMap<KEY, VALUE>();
+    protected String toClassTitle(Object obj) {
+        return DfTypeUtil.toClassTitle(obj);
+    }
+
+    protected <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
+        return new ConcurrentHashMap<KEY, VALUE>();
     }
 
     // ===================================================================================

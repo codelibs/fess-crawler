@@ -32,9 +32,10 @@ public class UrlFilterCQ extends BsUrlFilterCQ {
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
+    // You should NOT touch with this constructor.
     /**
      * Constructor.
-     * @param referrerQuery The instance of referrer query. (Nullable: If null, this is base query)
+     * @param referrerQuery The instance of referrer query. (NullAllowed: If null, this is base query)
      * @param sqlClause The instance of SQL clause. (NotNull)
      * @param aliasName The alias name for this query. (NotNull)
      * @param nestLevel The nest level of this query. (If zero, this is base query)
@@ -45,10 +46,10 @@ public class UrlFilterCQ extends BsUrlFilterCQ {
     }
 
     // ===================================================================================
-    //                                                                      Arrange Method
-    //                                                                      ==============
-    // You can make original arrange query methods here.
-    // public void arrangeXxx() {
-    //     ...
-    // }
+    //                                                                       Arrange Query
+    //                                                                       =============
+    // You can make your arranged query methods here.
+    //public void arrangeXxx() {
+    //    ...
+    //}
 }

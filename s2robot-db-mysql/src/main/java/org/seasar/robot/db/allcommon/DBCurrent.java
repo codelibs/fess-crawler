@@ -38,7 +38,7 @@ public class DBCurrent {
     //                                                                           =========
     protected DBDef _currentDBDef;
     {
-        _currentDBDef = DBDef.codeOf("MySql");
+        _currentDBDef = DBDef.codeOf("mysql");
         if (_currentDBDef == null) {
             _currentDBDef = DBDef.Unknown;
         }

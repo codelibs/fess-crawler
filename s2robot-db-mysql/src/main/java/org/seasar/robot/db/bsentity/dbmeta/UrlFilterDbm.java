@@ -18,11 +18,15 @@ package org.seasar.robot.db.bsentity.dbmeta;
 import java.util.List;
 import java.util.Map;
 
+import org.seasar.robot.db.allcommon.DBCurrent;
+import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.exentity.UrlFilter;
+import org.seasar.robot.dbflute.DBDef;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
+import org.seasar.robot.dbflute.dbmeta.name.TableSqlName;
 import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
@@ -44,38 +48,61 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
+    //                                                                       Current DBDef
+    //                                                                       =============
+    public DBDef getCurrentDBDef() {
+        return DBCurrent.getInstance().currentDBDef();
+    }
+
+    // ===================================================================================
     //                                                                          Table Info
     //                                                                          ==========
+    protected final String _tableDbName = "URL_FILTER";
+
+    protected final String _tablePropertyName = "urlFilter";
+
+    protected final TableSqlName _tableSqlName = new TableSqlName("URL_FILTER",
+            _tableDbName);
+    {
+        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
+                .getTableSqlNameFilter());
+    }
+
     public String getTableDbName() {
-        return "URL_FILTER";
+        return _tableDbName;
     }
 
     public String getTablePropertyName() {
-        return "urlFilter";
+        return _tablePropertyName;
     }
 
-    public String getTableSqlName() {
-        return "URL_FILTER";
+    public TableSqlName getTableSqlName() {
+        return _tableSqlName;
     }
 
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
-    protected ColumnInfo _columnId = cci("ID", null, "id", Long.class, true,
-            true, 19, 0, false, null);
+    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, true,
+            "id", Long.class, true, true, "BIGINT", 19, 0, false, null, null,
+            null, null, null);
 
-    protected ColumnInfo _columnSessionId = cci("SESSION_ID", null,
-            "sessionId", String.class, false, false, 20, 0, false, null);
+    protected final ColumnInfo _columnSessionId = cci("SESSION_ID",
+            "SESSION_ID", null, null, true, "sessionId", String.class, false,
+            false, "VARCHAR", 20, 0, false, null, null, null, null, null);
 
-    protected ColumnInfo _columnUrl = cci("URL", null, "url", String.class,
-            false, false, 65535, 0, false, null);
+    protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null, true,
+            "url", String.class, false, false, "TEXT", 65535, 0, false, null,
+            null, null, null, null);
 
-    protected ColumnInfo _columnFilterType = cci("FILTER_TYPE", null,
-            "filterType", String.class, false, false, 1, 0, false, null);
+    protected final ColumnInfo _columnFilterType = cci("FILTER_TYPE",
+            "FILTER_TYPE", null, null, true, "filterType", String.class, false,
+            false, "VARCHAR", 1, 0, false, null, null, null, null, null);
 
-    protected ColumnInfo _columnCreateTime = cci("CREATE_TIME", null,
-            "createTime", java.sql.Timestamp.class, false, false, 19, 0, false,
-            null);
+    protected final ColumnInfo _columnCreateTime = cci("CREATE_TIME",
+            "CREATE_TIME", null, null, true, "createTime",
+            java.sql.Timestamp.class, false, false, "DATETIME", 19, 0, false,
+            null, null, null, null, null);
 
     public ColumnInfo columnId() {
         return _columnId;
@@ -125,7 +152,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
         return true;
     }
 
-    public boolean hasTwoOrMorePrimaryKeys() {
+    public boolean hasCompoundPrimaryKey() {
         return false;
     }
 
@@ -187,69 +214,16 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                     Entity Handling
     //                                                                     ===============  
-    // -----------------------------------------------------
-    //                                                Accept
-    //                                                ------
-    public void acceptPrimaryKeyMap(Entity entity,
-            Map<String, ? extends Object> primaryKeyMap) {
-        doAcceptPrimaryKeyMap((UrlFilter) entity, primaryKeyMap, _epsMap);
+    public void acceptPrimaryKeyMap(Entity e, Map<String, ? extends Object> m) {
+        doAcceptPrimaryKeyMap((UrlFilter) e, m, _epsMap);
     }
 
-    public void acceptPrimaryKeyMapString(Entity entity,
-            String primaryKeyMapString) {
-        MapStringUtil.acceptPrimaryKeyMapString(primaryKeyMapString, entity);
+    public Map<String, Object> extractPrimaryKeyMap(Entity e) {
+        return doExtractPrimaryKeyMap(e);
     }
 
-    public void acceptColumnValueMap(Entity entity,
-            Map<String, ? extends Object> columnValueMap) {
-        doAcceptColumnValueMap((UrlFilter) entity, columnValueMap, _epsMap);
-    }
-
-    public void acceptColumnValueMapString(Entity entity,
-            String columnValueMapString) {
-        MapStringUtil.acceptColumnValueMapString(columnValueMapString, entity);
-    }
-
-    // -----------------------------------------------------
-    //                                               Extract
-    //                                               -------
-    public String extractPrimaryKeyMapString(Entity entity) {
-        return MapStringUtil.extractPrimaryKeyMapString(entity);
-    }
-
-    public String extractPrimaryKeyMapString(Entity entity, String startBrace,
-            String endBrace, String delimiter, String equal) {
-        return doExtractPrimaryKeyMapString(entity, startBrace, endBrace,
-                delimiter, equal);
-    }
-
-    public String extractColumnValueMapString(Entity entity) {
-        return MapStringUtil.extractColumnValueMapString(entity);
-    }
-
-    public String extractColumnValueMapString(Entity entity, String startBrace,
-            String endBrace, String delimiter, String equal) {
-        return doExtractColumnValueMapString(entity, startBrace, endBrace,
-                delimiter, equal);
-    }
-
-    // -----------------------------------------------------
-    //                                               Convert
-    //                                               -------
-    public List<Object> convertToColumnValueList(Entity entity) {
-        return newArrayList(convertToColumnValueMap(entity).values());
-    }
-
-    public Map<String, Object> convertToColumnValueMap(Entity entity) {
-        return doConvertToColumnValueMap(entity);
-    }
-
-    public List<String> convertToColumnStringValueList(Entity entity) {
-        return newArrayList(convertToColumnStringValueMap(entity).values());
-    }
-
-    public Map<String, String> convertToColumnStringValueMap(Entity entity) {
-        return doConvertToColumnStringValueMap(entity);
+    public Map<String, Object> extractAllColumnMap(Entity e) {
+        return doExtractAllColumnMap(e);
     }
 
     // ===================================================================================
@@ -275,9 +249,9 @@ public class UrlFilterDbm extends AbstractDBMeta {
         findEps(_epsMap, propertyName).setup((UrlFilter) entity, value);
     }
 
-    public static class EpsId implements Eps<UrlFilter> {
+    public class EpsId implements Eps<UrlFilter> {
         public void setup(UrlFilter e, Object v) {
-            e.setId((Long) v);
+            e.setId(ctl(v));
         }
     }
 

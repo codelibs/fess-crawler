@@ -24,7 +24,7 @@ import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
- * The entity of ACCESS_RESULT_DATA that is TABLE. <br />
+ * The entity of ACCESS_RESULT_DATA as TABLE. <br />
  * <pre>
  * [primary-key]
  *     ID
@@ -69,10 +69,10 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     // -----------------------------------------------------
     //                                                Column
     //                                                ------
-    /** ID: {PK : NotNull : BIGINT(19) : FK to ACCESS_RESULT} */
+    /** ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT} */
     protected Long _id;
 
-    /** TRANSFORMER_NAME: {NotNull : VARCHAR(255)} */
+    /** TRANSFORMER_NAME: {NotNull, VARCHAR(255)} */
     protected String _transformerName;
 
     /** DATA: {LONGBLOB(2147483647)} */
@@ -85,24 +85,46 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     //                                              Internal
     //                                              --------
     /** The modified properties for this entity. */
-    protected EntityModifiedProperties _modifiedProperties = newEntityModifiedProperties();
+    protected final EntityModifiedProperties __modifiedProperties = newModifiedProperties();
 
     // ===================================================================================
     //                                                                          Table Name
     //                                                                          ==========
+    /**
+     * {@inheritDoc}
+     */
     public String getTableDbName() {
         return "ACCESS_RESULT_DATA";
     }
 
-    public String getTablePropertyName() { // as JavaBeansRule
+    /**
+     * {@inheritDoc}
+     */
+    public String getTablePropertyName() { // according to Java Beans rule
         return "accessResultData";
     }
 
     // ===================================================================================
     //                                                                              DBMeta
     //                                                                              ======
+    /**
+     * {@inheritDoc}
+     */
     public DBMeta getDBMeta() {
         return DBMetaInstanceHandler.findDBMeta(getTableDbName());
+    }
+
+    // ===================================================================================
+    //                                                                         Primary Key
+    //                                                                         ===========
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasPrimaryKeyValue() {
+        if (getId() == null) {
+            return false;
+        }
+        return true;
     }
 
     // ===================================================================================
@@ -112,8 +134,8 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     protected AccessResult _accessResult;
 
     /**
-     * ACCESS_RESULT as 'accessResult'. {without lazy-load}
-     * @return The entity of foreign property 'accessResult'. (Nullable: If the foreign key does not have 'NotNull' constraint, please check null.)
+     * ACCESS_RESULT as 'accessResult'.
+     * @return The entity of foreign property 'accessResult'. (NullAllowed: If the foreign key does not have 'NotNull' constraint, please check null.)
      */
     public AccessResult getAccessResult() {
         return _accessResult;
@@ -121,7 +143,7 @@ public abstract class BsAccessResultData implements Entity, Serializable {
 
     /**
      * ACCESS_RESULT as 'accessResult'.
-     * @param accessResult The entity of foreign property 'accessResult'. (Nullable)
+     * @param accessResult The entity of foreign property 'accessResult'. (NullAllowed)
      */
     public void setAccessResult(AccessResult accessResult) {
         _accessResult = accessResult;
@@ -131,40 +153,39 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     //                                                                   Referrer Property
     //                                                                   =================
     // ===================================================================================
-    //                                                                       Determination
-    //                                                                       =============
-    public boolean hasPrimaryKeyValue() {
-        if (_id == null) {
-            return false;
-        }
-        return true;
-    }
-
-    // ===================================================================================
     //                                                                 Modified Properties
     //                                                                 ===================
-    public Set<String> getModifiedPropertyNames() {
-        return _modifiedProperties.getPropertyNames();
+    /**
+     * {@inheritDoc}
+     */
+    public Set<String> modifiedProperties() {
+        return __modifiedProperties.getPropertyNames();
     }
 
-    protected EntityModifiedProperties newEntityModifiedProperties() {
-        return new EntityModifiedProperties();
+    /**
+     * {@inheritDoc}
+     */
+    public void clearModifiedInfo() {
+        __modifiedProperties.clear();
     }
 
-    public void clearModifiedPropertyNames() {
-        _modifiedProperties.clear();
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     public boolean hasModification() {
-        return !_modifiedProperties.isEmpty();
+        return !__modifiedProperties.isEmpty();
+    }
+
+    protected EntityModifiedProperties newModifiedProperties() {
+        return new EntityModifiedProperties();
     }
 
     // ===================================================================================
     //                                                                      Basic Override
     //                                                                      ==============
     /**
-     * If the primary-key of the other is same as this one, returns true.
-     * @param other Other entity.
+     * If primary-keys or columns of the other are same as this one, returns true.
+     * @param other The other entity. (NullAllowed)
      * @return Comparing result.
      */
     public boolean equals(Object other) {
@@ -172,36 +193,36 @@ public abstract class BsAccessResultData implements Entity, Serializable {
             return false;
         }
         BsAccessResultData otherEntity = (BsAccessResultData) other;
-        if (!helpComparingValue(getId(), otherEntity.getId())) {
+        if (!xSV(getId(), otherEntity.getId())) {
             return false;
         }
         return true;
     }
 
-    protected boolean helpComparingValue(Object value1, Object value2) {
-        if (value1 == null && value2 == null) {
-            return true;
-        }
-        return value1 != null && value2 != null && value1.equals(value2);
+    protected boolean xSV(Object value1, Object value2) { // isSameValue()
+        return InternalUtil.isSameValue(value1, value2);
     }
 
     /**
-     * Calculates hash-code from primary-key.
-     * @return Hash-code from primary-key.
+     * Calculates the hash-code from primary-keys or columns.
+     * @return The hash-code from primary-key or columns.
      */
     public int hashCode() {
         int result = 17;
-        if (getId() != null) {
-            result = (31 * result) + getId().hashCode();
-        }
+        result = xCH(result, getTableDbName());
+        result = xCH(result, getId());
         return result;
+    }
+
+    protected int xCH(int result, Object value) { // calculateHashcode()
+        return InternalUtil.calculateHashcode(result, value);
     }
 
     /**
      * @return The display string of all columns and relation existences. (NotNull)
      */
     public String toString() {
-        return buildDisplayString(getClass().getSimpleName(), true, true);
+        return buildDisplayString(InternalUtil.toClassTitle(this), true, true);
     }
 
     /**
@@ -217,12 +238,12 @@ public abstract class BsAccessResultData implements Entity, Serializable {
         return sb.toString();
     }
 
-    private String xbRDS(Entity e, String name) { // buildRelationDisplayString()
+    protected String xbRDS(Entity e, String name) { // buildRelationDisplayString()
         return e.buildDisplayString(name, true, true);
     }
 
     /**
-     * @param name The name for display. (Nullable: If it's null, it does not have a name)
+     * @param name The name for display. (NullAllowed: If it's null, it does not have a name)
      * @param column Does it contains column values or not?
      * @param relation Does it contains relation existences or not?
      * @return The display string for this entity. (NotNull)
@@ -234,21 +255,21 @@ public abstract class BsAccessResultData implements Entity, Serializable {
             sb.append(name).append(column || relation ? ":" : "");
         }
         if (column) {
-            sb.append(xbuildColumnString());
+            sb.append(buildColumnString());
         }
         if (relation) {
-            sb.append(xbuildRelationString());
+            sb.append(buildRelationString());
         }
         sb.append("@").append(Integer.toHexString(hashCode()));
         return sb.toString();
     }
 
-    private String xbuildColumnString() {
-        String c = ",";
+    protected String buildColumnString() {
+        String c = ", ";
         StringBuilder sb = new StringBuilder();
         sb.append(c).append(getId());
         sb.append(c).append(getTransformerName());
-        sb.append(c).append(getData());
+        sb.append(c).append(xfBA(getData()));
         sb.append(c).append(getEncoding());
         if (sb.length() > 0) {
             sb.delete(0, c.length());
@@ -257,7 +278,11 @@ public abstract class BsAccessResultData implements Entity, Serializable {
         return sb.toString();
     }
 
-    private String xbuildRelationString() {
+    protected String xfBA(byte[] bytes) { // formatByteArray()
+        return InternalUtil.toString(bytes);
+    }
+
+    protected String buildRelationString() {
         StringBuilder sb = new StringBuilder();
         String c = ",";
         if (_accessResult != null) {
@@ -273,70 +298,70 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * ID: {PK : NotNull : BIGINT(19) : FK to ACCESS_RESULT} <br />
-     * @return The value of the column 'ID'. (Nullable)
+     * [get] ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT} <br />
+     * @return The value of the column 'ID'. (NullAllowed)
      */
     public Long getId() {
         return _id;
     }
 
     /**
-     * ID: {PK : NotNull : BIGINT(19) : FK to ACCESS_RESULT} <br />
-     * @param id The value of the column 'ID'. (Nullable)
+     * [set] ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT} <br />
+     * @param id The value of the column 'ID'. (NullAllowed)
      */
     public void setId(Long id) {
-        _modifiedProperties.addPropertyName("id");
+        __modifiedProperties.addPropertyName("id");
         this._id = id;
     }
 
     /**
-     * TRANSFORMER_NAME: {NotNull : VARCHAR(255)} <br />
-     * @return The value of the column 'TRANSFORMER_NAME'. (Nullable)
+     * [get] TRANSFORMER_NAME: {NotNull, VARCHAR(255)} <br />
+     * @return The value of the column 'TRANSFORMER_NAME'. (NullAllowed)
      */
     public String getTransformerName() {
         return _transformerName;
     }
 
     /**
-     * TRANSFORMER_NAME: {NotNull : VARCHAR(255)} <br />
-     * @param transformerName The value of the column 'TRANSFORMER_NAME'. (Nullable)
+     * [set] TRANSFORMER_NAME: {NotNull, VARCHAR(255)} <br />
+     * @param transformerName The value of the column 'TRANSFORMER_NAME'. (NullAllowed)
      */
     public void setTransformerName(String transformerName) {
-        _modifiedProperties.addPropertyName("transformerName");
+        __modifiedProperties.addPropertyName("transformerName");
         this._transformerName = transformerName;
     }
 
     /**
-     * DATA: {LONGBLOB(2147483647)} <br />
-     * @return The value of the column 'DATA'. (Nullable)
+     * [get] DATA: {LONGBLOB(2147483647)} <br />
+     * @return The value of the column 'DATA'. (NullAllowed)
      */
     public byte[] getData() {
         return _data;
     }
 
     /**
-     * DATA: {LONGBLOB(2147483647)} <br />
-     * @param data The value of the column 'DATA'. (Nullable)
+     * [set] DATA: {LONGBLOB(2147483647)} <br />
+     * @param data The value of the column 'DATA'. (NullAllowed)
      */
     public void setData(byte[] data) {
-        _modifiedProperties.addPropertyName("data");
+        __modifiedProperties.addPropertyName("data");
         this._data = data;
     }
 
     /**
-     * ENCODING: {VARCHAR(20)} <br />
-     * @return The value of the column 'ENCODING'. (Nullable)
+     * [get] ENCODING: {VARCHAR(20)} <br />
+     * @return The value of the column 'ENCODING'. (NullAllowed)
      */
     public String getEncoding() {
         return _encoding;
     }
 
     /**
-     * ENCODING: {VARCHAR(20)} <br />
-     * @param encoding The value of the column 'ENCODING'. (Nullable)
+     * [set] ENCODING: {VARCHAR(20)} <br />
+     * @param encoding The value of the column 'ENCODING'. (NullAllowed)
      */
     public void setEncoding(String encoding) {
-        _modifiedProperties.addPropertyName("encoding");
+        __modifiedProperties.addPropertyName("encoding");
         this._encoding = encoding;
     }
 }

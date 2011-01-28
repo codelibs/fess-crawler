@@ -23,6 +23,9 @@ import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
  */
 public class UrlFilterNss {
 
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     protected UrlFilterCQ _query;
 
     public UrlFilterNss(UrlFilterCQ query) {
@@ -34,10 +37,7 @@ public class UrlFilterNss {
     }
 
     // ===================================================================================
-    //                                                           With Nested Foreign Table
-    //                                                           =========================
+    //                                                                     Nested Relation
+    //                                                                     ===============
 
-    // ===================================================================================
-    //                                                          With Nested Referrer Table
-    //                                                          ==========================
 }

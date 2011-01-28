@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
@@ -37,7 +38,7 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     //                                                                        Resource Map
     //                                                                        ============
     /** Table DB-name instance map. */
-    protected static final Map<String, DBMeta> _tableDbNameInstanceMap = newHashMap();
+    protected static final Map<String, DBMeta> _tableDbNameInstanceMap = newConcurrentHashMap();
 
     /** The map of table DB name and class name. This is for initialization. */
     protected static final Map<String, String> _tableDbNameClassNameMap;
@@ -56,7 +57,7 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
 
     /** The flexible map of table DB name. This is for conversion at finding. */
     protected static final Map<String, String> _tableDbNameFlexibleMap = StringKeyMap
-            .createAsFlexibleConcurrent();
+            .createAsFlexible();
     static {
         final Set<String> tableDbNameSet = _tableDbNameClassNameMap.keySet();
         for (String tableDbName : tableDbNameSet) {
@@ -103,15 +104,36 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     // ===================================================================================
+    //                                                                  Provider Singleton
+    //                                                                  ==================
+    protected static final DBMetaProvider _provider = new DBMetaInstanceHandler();
+
+    public static DBMetaProvider getProvider() {
+        return _provider;
+    }
+
+    /**
+     * @param tableFlexibleName The flexible name of table. (NotNull)
+     * @return The instance of DB meta. (NullAllowed: If the DB meta is not found, it returns null)
+     */
+    public DBMeta provideDBMeta(String tableFlexibleName) {
+        return byTableFlexibleName(tableFlexibleName);
+    }
+
+    /**
+     * @param tableFlexibleName The flexible name of table. (NotNull)
+     * @return The instance of DB meta. (NotNull)
+     * @exception org.seasar.robot.dbflute.exception.DBMetaNotFoundException When the DB meta is not found.
+     */
+    public DBMeta provideDBMetaChecked(String tableFlexibleName) {
+        return findDBMeta(tableFlexibleName);
+    }
+
+    // ===================================================================================
     //                                                                         Find DBMeta
     //                                                                         ===========
     /**
-     * Find DB meta by table flexible name.
-     * <pre>
-     * If the table name is 'ORDER_DETAIL', you can find the DB meta by ...(as follows)
-     *     'ORDER_DETAIL', 'ORDer_DeTAiL', 'order_detail'
-     *     , 'OrderDetail', 'orderdetail', 'oRderDetaIl'
-     * </pre>
+     * Find DB meta by table flexible name. (accept quoted name and schema prefix)
      * @param tableFlexibleName The flexible name of table. (NotNull)
      * @return The instance of DB meta. (NotNull)
      * @exception org.seasar.robot.dbflute.exception.DBMetaNotFoundException When the DB meta is not found.
@@ -133,16 +155,13 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     //                                                                       =============
     /**
      * @param tableFlexibleName The flexible name of table. (NotNull)
-     * @return The instance of DB meta. (Nullable: If the DB meta is not found, it returns null)
+     * @return The instance of DB meta. (NullAllowed: If the DB meta is not found, it returns null)
      */
     protected static DBMeta byTableFlexibleName(String tableFlexibleName) {
         assertStringNotNullAndNotTrimmedEmpty("tableFlexibleName",
                 tableFlexibleName);
-        final int dotLastIndex = tableFlexibleName.lastIndexOf(".");
-        if (dotLastIndex >= 0) {
-            tableFlexibleName = tableFlexibleName.substring(dotLastIndex
-                    + ".".length());
-        }
+        tableFlexibleName = removeSchemaIfExists(tableFlexibleName);
+        tableFlexibleName = removeQuoteIfExists(tableFlexibleName);
         final String tableDbName = _tableDbNameFlexibleMap
                 .get(tableFlexibleName);
         if (tableDbName != null) {
@@ -151,9 +170,28 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
         return null;
     }
 
+    protected static String removeSchemaIfExists(String name) {
+        final int dotLastIndex = name.lastIndexOf(".");
+        if (dotLastIndex >= 0) {
+            name = name.substring(dotLastIndex + ".".length());
+        }
+        return name;
+    }
+
+    protected static String removeQuoteIfExists(String name) {
+        if (name.startsWith("\"") && name.endsWith("\"")) {
+            name = name.substring(1);
+            name = name.substring(0, name.length() - 1);
+        } else if (name.startsWith("[") && name.endsWith("]")) {
+            name = name.substring(1);
+            name = name.substring(0, name.length() - 1);
+        }
+        return name;
+    }
+
     /**
      * @param tableDbName The DB name of table. (NotNull)
-     * @return The instance of DB meta. (Nullable: If the DB meta is not found, it returns null)
+     * @return The instance of DB meta. (NullAllowed: If the DB meta is not found, it returns null)
      */
     protected static DBMeta byTableDbName(String tableDbName) {
         assertStringNotNullAndNotTrimmedEmpty("tableDbName", tableDbName);
@@ -163,19 +201,19 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     // ===================================================================================
     //                                                                       Cached DBMeta
     //                                                                       =============
-    protected static DBMeta getCachedDBMeta(String tableName) { // For lazy-load! Thank you koyak!
-        DBMeta dbmeta = _tableDbNameInstanceMap.get(tableName);
+    protected static DBMeta getCachedDBMeta(String tableDbName) { // lazy-load (thank you koyak!)
+        DBMeta dbmeta = _tableDbNameInstanceMap.get(tableDbName);
         if (dbmeta != null) {
             return dbmeta;
         }
         synchronized (_tableDbNameInstanceMap) {
-            dbmeta = _tableDbNameInstanceMap.get(tableName);
+            dbmeta = _tableDbNameInstanceMap.get(tableDbName);
             if (dbmeta != null) {
                 return dbmeta;
             }
-            String entityName = _tableDbNameClassNameMap.get(tableName);
-            _tableDbNameInstanceMap.put(tableName, getDBMeta(entityName));
-            return _tableDbNameInstanceMap.get(tableName);
+            String entityName = _tableDbNameClassNameMap.get(tableDbName);
+            _tableDbNameInstanceMap.put(tableDbName, getDBMeta(entityName));
+            return _tableDbNameInstanceMap.get(tableDbName);
         }
     }
 
@@ -191,30 +229,14 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     // ===================================================================================
-    //                                                             Provider Implementation
-    //                                                             =======================
-    /**
-     * @param tableFlexibleName The flexible name of table. (NotNull)
-     * @return The instance of DB meta. (Nullable: If the DB meta is not found, it returns null)
-     */
-    public DBMeta provideDBMeta(String tableFlexibleName) {
-        return byTableFlexibleName(tableFlexibleName);
-    }
-
-    /**
-     * @param tableFlexibleName The flexible name of table. (NotNull)
-     * @return The instance of DB meta. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.DBMetaNotFoundException When the DB meta is not found.
-     */
-    public DBMeta provideDBMetaChecked(String tableFlexibleName) {
-        return findDBMeta(tableFlexibleName);
-    }
-
-    // ===================================================================================
     //                                                                      General Helper
     //                                                                      ==============
     protected static <KEY, VALUE> HashMap<KEY, VALUE> newHashMap() {
         return new HashMap<KEY, VALUE>();
+    }
+
+    protected static <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
+        return new ConcurrentHashMap<KEY, VALUE>();
     }
 
     // -----------------------------------------------------

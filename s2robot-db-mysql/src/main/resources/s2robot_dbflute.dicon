@@ -6,7 +6,7 @@
     <include path="s2robot_j2ee.dicon"/>
 
     <!-- The components of DBFlute Runtime. -->
-    <component class="org.seasar.robot.db.allcommon.DBFluteInitializer"/>
+    <component name="introduction" class="org.seasar.robot.db.allcommon.DBFluteInitializer"/>
     <component name="invokerAssistant" class="org.seasar.robot.db.allcommon.ImplementedInvokerAssistant"/>
     <component name="commonColumnAutoSetupper" class="org.seasar.robot.db.allcommon.ImplementedCommonColumnAutoSetupper"/>
     <component name="behaviorSelector" class="org.seasar.robot.db.allcommon.ImplementedBehaviorSelector"/>

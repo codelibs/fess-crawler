@@ -15,22 +15,36 @@
  */
 package org.seasar.robot.db.bsbhv.pmbean;
 
-import org.seasar.robot.dbflute.cbean.FetchBean;
+import java.io.Serializable;
+import java.util.Date;
+
+import org.seasar.robot.db.allcommon.DBFluteConfig;
+import org.seasar.robot.dbflute.jdbc.FetchBean;
+import org.seasar.robot.dbflute.jdbc.ParameterUtil;
+import org.seasar.robot.dbflute.jdbc.ParameterUtil.ShortCharHandlingMode;
 import org.seasar.robot.dbflute.twowaysql.pmbean.ParameterBean;
+import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * The parameter-bean of AccessResultPmb.
  * @author DBFlute(AutoGenerator)
  */
-public class BsAccessResultPmb implements ParameterBean, FetchBean {
+public class BsAccessResultPmb implements ParameterBean, FetchBean,
+        Serializable {
+
+    // ===================================================================================
+    //                                                                          Definition
+    //                                                                          ==========
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** The value of newSessionId. */
+    /** newSessionId */
     protected String _newSessionId;
 
-    /** The value of oldSessionId. */
+    /** oldSessionId */
     protected String _oldSessionId;
 
     /** The max size of safety result. */
@@ -62,20 +76,55 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean {
     // ===================================================================================
     //                                                                       Assist Helper
     //                                                                       =============
-    /**
-     * @param value Query value. (Nullable)
-     * @return Converted value. (Nullable)
-     */
-    protected String convertEmptyToNullIfString(String value) {
-        return filterRemoveEmptyString(value);
+    protected String filterStringParameter(String value) {
+        if (isEmptyStringParameterAllowed()) {
+            return value;
+        }
+        return convertEmptyToNull(value);
     }
 
-    /**
-     * @param value Query value string. (Nullable)
-     * @return Removed-empty value. (Nullable)
-     */
-    protected String filterRemoveEmptyString(String value) {
-        return ((value != null && !"".equals(value)) ? value : null);
+    protected boolean isEmptyStringParameterAllowed() {
+        return DBFluteConfig.getInstance().isEmptyStringParameterAllowed();
+    }
+
+    protected String convertEmptyToNull(String value) {
+        return ParameterUtil.convertEmptyToNull(value);
+    }
+
+    protected String handleShortChar(String propertyName, String value,
+            Integer size) {
+        ShortCharHandlingMode mode = getShortCharHandlingMode(propertyName,
+                value, size);
+        return ParameterUtil.handleShortChar(propertyName, value, size, mode);
+    }
+
+    protected ShortCharHandlingMode getShortCharHandlingMode(
+            String propertyName, String value, Integer size) {
+        return ShortCharHandlingMode.NONE;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <NUMBER extends Number> NUMBER toNumber(Object obj,
+            Class<NUMBER> type) {
+        return (NUMBER) DfTypeUtil.toNumber(obj, type);
+    }
+
+    protected Boolean toBoolean(Object obj) {
+        return DfTypeUtil.toBoolean(obj);
+    }
+
+    protected Date toUtilDate(Date date) {
+        return DfTypeUtil.toDate(date); // if sub class, re-create as pure date
+    }
+
+    protected String formatUtilDate(Date date) {
+        String pattern = "yyyy-MM-dd";
+        return DfTypeUtil.toString(date, pattern);
+    }
+
+    protected String formatByteArray(byte[] bytes) {
+        return "byte["
+                + (bytes != null ? String.valueOf(bytes.length) : "null") + "]";
     }
 
     // ===================================================================================
@@ -87,18 +136,18 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName()).append(":");
+        sb.append(DfTypeUtil.toClassTitle(this)).append(":");
         sb.append(xbuildColumnString());
         return sb.toString();
     }
 
     private String xbuildColumnString() {
-        final String delimiter = ",";
+        final String c = ", ";
         final StringBuilder sb = new StringBuilder();
-        sb.append(delimiter).append(_newSessionId);
-        sb.append(delimiter).append(_oldSessionId);
+        sb.append(c).append(_newSessionId);
+        sb.append(c).append(_oldSessionId);
         if (sb.length() > 0) {
-            sb.delete(0, delimiter.length());
+            sb.delete(0, c.length());
         }
         sb.insert(0, "{").append("}");
         return sb.toString();
@@ -108,32 +157,32 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean {
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * Get the value of newSessionId. (Converted empty to null)
-     * @return The value of newSessionId. (Nullable & NotEmptyString: if the value is empty string, returns null)
+     * [get] newSessionId
+     * @return The value of newSessionId. (Nullable, NotEmptyString(when String): if empty string, returns null)
      */
     public String getNewSessionId() {
-        return (String) convertEmptyToNullIfString(_newSessionId);
+        return filterStringParameter(_newSessionId);
     }
 
     /**
-     * Set the value of newSessionId.
-     * @param newSessionId The value of newSessionId. (Nullable)
+     * [set] newSessionId
+     * @param newSessionId The value of newSessionId. (NullAllowed)
      */
     public void setNewSessionId(String newSessionId) {
         _newSessionId = newSessionId;
     }
 
     /**
-     * Get the value of oldSessionId. (Converted empty to null)
-     * @return The value of oldSessionId. (Nullable & NotEmptyString: if the value is empty string, returns null)
+     * [get] oldSessionId
+     * @return The value of oldSessionId. (Nullable, NotEmptyString(when String): if empty string, returns null)
      */
     public String getOldSessionId() {
-        return (String) convertEmptyToNullIfString(_oldSessionId);
+        return filterStringParameter(_oldSessionId);
     }
 
     /**
-     * Set the value of oldSessionId.
-     * @param oldSessionId The value of oldSessionId. (Nullable)
+     * [set] oldSessionId
+     * @param oldSessionId The value of oldSessionId. (NullAllowed)
      */
     public void setOldSessionId(String oldSessionId) {
         _oldSessionId = oldSessionId;

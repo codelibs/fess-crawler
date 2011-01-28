@@ -48,35 +48,42 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     //                                                                              Inline
     //                                                                              ======
     /**
-     * Prepare inline query. <br />
-     * {select ... from ... left outer join (select * from URL_QUEUE) where abc = [abc] ...}
-     * @return Inline query. (NotNull)
+     * Prepare InlineView query. <br />
+     * {select ... from ... left outer join (select * from URL_QUEUE) where FOO = [value] ...}
+     * <pre>
+     * cb.query().queryMemberStatus().<span style="color: #FD4747">inline()</span>.setFoo...;
+     * </pre>
+     * @return The condition-query for InlineView query. (NotNull)
      */
     public UrlQueueCIQ inline() {
         if (_inlineQuery == null) {
             _inlineQuery = createInlineQuery();
         }
-        _inlineQuery.xsetOnClauseInline(false);
+        _inlineQuery.xsetOnClause(false);
         return _inlineQuery;
     }
 
     protected UrlQueueCIQ createInlineQuery() {
-        return new UrlQueueCIQ(getReferrerQuery(), getSqlClause(),
-                getAliasName(), getNestLevel(), this);
+        return new UrlQueueCIQ(xgetReferrerQuery(), xgetSqlClause(),
+                xgetAliasName(), xgetNestLevel(), this);
     }
 
     /**
-     * Prepare on-clause query. <br />
-     * {select ... from ... left outer join URL_QUEUE on ... and abc = [abc] ...}
-     * @return On-clause query. (NotNull)
+     * Prepare OnClause query. <br />
+     * {select ... from ... left outer join URL_QUEUE on ... and FOO = [value] ...}
+     * <pre>
+     * cb.query().queryMemberStatus().<span style="color: #FD4747">on()</span>.setFoo...;
+     * </pre>
+     * @return The condition-query for OnClause query. (NotNull)
+     * @throws IllegalConditionBeanOperationException When this condition-query is base query.
      */
     public UrlQueueCIQ on() {
-        if (isBaseQuery(this)) {
+        if (isBaseQuery()) {
             throw new IllegalConditionBeanOperationException(
-                    "On-clause for local table is unavailable!");
+                    "OnClause for local table is unavailable!");
         }
         UrlQueueCIQ inlineQuery = inline();
-        inlineQuery.xsetOnClauseInline(true);
+        inlineQuery.xsetOnClause(true);
         return inlineQuery;
     }
 
@@ -97,11 +104,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getId();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Id_Asc() {
         regOBA("ID");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Id_Desc() {
         regOBD("ID");
         return this;
@@ -120,11 +135,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getSessionId();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_SessionId_Asc() {
         regOBA("SESSION_ID");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_SessionId_Desc() {
         regOBD("SESSION_ID");
         return this;
@@ -143,11 +166,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getMethod();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Method_Asc() {
         regOBA("METHOD");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Method_Desc() {
         regOBD("METHOD");
         return this;
@@ -166,11 +197,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getUrl();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Url_Asc() {
         regOBA("URL");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Url_Desc() {
         regOBD("URL");
         return this;
@@ -189,11 +228,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getParentUrl();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_ParentUrl_Asc() {
         regOBA("PARENT_URL");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_ParentUrl_Desc() {
         regOBD("PARENT_URL");
         return this;
@@ -212,11 +259,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getDepth();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Depth_Asc() {
         regOBA("DEPTH");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_Depth_Desc() {
         regOBD("DEPTH");
         return this;
@@ -235,11 +290,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getLastModified();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_LastModified_Asc() {
         regOBA("LAST_MODIFIED");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_LastModified_Desc() {
         regOBD("LAST_MODIFIED");
         return this;
@@ -258,11 +321,19 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return getCreateTime();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_CreateTime_Asc() {
         regOBA("CREATE_TIME");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addOrderBy_CreateTime_Desc() {
         regOBD("CREATE_TIME");
         return this;
@@ -271,11 +342,39 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     // ===================================================================================
     //                                                           Specified Derived OrderBy
     //                                                           =========================
+    /**
+     * Add order-by for specified derived column as ascend.
+     * <pre>
+     * cb.specify().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
+     *     public void query(PurchaseCB subCB) {
+     *         subCB.specify().columnPurchaseDatetime();
+     *     }
+     * }, <span style="color: #FD4747">aliasName</span>);
+     * <span style="color: #3F7E5E">// order by [alias-name] asc</span>
+     * cb.<span style="color: #FD4747">addSpecifiedDerivedOrderBy_Asc</span>(<span style="color: #FD4747">aliasName</span>);
+     * </pre>
+     * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addSpecifiedDerivedOrderBy_Asc(String aliasName) {
         registerSpecifiedDerivedOrderBy_Asc(aliasName);
         return this;
     }
 
+    /**
+     * Add order-by for specified derived column as descend.
+     * <pre>
+     * cb.specify().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
+     *     public void query(PurchaseCB subCB) {
+     *         subCB.specify().columnPurchaseDatetime();
+     *     }
+     * }, <span style="color: #FD4747">aliasName</span>);
+     * <span style="color: #3F7E5E">// order by [alias-name] desc</span>
+     * cb.<span style="color: #FD4747">addSpecifiedDerivedOrderBy_Desc</span>(<span style="color: #FD4747">aliasName</span>);
+     * </pre>
+     * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
+     * @return this. (NotNull)
+     */
     public BsUrlQueueCQ addSpecifiedDerivedOrderBy_Desc(String aliasName) {
         registerSpecifiedDerivedOrderBy_Desc(aliasName);
         return this;
@@ -294,52 +393,52 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     // ===================================================================================
     //                                                                     Scalar SubQuery
     //                                                                     ===============
-    protected Map<String, UrlQueueCQ> _scalarSubQueryMap;
+    protected Map<String, UrlQueueCQ> _scalarConditionMap;
 
-    public Map<String, UrlQueueCQ> getScalarSubQuery() {
-        return _scalarSubQueryMap;
+    public Map<String, UrlQueueCQ> getScalarCondition() {
+        return _scalarConditionMap;
     }
 
-    public String keepScalarSubQuery(UrlQueueCQ subQuery) {
-        if (_scalarSubQueryMap == null) {
-            _scalarSubQueryMap = newLinkedHashMap();
+    public String keepScalarCondition(UrlQueueCQ subQuery) {
+        if (_scalarConditionMap == null) {
+            _scalarConditionMap = newLinkedHashMap();
         }
-        String key = "subQueryMapKey" + (_scalarSubQueryMap.size() + 1);
-        _scalarSubQueryMap.put(key, subQuery);
-        return "scalarSubQuery." + key;
+        String key = "subQueryMapKey" + (_scalarConditionMap.size() + 1);
+        _scalarConditionMap.put(key, subQuery);
+        return "scalarCondition." + key;
     }
 
     // ===================================================================================
     //                                                             MySelf InScope SubQuery
     //                                                             =======================
-    protected Map<String, UrlQueueCQ> _myselfInScopeSubQueryMap;
+    protected Map<String, UrlQueueCQ> _myselfInScopeRelationMap;
 
-    public Map<String, UrlQueueCQ> getMyselfInScopeSubQuery() {
-        return _myselfInScopeSubQueryMap;
+    public Map<String, UrlQueueCQ> getMyselfInScopeRelation() {
+        return _myselfInScopeRelationMap;
     }
 
-    public String keepMyselfInScopeSubQuery(UrlQueueCQ subQuery) {
-        if (_myselfInScopeSubQueryMap == null) {
-            _myselfInScopeSubQueryMap = newLinkedHashMap();
+    public String keepMyselfInScopeRelation(UrlQueueCQ subQuery) {
+        if (_myselfInScopeRelationMap == null) {
+            _myselfInScopeRelationMap = newLinkedHashMap();
         }
-        String key = "subQueryMapKey" + (_myselfInScopeSubQueryMap.size() + 1);
-        _myselfInScopeSubQueryMap.put(key, subQuery);
-        return "myselfInScopeSubQuery." + key;
+        String key = "subQueryMapKey" + (_myselfInScopeRelationMap.size() + 1);
+        _myselfInScopeRelationMap.put(key, subQuery);
+        return "myselfInScopeRelation." + key;
     }
 
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
-    // Very Internal (for Suppressing Warn about 'Not Use Import')
-    String xCB() {
+    // very internal (for suppressing warn about 'Not Use Import')
+    protected String xCB() {
         return UrlQueueCB.class.getName();
     }
 
-    String xCQ() {
+    protected String xCQ() {
         return UrlQueueCQ.class.getName();
     }
 
-    String xMap() {
+    protected String xMap() {
         return Map.class.getName();
     }
 }

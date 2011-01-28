@@ -23,20 +23,26 @@ import org.seasar.framework.util.DisposableUtil;
 import org.seasar.robot.dbflute.DBDef;
 import org.seasar.robot.dbflute.bhv.core.BehaviorCommandInvoker;
 import org.seasar.robot.dbflute.bhv.core.InvokerAssistant;
+import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCacheHandler;
+import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCacheKeyGenerator;
+import org.seasar.robot.dbflute.bhv.outsidesql.factory.DefaultOutsideSqlExecutorFactory;
+import org.seasar.robot.dbflute.bhv.outsidesql.factory.OutsideSqlExecutorFactory;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseCreator;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
+import org.seasar.robot.dbflute.exception.factory.DefaultSQLExceptionHandlerFactory;
+import org.seasar.robot.dbflute.exception.factory.SQLExceptionHandlerFactory;
+import org.seasar.robot.dbflute.exception.thrower.BehaviorExceptionThrower;
 import org.seasar.robot.dbflute.helper.beans.factory.DfBeanDescFactory;
 import org.seasar.robot.dbflute.jdbc.DataSourceHandler;
 import org.seasar.robot.dbflute.jdbc.HandlingDataSourceWrapper;
+import org.seasar.robot.dbflute.jdbc.SQLExceptionDigger;
 import org.seasar.robot.dbflute.jdbc.StatementConfig;
 import org.seasar.robot.dbflute.jdbc.StatementFactory;
 import org.seasar.robot.dbflute.resource.ResourceParameter;
 import org.seasar.robot.dbflute.s2dao.extension.TnBeanMetaDataFactoryExtension;
 import org.seasar.robot.dbflute.s2dao.jdbc.TnStatementFactoryImpl;
 import org.seasar.robot.dbflute.s2dao.metadata.TnBeanMetaDataFactory;
-import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypeFactory;
-import org.seasar.robot.dbflute.s2dao.valuetype.impl.TnValueTypeFactoryImpl;
-import org.seasar.robot.dbflute.twowaysql.SqlAnalyzer;
+import org.seasar.robot.dbflute.twowaysql.factory.DefaultSqlAnalyzerFactory;
 import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
 
 /**
@@ -48,14 +54,14 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     //                                                                           Attribute
     //                                                                           =========
     // -----------------------------------------------------
-    //                                          DI component
+    //                                          DI Component
     //                                          ------------
     protected BehaviorCommandInvoker _behaviorCommandInvoker;
 
     protected DataSource _dataSource;
 
     // -----------------------------------------------------
-    //                                        Lazy component
+    //                                        Lazy Component
     //                                        --------------
     protected volatile DBMetaProvider _dbmetaProvider;
 
@@ -65,7 +71,13 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
 
     protected volatile TnBeanMetaDataFactory _beanMetaDataFactory;
 
-    protected volatile TnValueTypeFactory _valueTypeFactory;
+    protected volatile SqlAnalyzerFactory _sqlAnalyzerFactory;
+
+    protected volatile OutsideSqlExecutorFactory _outsideSqlExecutorFactory;
+
+    protected volatile SQLExceptionHandlerFactory _sqlExceptionHandlerFactory;
+
+    protected volatile SequenceCacheHandler _sequenceCacheHandler;
 
     // -----------------------------------------------------
     //                                       Disposable Flag
@@ -97,7 +109,7 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     // -----------------------------------------------------
     //                                       DBMeta Provider
     //                                       ---------------
-    public DBMetaProvider assistDBMetaProvider() { // Lazy component
+    public DBMetaProvider assistDBMetaProvider() { // lazy component
         if (_dbmetaProvider != null) {
             return _dbmetaProvider;
         }
@@ -111,13 +123,13 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     protected DBMetaProvider createDBMetaProvider() {
-        return new DBMetaInstanceHandler();
+        return DBMetaInstanceHandler.getProvider();
     }
 
     // -----------------------------------------------------
     //                                    SQL Clause Creator
     //                                    ------------------
-    public SqlClauseCreator assistSqlClauseCreator() { // Lazy component
+    public SqlClauseCreator assistSqlClauseCreator() { // lazy component
         if (_sqlClauseCreator != null) {
             return _sqlClauseCreator;
         }
@@ -131,13 +143,18 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     protected SqlClauseCreator createSqlClauseCreator() {
-        return new ImplementedSqlClauseCreator();
+        SqlClauseCreator creator = DBFluteConfig.getInstance()
+                .getSqlClauseCreator();
+        if (creator != null) {
+            return creator;
+        }
+        return new ImplementedSqlClauseCreator(); // as default
     }
 
     // -----------------------------------------------------
     //                                     Statement Factory
     //                                     -----------------
-    public StatementFactory assistStatementFactory() { // Lazy component
+    public StatementFactory assistStatementFactory() { // lazy component
         if (_statementFactory != null) {
             return _statementFactory;
         }
@@ -160,7 +177,7 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     // -----------------------------------------------------
     //                                Bean Meta Data Factory
     //                                ----------------------
-    public TnBeanMetaDataFactory assistBeanMetaDataFactory() { // Lazy component
+    public TnBeanMetaDataFactory assistBeanMetaDataFactory() { // lazy component
         if (_beanMetaDataFactory != null) {
             return _beanMetaDataFactory;
         }
@@ -176,59 +193,122 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     protected TnBeanMetaDataFactory createBeanMetaDataFactory() {
         final TnBeanMetaDataFactoryExtension factory = new TnBeanMetaDataFactoryExtension();
         factory.setDataSource(_dataSource);
-        factory.setValueTypeFactory(assistValueTypeFactory());
+        factory.setInternalDebug(DBFluteConfig.getInstance().isInternalDebug());
         return factory;
-    }
-
-    // -----------------------------------------------------
-    //                                    Value Type Factory
-    //                                    ------------------
-    public TnValueTypeFactory assistValueTypeFactory() { // Lazy component
-        if (_valueTypeFactory != null) {
-            return _valueTypeFactory;
-        }
-        synchronized (this) {
-            if (_valueTypeFactory != null) {
-                return _valueTypeFactory;
-            }
-            _valueTypeFactory = createValueTypeFactory();
-        }
-        return _valueTypeFactory;
-    }
-
-    protected TnValueTypeFactory createValueTypeFactory() {
-        return new TnValueTypeFactoryImpl();
     }
 
     // -----------------------------------------------------
     //                                  SQL Analyzer Factory
     //                                  --------------------
     /**
-     * Assist the factory of SQL analyzer. <br />
-     * This factory is also used on ConditionBean.toDisplaySql().
-     * So this method should not depend on the state of this class. 
-     * @return The factory of SQL analyzer. (NotNull)
+     * {@inheritDoc}
      */
-    public SqlAnalyzerFactory assistSqlAnalyzerFactory() {
-        return new SqlAnalyzerFactory() {
-            public SqlAnalyzer create(String sql, boolean blockNullParameter) {
-                return new SqlAnalyzer(sql, blockNullParameter);
+    public SqlAnalyzerFactory assistSqlAnalyzerFactory() { // lazy component
+        if (_sqlAnalyzerFactory != null) {
+            return _sqlAnalyzerFactory;
+        }
+        synchronized (this) {
+            if (_sqlAnalyzerFactory != null) {
+                return _sqlAnalyzerFactory;
             }
-        };
+            _sqlAnalyzerFactory = createSqlAnalyzerFactory();
+        }
+        return _sqlAnalyzerFactory;
+    }
+
+    protected SqlAnalyzerFactory createSqlAnalyzerFactory() {
+        return new DefaultSqlAnalyzerFactory();
     }
 
     // -----------------------------------------------------
-    //                                    Resource Parameter
-    //                                    ------------------
-    public ResourceParameter assistResourceParameter() {
-        ResourceParameter resourceParameter = new ResourceParameter();
-        resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance()
-                .getOutsideSqlPackage());
-        resourceParameter.setLogDateFormat(DBFluteConfig.getInstance()
-                .getLogDateFormat());
-        resourceParameter.setLogTimestampFormat(DBFluteConfig.getInstance()
-                .getLogTimestampFormat());
-        return resourceParameter;
+    //                           OutsideSql Executor Factory
+    //                           ---------------------------
+    /**
+     * {@inheritDoc}
+     */
+    public OutsideSqlExecutorFactory assistOutsideSqlExecutorFactory() {
+        if (_outsideSqlExecutorFactory != null) {
+            return _outsideSqlExecutorFactory;
+        }
+        synchronized (this) {
+            if (_outsideSqlExecutorFactory != null) {
+                return _outsideSqlExecutorFactory;
+            }
+            _outsideSqlExecutorFactory = createOutsideSqlExecutorFactory();
+        }
+        return _outsideSqlExecutorFactory;
+    }
+
+    protected OutsideSqlExecutorFactory createOutsideSqlExecutorFactory() {
+        OutsideSqlExecutorFactory factory = DBFluteConfig.getInstance()
+                .getOutsideSqlExecutorFactory();
+        if (factory != null) {
+            return factory;
+        }
+        return new DefaultOutsideSqlExecutorFactory();
+    }
+
+    // -----------------------------------------------------
+    //                                   SQLException Digger
+    //                                   -------------------
+    /**
+     * {@inheritDoc}
+     */
+    public SQLExceptionDigger assistSQLExceptionDigger() {
+        return DBFluteConfig.getInstance().getSQLExceptionDigger();
+    }
+
+    // -----------------------------------------------------
+    //                          SQLException Handler Factory
+    //                          ----------------------------
+    /**
+     * {@inheritDoc}
+     */
+    public SQLExceptionHandlerFactory assistSQLExceptionHandlerFactory() { // lazy component
+        if (_sqlExceptionHandlerFactory != null) {
+            return _sqlExceptionHandlerFactory;
+        }
+        synchronized (this) {
+            if (_sqlExceptionHandlerFactory != null) {
+                return _sqlExceptionHandlerFactory;
+            }
+            _sqlExceptionHandlerFactory = createSQLExceptionHandlerFactory();
+        }
+        return _sqlExceptionHandlerFactory;
+    }
+
+    protected SQLExceptionHandlerFactory createSQLExceptionHandlerFactory() {
+        return new DefaultSQLExceptionHandlerFactory();
+    }
+
+    // -----------------------------------------------------
+    //                                Sequence Cache Handler
+    //                                ----------------------
+    /**
+     * {@inheritDoc}
+     */
+    public SequenceCacheHandler assistSequenceCacheHandler() { // lazy component
+        if (_sequenceCacheHandler != null) {
+            return _sequenceCacheHandler;
+        }
+        synchronized (this) {
+            if (_sequenceCacheHandler != null) {
+                return _sequenceCacheHandler;
+            }
+            _sequenceCacheHandler = createSequenceCacheHandler();
+        }
+        return _sequenceCacheHandler;
+    }
+
+    protected SequenceCacheHandler createSequenceCacheHandler() {
+        SequenceCacheHandler handler = new SequenceCacheHandler();
+        SequenceCacheKeyGenerator generator = DBFluteConfig.getInstance()
+                .getSequenceCacheKeyGenerator();
+        if (generator != null) {
+            handler.setSequenceCacheKeyGenerator(generator);
+        }
+        handler.setInternalDebug(DBFluteConfig.getInstance().isInternalDebug());
+        return handler;
     }
 
     // -----------------------------------------------------
@@ -243,6 +323,29 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     //                               -----------------------
     public StatementConfig assistDefaultStatementConfig() {
         return DBFluteConfig.getInstance().getDefaultStatementConfig();
+    }
+
+    // -----------------------------------------------------
+    //                            Behavior Exception Thrower
+    //                            --------------------------
+    public BehaviorExceptionThrower assistBehaviorExceptionThrower() {
+        return new BehaviorExceptionThrower();
+    }
+
+    // -----------------------------------------------------
+    //                                    Resource Parameter
+    //                                    ------------------
+    public ResourceParameter assistResourceParameter() {
+        ResourceParameter resourceParameter = new ResourceParameter();
+        resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance()
+                .getOutsideSqlPackage());
+        resourceParameter.setLogDateFormat(DBFluteConfig.getInstance()
+                .getLogDateFormat());
+        resourceParameter.setLogTimestampFormat(DBFluteConfig.getInstance()
+                .getLogTimestampFormat());
+        resourceParameter.setInternalDebug(DBFluteConfig.getInstance()
+                .isInternalDebug());
+        return resourceParameter;
     }
 
     // ===================================================================================

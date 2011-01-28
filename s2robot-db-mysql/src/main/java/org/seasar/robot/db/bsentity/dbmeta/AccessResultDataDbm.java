@@ -18,12 +18,16 @@ package org.seasar.robot.db.bsentity.dbmeta;
 import java.util.List;
 import java.util.Map;
 
+import org.seasar.robot.db.allcommon.DBCurrent;
+import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.exentity.AccessResultData;
+import org.seasar.robot.dbflute.DBDef;
 import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta;
 import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
 import org.seasar.robot.dbflute.dbmeta.info.ForeignInfo;
 import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
+import org.seasar.robot.dbflute.dbmeta.name.TableSqlName;
 import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
@@ -45,34 +49,57 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
+    //                                                                       Current DBDef
+    //                                                                       =============
+    public DBDef getCurrentDBDef() {
+        return DBCurrent.getInstance().currentDBDef();
+    }
+
+    // ===================================================================================
     //                                                                          Table Info
     //                                                                          ==========
+    protected final String _tableDbName = "ACCESS_RESULT_DATA";
+
+    protected final String _tablePropertyName = "accessResultData";
+
+    protected final TableSqlName _tableSqlName = new TableSqlName(
+            "ACCESS_RESULT_DATA", _tableDbName);
+    {
+        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
+                .getTableSqlNameFilter());
+    }
+
     public String getTableDbName() {
-        return "ACCESS_RESULT_DATA";
+        return _tableDbName;
     }
 
     public String getTablePropertyName() {
-        return "accessResultData";
+        return _tablePropertyName;
     }
 
-    public String getTableSqlName() {
-        return "ACCESS_RESULT_DATA";
+    public TableSqlName getTableSqlName() {
+        return _tableSqlName;
     }
 
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
-    protected ColumnInfo _columnId = cci("ID", null, "id", Long.class, true,
-            false, 19, 0, false, null);
+    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, true,
+            "id", Long.class, true, false, "BIGINT", 19, 0, false, null, null,
+            "accessResult", null, null);
 
-    protected ColumnInfo _columnTransformerName = cci("TRANSFORMER_NAME", null,
-            "transformerName", String.class, false, false, 255, 0, false, null);
+    protected final ColumnInfo _columnTransformerName = cci("TRANSFORMER_NAME",
+            "TRANSFORMER_NAME", null, null, true, "transformerName",
+            String.class, false, false, "VARCHAR", 255, 0, false, null, null,
+            null, null, null);
 
-    protected ColumnInfo _columnData = cci("DATA", null, "data", byte[].class,
-            false, false, 2147483647, 0, false, null);
+    protected final ColumnInfo _columnData = cci("DATA", "DATA", null, null,
+            false, "data", byte[].class, false, false, "LONGBLOB", 2147483647,
+            0, false, null, null, null, null, null);
 
-    protected ColumnInfo _columnEncoding = cci("ENCODING", null, "encoding",
-            String.class, false, false, 20, 0, false, null);
+    protected final ColumnInfo _columnEncoding = cci("ENCODING", "ENCODING",
+            null, null, false, "encoding", String.class, false, false,
+            "VARCHAR", 20, 0, false, null, null, null, null, null);
 
     public ColumnInfo columnId() {
         return _columnId;
@@ -117,7 +144,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         return true;
     }
 
-    public boolean hasTwoOrMorePrimaryKeys() {
+    public boolean hasCompoundPrimaryKey() {
         return false;
     }
 
@@ -131,7 +158,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         Map<ColumnInfo, ColumnInfo> map = newLinkedHashMap(columnId(),
                 AccessResultDbm.getInstance().columnId());
         return cfi("accessResult", this, AccessResultDbm.getInstance(), map, 0,
-                true);
+                true, false);
     }
 
     // -----------------------------------------------------
@@ -182,70 +209,16 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                     Entity Handling
     //                                                                     ===============  
-    // -----------------------------------------------------
-    //                                                Accept
-    //                                                ------
-    public void acceptPrimaryKeyMap(Entity entity,
-            Map<String, ? extends Object> primaryKeyMap) {
-        doAcceptPrimaryKeyMap((AccessResultData) entity, primaryKeyMap, _epsMap);
+    public void acceptPrimaryKeyMap(Entity e, Map<String, ? extends Object> m) {
+        doAcceptPrimaryKeyMap((AccessResultData) e, m, _epsMap);
     }
 
-    public void acceptPrimaryKeyMapString(Entity entity,
-            String primaryKeyMapString) {
-        MapStringUtil.acceptPrimaryKeyMapString(primaryKeyMapString, entity);
+    public Map<String, Object> extractPrimaryKeyMap(Entity e) {
+        return doExtractPrimaryKeyMap(e);
     }
 
-    public void acceptColumnValueMap(Entity entity,
-            Map<String, ? extends Object> columnValueMap) {
-        doAcceptColumnValueMap((AccessResultData) entity, columnValueMap,
-                _epsMap);
-    }
-
-    public void acceptColumnValueMapString(Entity entity,
-            String columnValueMapString) {
-        MapStringUtil.acceptColumnValueMapString(columnValueMapString, entity);
-    }
-
-    // -----------------------------------------------------
-    //                                               Extract
-    //                                               -------
-    public String extractPrimaryKeyMapString(Entity entity) {
-        return MapStringUtil.extractPrimaryKeyMapString(entity);
-    }
-
-    public String extractPrimaryKeyMapString(Entity entity, String startBrace,
-            String endBrace, String delimiter, String equal) {
-        return doExtractPrimaryKeyMapString(entity, startBrace, endBrace,
-                delimiter, equal);
-    }
-
-    public String extractColumnValueMapString(Entity entity) {
-        return MapStringUtil.extractColumnValueMapString(entity);
-    }
-
-    public String extractColumnValueMapString(Entity entity, String startBrace,
-            String endBrace, String delimiter, String equal) {
-        return doExtractColumnValueMapString(entity, startBrace, endBrace,
-                delimiter, equal);
-    }
-
-    // -----------------------------------------------------
-    //                                               Convert
-    //                                               -------
-    public List<Object> convertToColumnValueList(Entity entity) {
-        return newArrayList(convertToColumnValueMap(entity).values());
-    }
-
-    public Map<String, Object> convertToColumnValueMap(Entity entity) {
-        return doConvertToColumnValueMap(entity);
-    }
-
-    public List<String> convertToColumnStringValueList(Entity entity) {
-        return newArrayList(convertToColumnStringValueMap(entity).values());
-    }
-
-    public Map<String, String> convertToColumnStringValueMap(Entity entity) {
-        return doConvertToColumnStringValueMap(entity);
+    public Map<String, Object> extractAllColumnMap(Entity e) {
+        return doExtractAllColumnMap(e);
     }
 
     // ===================================================================================
@@ -270,9 +243,9 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         findEps(_epsMap, propertyName).setup((AccessResultData) entity, value);
     }
 
-    public static class EpsId implements Eps<AccessResultData> {
+    public class EpsId implements Eps<AccessResultData> {
         public void setup(AccessResultData e, Object v) {
-            e.setId((Long) v);
+            e.setId(ctl(v));
         }
     }
 

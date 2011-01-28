@@ -48,35 +48,42 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
     //                                                                              Inline
     //                                                                              ======
     /**
-     * Prepare inline query. <br />
-     * {select ... from ... left outer join (select * from URL_FILTER) where abc = [abc] ...}
-     * @return Inline query. (NotNull)
+     * Prepare InlineView query. <br />
+     * {select ... from ... left outer join (select * from URL_FILTER) where FOO = [value] ...}
+     * <pre>
+     * cb.query().queryMemberStatus().<span style="color: #FD4747">inline()</span>.setFoo...;
+     * </pre>
+     * @return The condition-query for InlineView query. (NotNull)
      */
     public UrlFilterCIQ inline() {
         if (_inlineQuery == null) {
             _inlineQuery = createInlineQuery();
         }
-        _inlineQuery.xsetOnClauseInline(false);
+        _inlineQuery.xsetOnClause(false);
         return _inlineQuery;
     }
 
     protected UrlFilterCIQ createInlineQuery() {
-        return new UrlFilterCIQ(getReferrerQuery(), getSqlClause(),
-                getAliasName(), getNestLevel(), this);
+        return new UrlFilterCIQ(xgetReferrerQuery(), xgetSqlClause(),
+                xgetAliasName(), xgetNestLevel(), this);
     }
 
     /**
-     * Prepare on-clause query. <br />
-     * {select ... from ... left outer join URL_FILTER on ... and abc = [abc] ...}
-     * @return On-clause query. (NotNull)
+     * Prepare OnClause query. <br />
+     * {select ... from ... left outer join URL_FILTER on ... and FOO = [value] ...}
+     * <pre>
+     * cb.query().queryMemberStatus().<span style="color: #FD4747">on()</span>.setFoo...;
+     * </pre>
+     * @return The condition-query for OnClause query. (NotNull)
+     * @throws IllegalConditionBeanOperationException When this condition-query is base query.
      */
     public UrlFilterCIQ on() {
-        if (isBaseQuery(this)) {
+        if (isBaseQuery()) {
             throw new IllegalConditionBeanOperationException(
-                    "On-clause for local table is unavailable!");
+                    "OnClause for local table is unavailable!");
         }
         UrlFilterCIQ inlineQuery = inline();
-        inlineQuery.xsetOnClauseInline(true);
+        inlineQuery.xsetOnClause(true);
         return inlineQuery;
     }
 
@@ -97,11 +104,19 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
         return getId();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_Id_Asc() {
         regOBA("ID");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_Id_Desc() {
         regOBD("ID");
         return this;
@@ -120,11 +135,19 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
         return getSessionId();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_SessionId_Asc() {
         regOBA("SESSION_ID");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_SessionId_Desc() {
         regOBD("SESSION_ID");
         return this;
@@ -143,11 +166,19 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
         return getUrl();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_Url_Asc() {
         regOBA("URL");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_Url_Desc() {
         regOBD("URL");
         return this;
@@ -166,11 +197,19 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
         return getFilterType();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_FilterType_Asc() {
         regOBA("FILTER_TYPE");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_FilterType_Desc() {
         regOBD("FILTER_TYPE");
         return this;
@@ -189,11 +228,19 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
         return getCreateTime();
     }
 
+    /** 
+     * Add order-by as ascend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_CreateTime_Asc() {
         regOBA("CREATE_TIME");
         return this;
     }
 
+    /**
+     * Add order-by as descend.
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addOrderBy_CreateTime_Desc() {
         regOBD("CREATE_TIME");
         return this;
@@ -202,11 +249,39 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
     // ===================================================================================
     //                                                           Specified Derived OrderBy
     //                                                           =========================
+    /**
+     * Add order-by for specified derived column as ascend.
+     * <pre>
+     * cb.specify().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
+     *     public void query(PurchaseCB subCB) {
+     *         subCB.specify().columnPurchaseDatetime();
+     *     }
+     * }, <span style="color: #FD4747">aliasName</span>);
+     * <span style="color: #3F7E5E">// order by [alias-name] asc</span>
+     * cb.<span style="color: #FD4747">addSpecifiedDerivedOrderBy_Asc</span>(<span style="color: #FD4747">aliasName</span>);
+     * </pre>
+     * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addSpecifiedDerivedOrderBy_Asc(String aliasName) {
         registerSpecifiedDerivedOrderBy_Asc(aliasName);
         return this;
     }
 
+    /**
+     * Add order-by for specified derived column as descend.
+     * <pre>
+     * cb.specify().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
+     *     public void query(PurchaseCB subCB) {
+     *         subCB.specify().columnPurchaseDatetime();
+     *     }
+     * }, <span style="color: #FD4747">aliasName</span>);
+     * <span style="color: #3F7E5E">// order by [alias-name] desc</span>
+     * cb.<span style="color: #FD4747">addSpecifiedDerivedOrderBy_Desc</span>(<span style="color: #FD4747">aliasName</span>);
+     * </pre>
+     * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
+     * @return this. (NotNull)
+     */
     public BsUrlFilterCQ addSpecifiedDerivedOrderBy_Desc(String aliasName) {
         registerSpecifiedDerivedOrderBy_Desc(aliasName);
         return this;
@@ -225,52 +300,52 @@ public class BsUrlFilterCQ extends AbstractBsUrlFilterCQ {
     // ===================================================================================
     //                                                                     Scalar SubQuery
     //                                                                     ===============
-    protected Map<String, UrlFilterCQ> _scalarSubQueryMap;
+    protected Map<String, UrlFilterCQ> _scalarConditionMap;
 
-    public Map<String, UrlFilterCQ> getScalarSubQuery() {
-        return _scalarSubQueryMap;
+    public Map<String, UrlFilterCQ> getScalarCondition() {
+        return _scalarConditionMap;
     }
 
-    public String keepScalarSubQuery(UrlFilterCQ subQuery) {
-        if (_scalarSubQueryMap == null) {
-            _scalarSubQueryMap = newLinkedHashMap();
+    public String keepScalarCondition(UrlFilterCQ subQuery) {
+        if (_scalarConditionMap == null) {
+            _scalarConditionMap = newLinkedHashMap();
         }
-        String key = "subQueryMapKey" + (_scalarSubQueryMap.size() + 1);
-        _scalarSubQueryMap.put(key, subQuery);
-        return "scalarSubQuery." + key;
+        String key = "subQueryMapKey" + (_scalarConditionMap.size() + 1);
+        _scalarConditionMap.put(key, subQuery);
+        return "scalarCondition." + key;
     }
 
     // ===================================================================================
     //                                                             MySelf InScope SubQuery
     //                                                             =======================
-    protected Map<String, UrlFilterCQ> _myselfInScopeSubQueryMap;
+    protected Map<String, UrlFilterCQ> _myselfInScopeRelationMap;
 
-    public Map<String, UrlFilterCQ> getMyselfInScopeSubQuery() {
-        return _myselfInScopeSubQueryMap;
+    public Map<String, UrlFilterCQ> getMyselfInScopeRelation() {
+        return _myselfInScopeRelationMap;
     }
 
-    public String keepMyselfInScopeSubQuery(UrlFilterCQ subQuery) {
-        if (_myselfInScopeSubQueryMap == null) {
-            _myselfInScopeSubQueryMap = newLinkedHashMap();
+    public String keepMyselfInScopeRelation(UrlFilterCQ subQuery) {
+        if (_myselfInScopeRelationMap == null) {
+            _myselfInScopeRelationMap = newLinkedHashMap();
         }
-        String key = "subQueryMapKey" + (_myselfInScopeSubQueryMap.size() + 1);
-        _myselfInScopeSubQueryMap.put(key, subQuery);
-        return "myselfInScopeSubQuery." + key;
+        String key = "subQueryMapKey" + (_myselfInScopeRelationMap.size() + 1);
+        _myselfInScopeRelationMap.put(key, subQuery);
+        return "myselfInScopeRelation." + key;
     }
 
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
-    // Very Internal (for Suppressing Warn about 'Not Use Import')
-    String xCB() {
+    // very internal (for suppressing warn about 'Not Use Import')
+    protected String xCB() {
         return UrlFilterCB.class.getName();
     }
 
-    String xCQ() {
+    protected String xCQ() {
         return UrlFilterCQ.class.getName();
     }
 
-    String xMap() {
+    protected String xMap() {
         return Map.class.getName();
     }
 }

@@ -27,7 +27,7 @@ import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
- * The condition-inline-query of URL_QUEUE.
+ * The condition-query for in-line of URL_QUEUE.
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
@@ -44,18 +44,19 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
             String aliasName, int nestLevel, BsUrlQueueCQ myCQ) {
         super(childQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.getForeignPropertyName();// Accept foreign property name.
-        _relationPath = _myCQ.getRelationPath();// Accept relation path.
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
+        _relationPath = _myCQ.xgetRelationPath(); // accept relation path
+        _inline = true;
     }
 
     // ===================================================================================
     //                                                             Override about Register
     //                                                             =======================
     @Override
-    protected void reflectRelationOnUnionQuery(ConditionQuery baseQueryAsSuper,
-            ConditionQuery unionQueryAsSuper) {
-        String msg = "InlineQuery must not need UNION method: "
-                + baseQueryAsSuper + " : " + unionQueryAsSuper;
+    protected void reflectRelationOnUnionQuery(ConditionQuery bq,
+            ConditionQuery uq) {
+        String msg = "InlineView must not need UNION method: " + bq + " : "
+                + uq;
         throw new IllegalConditionBeanOperationException(msg);
     }
 
@@ -72,25 +73,17 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    protected void registerWhereClause(String whereClause) {
-        registerInlineWhereClause(whereClause);
+    protected void registerWhereClause(String wc) {
+        registerInlineWhereClause(wc);
     }
 
     @Override
-    protected String getInScopeSubQueryRealColumnName(String columnName) {
-        if (_onClauseInline) {
-            String msg = "Sorry! InScopeSubQuery of on-clause is unavailable";
-            throw new IllegalConditionBeanOperationException(msg);
+    protected boolean isInScopeRelationSuppressLocalAliasName() {
+        if (_onClause) {
+            throw new IllegalConditionBeanOperationException(
+                    "InScopeRelation on OnClause is unsupported.");
         }
-        return _onClauseInline ? getRealAliasName() + "." + columnName
-                : columnName;
-    }
-
-    @Override
-    protected void registerExistsSubQuery(ConditionQuery subQuery,
-            String columnName, String relatedColumnName, String propertyName) {
-        String msg = "Sorry! ExistsSubQuery at in-line view is unavailable. So please use InScopeSubQyery.";
-        throw new IllegalConditionBeanOperationException(msg);
+        return true;
     }
 
     // ===================================================================================
@@ -128,30 +121,30 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
         return _myCQ.getCreateTime();
     }
 
-    public String keepScalarSubQuery(UrlQueueCQ subQuery) {
-        throwIICBOE("ScalarSubQuery");
+    public String keepScalarCondition(UrlQueueCQ subQuery) {
+        throwIICBOE("ScalarCondition");
         return null;
     }
 
-    public String keepMyselfInScopeSubQuery(UrlQueueCQ subQuery) {
-        throwIICBOE("MyselfInScopeSubQuery");
+    public String keepMyselfInScopeRelation(UrlQueueCQ subQuery) {
+        throwIICBOE("MyselfInScopeRelation");
         return null;
     }
 
     protected void throwIICBOE(String name) { // throwInlineIllegalConditionBeanOperationException()
-        throw new IllegalConditionBeanOperationException("Sorry! " + name
-                + " at in-line view is unavailable!");
+        throw new IllegalConditionBeanOperationException(name
+                + " at InlineView is unsupported.");
     }
 
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
-    // Very Internal (for Suppressing Warn about 'Not Use Import')
-    String xiCB() {
+    // very internal (for suppressing warn about 'Not Use Import')
+    protected String xinCB() {
         return UrlQueueCB.class.getName();
     }
 
-    String xiCQ() {
+    protected String xinCQ() {
         return UrlQueueCQ.class.getName();
     }
 }

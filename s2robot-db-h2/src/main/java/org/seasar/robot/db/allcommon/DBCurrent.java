@@ -38,7 +38,7 @@ public class DBCurrent {
     //                                                                           =========
     protected DBDef _currentDBDef;
     {
-        _currentDBDef = DBDef.codeOf("H2");
+        _currentDBDef = DBDef.codeOf("h2");
         if (_currentDBDef == null) {
             _currentDBDef = DBDef.Unknown;
         }

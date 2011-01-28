@@ -23,6 +23,9 @@ import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
  */
 public class UrlQueueNss {
 
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     protected UrlQueueCQ _query;
 
     public UrlQueueNss(UrlQueueCQ query) {
@@ -34,10 +37,7 @@ public class UrlQueueNss {
     }
 
     // ===================================================================================
-    //                                                           With Nested Foreign Table
-    //                                                           =========================
+    //                                                                     Nested Relation
+    //                                                                     ===============
 
-    // ===================================================================================
-    //                                                          With Nested Referrer Table
-    //                                                          ==========================
 }

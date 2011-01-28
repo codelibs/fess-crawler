@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.db.cbean;
 
+import org.seasar.robot.db.cbean.bs.BsAccessResultCB;
+
 /**
  * The condition-bean of ACCESS_RESULT.
  * <p>
@@ -23,6 +25,5 @@ package org.seasar.robot.db.cbean;
  * </p>
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultCB extends
-        org.seasar.robot.db.cbean.bs.BsAccessResultCB {
+public class AccessResultCB extends BsAccessResultCB {
 }

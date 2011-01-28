@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.db.cbean;
 
+import org.seasar.robot.db.cbean.bs.BsUrlQueueCB;
+
 /**
  * The condition-bean of URL_QUEUE.
  * <p>
@@ -23,5 +25,5 @@ package org.seasar.robot.db.cbean;
  * </p>
  * @author DBFlute(AutoGenerator)
  */
-public class UrlQueueCB extends org.seasar.robot.db.cbean.bs.BsUrlQueueCB {
+public class UrlQueueCB extends BsUrlQueueCB {
 }

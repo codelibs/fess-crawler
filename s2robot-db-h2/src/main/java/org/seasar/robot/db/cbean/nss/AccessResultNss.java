@@ -24,6 +24,9 @@ import org.seasar.robot.dbflute.cbean.ConditionQuery;
  */
 public class AccessResultNss {
 
+    // ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========
     protected AccessResultCQ _query;
 
     public AccessResultNss(AccessResultCQ query) {
@@ -35,12 +38,9 @@ public class AccessResultNss {
     }
 
     // ===================================================================================
-    //                                                           With Nested Foreign Table
-    //                                                           =========================
+    //                                                                     Nested Relation
+    //                                                                     ===============
 
-    // ===================================================================================
-    //                                                          With Nested Referrer Table
-    //                                                          ==========================
     public AccessResultDataNss withAccessResultDataAsOne() {
         _query.doNss(new AccessResultCQ.NssCall() {
             public ConditionQuery qf() {

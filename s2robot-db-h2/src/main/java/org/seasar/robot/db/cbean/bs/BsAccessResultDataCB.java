@@ -15,8 +15,6 @@
  */
 package org.seasar.robot.db.cbean.bs;
 
-import java.util.Map;
-
 import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
 import org.seasar.robot.db.allcommon.ImplementedInvokerAssistant;
@@ -27,6 +25,7 @@ import org.seasar.robot.db.cbean.cq.AccessResultCQ;
 import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
 import org.seasar.robot.db.cbean.nss.AccessResultNss;
 import org.seasar.robot.dbflute.cbean.AbstractConditionBean;
+import org.seasar.robot.dbflute.cbean.AndQuery;
 import org.seasar.robot.dbflute.cbean.ConditionBean;
 import org.seasar.robot.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.dbflute.cbean.OrQuery;
@@ -34,10 +33,15 @@ import org.seasar.robot.dbflute.cbean.SpecifyQuery;
 import org.seasar.robot.dbflute.cbean.SubQuery;
 import org.seasar.robot.dbflute.cbean.UnionQuery;
 import org.seasar.robot.dbflute.cbean.chelper.HpAbstractSpecification;
+import org.seasar.robot.dbflute.cbean.chelper.HpCBPurpose;
+import org.seasar.robot.dbflute.cbean.chelper.HpCalculator;
 import org.seasar.robot.dbflute.cbean.chelper.HpColQyHandler;
 import org.seasar.robot.dbflute.cbean.chelper.HpColQyOperand;
 import org.seasar.robot.dbflute.cbean.chelper.HpSpQyCall;
+import org.seasar.robot.dbflute.cbean.chelper.HpSpecifiedColumn;
+import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
 import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseCreator;
 import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
 import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
 
@@ -50,8 +54,6 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    private final DBMetaProvider _dbmetaProvider = new DBMetaInstanceHandler();
-
     protected AccessResultDataCQ _conditionQuery;
 
     // ===================================================================================
@@ -59,7 +61,12 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                           =========
     @Override
     protected SqlClause createSqlClause() {
-        return new ImplementedSqlClauseCreator().createSqlClause(this);
+        SqlClauseCreator creator = DBFluteConfig.getInstance()
+                .getSqlClauseCreator();
+        if (creator != null) {
+            return creator.createSqlClause(this);
+        }
+        return new ImplementedSqlClauseCreator().createSqlClause(this); // as default
     }
 
     // ===================================================================================
@@ -67,7 +74,7 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                     ===============
     @Override
     protected DBMetaProvider getDBMetaProvider() {
-        return _dbmetaProvider;
+        return DBMetaInstanceHandler.getProvider(); // as default
     }
 
     // ===================================================================================
@@ -77,29 +84,15 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
         return "ACCESS_RESULT_DATA";
     }
 
-    public String getTableSqlName() {
-        return "ACCESS_RESULT_DATA";
+    // ===================================================================================
+    //                                                                 PrimaryKey Handling
+    //                                                                 ===================
+    public void acceptPrimaryKey(Long id) {
+        assertObjectNotNull("id", id);
+        BsAccessResultDataCB cb = this;
+        cb.query().setId_Equal(id);
     }
 
-    // ===================================================================================
-    //                                                                      PrimaryKey Map
-    //                                                                      ==============
-    public void acceptPrimaryKeyMap(Map<String, ? extends Object> primaryKeyMap) {
-        assertPrimaryKeyMap(primaryKeyMap);
-        {
-            Object obj = primaryKeyMap.get("ID");
-            if (obj instanceof Long) {
-                query().setId_Equal((Long) obj);
-            } else {
-                query().setId_Equal(new Long((String) obj));
-            }
-        }
-
-    }
-
-    // ===================================================================================
-    //                                                                     OrderBy Setting
-    //                                                                     ===============
     public ConditionBean addOrderBy_PK_Asc() {
         query().addOrderBy_Id_Asc();
         return this;
@@ -113,21 +106,103 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     // ===================================================================================
     //                                                                               Query
     //                                                                               =====
+    /**
+     * Prepare for various queries. <br />
+     * Examples of main functions are following:
+     * <pre>
+     * <span style="color: #3F7E5E">// Basic Queries</span>
+     * cb.query().setMemberId_Equal(value);        <span style="color: #3F7E5E">// =</span>
+     * cb.query().setMemberId_NotEqual(value);     <span style="color: #3F7E5E">// !=</span>
+     * cb.query().setMemberId_GreaterThan(value);  <span style="color: #3F7E5E">// &gt;</span>
+     * cb.query().setMemberId_LessThan(value);     <span style="color: #3F7E5E">// &lt;</span>
+     * cb.query().setMemberId_GreaterEqual(value); <span style="color: #3F7E5E">// &gt;=</span>
+     * cb.query().setMemberId_LessEqual(value);    <span style="color: #3F7E5E">// &lt;=</span>
+     * cb.query().setMemberName_InScope(valueList);    <span style="color: #3F7E5E">// in ('a', 'b')</span>
+     * cb.query().setMemberName_NotInScope(valueList); <span style="color: #3F7E5E">// not in ('a', 'b')</span>
+     * cb.query().setMemberName_PrefixSearch(value);   <span style="color: #3F7E5E">// like 'a%' escape '|'</span>
+     * <span style="color: #3F7E5E">// LikeSearch with various options: (versatile)</span>
+     * <span style="color: #3F7E5E">// {like ... [options]}</span>
+     * cb.query().setMemberName_LikeSearch(value, option);
+     * cb.query().setMemberName_NotLikeSearch(value, option); <span style="color: #3F7E5E">// not like ...</span>
+     * <span style="color: #3F7E5E">// FromTo with various options: (versatile)</span>
+     * <span style="color: #3F7E5E">// {(default) fromDatetime &lt;= BIRTHDATE &lt;= toDatetime}</span>
+     * cb.query().setBirthdate_FromTo(fromDatetime, toDatetime, option);
+     * <span style="color: #3F7E5E">// DateFromTo: (Date means yyyy/MM/dd)</span>
+     * <span style="color: #3F7E5E">// {fromDate &lt;= BIRTHDATE &lt; toDate + 1 day}</span>
+     * cb.query().setBirthdate_DateFromTo(fromDate, toDate);
+     * cb.query().setBirthdate_IsNull();    <span style="color: #3F7E5E">// is null</span>
+     * cb.query().setBirthdate_IsNotNull(); <span style="color: #3F7E5E">// is not null</span>
+     * 
+     * <span style="color: #3F7E5E">// ExistsReferrer: (co-related sub-query)</span>
+     * <span style="color: #3F7E5E">// {where exists (select PURCHASE_ID from PURCHASE where ...)}</span>
+     * cb.query().existsPurchaseList(new SubQuery&lt;PurchaseCB&gt;() {
+     *     public void query(PurchaseCB subCB) {
+     *         subCB.query().setXxx... <span style="color: #3F7E5E">// referrer sub-query condition</span>
+     *     }
+     * });
+     * cb.query().notExistsPurchaseList...
+     * 
+     * <span style="color: #3F7E5E">// InScopeRelation: (sub-query)</span>
+     * <span style="color: #3F7E5E">// {where MEMBER_STATUS_CODE in (select MEMBER_STATUS_CODE from MEMBER_STATUS where ...)}</span>
+     * cb.query().inScopeMemberStatus(new SubQuery&lt;MemberStatusCB&gt;() {
+     *     public void query(MemberStatusCB subCB) {
+     *         subCB.query().setXxx... <span style="color: #3F7E5E">// relation sub-query condition</span>
+     *     }
+     * });
+     * cb.query().notInScopeMemberStatus...
+     * 
+     * <span style="color: #3F7E5E">// (Query)DerivedReferrer: (co-related sub-query)</span>
+     * cb.query().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
+     *     public void query(PurchaseCB subCB) {
+     *         subCB.specify().columnPurchasePrice(); <span style="color: #3F7E5E">// derived column for function</span>
+     *         subCB.query().setXxx... <span style="color: #3F7E5E">// referrer sub-query condition</span>
+     *     }
+     * }).greaterEqual(value);
+     * 
+     * <span style="color: #3F7E5E">// ScalarCondition: (self-table sub-query)</span>
+     * cb.query().scalar_Equal().max(new SubQuery&lt;MemberCB&gt;() {
+     *     public void query(MemberCB subCB) {
+     *         subCB.specify().columnBirthdate(); <span style="color: #3F7E5E">// derived column for function</span>
+     *         subCB.query().setXxx... <span style="color: #3F7E5E">// scalar sub-query condition</span>
+     *     }
+     * });
+     * 
+     * <span style="color: #3F7E5E">// OrderBy</span>
+     * cb.query().addOrderBy_MemberName_Asc();
+     * cb.query().addOrderBy_MemberName_Desc().withManualOrder(valueList);
+     * cb.query().addOrderBy_MemberName_Desc().withNullsFirst();
+     * cb.query().addOrderBy_MemberName_Desc().withNullsLast();
+     * cb.query().addSpecifiedDerivedOrderBy_Desc(aliasName);
+     * 
+     * <span style="color: #3F7E5E">// Query(Relation)</span>
+     * cb.query().queryMemberStatus()...;
+     * cb.query().queryMemberAddressAsValid(targetDate)...;
+     * </pre>
+     * @return The instance of condition-query for base-point table to set up query. (NotNull)
+     */
     public AccessResultDataCQ query() {
+        assertQueryPurpose(); // assert only when user-public query 
         return getConditionQuery();
     }
 
-    public AccessResultDataCQ getConditionQuery() {
+    public AccessResultDataCQ getConditionQuery() { // public for parameter comment and internal
         if (_conditionQuery == null) {
-            _conditionQuery = new AccessResultDataCQ(null, getSqlClause(),
-                    getSqlClause().getLocalTableAliasName(), 0);
+            _conditionQuery = createLocalCQ();
         }
         return _conditionQuery;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    protected AccessResultDataCQ createLocalCQ() {
+        return xcreateCQ(null, getSqlClause(), getSqlClause()
+                .getBasePointAliasName(), 0);
+    }
+
+    protected AccessResultDataCQ xcreateCQ(ConditionQuery childQuery,
+            SqlClause sqlClause, String aliasName, int nestLevel) {
+        return new AccessResultDataCQ(childQuery, sqlClause, aliasName,
+                nestLevel);
+    }
+
     public ConditionQuery localCQ() {
         return getConditionQuery();
     }
@@ -136,9 +211,11 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                               Union
     //                                                                               =====
     /**
-     * Set up 'union'.
+     * Set up 'union' for base-point table. <br />
+     * You don't need to call SetupSelect in union-query,
+     * because it inherits calls before. (Don't call SetupSelect after here)
      * <pre>
-     * cb.query().union(new UnionQuery&lt;AccessResultDataCB&gt;() {
+     * cb.query().<span style="color: #FD4747">union</span>(new UnionQuery&lt;AccessResultDataCB&gt;() {
      *     public void query(AccessResultDataCB unionCB) {
      *         unionCB.query().setXxx...
      *     }
@@ -148,29 +225,33 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      */
     public void union(UnionQuery<AccessResultDataCB> unionQuery) {
         final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForUnion();
+        cb.xsetupForUnion(this);
         xsyncUQ(cb);
         unionQuery.query(cb);
+        xsaveUCB(cb);
         final AccessResultDataCQ cq = cb.query();
         query().xsetUnionQuery(cq);
     }
 
     /**
-     * Set up 'union all'.
+     * Set up 'union all' for base-point table. <br />
+     * You don't need to call SetupSelect in union-query,
+     * because it inherits calls before. (Don't call SetupSelect after here)
      * <pre>
-     * cb.query().unionAll(new UnionQuery&lt;AccessResultDataCB&gt;() {
+     * cb.query().<span style="color: #FD4747">unionAll</span>(new UnionQuery&lt;AccessResultDataCB&gt;() {
      *     public void query(AccessResultDataCB unionCB) {
      *         unionCB.query().setXxx...
      *     }
      * });
      * </pre>
-     * @param unionQuery The query of 'union'. (NotNull)
+     * @param unionQuery The query of 'union all'. (NotNull)
      */
     public void unionAll(UnionQuery<AccessResultDataCB> unionQuery) {
         final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForUnion();
+        cb.xsetupForUnion(this);
         xsyncUQ(cb);
         unionQuery.query(cb);
+        xsaveUCB(cb);
         final AccessResultDataCQ cq = cb.query();
         query().xsetUnionAllQuery(cq);
     }
@@ -187,6 +268,18 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
         return _nssAccessResult;
     }
 
+    /**
+     * Set up relation columns to select clause. <br />
+     * ACCESS_RESULT as 'accessResult'.
+     * <pre>
+     * AccessResultDataCB cb = new AccessResultDataCB();
+     * cb.<span style="color: #FD4747">setupSelect_AccessResult()</span>; <span style="color: #3F7E5E">// ...().with[nested-relation]()</span>
+     * cb.query().setFoo...(value);
+     * AccessResultData accessResultData = accessResultDataBhv.selectEntityWithDeletedCheck(cb);
+     * ... = accessResultData.<span style="color: #FD4747">getAccessResult()</span>; <span style="color: #3F7E5E">// you can get by using SetupSelect</span>
+     * </pre>
+     * @return The set-upper of nested relation. {setupSelect...().with[nested-relation]} (NotNull)
+     */
     public AccessResultNss setupSelect_AccessResult() {
         doSetupSelect(new SsCall() {
             public ConditionQuery qf() {
@@ -205,7 +298,24 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                             =======
     protected HpSpecification _specification;
 
+    /**
+     * Prepare for SpecifyColumn, (Specify)DerivedReferrer. <br />
+     * This method should be called after SetupSelect.
+     * <pre>
+     * cb.setupSelect_MemberStatus(); <span style="color: #3F7E5E">// should be called before specify()</span>
+     * cb.specify().columnMemberName();
+     * cb.specify().specifyMemberStatus().columnMemberStatusName();
+     * cb.specify().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
+     *     public void query(PurchaseCB subCB) {
+     *         subCB.specify().columnPurchaseDatetime();
+     *         subCB.query().set...
+     *     }
+     * }, aliasName);
+     * </pre>
+     * @return The instance of specification. (NotNull)
+     */
     public HpSpecification specify() {
+        assertSpecifyPurpose();
         if (_specification == null) {
             _specification = new HpSpecification(this,
                     new HpSpQyCall<AccessResultDataCQ>() {
@@ -214,12 +324,16 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
                         }
 
                         public AccessResultDataCQ qy() {
-                            return query();
+                            return getConditionQuery();
                         }
-                    }, _forDerivedReferrer, _forScalarSelect,
-                    _forScalarSubQuery, getDBMetaProvider());
+                    }, _purpose, getDBMetaProvider());
         }
         return _specification;
+    }
+
+    protected boolean hasSpecifiedColumn() {
+        return _specification != null
+                && _specification.isAlreadySpecifiedRequiredColumn();
     }
 
     protected HpAbstractSpecification<? extends ConditionQuery> localSp() {
@@ -228,83 +342,95 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
 
     public static class HpSpecification extends
             HpAbstractSpecification<AccessResultDataCQ> {
-        protected HpSpQyCall<AccessResultDataCQ> _myQyCall;
-
         protected AccessResultCB.HpSpecification _accessResult;
 
         public HpSpecification(ConditionBean baseCB,
-                HpSpQyCall<AccessResultDataCQ> qyCall,
-                boolean forDeriveReferrer, boolean forScalarSelect,
-                boolean forScalarSubQuery, DBMetaProvider dbmetaProvider) {
-            super(baseCB, qyCall, forDeriveReferrer, forScalarSelect,
-                    forScalarSubQuery, dbmetaProvider);
-            _myQyCall = qyCall;
+                HpSpQyCall<AccessResultDataCQ> qyCall, HpCBPurpose purpose,
+                DBMetaProvider dbmetaProvider) {
+            super(baseCB, qyCall, purpose, dbmetaProvider);
         }
 
-        /** ID: {PK : NotNull : BIGINT(19) : FK to ACCESS_RESULT} */
-        public void columnId() {
-            doColumn("ID");
+        /**
+         * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
+         * @return The information object of specified column. (NotNull)
+         */
+        public HpSpecifiedColumn columnId() {
+            return doColumn("ID");
         }
 
-        /** TRANSFORMER_NAME: {NotNull : VARCHAR(255)} */
-        public void columnTransformerName() {
-            doColumn("TRANSFORMER_NAME");
+        /**
+         * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
+         * @return The information object of specified column. (NotNull)
+         */
+        public HpSpecifiedColumn columnTransformerName() {
+            return doColumn("TRANSFORMER_NAME");
         }
 
-        /** DATA: {BLOB(2147483647)} */
-        public void columnData() {
-            doColumn("DATA");
+        /**
+         * DATA: {BLOB(2147483647)}
+         * @return The information object of specified column. (NotNull)
+         */
+        public HpSpecifiedColumn columnData() {
+            return doColumn("DATA");
         }
 
-        /** ENCODING: {VARCHAR(20)} */
-        public void columnEncoding() {
-            doColumn("ENCODING");
+        /**
+         * ENCODING: {VARCHAR(20)}
+         * @return The information object of specified column. (NotNull)
+         */
+        public HpSpecifiedColumn columnEncoding() {
+            return doColumn("ENCODING");
         }
 
+        @Override
         protected void doSpecifyRequiredColumn() {
             columnId(); // PK
         }
 
+        @Override
         protected String getTableDbName() {
             return "ACCESS_RESULT_DATA";
         }
 
         /**
+         * Prepare to specify functions about relation table. <br />
          * ACCESS_RESULT as 'accessResult'.
-         * @return Next specification. (NotNull)
+         * @return The instance for specification for relation table to specify. (NotNull)
          */
         public AccessResultCB.HpSpecification specifyAccessResult() {
-            assertForeign("accessResult");
+            assertRelation("accessResult");
             if (_accessResult == null) {
-                _accessResult = new AccessResultCB.HpSpecification(
-                        _baseCB,
+                _accessResult = new AccessResultCB.HpSpecification(_baseCB,
                         new HpSpQyCall<AccessResultCQ>() {
                             public boolean has() {
-                                return _myQyCall.has()
-                                        && _myQyCall
+                                return _qyCall.has()
+                                        && _qyCall
                                                 .qy()
                                                 .hasConditionQueryAccessResult();
                             }
 
                             public AccessResultCQ qy() {
-                                return _myQyCall.qy().queryAccessResult();
+                                return _qyCall.qy().queryAccessResult();
                             }
-                        }, _forDerivedReferrer, _forScalarSelect,
-                        _forScalarSubQuery, _dbmetaProvider);
-                if (_forGeneralOneSpecificaion) {
-                    _accessResult.xsetupForGeneralOneSpecification(null);
+                        }, _purpose, _dbmetaProvider);
+                if (xhasSyncQyCall()) { // inherits it
+                    _accessResult
+                            .xsetSyncQyCall(new HpSpQyCall<AccessResultCQ>() {
+                                public boolean has() {
+                                    return xsyncQyCall().has()
+                                            && xsyncQyCall()
+                                                    .qy()
+                                                    .hasConditionQueryAccessResult();
+                                }
+
+                                public AccessResultCQ qy() {
+                                    return xsyncQyCall().qy()
+                                            .queryAccessResult();
+                                }
+                            });
                 }
             }
             return _accessResult;
-        }
-
-        public void xsetupForGeneralOneSpecification(
-                HpSpQyCall<AccessResultDataCQ> qyCall) {
-            if (qyCall != null) {
-                _myQyCall = qyCall;
-                _qyCall = qyCall;
-            }
-            _forGeneralOneSpecificaion = true;
         }
     }
 
@@ -313,6 +439,19 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                         ColumnQuery
     //                                                                         ===========
     /**
+     * Set up column-query. {column1 = column2}
+     * <pre>
+     * <span style="color: #3F7E5E">// where FOO &lt; BAR</span>
+     * cb.<span style="color: #FD4747">columnQuery</span>(new SpecifyQuery&lt;AccessResultDataCB&gt;() {
+     *     public void query(AccessResultDataCB cb) {
+     *         cb.specify().<span style="color: #FD4747">columnFoo()</span>; <span style="color: #3F7E5E">// left column</span>
+     *     }
+     * }).lessThan(new SpecifyQuery&lt;AccessResultDataCB&gt;() {
+     *     public void query(AccessResultDataCB cb) {
+     *         cb.specify().<span style="color: #FD4747">columnBar()</span>; <span style="color: #3F7E5E">// right column</span>
+     *     }
+     * }); <span style="color: #3F7E5E">// you can calculate for right column like '}).plus(3);'</span>
+     * </pre>
      * @param leftSpecifyQuery The specify-query for left column. (NotNull)
      * @return The object for setting up operand and right column. (NotNull)
      */
@@ -320,31 +459,65 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
             final SpecifyQuery<AccessResultDataCB> leftSpecifyQuery) {
         return new HpColQyOperand<AccessResultDataCB>(
                 new HpColQyHandler<AccessResultDataCB>() {
-                    public void handle(
+                    public HpCalculator handle(
                             SpecifyQuery<AccessResultDataCB> rightSp,
                             String operand) {
-                        AccessResultDataCB cb = new AccessResultDataCB();
-                        cb.specify().xsetupForGeneralOneSpecification(
-                                new HpSpQyCall<AccessResultDataCQ>() {
-                                    public boolean has() {
-                                        return true;
-                                    }
-
-                                    public AccessResultDataCQ qy() {
-                                        return query();
-                                    }
-                                });
-                        xcolqy(cb, leftSpecifyQuery, rightSp, operand);
+                        return xcolqy(xcreateColumnQueryCB(),
+                                xcreateColumnQueryCB(), leftSpecifyQuery,
+                                rightSp, operand);
                     }
                 });
     }
 
-    // [DBFlute-0.9.5.5]
+    protected AccessResultDataCB xcreateColumnQueryCB() {
+        AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForColumnQuery((AccessResultDataCB) this);
+        return cb;
+    }
+
+    // [DBFlute-0.9.6.3]
     // ===================================================================================
-    //                                                                             OrQuery
-    //                                                                             =======
-    public void orQuery(OrQuery<AccessResultDataCB> orQuery) {
-        xorQ((AccessResultDataCB) this, orQuery);
+    //                                                                        OrScopeQuery
+    //                                                                        ============
+    /**
+     * Set up the query for or-scope. <br />
+     * (Same-column-and-same-condition-key conditions are allowed in or-scope)
+     * <pre>
+     * <span style="color: #3F7E5E">// where (FOO = '...' or BAR = '...')</span>
+     * cb.<span style="color: #FD4747">orScopeQuery</span>(new OrQuery&lt;AccessResultDataCB&gt;() {
+     *     public void query(AccessResultDataCB orCB) {
+     *         orCB.query().setFOO_Equal...
+     *         orCB.query().setBAR_Equal...
+     *     }
+     * });
+     * </pre>
+     * @param orQuery The query for or-condition. (NotNull)
+     */
+    public void orScopeQuery(OrQuery<AccessResultDataCB> orQuery) {
+        xorSQ((AccessResultDataCB) this, orQuery);
+    }
+
+    /**
+     * Set up the and-part of or-scope. <br />
+     * (However nested or-scope query and as-or-split of like-search in and-part are unsupported)
+     * <pre>
+     * <span style="color: #3F7E5E">// where (FOO = '...' or (BAR = '...' and QUX = '...'))</span>
+     * cb.<span style="color: #FD4747">orScopeQuery</span>(new OrQuery&lt;AccessResultDataCB&gt;() {
+     *     public void query(AccessResultDataCB orCB) {
+     *         orCB.query().setFOO_Equal...
+     *         orCB.<span style="color: #FD4747">orScopeQueryAndPart</span>(new AndQuery&lt;AccessResultDataCB&gt;() {
+     *             public void query(AccessResultDataCB andCB) {
+     *                 andCB.query().setBar_...
+     *                 andCB.query().setQux_...
+     *             }
+     *         });
+     *     }
+     * });
+     * </pre>
+     * @param andQuery The query for and-condition. (NotNull)
+     */
+    public void orScopeQueryAndPart(AndQuery<AccessResultDataCB> andQuery) {
+        xorSQAP((AccessResultDataCB) this, andQuery);
     }
 
     // ===================================================================================
@@ -373,9 +546,31 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     }
 
     // ===================================================================================
+    //                                                                        Purpose Type
+    //                                                                        ============
+    @Override
+    protected void xprepareSyncQyCall(ConditionBean mainCB) {
+        final AccessResultDataCB cb;
+        if (mainCB != null) {
+            cb = (AccessResultDataCB) mainCB;
+        } else {
+            cb = new AccessResultDataCB();
+        }
+        specify().xsetSyncQyCall(new HpSpQyCall<AccessResultDataCQ>() {
+            public boolean has() {
+                return true;
+            }
+
+            public AccessResultDataCQ qy() {
+                return cb.query();
+            }
+        });
+    }
+
+    // ===================================================================================
     //                                                                            Internal
     //                                                                            ========
-    // Very Internal (for Suppressing Warn about 'Not Use Import')
+    // very internal (for suppressing warn about 'Not Use Import')
     protected String getConditionBeanClassNameInternally() {
         return AccessResultDataCB.class.getName();
     }
@@ -386,5 +581,9 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
 
     protected String getSubQueryClassNameInternally() {
         return SubQuery.class.getName();
+    }
+
+    protected String getConditionOptionClassNameInternally() {
+        return ConditionOption.class.getName();
     }
 }

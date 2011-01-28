@@ -28,7 +28,7 @@ import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
- * The condition-inline-query of ACCESS_RESULT_DATA.
+ * The condition-query for in-line of ACCESS_RESULT_DATA.
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
@@ -45,18 +45,19 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
             String aliasName, int nestLevel, BsAccessResultDataCQ myCQ) {
         super(childQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.getForeignPropertyName();// Accept foreign property name.
-        _relationPath = _myCQ.getRelationPath();// Accept relation path.
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
+        _relationPath = _myCQ.xgetRelationPath(); // accept relation path
+        _inline = true;
     }
 
     // ===================================================================================
     //                                                             Override about Register
     //                                                             =======================
     @Override
-    protected void reflectRelationOnUnionQuery(ConditionQuery baseQueryAsSuper,
-            ConditionQuery unionQueryAsSuper) {
-        String msg = "InlineQuery must not need UNION method: "
-                + baseQueryAsSuper + " : " + unionQueryAsSuper;
+    protected void reflectRelationOnUnionQuery(ConditionQuery bq,
+            ConditionQuery uq) {
+        String msg = "InlineView must not need UNION method: " + bq + " : "
+                + uq;
         throw new IllegalConditionBeanOperationException(msg);
     }
 
@@ -73,25 +74,17 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
     }
 
     @Override
-    protected void registerWhereClause(String whereClause) {
-        registerInlineWhereClause(whereClause);
+    protected void registerWhereClause(String wc) {
+        registerInlineWhereClause(wc);
     }
 
     @Override
-    protected String getInScopeSubQueryRealColumnName(String columnName) {
-        if (_onClauseInline) {
-            String msg = "Sorry! InScopeSubQuery of on-clause is unavailable";
-            throw new IllegalConditionBeanOperationException(msg);
+    protected boolean isInScopeRelationSuppressLocalAliasName() {
+        if (_onClause) {
+            throw new IllegalConditionBeanOperationException(
+                    "InScopeRelation on OnClause is unsupported.");
         }
-        return _onClauseInline ? getRealAliasName() + "." + columnName
-                : columnName;
-    }
-
-    @Override
-    protected void registerExistsSubQuery(ConditionQuery subQuery,
-            String columnName, String relatedColumnName, String propertyName) {
-        String msg = "Sorry! ExistsSubQuery at in-line view is unavailable. So please use InScopeSubQyery.";
-        throw new IllegalConditionBeanOperationException(msg);
+        return true;
     }
 
     // ===================================================================================
@@ -101,8 +94,12 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
         return _myCQ.getId();
     }
 
-    public String keepId_InScopeSubQuery_AccessResult(AccessResultCQ sq) {
-        return _myCQ.keepId_InScopeSubQuery_AccessResult(sq);
+    public String keepId_InScopeRelation_AccessResult(AccessResultCQ sq) {
+        return _myCQ.keepId_InScopeRelation_AccessResult(sq);
+    }
+
+    public String keepId_NotInScopeRelation_AccessResult(AccessResultCQ sq) {
+        return _myCQ.keepId_NotInScopeRelation_AccessResult(sq);
     }
 
     protected ConditionValue getCValueTransformerName() {
@@ -117,30 +114,30 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
         return _myCQ.getEncoding();
     }
 
-    public String keepScalarSubQuery(AccessResultDataCQ subQuery) {
-        throwIICBOE("ScalarSubQuery");
+    public String keepScalarCondition(AccessResultDataCQ subQuery) {
+        throwIICBOE("ScalarCondition");
         return null;
     }
 
-    public String keepMyselfInScopeSubQuery(AccessResultDataCQ subQuery) {
-        throwIICBOE("MyselfInScopeSubQuery");
+    public String keepMyselfInScopeRelation(AccessResultDataCQ subQuery) {
+        throwIICBOE("MyselfInScopeRelation");
         return null;
     }
 
     protected void throwIICBOE(String name) { // throwInlineIllegalConditionBeanOperationException()
-        throw new IllegalConditionBeanOperationException("Sorry! " + name
-                + " at in-line view is unavailable!");
+        throw new IllegalConditionBeanOperationException(name
+                + " at InlineView is unsupported.");
     }
 
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
-    // Very Internal (for Suppressing Warn about 'Not Use Import')
-    String xiCB() {
+    // very internal (for suppressing warn about 'Not Use Import')
+    protected String xinCB() {
         return AccessResultDataCB.class.getName();
     }
 
-    String xiCQ() {
+    protected String xinCQ() {
         return AccessResultDataCQ.class.getName();
     }
 }

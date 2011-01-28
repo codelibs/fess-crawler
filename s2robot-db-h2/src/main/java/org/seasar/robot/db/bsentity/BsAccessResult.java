@@ -24,7 +24,7 @@ import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
- * The entity of ACCESS_RESULT that is TABLE. <br />
+ * The entity of ACCESS_RESULT as TABLE. <br />
  * <pre>
  * [primary-key]
  *     ID
@@ -69,67 +69,89 @@ public abstract class BsAccessResult implements Entity, Serializable {
     // -----------------------------------------------------
     //                                                Column
     //                                                ------
-    /** ID: {PK : ID : NotNull : BIGINT(19)} */
+    /** ID: {PK, ID, NotNull, BIGINT(19)} */
     protected Long _id;
 
-    /** SESSION_ID: {NotNull : VARCHAR(20)} */
+    /** SESSION_ID: {IX, NotNull, VARCHAR(20)} */
     protected String _sessionId;
 
     /** RULE_ID: {VARCHAR(20)} */
     protected String _ruleId;
 
-    /** URL: {NotNull : VARCHAR(65536)} */
+    /** URL: {IX+, NotNull, VARCHAR(65536)} */
     protected String _url;
 
     /** PARENT_URL: {VARCHAR(65536)} */
     protected String _parentUrl;
 
-    /** STATUS: {NotNull : INTEGER(10)} */
+    /** STATUS: {NotNull, INTEGER(10)} */
     protected Integer _status;
 
-    /** HTTP_STATUS_CODE: {NotNull : INTEGER(10)} */
+    /** HTTP_STATUS_CODE: {NotNull, INTEGER(10)} */
     protected Integer _httpStatusCode;
 
-    /** METHOD: {NotNull : VARCHAR(10)} */
+    /** METHOD: {NotNull, VARCHAR(10)} */
     protected String _method;
 
-    /** MIME_TYPE: {NotNull : VARCHAR(100)} */
+    /** MIME_TYPE: {NotNull, VARCHAR(100)} */
     protected String _mimeType;
 
-    /** CONTENT_LENGTH: {NotNull : BIGINT(19)} */
+    /** CONTENT_LENGTH: {NotNull, BIGINT(19)} */
     protected Long _contentLength;
 
-    /** EXECUTION_TIME: {NotNull : INTEGER(10)} */
+    /** EXECUTION_TIME: {NotNull, INTEGER(10)} */
     protected Integer _executionTime;
 
-    /** LAST_MODIFIED: {NotNull : TIMESTAMP(23, 10)} */
+    /** LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _lastModified;
 
-    /** CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} */
+    /** CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _createTime;
 
     // -----------------------------------------------------
     //                                              Internal
     //                                              --------
     /** The modified properties for this entity. */
-    protected EntityModifiedProperties _modifiedProperties = newEntityModifiedProperties();
+    protected final EntityModifiedProperties __modifiedProperties = newModifiedProperties();
 
     // ===================================================================================
     //                                                                          Table Name
     //                                                                          ==========
+    /**
+     * {@inheritDoc}
+     */
     public String getTableDbName() {
         return "ACCESS_RESULT";
     }
 
-    public String getTablePropertyName() { // as JavaBeansRule
+    /**
+     * {@inheritDoc}
+     */
+    public String getTablePropertyName() { // according to Java Beans rule
         return "accessResult";
     }
 
     // ===================================================================================
     //                                                                              DBMeta
     //                                                                              ======
+    /**
+     * {@inheritDoc}
+     */
     public DBMeta getDBMeta() {
         return DBMetaInstanceHandler.findDBMeta(getTableDbName());
+    }
+
+    // ===================================================================================
+    //                                                                         Primary Key
+    //                                                                         ===========
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasPrimaryKeyValue() {
+        if (getId() == null) {
+            return false;
+        }
+        return true;
     }
 
     // ===================================================================================
@@ -139,8 +161,8 @@ public abstract class BsAccessResult implements Entity, Serializable {
     protected AccessResultData _accessResultDataAsOne;
 
     /**
-     * ACCESS_RESULT_DATA as 'accessResultDataAsOne'. {without lazy-load} <br />
-     * @return the entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (Nullable: If the foreign key does not have 'NotNull' constraint, please check null.)
+     * ACCESS_RESULT_DATA as 'accessResultDataAsOne'.
+     * @return the entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (NullAllowed: If the foreign key does not have 'NotNull' constraint, please check null.)
      */
     public AccessResultData getAccessResultDataAsOne() {
         return _accessResultDataAsOne;
@@ -148,7 +170,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
 
     /**
      * ACCESS_RESULT_DATA as 'accessResultDataAsOne'.
-     * @param accessResultDataAsOne The entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (Nullable)
+     * @param accessResultDataAsOne The entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (NullAllowed)
      */
     public void setAccessResultDataAsOne(AccessResultData accessResultDataAsOne) {
         _accessResultDataAsOne = accessResultDataAsOne;
@@ -158,40 +180,39 @@ public abstract class BsAccessResult implements Entity, Serializable {
     //                                                                   Referrer Property
     //                                                                   =================
     // ===================================================================================
-    //                                                                       Determination
-    //                                                                       =============
-    public boolean hasPrimaryKeyValue() {
-        if (_id == null) {
-            return false;
-        }
-        return true;
-    }
-
-    // ===================================================================================
     //                                                                 Modified Properties
     //                                                                 ===================
-    public Set<String> getModifiedPropertyNames() {
-        return _modifiedProperties.getPropertyNames();
+    /**
+     * {@inheritDoc}
+     */
+    public Set<String> modifiedProperties() {
+        return __modifiedProperties.getPropertyNames();
     }
 
-    protected EntityModifiedProperties newEntityModifiedProperties() {
-        return new EntityModifiedProperties();
+    /**
+     * {@inheritDoc}
+     */
+    public void clearModifiedInfo() {
+        __modifiedProperties.clear();
     }
 
-    public void clearModifiedPropertyNames() {
-        _modifiedProperties.clear();
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     public boolean hasModification() {
-        return !_modifiedProperties.isEmpty();
+        return !__modifiedProperties.isEmpty();
+    }
+
+    protected EntityModifiedProperties newModifiedProperties() {
+        return new EntityModifiedProperties();
     }
 
     // ===================================================================================
     //                                                                      Basic Override
     //                                                                      ==============
     /**
-     * If the primary-key of the other is same as this one, returns true.
-     * @param other Other entity.
+     * If primary-keys or columns of the other are same as this one, returns true.
+     * @param other The other entity. (NullAllowed)
      * @return Comparing result.
      */
     public boolean equals(Object other) {
@@ -199,36 +220,36 @@ public abstract class BsAccessResult implements Entity, Serializable {
             return false;
         }
         BsAccessResult otherEntity = (BsAccessResult) other;
-        if (!helpComparingValue(getId(), otherEntity.getId())) {
+        if (!xSV(getId(), otherEntity.getId())) {
             return false;
         }
         return true;
     }
 
-    protected boolean helpComparingValue(Object value1, Object value2) {
-        if (value1 == null && value2 == null) {
-            return true;
-        }
-        return value1 != null && value2 != null && value1.equals(value2);
+    protected boolean xSV(Object value1, Object value2) { // isSameValue()
+        return InternalUtil.isSameValue(value1, value2);
     }
 
     /**
-     * Calculates hash-code from primary-key.
-     * @return Hash-code from primary-key.
+     * Calculates the hash-code from primary-keys or columns.
+     * @return The hash-code from primary-key or columns.
      */
     public int hashCode() {
         int result = 17;
-        if (getId() != null) {
-            result = (31 * result) + getId().hashCode();
-        }
+        result = xCH(result, getTableDbName());
+        result = xCH(result, getId());
         return result;
+    }
+
+    protected int xCH(int result, Object value) { // calculateHashcode()
+        return InternalUtil.calculateHashcode(result, value);
     }
 
     /**
      * @return The display string of all columns and relation existences. (NotNull)
      */
     public String toString() {
-        return buildDisplayString(getClass().getSimpleName(), true, true);
+        return buildDisplayString(InternalUtil.toClassTitle(this), true, true);
     }
 
     /**
@@ -245,12 +266,12 @@ public abstract class BsAccessResult implements Entity, Serializable {
         return sb.toString();
     }
 
-    private String xbRDS(Entity e, String name) { // buildRelationDisplayString()
+    protected String xbRDS(Entity e, String name) { // buildRelationDisplayString()
         return e.buildDisplayString(name, true, true);
     }
 
     /**
-     * @param name The name for display. (Nullable: If it's null, it does not have a name)
+     * @param name The name for display. (NullAllowed: If it's null, it does not have a name)
      * @param column Does it contains column values or not?
      * @param relation Does it contains relation existences or not?
      * @return The display string for this entity. (NotNull)
@@ -262,17 +283,17 @@ public abstract class BsAccessResult implements Entity, Serializable {
             sb.append(name).append(column || relation ? ":" : "");
         }
         if (column) {
-            sb.append(xbuildColumnString());
+            sb.append(buildColumnString());
         }
         if (relation) {
-            sb.append(xbuildRelationString());
+            sb.append(buildRelationString());
         }
         sb.append("@").append(Integer.toHexString(hashCode()));
         return sb.toString();
     }
 
-    private String xbuildColumnString() {
-        String c = ",";
+    protected String buildColumnString() {
+        String c = ", ";
         StringBuilder sb = new StringBuilder();
         sb.append(c).append(getId());
         sb.append(c).append(getSessionId());
@@ -294,7 +315,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
         return sb.toString();
     }
 
-    private String xbuildRelationString() {
+    protected String buildRelationString() {
         StringBuilder sb = new StringBuilder();
         String c = ",";
         if (_accessResultDataAsOne != null) {
@@ -310,223 +331,223 @@ public abstract class BsAccessResult implements Entity, Serializable {
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * ID: {PK : ID : NotNull : BIGINT(19)} <br />
-     * @return The value of the column 'ID'. (Nullable)
+     * [get] ID: {PK, ID, NotNull, BIGINT(19)} <br />
+     * @return The value of the column 'ID'. (NullAllowed)
      */
     public Long getId() {
         return _id;
     }
 
     /**
-     * ID: {PK : ID : NotNull : BIGINT(19)} <br />
-     * @param id The value of the column 'ID'. (Nullable)
+     * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br />
+     * @param id The value of the column 'ID'. (NullAllowed)
      */
     public void setId(Long id) {
-        _modifiedProperties.addPropertyName("id");
+        __modifiedProperties.addPropertyName("id");
         this._id = id;
     }
 
     /**
-     * SESSION_ID: {NotNull : VARCHAR(20)} <br />
-     * @return The value of the column 'SESSION_ID'. (Nullable)
+     * [get] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
+     * @return The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public String getSessionId() {
         return _sessionId;
     }
 
     /**
-     * SESSION_ID: {NotNull : VARCHAR(20)} <br />
-     * @param sessionId The value of the column 'SESSION_ID'. (Nullable)
+     * [set] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
+     * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public void setSessionId(String sessionId) {
-        _modifiedProperties.addPropertyName("sessionId");
+        __modifiedProperties.addPropertyName("sessionId");
         this._sessionId = sessionId;
     }
 
     /**
-     * RULE_ID: {VARCHAR(20)} <br />
-     * @return The value of the column 'RULE_ID'. (Nullable)
+     * [get] RULE_ID: {VARCHAR(20)} <br />
+     * @return The value of the column 'RULE_ID'. (NullAllowed)
      */
     public String getRuleId() {
         return _ruleId;
     }
 
     /**
-     * RULE_ID: {VARCHAR(20)} <br />
-     * @param ruleId The value of the column 'RULE_ID'. (Nullable)
+     * [set] RULE_ID: {VARCHAR(20)} <br />
+     * @param ruleId The value of the column 'RULE_ID'. (NullAllowed)
      */
     public void setRuleId(String ruleId) {
-        _modifiedProperties.addPropertyName("ruleId");
+        __modifiedProperties.addPropertyName("ruleId");
         this._ruleId = ruleId;
     }
 
     /**
-     * URL: {NotNull : VARCHAR(65536)} <br />
-     * @return The value of the column 'URL'. (Nullable)
+     * [get] URL: {IX+, NotNull, VARCHAR(65536)} <br />
+     * @return The value of the column 'URL'. (NullAllowed)
      */
     public String getUrl() {
         return _url;
     }
 
     /**
-     * URL: {NotNull : VARCHAR(65536)} <br />
-     * @param url The value of the column 'URL'. (Nullable)
+     * [set] URL: {IX+, NotNull, VARCHAR(65536)} <br />
+     * @param url The value of the column 'URL'. (NullAllowed)
      */
     public void setUrl(String url) {
-        _modifiedProperties.addPropertyName("url");
+        __modifiedProperties.addPropertyName("url");
         this._url = url;
     }
 
     /**
-     * PARENT_URL: {VARCHAR(65536)} <br />
-     * @return The value of the column 'PARENT_URL'. (Nullable)
+     * [get] PARENT_URL: {VARCHAR(65536)} <br />
+     * @return The value of the column 'PARENT_URL'. (NullAllowed)
      */
     public String getParentUrl() {
         return _parentUrl;
     }
 
     /**
-     * PARENT_URL: {VARCHAR(65536)} <br />
-     * @param parentUrl The value of the column 'PARENT_URL'. (Nullable)
+     * [set] PARENT_URL: {VARCHAR(65536)} <br />
+     * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed)
      */
     public void setParentUrl(String parentUrl) {
-        _modifiedProperties.addPropertyName("parentUrl");
+        __modifiedProperties.addPropertyName("parentUrl");
         this._parentUrl = parentUrl;
     }
 
     /**
-     * STATUS: {NotNull : INTEGER(10)} <br />
-     * @return The value of the column 'STATUS'. (Nullable)
+     * [get] STATUS: {NotNull, INTEGER(10)} <br />
+     * @return The value of the column 'STATUS'. (NullAllowed)
      */
     public Integer getStatus() {
         return _status;
     }
 
     /**
-     * STATUS: {NotNull : INTEGER(10)} <br />
-     * @param status The value of the column 'STATUS'. (Nullable)
+     * [set] STATUS: {NotNull, INTEGER(10)} <br />
+     * @param status The value of the column 'STATUS'. (NullAllowed)
      */
     public void setStatus(Integer status) {
-        _modifiedProperties.addPropertyName("status");
+        __modifiedProperties.addPropertyName("status");
         this._status = status;
     }
 
     /**
-     * HTTP_STATUS_CODE: {NotNull : INTEGER(10)} <br />
-     * @return The value of the column 'HTTP_STATUS_CODE'. (Nullable)
+     * [get] HTTP_STATUS_CODE: {NotNull, INTEGER(10)} <br />
+     * @return The value of the column 'HTTP_STATUS_CODE'. (NullAllowed)
      */
     public Integer getHttpStatusCode() {
         return _httpStatusCode;
     }
 
     /**
-     * HTTP_STATUS_CODE: {NotNull : INTEGER(10)} <br />
-     * @param httpStatusCode The value of the column 'HTTP_STATUS_CODE'. (Nullable)
+     * [set] HTTP_STATUS_CODE: {NotNull, INTEGER(10)} <br />
+     * @param httpStatusCode The value of the column 'HTTP_STATUS_CODE'. (NullAllowed)
      */
     public void setHttpStatusCode(Integer httpStatusCode) {
-        _modifiedProperties.addPropertyName("httpStatusCode");
+        __modifiedProperties.addPropertyName("httpStatusCode");
         this._httpStatusCode = httpStatusCode;
     }
 
     /**
-     * METHOD: {NotNull : VARCHAR(10)} <br />
-     * @return The value of the column 'METHOD'. (Nullable)
+     * [get] METHOD: {NotNull, VARCHAR(10)} <br />
+     * @return The value of the column 'METHOD'. (NullAllowed)
      */
     public String getMethod() {
         return _method;
     }
 
     /**
-     * METHOD: {NotNull : VARCHAR(10)} <br />
-     * @param method The value of the column 'METHOD'. (Nullable)
+     * [set] METHOD: {NotNull, VARCHAR(10)} <br />
+     * @param method The value of the column 'METHOD'. (NullAllowed)
      */
     public void setMethod(String method) {
-        _modifiedProperties.addPropertyName("method");
+        __modifiedProperties.addPropertyName("method");
         this._method = method;
     }
 
     /**
-     * MIME_TYPE: {NotNull : VARCHAR(100)} <br />
-     * @return The value of the column 'MIME_TYPE'. (Nullable)
+     * [get] MIME_TYPE: {NotNull, VARCHAR(100)} <br />
+     * @return The value of the column 'MIME_TYPE'. (NullAllowed)
      */
     public String getMimeType() {
         return _mimeType;
     }
 
     /**
-     * MIME_TYPE: {NotNull : VARCHAR(100)} <br />
-     * @param mimeType The value of the column 'MIME_TYPE'. (Nullable)
+     * [set] MIME_TYPE: {NotNull, VARCHAR(100)} <br />
+     * @param mimeType The value of the column 'MIME_TYPE'. (NullAllowed)
      */
     public void setMimeType(String mimeType) {
-        _modifiedProperties.addPropertyName("mimeType");
+        __modifiedProperties.addPropertyName("mimeType");
         this._mimeType = mimeType;
     }
 
     /**
-     * CONTENT_LENGTH: {NotNull : BIGINT(19)} <br />
-     * @return The value of the column 'CONTENT_LENGTH'. (Nullable)
+     * [get] CONTENT_LENGTH: {NotNull, BIGINT(19)} <br />
+     * @return The value of the column 'CONTENT_LENGTH'. (NullAllowed)
      */
     public Long getContentLength() {
         return _contentLength;
     }
 
     /**
-     * CONTENT_LENGTH: {NotNull : BIGINT(19)} <br />
-     * @param contentLength The value of the column 'CONTENT_LENGTH'. (Nullable)
+     * [set] CONTENT_LENGTH: {NotNull, BIGINT(19)} <br />
+     * @param contentLength The value of the column 'CONTENT_LENGTH'. (NullAllowed)
      */
     public void setContentLength(Long contentLength) {
-        _modifiedProperties.addPropertyName("contentLength");
+        __modifiedProperties.addPropertyName("contentLength");
         this._contentLength = contentLength;
     }
 
     /**
-     * EXECUTION_TIME: {NotNull : INTEGER(10)} <br />
-     * @return The value of the column 'EXECUTION_TIME'. (Nullable)
+     * [get] EXECUTION_TIME: {NotNull, INTEGER(10)} <br />
+     * @return The value of the column 'EXECUTION_TIME'. (NullAllowed)
      */
     public Integer getExecutionTime() {
         return _executionTime;
     }
 
     /**
-     * EXECUTION_TIME: {NotNull : INTEGER(10)} <br />
-     * @param executionTime The value of the column 'EXECUTION_TIME'. (Nullable)
+     * [set] EXECUTION_TIME: {NotNull, INTEGER(10)} <br />
+     * @param executionTime The value of the column 'EXECUTION_TIME'. (NullAllowed)
      */
     public void setExecutionTime(Integer executionTime) {
-        _modifiedProperties.addPropertyName("executionTime");
+        __modifiedProperties.addPropertyName("executionTime");
         this._executionTime = executionTime;
     }
 
     /**
-     * LAST_MODIFIED: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @return The value of the column 'LAST_MODIFIED'. (Nullable)
+     * [get] LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)} <br />
+     * @return The value of the column 'LAST_MODIFIED'. (NullAllowed)
      */
     public java.sql.Timestamp getLastModified() {
         return _lastModified;
     }
 
     /**
-     * LAST_MODIFIED: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @param lastModified The value of the column 'LAST_MODIFIED'. (Nullable)
+     * [set] LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)} <br />
+     * @param lastModified The value of the column 'LAST_MODIFIED'. (NullAllowed)
      */
     public void setLastModified(java.sql.Timestamp lastModified) {
-        _modifiedProperties.addPropertyName("lastModified");
+        __modifiedProperties.addPropertyName("lastModified");
         this._lastModified = lastModified;
     }
 
     /**
-     * CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @return The value of the column 'CREATE_TIME'. (Nullable)
+     * [get] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
+     * @return The value of the column 'CREATE_TIME'. (NullAllowed)
      */
     public java.sql.Timestamp getCreateTime() {
         return _createTime;
     }
 
     /**
-     * CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @param createTime The value of the column 'CREATE_TIME'. (Nullable)
+     * [set] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
+     * @param createTime The value of the column 'CREATE_TIME'. (NullAllowed)
      */
     public void setCreateTime(java.sql.Timestamp createTime) {
-        _modifiedProperties.addPropertyName("createTime");
+        __modifiedProperties.addPropertyName("createTime");
         this._createTime = createTime;
     }
 }

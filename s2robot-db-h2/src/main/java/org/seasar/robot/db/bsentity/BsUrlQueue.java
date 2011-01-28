@@ -23,7 +23,7 @@ import org.seasar.robot.dbflute.Entity;
 import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
- * The entity of URL_QUEUE that is TABLE. <br />
+ * The entity of URL_QUEUE as TABLE. <br />
  * <pre>
  * [primary-key]
  *     ID
@@ -68,52 +68,74 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     // -----------------------------------------------------
     //                                                Column
     //                                                ------
-    /** ID: {PK : ID : NotNull : BIGINT(19)} */
+    /** ID: {PK, ID, NotNull, BIGINT(19)} */
     protected Long _id;
 
-    /** SESSION_ID: {NotNull : VARCHAR(20)} */
+    /** SESSION_ID: {IX, NotNull, VARCHAR(20)} */
     protected String _sessionId;
 
-    /** METHOD: {NotNull : VARCHAR(10)} */
+    /** METHOD: {NotNull, VARCHAR(10)} */
     protected String _method;
 
-    /** URL: {NotNull : VARCHAR(65536)} */
+    /** URL: {IX+, NotNull, VARCHAR(65536)} */
     protected String _url;
 
     /** PARENT_URL: {VARCHAR(65536)} */
     protected String _parentUrl;
 
-    /** DEPTH: {NotNull : INTEGER(10)} */
+    /** DEPTH: {NotNull, INTEGER(10)} */
     protected Integer _depth;
 
     /** LAST_MODIFIED: {TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _lastModified;
 
-    /** CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} */
+    /** CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _createTime;
 
     // -----------------------------------------------------
     //                                              Internal
     //                                              --------
     /** The modified properties for this entity. */
-    protected EntityModifiedProperties _modifiedProperties = newEntityModifiedProperties();
+    protected final EntityModifiedProperties __modifiedProperties = newModifiedProperties();
 
     // ===================================================================================
     //                                                                          Table Name
     //                                                                          ==========
+    /**
+     * {@inheritDoc}
+     */
     public String getTableDbName() {
         return "URL_QUEUE";
     }
 
-    public String getTablePropertyName() { // as JavaBeansRule
+    /**
+     * {@inheritDoc}
+     */
+    public String getTablePropertyName() { // according to Java Beans rule
         return "urlQueue";
     }
 
     // ===================================================================================
     //                                                                              DBMeta
     //                                                                              ======
+    /**
+     * {@inheritDoc}
+     */
     public DBMeta getDBMeta() {
         return DBMetaInstanceHandler.findDBMeta(getTableDbName());
+    }
+
+    // ===================================================================================
+    //                                                                         Primary Key
+    //                                                                         ===========
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasPrimaryKeyValue() {
+        if (getId() == null) {
+            return false;
+        }
+        return true;
     }
 
     // ===================================================================================
@@ -123,40 +145,39 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     //                                                                   Referrer Property
     //                                                                   =================
     // ===================================================================================
-    //                                                                       Determination
-    //                                                                       =============
-    public boolean hasPrimaryKeyValue() {
-        if (_id == null) {
-            return false;
-        }
-        return true;
-    }
-
-    // ===================================================================================
     //                                                                 Modified Properties
     //                                                                 ===================
-    public Set<String> getModifiedPropertyNames() {
-        return _modifiedProperties.getPropertyNames();
+    /**
+     * {@inheritDoc}
+     */
+    public Set<String> modifiedProperties() {
+        return __modifiedProperties.getPropertyNames();
     }
 
-    protected EntityModifiedProperties newEntityModifiedProperties() {
-        return new EntityModifiedProperties();
+    /**
+     * {@inheritDoc}
+     */
+    public void clearModifiedInfo() {
+        __modifiedProperties.clear();
     }
 
-    public void clearModifiedPropertyNames() {
-        _modifiedProperties.clear();
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     public boolean hasModification() {
-        return !_modifiedProperties.isEmpty();
+        return !__modifiedProperties.isEmpty();
+    }
+
+    protected EntityModifiedProperties newModifiedProperties() {
+        return new EntityModifiedProperties();
     }
 
     // ===================================================================================
     //                                                                      Basic Override
     //                                                                      ==============
     /**
-     * If the primary-key of the other is same as this one, returns true.
-     * @param other Other entity.
+     * If primary-keys or columns of the other are same as this one, returns true.
+     * @param other The other entity. (NullAllowed)
      * @return Comparing result.
      */
     public boolean equals(Object other) {
@@ -164,36 +185,36 @@ public abstract class BsUrlQueue implements Entity, Serializable {
             return false;
         }
         BsUrlQueue otherEntity = (BsUrlQueue) other;
-        if (!helpComparingValue(getId(), otherEntity.getId())) {
+        if (!xSV(getId(), otherEntity.getId())) {
             return false;
         }
         return true;
     }
 
-    protected boolean helpComparingValue(Object value1, Object value2) {
-        if (value1 == null && value2 == null) {
-            return true;
-        }
-        return value1 != null && value2 != null && value1.equals(value2);
+    protected boolean xSV(Object value1, Object value2) { // isSameValue()
+        return InternalUtil.isSameValue(value1, value2);
     }
 
     /**
-     * Calculates hash-code from primary-key.
-     * @return Hash-code from primary-key.
+     * Calculates the hash-code from primary-keys or columns.
+     * @return The hash-code from primary-key or columns.
      */
     public int hashCode() {
         int result = 17;
-        if (getId() != null) {
-            result = (31 * result) + getId().hashCode();
-        }
+        result = xCH(result, getTableDbName());
+        result = xCH(result, getId());
         return result;
+    }
+
+    protected int xCH(int result, Object value) { // calculateHashcode()
+        return InternalUtil.calculateHashcode(result, value);
     }
 
     /**
      * @return The display string of all columns and relation existences. (NotNull)
      */
     public String toString() {
-        return buildDisplayString(getClass().getSimpleName(), true, true);
+        return buildDisplayString(InternalUtil.toClassTitle(this), true, true);
     }
 
     /**
@@ -206,7 +227,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     }
 
     /**
-     * @param name The name for display. (Nullable: If it's null, it does not have a name)
+     * @param name The name for display. (NullAllowed: If it's null, it does not have a name)
      * @param column Does it contains column values or not?
      * @param relation Does it contains relation existences or not?
      * @return The display string for this entity. (NotNull)
@@ -218,17 +239,17 @@ public abstract class BsUrlQueue implements Entity, Serializable {
             sb.append(name).append(column || relation ? ":" : "");
         }
         if (column) {
-            sb.append(xbuildColumnString());
+            sb.append(buildColumnString());
         }
         if (relation) {
-            sb.append(xbuildRelationString());
+            sb.append(buildRelationString());
         }
         sb.append("@").append(Integer.toHexString(hashCode()));
         return sb.toString();
     }
 
-    private String xbuildColumnString() {
-        String c = ",";
+    protected String buildColumnString() {
+        String c = ", ";
         StringBuilder sb = new StringBuilder();
         sb.append(c).append(getId());
         sb.append(c).append(getSessionId());
@@ -245,7 +266,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
         return sb.toString();
     }
 
-    private String xbuildRelationString() {
+    protected String buildRelationString() {
         return "";
     }
 
@@ -253,138 +274,138 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * ID: {PK : ID : NotNull : BIGINT(19)} <br />
-     * @return The value of the column 'ID'. (Nullable)
+     * [get] ID: {PK, ID, NotNull, BIGINT(19)} <br />
+     * @return The value of the column 'ID'. (NullAllowed)
      */
     public Long getId() {
         return _id;
     }
 
     /**
-     * ID: {PK : ID : NotNull : BIGINT(19)} <br />
-     * @param id The value of the column 'ID'. (Nullable)
+     * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br />
+     * @param id The value of the column 'ID'. (NullAllowed)
      */
     public void setId(Long id) {
-        _modifiedProperties.addPropertyName("id");
+        __modifiedProperties.addPropertyName("id");
         this._id = id;
     }
 
     /**
-     * SESSION_ID: {NotNull : VARCHAR(20)} <br />
-     * @return The value of the column 'SESSION_ID'. (Nullable)
+     * [get] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
+     * @return The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public String getSessionId() {
         return _sessionId;
     }
 
     /**
-     * SESSION_ID: {NotNull : VARCHAR(20)} <br />
-     * @param sessionId The value of the column 'SESSION_ID'. (Nullable)
+     * [set] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
+     * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public void setSessionId(String sessionId) {
-        _modifiedProperties.addPropertyName("sessionId");
+        __modifiedProperties.addPropertyName("sessionId");
         this._sessionId = sessionId;
     }
 
     /**
-     * METHOD: {NotNull : VARCHAR(10)} <br />
-     * @return The value of the column 'METHOD'. (Nullable)
+     * [get] METHOD: {NotNull, VARCHAR(10)} <br />
+     * @return The value of the column 'METHOD'. (NullAllowed)
      */
     public String getMethod() {
         return _method;
     }
 
     /**
-     * METHOD: {NotNull : VARCHAR(10)} <br />
-     * @param method The value of the column 'METHOD'. (Nullable)
+     * [set] METHOD: {NotNull, VARCHAR(10)} <br />
+     * @param method The value of the column 'METHOD'. (NullAllowed)
      */
     public void setMethod(String method) {
-        _modifiedProperties.addPropertyName("method");
+        __modifiedProperties.addPropertyName("method");
         this._method = method;
     }
 
     /**
-     * URL: {NotNull : VARCHAR(65536)} <br />
-     * @return The value of the column 'URL'. (Nullable)
+     * [get] URL: {IX+, NotNull, VARCHAR(65536)} <br />
+     * @return The value of the column 'URL'. (NullAllowed)
      */
     public String getUrl() {
         return _url;
     }
 
     /**
-     * URL: {NotNull : VARCHAR(65536)} <br />
-     * @param url The value of the column 'URL'. (Nullable)
+     * [set] URL: {IX+, NotNull, VARCHAR(65536)} <br />
+     * @param url The value of the column 'URL'. (NullAllowed)
      */
     public void setUrl(String url) {
-        _modifiedProperties.addPropertyName("url");
+        __modifiedProperties.addPropertyName("url");
         this._url = url;
     }
 
     /**
-     * PARENT_URL: {VARCHAR(65536)} <br />
-     * @return The value of the column 'PARENT_URL'. (Nullable)
+     * [get] PARENT_URL: {VARCHAR(65536)} <br />
+     * @return The value of the column 'PARENT_URL'. (NullAllowed)
      */
     public String getParentUrl() {
         return _parentUrl;
     }
 
     /**
-     * PARENT_URL: {VARCHAR(65536)} <br />
-     * @param parentUrl The value of the column 'PARENT_URL'. (Nullable)
+     * [set] PARENT_URL: {VARCHAR(65536)} <br />
+     * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed)
      */
     public void setParentUrl(String parentUrl) {
-        _modifiedProperties.addPropertyName("parentUrl");
+        __modifiedProperties.addPropertyName("parentUrl");
         this._parentUrl = parentUrl;
     }
 
     /**
-     * DEPTH: {NotNull : INTEGER(10)} <br />
-     * @return The value of the column 'DEPTH'. (Nullable)
+     * [get] DEPTH: {NotNull, INTEGER(10)} <br />
+     * @return The value of the column 'DEPTH'. (NullAllowed)
      */
     public Integer getDepth() {
         return _depth;
     }
 
     /**
-     * DEPTH: {NotNull : INTEGER(10)} <br />
-     * @param depth The value of the column 'DEPTH'. (Nullable)
+     * [set] DEPTH: {NotNull, INTEGER(10)} <br />
+     * @param depth The value of the column 'DEPTH'. (NullAllowed)
      */
     public void setDepth(Integer depth) {
-        _modifiedProperties.addPropertyName("depth");
+        __modifiedProperties.addPropertyName("depth");
         this._depth = depth;
     }
 
     /**
-     * LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
-     * @return The value of the column 'LAST_MODIFIED'. (Nullable)
+     * [get] LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
+     * @return The value of the column 'LAST_MODIFIED'. (NullAllowed)
      */
     public java.sql.Timestamp getLastModified() {
         return _lastModified;
     }
 
     /**
-     * LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
-     * @param lastModified The value of the column 'LAST_MODIFIED'. (Nullable)
+     * [set] LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
+     * @param lastModified The value of the column 'LAST_MODIFIED'. (NullAllowed)
      */
     public void setLastModified(java.sql.Timestamp lastModified) {
-        _modifiedProperties.addPropertyName("lastModified");
+        __modifiedProperties.addPropertyName("lastModified");
         this._lastModified = lastModified;
     }
 
     /**
-     * CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @return The value of the column 'CREATE_TIME'. (Nullable)
+     * [get] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
+     * @return The value of the column 'CREATE_TIME'. (NullAllowed)
      */
     public java.sql.Timestamp getCreateTime() {
         return _createTime;
     }
 
     /**
-     * CREATE_TIME: {NotNull : TIMESTAMP(23, 10)} <br />
-     * @param createTime The value of the column 'CREATE_TIME'. (Nullable)
+     * [set] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
+     * @param createTime The value of the column 'CREATE_TIME'. (NullAllowed)
      */
     public void setCreateTime(java.sql.Timestamp createTime) {
-        _modifiedProperties.addPropertyName("createTime");
+        __modifiedProperties.addPropertyName("createTime");
         this._createTime = createTime;
     }
 }

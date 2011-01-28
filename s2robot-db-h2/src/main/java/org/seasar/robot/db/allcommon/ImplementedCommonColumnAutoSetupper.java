@@ -52,10 +52,13 @@ public class ImplementedCommonColumnAutoSetupper implements
     // =====================================================================================
     //                                                                               Logging
     //                                                                               =======
-    protected void log(EntityDefinedCommonColumn entity, String keyword) {
-        if (_log.isDebugEnabled()) {
-            _log.debug("...Setting up column columns of "
-                    + entity.getTableDbName() + " before " + keyword + "!");
-        }
+    protected boolean isInternalDebugEnabled() {
+        return DBFluteConfig.getInstance().isInternalDebug()
+                && _log.isDebugEnabled();
+    }
+
+    protected void logSettingUp(EntityDefinedCommonColumn entity, String keyword) {
+        _log.debug("...Setting up column columns of " + entity.getTableDbName()
+                + " before " + keyword);
     }
 }

@@ -17,6 +17,7 @@ package org.seasar.robot.db.exbhv;
 
 import org.seasar.robot.db.bsbhv.BsUrlFilterBhv;
 import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.dbflute.bhv.DeleteOption;
 
 /**
  * The behavior of URL_FILTER.
@@ -35,6 +36,7 @@ public class UrlFilterBhv extends BsUrlFilterBhv {
 
     public int deleteAll() {
         UrlFilterCB cb = new UrlFilterCB();
-        return queryDelete(cb);
+        return varyingQueryDelete(cb,
+                new DeleteOption<UrlFilterCB>().allowNonQueryDelete());
     }
 }

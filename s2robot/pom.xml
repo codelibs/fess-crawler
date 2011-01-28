@@ -217,6 +217,11 @@
       <url>http://maven.seasar.org/maven2</url>
     </repository>
     <repository>
+      <id>maven-snapshot.seasar.org</id>
+      <name>The Seasar Foundation Maven2 Snapshot Repository</name>
+      <url>http://maven.seasar.org/maven2-snapshot</url>
+    </repository>
+    <repository>
       <id>java.net</id>
       <url>http://download.java.net/maven/2</url>
     </repository>

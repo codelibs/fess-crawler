@@ -39,6 +39,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -52,6 +53,7 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -104,6 +106,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String PROXY_PORT_PROPERTY = "proxyPort";
 
+    public static final String PROXY_AUTH_SCHEME_PROPERTY = "proxyAuthScheme";
+
     public static final String PROXY_CREDENTIALS_PROPERTY = "proxyCredentials";
 
     public static final String USER_AGENT_PROPERTY = "userAgent";
@@ -152,6 +156,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
     public String proxyHost;
 
     public Integer proxyPort;
+
+    public AuthScheme proxyAuthScheme = new BasicScheme();
 
     @Binding(bindingType = BindingType.MAY)
     public Credentials proxyCredentials;
@@ -229,6 +235,9 @@ public class HcHttpClient extends AbstractS2RobotClient {
             }
         }
 
+        final AuthCache authCache = new BasicAuthCache();
+        boolean useAuthCache = false;
+
         // proxy
         final String proxyHost =
             getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
@@ -246,7 +255,14 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 defaultHttpClient.getCredentialsProvider().setCredentials(
                     new AuthScope(proxyHost, proxyPort),
                     proxyCredentials);
-
+                final AuthScheme proxyAuthScheme =
+                    getInitParameter(
+                        PROXY_AUTH_SCHEME_PROPERTY,
+                        this.proxyAuthScheme);
+                if (proxyAuthScheme != null) {
+                    authCache.put(proxy, proxyAuthScheme);
+                    useAuthCache = true;
+                }
             }
         }
 
@@ -262,8 +278,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
             getInitParameter(
                 BASIC_AUTHENTICATIONS_PROPERTY,
                 new Authentication[0]);
-        final AuthCache authCache = new BasicAuthCache();
-        boolean useAuthCache = false;
         for (Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
             defaultHttpClient.getCredentialsProvider().setCredentials(

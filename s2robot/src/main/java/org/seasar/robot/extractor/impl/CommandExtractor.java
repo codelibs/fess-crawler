@@ -51,6 +51,8 @@ public class CommandExtractor implements Extractor {
 
     public String outputEncoding = Constants.UTF_8;
 
+    public String outputExtension = null;
+
     public File tempDir = null;
 
     public String command;
@@ -77,7 +79,8 @@ public class CommandExtractor implements Extractor {
         String extention;
         String filePrefix;
         if (StringUtil.isNotBlank(resourceName)) {
-            final String[] strings = resourceName.split("\\.");
+            String name = getFileName(resourceName);
+            final String[] strings = name.split("\\.");
             final StringBuilder buf = new StringBuilder();
             if (strings.length > 1) {
                 for (int i = 0; i < strings.length - 1; i++) {
@@ -89,7 +92,7 @@ public class CommandExtractor implements Extractor {
                 filePrefix = buf.toString();
                 extention = strings[strings.length - 1];
             } else {
-                filePrefix = resourceName;
+                filePrefix = name;
                 extention = "";
             }
         } else {
@@ -102,12 +105,23 @@ public class CommandExtractor implements Extractor {
             inputFile =
                 File.createTempFile(
                     "cmdextin_" + filePrefix + "_",
-                    extention,
+                    StringUtil.isNotBlank(extention) ? "." + extention
+                        : extention,
                     tempDir);
+            String ext;
+            if (outputExtension == null) {
+                if (StringUtil.isNotBlank(extention)) {
+                    ext = "." + extention;
+                } else {
+                    ext = extention;
+                }
+            } else {
+                ext = outputExtension;
+            }
             outputFile =
                 File.createTempFile(
                     "cmdextout_" + filePrefix + "_",
-                    extention,
+                    ext,
                     tempDir);
 
             // store to a file
@@ -136,6 +150,15 @@ public class CommandExtractor implements Extractor {
                 logger.info("Failed to delete " + outputFile.getAbsolutePath());
             }
         }
+    }
+
+    String getFileName(String resourceName) {
+        String name = resourceName.replaceAll("/+$", "");
+        int pos = name.lastIndexOf('/');
+        if (pos >= 0) {
+            return name.substring(pos + 1);
+        }
+        return name;
     }
 
     private void executeCommand(final File inputFile, final File outputFile) {

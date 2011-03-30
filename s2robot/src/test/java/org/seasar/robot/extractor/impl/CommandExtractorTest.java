@@ -92,6 +92,20 @@ public class CommandExtractorTest extends S2TestCase {
         assertEquals(content, text.getContent());
     }
 
+    public void test_getText_withUrl() throws IOException {
+        File scriptFile = createScriptTempFile(3);
+        String content = "TEST";
+        File contentFile = createContentFile(".txt", content.getBytes());
+
+        CommandExtractor extractor = new CommandExtractor();
+        extractor.command = getCommand(scriptFile);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(ExtractData.RESOURCE_NAME_KEY, "hoge/fuga.txt");
+        ExtractData text =
+            extractor.getText(new FileInputStream(contentFile), params);
+        assertEquals(content, text.getContent());
+    }
+
     public void test_getText_timeout() throws IOException {
         File scriptFile = createScriptTempFile(3);
         String content = "TEST";
@@ -168,5 +182,33 @@ public class CommandExtractorTest extends S2TestCase {
         assertEquals("test.sh", list.get(0));
         assertEquals("A", list.get(1));
         assertEquals("B", list.get(2));
+    }
+
+    public void test_getFileName() {
+        CommandExtractor extractor = new CommandExtractor();
+        String expected;
+        String actual;
+        String value;
+
+        value = "hoge.txt";
+        expected = "hoge.txt";
+        actual = extractor.getFileName(value);
+        assertEquals(expected, actual);
+
+        value = "/hoge.txt";
+        expected = "hoge.txt";
+        actual = extractor.getFileName(value);
+        assertEquals(expected, actual);
+
+        value = "fuga/hoge.txt";
+        expected = "hoge.txt";
+        actual = extractor.getFileName(value);
+        assertEquals(expected, actual);
+
+        value = "hoge.txt/";
+        expected = "hoge.txt";
+        actual = extractor.getFileName(value);
+        assertEquals(expected, actual);
+
     }
 }

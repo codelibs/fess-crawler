@@ -33,7 +33,7 @@
 				</initMethod>
 			</component>
 		</arg>
-		<property name="maxTotalConnections">200</property>
+		<property name="maxTotal">200</property>
 		<property name="defaultMaxPerRoute">200</property>
 		<destroyMethod name="shutdown"></destroyMethod>
 	</component>

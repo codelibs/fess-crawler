@@ -332,7 +332,7 @@
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-parsers</artifactId>
-      <version>0.8-20101102</version>
+      <version>0.9</version>
       <exclusions>
         <!-- netcdf causes a problem.. -->
         <exclusion>

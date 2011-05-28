@@ -562,20 +562,23 @@
 
   <mime-type type="application/vnd.apple.iwork">
     <sub-class-of type="application/zip"/>
-    <glob pattern="*.key"/>
-    <glob pattern="*.pages"/>
-    <glob pattern="*.numbers"/>
   </mime-type>
-
   <mime-type type="application/vnd.apple.keynote">
     <root-XML localName="presentation" namespaceURI="http://developer.apple.com/namespaces/keynote2" />
+    <sub-class-of type="application/vnd.apple.iwork" />
+    <glob pattern="*.key"/>
   </mime-type>
   <mime-type type="application/vnd.apple.pages">
     <root-XML localName="document" namespaceURI="http://developer.apple.com/namespaces/sl" />
+    <sub-class-of type="application/vnd.apple.iwork" />
+    <glob pattern="*.pages"/>
   </mime-type>
   <mime-type type="application/vnd.apple.numbers">
     <root-XML localName="document" namespaceURI="http://developer.apple.com/namespaces/ls" />
+    <sub-class-of type="application/vnd.apple.iwork" />
+    <glob pattern="*.numbers"/>
   </mime-type>
+
   <mime-type type="application/vnd.arastra.swi">
     <glob pattern="*.swi"/>
   </mime-type>
@@ -1199,7 +1202,7 @@
   <mime-type type="application/vnd.ms-excel.sheet.binary.macroenabled.12">
     <_comment>Microsoft Excel 2007 Binary Spreadsheet</_comment>
     <glob pattern="*.xlsb"/>
-    <sub-class-of type="application/vnd.ms-excel"/>
+    <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
   <mime-type type="application/vnd.ms-excel.template.macroenabled.12">
@@ -1255,29 +1258,29 @@
   <mime-type type="application/vnd.ms-powerpoint.addin.macroenabled.12">
     <_comment>Office Open XML Presentation Add-in (macro-enabled)</_comment>
     <glob pattern="*.ppam"/>
-    <sub-class-of type="application/x-tika-msoffice"/>
+    <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
   <mime-type type="application/vnd.ms-powerpoint.presentation.macroenabled.12">
     <_comment>Office Open XML Presentation (macro-enabled)</_comment>
     <glob pattern="*.pptm"/>
-    <sub-class-of type="application/x-tika-msoffice"/>
+    <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
   <mime-type type="application/vnd.ms-powerpoint.slide.macroenabled.12">
     <glob pattern="*.sldm"/>
-    <sub-class-of type="application/x-tika-msoffice"/>
+    <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
   <mime-type type="application/vnd.ms-powerpoint.slideshow.macroenabled.12">
     <_comment>Office Open XML Presentation Slideshow (macro-enabled)</_comment>
     <glob pattern="*.ppsm"/>
-    <sub-class-of type="application/x-tika-msoffice"/>
+    <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
   <mime-type type="application/vnd.ms-powerpoint.template.macroenabled.12">
     <glob pattern="*.potm"/>
-    <sub-class-of type="application/x-tika-msoffice"/>
+    <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
   <mime-type type="application/vnd.ms-project">
@@ -1286,6 +1289,7 @@
   </mime-type>
 
   <mime-type type="application/vnd.ms-tnef">
+    <alias type="application/ms-tnef" />
     <magic priority="50">
       <match value="0x223e9f78" type="little16" offset="0" />
     </magic>
@@ -1845,7 +1849,8 @@
   <mime-type type="application/vnd.stardivision.writer">
     <glob pattern="*.sdw"/>
   </mime-type>
-  <mime-type type="application/vnd.stardivision.writer">
+  <mime-type type="application/x-staroffice-template">
+    <sub-class-of type="application/x-tika-msoffice"/>
     <glob pattern="*.vor"/>
   </mime-type>
   <mime-type type="application/vnd.stardivision.writer-global">
@@ -2342,6 +2347,13 @@
   </mime-type>
   <mime-type type="application/x-font-vfont"/>
 
+  <mime-type type="application/x-foxmail">
+    <_comment>Foxmail Email File</_comment>
+    <magic>
+      <match value="0x1010101010101011111111111153" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+
   <mime-type type="application/x-futuresplash">
     <_comment>Macromedia FutureSplash File</_comment>
     <glob pattern="*.spl"/>
@@ -2465,6 +2477,9 @@
   </mime-type>
   <mime-type type="application/x-msaccess">
     <glob pattern="*.mdb"/>
+    <magic priority="60">
+      <match value="0x000100005374616e" type="string" offset="0"/>
+    </magic>
   </mime-type>
   <mime-type type="application/x-msbinder">
     <glob pattern="*.obd"/>
@@ -3113,12 +3128,22 @@
     <glob pattern="*.xyz"/>
   </mime-type>
 
-  <mime-type type="image/bmp">
-    <alias type="image/x-ms-bmp"/>
+  <mime-type type="image/x-ms-bmp">
+    <alias type="image/bmp"/>
     <acronym>BMP</acronym>
     <_comment>Windows bitmap</_comment>
     <magic priority="50">
-      <match value="BM" type="string" offset="0" />
+      <match value="BM" type="string" offset="0">
+        <match value="0x0100" type="string" offset="26">
+      	  <match value="0x0000" type="string" offset="28"/>
+      	  <match value="0x0100" type="string" offset="28"/>
+      	  <match value="0x0400" type="string" offset="28"/>
+      	  <match value="0x0800" type="string" offset="28"/>
+      	  <match value="0x1000" type="string" offset="28"/>
+      	  <match value="0x1800" type="string" offset="28"/>
+      	  <match value="0x2000" type="string" offset="28"/>
+        </match>
+      </match>
     </magic>
     <glob pattern="*.bmp"/>
     <glob pattern="*.dib"/>
@@ -3542,6 +3567,8 @@
     </magic>
     <glob pattern="*.eml"/>
     <glob pattern="*.mime"/>
+    <glob pattern="*.mht"/>
+    <glob pattern="*.mhtml"/>
   </mime-type>
 
   <mime-type type="message/s-http"/>
@@ -3642,7 +3669,9 @@
     <root-XML localName="SCRIPT"/>
     <root-XML localName="frameset"/>
     <root-XML localName="FRAMESET"/>
-    <magic priority="50">
+    <!-- The magic priority needs to be lower than that of -->
+    <!--  files which contain HTML within them, eg mime emails -->
+    <magic priority="40">
       <match value="&lt;!DOCTYPE HTML" type="string" offset="0:64"/>
       <match value="&lt;!doctype html" type="string" offset="0:64"/>
       <match value="&lt;HEAD" type="string" offset="0:64"/>

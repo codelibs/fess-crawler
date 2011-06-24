@@ -16,7 +16,7 @@
         <database>h2</database>
         <databaseGroupId>com.h2database</databaseGroupId>
         <databaseArtifactId>h2</databaseArtifactId>
-        <databaseVersion>1.2.147</databaseVersion>
+        <databaseVersion>1.3.156</databaseVersion>
       </properties>
     </profile>
     <profile>

@@ -34,7 +34,13 @@
 			<arg>{
 "text/html"
 			}</arg>
-			<arg>xmlExtractor</arg>
+			<arg>htmlExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>{
+"application/pdf"
+			}</arg>
+			<arg>pdfExtractor</arg>
 		</initMethod>
 		<initMethod name="addExtractor">
 			<arg>{
@@ -64,7 +70,6 @@
 "application/vnd.ms-word.template.macroenabled.12",
 "application/x-asp",
 "application/rtf",
-"application/pdf",
 "text/plain",
 "application/vnd.sun.xml.writer",
 "application/vnd.oasis.opendocument.text",

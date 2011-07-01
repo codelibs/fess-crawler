@@ -341,21 +341,23 @@
         </exclusion>
       </exclusions>
     </dependency>
+<!--
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
-      <version>3.8-beta2</version>
+      <version>3.8-beta3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
-      <version>3.8-beta2</version>
+      <version>3.8-beta3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-scratchpad</artifactId>
-      <version>3.8-beta2</version>
+      <version>3.8-beta3</version>
     </dependency>
+-->
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
@@ -382,7 +384,7 @@
     <dependency>
       <groupId>com.ibm.icu</groupId>
       <artifactId>icu4j</artifactId>
-      <version>4.4.1.1</version>
+      <version>4.8</version>
     </dependency>
     <dependency>
       <groupId>org.samba.jcifs</groupId>

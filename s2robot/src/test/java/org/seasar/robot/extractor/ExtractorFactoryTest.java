@@ -22,11 +22,12 @@ import java.util.Map;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.entity.ExtractData;
+import org.seasar.robot.extractor.impl.PdfExtractor;
 import org.seasar.robot.extractor.impl.TikaExtractor;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class ExtractorFactoryTest extends S2TestCase {
     public ExtractorFactory extractorFactory;
@@ -81,11 +82,12 @@ public class ExtractorFactoryTest extends S2TestCase {
         key = "application/vnd.visio";
         assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
 
-        //        key = "application/vnd.ms-publisher";
-        //        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
+        // key = "application/vnd.ms-publisher";
+        // assertTrue(extractorFactory.getExtractor(key) instanceof
+        // TikaExtractor);
 
         key = "application/pdf";
-        assertTrue(extractorFactory.getExtractor(key) instanceof TikaExtractor);
+        assertTrue(extractorFactory.getExtractor(key) instanceof PdfExtractor);
 
     }
 }

@@ -44,10 +44,12 @@ import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthCache;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
@@ -174,6 +176,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public Map<String, AuthSchemeFactory> authSchemeFactoryMap;
 
+    // WORKAROUND FIX
+    // Digest authentication for httpclient 4 is not MT-safe.
+    // This problem should be fixed on httpclient.
+    private boolean hasDigestAccess = false;
+
     public synchronized void init() {
         if (httpClient != null) {
             return;
@@ -260,8 +267,13 @@ public class HcHttpClient extends AbstractS2RobotClient {
                         PROXY_AUTH_SCHEME_PROPERTY,
                         this.proxyAuthScheme);
                 if (proxyAuthScheme != null) {
-                    authCache.put(proxy, proxyAuthScheme);
-                    useAuthCache = true;
+                    if (AuthPolicy.DIGEST.equalsIgnoreCase(proxyAuthScheme
+                        .getSchemeName())) {
+                        hasDigestAccess = true;
+                    } else {
+                        authCache.put(proxy, proxyAuthScheme);
+                        useAuthCache = true;
+                    }
                 }
             }
         }
@@ -283,12 +295,17 @@ public class HcHttpClient extends AbstractS2RobotClient {
             defaultHttpClient.getCredentialsProvider().setCredentials(
                 authScope,
                 authentication.getCredentials());
-            if (authScope.getHost() != null
-                && authentication.getAuthScheme() != null) {
-                final HttpHost targetHost =
-                    new HttpHost(authScope.getHost(), authScope.getPort());
-                authCache.put(targetHost, authentication.getAuthScheme());
-                useAuthCache = true;
+            AuthScheme authScheme = authentication.getAuthScheme();
+            if (authScope.getHost() != null && authScheme != null) {
+                if (AuthPolicy.DIGEST.equalsIgnoreCase(authScheme
+                    .getSchemeName())) {
+                    hasDigestAccess = true;
+                } else {
+                    final HttpHost targetHost =
+                        new HttpHost(authScope.getHost(), authScope.getPort());
+                    authCache.put(targetHost, authScheme);
+                    useAuthCache = true;
+                }
             }
         }
         if (useAuthCache) {
@@ -381,8 +398,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
         try {
             // get a content
-            final HttpResponse response =
-                httpClient.execute(httpGet, httpClientContext);
+            final HttpResponse response = executeHttpClient(httpGet);
 
             final int httpStatusCode = response.getStatusLine().getStatusCode();
             if (httpStatusCode == 200) {
@@ -521,8 +537,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         InputStream inputStream = null;
         try {
             // get a content
-            final HttpResponse response =
-                httpClient.execute(httpRequest, httpClientContext);
+            final HttpResponse response = executeHttpClient(httpRequest);
 
             final int httpStatusCode = response.getStatusLine().getStatusCode();
             // redirect
@@ -691,6 +706,17 @@ public class HcHttpClient extends AbstractS2RobotClient {
             httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotSystemException("Failed to access " + url, e);
+        }
+    }
+
+    private HttpResponse executeHttpClient(final HttpUriRequest httpRequest)
+            throws IOException, ClientProtocolException {
+        if (hasDigestAccess) {
+            synchronized (httpClient) {
+                return httpClient.execute(httpRequest, httpClientContext);
+            }
+        } else {
+            return httpClient.execute(httpRequest, httpClientContext);
         }
     }
 

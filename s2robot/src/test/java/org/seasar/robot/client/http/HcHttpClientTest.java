@@ -109,4 +109,60 @@ public class HcHttpClientTest extends S2TestCase {
             server.stop();
         }
     }
+
+    // public void test_doGet_mt() throws Exception {
+    // ExecutorService executorService = Executors.newFixedThreadPool(1);
+    //
+    // // HttpClient Parameters
+    // Map<String, Object> paramMap = new HashMap<String, Object>();
+    // httpClient.setInitParameterMap(paramMap);
+    //
+    // DigestScheme digestScheme = new DigestScheme();
+    // List<Authentication> basicAuthList = new ArrayList<Authentication>();
+    // basicAuthList.add(new AuthenticationImpl(
+    // new AuthScope("www.hoge.com", 80),
+    // new UsernamePasswordCredentials("username", "password"),
+    // digestScheme));
+    // paramMap.put(
+    // HcHttpClient.BASIC_AUTHENTICATIONS_PROPERTY,
+    // basicAuthList.toArray(new Authentication[basicAuthList.size()]));
+    //
+    // List<Callable<ResponseData>> list =
+    // new ArrayList<Callable<ResponseData>>();
+    // for (int i = 0; i < 100; i++) {
+    // list.add(new Callable<ResponseData>() {
+    // public ResponseData call() throws Exception {
+    // String[] urls =
+    // new String[] {
+    // "http://.../",
+    // "http://.../test.pdf",
+    // "http://.../test.doc",
+    // "http://.../test.xls",
+    // "http://.../test.ppt",
+    // "http://.../test.txt", };
+    // for (String url : urls) {
+    // ResponseData responseData = httpClient.doGet(url);
+    // // assertEquals(200, responseData.getHttpStatusCode());
+    // if (responseData.getHttpStatusCode() != 200) {
+    // return responseData;
+    // }
+    // }
+    // return null;
+    // }
+    // });
+    // }
+    // List<Future<ResponseData>> futureList = executorService.invokeAll(list);
+    // for (Future<ResponseData> future : futureList) {
+    // ResponseData responseData = future.get();
+    // if (responseData != null) {
+    // System.out.println("status: "
+    // + responseData.getHttpStatusCode()
+    // + " content: "
+    // + new String(InputStreamUtil.getBytes(responseData
+    // .getResponseBody()), "UTF-8"));
+    // } else {
+    // System.out.println("OK");
+    // }
+    // }
+    // }
 }

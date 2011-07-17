@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.seasar.robot</groupId>
 	<artifactId>s2-robot-dbflute-runtime</artifactId>
-	<version>0.9.7.9-SNAPSHOT</version>
+	<version>0.9.7.9</version>
 
 	<name>DBFlute Runtime for S2Robot</name>
 	<description>The runtime library of DBFlute</description>

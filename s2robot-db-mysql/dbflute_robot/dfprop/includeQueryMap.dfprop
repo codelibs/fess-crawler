@@ -1,0 +1,61 @@
+# /---------------------------------------------------------------------------
+# includeQueryMap: (NotRequired - Default 'map:{}')
+#
+# Specification:
+# map:{
+#     ; [PropertyType] = map:{
+#         ; [Operand] = map:{ [Table] = list:{[Column] ; [Column]} }
+# }
+#
+# PropertyType: String, Number, Date
+# Operand: NotEqual, GreaterThan, LessThan, GreaterEqual, LessEqual, PrefixSearch
+#          , InScope, NotInScope, LikeSearch, NotLikeSearch, EmptyString
+#          , FromTo, DateFromTo
+# 
+# Example:
+# map:{
+#     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#     # This means that String includes GreaterThan at MEMBER.MEMBER_ACCOUNT only
+#     # and LessThan at PRODUCT.PRODUCT_NAME and PRODUCT.PRODUCT_HANDLE_CODE.
+#     # - - - - - - - - - -/
+#     ; String = map:{
+#         ; GreaterThan = map:{ MEMBER = list:{ MEMBER_ACCOUNT } }
+#         ; LessThan = map:{ PRODUCT = list:{ PRODUCT_NAME ; PRODUCT_HANDLE_CODE } }
+#     }
+#     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#     # This means that Number includes all operands. (same as no setting)
+#     # - - - - - - - - - -/
+#     ; Number = map:{
+#     }
+#     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#     # This means that Date does not includes NotEqual at all tables.  
+#     # - - - - - - - - - -/
+#     ; Date = map:{
+#         ; NotEqual = map:{}
+#     }
+# }
+# 
+# *The line that starts with '#' means comment-out.
+#
+map:{
+    ; String = map:{
+        # If you don't need these operand for string,
+        # remove their comment-out mark '#'.
+        #; GreaterThan = map:{}
+        #; LessThan = map:{}
+        #; GreaterEqual = map:{}
+        #; LessEqual = map:{}
+        #; PrefixSearch = map:{}
+    }
+    ; Number = map:{
+        # If you don't need these operand for string,
+        # remove their comment-out mark '#'.
+        #; NotEqual = map:{}
+    }
+    ; Date = map:{
+        ; NotEqual = map:{}
+        ; InScope = map:{}
+        ; NotInScope = map:{}
+    }
+}
+# ----------------/

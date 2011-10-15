@@ -15,6 +15,9 @@
  */
 package org.seasar.robot.db.exbhv;
 
+import org.seasar.robot.db.cbean.UrlQueueCB;
+import org.seasar.robot.dbflute.bhv.DeleteOption;
+
 /**
  * The behavior of URL_QUEUE.
  * <p>
@@ -25,17 +28,18 @@ package org.seasar.robot.db.exbhv;
  */
 public class UrlQueueBhv extends org.seasar.robot.db.bsbhv.BsUrlQueueBhv {
     public int deleteBySessionId(String sessionId) {
-        //        UrlQueueCB cb = new UrlQueueCB();
-        //        cb.query().setSessionId_Equal(sessionId);
-        //        urlQueueBhv.queryDelete(cb);
-        return outsideSql().execute(UrlQueueBhv.PATH_deleteBySessionId,
-                sessionId);
+        UrlQueueCB cb = new UrlQueueCB();
+        cb.query().setSessionId_Equal(sessionId);
+        return queryDelete(cb);
+        //        return outsideSql().execute(UrlQueueBhv.PATH_deleteBySessionId,
+        //                sessionId);
     }
 
     public int deleteAll() {
-        //        UrlQueueCB cb = new UrlQueueCB();
-        //        urlQueueBhv.queryDelete(cb);
-        String pmb = null;
-        return outsideSql().execute(UrlQueueBhv.PATH_deleteBySessionId, pmb);
+        UrlQueueCB cb = new UrlQueueCB();
+        return varyingQueryDelete(cb,
+                new DeleteOption<UrlQueueCB>().allowNonQueryDelete());
+        //        String pmb = null;
+        //        return outsideSql().execute(UrlQueueBhv.PATH_deleteBySessionId, pmb);
     }
 }

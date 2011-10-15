@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.db.exbhv.cursor;
 
+import org.seasar.robot.db.bsbhv.cursor.BsAccessResultDiffCursor;
+
 /**
  * The cursor of AccessResultDiff.
  * <p>
@@ -23,6 +25,5 @@ package org.seasar.robot.db.exbhv.cursor;
  * </p>
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultDiffCursor extends
-        org.seasar.robot.db.bsbhv.cursor.BsAccessResultDiffCursor {
+public class AccessResultDiffCursor extends BsAccessResultDiffCursor {
 }

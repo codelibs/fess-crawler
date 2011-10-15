@@ -361,7 +361,7 @@ public class BsAccessResultCB extends AbstractConditionBean {
         }
 
         /**
-         * SESSION_ID: {UQ, NotNull, VARCHAR2(20)}
+         * SESSION_ID: {IX, NotNull, VARCHAR2(20)}
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnSessionId() {
@@ -377,7 +377,7 @@ public class BsAccessResultCB extends AbstractConditionBean {
         }
 
         /**
-         * URL: {UQ+, NotNull, VARCHAR2(4000)}
+         * URL: {IX+, NotNull, VARCHAR2(4000)}
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnUrl() {
@@ -449,7 +449,7 @@ public class BsAccessResultCB extends AbstractConditionBean {
         }
 
         /**
-         * CREATE_TIME: {UQ+, NotNull, TIMESTAMP(6)(11, 6)}
+         * CREATE_TIME: {IX+, NotNull, TIMESTAMP(6)(11, 6)}
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnCreateTime() {

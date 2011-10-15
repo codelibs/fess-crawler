@@ -72,10 +72,6 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     //                                                                          Definition
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
-    public static final String PATH_deleteAll = "deleteAll";
-
-    public static final String PATH_deleteBySessionId = "deleteBySessionId";
-
     /*df:BehaviorQueryPathEnd*/
 
     // ===================================================================================

@@ -32,7 +32,7 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  *     ID, SESSION_ID, METHOD, URL, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
  * 
  * [sequence]
- *     
+ *     URL_QUEUE_SEQ
  * 
  * [identity]
  *     
@@ -71,13 +71,13 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     /** ID: {PK, NotNull, NUMBER(12)} */
     protected Long _id;
 
-    /** SESSION_ID: {UQ, NotNull, VARCHAR2(20)} */
+    /** SESSION_ID: {IX, NotNull, VARCHAR2(20)} */
     protected String _sessionId;
 
     /** METHOD: {NotNull, VARCHAR2(10)} */
     protected String _method;
 
-    /** URL: {UQ+, NotNull, VARCHAR2(4000)} */
+    /** URL: {IX+, NotNull, VARCHAR2(4000)} */
     protected String _url;
 
     /** PARENT_URL: {VARCHAR2(4000)} */
@@ -89,7 +89,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     /** LAST_MODIFIED: {TIMESTAMP(6)(11, 6)} */
     protected java.sql.Timestamp _lastModified;
 
-    /** CREATE_TIME: {UQ+, NotNull, TIMESTAMP(6)(11, 6)} */
+    /** CREATE_TIME: {IX+, NotNull, TIMESTAMP(6)(11, 6)} */
     protected java.sql.Timestamp _createTime;
 
     // -----------------------------------------------------
@@ -291,7 +291,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     }
 
     /**
-     * [get] SESSION_ID: {UQ, NotNull, VARCHAR2(20)} <br />
+     * [get] SESSION_ID: {IX, NotNull, VARCHAR2(20)} <br />
      * @return The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public String getSessionId() {
@@ -299,7 +299,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     }
 
     /**
-     * [set] SESSION_ID: {UQ, NotNull, VARCHAR2(20)} <br />
+     * [set] SESSION_ID: {IX, NotNull, VARCHAR2(20)} <br />
      * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public void setSessionId(String sessionId) {
@@ -325,7 +325,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     }
 
     /**
-     * [get] URL: {UQ+, NotNull, VARCHAR2(4000)} <br />
+     * [get] URL: {IX+, NotNull, VARCHAR2(4000)} <br />
      * @return The value of the column 'URL'. (NullAllowed)
      */
     public String getUrl() {
@@ -333,7 +333,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     }
 
     /**
-     * [set] URL: {UQ+, NotNull, VARCHAR2(4000)} <br />
+     * [set] URL: {IX+, NotNull, VARCHAR2(4000)} <br />
      * @param url The value of the column 'URL'. (NullAllowed)
      */
     public void setUrl(String url) {
@@ -393,7 +393,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     }
 
     /**
-     * [get] CREATE_TIME: {UQ+, NotNull, TIMESTAMP(6)(11, 6)} <br />
+     * [get] CREATE_TIME: {IX+, NotNull, TIMESTAMP(6)(11, 6)} <br />
      * @return The value of the column 'CREATE_TIME'. (NullAllowed)
      */
     public java.sql.Timestamp getCreateTime() {
@@ -401,7 +401,7 @@ public abstract class BsUrlQueue implements Entity, Serializable {
     }
 
     /**
-     * [set] CREATE_TIME: {UQ+, NotNull, TIMESTAMP(6)(11, 6)} <br />
+     * [set] CREATE_TIME: {IX+, NotNull, TIMESTAMP(6)(11, 6)} <br />
      * @param createTime The value of the column 'CREATE_TIME'. (NullAllowed)
      */
     public void setCreateTime(java.sql.Timestamp createTime) {

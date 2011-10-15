@@ -169,7 +169,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
-     * SESSION_ID: {UQ, NotNull, VARCHAR2(20)}
+     * SESSION_ID: {IX, NotNull, VARCHAR2(20)}
      * @param sessionId The value of sessionId as equal.
      */
     public void setSessionId_Equal(String sessionId) {
@@ -404,7 +404,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
-     * FILTER_TYPE: {UQ+, NotNull, VARCHAR2(1)}
+     * FILTER_TYPE: {IX+, NotNull, VARCHAR2(1)}
      * @param filterType The value of filterType as equal.
      */
     public void setFilterType_Equal(String filterType) {

@@ -15,14 +15,18 @@
  */
 package org.seasar.robot.db.exbhv.pmbean;
 
+import org.seasar.robot.db.bsbhv.pmbean.BsAccessResultPmb;
+
 /**
  * The parameter-bean of AccessResultPmb.
  * <p>
  * You can implement your original methods here.
- * This class is NOT overrided when re-generating.
+ * This class remains when re-generating.
  * </p>
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultPmb extends
-        org.seasar.robot.db.bsbhv.pmbean.BsAccessResultPmb {
+public class AccessResultPmb extends BsAccessResultPmb {
+
+    /** Serial version UID. (Default) */
+    private static final long serialVersionUID = 1L;
 }

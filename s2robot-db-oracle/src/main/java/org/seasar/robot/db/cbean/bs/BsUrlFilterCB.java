@@ -321,7 +321,7 @@ public class BsUrlFilterCB extends AbstractConditionBean {
         }
 
         /**
-         * SESSION_ID: {UQ, NotNull, VARCHAR2(20)}
+         * SESSION_ID: {IX, NotNull, VARCHAR2(20)}
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnSessionId() {
@@ -337,7 +337,7 @@ public class BsUrlFilterCB extends AbstractConditionBean {
         }
 
         /**
-         * FILTER_TYPE: {UQ+, NotNull, VARCHAR2(1)}
+         * FILTER_TYPE: {IX+, NotNull, VARCHAR2(1)}
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnFilterType() {

@@ -265,7 +265,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
-     * SESSION_ID: {UQ, NotNull, VARCHAR2(20)}
+     * SESSION_ID: {IX, NotNull, VARCHAR2(20)}
      * @param sessionId The value of sessionId as equal.
      */
     public void setSessionId_Equal(String sessionId) {
@@ -517,7 +517,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
-     * URL: {UQ+, NotNull, VARCHAR2(4000)}
+     * URL: {IX+, NotNull, VARCHAR2(4000)}
      * @param url The value of url as equal.
      */
     public void setUrl_Equal(String url) {
@@ -1446,7 +1446,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {UQ+, NotNull, TIMESTAMP(6)(11, 6)}
+     * CREATE_TIME: {IX+, NotNull, TIMESTAMP(6)(11, 6)}
      * @param createTime The value of createTime as equal.
      */
     public void setCreateTime_Equal(java.sql.Timestamp createTime) {

@@ -32,7 +32,7 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  *     ID, SESSION_ID, URL, FILTER_TYPE, CREATE_TIME
  * 
  * [sequence]
- *     
+ *     URL_FILTER_SEQ
  * 
  * [identity]
  *     
@@ -71,13 +71,13 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     /** ID: {PK, NotNull, NUMBER(12)} */
     protected Long _id;
 
-    /** SESSION_ID: {UQ, NotNull, VARCHAR2(20)} */
+    /** SESSION_ID: {IX, NotNull, VARCHAR2(20)} */
     protected String _sessionId;
 
     /** URL: {NotNull, VARCHAR2(4000)} */
     protected String _url;
 
-    /** FILTER_TYPE: {UQ+, NotNull, VARCHAR2(1)} */
+    /** FILTER_TYPE: {IX+, NotNull, VARCHAR2(1)} */
     protected String _filterType;
 
     /** CREATE_TIME: {NotNull, TIMESTAMP(6)(11, 6)} */
@@ -279,7 +279,7 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     /**
-     * [get] SESSION_ID: {UQ, NotNull, VARCHAR2(20)} <br />
+     * [get] SESSION_ID: {IX, NotNull, VARCHAR2(20)} <br />
      * @return The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public String getSessionId() {
@@ -287,7 +287,7 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     /**
-     * [set] SESSION_ID: {UQ, NotNull, VARCHAR2(20)} <br />
+     * [set] SESSION_ID: {IX, NotNull, VARCHAR2(20)} <br />
      * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public void setSessionId(String sessionId) {
@@ -313,7 +313,7 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     /**
-     * [get] FILTER_TYPE: {UQ+, NotNull, VARCHAR2(1)} <br />
+     * [get] FILTER_TYPE: {IX+, NotNull, VARCHAR2(1)} <br />
      * @return The value of the column 'FILTER_TYPE'. (NullAllowed)
      */
     public String getFilterType() {
@@ -321,7 +321,7 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     /**
-     * [set] FILTER_TYPE: {UQ+, NotNull, VARCHAR2(1)} <br />
+     * [set] FILTER_TYPE: {IX+, NotNull, VARCHAR2(1)} <br />
      * @param filterType The value of the column 'FILTER_TYPE'. (NullAllowed)
      */
     public void setFilterType(String filterType) {

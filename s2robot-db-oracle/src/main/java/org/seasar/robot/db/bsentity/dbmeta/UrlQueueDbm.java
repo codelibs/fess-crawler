@@ -198,6 +198,21 @@ public class UrlQueueDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                        Various Info
     //                                                                        ============
+    public boolean hasSequence() {
+        return true;
+    }
+
+    public String getSequenceName() {
+        return "URL_QUEUE_SEQ";
+    }
+
+    public Integer getSequenceIncrementSize() {
+        return 50;
+    }
+
+    public Integer getSequenceCacheSize() {
+        return 50;
+    }
 
     // ===================================================================================
     //                                                                           Type Name

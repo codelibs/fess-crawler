@@ -43,7 +43,7 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  *     ID, SESSION_ID, URL, FILTER_TYPE, CREATE_TIME
  * 
  * [sequence]
- *     
+ *     URL_FILTER_SEQ
  * 
  * [identity]
  *     
@@ -421,11 +421,23 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     // ===================================================================================
     //                                                                            Sequence
     //                                                                            ========
+    /**
+     * Select the next value as sequence. <br />
+     * This method is called when insert() and set to primary-key automatically.
+     * So you don't need to call this as long as you need to get next value before insert().  
+     * @return The next value. (NotNull)
+     */
+    public Long selectNextVal() {
+        return doSelectNextVal(Long.class);
+    }
+
+    protected <RESULT> RESULT doSelectNextVal(Class<RESULT> resultType) {
+        return delegateSelectNextVal(resultType);
+    }
+
     @Override
     protected Number doReadNextVal() {
-        String msg = "This table is NOT related to sequence: "
-                + getTableDbName();
-        throw new UnsupportedOperationException(msg);
+        return selectNextVal();
     }
 
     // ===================================================================================
@@ -1176,6 +1188,10 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     protected <ENTITY extends UrlFilter> List<ENTITY> delegateSelectList(
             UrlFilterCB cb, Class<ENTITY> et) {
         return invoke(createSelectListCBCommand(cb, et));
+    }
+
+    protected <RESULT> RESULT delegateSelectNextVal(Class<RESULT> rt) {
+        return invoke(createSelectNextValCommand(rt));
     }
 
     // -----------------------------------------------------

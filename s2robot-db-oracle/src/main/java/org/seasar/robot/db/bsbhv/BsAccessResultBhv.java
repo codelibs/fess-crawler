@@ -44,7 +44,7 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, LAST_MODIFIED, CREATE_TIME
  * 
  * [sequence]
- *     
+ *     ACCESS_RESULT_SEQ
  * 
  * [identity]
  *     
@@ -73,8 +73,6 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     //                                                                          ==========
     /*df:BehaviorQueryPathBegin*/
     public static final String PATH_selectListByUrlDiff = "selectListByUrlDiff";
-
-    public static final String PATH_deleteBySessionId = "deleteBySessionId";
 
     /*df:BehaviorQueryPathEnd*/
 
@@ -427,11 +425,23 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     // ===================================================================================
     //                                                                            Sequence
     //                                                                            ========
+    /**
+     * Select the next value as sequence. <br />
+     * This method is called when insert() and set to primary-key automatically.
+     * So you don't need to call this as long as you need to get next value before insert().  
+     * @return The next value. (NotNull)
+     */
+    public Long selectNextVal() {
+        return doSelectNextVal(Long.class);
+    }
+
+    protected <RESULT> RESULT doSelectNextVal(Class<RESULT> resultType) {
+        return delegateSelectNextVal(resultType);
+    }
+
     @Override
     protected Number doReadNextVal() {
-        String msg = "This table is NOT related to sequence: "
-                + getTableDbName();
-        throw new UnsupportedOperationException(msg);
+        return selectNextVal();
     }
 
     // ===================================================================================
@@ -1211,6 +1221,10 @@ public abstract class BsAccessResultBhv extends AbstractBehaviorWritable {
     protected <ENTITY extends AccessResult> List<ENTITY> delegateSelectList(
             AccessResultCB cb, Class<ENTITY> et) {
         return invoke(createSelectListCBCommand(cb, et));
+    }
+
+    protected <RESULT> RESULT delegateSelectNextVal(Class<RESULT> rt) {
+        return invoke(createSelectNextValCommand(rt));
     }
 
     // -----------------------------------------------------

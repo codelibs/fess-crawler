@@ -15,8 +15,6 @@
  */
 package org.seasar.robot.db.exentity;
 
-import org.seasar.robot.db.bsentity.BsUrlQueue;
-
 /**
  * The entity of URL_QUEUE.
  * <p>
@@ -25,7 +23,8 @@ import org.seasar.robot.db.bsentity.BsUrlQueue;
  * </p>
  * @author DBFlute(AutoGenerator)
  */
-public class UrlQueue extends BsUrlQueue {
+public class UrlQueue extends org.seasar.robot.db.bsentity.BsUrlQueue implements
+        org.seasar.robot.entity.UrlQueue {
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;

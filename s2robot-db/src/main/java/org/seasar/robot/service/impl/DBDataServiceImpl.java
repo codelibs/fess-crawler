@@ -185,8 +185,11 @@ public class DBDataServiceImpl implements DataService {
                 return null;
             }
         };
-        accessResultBhv.outsideSql().cursorHandling().selectCursor(
-                AccessResultBhv.PATH_selectListByUrlDiff, pmb, handler);
+        accessResultBhv
+                .outsideSql()
+                .cursorHandling()
+                .selectCursor(AccessResultBhv.PATH_selectListByUrlDiff, pmb,
+                        handler);
 
     }
 
@@ -212,12 +215,10 @@ public class DBDataServiceImpl implements DataService {
         List<org.seasar.robot.db.exentity.AccessResultData> ardList = new ArrayList<org.seasar.robot.db.exentity.AccessResultData>();
 
         for (AccessResult accessResult : accessResultList) {
-            arList
-                    .add((org.seasar.robot.db.exentity.AccessResult) accessResult);
+            arList.add((org.seasar.robot.db.exentity.AccessResult) accessResult);
             if (accessResult.getAccessResultData() != null) {
-                ardList
-                        .add((org.seasar.robot.db.exentity.AccessResultData) accessResult
-                                .getAccessResultData());
+                ardList.add((org.seasar.robot.db.exentity.AccessResultData) accessResult
+                        .getAccessResultData());
             }
         }
         accessResultBhv.batchUpdate(arList);

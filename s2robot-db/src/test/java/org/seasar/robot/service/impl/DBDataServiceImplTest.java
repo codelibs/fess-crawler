@@ -54,21 +54,21 @@ public class DBDataServiceImplTest extends S2TestCase {
         dataService.store(accessResult);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult1a = new org.seasar.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult1a).execute();
+        Beans.copy(accessResult, accessResult1a).excludes("id").execute();
         dataService.store(accessResult1a);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult1b = new org.seasar.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult1b).execute();
+        Beans.copy(accessResult, accessResult1b).excludes("id").execute();
         accessResult1b.setUrl("http://www.example.com/b");
         dataService.store(accessResult1b);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult2a = new org.seasar.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult2a).execute();
+        Beans.copy(accessResult, accessResult2a).excludes("id").execute();
         accessResult2a.setSessionId("2");
         dataService.store(accessResult2a);
 
         final org.seasar.robot.db.exentity.AccessResult accessResult2c = new org.seasar.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult2c).execute();
+        Beans.copy(accessResult, accessResult2c).excludes("id").execute();
         accessResult2c.setSessionId("2");
         accessResult2c.setUrl("http://www.example.com/c");
         dataService.store(accessResult2c);

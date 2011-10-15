@@ -18,15 +18,12 @@ package org.seasar.robot;
 import java.io.File;
 
 import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.entity.AccessResult;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.filter.impl.UrlFilterImpl;
 import org.seasar.robot.service.DataService;
 import org.seasar.robot.service.UrlFilterService;
 import org.seasar.robot.service.UrlQueueService;
-import org.seasar.robot.service.impl.DBUrlQueueServiceImpl;
-import org.seasar.robot.service.impl.UrlQueueServiceImpl;
 import org.seasar.robot.transformer.impl.FileTransformer;
 import org.seasar.robot.util.AccessResultCallback;
 import org.seasar.robot.util.S2RobotWebServer;
@@ -116,9 +113,19 @@ public class S2RobotTest extends S2TestCase {
             assertNotSame(sessionId1, sessionId2);
             assertNotSame(s2Robot1.robotContext, s2Robot2.robotContext);
 
-            Thread.sleep(1000);
-
+            for (int i = 0; i < 10; i++) {
+                if (s2Robot1.robotContext.running) {
+                    break;
+                }
+                Thread.sleep(500);
+            }
             assertTrue(s2Robot1.robotContext.running);
+            for (int i = 0; i < 10; i++) {
+                if (s2Robot2.robotContext.running) {
+                    break;
+                }
+                Thread.sleep(500);
+            }
             assertTrue(s2Robot2.robotContext.running);
 
             s2Robot1.awaitTermination();
@@ -157,6 +164,7 @@ public class S2RobotTest extends S2TestCase {
         }
     }
 
+    /* TODO: needs to review/reconsider this feature
     public void test_execute_web_diffcrawl() throws Exception {
         S2RobotWebServer server = new S2RobotWebServer(7070);
         server.start();
@@ -204,4 +212,5 @@ public class S2RobotTest extends S2TestCase {
             server.stop();
         }
     }
+    */
 }

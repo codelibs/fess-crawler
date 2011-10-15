@@ -28,6 +28,15 @@
         <databaseVersion>5.1.14</databaseVersion>
       </properties>
     </profile>
+    <profile>
+      <id>oracle</id>
+      <properties>
+        <database>oracle</database>
+        <databaseGroupId>com.oracle</databaseGroupId>
+        <databaseArtifactId>ojdbc6</databaseArtifactId>
+        <databaseVersion>11.2.0.3</databaseVersion>
+      </properties>
+    </profile>
   </profiles>
   <build>
     <pluginManagement>

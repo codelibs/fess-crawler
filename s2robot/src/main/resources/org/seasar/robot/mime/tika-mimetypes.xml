@@ -1291,7 +1291,7 @@
   <mime-type type="application/vnd.ms-tnef">
     <alias type="application/ms-tnef" />
     <magic priority="50">
-      <match value="0x223e9f78" type="little16" offset="0" />
+      <match value="0x223e9f78" type="little32" offset="0" />
     </magic>
   </mime-type>
 
@@ -1317,7 +1317,9 @@
     <glob pattern="*.wks"/>
     <glob pattern="*.wcm"/>
     <glob pattern="*.wdb"/>
+    <sub-class-of type="application/x-tika-msoffice"/>
   </mime-type>
+
   <mime-type type="application/vnd.ms-wpl">
     <glob pattern="*.wpl"/>
   </mime-type>
@@ -1430,6 +1432,7 @@
       </match>
     </magic>
     <glob pattern="*.odf"/>
+    <sub-class-of type="application/zip"/>
   </mime-type>
 
   <mime-type type="application/vnd.oasis.opendocument.formula-template">
@@ -1929,6 +1932,18 @@
   <mime-type type="application/vnd.tao.intent-module-archive">
     <glob pattern="*.tao"/>
   </mime-type>
+
+  <mime-type type="application/vnd.tcpdump.pcap">
+    <_comment>TCPDump pcap packet capture</_comment>
+    <magic priority="50">
+      <match value="0xa1b2c3d4" type="big32" offset="0" />
+      <match value="0xd4c3b2a1" type="big32" offset="0" />
+    </magic>
+    <glob pattern="*.pcap"/>
+    <glob pattern="*.cap"/>
+    <glob pattern="*.dmp"/>
+  </mime-type>
+
   <mime-type type="application/vnd.tmobile-livetv">
     <glob pattern="*.tmo"/>
   </mime-type>
@@ -2342,9 +2357,34 @@
   <mime-type type="application/x-font-type1">
     <glob pattern="*.pfa"/>
     <glob pattern="*.pfb"/>
-    <glob pattern="*.pfm"/>
-    <glob pattern="*.afm"/>
+    <magic priority="60">
+      <!-- Match for PFB, the binary format -->
+      <match value="\x80\x01\xFF\xFF\x00\x00%!PS-AdobeFont" type="string" 
+              mask="0xFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" offset="0"/>
+      <!-- Match for PFA, the text format" -->
+      <match value="%!PS-AdobeFont-1.0" type="string" offset="0" />
+    </magic>
   </mime-type>
+
+  <mime-type type="application/x-font-adobe-metric">
+    <_comment>Adobe Font Metric</_comment>
+    <glob pattern="*.afm"/>
+    <glob pattern="*.acfm"/>
+    <glob pattern="*.amfm"/>
+    <magic priority="40">
+      <match value="StartFontMetrics" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+
+  <mime-type type="application/x-font-printer-metric">
+    <_comment>Printer Font Metric</_comment>
+    <glob pattern="*.pfm"/>
+    <magic priority="40">
+      <match value="0x0001FFFF0000436f707972" type="string" offset="0"
+              mask="0xFFFF0000FFFFFFFFFFFFFF" />
+    </magic>
+  </mime-type>
+
   <mime-type type="application/x-font-vfont"/>
 
   <mime-type type="application/x-foxmail">
@@ -2397,6 +2437,7 @@
     </magic>
     <glob pattern="*.hdf"/>
     <glob pattern="*.he5"/>
+    <glob pattern="*.h5"/>
   </mime-type>
 
   <mime-type type="application/x-hwp">
@@ -2541,6 +2582,13 @@
     <glob pattern="*.p7r"/>
   </mime-type>
 
+  <mime-type type="application/x-prt">
+    <glob pattern="*.prt"/>
+    <magic priority="50">
+      <match value="0M3C" type="string" offset="8" />
+    </magic>
+  </mime-type>
+  
   <mime-type type="application/x-quattro-pro">
     <glob pattern="*.qpw"/>
     <glob pattern="*.wb1"/>
@@ -2908,6 +2956,12 @@
   <mime-type type="audio/mpeg4-generic"/>
 
   <mime-type type="audio/ogg">
+    <magic priority="60">
+      <!-- For a single stream file -->
+      <match value="OggS\000.......................\001vorbis" type="string" 
+             mask="0xFFFFFFFF00000000000000000000000000000000000000000000000000FFFFFFFFFFFF" 
+             offset="0"/>
+    </magic>
     <glob pattern="*.oga"/>
     <glob pattern="*.ogg"/>
     <glob pattern="*.spx"/>
@@ -2945,6 +2999,9 @@
   <mime-type type="audio/vnd.3gpp.iufp"/>
   <mime-type type="audio/vnd.4sb"/>
   <mime-type type="audio/vnd.audiokoz"/>
+  <mime-type type="audio/vnd.adobe.soundbooth">
+    <glob pattern="*.asnd"/>
+  </mime-type>
   <mime-type type="audio/vnd.celp"/>
   <mime-type type="audio/vnd.cisco.nse"/>
   <mime-type type="audio/vnd.cmles.radio-events"/>
@@ -3082,7 +3139,11 @@
     <glob pattern="*.wax"/>
   </mime-type>
   <mime-type type="audio/x-ms-wma">
+    <sub-class-of type="video/x-ms-asf" />
     <glob pattern="*.wma"/>
+    <magic priority="50">
+       <match value="Windows Media Audio" type="unicodeLE" offset="0:8192" />
+    </magic>
   </mime-type>
 
   <mime-type type="audio/x-pn-realaudio">
@@ -3242,7 +3303,12 @@
 
   <mime-type type="image/vnd.adobe.photoshop">
     <alias type="image/x-psd"/>
+    <alias type="application/photoshop"/>
     <glob pattern="*.psd"/>
+  </mime-type>
+
+  <mime-type type="image/vnd.adobe.premiere">
+    <glob pattern="*.ppj"/>
   </mime-type>
 
   <mime-type type="image/vnd.cns.inf2"/>
@@ -3475,7 +3541,6 @@
 
   <mime-type type="image/x-raw-phaseone">
     <_comment>Phase One raw image</_comment>
-    <glob pattern="*.cap"/>
     <glob pattern="*.iiq"/>
   </mime-type>
 
@@ -4110,12 +4175,19 @@
   <mime-type type="video/x-ms-asf">
     <glob pattern="*.asf"/>
     <glob pattern="*.asx"/>
+    <magic>
+       <match value="0x3026b275" type="big32" offset="0" />
+    </magic>
   </mime-type>
   <mime-type type="video/x-ms-wm">
     <glob pattern="*.wm"/>
   </mime-type>
   <mime-type type="video/x-ms-wmv">
+    <sub-class-of type="video/x-ms-asf" />
     <glob pattern="*.wmv"/>
+    <magic priority="60">
+       <match value="Windows Media Video" type="unicodeLE" offset="0:8192" />
+    </magic>
   </mime-type>
   <mime-type type="video/x-ms-wmx">
     <glob pattern="*.wmx"/>
@@ -4146,4 +4218,10 @@
     <glob pattern="*.ice"/>
   </mime-type>
 
+  <mime-type type="application/x-fictionbook+xml">
+      <_comment>FictionBook document</_comment>
+      <sub-class-of type="application/xml"/>
+      <root-XML namespaceURI="http://www.gribuser.ru/xml/fictionbook/2.0" localName="FictionBook"/>
+      <glob pattern="*.fb2"/>
+  </mime-type>
 </mime-info>

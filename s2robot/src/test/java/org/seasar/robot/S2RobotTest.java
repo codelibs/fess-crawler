@@ -318,6 +318,7 @@ public class S2RobotTest extends S2TestCase {
         }
     }
 
+    /* TODO: needs to review/reconsider this feature
     public void test_execute_web_diffcrawl() throws Exception {
         S2RobotWebServer server = new S2RobotWebServer(7070);
         server.start();
@@ -361,4 +362,5 @@ public class S2RobotTest extends S2TestCase {
             server.stop();
         }
     }
+    */
 }

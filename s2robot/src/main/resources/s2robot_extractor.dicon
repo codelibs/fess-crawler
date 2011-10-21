@@ -18,6 +18,18 @@
 			<arg>"false"</arg>
 		</initMethod>
 	</component>
+	<!-- 
+	<component name="officeManagerConfiguration"
+		class="org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration">
+	</component>
+	<component name="jodExtractor"
+		class="org.seasar.robot.extractor.impl.JodExtractor">
+		<property name="officeManager">
+			officeManagerConfiguration.buildOfficeManager()
+		</property>
+	</component>
+	 -->
+	
 
 	<component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
 		<initMethod name="addExtractor">

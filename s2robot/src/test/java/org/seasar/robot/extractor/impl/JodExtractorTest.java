@@ -39,7 +39,7 @@ public class JodExtractorTest extends S2TestCase {
 
     @Override
     protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+        return "jodextractor.dicon";
     }
 
     public void test_getText_ooow() {

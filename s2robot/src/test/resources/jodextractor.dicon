@@ -13,4 +13,15 @@
 		</initMethod>
 	</component>
 
+	<component name="officeManagerConfiguration"
+		class="org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration">
+	</component>
+
+	<component name="jodExtractor"
+		class="org.seasar.robot.extractor.impl.JodExtractor">
+		<property name="officeManager">
+			officeManagerConfiguration.setPortNumber(12002).buildOfficeManager()
+		</property>
+	</component>
+
 </components>

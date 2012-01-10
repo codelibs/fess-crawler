@@ -38,6 +38,7 @@ import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
+import org.seasar.robot.util.XmlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -139,8 +140,9 @@ public class XpathTransformer extends HtmlTransformer {
     protected String getResultDataBody(final String name, final String value) {
         // TODO support other type
         // TODO trim(default)
-        return "<field name=\"" + escapeXml(name) + "\">"
-            + trimSpace(escapeXml(value != null ? value : "")) + "</field>\n";
+        return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
+            + trimSpace(XmlUtil.escapeXml(value != null ? value : ""))
+            + "</field>\n";
     }
 
     protected String getResultDataBody(final String name,
@@ -150,15 +152,15 @@ public class XpathTransformer extends HtmlTransformer {
         if (values != null && !values.isEmpty()) {
             for (String value : values) {
                 buf.append("<item>");
-                buf.append(trimSpace(escapeXml(value)));
+                buf.append(trimSpace(XmlUtil.escapeXml(value)));
                 buf.append("</item>");
             }
         }
         buf.append("</list>");
         // TODO support other type
         // TODO trim(default)
-        return "<field name=\"" + escapeXml(name) + "\">" + buf.toString()
-            + "</field>\n";
+        return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
+            + buf.toString() + "</field>\n";
     }
 
     protected String getAdditionalData(final ResponseData responseData,
@@ -169,41 +171,6 @@ public class XpathTransformer extends HtmlTransformer {
     protected String getResultDataFooter() {
         // TODO support other type
         return "</doc>";
-    }
-
-    protected String escapeXml(final String value) {
-        // return StringEscapeUtils.escapeXml(value);
-        return stripInvalidXMLCharacters(//
-        value//
-            .replaceAll("&", "&amp;")
-            //
-            .replaceAll("<", "&lt;")
-            //
-            .replaceAll(">", "&gt;")
-            //
-            .replaceAll("\"", "&quot;")
-            //
-            .replaceAll("\'", "&apos;")//
-        );
-    }
-
-    private String stripInvalidXMLCharacters(final String in) {
-        if (StringUtil.isEmpty(in)) {
-            return in;
-        }
-
-        final StringBuilder buf = new StringBuilder();
-        char c;
-        for (int i = 0; i < in.length(); i++) {
-            c = in.charAt(i);
-            if ((c == 0x9) || (c == 0xA) || (c == 0xD)
-                || ((c >= 0x20) && (c <= 0xD7FF))
-                || ((c >= 0xE000) && (c <= 0xFFFD))
-                || ((c >= 0x10000) && (c <= 0x10FFFF))) {
-                buf.append(c);
-            }
-        }
-        return buf.toString();
     }
 
     protected String trimSpace(final String value) {
@@ -229,7 +196,8 @@ public class XpathTransformer extends HtmlTransformer {
             return super.getData(accessResultData);
         }
 
-        final Map<String, Object> dataMap = getDataMap(accessResultData);
+        final Map<String, Object> dataMap =
+            XmlUtil.getDataMap(accessResultData);
         if (Map.class.equals(dataClass)) {
             return dataMap;
         }
@@ -245,6 +213,7 @@ public class XpathTransformer extends HtmlTransformer {
         }
     }
 
+    @Deprecated
     protected Map<String, Object> getDataMap(
             final AccessResultData accessResultData) {
         // create input source
@@ -274,6 +243,7 @@ public class XpathTransformer extends HtmlTransformer {
         }
     }
 
+    @Deprecated
     protected static class DocHandler extends DefaultHandler {
         private Map<String, Object> dataMap = new HashMap<String, Object>();
 
@@ -373,5 +343,10 @@ public class XpathTransformer extends HtmlTransformer {
 
     public void setDataClass(final Class<?> dataClass) {
         this.dataClass = dataClass;
+    }
+
+    @Deprecated
+    protected String escapeXml(final String value) {
+        return XmlUtil.escapeXml(value);
     }
 }

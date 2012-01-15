@@ -20,7 +20,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -156,21 +158,25 @@ public class XmlTransformer extends AbstractTransformer {
             final StringBuilder buf = new StringBuilder(1000);
             buf.append(getResultDataHeader());
             for (Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
-                final StringBuilder nodeBuf = new StringBuilder(255);
+                final List<String> nodeStrList = new ArrayList<String>();
                 try {
                     final NodeList nodeList =
                         getXPathAPI().selectNodeList(doc, entry.getValue());
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         final Node node = nodeList.item(i);
-                        nodeBuf.append(node.getTextContent()).append(' ');
+                        nodeStrList.add(node.getTextContent());
                     }
                 } catch (TransformerException e) {
                     logger.warn("Could not parse a value of " + entry.getKey()
                         + ":" + entry.getValue());
                 }
-                buf.append(getResultDataBody(entry.getKey(), nodeBuf
-                    .toString()
-                    .trim()));
+                if (nodeStrList.size() == 1) {
+                    buf.append(getResultDataBody(
+                        entry.getKey(),
+                        nodeStrList.get(0)));
+                } else if (nodeStrList.size() > 1) {
+                    buf.append(getResultDataBody(entry.getKey(), nodeStrList));
+                }
             }
             buf.append(getAdditionalData(responseData, doc));
             buf.append(getResultDataFooter());
@@ -252,6 +258,24 @@ public class XmlTransformer extends AbstractTransformer {
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
             + trimSpace(XmlUtil.escapeXml(value != null ? value : ""))
             + "</field>\n";
+    }
+
+    protected String getResultDataBody(final String name,
+            final List<String> values) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("<list>");
+        if (values != null && !values.isEmpty()) {
+            for (String value : values) {
+                buf.append("<item>");
+                buf.append(trimSpace(XmlUtil.escapeXml(value)));
+                buf.append("</item>");
+            }
+        }
+        buf.append("</list>");
+        // TODO support other type
+        // TODO trim(default)
+        return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
+            + buf.toString() + "</field>\n";
     }
 
     protected String getAdditionalData(final ResponseData responseData,

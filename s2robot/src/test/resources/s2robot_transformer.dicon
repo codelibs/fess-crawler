@@ -50,4 +50,119 @@
 			<arg>"//BODY"</arg>
 		</initMethod>
 	</component>
+
+	<component name="xmlTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+		<property name="name">"xmlTransformer"</property>
+		<initMethod name="addFieldRule">
+			<arg>"name"</arg>
+			<arg>"//address/item/name"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"access"</arg>
+			<arg>"//address/item/access"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"image"</arg>
+			<arg>"//address/item/image/@file"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"email"</arg>
+			<arg>"//address/item/access[@kind='email']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"url"</arg>
+			<arg>"//address/item/access[@kind='url']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"tel"</arg>
+			<arg>"//address/item/access[@kind='tel']"</arg>
+		</initMethod>
+	</component>
+
+	<component name="xmlNsTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+		<property name="name">"xmlNsTransformer"</property>
+		<initMethod name="addFieldRule">
+			<arg>"name"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:name"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"access"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"image"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:image/@file"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"email"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='email']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"url"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='url']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"tel"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='tel']"</arg>
+		</initMethod>
+	</component>
+
+	<component name="xmlMapTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+		<property name="name">"xmlMapTransformer"</property>
+		<property name="dataClass">@java.util.Map@class</property>
+		<initMethod name="addFieldRule">
+			<arg>"name"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:name"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"access"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"image"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:image"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"email"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='email']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"url"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='url']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"tel"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='tel']"</arg>
+		</initMethod>
+	</component>
+
+
+	<component name="xmlEntityTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+		<property name="name">"xmlEntityTransformer"</property>
+		<property name="dataClass">@org.seasar.robot.entity.TestEntity@class</property>
+		<initMethod name="addFieldRule">
+			<arg>"name"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:name"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"access"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"image"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:image"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"email"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='email']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"url"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='url']"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"tel"</arg>
+			<arg>"//hoge:address/hoge:item/hoge:access[@kind='tel']"</arg>
+		</initMethod>
+	</component>
 </components>

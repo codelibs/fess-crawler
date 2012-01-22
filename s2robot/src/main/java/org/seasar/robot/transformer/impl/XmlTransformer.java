@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +33,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.xml.utils.PrefixResolverDefault;
 import org.apache.xpath.CachedXPathAPI;
 import org.seasar.framework.beans.util.Beans;
+import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
@@ -59,6 +62,24 @@ public class XmlTransformer extends AbstractTransformer {
     private static final Pattern SPACE_PATTERN = Pattern.compile(
         "\\s+",
         Pattern.MULTILINE);
+
+    private boolean namespaceAware;
+
+    private boolean coalescing;
+
+    private boolean expandEntityRef = true;
+
+    private boolean ignoringComments;
+
+    private boolean ignoringElementContentWhitespace;
+
+    private boolean validating;
+
+    private boolean includeAware;
+
+    private Map<String, Object> attributeMap = new HashMap<String, Object>();
+
+    private Map<String, String> featureMap = new HashMap<String, String>();
 
     protected Map<String, String> fieldRuleMap =
         new LinkedHashMap<String, String>();
@@ -150,7 +171,26 @@ public class XmlTransformer extends AbstractTransformer {
             fis = new FileInputStream(tempFile);
             DocumentBuilderFactory factory =
                 DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
+
+            for (Map.Entry<String, Object> entry : attributeMap.entrySet()) {
+                factory.setAttribute(entry.getKey(), entry.getValue());
+            }
+
+            for (Map.Entry<String, String> entry : featureMap.entrySet()) {
+                factory.setFeature(
+                    entry.getKey(),
+                    "true".equalsIgnoreCase(entry.getValue()));
+            }
+
+            factory.setCoalescing(coalescing);
+            factory.setExpandEntityReferences(expandEntityRef);
+            factory.setIgnoringComments(ignoringComments);
+            factory
+                .setIgnoringElementContentWhitespace(ignoringElementContentWhitespace);
+            factory.setNamespaceAware(namespaceAware);
+            factory.setValidating(validating);
+            factory.setXIncludeAware(includeAware);
+
             DocumentBuilder builder = factory.newDocumentBuilder();
 
             Document doc = builder.parse(fis);
@@ -161,14 +201,14 @@ public class XmlTransformer extends AbstractTransformer {
                 final List<String> nodeStrList = new ArrayList<String>();
                 try {
                     final NodeList nodeList =
-                        getXPathAPI().selectNodeList(doc, entry.getValue());
+                        getNodeList(doc, entry.getValue());
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         final Node node = nodeList.item(i);
                         nodeStrList.add(node.getTextContent());
                     }
                 } catch (TransformerException e) {
                     logger.warn("Could not parse a value of " + entry.getKey()
-                        + ":" + entry.getValue());
+                        + ":" + entry.getValue(), e);
                 }
                 if (nodeStrList.size() == 1) {
                     buf.append(getResultDataBody(
@@ -214,6 +254,14 @@ public class XmlTransformer extends AbstractTransformer {
         }
     }
 
+    protected NodeList getNodeList(Document doc, String xpath)
+            throws TransformerException {
+        DefaultPrefixResolver prefixResolver =
+            new DefaultPrefixResolver((doc.getNodeType() == Node.DOCUMENT_NODE)
+                ? ((Document) doc).getDocumentElement() : doc);
+        return getXPathAPI().eval(doc, xpath, prefixResolver).nodelist();
+    }
+
     protected CachedXPathAPI getXPathAPI() {
         CachedXPathAPI cachedXPathAPI = xpathAPI.get();
         if (cachedXPathAPI == null) {
@@ -245,6 +293,11 @@ public class XmlTransformer extends AbstractTransformer {
             IOUtils.closeQuietly(fos);
         }
         return tempFile;
+    }
+
+    private String removeNamespace(String line) {
+        line = line.replaceAll("<[¥¥S]+:([¥¥S]+[¥¥s>]?)", "<$1");
+        return line;
     }
 
     protected String getResultDataHeader() {
@@ -294,6 +347,14 @@ public class XmlTransformer extends AbstractTransformer {
             return matcher.replaceAll(" ").trim();
         }
         return value;
+    }
+
+    public void addAttribute(String name, Object value) {
+        attributeMap.put(name, value);
+    }
+
+    public void addFeature(String key, String value) {
+        featureMap.put(key, value);
     }
 
     public void addFieldRule(final String name, final String xpath) {
@@ -358,5 +419,140 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setDataClass(Class<?> dataClass) {
         this.dataClass = dataClass;
+    }
+
+    /**
+     * @return the namespaceAware
+     */
+    public boolean isNamespaceAware() {
+        return namespaceAware;
+    }
+
+    /**
+     * @param namespaceAware
+     *            the namespaceAware to set
+     */
+    public void setNamespaceAware(boolean namespaceAware) {
+        this.namespaceAware = namespaceAware;
+    }
+
+    /**
+     * @return the coalescing
+     */
+    public boolean isCoalescing() {
+        return coalescing;
+    }
+
+    /**
+     * @param coalescing
+     *            the coalescing to set
+     */
+    public void setCoalescing(boolean coalescing) {
+        this.coalescing = coalescing;
+    }
+
+    /**
+     * @return the expandEntityRef
+     */
+    public boolean isExpandEntityRef() {
+        return expandEntityRef;
+    }
+
+    /**
+     * @param expandEntityRef
+     *            the expandEntityRef to set
+     */
+    public void setExpandEntityRef(boolean expandEntityRef) {
+        this.expandEntityRef = expandEntityRef;
+    }
+
+    /**
+     * @return the ignoringComments
+     */
+    public boolean isIgnoringComments() {
+        return ignoringComments;
+    }
+
+    /**
+     * @param ignoringComments
+     *            the ignoringComments to set
+     */
+    public void setIgnoringComments(boolean ignoringComments) {
+        this.ignoringComments = ignoringComments;
+    }
+
+    /**
+     * @return the ignoringElementContentWhitespace
+     */
+    public boolean isIgnoringElementContentWhitespace() {
+        return ignoringElementContentWhitespace;
+    }
+
+    /**
+     * @param ignoringElementContentWhitespace
+     *            the ignoringElementContentWhitespace to set
+     */
+    public void setIgnoringElementContentWhitespace(
+            boolean ignoringElementContentWhitespace) {
+        this.ignoringElementContentWhitespace =
+            ignoringElementContentWhitespace;
+    }
+
+    /**
+     * @return the validating
+     */
+    public boolean isValidating() {
+        return validating;
+    }
+
+    /**
+     * @param validating
+     *            the validating to set
+     */
+    public void setValidating(boolean validating) {
+        this.validating = validating;
+    }
+
+    /**
+     * @return the includeAware
+     */
+    public boolean isIncludeAware() {
+        return includeAware;
+    }
+
+    /**
+     * @param includeAware
+     *            the includeAware to set
+     */
+    public void setIncludeAware(boolean includeAware) {
+        this.includeAware = includeAware;
+    }
+
+    public static class DefaultPrefixResolver extends PrefixResolverDefault {
+
+        /**
+         * @param xpathExpressionContext
+         */
+        public DefaultPrefixResolver(Node xpathExpressionContext) {
+            super(xpathExpressionContext);
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.apache.xml.utils.PrefixResolverDefault#getNamespaceForPrefix(
+         * java.lang.String, org.w3c.dom.Node)
+         */
+        @Override
+        public String getNamespaceForPrefix(String prefix, Node namespaceContext) {
+            String namespace =
+                super.getNamespaceForPrefix(prefix, namespaceContext);
+            if (StringUtil.isNotBlank(namespace)) {
+                return namespace;
+            }
+            return "http://s2robot.sandbox.seasar.org/namespace/" + prefix;
+        }
+
     }
 }

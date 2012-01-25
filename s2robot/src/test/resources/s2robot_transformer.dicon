@@ -81,6 +81,7 @@
 
 	<component name="xmlNsTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
 		<property name="name">"xmlNsTransformer"</property>
+		<property name="namespaceAware">true</property>
 		<initMethod name="addFieldRule">
 			<arg>"name"</arg>
 			<arg>"//hoge:address/hoge:item/hoge:name"</arg>

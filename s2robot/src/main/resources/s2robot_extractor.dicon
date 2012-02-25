@@ -37,6 +37,7 @@
 "application/xml",
 "application/xhtml+xml",
 "application/rdf+xml",
+"application/x-freemind",
 "text/xml",
 "text/xml-external-parsed-entity"
 			}</arg>

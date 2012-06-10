@@ -29,6 +29,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.TransformerException;
 
+import org.apache.xpath.objects.XObject;
 import org.cyberneko.html.parsers.DOMParser;
 import org.seasar.framework.beans.util.Beans;
 import org.seasar.framework.util.StringUtil;
@@ -97,20 +98,60 @@ public class XpathTransformer extends HtmlTransformer {
         buf.append(getResultDataHeader());
         for (Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
             final StringBuilder nodeBuf = new StringBuilder(255);
+            final String path = entry.getValue();
             try {
-                final NodeList nodeList =
-                    getXPathAPI().selectNodeList(document, entry.getValue());
-                for (int i = 0; i < nodeList.getLength(); i++) {
-                    final Node node = nodeList.item(i);
-                    nodeBuf.append(node.getTextContent()).append(' ');
+                final XObject xObj = getXPathAPI().eval(document, path);
+                final int type = xObj.getType();
+                switch (type) {
+                case XObject.CLASS_BOOLEAN:
+                    final boolean b = xObj.bool();
+                    buf.append(getResultDataBody(
+                        entry.getKey(),
+                        Boolean.toString(b)));
+                    break;
+                case XObject.CLASS_NUMBER:
+                    final double d = xObj.num();
+                    buf.append(getResultDataBody(
+                        entry.getKey(),
+                        Double.toString(d)));
+                    break;
+                case XObject.CLASS_STRING:
+                    final String str = xObj.str();
+                    buf.append(getResultDataBody(entry.getKey(), str.trim()));
+                    break;
+                case XObject.CLASS_NODESET:
+                    final NodeList nodeList = xObj.nodelist();
+                    final List<String> strList = new ArrayList<String>();
+                    for (int i = 0; i < nodeList.getLength(); i++) {
+                        final Node node = nodeList.item(i);
+                        strList.add(node.getTextContent());
+                    }
+                    buf.append(getResultDataBody(entry.getKey(), strList));
+                    break;
+                case XObject.CLASS_RTREEFRAG:
+                    final int rtf = xObj.rtf();
+                    buf.append(getResultDataBody(
+                        entry.getKey(),
+                        Integer.toString(rtf)));
+                    break;
+                case XObject.CLASS_NULL:
+                case XObject.CLASS_UNKNOWN:
+                case XObject.CLASS_UNRESOLVEDVARIABLE:
+                default:
+                    Object obj = xObj.object();
+                    if (obj == null) {
+                        obj = "";
+                    }
+                    buf
+                        .append(getResultDataBody(
+                            entry.getKey(),
+                            obj.toString()));
+                    break;
                 }
             } catch (TransformerException e) {
                 logger.warn("Could not parse a value of " + entry.getKey()
                     + ":" + entry.getValue());
             }
-            buf.append(getResultDataBody(entry.getKey(), nodeBuf
-                .toString()
-                .trim()));
         }
         buf.append(getAdditionalData(responseData, document));
         buf.append(getResultDataFooter());

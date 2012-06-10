@@ -30,7 +30,7 @@ import org.seasar.robot.entity.TestEntity;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class XpathTransformerTest extends S2TestCase {
     public XpathTransformer xpathTransformer;
@@ -45,15 +45,19 @@ public class XpathTransformerTest extends S2TestCase {
     }
 
     public void test_storeData() throws Exception {
-        String result = "<?xml version=\"1.0\"?>\n"//
+        String result =
+            "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
-                + "<field name=\"title\">タイトル</field>\n"//
-                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "<field name=\"title\"><list><item>タイトル</item></list></field>\n"//
+                + "<field name=\"body\"><list><item>第一章 第一節 ほげほげふがふが LINK 第2章 第2節</item></list></field>\n"//
+                + "<field name=\"pcount\">2.0</field>\n"//
+                + "<field name=\"true\">true</field>\n"//
+                + "<field name=\"false\">false</field>\n"//
                 + "</doc>";
 
         ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
-                .getResourceAsStream("html/test1.html"));
+            .getResourceAsStream("html/test1.html"));
         responseData.setCharSet(Constants.UTF_8);
         ResultData resultData = new ResultData();
         xpathTransformer.storeData(responseData, resultData);
@@ -61,7 +65,8 @@ public class XpathTransformerTest extends S2TestCase {
     }
 
     public void test_getData() throws Exception {
-        String value = "<?xml version=\"1.0\"?>\n"//
+        String value =
+            "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
@@ -79,10 +84,10 @@ public class XpathTransformerTest extends S2TestCase {
 
     public void test_getData_wrongName() throws Exception {
         String value = "<?xml version=\"1.0\"?>\n"//
-                + "<doc>\n"//
-                + "<field name=\"title\">タイトル</field>\n"//
-                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-                + "</doc>";
+            + "<doc>\n"//
+            + "<field name=\"title\">タイトル</field>\n"//
+            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+            + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
@@ -98,10 +103,10 @@ public class XpathTransformerTest extends S2TestCase {
 
     public void test_getData_nullData() throws Exception {
         String value = "<?xml version=\"1.0\"?>\n"//
-                + "<doc>\n"//
-                + "<field name=\"title\">タイトル</field>\n"//
-                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-                + "</doc>";
+            + "<doc>\n"//
+            + "<field name=\"title\">タイトル</field>\n"//
+            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+            + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
@@ -118,7 +123,8 @@ public class XpathTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap() throws Exception {
-        String value = "<?xml version=\"1.0\"?>\n"//
+        String value =
+            "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
@@ -143,7 +149,8 @@ public class XpathTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap_entity() throws Exception {
-        String value = "<?xml version=\"1.0\"?>\n"//
+        String value =
+            "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
@@ -169,11 +176,11 @@ public class XpathTransformerTest extends S2TestCase {
 
     public void test_getData_dataMap_entity_emptyList() throws Exception {
         String value = "<?xml version=\"1.0\"?>\n"//
-                + "<doc>\n"//
-                + "<field name=\"title\">タイトル</field>\n"//
-                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-                + "<field name=\"list\"><list></list></field>\n"//
-                + "</doc>";
+            + "<doc>\n"//
+            + "<field name=\"title\">タイトル</field>\n"//
+            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+            + "<field name=\"list\"><list></list></field>\n"//
+            + "</doc>";
 
         AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));

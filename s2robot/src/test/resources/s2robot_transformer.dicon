@@ -17,6 +17,18 @@
 			<arg>"body"</arg>
 			<arg>"//BODY"</arg>
 		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"pcount"</arg>
+			<arg>"count(//P)"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"true"</arg>
+			<arg>"true()"</arg>
+		</initMethod>
+		<initMethod name="addFieldRule">
+			<arg>"false"</arg>
+			<arg>"false()"</arg>
+		</initMethod>
 	</component>
 
 	<component name="xpathMapTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">

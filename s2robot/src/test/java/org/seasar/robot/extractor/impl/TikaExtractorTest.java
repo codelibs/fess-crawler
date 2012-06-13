@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.Constants;
@@ -106,6 +107,83 @@ public class TikaExtractorTest extends S2TestCase {
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+        for (String key : extractData.getKeySet()) {
+            logger.info(key + "="
+                + StringUtils.join(extractData.getValues(key), "|"));
+        }
+        assertEquals("こめんと", extractData.getValues("Comments")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals("太郎", extractData.getValues("Author")[0]);
+        assertEquals(
+            "2009-06-26T21:41:00Z",
+            extractData.getValues("Creation-Date")[0]);
+        assertEquals("たいとる", extractData.getValues("title")[0]);
+        assertEquals("かいしゃ", extractData.getValues("Company")[0]);
+        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
+        assertEquals(
+            "2012-05-18T22:45:00Z",
+            extractData.getValues("Last-Save-Date")[0]);
+        assertEquals("4", extractData.getValues("Revision-Number")[0]);
+        assertEquals("Normal", extractData.getValues("Template")[0]);
+        assertEquals(
+            "Microsoft Office Word",
+            extractData.getValues("Application-Name")[0]);
+        assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
+        assertEquals("3", extractData.getValues("Character Count")[0]);
+        assertEquals(
+            "application/msword",
+            extractData.getValues("Content-Type")[0]);
+    }
+
+    public void test_getTika_mswordx() {
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/msoffice/test.docx");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+        for (String key : extractData.getKeySet()) {
+            logger.info(key + "="
+                + StringUtils.join(extractData.getValues(key), "|"));
+        }
+        assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
+        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals(
+            "Microsoft Office Word",
+            extractData.getValues("Application-Name")[0]);
+        assertEquals("太郎", extractData.getValues("Author")[0]);
+        assertEquals("14.0000", extractData.getValues("Application-Version")[0]);
+        assertEquals(
+            "3",
+            extractData.getValues("Character-Count-With-Spaces")[0]);
+        assertEquals("2010-07-22T00:21:00Z", extractData.getValues("date")[0]);
+        assertEquals("2", extractData.getValues("Total-Time")[0]);
+        assertEquals("太郎", extractData.getValues("creator")[0]);
+        assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
+        assertEquals(
+            "2010-07-22T00:21:00Z",
+            extractData.getValues("Creation-Date")[0]);
+        assertEquals("たいとる", extractData.getValues("title")[0]);
+        assertEquals("1", extractData.getValues("Line-Count")[0]);
+        assertEquals("花子", extractData.getValues("Manager")[0]);
+        assertEquals("こめんと", extractData.getValues("description")[0]);
+        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
+        assertEquals("1", extractData.getValues("Paragraph-Count")[0]);
+        assertEquals("2", extractData.getValues("Revision-Number")[0]);
+        assertEquals("Normal", extractData.getValues("Template")[0]);
+        assertEquals("1", extractData.getValues("Page-Count")[0]);
+        assertEquals(
+            "2012-05-18T22:44:00Z",
+            extractData.getValues("Last-Modified")[0]);
+        assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
+        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
+        assertEquals("3", extractData.getValues("Character Count")[0]);
+        assertEquals(
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            extractData.getValues("Content-Type")[0]);
+
     }
 
     public void test_getTika_msexcel() {
@@ -116,6 +194,72 @@ public class TikaExtractorTest extends S2TestCase {
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+        for (String key : extractData.getKeySet()) {
+            logger.info(key + "="
+                + StringUtils.join(extractData.getValues(key), "|"));
+        }
+        assertEquals("こめんと", extractData.getValues("Comments")[0]);
+        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals(
+            "Microsoft Excel",
+            extractData.getValues("Application-Name")[0]);
+        assertEquals("太郎", extractData.getValues("Author")[0]);
+        assertEquals(
+            "1997-01-08T22:48:59Z",
+            extractData.getValues("Creation-Date")[0]);
+        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
+        assertEquals("たいとる", extractData.getValues("title")[0]);
+        assertEquals("花子", extractData.getValues("Manager")[0]);
+        assertEquals("かいしゃ", extractData.getValues("Company")[0]);
+        assertEquals(
+            "application/vnd.ms-excel",
+            extractData.getValues("Content-Type")[0]);
+        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
+        assertEquals(
+            "2012-05-18T22:48:52Z",
+            extractData.getValues("Last-Save-Date")[0]);
+    }
+
+    public void test_getTika_msexcelx() {
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/msoffice/test.xlsx");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+        for (String key : extractData.getKeySet()) {
+            logger.info(key + "="
+                + StringUtils.join(extractData.getValues(key), "|"));
+        }
+        assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
+        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals(
+            "Microsoft Excel",
+            extractData.getValues("Application-Name")[0]);
+        assertEquals("太郎", extractData.getValues("Author")[0]);
+        assertEquals(
+            "2012-05-18T22:50:00Z",
+            extractData.getValues("Last-Modified")[0]);
+        assertEquals("14.0300", extractData.getValues("Application-Version")[0]);
+        assertEquals("1997-01-08T22:48:59Z", extractData.getValues("date")[0]);
+        assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
+        assertEquals("太郎", extractData.getValues("creator")[0]);
+        assertEquals(
+            "1997-01-08T22:48:59Z",
+            extractData.getValues("Creation-Date")[0]);
+        assertEquals("たいとる", extractData.getValues("title")[0]);
+        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
+        assertEquals("false", extractData.getValues("protected")[0]);
+        assertEquals("こめんと", extractData.getValues("description")[0]);
+        assertEquals("花子", extractData.getValues("Manager")[0]);
+        assertEquals(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            extractData.getValues("Content-Type")[0]);
+        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
+
     }
 
     public void test_getTika_mspowerpoint() {
@@ -126,6 +270,83 @@ public class TikaExtractorTest extends S2TestCase {
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+        for (String key : extractData.getKeySet()) {
+            logger.info(key + "="
+                + StringUtils.join(extractData.getValues(key), "|"));
+        }
+        assertEquals("2", extractData.getValues("Revision-Number")[0]);
+        assertEquals("こめんと", extractData.getValues("Comments")[0]);
+        assertEquals("1", extractData.getValues("Slide-Count")[0]);
+        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals(
+            "Microsoft PowerPoint",
+            extractData.getValues("Application-Name")[0]);
+        assertEquals("太郎", extractData.getValues("Author")[0]);
+        assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
+        assertEquals("1", extractData.getValues("Word-Count")[0]);
+        assertEquals("1126220000", extractData.getValues("Edit-Time")[0]);
+        assertEquals(
+            "2009-06-26T21:44:55Z",
+            extractData.getValues("Creation-Date")[0]);
+        assertEquals("たいとる", extractData.getValues("title")[0]);
+        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
+        assertEquals("花子", extractData.getValues("Manager")[0]);
+        assertEquals("かいしゃ", extractData.getValues("Company")[0]);
+        assertEquals(
+            "application/vnd.ms-powerpoint",
+            extractData.getValues("Content-Type")[0]);
+        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
+        assertEquals(
+            "2012-05-18T22:46:36Z",
+            extractData.getValues("Last-Save-Date")[0]);
+    }
+
+    public void test_getTika_mspowerpointx() {
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/msoffice/test.pptx");
+        ExtractData extractData = tikaExtractor.getText(in, null);
+        String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+        for (String key : extractData.getKeySet()) {
+            logger.info(key + "="
+                + StringUtils.join(extractData.getValues(key), "|"));
+        }
+        assertEquals("2", extractData.getValues("Revision-Number")[0]);
+        assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
+        assertEquals("1", extractData.getValues("Slide-Count")[0]);
+        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals(
+            "Microsoft Office PowerPoint",
+            extractData.getValues("Application-Name")[0]);
+        assertEquals("太郎", extractData.getValues("Author")[0]);
+        assertEquals(
+            "2012-05-18T22:47:45Z",
+            extractData.getValues("Last-Modified")[0]);
+        assertEquals("14.0000", extractData.getValues("Application-Version")[0]);
+        assertEquals("2009-06-26T21:44:55Z", extractData.getValues("date")[0]);
+        assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
+        assertEquals("太郎", extractData.getValues("creator")[0]);
+        assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
+        assertEquals("1", extractData.getValues("Word-Count")[0]);
+        assertEquals(
+            "2009-06-26T21:44:55Z",
+            extractData.getValues("Creation-Date")[0]);
+        assertEquals("たいとる", extractData.getValues("title")[0]);
+        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
+        assertEquals("こめんと", extractData.getValues("description")[0]);
+        assertEquals("花子", extractData.getValues("Manager")[0]);
+        assertEquals(
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            extractData.getValues("Content-Type")[0]);
+        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
+        assertEquals(
+            "画面に合わせる (4:3)",
+            extractData.getValues("Presentation-Format")[0]);
+        assertEquals("1", extractData.getValues("Paragraph-Count")[0]);
     }
 
     public void test_getTika_zip() {

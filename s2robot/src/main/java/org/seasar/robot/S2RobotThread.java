@@ -66,6 +66,8 @@ public class S2RobotThread implements Runnable {
 
     protected S2RobotContext robotContext;
 
+    protected boolean noWaitOnFolder = false;
+
     protected void startCrawling() {
         synchronized (robotContext.activeThreadCountLock) {
             robotContext.activeThreadCount++;
@@ -217,6 +219,9 @@ public class S2RobotThread implements Runnable {
                                 urlQueue.getUrl(),
                                 urlQueue.getDepth() == null ? 1 : urlQueue
                                     .getDepth() + 1);
+                        }
+                        if (noWaitOnFolder) {
+                            continue;
                         }
                     } catch (RobotCrawlAccessException e) {
                         log(
@@ -402,5 +407,13 @@ public class S2RobotThread implements Runnable {
         }
 
         return false;
+    }
+
+    public boolean isNoWaitOnFolder() {
+        return noWaitOnFolder;
+    }
+
+    public void setNoWaitOnFolder(boolean noWaitOnFolder) {
+        this.noWaitOnFolder = noWaitOnFolder;
     }
 }

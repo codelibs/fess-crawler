@@ -109,9 +109,7 @@ public class XmlUtil {
 
         private String fieldName;
 
-        private boolean listData = false;
-
-        private boolean itemData = false;
+        private StringBuilder buffer = new StringBuilder(1000);
 
         public void startDocument() {
             dataMap.clear();
@@ -121,46 +119,44 @@ public class XmlUtil {
                 final String qName, final Attributes attributes) {
             if ("field".equals(qName)) {
                 fieldName = attributes.getValue("name");
+                if (StringUtil.isBlank(fieldName)) {
+                    fieldName = null;
+                }
+                buffer.setLength(0);
             } else if ("list".equals(qName)) {
-                listData = true;
-                if (!dataMap.containsKey(fieldName)) {
+                if (fieldName != null && !dataMap.containsKey(fieldName)) {
                     dataMap.put(fieldName, new ArrayList<String>());
                 }
             } else if ("item".equals(qName)) {
-                itemData = true;
+                buffer.setLength(0);
             }
         }
 
         public void characters(final char[] ch, final int offset,
                 final int length) {
-            if (fieldName != null) {
-                final Object value = dataMap.get(fieldName);
-                if (listData && itemData) {
-                    if (value != null) {
-                        ((List<String>) value).add(new String(
-                            ch,
-                            offset,
-                            length));
-                    }
-                } else {
-                    if (value == null) {
-                        dataMap.put(fieldName, new String(ch, offset, length));
-                    } else {
-                        dataMap.put(fieldName, value
-                            + new String(ch, offset, length));
-                    }
-                }
-            }
+            buffer.append(new String(ch, offset, length));
         }
 
         public void endElement(final String uri, final String localName,
                 final String qName) {
             if ("field".equals(qName)) {
-                fieldName = null;
+                if (fieldName != null) {
+                    Object obj = dataMap.get(fieldName);
+                    if (obj == null) {
+                        dataMap.put(fieldName, buffer.toString());
+                    }
+                    fieldName = null;
+                }
             } else if ("list".equals(qName)) {
-                listData = false;
+                // nothing
             } else if ("item".equals(qName)) {
-                itemData = false;
+                if (fieldName != null) {
+                    Object obj = dataMap.get(fieldName);
+                    if (obj instanceof List) {
+                        List<String> list = (List<String>) obj;
+                        list.add(buffer.toString());
+                    }
+                }
             }
         }
 

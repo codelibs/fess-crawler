@@ -10,7 +10,7 @@
 		<property name="clientConnectionManager">clientConnectionManager</property>
 	</component>
 	
-	<component name="clientConnectionManager" class="org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager">
+	<component name="clientConnectionManager" class="org.apache.http.impl.conn.PoolingClientConnectionManager">
 		<arg>
 			<component class="org.apache.http.conn.scheme.SchemeRegistry">
 				<initMethod name="register">

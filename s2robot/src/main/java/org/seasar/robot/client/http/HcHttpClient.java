@@ -53,7 +53,6 @@ import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -65,6 +64,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.container.annotation.tiger.DestroyMethod;
@@ -225,7 +225,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 CONNECTION_MANAGER_TIMEOUT_PROPERTY,
                 this.connectionManagerTimeout);
         if (connectionManagerTimeout != null) {
-            ConnManagerParams.setTimeout(params, connectionManagerTimeout);
+            HttpConnectionParams
+                .setConnectionTimeout(params, connectionTimeout);
         }
 
         // AuthSchemeFactory
@@ -374,13 +375,13 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 logger.debug(robotTxtUrl + " is already visited.");
             }
             return;
-        } else {
-            if (logger.isInfoEnabled()) {
-                logger.info("Checking URL: " + robotTxtUrl);
-            }
-            // add url to a set
-            robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
         }
+
+        if (logger.isInfoEnabled()) {
+            logger.info("Checking URL: " + robotTxtUrl);
+        }
+        // add url to a set
+        robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
 
         final HttpGet httpGet = new HttpGet(robotTxtUrl);
 
@@ -439,7 +440,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                             }
                         }
                     }
-                    httpEntity.consumeContent();
+                    EntityUtils.consume(httpEntity);
                 }
             }
         } catch (RobotSystemException e) {
@@ -600,7 +601,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     contentEncoding = contentEncodingHeader.getValue();
                 }
 
-                httpEntity.consumeContent();
+                EntityUtils.consume(httpEntity);
             }
 
             String contentType = null;
@@ -715,9 +716,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
             synchronized (httpClient) {
                 return httpClient.execute(httpRequest, httpClientContext);
             }
-        } else {
-            return httpClient.execute(httpRequest, httpClientContext);
         }
+        return httpClient.execute(httpRequest, httpClientContext);
     }
 
     protected Date parseLastModified(final String value) {

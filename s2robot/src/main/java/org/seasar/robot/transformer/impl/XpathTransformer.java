@@ -97,7 +97,6 @@ public class XpathTransformer extends HtmlTransformer {
         final StringBuilder buf = new StringBuilder(1000);
         buf.append(getResultDataHeader());
         for (Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
-            final StringBuilder nodeBuf = new StringBuilder(255);
             final String path = entry.getValue();
             try {
                 final XObject xObj = getXPathAPI().eval(document, path);

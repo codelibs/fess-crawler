@@ -295,11 +295,6 @@ public class XmlTransformer extends AbstractTransformer {
         return tempFile;
     }
 
-    private String removeNamespace(String line) {
-        line = line.replaceAll("<[¥¥S]+:([¥¥S]+[¥¥s>]?)", "<$1");
-        return line;
-    }
-
     protected String getResultDataHeader() {
         // TODO support other type
         return "<?xml version=\"1.0\"?>\n<doc>\n";

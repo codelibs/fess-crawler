@@ -101,9 +101,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String LINGER_PROPERTY = "linger";
 
-    public static final String CONNECTION_MANAGER_TIMEOUT_PROPERTY =
-        "connectionManagerTimeout";
-
     public static final String PROXY_HOST_PROPERTY = "proxyHost";
 
     public static final String PROXY_PORT_PROPERTY = "proxyPort";
@@ -144,8 +141,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
     public Integer soTimeout;
 
     public Integer linger;
-
-    public Integer connectionManagerTimeout;
 
     public String cookiePolicy;
 
@@ -194,39 +189,31 @@ public class HcHttpClient extends AbstractS2RobotClient {
             new DefaultHttpClient(clientConnectionManager);
         final HttpParams params = defaultHttpClient.getParams();
 
-        final Integer connectionTimeout =
+        final Integer connectionTimeoutParam =
             getInitParameter(
                 CONNECTION_TIMEOUT_PROPERTY,
                 this.connectionTimeout);
-        if (connectionTimeout != null) {
+        if (connectionTimeoutParam != null) {
             HttpConnectionParams
-                .setConnectionTimeout(params, connectionTimeout);
+                .setConnectionTimeout(params, connectionTimeoutParam);
         }
-        final Boolean staleCheckingEnabled =
+        final Boolean staleCheckingEnabledParam =
             getInitParameter(
                 STALE_CHECKING_ENABLED_PROPERTY,
                 this.staleCheckingEnabled);
-        if (staleCheckingEnabled != null) {
+        if (staleCheckingEnabledParam != null) {
             HttpConnectionParams.setStaleCheckingEnabled(
                 params,
-                staleCheckingEnabled);
+                staleCheckingEnabledParam);
         }
-        final Integer soTimeout =
+        final Integer soTimeoutParam =
             getInitParameter(SO_TIMEOUT_PROPERTY, this.soTimeout);
-        if (soTimeout != null) {
-            HttpConnectionParams.setSoTimeout(params, soTimeout);
+        if (soTimeoutParam != null) {
+            HttpConnectionParams.setSoTimeout(params, soTimeoutParam);
         }
-        final Integer linger = getInitParameter(LINGER_PROPERTY, this.linger);
-        if (linger != null) {
-            HttpConnectionParams.setLinger(params, linger);
-        }
-        final Integer connectionManagerTimeout =
-            getInitParameter(
-                CONNECTION_MANAGER_TIMEOUT_PROPERTY,
-                this.connectionManagerTimeout);
-        if (connectionManagerTimeout != null) {
-            HttpConnectionParams
-                .setConnectionTimeout(params, connectionTimeout);
+        final Integer lingerParam = getInitParameter(LINGER_PROPERTY, this.linger);
+        if (lingerParam != null) {
+            HttpConnectionParams.setLinger(params, lingerParam);
         }
 
         // AuthSchemeFactory

@@ -1,2 +1,1 @@
-delete
-from ACCESS_RESULT_DATA
+truncate table ACCESS_RESULT_DATA

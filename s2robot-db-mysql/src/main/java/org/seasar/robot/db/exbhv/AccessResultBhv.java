@@ -15,29 +15,40 @@
  */
 package org.seasar.robot.db.exbhv;
 
+import org.seasar.robot.db.bsbhv.BsAccessResultBhv;
+
 /**
  * The behavior of ACCESS_RESULT.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultBhv extends
         org.seasar.robot.db.bsbhv.BsAccessResultBhv {
-    public int deleteBySessionId(String sessionId) {
-        //        AccessResultCB cb2 = new AccessResultCB();
-        //        cb2.query().setSessionId_Equal(sessionId);
-        //        accessResultBhv.queryDelete(cb2);
-        return outsideSql().execute(AccessResultBhv.PATH_deleteBySessionId,
-                sessionId);
+    public int deleteBySessionId(final String sessionId) {
+        // AccessResultCB cb2 = new AccessResultCB();
+        // cb2.query().setSessionId_Equal(sessionId);
+        // accessResultBhv.queryDelete(cb2);
+        return outsideSql().execute(
+            BsAccessResultBhv.PATH_deleteBySessionId,
+            sessionId);
     }
 
     public int deleteAll() {
-        //        AccessResultCB cb2 = new AccessResultCB();
-        //        accessResultBhv.queryDelete(cb2);
-        String pmb = null;
-        return outsideSql()
-                .execute(AccessResultBhv.PATH_deleteBySessionId, pmb);
+        // AccessResultCB cb2 = new AccessResultCB();
+        // accessResultBhv.queryDelete(cb2);
+
+        outsideSql().execute(
+            BsAccessResultBhv.PATH_foreignKeyChecks,
+            Integer.valueOf(0));
+        final String pmb = null;
+        final int ret = outsideSql().execute(BsAccessResultBhv.PATH_deleteAll, pmb);
+        outsideSql().execute(
+            BsAccessResultBhv.PATH_foreignKeyChecks,
+            Integer.valueOf(1));
+        return ret;
     }
 }

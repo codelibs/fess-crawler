@@ -18,9 +18,10 @@ package org.seasar.robot.db.exentity;
 /**
  * The entity of URL_QUEUE.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueue extends org.seasar.robot.db.bsentity.BsUrlQueue implements

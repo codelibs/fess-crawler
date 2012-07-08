@@ -19,16 +19,17 @@ import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
 
 /**
  * The nest select set-upper of URL_FILTER.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlFilterNss {
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     protected UrlFilterCQ _query;
 
-    public UrlFilterNss(UrlFilterCQ query) {
+    public UrlFilterNss(final UrlFilterCQ query) {
         _query = query;
     }
 
@@ -37,7 +38,7 @@ public class UrlFilterNss {
     }
 
     // ===================================================================================
-    //                                                                     Nested Relation
-    //                                                                     ===============
+    // Nested Relation
+    // ===============
 
 }

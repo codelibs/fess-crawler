@@ -25,9 +25,10 @@ import org.seasar.robot.entity.ResultData;
 /**
  * The entity of ACCESS_RESULT.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResult extends org.seasar.robot.db.bsentity.BsAccessResult
@@ -40,28 +41,36 @@ public class AccessResult extends org.seasar.robot.db.bsentity.BsAccessResult
         super();
     }
 
-    public void init(ResponseData responseData, ResultData resultData) {
+    public void init(final ResponseData responseData,
+            final ResultData resultData) {
 
-        setCreateTime(new Timestamp(new Date().getTime())); // TODO response time
+        setCreateTime(new Timestamp(new Date().getTime())); // TODO response
+                                                            // time
         Beans.copy(responseData, this).execute();
 
-        AccessResultData accessResultData = new AccessResultData();
+        final AccessResultData accessResultData = new AccessResultData();
         Beans.copy(resultData, accessResultData).execute();
         setAccessResultDataAsOne(accessResultData);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResult#getAccessResultData()
      */
     public AccessResultData getAccessResultData() {
         return getAccessResultDataAsOne();
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.entity.AccessResult#setAccessResultData(org.seasar.robot.db.exentity.AccessResultData)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.entity.AccessResult#setAccessResultData(org.seasar.robot
+     * .db.exentity.AccessResultData)
      */
     public void setAccessResultData(
-            org.seasar.robot.entity.AccessResultData accessResultData) {
+            final org.seasar.robot.entity.AccessResultData accessResultData) {
         setAccessResultDataAsOne((AccessResultData) accessResultData);
     }
 

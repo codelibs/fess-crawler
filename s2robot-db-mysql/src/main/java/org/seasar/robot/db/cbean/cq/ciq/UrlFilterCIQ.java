@@ -28,52 +28,58 @@ import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException
 
 /**
  * The condition-query for in-line of URL_FILTER.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     protected BsUrlFilterCQ _myCQ;
 
     // ===================================================================================
-    //                                                                         Constructor
-    //                                                                         ===========
-    public UrlFilterCIQ(ConditionQuery childQuery, SqlClause sqlClause,
-            String aliasName, int nestLevel, BsUrlFilterCQ myCQ) {
+    // Constructor
+    // ===========
+    public UrlFilterCIQ(final ConditionQuery childQuery,
+            final SqlClause sqlClause, final String aliasName,
+            final int nestLevel, final BsUrlFilterCQ myCQ) {
         super(childQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept
+                                                                // foreign
+                                                                // property name
         _relationPath = _myCQ.xgetRelationPath(); // accept relation path
         _inline = true;
     }
 
     // ===================================================================================
-    //                                                             Override about Register
-    //                                                             =======================
+    // Override about Register
+    // =======================
     @Override
-    protected void reflectRelationOnUnionQuery(ConditionQuery bq,
-            ConditionQuery uq) {
-        String msg = "InlineView must not need UNION method: " + bq + " : "
-                + uq;
+    protected void reflectRelationOnUnionQuery(final ConditionQuery bq,
+            final ConditionQuery uq) {
+        final String msg =
+            "InlineView must not need UNION method: " + bq + " : " + uq;
         throw new IllegalConditionBeanOperationException(msg);
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k,
-            Object v, ConditionValue cv, String col) {
+    protected void setupConditionValueAndRegisterWhereClause(
+            final ConditionKey k, final Object v, final ConditionValue cv,
+            final String col) {
         regIQ(k, v, cv, col);
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k,
-            Object v, ConditionValue cv, String col, ConditionOption op) {
+    protected void setupConditionValueAndRegisterWhereClause(
+            final ConditionKey k, final Object v, final ConditionValue cv,
+            final String col, final ConditionOption op) {
         regIQ(k, v, cv, col, op);
     }
 
     @Override
-    protected void registerWhereClause(String wc) {
+    protected void registerWhereClause(final String wc) {
         registerInlineWhereClause(wc);
     }
 
@@ -81,52 +87,59 @@ public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
     protected boolean isInScopeRelationSuppressLocalAliasName() {
         if (_onClause) {
             throw new IllegalConditionBeanOperationException(
-                    "InScopeRelation on OnClause is unsupported.");
+                "InScopeRelation on OnClause is unsupported.");
         }
         return true;
     }
 
     // ===================================================================================
-    //                                                                Override about Query
-    //                                                                ====================
+    // Override about Query
+    // ====================
+    @Override
     protected ConditionValue getCValueId() {
         return _myCQ.getId();
     }
 
+    @Override
     protected ConditionValue getCValueSessionId() {
         return _myCQ.getSessionId();
     }
 
+    @Override
     protected ConditionValue getCValueUrl() {
         return _myCQ.getUrl();
     }
 
+    @Override
     protected ConditionValue getCValueFilterType() {
         return _myCQ.getFilterType();
     }
 
+    @Override
     protected ConditionValue getCValueCreateTime() {
         return _myCQ.getCreateTime();
     }
 
-    public String keepScalarCondition(UrlFilterCQ subQuery) {
+    @Override
+    public String keepScalarCondition(final UrlFilterCQ subQuery) {
         throwIICBOE("ScalarCondition");
         return null;
     }
 
-    public String keepMyselfInScopeRelation(UrlFilterCQ subQuery) {
+    @Override
+    public String keepMyselfInScopeRelation(final UrlFilterCQ subQuery) {
         throwIICBOE("MyselfInScopeRelation");
         return null;
     }
 
-    protected void throwIICBOE(String name) { // throwInlineIllegalConditionBeanOperationException()
+    protected void throwIICBOE(final String name) { // throwInlineIllegalConditionBeanOperationException()
         throw new IllegalConditionBeanOperationException(name
-                + " at InlineView is unsupported.");
+            + " at InlineView is unsupported.");
     }
 
     // ===================================================================================
-    //                                                                       Very Internal
-    //                                                                       =============
+    // Very Internal
+    // =============
     // very internal (for suppressing warn about 'Not Use Import')
     protected String xinCB() {
         return UrlFilterCB.class.getName();

@@ -44,49 +44,51 @@ import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
 
 /**
  * The base condition-bean of URL_QUEUE.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class BsUrlQueueCB extends AbstractConditionBean {
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     protected UrlQueueCQ _conditionQuery;
 
     // ===================================================================================
-    //                                                                           SqlClause
-    //                                                                           =========
+    // SqlClause
+    // =========
     @Override
     protected SqlClause createSqlClause() {
-        SqlClauseCreator creator = DBFluteConfig.getInstance()
-                .getSqlClauseCreator();
+        final SqlClauseCreator creator =
+            DBFluteConfig.getInstance().getSqlClauseCreator();
         if (creator != null) {
             return creator.createSqlClause(this);
         }
-        return new ImplementedSqlClauseCreator().createSqlClause(this); // as default
+        return new ImplementedSqlClauseCreator().createSqlClause(this); // as
+                                                                        // default
     }
 
     // ===================================================================================
-    //                                                                     DBMeta Provider
-    //                                                                     ===============
+    // DBMeta Provider
+    // ===============
     @Override
     protected DBMetaProvider getDBMetaProvider() {
         return DBMetaInstanceHandler.getProvider(); // as default
     }
 
     // ===================================================================================
-    //                                                                          Table Name
-    //                                                                          ==========
+    // Table Name
+    // ==========
     public String getTableDbName() {
         return "URL_QUEUE";
     }
 
     // ===================================================================================
-    //                                                                 PrimaryKey Handling
-    //                                                                 ===================
-    public void acceptPrimaryKey(Long id) {
+    // PrimaryKey Handling
+    // ===================
+    public void acceptPrimaryKey(final Long id) {
         assertObjectNotNull("id", id);
-        BsUrlQueueCB cb = this;
+        final BsUrlQueueCB cb = this;
         cb.query().setId_Equal(id);
     }
 
@@ -101,11 +103,12 @@ public class BsUrlQueueCB extends AbstractConditionBean {
     }
 
     // ===================================================================================
-    //                                                                               Query
-    //                                                                               =====
+    // Query
+    // =====
     /**
      * Prepare for various queries. <br />
      * Examples of main functions are following:
+     * 
      * <pre>
      * <span style="color: #3F7E5E">// Basic Queries</span>
      * cb.query().setMemberId_Equal(value);        <span style="color: #3F7E5E">// =</span>
@@ -175,14 +178,17 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      * cb.query().queryMemberStatus()...;
      * cb.query().queryMemberAddressAsValid(targetDate)...;
      * </pre>
-     * @return The instance of condition-query for base-point table to set up query. (NotNull)
+     * 
+     * @return The instance of condition-query for base-point table to set up
+     *         query. (NotNull)
      */
     public UrlQueueCQ query() {
-        assertQueryPurpose(); // assert only when user-public query 
+        assertQueryPurpose(); // assert only when user-public query
         return getConditionQuery();
     }
 
-    public UrlQueueCQ getConditionQuery() { // public for parameter comment and internal
+    public UrlQueueCQ getConditionQuery() { // public for parameter comment and
+                                            // internal
         if (_conditionQuery == null) {
             _conditionQuery = createLocalCQ();
         }
@@ -191,11 +197,12 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
     protected UrlQueueCQ createLocalCQ() {
         return xcreateCQ(null, getSqlClause(), getSqlClause()
-                .getBasePointAliasName(), 0);
+            .getBasePointAliasName(), 0);
     }
 
-    protected UrlQueueCQ xcreateCQ(ConditionQuery childQuery,
-            SqlClause sqlClause, String aliasName, int nestLevel) {
+    protected UrlQueueCQ xcreateCQ(final ConditionQuery childQuery,
+            final SqlClause sqlClause, final String aliasName,
+            final int nestLevel) {
         return new UrlQueueCQ(childQuery, sqlClause, aliasName, nestLevel);
     }
 
@@ -204,12 +211,13 @@ public class BsUrlQueueCB extends AbstractConditionBean {
     }
 
     // ===================================================================================
-    //                                                                               Union
-    //                                                                               =====
+    // Union
+    // =====
     /**
      * Set up 'union' for base-point table. <br />
-     * You don't need to call SetupSelect in union-query,
-     * because it inherits calls before. (Don't call SetupSelect after here)
+     * You don't need to call SetupSelect in union-query, because it inherits
+     * calls before. (Don't call SetupSelect after here)
+     * 
      * <pre>
      * cb.query().<span style="color: #FD4747">union</span>(new UnionQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB unionCB) {
@@ -217,9 +225,11 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * });
      * </pre>
-     * @param unionQuery The query of 'union'. (NotNull)
+     * 
+     * @param unionQuery
+     *            The query of 'union'. (NotNull)
      */
-    public void union(UnionQuery<UrlQueueCB> unionQuery) {
+    public void union(final UnionQuery<UrlQueueCB> unionQuery) {
         final UrlQueueCB cb = new UrlQueueCB();
         cb.xsetupForUnion(this);
         xsyncUQ(cb);
@@ -231,8 +241,9 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
     /**
      * Set up 'union all' for base-point table. <br />
-     * You don't need to call SetupSelect in union-query,
-     * because it inherits calls before. (Don't call SetupSelect after here)
+     * You don't need to call SetupSelect in union-query, because it inherits
+     * calls before. (Don't call SetupSelect after here)
+     * 
      * <pre>
      * cb.query().<span style="color: #FD4747">unionAll</span>(new UnionQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB unionCB) {
@@ -240,9 +251,11 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * });
      * </pre>
-     * @param unionQuery The query of 'union all'. (NotNull)
+     * 
+     * @param unionQuery
+     *            The query of 'union all'. (NotNull)
      */
-    public void unionAll(UnionQuery<UrlQueueCB> unionQuery) {
+    public void unionAll(final UnionQuery<UrlQueueCB> unionQuery) {
         final UrlQueueCB cb = new UrlQueueCB();
         cb.xsetupForUnion(this);
         xsyncUQ(cb);
@@ -253,18 +266,19 @@ public class BsUrlQueueCB extends AbstractConditionBean {
     }
 
     // ===================================================================================
-    //                                                                         SetupSelect
-    //                                                                         ===========
+    // SetupSelect
+    // ===========
 
     // [DBFlute-0.7.4]
     // ===================================================================================
-    //                                                                             Specify
-    //                                                                             =======
+    // Specify
+    // =======
     protected HpSpecification _specification;
 
     /**
      * Prepare for SpecifyColumn, (Specify)DerivedReferrer. <br />
      * This method should be called after SetupSelect.
+     * 
      * <pre>
      * cb.setupSelect_MemberStatus(); <span style="color: #3F7E5E">// should be called before specify()</span>
      * cb.specify().columnMemberName();
@@ -276,44 +290,48 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * }, aliasName);
      * </pre>
+     * 
      * @return The instance of specification. (NotNull)
      */
     public HpSpecification specify() {
         assertSpecifyPurpose();
         if (_specification == null) {
-            _specification = new HpSpecification(this,
-                    new HpSpQyCall<UrlQueueCQ>() {
-                        public boolean has() {
-                            return true;
-                        }
+            _specification =
+                new HpSpecification(this, new HpSpQyCall<UrlQueueCQ>() {
+                    public boolean has() {
+                        return true;
+                    }
 
-                        public UrlQueueCQ qy() {
-                            return getConditionQuery();
-                        }
-                    }, _purpose, getDBMetaProvider());
+                    public UrlQueueCQ qy() {
+                        return getConditionQuery();
+                    }
+                }, _purpose, getDBMetaProvider());
         }
         return _specification;
     }
 
+    @Override
     protected boolean hasSpecifiedColumn() {
         return _specification != null
-                && _specification.isAlreadySpecifiedRequiredColumn();
+            && _specification.isAlreadySpecifiedRequiredColumn();
     }
 
+    @Override
     protected HpAbstractSpecification<? extends ConditionQuery> localSp() {
         return specify();
     }
 
     public static class HpSpecification extends
             HpAbstractSpecification<UrlQueueCQ> {
-        public HpSpecification(ConditionBean baseCB,
-                HpSpQyCall<UrlQueueCQ> qyCall, HpCBPurpose purpose,
-                DBMetaProvider dbmetaProvider) {
+        public HpSpecification(final ConditionBean baseCB,
+                final HpSpQyCall<UrlQueueCQ> qyCall, final HpCBPurpose purpose,
+                final DBMetaProvider dbmetaProvider) {
             super(baseCB, qyCall, purpose, dbmetaProvider);
         }
 
         /**
          * ID: {PK, ID, NotNull, BIGINT(19)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnId() {
@@ -322,6 +340,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
         /**
          * SESSION_ID: {IX, NotNull, VARCHAR(20)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnSessionId() {
@@ -330,6 +349,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
         /**
          * METHOD: {NotNull, VARCHAR(10)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnMethod() {
@@ -338,6 +358,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
         /**
          * URL: {IX+, NotNull, TEXT(65535)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnUrl() {
@@ -346,6 +367,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
         /**
          * PARENT_URL: {TEXT(65535)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnParentUrl() {
@@ -354,6 +376,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
         /**
          * DEPTH: {NotNull, INT(10)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnDepth() {
@@ -362,6 +385,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
         /**
          * LAST_MODIFIED: {DATETIME(19)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnLastModified() {
@@ -370,6 +394,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
         /**
          * CREATE_TIME: {IX+, NotNull, DATETIME(19)}
+         * 
          * @return The information object of specified column. (NotNull)
          */
         public HpSpecifiedColumn columnCreateTime() {
@@ -389,10 +414,11 @@ public class BsUrlQueueCB extends AbstractConditionBean {
 
     // [DBFlute-0.9.5.3]
     // ===================================================================================
-    //                                                                         ColumnQuery
-    //                                                                         ===========
+    // ColumnQuery
+    // ===========
     /**
      * Set up column-query. {column1 = column2}
+     * 
      * <pre>
      * <span style="color: #3F7E5E">// where FOO &lt; BAR</span>
      * cb.<span style="color: #FD4747">columnQuery</span>(new SpecifyQuery&lt;UrlQueueCB&gt;() {
@@ -405,33 +431,40 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * }); <span style="color: #3F7E5E">// you can calculate for right column like '}).plus(3);'</span>
      * </pre>
-     * @param leftSpecifyQuery The specify-query for left column. (NotNull)
+     * 
+     * @param leftSpecifyQuery
+     *            The specify-query for left column. (NotNull)
      * @return The object for setting up operand and right column. (NotNull)
      */
     public HpColQyOperand<UrlQueueCB> columnQuery(
             final SpecifyQuery<UrlQueueCB> leftSpecifyQuery) {
         return new HpColQyOperand<UrlQueueCB>(new HpColQyHandler<UrlQueueCB>() {
-            public HpCalculator handle(SpecifyQuery<UrlQueueCB> rightSp,
-                    String operand) {
-                return xcolqy(xcreateColumnQueryCB(), xcreateColumnQueryCB(),
-                        leftSpecifyQuery, rightSp, operand);
+            public HpCalculator handle(final SpecifyQuery<UrlQueueCB> rightSp,
+                    final String operand) {
+                return xcolqy(
+                    xcreateColumnQueryCB(),
+                    xcreateColumnQueryCB(),
+                    leftSpecifyQuery,
+                    rightSp,
+                    operand);
             }
         });
     }
 
     protected UrlQueueCB xcreateColumnQueryCB() {
-        UrlQueueCB cb = new UrlQueueCB();
-        cb.xsetupForColumnQuery((UrlQueueCB) this);
+        final UrlQueueCB cb = new UrlQueueCB();
+        cb.xsetupForColumnQuery(this);
         return cb;
     }
 
     // [DBFlute-0.9.6.3]
     // ===================================================================================
-    //                                                                        OrScopeQuery
-    //                                                                        ============
+    // OrScopeQuery
+    // ============
     /**
      * Set up the query for or-scope. <br />
      * (Same-column-and-same-condition-key conditions are allowed in or-scope)
+     * 
      * <pre>
      * <span style="color: #3F7E5E">// where (FOO = '...' or BAR = '...')</span>
      * cb.<span style="color: #FD4747">orScopeQuery</span>(new OrQuery&lt;UrlQueueCB&gt;() {
@@ -441,15 +474,19 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * });
      * </pre>
-     * @param orQuery The query for or-condition. (NotNull)
+     * 
+     * @param orQuery
+     *            The query for or-condition. (NotNull)
      */
-    public void orScopeQuery(OrQuery<UrlQueueCB> orQuery) {
+    public void orScopeQuery(final OrQuery<UrlQueueCB> orQuery) {
         xorSQ((UrlQueueCB) this, orQuery);
     }
 
     /**
      * Set up the and-part of or-scope. <br />
-     * (However nested or-scope query and as-or-split of like-search in and-part are unsupported)
+     * (However nested or-scope query and as-or-split of like-search in and-part
+     * are unsupported)
+     * 
      * <pre>
      * <span style="color: #3F7E5E">// where (FOO = '...' or (BAR = '...' and QUX = '...'))</span>
      * cb.<span style="color: #FD4747">orScopeQuery</span>(new OrQuery&lt;UrlQueueCB&gt;() {
@@ -464,15 +501,17 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * });
      * </pre>
-     * @param andQuery The query for and-condition. (NotNull)
+     * 
+     * @param andQuery
+     *            The query for and-condition. (NotNull)
      */
-    public void orScopeQueryAndPart(AndQuery<UrlQueueCB> andQuery) {
+    public void orScopeQueryAndPart(final AndQuery<UrlQueueCB> andQuery) {
         xorSQAP((UrlQueueCB) this, andQuery);
     }
 
     // ===================================================================================
-    //                                                                          DisplaySQL
-    //                                                                          ==========
+    // DisplaySQL
+    // ==========
     @Override
     protected SqlAnalyzerFactory getSqlAnalyzerFactory() {
         return new ImplementedInvokerAssistant().assistSqlAnalyzerFactory();
@@ -489,17 +528,17 @@ public class BsUrlQueueCB extends AbstractConditionBean {
     }
 
     // ===================================================================================
-    //                                                          Basic Status Determination
-    //                                                          ==========================
+    // Basic Status Determination
+    // ==========================
     public boolean hasUnionQueryOrUnionAllQuery() {
         return query().hasUnionQueryOrUnionAllQuery();
     }
 
     // ===================================================================================
-    //                                                                        Purpose Type
-    //                                                                        ============
+    // Purpose Type
+    // ============
     @Override
-    protected void xprepareSyncQyCall(ConditionBean mainCB) {
+    protected void xprepareSyncQyCall(final ConditionBean mainCB) {
         final UrlQueueCB cb;
         if (mainCB != null) {
             cb = (UrlQueueCB) mainCB;
@@ -518,8 +557,8 @@ public class BsUrlQueueCB extends AbstractConditionBean {
     }
 
     // ===================================================================================
-    //                                                                            Internal
-    //                                                                            ========
+    // Internal
+    // ========
     // very internal (for suppressing warn about 'Not Use Import')
     protected String getConditionBeanClassNameInternally() {
         return UrlQueueCB.class.getName();

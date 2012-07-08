@@ -24,7 +24,7 @@ import org.seasar.robot.db.exentity.UrlQueue;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class DBUrlQueueServiceImplTest extends S2TestCase {
     public DBUrlQueueServiceImpl urlQueueService;
@@ -32,6 +32,11 @@ public class DBUrlQueueServiceImplTest extends S2TestCase {
     @Override
     protected String getRootDicon() throws Throwable {
         return "app.dicon";
+    }
+
+    @Override
+    protected void setUpAfterBindFields() throws Throwable {
+        urlQueueService.deleteAll();
     }
 
     public void test_insert_update_deleteTx() {

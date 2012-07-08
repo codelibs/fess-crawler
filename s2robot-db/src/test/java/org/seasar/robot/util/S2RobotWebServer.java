@@ -28,7 +28,7 @@ import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class S2RobotWebServer {
     private int port = 8080;
@@ -56,7 +56,7 @@ public class S2RobotWebServer {
         Log.info("serving " + resource_handler.getBaseResource());
         final HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] { resource_handler,
-                new DefaultHandler() });
+            new DefaultHandler() });
         server.setHandler(handlers);
     }
 
@@ -92,8 +92,9 @@ public class S2RobotWebServer {
             buf.append("Disallow: /admin/").append('\n');
             buf.append("Disallow: /websvn/").append('\n');
             final File robotTxtFile = new File(tempDir, "robots.txt");
-            FileUtil.write(robotTxtFile.getAbsolutePath(), buf.toString()
-                    .getBytes("UTF-8"));
+            FileUtil.write(robotTxtFile.getAbsolutePath(), buf
+                .toString()
+                .getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 
             generateContents(tempDir, count);
@@ -104,7 +105,8 @@ public class S2RobotWebServer {
         }
     }
 
-    private static void generateContents(final File dir, final int count) throws Exception {
+    private static void generateContents(final File dir, final int count)
+            throws Exception {
         if (count <= 0) {
             return;
         }

@@ -28,7 +28,7 @@ import org.seasar.robot.util.AccessResultCallback;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class DBDataServiceImplTest extends S2TestCase {
     public DBDataServiceImpl dataService;
@@ -38,8 +38,14 @@ public class DBDataServiceImplTest extends S2TestCase {
         return "app.dicon";
     }
 
+    @Override
+    protected void setUpAfterBindFields() throws Throwable {
+        dataService.deleteAll();
+    }
+
     public void test_iterateUrlDiffTx() {
-        final org.seasar.robot.db.exentity.AccessResult accessResult = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult =
+            new org.seasar.robot.db.exentity.AccessResult();
         accessResult.setSessionId("1");
         accessResult.setUrl("http://www.example.com/a");
         accessResult.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -53,21 +59,25 @@ public class DBDataServiceImplTest extends S2TestCase {
         accessResult.setLastModified(new Timestamp(new Date().getTime()));
         dataService.store(accessResult);
 
-        final org.seasar.robot.db.exentity.AccessResult accessResult1a = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult1a =
+            new org.seasar.robot.db.exentity.AccessResult();
         Beans.copy(accessResult, accessResult1a).excludes("id").execute();
         dataService.store(accessResult1a);
 
-        final org.seasar.robot.db.exentity.AccessResult accessResult1b = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult1b =
+            new org.seasar.robot.db.exentity.AccessResult();
         Beans.copy(accessResult, accessResult1b).excludes("id").execute();
         accessResult1b.setUrl("http://www.example.com/b");
         dataService.store(accessResult1b);
 
-        final org.seasar.robot.db.exentity.AccessResult accessResult2a = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult2a =
+            new org.seasar.robot.db.exentity.AccessResult();
         Beans.copy(accessResult, accessResult2a).excludes("id").execute();
         accessResult2a.setSessionId("2");
         dataService.store(accessResult2a);
 
-        final org.seasar.robot.db.exentity.AccessResult accessResult2c = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult2c =
+            new org.seasar.robot.db.exentity.AccessResult();
         Beans.copy(accessResult, accessResult2c).excludes("id").execute();
         accessResult2c.setSessionId("2");
         accessResult2c.setUrl("http://www.example.com/c");
@@ -87,7 +97,8 @@ public class DBDataServiceImplTest extends S2TestCase {
     }
 
     public void test_insert_deleteTx() {
-        final org.seasar.robot.db.exentity.AccessResult accessResult1 = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult1 =
+            new org.seasar.robot.db.exentity.AccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
         accessResult1.setCreateTime(new Timestamp(new Date().getTime()));
         accessResult1.setExecutionTime(10);
@@ -103,27 +114,28 @@ public class DBDataServiceImplTest extends S2TestCase {
 
         dataService.store(accessResult1);
 
-        final AccessResult accessResult2 = dataService.getAccessResult("id1",
-                "http://www.id1.com/");
+        final AccessResult accessResult2 =
+            dataService.getAccessResult("id1", "http://www.id1.com/");
         assertNotNull(accessResult2);
 
         accessResult2.setMimeType("text/html");
         dataService.update(accessResult2);
 
-        final AccessResult accessResult3 = dataService.getAccessResult("id1",
-                "http://www.id1.com/");
+        final AccessResult accessResult3 =
+            dataService.getAccessResult("id1", "http://www.id1.com/");
         assertNotNull(accessResult3);
         assertEquals("text/html", accessResult3.getMimeType());
 
         dataService.delete("id1");
 
-        final AccessResult accessResult4 = dataService.getAccessResult("id1",
-                "http://www.id1.com/");
+        final AccessResult accessResult4 =
+            dataService.getAccessResult("id1", "http://www.id1.com/");
         assertNull(accessResult4);
     }
 
     public void test_insert_delete_multiTx() {
-        final org.seasar.robot.db.exentity.AccessResult accessResult1 = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult1 =
+            new org.seasar.robot.db.exentity.AccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
         accessResult1.setCreateTime(new Timestamp(new Date().getTime()));
         accessResult1.setExecutionTime(10);
@@ -139,7 +151,8 @@ public class DBDataServiceImplTest extends S2TestCase {
 
         dataService.store(accessResult1);
 
-        final org.seasar.robot.db.exentity.AccessResult accessResult2 = new org.seasar.robot.db.exentity.AccessResult();
+        final org.seasar.robot.db.exentity.AccessResult accessResult2 =
+            new org.seasar.robot.db.exentity.AccessResult();
         accessResult2.setContentLength(Long.valueOf(10));
         accessResult2.setCreateTime(new Timestamp(new Date().getTime()));
         accessResult2.setExecutionTime(10);
@@ -155,24 +168,25 @@ public class DBDataServiceImplTest extends S2TestCase {
 
         dataService.store(accessResult2);
 
-        final AccessResult accessResult3 = dataService.getAccessResult("id1",
-                "http://www.id1.com/");
-        final AccessResult accessResult4 = dataService.getAccessResult("id2",
-                "http://www.id2.com/");
+        final AccessResult accessResult3 =
+            dataService.getAccessResult("id1", "http://www.id1.com/");
+        final AccessResult accessResult4 =
+            dataService.getAccessResult("id2", "http://www.id2.com/");
         assertNotNull(accessResult3);
         assertNotNull(accessResult4);
 
-        final List<AccessResult> accessResultList = new ArrayList<AccessResult>();
+        final List<AccessResult> accessResultList =
+            new ArrayList<AccessResult>();
         accessResult3.setMimeType("text/html");
         accessResult4.setMimeType("text/html");
         accessResultList.add(accessResult3);
         accessResultList.add(accessResult4);
         dataService.update(accessResultList);
 
-        final AccessResult accessResult5 = dataService.getAccessResult("id1",
-                "http://www.id1.com/");
-        final AccessResult accessResult6 = dataService.getAccessResult("id2",
-                "http://www.id2.com/");
+        final AccessResult accessResult5 =
+            dataService.getAccessResult("id1", "http://www.id1.com/");
+        final AccessResult accessResult6 =
+            dataService.getAccessResult("id2", "http://www.id2.com/");
         assertNotNull(accessResult5);
         assertNotNull(accessResult6);
         assertEquals("text/html", accessResult5.getMimeType());
@@ -191,4 +205,5 @@ public class DBDataServiceImplTest extends S2TestCase {
         assertNull(dataService.getAccessResult("id1", "http://www.id1.com/"));
         assertNull(dataService.getAccessResult("id2", "http://www.id2.com/"));
     }
+
 }

@@ -92,7 +92,7 @@ public class S2RobotTest extends S2TestCase {
             final S2Robot s2Robot1 = (S2Robot) getComponent(S2Robot.class);
             s2Robot1.setBackground(true);
             ((UrlFilterImpl) s2Robot1.urlFilter)
-                    .setIncludeFilteringPattern("$1$2$3.*");
+                .setIncludeFilteringPattern("$1$2$3.*");
             s2Robot1.addUrl(url1);
             s2Robot1.getRobotContext().setMaxAccessCount(maxCount);
             s2Robot1.getRobotContext().setNumOfThread(numOfThread);
@@ -102,7 +102,7 @@ public class S2RobotTest extends S2TestCase {
             final S2Robot s2Robot2 = (S2Robot) getComponent(S2Robot.class);
             s2Robot2.setBackground(true);
             ((UrlFilterImpl) s2Robot2.urlFilter)
-                    .setIncludeFilteringPattern("$1$2$3.*");
+                .setIncludeFilteringPattern("$1$2$3.*");
             s2Robot2.addUrl(url2);
             s2Robot2.getRobotContext().setMaxAccessCount(maxCount);
             s2Robot2.getRobotContext().setNumOfThread(numOfThread);
@@ -164,53 +164,40 @@ public class S2RobotTest extends S2TestCase {
         }
     }
 
-    /* TODO: needs to review/reconsider this feature
-    public void test_execute_web_diffcrawl() throws Exception {
-        S2RobotWebServer server = new S2RobotWebServer(7070);
-        server.start();
-
-        ((DBUrlQueueServiceImpl) urlQueueService).generatedUrlQueueSize = 5;
-
-        String url = "http://localhost:7070/";
-        try {
-            int maxCount = 50;
-            int numOfThread = 10;
-
-            File file = File.createTempFile("s2robot-", "");
-            file.delete();
-            file.mkdirs();
-            file.deleteOnExit();
-            fileTransformer.setPath(file.getAbsolutePath());
-            s2Robot.addUrl(url);
-            s2Robot.robotContext.setMaxAccessCount(maxCount);
-            s2Robot.robotContext.setNumOfThread(numOfThread);
-            s2Robot.urlFilter.addInclude(url + ".*");
-            String sessionId = s2Robot.execute();
-            assertEquals(maxCount, dataService.getCount(sessionId));
-
-            String sessionId2 = sessionId + "X";
-            urlQueueService.delete(sessionId);
-            s2Robot = SingletonS2Container.getComponent("s2Robot");
-            s2Robot.setSessionId(sessionId2);
-            urlQueueService.generateUrlQueues(sessionId, sessionId2);
-            dataService.delete(sessionId);
-
-            s2Robot.execute();
-            assertEquals(maxCount, dataService.getCount(sessionId2));
-
-            dataService.iterate(sessionId2, new AccessResultCallback() {
-                public void iterate(AccessResult accessResult) {
-                    assertEquals(Constants.NOT_MODIFIED_STATUS, accessResult
-                            .getStatus().intValue());
-                }
-            });
-
-            dataService.deleteAll();
-            urlQueueService.deleteAll();
-            urlFilterService.deleteAll();
-        } finally {
-            server.stop();
-        }
-    }
-    */
+    /*
+     * TODO: needs to review/reconsider this feature public void
+     * test_execute_web_diffcrawl() throws Exception { S2RobotWebServer server =
+     * new S2RobotWebServer(7070); server.start();
+     * 
+     * ((DBUrlQueueServiceImpl) urlQueueService).generatedUrlQueueSize = 5;
+     * 
+     * String url = "http://localhost:7070/"; try { int maxCount = 50; int
+     * numOfThread = 10;
+     * 
+     * File file = File.createTempFile("s2robot-", ""); file.delete();
+     * file.mkdirs(); file.deleteOnExit();
+     * fileTransformer.setPath(file.getAbsolutePath()); s2Robot.addUrl(url);
+     * s2Robot.robotContext.setMaxAccessCount(maxCount);
+     * s2Robot.robotContext.setNumOfThread(numOfThread);
+     * s2Robot.urlFilter.addInclude(url + ".*"); String sessionId =
+     * s2Robot.execute(); assertEquals(maxCount,
+     * dataService.getCount(sessionId));
+     * 
+     * String sessionId2 = sessionId + "X"; urlQueueService.delete(sessionId);
+     * s2Robot = SingletonS2Container.getComponent("s2Robot");
+     * s2Robot.setSessionId(sessionId2);
+     * urlQueueService.generateUrlQueues(sessionId, sessionId2);
+     * dataService.delete(sessionId);
+     * 
+     * s2Robot.execute(); assertEquals(maxCount,
+     * dataService.getCount(sessionId2));
+     * 
+     * dataService.iterate(sessionId2, new AccessResultCallback() { public void
+     * iterate(AccessResult accessResult) {
+     * assertEquals(Constants.NOT_MODIFIED_STATUS, accessResult
+     * .getStatus().intValue()); } });
+     * 
+     * dataService.deleteAll(); urlQueueService.deleteAll();
+     * urlFilterService.deleteAll(); } finally { server.stop(); } }
+     */
 }

@@ -27,20 +27,21 @@ import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * The parameter-bean of AccessResultPmb.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class BsAccessResultPmb implements ParameterBean, FetchBean,
         Serializable {
 
     // ===================================================================================
-    //                                                                          Definition
-    //                                                                          ==========
+    // Definition
+    // ==========
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     /** newSessionId */
     protected String _newSessionId;
 
@@ -51,18 +52,18 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     protected int _safetyMaxResultSize;
 
     // ===================================================================================
-    //                                                                         Constructor
-    //                                                                         ===========
+    // Constructor
+    // ===========
     public BsAccessResultPmb() {
     }
 
     // ===================================================================================
-    //                                                                       Safety Result
-    //                                                                       =============
+    // Safety Result
+    // =============
     /**
      * {@inheritDoc}
      */
-    public void checkSafetyResult(int safetyMaxResultSize) {
+    public void checkSafetyResult(final int safetyMaxResultSize) {
         _safetyMaxResultSize = safetyMaxResultSize;
     }
 
@@ -74,9 +75,9 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     }
 
     // ===================================================================================
-    //                                                                       Assist Helper
-    //                                                                       =============
-    protected String filterStringParameter(String value) {
+    // Assist Helper
+    // =============
+    protected String filterStringParameter(final String value) {
         if (isEmptyStringParameterAllowed()) {
             return value;
         }
@@ -87,49 +88,49 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
         return DBFluteConfig.getInstance().isEmptyStringParameterAllowed();
     }
 
-    protected String convertEmptyToNull(String value) {
+    protected String convertEmptyToNull(final String value) {
         return ParameterUtil.convertEmptyToNull(value);
     }
 
-    protected String handleShortChar(String propertyName, String value,
-            Integer size) {
-        ShortCharHandlingMode mode = getShortCharHandlingMode(propertyName,
-                value, size);
+    protected String handleShortChar(final String propertyName,
+            final String value, final Integer size) {
+        final ShortCharHandlingMode mode =
+            getShortCharHandlingMode(propertyName, value, size);
         return ParameterUtil.handleShortChar(propertyName, value, size, mode);
     }
 
     protected ShortCharHandlingMode getShortCharHandlingMode(
-            String propertyName, String value, Integer size) {
+            final String propertyName, final String value, final Integer size) {
         return ShortCharHandlingMode.NONE;
     }
 
     @SuppressWarnings("unchecked")
-    protected <NUMBER extends Number> NUMBER toNumber(Object obj,
-            Class<NUMBER> type) {
+    protected <NUMBER extends Number> NUMBER toNumber(final Object obj,
+            final Class<NUMBER> type) {
         return (NUMBER) DfTypeUtil.toNumber(obj, type);
     }
 
-    protected Boolean toBoolean(Object obj) {
+    protected Boolean toBoolean(final Object obj) {
         return DfTypeUtil.toBoolean(obj);
     }
 
-    protected Date toUtilDate(Date date) {
+    protected Date toUtilDate(final Date date) {
         return DfTypeUtil.toDate(date); // if sub class, re-create as pure date
     }
 
-    protected String formatUtilDate(Date date) {
-        String pattern = "yyyy-MM-dd";
+    protected String formatUtilDate(final Date date) {
+        final String pattern = "yyyy-MM-dd";
         return DfTypeUtil.toString(date, pattern);
     }
 
-    protected String formatByteArray(byte[] bytes) {
+    protected String formatByteArray(final byte[] bytes) {
         return "byte["
-                + (bytes != null ? String.valueOf(bytes.length) : "null") + "]";
+            + (bytes != null ? String.valueOf(bytes.length) : "null") + "]";
     }
 
     // ===================================================================================
-    //                                                                      Basic Override
-    //                                                                      ==============
+    // Basic Override
+    // ==============
     /**
      * @return The display string of all parameters. (NotNull)
      */
@@ -154,11 +155,13 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     }
 
     // ===================================================================================
-    //                                                                            Accessor
-    //                                                                            ========
+    // Accessor
+    // ========
     /**
      * [get] newSessionId
-     * @return The value of newSessionId. (Nullable, NotEmptyString(when String): if empty string, returns null)
+     * 
+     * @return The value of newSessionId. (Nullable, NotEmptyString(when
+     *         String): if empty string, returns null)
      */
     public String getNewSessionId() {
         return filterStringParameter(_newSessionId);
@@ -166,15 +169,19 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
 
     /**
      * [set] newSessionId
-     * @param newSessionId The value of newSessionId. (NullAllowed)
+     * 
+     * @param newSessionId
+     *            The value of newSessionId. (NullAllowed)
      */
-    public void setNewSessionId(String newSessionId) {
+    public void setNewSessionId(final String newSessionId) {
         _newSessionId = newSessionId;
     }
 
     /**
      * [get] oldSessionId
-     * @return The value of oldSessionId. (Nullable, NotEmptyString(when String): if empty string, returns null)
+     * 
+     * @return The value of oldSessionId. (Nullable, NotEmptyString(when
+     *         String): if empty string, returns null)
      */
     public String getOldSessionId() {
         return filterStringParameter(_oldSessionId);
@@ -182,9 +189,11 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
 
     /**
      * [set] oldSessionId
-     * @param oldSessionId The value of oldSessionId. (NullAllowed)
+     * 
+     * @param oldSessionId
+     *            The value of oldSessionId. (NullAllowed)
      */
-    public void setOldSessionId(String oldSessionId) {
+    public void setOldSessionId(final String oldSessionId) {
         _oldSessionId = oldSessionId;
     }
 

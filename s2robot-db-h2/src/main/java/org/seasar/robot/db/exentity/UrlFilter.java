@@ -20,9 +20,10 @@ import org.seasar.robot.db.bsentity.BsUrlFilter;
 /**
  * The entity of URL_FILTER.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlFilter extends BsUrlFilter {

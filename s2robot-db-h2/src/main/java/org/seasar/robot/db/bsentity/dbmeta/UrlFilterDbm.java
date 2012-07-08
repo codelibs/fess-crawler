@@ -31,13 +31,14 @@ import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
  * The DB meta of URL_FILTER. (Singleton)
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlFilterDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    //                                                                           Singleton
-    //                                                                           =========
+    // Singleton
+    // =========
     private static final UrlFilterDbm _instance = new UrlFilterDbm();
 
     private UrlFilterDbm() {
@@ -48,24 +49,26 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                       Current DBDef
-    //                                                                       =============
+    // Current DBDef
+    // =============
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // ===================================================================================
-    //                                                                          Table Info
-    //                                                                          ==========
+    // Table Info
+    // ==========
     protected final String _tableDbName = "URL_FILTER";
 
     protected final String _tablePropertyName = "urlFilter";
 
-    protected final TableSqlName _tableSqlName = new TableSqlName("URL_FILTER",
-            _tableDbName);
+    protected final TableSqlName _tableSqlName = new TableSqlName(
+        "URL_FILTER",
+        _tableDbName);
     {
-        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
-                .getTableSqlNameFilter());
+        _tableSqlName.xacceptFilter(DBFluteConfig
+            .getInstance()
+            .getTableSqlNameFilter());
     }
 
     public String getTableDbName() {
@@ -81,28 +84,107 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Column Info
-    //                                                                         ===========
-    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, true,
-            "id", Long.class, true, true, "BIGINT", 19, 0, false, null, null,
-            null, null, null);
+    // Column Info
+    // ===========
+    protected final ColumnInfo _columnId = cci(
+        "ID",
+        "ID",
+        null,
+        null,
+        true,
+        "id",
+        Long.class,
+        true,
+        true,
+        "BIGINT",
+        19,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnSessionId = cci("SESSION_ID",
-            "SESSION_ID", null, null, true, "sessionId", String.class, false,
-            false, "VARCHAR", 20, 0, false, null, null, null, null, null);
+    protected final ColumnInfo _columnSessionId = cci(
+        "SESSION_ID",
+        "SESSION_ID",
+        null,
+        null,
+        true,
+        "sessionId",
+        String.class,
+        false,
+        false,
+        "VARCHAR",
+        20,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null, true,
-            "url", String.class, false, false, "VARCHAR", 65536, 0, false,
-            null, null, null, null, null);
+    protected final ColumnInfo _columnUrl = cci(
+        "URL",
+        "URL",
+        null,
+        null,
+        true,
+        "url",
+        String.class,
+        false,
+        false,
+        "VARCHAR",
+        65536,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnFilterType = cci("FILTER_TYPE",
-            "FILTER_TYPE", null, null, true, "filterType", String.class, false,
-            false, "VARCHAR", 1, 0, false, null, null, null, null, null);
+    protected final ColumnInfo _columnFilterType = cci(
+        "FILTER_TYPE",
+        "FILTER_TYPE",
+        null,
+        null,
+        true,
+        "filterType",
+        String.class,
+        false,
+        false,
+        "VARCHAR",
+        1,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnCreateTime = cci("CREATE_TIME",
-            "CREATE_TIME", null, null, true, "createTime",
-            java.sql.Timestamp.class, false, false, "TIMESTAMP", 23, 10, false,
-            null, null, null, null, null);
+    protected final ColumnInfo _columnCreateTime = cci(
+        "CREATE_TIME",
+        "CREATE_TIME",
+        null,
+        null,
+        true,
+        "createTime",
+        java.sql.Timestamp.class,
+        false,
+        false,
+        "TIMESTAMP",
+        23,
+        10,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
     public ColumnInfo columnId() {
         return _columnId;
@@ -124,8 +206,9 @@ public class UrlFilterDbm extends AbstractDBMeta {
         return _columnCreateTime;
     }
 
+    @Override
     protected List<ColumnInfo> ccil() {
-        List<ColumnInfo> ls = newArrayList();
+        final List<ColumnInfo> ls = newArrayList();
         ls.add(columnId());
         ls.add(columnSessionId());
         ls.add(columnUrl());
@@ -139,11 +222,11 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Unique Info
-    //                                                                         ===========
+    // Unique Info
+    // ===========
     // -----------------------------------------------------
-    //                                       Primary Element
-    //                                       ---------------
+    // Primary Element
+    // ---------------
     public UniqueInfo getPrimaryUniqueInfo() {
         return cpui(columnId());
     }
@@ -157,26 +240,27 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                       Relation Info
-    //                                                                       =============
+    // Relation Info
+    // =============
     // -----------------------------------------------------
-    //                                      Foreign Property
-    //                                      ----------------
+    // Foreign Property
+    // ----------------
 
     // -----------------------------------------------------
-    //                                     Referrer Property
-    //                                     -----------------
+    // Referrer Property
+    // -----------------
 
     // ===================================================================================
-    //                                                                        Various Info
-    //                                                                        ============
+    // Various Info
+    // ============
+    @Override
     public boolean hasIdentity() {
         return true;
     }
 
     // ===================================================================================
-    //                                                                           Type Name
-    //                                                                           =========
+    // Type Name
+    // =========
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.UrlFilter";
     }
@@ -194,15 +278,15 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Object Type
-    //                                                                         ===========
+    // Object Type
+    // ===========
     public Class<UrlFilter> getEntityType() {
         return UrlFilter.class;
     }
 
     // ===================================================================================
-    //                                                                     Object Instance
-    //                                                                     ===============
+    // Object Instance
+    // ===============
     public Entity newEntity() {
         return newMyEntity();
     }
@@ -212,26 +296,27 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                     Entity Handling
-    //                                                                     ===============  
-    public void acceptPrimaryKeyMap(Entity e, Map<String, ? extends Object> m) {
+    // Entity Handling
+    // ===============
+    public void acceptPrimaryKeyMap(final Entity e,
+            final Map<String, ? extends Object> m) {
         doAcceptPrimaryKeyMap((UrlFilter) e, m, _epsMap);
     }
 
-    public Map<String, Object> extractPrimaryKeyMap(Entity e) {
+    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
         return doExtractPrimaryKeyMap(e);
     }
 
-    public Map<String, Object> extractAllColumnMap(Entity e) {
+    public Map<String, Object> extractAllColumnMap(final Entity e) {
         return doExtractAllColumnMap(e);
     }
 
     // ===================================================================================
-    //                                                               Entity Property Setup
-    //                                                               =====================
+    // Entity Property Setup
+    // =====================
     // It's very INTERNAL!
     protected final Map<String, Eps<UrlFilter>> _epsMap = StringKeyMap
-            .createAsFlexibleConcurrent();
+        .createAsFlexibleConcurrent();
     {
         setupEps(_epsMap, new EpsId(), columnId());
         setupEps(_epsMap, new EpsSessionId(), columnSessionId());
@@ -240,41 +325,41 @@ public class UrlFilterDbm extends AbstractDBMeta {
         setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
     }
 
-    public boolean hasEntityPropertySetupper(String propertyName) {
+    public boolean hasEntityPropertySetupper(final String propertyName) {
         return _epsMap.containsKey(propertyName);
     }
 
-    public void setupEntityProperty(String propertyName, Object entity,
-            Object value) {
+    public void setupEntityProperty(final String propertyName,
+            final Object entity, final Object value) {
         findEps(_epsMap, propertyName).setup((UrlFilter) entity, value);
     }
 
     public class EpsId implements Eps<UrlFilter> {
-        public void setup(UrlFilter e, Object v) {
+        public void setup(final UrlFilter e, final Object v) {
             e.setId(ctl(v));
         }
     }
 
     public static class EpsSessionId implements Eps<UrlFilter> {
-        public void setup(UrlFilter e, Object v) {
+        public void setup(final UrlFilter e, final Object v) {
             e.setSessionId((String) v);
         }
     }
 
     public static class EpsUrl implements Eps<UrlFilter> {
-        public void setup(UrlFilter e, Object v) {
+        public void setup(final UrlFilter e, final Object v) {
             e.setUrl((String) v);
         }
     }
 
     public static class EpsFilterType implements Eps<UrlFilter> {
-        public void setup(UrlFilter e, Object v) {
+        public void setup(final UrlFilter e, final Object v) {
             e.setFilterType((String) v);
         }
     }
 
     public static class EpsCreateTime implements Eps<UrlFilter> {
-        public void setup(UrlFilter e, Object v) {
+        public void setup(final UrlFilter e, final Object v) {
             e.setCreateTime((java.sql.Timestamp) v);
         }
     }

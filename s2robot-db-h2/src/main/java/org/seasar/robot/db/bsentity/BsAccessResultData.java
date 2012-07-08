@@ -25,6 +25,7 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
  * The entity of ACCESS_RESULT_DATA as TABLE. <br />
+ * 
  * <pre>
  * [primary-key]
  *     ID
@@ -53,22 +54,23 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  * [referrer-property]
  *     
  * </pre>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public abstract class BsAccessResultData implements Entity, Serializable {
 
     // ===================================================================================
-    //                                                                          Definition
-    //                                                                          ==========
+    // Definition
+    // ==========
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     // -----------------------------------------------------
-    //                                                Column
-    //                                                ------
+    // Column
+    // ------
     /** ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT} */
     protected Long _id;
 
@@ -82,14 +84,15 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     protected String _encoding;
 
     // -----------------------------------------------------
-    //                                              Internal
-    //                                              --------
+    // Internal
+    // --------
     /** The modified properties for this entity. */
-    protected final EntityModifiedProperties __modifiedProperties = newModifiedProperties();
+    protected final EntityModifiedProperties __modifiedProperties =
+        newModifiedProperties();
 
     // ===================================================================================
-    //                                                                          Table Name
-    //                                                                          ==========
+    // Table Name
+    // ==========
     /**
      * {@inheritDoc}
      */
@@ -105,8 +108,8 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                              DBMeta
-    //                                                                              ======
+    // DBMeta
+    // ======
     /**
      * {@inheritDoc}
      */
@@ -115,8 +118,8 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                         Primary Key
-    //                                                                         ===========
+    // Primary Key
+    // ===========
     /**
      * {@inheritDoc}
      */
@@ -128,14 +131,17 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                    Foreign Property
-    //                                                                    ================
+    // Foreign Property
+    // ================
     /** ACCESS_RESULT as 'accessResult'. */
     protected AccessResult _accessResult;
 
     /**
      * ACCESS_RESULT as 'accessResult'.
-     * @return The entity of foreign property 'accessResult'. (NullAllowed: If the foreign key does not have 'NotNull' constraint, please check null.)
+     * 
+     * @return The entity of foreign property 'accessResult'. (NullAllowed: If
+     *         the foreign key does not have 'NotNull' constraint, please check
+     *         null.)
      */
     public AccessResult getAccessResult() {
         return _accessResult;
@@ -143,18 +149,20 @@ public abstract class BsAccessResultData implements Entity, Serializable {
 
     /**
      * ACCESS_RESULT as 'accessResult'.
-     * @param accessResult The entity of foreign property 'accessResult'. (NullAllowed)
+     * 
+     * @param accessResult
+     *            The entity of foreign property 'accessResult'. (NullAllowed)
      */
-    public void setAccessResult(AccessResult accessResult) {
+    public void setAccessResult(final AccessResult accessResult) {
         _accessResult = accessResult;
     }
 
     // ===================================================================================
-    //                                                                   Referrer Property
-    //                                                                   =================
+    // Referrer Property
+    // =================
     // ===================================================================================
-    //                                                                 Modified Properties
-    //                                                                 ===================
+    // Modified Properties
+    // ===================
     /**
      * {@inheritDoc}
      */
@@ -181,32 +189,38 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                      Basic Override
-    //                                                                      ==============
+    // Basic Override
+    // ==============
     /**
-     * If primary-keys or columns of the other are same as this one, returns true.
-     * @param other The other entity. (NullAllowed)
+     * If primary-keys or columns of the other are same as this one, returns
+     * true.
+     * 
+     * @param other
+     *            The other entity. (NullAllowed)
      * @return Comparing result.
      */
-    public boolean equals(Object other) {
+    @Override
+    public boolean equals(final Object other) {
         if (other == null || !(other instanceof BsAccessResultData)) {
             return false;
         }
-        BsAccessResultData otherEntity = (BsAccessResultData) other;
+        final BsAccessResultData otherEntity = (BsAccessResultData) other;
         if (!xSV(getId(), otherEntity.getId())) {
             return false;
         }
         return true;
     }
 
-    protected boolean xSV(Object value1, Object value2) { // isSameValue()
+    protected boolean xSV(final Object value1, final Object value2) { // isSameValue()
         return InternalUtil.isSameValue(value1, value2);
     }
 
     /**
      * Calculates the hash-code from primary-keys or columns.
+     * 
      * @return The hash-code from primary-key or columns.
      */
+    @Override
     public int hashCode() {
         int result = 17;
         result = xCH(result, getTableDbName());
@@ -214,43 +228,50 @@ public abstract class BsAccessResultData implements Entity, Serializable {
         return result;
     }
 
-    protected int xCH(int result, Object value) { // calculateHashcode()
+    protected int xCH(final int result, final Object value) { // calculateHashcode()
         return InternalUtil.calculateHashcode(result, value);
     }
 
     /**
-     * @return The display string of all columns and relation existences. (NotNull)
+     * @return The display string of all columns and relation existences.
+     *         (NotNull)
      */
+    @Override
     public String toString() {
         return buildDisplayString(InternalUtil.toClassTitle(this), true, true);
     }
 
     /**
-     * @return The display string of basic informations with one-nested relation values. (NotNull)
+     * @return The display string of basic informations with one-nested relation
+     *         values. (NotNull)
      */
     public String toStringWithRelation() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(toString());
-        String l = "\n  ";
+        final String l = "\n  ";
         if (_accessResult != null) {
             sb.append(l).append(xbRDS(_accessResult, "accessResult"));
         }
         return sb.toString();
     }
 
-    protected String xbRDS(Entity e, String name) { // buildRelationDisplayString()
+    protected String xbRDS(final Entity e, final String name) { // buildRelationDisplayString()
         return e.buildDisplayString(name, true, true);
     }
 
     /**
-     * @param name The name for display. (NullAllowed: If it's null, it does not have a name)
-     * @param column Does it contains column values or not?
-     * @param relation Does it contains relation existences or not?
+     * @param name
+     *            The name for display. (NullAllowed: If it's null, it does not
+     *            have a name)
+     * @param column
+     *            Does it contains column values or not?
+     * @param relation
+     *            Does it contains relation existences or not?
      * @return The display string for this entity. (NotNull)
      */
-    public String buildDisplayString(String name, boolean column,
-            boolean relation) {
-        StringBuilder sb = new StringBuilder();
+    public String buildDisplayString(final String name, final boolean column,
+            final boolean relation) {
+        final StringBuilder sb = new StringBuilder();
         if (name != null) {
             sb.append(name).append(column || relation ? ":" : "");
         }
@@ -265,8 +286,8 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     protected String buildColumnString() {
-        String c = ", ";
-        StringBuilder sb = new StringBuilder();
+        final String c = ", ";
+        final StringBuilder sb = new StringBuilder();
         sb.append(c).append(getId());
         sb.append(c).append(getTransformerName());
         sb.append(c).append(xfBA(getData()));
@@ -278,13 +299,13 @@ public abstract class BsAccessResultData implements Entity, Serializable {
         return sb.toString();
     }
 
-    protected String xfBA(byte[] bytes) { // formatByteArray()
+    protected String xfBA(final byte[] bytes) { // formatByteArray()
         return InternalUtil.toString(bytes);
     }
 
     protected String buildRelationString() {
-        StringBuilder sb = new StringBuilder();
-        String c = ",";
+        final StringBuilder sb = new StringBuilder();
+        final String c = ",";
         if (_accessResult != null) {
             sb.append(c).append("accessResult");
         }
@@ -295,10 +316,11 @@ public abstract class BsAccessResultData implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                            Accessor
-    //                                                                            ========
+    // Accessor
+    // ========
     /**
      * [get] ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT} <br />
+     * 
      * @return The value of the column 'ID'. (NullAllowed)
      */
     public Long getId() {
@@ -307,15 +329,18 @@ public abstract class BsAccessResultData implements Entity, Serializable {
 
     /**
      * [set] ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT} <br />
-     * @param id The value of the column 'ID'. (NullAllowed)
+     * 
+     * @param id
+     *            The value of the column 'ID'. (NullAllowed)
      */
-    public void setId(Long id) {
+    public void setId(final Long id) {
         __modifiedProperties.addPropertyName("id");
         this._id = id;
     }
 
     /**
      * [get] TRANSFORMER_NAME: {NotNull, VARCHAR(255)} <br />
+     * 
      * @return The value of the column 'TRANSFORMER_NAME'. (NullAllowed)
      */
     public String getTransformerName() {
@@ -324,15 +349,18 @@ public abstract class BsAccessResultData implements Entity, Serializable {
 
     /**
      * [set] TRANSFORMER_NAME: {NotNull, VARCHAR(255)} <br />
-     * @param transformerName The value of the column 'TRANSFORMER_NAME'. (NullAllowed)
+     * 
+     * @param transformerName
+     *            The value of the column 'TRANSFORMER_NAME'. (NullAllowed)
      */
-    public void setTransformerName(String transformerName) {
+    public void setTransformerName(final String transformerName) {
         __modifiedProperties.addPropertyName("transformerName");
         this._transformerName = transformerName;
     }
 
     /**
      * [get] DATA: {BLOB(2147483647)} <br />
+     * 
      * @return The value of the column 'DATA'. (NullAllowed)
      */
     public byte[] getData() {
@@ -341,15 +369,18 @@ public abstract class BsAccessResultData implements Entity, Serializable {
 
     /**
      * [set] DATA: {BLOB(2147483647)} <br />
-     * @param data The value of the column 'DATA'. (NullAllowed)
+     * 
+     * @param data
+     *            The value of the column 'DATA'. (NullAllowed)
      */
-    public void setData(byte[] data) {
+    public void setData(final byte[] data) {
         __modifiedProperties.addPropertyName("data");
         this._data = data;
     }
 
     /**
      * [get] ENCODING: {VARCHAR(20)} <br />
+     * 
      * @return The value of the column 'ENCODING'. (NullAllowed)
      */
     public String getEncoding() {
@@ -358,9 +389,11 @@ public abstract class BsAccessResultData implements Entity, Serializable {
 
     /**
      * [set] ENCODING: {VARCHAR(20)} <br />
-     * @param encoding The value of the column 'ENCODING'. (NullAllowed)
+     * 
+     * @param encoding
+     *            The value of the column 'ENCODING'. (NullAllowed)
      */
-    public void setEncoding(String encoding) {
+    public void setEncoding(final String encoding) {
         __modifiedProperties.addPropertyName("encoding");
         this._encoding = encoding;
     }

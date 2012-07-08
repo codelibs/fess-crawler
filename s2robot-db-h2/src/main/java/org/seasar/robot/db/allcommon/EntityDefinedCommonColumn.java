@@ -19,6 +19,7 @@ import org.seasar.robot.dbflute.Entity;
 
 /**
  * The interface of entity defined common columns.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public interface EntityDefinedCommonColumn extends Entity {
@@ -31,13 +32,14 @@ public interface EntityDefinedCommonColumn extends Entity {
 
     /**
      * Disable common column auto set up. <br />
-     * This is an old style. You can get the same process
-     * by varyingInsert() and varyingUpdate() and so on.
+     * This is an old style. You can get the same process by varyingInsert() and
+     * varyingUpdate() and so on.
      */
     void disableCommonColumnAutoSetup();
 
     /**
      * Can the entity set up common column by auto? (basically for Framework)
+     * 
      * @return Determination.
      */
     boolean canCommonColumnAutoSetup();

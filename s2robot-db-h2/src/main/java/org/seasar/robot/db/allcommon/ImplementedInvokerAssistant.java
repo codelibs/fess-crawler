@@ -51,18 +51,18 @@ import org.seasar.robot.dbflute.twowaysql.factory.SqlAnalyzerFactory;
 public class ImplementedInvokerAssistant implements InvokerAssistant {
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     // -----------------------------------------------------
-    //                                          DI Component
-    //                                          ------------
+    // DI Component
+    // ------------
     protected BehaviorCommandInvoker _behaviorCommandInvoker;
 
     protected DataSource _dataSource;
 
     // -----------------------------------------------------
-    //                                        Lazy Component
-    //                                        --------------
+    // Lazy Component
+    // --------------
     protected volatile DBMetaProvider _dbmetaProvider;
 
     protected volatile SqlClauseCreator _sqlClauseCreator;
@@ -80,26 +80,26 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     protected volatile SequenceCacheHandler _sequenceCacheHandler;
 
     // -----------------------------------------------------
-    //                                       Disposable Flag
-    //                                       ---------------
+    // Disposable Flag
+    // ---------------
     protected volatile boolean _disposable;
 
     // ===================================================================================
-    //                                                                 Assistant Main Work
-    //                                                                 ===================
+    // Assistant Main Work
+    // ===================
     // -----------------------------------------------------
-    //                                         Current DBDef
-    //                                         -------------
+    // Current DBDef
+    // -------------
     public DBDef assistCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // -----------------------------------------------------
-    //                                           Data Source
-    //                                           -----------
+    // Data Source
+    // -----------
     public DataSource assistDataSource() { // DI component
-        DataSourceHandler dataSourceHandler = DBFluteConfig.getInstance()
-                .getDataSourceHandler();
+        final DataSourceHandler dataSourceHandler =
+            DBFluteConfig.getInstance().getDataSourceHandler();
         if (dataSourceHandler != null) {
             return new HandlingDataSourceWrapper(_dataSource, dataSourceHandler);
         }
@@ -107,8 +107,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                                       DBMeta Provider
-    //                                       ---------------
+    // DBMeta Provider
+    // ---------------
     public DBMetaProvider assistDBMetaProvider() { // lazy component
         if (_dbmetaProvider != null) {
             return _dbmetaProvider;
@@ -127,8 +127,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                                    SQL Clause Creator
-    //                                    ------------------
+    // SQL Clause Creator
+    // ------------------
     public SqlClauseCreator assistSqlClauseCreator() { // lazy component
         if (_sqlClauseCreator != null) {
             return _sqlClauseCreator;
@@ -143,8 +143,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     protected SqlClauseCreator createSqlClauseCreator() {
-        SqlClauseCreator creator = DBFluteConfig.getInstance()
-                .getSqlClauseCreator();
+        final SqlClauseCreator creator =
+            DBFluteConfig.getInstance().getSqlClauseCreator();
         if (creator != null) {
             return creator;
         }
@@ -152,8 +152,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                                     Statement Factory
-    //                                     -----------------
+    // Statement Factory
+    // -----------------
     public StatementFactory assistStatementFactory() { // lazy component
         if (_statementFactory != null) {
             return _statementFactory;
@@ -175,8 +175,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                                Bean Meta Data Factory
-    //                                ----------------------
+    // Bean Meta Data Factory
+    // ----------------------
     public TnBeanMetaDataFactory assistBeanMetaDataFactory() { // lazy component
         if (_beanMetaDataFactory != null) {
             return _beanMetaDataFactory;
@@ -191,15 +191,16 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     protected TnBeanMetaDataFactory createBeanMetaDataFactory() {
-        final TnBeanMetaDataFactoryExtension factory = new TnBeanMetaDataFactoryExtension();
+        final TnBeanMetaDataFactoryExtension factory =
+            new TnBeanMetaDataFactoryExtension();
         factory.setDataSource(_dataSource);
         factory.setInternalDebug(DBFluteConfig.getInstance().isInternalDebug());
         return factory;
     }
 
     // -----------------------------------------------------
-    //                                  SQL Analyzer Factory
-    //                                  --------------------
+    // SQL Analyzer Factory
+    // --------------------
     /**
      * {@inheritDoc}
      */
@@ -221,8 +222,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                           OutsideSql Executor Factory
-    //                           ---------------------------
+    // OutsideSql Executor Factory
+    // ---------------------------
     /**
      * {@inheritDoc}
      */
@@ -240,8 +241,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     protected OutsideSqlExecutorFactory createOutsideSqlExecutorFactory() {
-        OutsideSqlExecutorFactory factory = DBFluteConfig.getInstance()
-                .getOutsideSqlExecutorFactory();
+        final OutsideSqlExecutorFactory factory =
+            DBFluteConfig.getInstance().getOutsideSqlExecutorFactory();
         if (factory != null) {
             return factory;
         }
@@ -249,8 +250,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                                   SQLException Digger
-    //                                   -------------------
+    // SQLException Digger
+    // -------------------
     /**
      * {@inheritDoc}
      */
@@ -259,12 +260,13 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                          SQLException Handler Factory
-    //                          ----------------------------
+    // SQLException Handler Factory
+    // ----------------------------
     /**
      * {@inheritDoc}
      */
-    public SQLExceptionHandlerFactory assistSQLExceptionHandlerFactory() { // lazy component
+    public SQLExceptionHandlerFactory assistSQLExceptionHandlerFactory() { // lazy
+                                                                           // component
         if (_sqlExceptionHandlerFactory != null) {
             return _sqlExceptionHandlerFactory;
         }
@@ -282,8 +284,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                                Sequence Cache Handler
-    //                                ----------------------
+    // Sequence Cache Handler
+    // ----------------------
     /**
      * {@inheritDoc}
      */
@@ -301,9 +303,9 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     protected SequenceCacheHandler createSequenceCacheHandler() {
-        SequenceCacheHandler handler = new SequenceCacheHandler();
-        SequenceCacheKeyGenerator generator = DBFluteConfig.getInstance()
-                .getSequenceCacheKeyGenerator();
+        final SequenceCacheHandler handler = new SequenceCacheHandler();
+        final SequenceCacheKeyGenerator generator =
+            DBFluteConfig.getInstance().getSequenceCacheKeyGenerator();
         if (generator != null) {
             handler.setSequenceCacheKeyGenerator(generator);
         }
@@ -312,45 +314,49 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    //                                     SQL File Encoding
-    //                                     -----------------
+    // SQL File Encoding
+    // -----------------
     public String assistSqlFileEncoding() {
         return "UTF-8";
     }
 
     // -----------------------------------------------------
-    //                               Statement Configuration
-    //                               -----------------------
+    // Statement Configuration
+    // -----------------------
     public StatementConfig assistDefaultStatementConfig() {
         return DBFluteConfig.getInstance().getDefaultStatementConfig();
     }
 
     // -----------------------------------------------------
-    //                            Behavior Exception Thrower
-    //                            --------------------------
+    // Behavior Exception Thrower
+    // --------------------------
     public BehaviorExceptionThrower assistBehaviorExceptionThrower() {
         return new BehaviorExceptionThrower();
     }
 
     // -----------------------------------------------------
-    //                                    Resource Parameter
-    //                                    ------------------
+    // Resource Parameter
+    // ------------------
     public ResourceParameter assistResourceParameter() {
-        ResourceParameter resourceParameter = new ResourceParameter();
-        resourceParameter.setOutsideSqlPackage(DBFluteConfig.getInstance()
-                .getOutsideSqlPackage());
-        resourceParameter.setLogDateFormat(DBFluteConfig.getInstance()
-                .getLogDateFormat());
-        resourceParameter.setLogTimestampFormat(DBFluteConfig.getInstance()
-                .getLogTimestampFormat());
-        resourceParameter.setInternalDebug(DBFluteConfig.getInstance()
-                .isInternalDebug());
+        final ResourceParameter resourceParameter = new ResourceParameter();
+        resourceParameter.setOutsideSqlPackage(DBFluteConfig
+            .getInstance()
+            .getOutsideSqlPackage());
+        resourceParameter.setLogDateFormat(DBFluteConfig
+            .getInstance()
+            .getLogDateFormat());
+        resourceParameter.setLogTimestampFormat(DBFluteConfig
+            .getInstance()
+            .getLogTimestampFormat());
+        resourceParameter.setInternalDebug(DBFluteConfig
+            .getInstance()
+            .isInternalDebug());
         return resourceParameter;
     }
 
     // ===================================================================================
-    //                                                                             Dispose
-    //                                                                             =======
+    // Dispose
+    // =======
     public void toBeDisposable() { // for HotDeploy
         if (_disposable) {
             return;
@@ -389,24 +395,25 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // ===================================================================================
-    //                                                                       Assert Helper
-    //                                                                       =============
+    // Assert Helper
+    // =============
     protected void assertBehaviorCommandInvoker() {
         if (_behaviorCommandInvoker == null) {
-            String msg = "The attribute 'behaviorCommandInvoker' should not be null!";
+            final String msg =
+                "The attribute 'behaviorCommandInvoker' should not be null!";
             throw new IllegalStateException(msg);
         }
     }
 
     // ===================================================================================
-    //                                                                            Accessor
-    //                                                                            ========
+    // Accessor
+    // ========
     public void setBehaviorCommandInvoker(
-            BehaviorCommandInvoker behaviorCommandInvoker) {
+            final BehaviorCommandInvoker behaviorCommandInvoker) {
         _behaviorCommandInvoker = behaviorCommandInvoker;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    public void setDataSource(final DataSource dataSource) {
         _dataSource = dataSource;
     }
 }

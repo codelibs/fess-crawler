@@ -32,14 +32,16 @@ import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
  * The DB meta of ACCESS_RESULT_DATA. (Singleton)
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    //                                                                           Singleton
-    //                                                                           =========
-    private static final AccessResultDataDbm _instance = new AccessResultDataDbm();
+    // Singleton
+    // =========
+    private static final AccessResultDataDbm _instance =
+        new AccessResultDataDbm();
 
     private AccessResultDataDbm() {
     }
@@ -49,24 +51,26 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                       Current DBDef
-    //                                                                       =============
+    // Current DBDef
+    // =============
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // ===================================================================================
-    //                                                                          Table Info
-    //                                                                          ==========
+    // Table Info
+    // ==========
     protected final String _tableDbName = "ACCESS_RESULT_DATA";
 
     protected final String _tablePropertyName = "accessResultData";
 
     protected final TableSqlName _tableSqlName = new TableSqlName(
-            "ACCESS_RESULT_DATA", _tableDbName);
+        "ACCESS_RESULT_DATA",
+        _tableDbName);
     {
-        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
-                .getTableSqlNameFilter());
+        _tableSqlName.xacceptFilter(DBFluteConfig
+            .getInstance()
+            .getTableSqlNameFilter());
     }
 
     public String getTableDbName() {
@@ -82,24 +86,87 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Column Info
-    //                                                                         ===========
-    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, true,
-            "id", Long.class, true, false, "BIGINT", 19, 0, false, null, null,
-            "accessResult", null, null);
+    // Column Info
+    // ===========
+    protected final ColumnInfo _columnId = cci(
+        "ID",
+        "ID",
+        null,
+        null,
+        true,
+        "id",
+        Long.class,
+        true,
+        false,
+        "BIGINT",
+        19,
+        0,
+        false,
+        null,
+        null,
+        "accessResult",
+        null,
+        null);
 
-    protected final ColumnInfo _columnTransformerName = cci("TRANSFORMER_NAME",
-            "TRANSFORMER_NAME", null, null, true, "transformerName",
-            String.class, false, false, "VARCHAR", 255, 0, false, null, null,
-            null, null, null);
+    protected final ColumnInfo _columnTransformerName = cci(
+        "TRANSFORMER_NAME",
+        "TRANSFORMER_NAME",
+        null,
+        null,
+        true,
+        "transformerName",
+        String.class,
+        false,
+        false,
+        "VARCHAR",
+        255,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnData = cci("DATA", "DATA", null, null,
-            false, "data", byte[].class, false, false, "BLOB", 2147483647, 0,
-            false, null, null, null, null, null);
+    protected final ColumnInfo _columnData = cci(
+        "DATA",
+        "DATA",
+        null,
+        null,
+        false,
+        "data",
+        byte[].class,
+        false,
+        false,
+        "BLOB",
+        2147483647,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnEncoding = cci("ENCODING", "ENCODING",
-            null, null, false, "encoding", String.class, false, false,
-            "VARCHAR", 20, 0, false, null, null, null, null, null);
+    protected final ColumnInfo _columnEncoding = cci(
+        "ENCODING",
+        "ENCODING",
+        null,
+        null,
+        false,
+        "encoding",
+        String.class,
+        false,
+        false,
+        "VARCHAR",
+        20,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
     public ColumnInfo columnId() {
         return _columnId;
@@ -117,8 +184,9 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         return _columnEncoding;
     }
 
+    @Override
     protected List<ColumnInfo> ccil() {
-        List<ColumnInfo> ls = newArrayList();
+        final List<ColumnInfo> ls = newArrayList();
         ls.add(columnId());
         ls.add(columnTransformerName());
         ls.add(columnData());
@@ -131,11 +199,11 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Unique Info
-    //                                                                         ===========
+    // Unique Info
+    // ===========
     // -----------------------------------------------------
-    //                                       Primary Element
-    //                                       ---------------
+    // Primary Element
+    // ---------------
     public UniqueInfo getPrimaryUniqueInfo() {
         return cpui(columnId());
     }
@@ -149,29 +217,37 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                       Relation Info
-    //                                                                       =============
+    // Relation Info
+    // =============
     // -----------------------------------------------------
-    //                                      Foreign Property
-    //                                      ----------------
+    // Foreign Property
+    // ----------------
     public ForeignInfo foreignAccessResult() {
-        Map<ColumnInfo, ColumnInfo> map = newLinkedHashMap(columnId(),
-                AccessResultDbm.getInstance().columnId());
-        return cfi("accessResult", this, AccessResultDbm.getInstance(), map, 0,
-                true, false);
+        final Map<ColumnInfo, ColumnInfo> map =
+            newLinkedHashMap(columnId(), AccessResultDbm
+                .getInstance()
+                .columnId());
+        return cfi(
+            "accessResult",
+            this,
+            AccessResultDbm.getInstance(),
+            map,
+            0,
+            true,
+            false);
     }
 
     // -----------------------------------------------------
-    //                                     Referrer Property
-    //                                     -----------------
+    // Referrer Property
+    // -----------------
 
     // ===================================================================================
-    //                                                                        Various Info
-    //                                                                        ============
+    // Various Info
+    // ============
 
     // ===================================================================================
-    //                                                                           Type Name
-    //                                                                           =========
+    // Type Name
+    // =========
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.AccessResultData";
     }
@@ -189,15 +265,15 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Object Type
-    //                                                                         ===========
+    // Object Type
+    // ===========
     public Class<AccessResultData> getEntityType() {
         return AccessResultData.class;
     }
 
     // ===================================================================================
-    //                                                                     Object Instance
-    //                                                                     ===============
+    // Object Instance
+    // ===============
     public Entity newEntity() {
         return newMyEntity();
     }
@@ -207,26 +283,27 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                     Entity Handling
-    //                                                                     ===============  
-    public void acceptPrimaryKeyMap(Entity e, Map<String, ? extends Object> m) {
+    // Entity Handling
+    // ===============
+    public void acceptPrimaryKeyMap(final Entity e,
+            final Map<String, ? extends Object> m) {
         doAcceptPrimaryKeyMap((AccessResultData) e, m, _epsMap);
     }
 
-    public Map<String, Object> extractPrimaryKeyMap(Entity e) {
+    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
         return doExtractPrimaryKeyMap(e);
     }
 
-    public Map<String, Object> extractAllColumnMap(Entity e) {
+    public Map<String, Object> extractAllColumnMap(final Entity e) {
         return doExtractAllColumnMap(e);
     }
 
     // ===================================================================================
-    //                                                               Entity Property Setup
-    //                                                               =====================
+    // Entity Property Setup
+    // =====================
     // It's very INTERNAL!
     protected final Map<String, Eps<AccessResultData>> _epsMap = StringKeyMap
-            .createAsFlexibleConcurrent();
+        .createAsFlexibleConcurrent();
     {
         setupEps(_epsMap, new EpsId(), columnId());
         setupEps(_epsMap, new EpsTransformerName(), columnTransformerName());
@@ -234,35 +311,35 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         setupEps(_epsMap, new EpsEncoding(), columnEncoding());
     }
 
-    public boolean hasEntityPropertySetupper(String propertyName) {
+    public boolean hasEntityPropertySetupper(final String propertyName) {
         return _epsMap.containsKey(propertyName);
     }
 
-    public void setupEntityProperty(String propertyName, Object entity,
-            Object value) {
+    public void setupEntityProperty(final String propertyName,
+            final Object entity, final Object value) {
         findEps(_epsMap, propertyName).setup((AccessResultData) entity, value);
     }
 
     public class EpsId implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
+        public void setup(final AccessResultData e, final Object v) {
             e.setId(ctl(v));
         }
     }
 
     public static class EpsTransformerName implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
+        public void setup(final AccessResultData e, final Object v) {
             e.setTransformerName((String) v);
         }
     }
 
     public static class EpsData implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
+        public void setup(final AccessResultData e, final Object v) {
             e.setData((byte[]) v);
         }
     }
 
     public static class EpsEncoding implements Eps<AccessResultData> {
-        public void setup(AccessResultData e, Object v) {
+        public void setup(final AccessResultData e, final Object v) {
             e.setEncoding((String) v);
         }
     }

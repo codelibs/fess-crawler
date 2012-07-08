@@ -20,16 +20,17 @@ import org.seasar.robot.dbflute.cbean.ConditionQuery;
 
 /**
  * The nest select set-upper of ACCESS_RESULT.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultNss {
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     protected AccessResultCQ _query;
 
-    public AccessResultNss(AccessResultCQ query) {
+    public AccessResultNss(final AccessResultCQ query) {
         _query = query;
     }
 
@@ -38,8 +39,8 @@ public class AccessResultNss {
     }
 
     // ===================================================================================
-    //                                                                     Nested Relation
-    //                                                                     ===============
+    // Nested Relation
+    // ===============
 
     public AccessResultDataNss withAccessResultDataAsOne() {
         _query.doNss(new AccessResultCQ.NssCall() {

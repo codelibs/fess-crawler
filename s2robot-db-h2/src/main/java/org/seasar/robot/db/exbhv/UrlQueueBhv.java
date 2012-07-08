@@ -15,27 +15,31 @@
  */
 package org.seasar.robot.db.exbhv;
 
+import org.seasar.robot.db.bsbhv.BsUrlQueueBhv;
+
 /**
  * The behavior of URL_QUEUE.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueBhv extends org.seasar.robot.db.bsbhv.BsUrlQueueBhv {
-    public int deleteBySessionId(String sessionId) {
-        //        UrlQueueCB cb = new UrlQueueCB();
-        //        cb.query().setSessionId_Equal(sessionId);
-        //        urlQueueBhv.queryDelete(cb);
-        return outsideSql().execute(UrlQueueBhv.PATH_deleteBySessionId,
-                sessionId);
+    public int deleteBySessionId(final String sessionId) {
+        // UrlQueueCB cb = new UrlQueueCB();
+        // cb.query().setSessionId_Equal(sessionId);
+        // urlQueueBhv.queryDelete(cb);
+        return outsideSql().execute(
+            BsUrlQueueBhv.PATH_deleteBySessionId,
+            sessionId);
     }
 
     public int deleteAll() {
-        //        UrlQueueCB cb = new UrlQueueCB();
-        //        urlQueueBhv.queryDelete(cb);
-        String pmb = null;
-        return outsideSql().execute(UrlQueueBhv.PATH_deleteBySessionId, pmb);
+        // UrlQueueCB cb = new UrlQueueCB();
+        // urlQueueBhv.queryDelete(cb);
+        final String pmb = null;
+        return outsideSql().execute(BsUrlQueueBhv.PATH_deleteAll, pmb);
     }
 }

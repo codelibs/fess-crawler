@@ -29,52 +29,58 @@ import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException
 
 /**
  * The condition-query for in-line of ACCESS_RESULT_DATA.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     protected BsAccessResultDataCQ _myCQ;
 
     // ===================================================================================
-    //                                                                         Constructor
-    //                                                                         ===========
-    public AccessResultDataCIQ(ConditionQuery childQuery, SqlClause sqlClause,
-            String aliasName, int nestLevel, BsAccessResultDataCQ myCQ) {
+    // Constructor
+    // ===========
+    public AccessResultDataCIQ(final ConditionQuery childQuery,
+            final SqlClause sqlClause, final String aliasName,
+            final int nestLevel, final BsAccessResultDataCQ myCQ) {
         super(childQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept
+                                                                // foreign
+                                                                // property name
         _relationPath = _myCQ.xgetRelationPath(); // accept relation path
         _inline = true;
     }
 
     // ===================================================================================
-    //                                                             Override about Register
-    //                                                             =======================
+    // Override about Register
+    // =======================
     @Override
-    protected void reflectRelationOnUnionQuery(ConditionQuery bq,
-            ConditionQuery uq) {
-        String msg = "InlineView must not need UNION method: " + bq + " : "
-                + uq;
+    protected void reflectRelationOnUnionQuery(final ConditionQuery bq,
+            final ConditionQuery uq) {
+        final String msg =
+            "InlineView must not need UNION method: " + bq + " : " + uq;
         throw new IllegalConditionBeanOperationException(msg);
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k,
-            Object v, ConditionValue cv, String col) {
+    protected void setupConditionValueAndRegisterWhereClause(
+            final ConditionKey k, final Object v, final ConditionValue cv,
+            final String col) {
         regIQ(k, v, cv, col);
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k,
-            Object v, ConditionValue cv, String col, ConditionOption op) {
+    protected void setupConditionValueAndRegisterWhereClause(
+            final ConditionKey k, final Object v, final ConditionValue cv,
+            final String col, final ConditionOption op) {
         regIQ(k, v, cv, col, op);
     }
 
     @Override
-    protected void registerWhereClause(String wc) {
+    protected void registerWhereClause(final String wc) {
         registerInlineWhereClause(wc);
     }
 
@@ -82,56 +88,64 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
     protected boolean isInScopeRelationSuppressLocalAliasName() {
         if (_onClause) {
             throw new IllegalConditionBeanOperationException(
-                    "InScopeRelation on OnClause is unsupported.");
+                "InScopeRelation on OnClause is unsupported.");
         }
         return true;
     }
 
     // ===================================================================================
-    //                                                                Override about Query
-    //                                                                ====================
+    // Override about Query
+    // ====================
+    @Override
     protected ConditionValue getCValueId() {
         return _myCQ.getId();
     }
 
-    public String keepId_InScopeRelation_AccessResult(AccessResultCQ sq) {
+    @Override
+    public String keepId_InScopeRelation_AccessResult(final AccessResultCQ sq) {
         return _myCQ.keepId_InScopeRelation_AccessResult(sq);
     }
 
-    public String keepId_NotInScopeRelation_AccessResult(AccessResultCQ sq) {
+    @Override
+    public String keepId_NotInScopeRelation_AccessResult(final AccessResultCQ sq) {
         return _myCQ.keepId_NotInScopeRelation_AccessResult(sq);
     }
 
+    @Override
     protected ConditionValue getCValueTransformerName() {
         return _myCQ.getTransformerName();
     }
 
+    @Override
     protected ConditionValue getCValueData() {
         return _myCQ.getData();
     }
 
+    @Override
     protected ConditionValue getCValueEncoding() {
         return _myCQ.getEncoding();
     }
 
-    public String keepScalarCondition(AccessResultDataCQ subQuery) {
+    @Override
+    public String keepScalarCondition(final AccessResultDataCQ subQuery) {
         throwIICBOE("ScalarCondition");
         return null;
     }
 
-    public String keepMyselfInScopeRelation(AccessResultDataCQ subQuery) {
+    @Override
+    public String keepMyselfInScopeRelation(final AccessResultDataCQ subQuery) {
         throwIICBOE("MyselfInScopeRelation");
         return null;
     }
 
-    protected void throwIICBOE(String name) { // throwInlineIllegalConditionBeanOperationException()
+    protected void throwIICBOE(final String name) { // throwInlineIllegalConditionBeanOperationException()
         throw new IllegalConditionBeanOperationException(name
-                + " at InlineView is unsupported.");
+            + " at InlineView is unsupported.");
     }
 
     // ===================================================================================
-    //                                                                       Very Internal
-    //                                                                       =============
+    // Very Internal
+    // =============
     // very internal (for suppressing warn about 'Not Use Import')
     protected String xinCB() {
         return AccessResultDataCB.class.getName();

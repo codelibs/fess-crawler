@@ -23,27 +23,32 @@ import org.seasar.robot.dbflute.jdbc.CursorHandler;
 
 /**
  * The cursor handler of AccessResultDiff.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
 
     /**
      * Handle the result set.
-     * @param rs Result set. (NotNull)
+     * 
+     * @param rs
+     *            Result set. (NotNull)
      * @return Result. (NullAllowed)
      * @throws SQLException
      */
-    public Object handle(ResultSet rs) throws SQLException {
+    public Object handle(final ResultSet rs) throws SQLException {
         return fetchCursor(createTypeSafeCursor(rs));
     }
 
     /**
      * Create type safe cursor.
-     * @param rs Result set. (NotNull)
+     * 
+     * @param rs
+     *            Result set. (NotNull)
      * @return Type safe cursor. (NullAllowed)
      * @throws SQLException
      */
-    protected AccessResultDiffCursor createTypeSafeCursor(ResultSet rs)
+    protected AccessResultDiffCursor createTypeSafeCursor(final ResultSet rs)
             throws SQLException {
         final AccessResultDiffCursor cursor = new AccessResultDiffCursor();
         cursor.accept(rs);
@@ -52,7 +57,9 @@ public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
 
     /**
      * Fetch the cursor.
-     * @param cursor Type safe cursor. (NotNull)
+     * 
+     * @param cursor
+     *            Type safe cursor. (NotNull)
      * @return Result. (NullAllowed)
      * @throws java.sql.SQLException
      */

@@ -15,31 +15,34 @@
  */
 package org.seasar.robot.db.exbhv;
 
+import org.seasar.robot.db.bsbhv.BsAccessResultDataBhv;
 import org.seasar.robot.db.cbean.AccessResultDataCB;
 
 /**
  * The behavior of ACCESS_RESULT_DATA.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataBhv extends
         org.seasar.robot.db.bsbhv.BsAccessResultDataBhv {
-    public int deleteBySessionId(String sessionId) {
-        AccessResultDataCB cb1 = new AccessResultDataCB();
+    public int deleteBySessionId(final String sessionId) {
+        final AccessResultDataCB cb1 = new AccessResultDataCB();
         cb1.query().queryAccessResult().setSessionId_Equal(sessionId);
         return queryDelete(cb1);
 
-        //        return outsideSql().execute(AccessResultDataBhv.PATH_deleteBySessionId,
-        //                sessionId);
+        // return
+        // outsideSql().execute(AccessResultDataBhv.PATH_deleteBySessionId,
+        // sessionId);
     }
 
     public int deleteAll() {
-        //        AccessResultDataCB cb1 = new AccessResultDataCB();
-        //        accessResultDataBhv.queryDelete(cb1);
-        String pmb = null;
-        return outsideSql().execute(AccessResultDataBhv.PATH_deleteAll, pmb);
+        // AccessResultDataCB cb1 = new AccessResultDataCB();
+        // accessResultDataBhv.queryDelete(cb1);
+        final String pmb = null;
+        return outsideSql().execute(BsAccessResultDataBhv.PATH_deleteAll, pmb);
     }
 }

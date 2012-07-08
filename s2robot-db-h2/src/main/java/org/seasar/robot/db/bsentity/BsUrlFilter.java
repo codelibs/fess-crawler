@@ -24,6 +24,7 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
  * The entity of URL_FILTER as TABLE. <br />
+ * 
  * <pre>
  * [primary-key]
  *     ID
@@ -52,22 +53,23 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  * [referrer-property]
  *     
  * </pre>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public abstract class BsUrlFilter implements Entity, Serializable {
 
     // ===================================================================================
-    //                                                                          Definition
-    //                                                                          ==========
+    // Definition
+    // ==========
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     // -----------------------------------------------------
-    //                                                Column
-    //                                                ------
+    // Column
+    // ------
     /** ID: {PK, ID, NotNull, BIGINT(19)} */
     protected Long _id;
 
@@ -84,14 +86,15 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     protected java.sql.Timestamp _createTime;
 
     // -----------------------------------------------------
-    //                                              Internal
-    //                                              --------
+    // Internal
+    // --------
     /** The modified properties for this entity. */
-    protected final EntityModifiedProperties __modifiedProperties = newModifiedProperties();
+    protected final EntityModifiedProperties __modifiedProperties =
+        newModifiedProperties();
 
     // ===================================================================================
-    //                                                                          Table Name
-    //                                                                          ==========
+    // Table Name
+    // ==========
     /**
      * {@inheritDoc}
      */
@@ -107,8 +110,8 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                              DBMeta
-    //                                                                              ======
+    // DBMeta
+    // ======
     /**
      * {@inheritDoc}
      */
@@ -117,8 +120,8 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                         Primary Key
-    //                                                                         ===========
+    // Primary Key
+    // ===========
     /**
      * {@inheritDoc}
      */
@@ -130,14 +133,14 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                    Foreign Property
-    //                                                                    ================
+    // Foreign Property
+    // ================
     // ===================================================================================
-    //                                                                   Referrer Property
-    //                                                                   =================
+    // Referrer Property
+    // =================
     // ===================================================================================
-    //                                                                 Modified Properties
-    //                                                                 ===================
+    // Modified Properties
+    // ===================
     /**
      * {@inheritDoc}
      */
@@ -164,32 +167,38 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                      Basic Override
-    //                                                                      ==============
+    // Basic Override
+    // ==============
     /**
-     * If primary-keys or columns of the other are same as this one, returns true.
-     * @param other The other entity. (NullAllowed)
+     * If primary-keys or columns of the other are same as this one, returns
+     * true.
+     * 
+     * @param other
+     *            The other entity. (NullAllowed)
      * @return Comparing result.
      */
-    public boolean equals(Object other) {
+    @Override
+    public boolean equals(final Object other) {
         if (other == null || !(other instanceof BsUrlFilter)) {
             return false;
         }
-        BsUrlFilter otherEntity = (BsUrlFilter) other;
+        final BsUrlFilter otherEntity = (BsUrlFilter) other;
         if (!xSV(getId(), otherEntity.getId())) {
             return false;
         }
         return true;
     }
 
-    protected boolean xSV(Object value1, Object value2) { // isSameValue()
+    protected boolean xSV(final Object value1, final Object value2) { // isSameValue()
         return InternalUtil.isSameValue(value1, value2);
     }
 
     /**
      * Calculates the hash-code from primary-keys or columns.
+     * 
      * @return The hash-code from primary-key or columns.
      */
+    @Override
     public int hashCode() {
         int result = 17;
         result = xCH(result, getTableDbName());
@@ -197,35 +206,42 @@ public abstract class BsUrlFilter implements Entity, Serializable {
         return result;
     }
 
-    protected int xCH(int result, Object value) { // calculateHashcode()
+    protected int xCH(final int result, final Object value) { // calculateHashcode()
         return InternalUtil.calculateHashcode(result, value);
     }
 
     /**
-     * @return The display string of all columns and relation existences. (NotNull)
+     * @return The display string of all columns and relation existences.
+     *         (NotNull)
      */
+    @Override
     public String toString() {
         return buildDisplayString(InternalUtil.toClassTitle(this), true, true);
     }
 
     /**
-     * @return The display string of basic informations with one-nested relation values. (NotNull)
+     * @return The display string of basic informations with one-nested relation
+     *         values. (NotNull)
      */
     public String toStringWithRelation() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(toString());
         return sb.toString();
     }
 
     /**
-     * @param name The name for display. (NullAllowed: If it's null, it does not have a name)
-     * @param column Does it contains column values or not?
-     * @param relation Does it contains relation existences or not?
+     * @param name
+     *            The name for display. (NullAllowed: If it's null, it does not
+     *            have a name)
+     * @param column
+     *            Does it contains column values or not?
+     * @param relation
+     *            Does it contains relation existences or not?
      * @return The display string for this entity. (NotNull)
      */
-    public String buildDisplayString(String name, boolean column,
-            boolean relation) {
-        StringBuilder sb = new StringBuilder();
+    public String buildDisplayString(final String name, final boolean column,
+            final boolean relation) {
+        final StringBuilder sb = new StringBuilder();
         if (name != null) {
             sb.append(name).append(column || relation ? ":" : "");
         }
@@ -240,8 +256,8 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     protected String buildColumnString() {
-        String c = ", ";
-        StringBuilder sb = new StringBuilder();
+        final String c = ", ";
+        final StringBuilder sb = new StringBuilder();
         sb.append(c).append(getId());
         sb.append(c).append(getSessionId());
         sb.append(c).append(getUrl());
@@ -259,10 +275,11 @@ public abstract class BsUrlFilter implements Entity, Serializable {
     }
 
     // ===================================================================================
-    //                                                                            Accessor
-    //                                                                            ========
+    // Accessor
+    // ========
     /**
      * [get] ID: {PK, ID, NotNull, BIGINT(19)} <br />
+     * 
      * @return The value of the column 'ID'. (NullAllowed)
      */
     public Long getId() {
@@ -271,15 +288,18 @@ public abstract class BsUrlFilter implements Entity, Serializable {
 
     /**
      * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br />
-     * @param id The value of the column 'ID'. (NullAllowed)
+     * 
+     * @param id
+     *            The value of the column 'ID'. (NullAllowed)
      */
-    public void setId(Long id) {
+    public void setId(final Long id) {
         __modifiedProperties.addPropertyName("id");
         this._id = id;
     }
 
     /**
      * [get] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
+     * 
      * @return The value of the column 'SESSION_ID'. (NullAllowed)
      */
     public String getSessionId() {
@@ -288,15 +308,18 @@ public abstract class BsUrlFilter implements Entity, Serializable {
 
     /**
      * [set] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
-     * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed)
+     * 
+     * @param sessionId
+     *            The value of the column 'SESSION_ID'. (NullAllowed)
      */
-    public void setSessionId(String sessionId) {
+    public void setSessionId(final String sessionId) {
         __modifiedProperties.addPropertyName("sessionId");
         this._sessionId = sessionId;
     }
 
     /**
      * [get] URL: {NotNull, VARCHAR(65536)} <br />
+     * 
      * @return The value of the column 'URL'. (NullAllowed)
      */
     public String getUrl() {
@@ -305,15 +328,18 @@ public abstract class BsUrlFilter implements Entity, Serializable {
 
     /**
      * [set] URL: {NotNull, VARCHAR(65536)} <br />
-     * @param url The value of the column 'URL'. (NullAllowed)
+     * 
+     * @param url
+     *            The value of the column 'URL'. (NullAllowed)
      */
-    public void setUrl(String url) {
+    public void setUrl(final String url) {
         __modifiedProperties.addPropertyName("url");
         this._url = url;
     }
 
     /**
      * [get] FILTER_TYPE: {IX+, NotNull, VARCHAR(1)} <br />
+     * 
      * @return The value of the column 'FILTER_TYPE'. (NullAllowed)
      */
     public String getFilterType() {
@@ -322,15 +348,18 @@ public abstract class BsUrlFilter implements Entity, Serializable {
 
     /**
      * [set] FILTER_TYPE: {IX+, NotNull, VARCHAR(1)} <br />
-     * @param filterType The value of the column 'FILTER_TYPE'. (NullAllowed)
+     * 
+     * @param filterType
+     *            The value of the column 'FILTER_TYPE'. (NullAllowed)
      */
-    public void setFilterType(String filterType) {
+    public void setFilterType(final String filterType) {
         __modifiedProperties.addPropertyName("filterType");
         this._filterType = filterType;
     }
 
     /**
      * [get] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
+     * 
      * @return The value of the column 'CREATE_TIME'. (NullAllowed)
      */
     public java.sql.Timestamp getCreateTime() {
@@ -339,9 +368,11 @@ public abstract class BsUrlFilter implements Entity, Serializable {
 
     /**
      * [set] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
-     * @param createTime The value of the column 'CREATE_TIME'. (NullAllowed)
+     * 
+     * @param createTime
+     *            The value of the column 'CREATE_TIME'. (NullAllowed)
      */
-    public void setCreateTime(java.sql.Timestamp createTime) {
+    public void setCreateTime(final java.sql.Timestamp createTime) {
         __modifiedProperties.addPropertyName("createTime");
         this._createTime = createTime;
     }

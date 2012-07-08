@@ -194,8 +194,9 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 CONNECTION_TIMEOUT_PROPERTY,
                 this.connectionTimeout);
         if (connectionTimeoutParam != null) {
-            HttpConnectionParams
-                .setConnectionTimeout(params, connectionTimeoutParam);
+            HttpConnectionParams.setConnectionTimeout(
+                params,
+                connectionTimeoutParam);
         }
         final Boolean staleCheckingEnabledParam =
             getInitParameter(
@@ -211,7 +212,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
         if (soTimeoutParam != null) {
             HttpConnectionParams.setSoTimeout(params, soTimeoutParam);
         }
-        final Integer lingerParam = getInitParameter(LINGER_PROPERTY, this.linger);
+        final Integer lingerParam =
+            getInitParameter(LINGER_PROPERTY, this.linger);
         if (lingerParam != null) {
             HttpConnectionParams.setLinger(params, lingerParam);
         }
@@ -624,7 +626,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             responseData.setResponseBody(inputStream);
             responseData.setHttpStatusCode(httpStatusCode);
             for (Header header : response.getAllHeaders()) {
-                responseData.addHeader(header.getName(), header.getValue());
+                responseData.addMetaData(header.getName(), header.getValue());
             }
             if (contentType == null) {
                 responseData.setMimeType(defaultMimeType);

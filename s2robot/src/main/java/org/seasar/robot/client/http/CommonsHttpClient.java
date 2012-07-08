@@ -521,7 +521,7 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
             responseData.setResponseBody(inputStream);
             responseData.setHttpStatusCode(httpStatusCode);
             for (Header header : httpMethod.getResponseHeaders()) {
-                responseData.addHeader(header.getName(), header.getValue());
+                responseData.addMetaData(header.getName(), header.getValue());
             }
             if (contentType == null) {
                 responseData.setMimeType(defaultMimeType);

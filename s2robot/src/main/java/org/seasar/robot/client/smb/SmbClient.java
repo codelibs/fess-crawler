@@ -23,10 +23,13 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
 
+import jcifs.smb.ACE;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
@@ -65,7 +68,12 @@ public class SmbClient extends AbstractS2RobotClient {
     public static final String SMB_AUTHENTICATIONS_PROPERTY =
         "smbAuthentications";
 
+    private static final String SMB_ACCESS_CONTROL_ENTRIES =
+        "smbAccessControlEntries";
+
     protected String charset = Constants.UTF_8;
+
+    protected boolean resolveSids = true;
 
     @Binding(bindingType = BindingType.MAY)
     @Resource
@@ -167,6 +175,19 @@ public class SmbClient extends AbstractS2RobotClient {
                 responseData.setHttpStatusCode(200);
                 responseData.setCharSet(geCharSet(file));
                 responseData.setLastModified(new Date(file.lastModified()));
+
+                processAccessControlEntries(responseData, file);
+                Map<String, List<String>> headerFieldMap =
+                    file.getHeaderFields();
+                if (headerFieldMap != null) {
+                    for (Map.Entry<String, List<String>> entry : headerFieldMap
+                        .entrySet()) {
+                        responseData.addMetaData(
+                            entry.getKey(),
+                            entry.getValue());
+                    }
+                }
+
                 if (file.canRead()) {
                     File outputFile = null;
                     try {
@@ -210,6 +231,19 @@ public class SmbClient extends AbstractS2RobotClient {
         return responseData;
     }
 
+    protected void processAccessControlEntries(final ResponseData responseData,
+            final SmbFile file) {
+        try {
+            ACE[] aces = file.getSecurity(resolveSids);
+            if (aces != null) {
+                responseData.addMetaData(SMB_ACCESS_CONTROL_ENTRIES, aces);
+            }
+        } catch (IOException e) {
+            throw new RobotCrawlAccessException("Could not access "
+                + file.getPath(), e);
+        }
+    }
+
     protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
             throw new RobotSystemException("The uri is empty.");
@@ -220,14 +254,6 @@ public class SmbClient extends AbstractS2RobotClient {
 
     protected String geCharSet(final SmbFile file) {
         return charset;
-    }
-
-    public String getCharset() {
-        return charset;
-    }
-
-    public void setCharset(final String charset) {
-        this.charset = charset;
     }
 
     /*
@@ -266,5 +292,35 @@ public class SmbClient extends AbstractS2RobotClient {
             InputStreamUtil.close(in);
             OutputStreamUtil.close(out);
         }
+    }
+
+    /**
+     * @return the resolveSids
+     */
+    public boolean isResolveSids() {
+        return resolveSids;
+    }
+
+    /**
+     * @param resolveSids
+     *            the resolveSids to set
+     */
+    public void setResolveSids(boolean resolveSids) {
+        this.resolveSids = resolveSids;
+    }
+
+    /**
+     * @return the charset
+     */
+    public String getCharset() {
+        return charset;
+    }
+
+    /**
+     * @param charset
+     *            the charset to set
+     */
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 }

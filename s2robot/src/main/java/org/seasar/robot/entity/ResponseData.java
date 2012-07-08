@@ -17,6 +17,7 @@ package org.seasar.robot.entity;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -56,7 +57,8 @@ public class ResponseData {
 
     private int status = Constants.OK_STATUS;
 
-    private Map<String, String> headerMap = new LinkedHashMap<String, String>();
+    private Map<String, Object> metaDataMap =
+        new LinkedHashMap<String, Object>();
 
     public int getHttpStatusCode() {
         return httpStatusCode;
@@ -104,14 +106,6 @@ public class ResponseData {
 
     public void setUrl(final String url) {
         this.url = url;
-    }
-
-    public void addHeader(final String name, final String value) {
-        headerMap.put(name, value);
-    }
-
-    public Map<String, String> getHeaderMap() {
-        return headerMap;
     }
 
     public String getMethod() {
@@ -176,6 +170,30 @@ public class ResponseData {
 
     public void setStatus(final int status) {
         this.status = status;
+    }
+
+    public void addMetaData(final String name, final Object value) {
+        metaDataMap.put(name, value);
+    }
+
+    public Map<String, Object> getMetaDataMap() {
+        return metaDataMap;
+    }
+
+    @Deprecated
+    public void addHeader(final String name, final String value) {
+        metaDataMap.put(name, value);
+    }
+
+    @Deprecated
+    public Map<String, String> getHeaderMap() {
+        Map<String, String> headerMap = new HashMap<String, String>();
+        for (Map.Entry<String, Object> entry : metaDataMap.entrySet()) {
+            if (entry.getValue() instanceof String) {
+                headerMap.put(entry.getKey(), (String) entry.getValue());
+            }
+        }
+        return headerMap;
     }
 
 }

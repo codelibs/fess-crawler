@@ -24,6 +24,7 @@ import javax.annotation.Resource;
 import org.seasar.framework.beans.util.Beans;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.db.bsbhv.BsAccessResultBhv;
 import org.seasar.robot.db.cbean.AccessResultCB;
 import org.seasar.robot.db.exbhv.AccessResultBhv;
 import org.seasar.robot.db.exbhv.AccessResultDataBhv;
@@ -55,7 +56,7 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#store(org.seasar.robot.entity.AccessResult)
      */
-    public void store(AccessResult accessResult) {
+    public void store(final AccessResult accessResult) {
         if (accessResult == null) {
             throw new RobotSystemException("AccessResult is null.");
         }
@@ -76,8 +77,8 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#getCount(java.lang.String)
      */
-    public int getCount(String sessionId) {
-        AccessResultCB cb = new AccessResultCB();
+    public int getCount(final String sessionId) {
+        final AccessResultCB cb = new AccessResultCB();
         cb.query().setSessionId_Equal(sessionId);
         return accessResultBhv.selectCount(cb);
     }
@@ -85,7 +86,7 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#delete(java.lang.String)
      */
-    public void delete(String sessionId) {
+    public void delete(final String sessionId) {
         int count = accessResultDataBhv.deleteBySessionId(sessionId);
 
         if (logger.isDebugEnabled()) {
@@ -119,8 +120,8 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#getAccessResult(java.lang.String, java.lang.String)
      */
-    public AccessResult getAccessResult(String sessionId, String url) {
-        AccessResultCB cb = new AccessResultCB();
+    public AccessResult getAccessResult(final String sessionId, final String url) {
+        final AccessResultCB cb = new AccessResultCB();
         cb.setupSelect_AccessResultDataAsOne();
         cb.query().setSessionId_Equal(sessionId);
         cb.query().setUrl_Equal(url);
@@ -130,17 +131,17 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#getAccessResultList(java.lang.String, boolean)
      */
-    public List<AccessResult> getAccessResultList(String url, boolean hasData) {
-        AccessResultCB cb = new AccessResultCB();
+    public List<AccessResult> getAccessResultList(final String url, final boolean hasData) {
+        final AccessResultCB cb = new AccessResultCB();
         if (hasData) {
             cb.setupSelect_AccessResultDataAsOne();
         }
         cb.query().setUrl_Equal(url);
         cb.query().addOrderBy_CreateTime_Desc();
-        List<org.seasar.robot.db.exentity.AccessResult> list = accessResultBhv
+        final List<org.seasar.robot.db.exentity.AccessResult> list = accessResultBhv
                 .selectList(cb);
 
-        List<AccessResult> accessResultList = new ArrayList<AccessResult>();
+        final List<AccessResult> accessResultList = new ArrayList<AccessResult>();
         accessResultList.addAll(list);
         return accessResultList;
     }
@@ -148,9 +149,9 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#iterate(java.lang.String, org.seasar.robot.util.AccessResultCallback)
      */
-    public void iterate(String sessionId,
+    public void iterate(final String sessionId,
             final AccessResultCallback accessResultCallback) {
-        AccessResultCB cb = new AccessResultCB();
+        final AccessResultCB cb = new AccessResultCB();
         cb.setupSelect_AccessResultDataAsOne();
         cb.query().setSessionId_Equal(sessionId);
         cb.query().addOrderBy_CreateTime_Asc();
@@ -159,7 +160,7 @@ public class DBDataServiceImpl implements DataService {
                         cb,
                         new EntityRowHandler<org.seasar.robot.db.exentity.AccessResult>() {
                             public void handle(
-                                    org.seasar.robot.db.exentity.AccessResult entity) {
+                                    final org.seasar.robot.db.exentity.AccessResult entity) {
                                 accessResultCallback.iterate(entity);
                             }
                         });
@@ -168,17 +169,18 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String, java.lang.String, org.seasar.robot.util.AccessResultCallback)
      */
-    public void iterateUrlDiff(String oldSessionId, String newSessionId,
+    public void iterateUrlDiff(final String oldSessionId, final String newSessionId,
             final AccessResultCallback accessResultCallback) {
 
-        AccessResultPmb pmb = new AccessResultPmb();
+        final AccessResultPmb pmb = new AccessResultPmb();
         pmb.setOldSessionId(oldSessionId);
         pmb.setNewSessionId(newSessionId);
         final AccessResultDiffCursorHandler handler = new AccessResultDiffCursorHandler() {
-            public Object fetchCursor(AccessResultDiffCursor cursor)
+            @Override
+            public Object fetchCursor(final AccessResultDiffCursor cursor)
                     throws SQLException {
                 while (cursor.next()) {
-                    AccessResult accessResult = new org.seasar.robot.db.exentity.AccessResult();
+                    final AccessResult accessResult = new org.seasar.robot.db.exentity.AccessResult();
                     Beans.copy(cursor, accessResult).execute();
                     accessResultCallback.iterate(accessResult);
                 }
@@ -188,7 +190,7 @@ public class DBDataServiceImpl implements DataService {
         accessResultBhv
                 .outsideSql()
                 .cursorHandling()
-                .selectCursor(AccessResultBhv.PATH_selectListByUrlDiff, pmb,
+                .selectCursor(BsAccessResultBhv.PATH_selectListByUrlDiff, pmb,
                         handler);
 
     }
@@ -196,7 +198,7 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.AccessResult)
      */
-    public void update(AccessResult accessResult) {
+    public void update(final AccessResult accessResult) {
         accessResultBhv
                 .update((org.seasar.robot.db.exentity.AccessResult) accessResult);
 
@@ -210,11 +212,11 @@ public class DBDataServiceImpl implements DataService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.DataService#update(java.util.List)
      */
-    public void update(List<AccessResult> accessResultList) {
-        List<org.seasar.robot.db.exentity.AccessResult> arList = new ArrayList<org.seasar.robot.db.exentity.AccessResult>();
-        List<org.seasar.robot.db.exentity.AccessResultData> ardList = new ArrayList<org.seasar.robot.db.exentity.AccessResultData>();
+    public void update(final List<AccessResult> accessResultList) {
+        final List<org.seasar.robot.db.exentity.AccessResult> arList = new ArrayList<org.seasar.robot.db.exentity.AccessResult>();
+        final List<org.seasar.robot.db.exentity.AccessResultData> ardList = new ArrayList<org.seasar.robot.db.exentity.AccessResultData>();
 
-        for (AccessResult accessResult : accessResultList) {
+        for (final AccessResult accessResult : accessResultList) {
             arList.add((org.seasar.robot.db.exentity.AccessResult) accessResult);
             if (accessResult.getAccessResultData() != null) {
                 ardList.add((org.seasar.robot.db.exentity.AccessResultData) accessResult
@@ -226,7 +228,7 @@ public class DBDataServiceImpl implements DataService {
             accessResultDataBhv.batchUpdate(ardList);
         }
 
-        for (AccessResult accessResult : accessResultList) {
+        for (final AccessResult accessResult : accessResultList) {
             update(accessResult);
         }
     }

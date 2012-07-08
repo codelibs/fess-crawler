@@ -35,7 +35,7 @@ public class DBUrlQueueServiceImplTest extends S2TestCase {
     }
 
     public void test_insert_update_deleteTx() {
-        UrlQueue urlQueue = new UrlQueue();
+        final UrlQueue urlQueue = new UrlQueue();
         urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
         urlQueue.setDepth(1);
         urlQueue.setMethod("GET");
@@ -44,19 +44,19 @@ public class DBUrlQueueServiceImplTest extends S2TestCase {
 
         urlQueueService.insert(urlQueue);
 
-        UrlQueueCB cb = new UrlQueueCB();
+        final UrlQueueCB cb = new UrlQueueCB();
         cb.query().setSessionId_Equal("sessionId");
-        UrlQueue urlQueue2 = urlQueueService.urlQueueBhv.selectEntity(cb);
+        final UrlQueue urlQueue2 = urlQueueService.urlQueueBhv.selectEntity(cb);
         assertNotNull(urlQueue2);
 
         urlQueueService.delete("sessionId");
-        UrlQueue urlQueue3 = urlQueueService.urlQueueBhv.selectEntity(cb);
+        final UrlQueue urlQueue3 = urlQueueService.urlQueueBhv.selectEntity(cb);
         assertNull(urlQueue3);
 
     }
 
     public void test_insert_update_delete_multiTx() {
-        UrlQueue urlQueue = new UrlQueue();
+        final UrlQueue urlQueue = new UrlQueue();
         urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
         urlQueue.setDepth(1);
         urlQueue.setMethod("GET");
@@ -65,7 +65,7 @@ public class DBUrlQueueServiceImplTest extends S2TestCase {
 
         urlQueueService.insert(urlQueue);
 
-        UrlQueue urlQueue2 = new UrlQueue();
+        final UrlQueue urlQueue2 = new UrlQueue();
         urlQueue2.setCreateTime(new Timestamp(new Date().getTime()));
         urlQueue2.setDepth(1);
         urlQueue2.setMethod("GET");

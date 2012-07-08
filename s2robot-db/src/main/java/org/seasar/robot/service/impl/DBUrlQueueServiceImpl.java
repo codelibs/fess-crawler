@@ -67,7 +67,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     @Resource
     protected AccessResultBhv accessResultBhv;
 
-    private LinkedList<UrlQueue> getUrlQueueList(String sessionId) {
+    private LinkedList<UrlQueue> getUrlQueueList(final String sessionId) {
         LinkedList<UrlQueue> urlQueueList = URL_QUEUE_MAP.get(sessionId);
         if (urlQueueList == null) {
             synchronized (URL_QUEUE_MAP) {
@@ -84,9 +84,9 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#updateSessionId(java.lang.String, java.lang.String)
      */
-    public void updateSessionId(String oldSessionId, String newSessionId) {
+    public void updateSessionId(final String oldSessionId, final String newSessionId) {
         // not MT-safe
-        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(oldSessionId);
+        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(oldSessionId);
         // overwrite
         URL_QUEUE_MAP.put(newSessionId, urlQueueList);
         URL_QUEUE_MAP.remove(oldSessionId);
@@ -95,10 +95,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#add(java.lang.String, java.lang.String)
      */
-    public void add(String sessionId, String url) {
-        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
+    public void add(final String sessionId, final String url) {
+        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
+            final UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
             urlQueue.setUrl(url);
@@ -111,15 +111,15 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#insert(org.seasar.robot.entity.UrlQueue)
      */
-    public void insert(UrlQueue urlQueue) {
+    public void insert(final UrlQueue urlQueue) {
         urlQueueBhv.insert((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#delete(java.lang.String)
      */
-    public void delete(String sessionId) {
-        int count = urlQueueBhv.deleteBySessionId(sessionId);
+    public void delete(final String sessionId) {
+        final int count = urlQueueBhv.deleteBySessionId(sessionId);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Deleted urls in queue: " + count);
@@ -135,7 +135,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.seasar.robot.service.UrlQueueService#deleteAll()
      */
     public void deleteAll() {
-        int count = urlQueueBhv.deleteAll();
+        final int count = urlQueueBhv.deleteAll();
 
         if (logger.isDebugEnabled()) {
             logger.debug("Deleted urls in queue: " + count);
@@ -150,11 +150,11 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#offerAll(java.lang.String, java.util.List)
      */
-    public void offerAll(String sessionId, List<UrlQueue> newUrlQueueList) {
-        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
+    public void offerAll(final String sessionId, final List<UrlQueue> newUrlQueueList) {
+        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            List<org.seasar.robot.db.exentity.UrlQueue> targetList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
-            for (UrlQueue urlQueue : newUrlQueueList) {
+            final List<org.seasar.robot.db.exentity.UrlQueue> targetList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
+            for (final UrlQueue urlQueue : newUrlQueueList) {
                 if (isNewUrl(urlQueue, urlQueueList, true)) {
                     targetList
                             .add((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
@@ -164,12 +164,12 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    private LruHashMap<String, String> getVisitedUrlCache(String sessionId) {
+    private LruHashMap<String, String> getVisitedUrlCache(final String sessionId) {
         LruHashMap<String, String> visitedUrlMap = VISITED_URL_CACHE_MAP
                 .get(sessionId);
         if (visitedUrlMap == null) {
             visitedUrlMap = new LruHashMap<String, String>(visitedUrlCacheSize);
-            LruHashMap<String, String> urlMap = VISITED_URL_CACHE_MAP
+            final LruHashMap<String, String> urlMap = VISITED_URL_CACHE_MAP
                     .putIfAbsent(sessionId, visitedUrlMap);
             if (urlMap != null) {
                 visitedUrlMap = urlMap;
@@ -178,10 +178,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         return visitedUrlMap;
     }
 
-    protected boolean isNewUrl(UrlQueue urlQueue, List<UrlQueue> urlQueueList,
-            boolean cache) {
+    protected boolean isNewUrl(final UrlQueue urlQueue, final List<UrlQueue> urlQueueList,
+            final boolean cache) {
 
-        String url = urlQueue.getUrl();
+        final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL is a blank: " + url);
@@ -190,7 +190,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
 
         if (cache) {
-            String sessionId = urlQueue.getSessionId();
+            final String sessionId = urlQueue.getSessionId();
             // cache
             if (getVisitedUrlCache(sessionId).containsKey(url)) {
                 if (logger.isDebugEnabled()) {
@@ -202,7 +202,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
 
         // check it in queue
-        for (UrlQueue urlInQueue : urlQueueList) {
+        for (final UrlQueue urlInQueue : urlQueueList) {
             if (url.equals(urlInQueue.getUrl())) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("URL exists in a queue: " + url);
@@ -212,10 +212,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
 
         // check it in queue db
-        UrlQueueCB cb1 = new UrlQueueCB();
+        final UrlQueueCB cb1 = new UrlQueueCB();
         cb1.query().setUrl_Equal(url);
         cb1.query().setSessionId_Equal(urlQueue.getSessionId());
-        int count1 = urlQueueBhv.selectCount(cb1);
+        final int count1 = urlQueueBhv.selectCount(cb1);
         if (count1 > 0) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL exists in a queue db: " + url);
@@ -224,10 +224,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
 
         // check it in result
-        AccessResultCB cb2 = new AccessResultCB();
+        final AccessResultCB cb2 = new AccessResultCB();
         cb2.query().setUrl_Equal(url);
         cb2.query().setSessionId_Equal(urlQueue.getSessionId());
-        int count2 = accessResultBhv.selectCount(cb2);
+        final int count2 = accessResultBhv.selectCount(cb2);
         if (count2 > 0) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL exists in a result: " + url);
@@ -242,20 +242,20 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#poll(java.lang.String)
      */
-    public UrlQueue poll(String sessionId) {
-        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
+    public UrlQueue poll(final String sessionId) {
+        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             if (urlQueueList.isEmpty()) {
                 UrlQueueCB cb = new UrlQueueCB();
                 cb.paging(cacheSize, 1);
                 cb.query().setSessionId_Equal(sessionId);
-                List<org.seasar.robot.db.exentity.UrlQueue> uqList = urlQueueBhv
+                final List<org.seasar.robot.db.exentity.UrlQueue> uqList = urlQueueBhv
                         .selectPage(cb);
                 if (!uqList.isEmpty()) {
                     urlQueueList.addAll(uqList);
 
-                    List<Long> idList = new ArrayList<Long>(cacheSize);
-                    for (UrlQueue uq : uqList) {
+                    final List<Long> idList = new ArrayList<Long>(cacheSize);
+                    for (final UrlQueue uq : uqList) {
                         idList.add(uq.getId());
                     }
                     cb = new UrlQueueCB();
@@ -271,11 +271,11 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#saveSession(java.lang.String)
      */
-    public void saveSession(String sessionId) {
-        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
+    public void saveSession(final String sessionId) {
+        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            List<org.seasar.robot.db.exentity.UrlQueue> targetUrlQueueList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
-            for (UrlQueue urlQueue : urlQueueList) {
+            final List<org.seasar.robot.db.exentity.UrlQueue> targetUrlQueueList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
+            for (final UrlQueue urlQueue : urlQueueList) {
                 // clear id
                 urlQueue.setId(null);
                 targetUrlQueueList
@@ -289,8 +289,8 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#visited(UrlQueue)
      */
-    public boolean visited(UrlQueue urlQueue) {
-        LinkedList<UrlQueue> urlQueueList = getUrlQueueList(urlQueue
+    public boolean visited(final UrlQueue urlQueue) {
+        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(urlQueue
                 .getSessionId());
         synchronized (urlQueueList) {
             return !isNewUrl(urlQueue, urlQueueList, false);
@@ -300,20 +300,20 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.UrlQueueService#generateUrlQueues(java.lang.String, java.lang.String)
      */
-    public void generateUrlQueues(String previousSessionId,
+    public void generateUrlQueues(final String previousSessionId,
             final String sessionId) {
-        AccessResultCB cb = new AccessResultCB();
+        final AccessResultCB cb = new AccessResultCB();
         cb.query().setSessionId_Equal(previousSessionId);
         cb.query().addOrderBy_CreateTime_Asc();
-        int count = accessResultBhv.selectCount(cb);
-        List<org.seasar.robot.db.exentity.UrlQueue> urlQueueList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
+        final int count = accessResultBhv.selectCount(cb);
+        final List<org.seasar.robot.db.exentity.UrlQueue> urlQueueList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
         for (int i = 0; i * generatedUrlQueueSize < count; i++) {
             urlQueueList.clear();
             cb.paging(generatedUrlQueueSize, i + 1);
-            PagingResultBean<AccessResult> selectPage = accessResultBhv
+            final PagingResultBean<AccessResult> selectPage = accessResultBhv
                     .selectPage(cb);
-            for (AccessResult entity : selectPage) {
-                org.seasar.robot.db.exentity.UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
+            for (final AccessResult entity : selectPage) {
+                final org.seasar.robot.db.exentity.UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
                 urlQueue.setSessionId(sessionId);
                 urlQueue.setMethod(entity.getMethod());
                 urlQueue.setUrl(entity.getUrl());

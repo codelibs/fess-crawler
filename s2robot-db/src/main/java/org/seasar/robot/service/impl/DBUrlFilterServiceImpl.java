@@ -53,42 +53,42 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.lang.String)
      */
-    public void addIncludeUrlFilter(String sessionId, String url) {
+    public void addIncludeUrlFilter(final String sessionId, final String url) {
         addUrlFilter(sessionId, url, INCLUDE_FILTER_TYPE);
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.util.List)
      */
-    public void addIncludeUrlFilter(String sessionId, List<String> urlList) {
+    public void addIncludeUrlFilter(final String sessionId, final List<String> urlList) {
         addUrlFilter(sessionId, urlList, INCLUDE_FILTER_TYPE);
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.lang.String)
      */
-    public void addExcludeUrlFilter(String sessionId, String url) {
+    public void addExcludeUrlFilter(final String sessionId, final String url) {
         addUrlFilter(sessionId, url, EXCLUDE_FILTER_TYPE);
     }
 
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.util.List)
      */
-    public void addExcludeUrlFilter(String sessionId, List<String> urlList) {
+    public void addExcludeUrlFilter(final String sessionId, final List<String> urlList) {
         addUrlFilter(sessionId, urlList, EXCLUDE_FILTER_TYPE);
     }
 
-    protected void addUrlFilter(String sessionId, String url, String filterType) {
+    protected void addUrlFilter(final String sessionId, final String url, final String filterType) {
         try {
             Pattern.compile(url);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Invalid url filter pattern: " + url);
             }
             return;
         }
         clearCache();
-        UrlFilter urlFilter = new UrlFilter();
+        final UrlFilter urlFilter = new UrlFilter();
         urlFilter.setSessionId(sessionId);
         urlFilter.setUrl(url);
         urlFilter.setFilterType(filterType);
@@ -96,20 +96,20 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
         urlFilterBhv.insert(urlFilter);
     }
 
-    protected void addUrlFilter(String sessionId, List<String> urlList,
-            String filterType) {
+    protected void addUrlFilter(final String sessionId, final List<String> urlList,
+            final String filterType) {
         clearCache();
-        List<UrlFilter> urlFilterList = new ArrayList<UrlFilter>();
-        for (String url : urlList) {
+        final List<UrlFilter> urlFilterList = new ArrayList<UrlFilter>();
+        for (final String url : urlList) {
             try {
                 Pattern.compile(url);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (logger.isWarnEnabled()) {
                     logger.warn("Invalid url filter pattern: " + url);
                 }
                 continue;
             }
-            UrlFilter urlFilter = new UrlFilter();
+            final UrlFilter urlFilter = new UrlFilter();
             urlFilter.setSessionId(sessionId);
             urlFilter.setUrl(url);
             urlFilter.setFilterType(filterType);
@@ -122,7 +122,7 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#delete(java.lang.String)
      */
-    public void delete(String sessionId) {
+    public void delete(final String sessionId) {
         clearCache();
         urlFilterBhv.deleteBySessionId(sessionId);
     }
@@ -138,9 +138,9 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#getIncludeUrlPatternList(java.lang.String)
      */
-    public List<Pattern> getIncludeUrlPatternList(String sessionId) {
+    public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
         if (includeUrlPatternListCache == null) {
-            List<Pattern> urlPatternList = getUrlPatternList(sessionId,
+            final List<Pattern> urlPatternList = getUrlPatternList(sessionId,
                     INCLUDE_FILTER_TYPE);
             if (urlPatternList.size() < maxCacheSize) {
                 includeUrlPatternListCache = urlPatternList;
@@ -154,9 +154,9 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /* (non-Javadoc)
      * @see org.seasar.robot.service.impl.UrlFilterService#getExcludeUrlPatternList(java.lang.String)
      */
-    public List<Pattern> getExcludeUrlPatternList(String sessionId) {
+    public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
         if (excludeUrlPatternListCache == null) {
-            List<Pattern> urlPatternList = getUrlPatternList(sessionId,
+            final List<Pattern> urlPatternList = getUrlPatternList(sessionId,
                     EXCLUDE_FILTER_TYPE);
             if (urlPatternList.size() < maxCacheSize) {
                 excludeUrlPatternListCache = urlPatternList;
@@ -167,15 +167,15 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
         }
     }
 
-    protected List<Pattern> getUrlPatternList(String sessionId,
-            String filterType) {
-        UrlFilterCB cb = new UrlFilterCB();
+    protected List<Pattern> getUrlPatternList(final String sessionId,
+            final String filterType) {
+        final UrlFilterCB cb = new UrlFilterCB();
         cb.query().setSessionId_Equal(sessionId);
         cb.query().setFilterType_Equal(filterType);
-        List<UrlFilter> urlFilterList = urlFilterBhv.selectList(cb);
+        final List<UrlFilter> urlFilterList = urlFilterBhv.selectList(cb);
 
-        List<Pattern> urlPatternList = new ArrayList<Pattern>();
-        for (UrlFilter urlFilter : urlFilterList) {
+        final List<Pattern> urlPatternList = new ArrayList<Pattern>();
+        for (final UrlFilter urlFilter : urlFilterList) {
             urlPatternList.add(Pattern.compile(urlFilter.getUrl()));
         }
         return urlPatternList;
@@ -190,7 +190,7 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
         return maxCacheSize;
     }
 
-    public void setMaxCacheSize(int maxCacheSize) {
+    public void setMaxCacheSize(final int maxCacheSize) {
         this.maxCacheSize = maxCacheSize;
     }
 }

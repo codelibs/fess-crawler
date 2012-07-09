@@ -68,7 +68,7 @@ public class SmbClient extends AbstractS2RobotClient {
     public static final String SMB_AUTHENTICATIONS_PROPERTY =
         "smbAuthentications";
 
-    private static final String SMB_ACCESS_CONTROL_ENTRIES =
+    public static final String SMB_ACCESS_CONTROL_ENTRIES =
         "smbAccessControlEntries";
 
     protected String charset = Constants.UTF_8;

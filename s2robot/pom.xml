@@ -280,17 +280,17 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.2</version>
+      <version>4.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpmime</artifactId>
-      <version>4.2</version>
+      <version>4.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient-cache</artifactId>
-      <version>4.2</version>
+      <version>4.2.1</version>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
@@ -316,12 +316,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.4</version>
+      <version>1.6.6</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.4</version>
+      <version>1.6.6</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -344,7 +344,7 @@
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
-      <version>1.6.0</version>
+      <version>1.7.0</version>
     </dependency>
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
@@ -367,7 +367,7 @@
     <dependency>
       <groupId>com.ibm.icu</groupId>
       <artifactId>icu4j</artifactId>
-      <version>4.8.1.1</version>
+      <version>49.1</version>
     </dependency>
     <dependency>
       <groupId>org.samba.jcifs</groupId>

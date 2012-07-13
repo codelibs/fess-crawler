@@ -15,32 +15,33 @@
  */
 package org.seasar.robot.db.exbhv;
 
-import org.seasar.robot.db.cbean.AccessResultDataCB;
-import org.seasar.robot.dbflute.bhv.DeleteOption;
+import org.seasar.robot.db.bsbhv.BsAccessResultDataBhv;
 
 /**
  * The behavior of ACCESS_RESULT_DATA.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataBhv extends
         org.seasar.robot.db.bsbhv.BsAccessResultDataBhv {
-    public int deleteBySessionId(String sessionId) {
-        AccessResultDataCB cb = new AccessResultDataCB();
-        cb.query().queryAccessResult().setSessionId_Equal(sessionId);
-        return queryDelete(cb);
-        //        return outsideSql().execute(AccessResultDataBhv.PATH_deleteBySessionId,
-        //                sessionId);
+    public int deleteBySessionId(final String sessionId) {
+        // AccessResultDataCB cb = new AccessResultDataCB();
+        // cb.query().queryAccessResult().setSessionId_Equal(sessionId);
+        // return queryDelete(cb);
+        return outsideSql().execute(
+            BsAccessResultDataBhv.PATH_deleteBySessionId,
+            sessionId);
     }
 
     public int deleteAll() {
-        AccessResultDataCB cb = new AccessResultDataCB();
-        return varyingQueryDelete(cb,
-                new DeleteOption<AccessResultDataCB>().allowNonQueryDelete());
-        //        String pmb = null;
-        //        return outsideSql().execute(AccessResultDataBhv.PATH_deleteAll, pmb);
+        // AccessResultDataCB cb = new AccessResultDataCB();
+        // return varyingQueryDelete(cb,
+        // new DeleteOption<AccessResultDataCB>().allowNonQueryDelete());
+        final String pmb = null;
+        return outsideSql().execute(BsAccessResultDataBhv.PATH_deleteAll, pmb);
     }
 }

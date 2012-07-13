@@ -22,43 +22,44 @@ import org.seasar.robot.dbflute.bhv.core.CommonColumnAutoSetupper;
 
 /**
  * The basic implementation of the auto set-upper of common column.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class ImplementedCommonColumnAutoSetupper implements
         CommonColumnAutoSetupper {
 
     // =====================================================================================
-    //                                                                            Definition
-    //                                                                            ==========
+    // Definition
+    // ==========
     /** Log instance. */
     private static final Log _log = LogFactory
-            .getLog(ImplementedCommonColumnAutoSetupper.class);
+        .getLog(ImplementedCommonColumnAutoSetupper.class);
 
     // =====================================================================================
-    //                                                                                Set up
-    //                                                                                ======
+    // Set up
+    // ======
     /**
      * {@inheritDoc}
      */
-    public void handleCommonColumnOfInsertIfNeeds(Entity targetEntity) {
+    public void handleCommonColumnOfInsertIfNeeds(final Entity targetEntity) {
     }
 
     /**
      * {@inheritDoc}
      */
-    public void handleCommonColumnOfUpdateIfNeeds(Entity targetEntity) {
+    public void handleCommonColumnOfUpdateIfNeeds(final Entity targetEntity) {
     }
 
     // =====================================================================================
-    //                                                                               Logging
-    //                                                                               =======
+    // Logging
+    // =======
     protected boolean isInternalDebugEnabled() {
         return DBFluteConfig.getInstance().isInternalDebug()
-                && _log.isDebugEnabled();
+            && _log.isDebugEnabled();
     }
 
-    protected void logSettingUp(EntityDefinedCommonColumn entity, String keyword) {
+    protected void logSettingUp(final EntityDefinedCommonColumn entity, final String keyword) {
         _log.debug("...Setting up column columns of " + entity.getTableDbName()
-                + " before " + keyword);
+            + " before " + keyword);
     }
 }

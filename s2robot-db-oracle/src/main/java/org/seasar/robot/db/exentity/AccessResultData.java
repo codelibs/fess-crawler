@@ -24,9 +24,10 @@ import org.seasar.robot.RobotSystemException;
 /**
  * The entity of ACCESS_RESULT_DATA.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultData extends
@@ -36,22 +37,24 @@ public class AccessResultData extends
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.entity.AccessResultData#getDataAsString()
      */
     public String getDataAsString() {
-        byte[] data = getData();
+        final byte[] data = getData();
         if (data == null) {
             return null;
         }
-        String encoding = getEncoding();
+        final String encoding = getEncoding();
         try {
             return new String(data, StringUtil.isNotBlank(encoding) ? encoding
-                    : Constants.UTF_8);
-        } catch (UnsupportedEncodingException e) {
+                : Constants.UTF_8);
+        } catch (final UnsupportedEncodingException e) {
             try {
                 return new String(data, Constants.UTF_8);
-            } catch (UnsupportedEncodingException e1) {
+            } catch (final UnsupportedEncodingException e1) {
                 throw new RobotSystemException("Unexpected exception.", e1);
             }
         }

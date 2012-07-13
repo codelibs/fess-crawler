@@ -54,26 +54,29 @@ import org.seasar.robot.dbflute.util.DfReflectionUtil;
 public class DBFluteConfig {
 
     // ===================================================================================
-    //                                                                          Definition
-    //                                                                          ==========
+    // Definition
+    // ==========
     /** Log instance. */
     private static final Log _log = LogFactory.getLog(DBFluteConfig.class);
 
     /** The default package of outside SQL. */
     private static final String DEFAULT_OUTSIDE_SQL_PACKAGE = null;
 
-    /** The default value of whether it uses SQL Log Registry. The default value is false. */
+    /**
+     * The default value of whether it uses SQL Log Registry. The default value
+     * is false.
+     */
     private static final boolean DEFAULT_USE_SQL_LOG_REGISTRY = false;
 
     /** Singleton instance. */
     private static final DBFluteConfig _instance = new DBFluteConfig();
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     // -----------------------------------------------------
-    //                                         Configuration
-    //                                         -------------
+    // Configuration
+    // -------------
     // condition-bean or parameter-bean
     protected boolean _disableSelectIndex;
 
@@ -118,17 +121,17 @@ public class DBFluteConfig {
     protected boolean _internalDebug;
 
     // -----------------------------------------------------
-    //                                   Database Dependency
-    //                                   -------------------
+    // Database Dependency
+    // -------------------
 
     // -----------------------------------------------------
-    //                                                  Lock
-    //                                                  ----
+    // Lock
+    // ----
     protected boolean _locked = true; // at first locked
 
     // ===================================================================================
-    //                                                                         Constructor
-    //                                                                         ===========
+    // Constructor
+    // ===========
     /**
      * Constructor.
      */
@@ -138,19 +141,21 @@ public class DBFluteConfig {
 
         if (isCurrentDBDef(DBDef.Oracle)) {
             // date formatting has two points:
-            //   o the DATE type of Oracle has seconds  
-            //   o it uses a date literal of Oracle
+            // o the DATE type of Oracle has seconds
+            // o it uses a date literal of Oracle
             _logDateFormat = "timestamp $df:{yyyy-MM-dd HH:mm:ss}";
-            _logTimestampFormat = "timestamp $df:{"
-                    + DisplaySqlBuilder.DEFAULT_TIMESTAMP_FORMAT + "}";
+            _logTimestampFormat =
+                "timestamp $df:{" + DisplaySqlBuilder.DEFAULT_TIMESTAMP_FORMAT
+                    + "}";
         }
     }
 
     // ===================================================================================
-    //                                                                           Singleton
-    //                                                                           =========
+    // Singleton
+    // =========
     /**
      * Get singleton instance.
+     * 
      * @return Singleton instance. (NotNull)
      */
     public static DBFluteConfig getInstance() {
@@ -158,13 +163,13 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                                        Select Index
-    //                                                                        ============
+    // Select Index
+    // ============
     public boolean isDisableSelectIndex() {
         return _disableSelectIndex;
     }
 
-    public void setDisableSelectIndex(boolean disableSelectIndex) {
+    public void setDisableSelectIndex(final boolean disableSelectIndex) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting disableSelectIndex: " + disableSelectIndex);
@@ -173,8 +178,8 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                                       Invalid Query
-    //                                                                       =============
+    // Invalid Query
+    // =============
     public boolean isEmptyStringQueryAllowed() {
         return _emptyStringQueryAllowed;
     }
@@ -182,13 +187,15 @@ public class DBFluteConfig {
     /**
      * Set whether an empty string for query is allowed or not. {default: false}<br />
      * This configuration is only for ConditionBean.
-     * @param emptyStringQueryAllowed Determination.
+     * 
+     * @param emptyStringQueryAllowed
+     *            Determination.
      */
-    public void setEmptyStringQueryAllowed(boolean emptyStringQueryAllowed) {
+    public void setEmptyStringQueryAllowed(final boolean emptyStringQueryAllowed) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting emptyStringQueryAllowed: "
-                    + emptyStringQueryAllowed);
+                + emptyStringQueryAllowed);
         }
         _emptyStringQueryAllowed = emptyStringQueryAllowed;
     }
@@ -198,16 +205,19 @@ public class DBFluteConfig {
     }
 
     /**
-     * Set whether an empty string for parameter is allowed or not. {default: false}<br />
+     * Set whether an empty string for parameter is allowed or not. {default:
+     * false}<br />
      * This configuration is only for ParameterBean.
-     * @param emptyStringParameterAllowed Determination.
+     * 
+     * @param emptyStringParameterAllowed
+     *            Determination.
      */
     public void setEmptyStringParameterAllowed(
-            boolean emptyStringParameterAllowed) {
+            final boolean emptyStringParameterAllowed) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting emptyStringParameterAllowed: "
-                    + emptyStringParameterAllowed);
+                + emptyStringParameterAllowed);
         }
         _emptyStringParameterAllowed = emptyStringParameterAllowed;
     }
@@ -219,9 +229,11 @@ public class DBFluteConfig {
     /**
      * Set whether an invalid query is checked or not. {default: false}<br />
      * This configuration is only for ConditionBean.
-     * @param invalidQueryChecked Determination.
+     * 
+     * @param invalidQueryChecked
+     *            Determination.
      */
-    public void setInvalidQueryChecked(boolean invalidQueryChecked) {
+    public void setInvalidQueryChecked(final boolean invalidQueryChecked) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting invalidQueryChecked: " + invalidQueryChecked);
@@ -230,9 +242,9 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                                Query Log Level Info
-    //                                                                ====================
-    public void setQueryLogLevelInfo(boolean queryLogLevelInfo) {
+    // Query Log Level Info
+    // ====================
+    public void setQueryLogLevelInfo(final boolean queryLogLevelInfo) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting queryLogLevelInfo: " + queryLogLevelInfo);
@@ -243,13 +255,13 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                       Execute Status Log Level Info
-    //                                                       =============================
-    public void setExecuteStatusLogLevelInfo(boolean executeStatusLogLevelInfo) {
+    // Execute Status Log Level Info
+    // =============================
+    public void setExecuteStatusLogLevelInfo(final boolean executeStatusLogLevelInfo) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting executeStatusLogLevelInfo: "
-                    + executeStatusLogLevelInfo);
+                + executeStatusLogLevelInfo);
         }
         XLog.unlock();
         XLog.setExecuteStatusLogLevelInfo(executeStatusLogLevelInfo);
@@ -257,13 +269,13 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                                          Log Format
-    //                                                                          ==========
+    // Log Format
+    // ==========
     public String getLogDateFormat() {
         return _logDateFormat;
     }
 
-    public void setLogDateFormat(String logDateFormat) {
+    public void setLogDateFormat(final String logDateFormat) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting logDateFormat: " + logDateFormat);
@@ -275,7 +287,7 @@ public class DBFluteConfig {
         return _logTimestampFormat;
     }
 
-    public void setLogTimestampFormat(String logTimestampFormat) {
+    public void setLogTimestampFormat(final String logTimestampFormat) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting logTimestampFormat: " + logTimestampFormat);
@@ -284,25 +296,25 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                            Default Statement Config
-    //                                                            ========================
+    // Default Statement Config
+    // ========================
     public StatementConfig getDefaultStatementConfig() {
         return _defaultStatementConfig;
     }
 
-    public void setDefaultStatementConfig(StatementConfig defaultStatementConfig) {
+    public void setDefaultStatementConfig(final StatementConfig defaultStatementConfig) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting defaultStatementConfig: "
-                    + defaultStatementConfig);
+                + defaultStatementConfig);
         }
         _defaultStatementConfig = defaultStatementConfig;
     }
 
     // [DBFlute-0.9.0]
     // ===================================================================================
-    //                                                                  DataSource Handler
-    //                                                                  ==================
+    // DataSource Handler
+    // ==================
     /**
      * @return The handler of data source. (NullAllowed)
      */
@@ -311,9 +323,10 @@ public class DBFluteConfig {
     }
 
     /**
-     * @param dataSourceHandler The handler of data source. (NullAllowed)
+     * @param dataSourceHandler
+     *            The handler of data source. (NullAllowed)
      */
-    public void setDataSourceHandler(DataSourceHandler dataSourceHandler) {
+    public void setDataSourceHandler(final DataSourceHandler dataSourceHandler) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting dataSourceHandler: " + dataSourceHandler);
@@ -323,36 +336,38 @@ public class DBFluteConfig {
 
     // [DBFlute-0.9.7.6]
     // ===================================================================================
-    //                                                           PhysicalConnection Digger
-    //                                                           =========================
+    // PhysicalConnection Digger
+    // =========================
     /**
-     * @return The digger of physical connection. (NotNull: has a default instance)
+     * @return The digger of physical connection. (NotNull: has a default
+     *         instance)
      */
     public PhysicalConnectionDigger getPhysicalConnectionDigger() {
         return _physicalConnectionDigger;
     }
 
     /**
-     * @param physicalConnectionDigger The digger of physical connection. (NotNull)
+     * @param physicalConnectionDigger
+     *            The digger of physical connection. (NotNull)
      */
     public void setPhysicalConnectionDigger(
-            PhysicalConnectionDigger physicalConnectionDigger) {
+            final PhysicalConnectionDigger physicalConnectionDigger) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting physicalConnectionDigger: "
-                    + physicalConnectionDigger);
+                + physicalConnectionDigger);
         }
         if (physicalConnectionDigger == null) {
             throw new IllegalArgumentException(
-                    "The argument 'physicalConnectionDigger' should not be null.");
+                "The argument 'physicalConnectionDigger' should not be null.");
         }
         _physicalConnectionDigger = physicalConnectionDigger;
     }
 
     // [DBFlute-0.9.7.8]
     // ===================================================================================
-    //                                                                 SQLException Digger
-    //                                                                 ===================
+    // SQLException Digger
+    // ===================
     /**
      * @return The digger of SQLException. (NotNull: has a default instance)
      */
@@ -361,23 +376,24 @@ public class DBFluteConfig {
     }
 
     /**
-     * @param sqlExceptionDigger The digger of SQLException. (NotNull)
+     * @param sqlExceptionDigger
+     *            The digger of SQLException. (NotNull)
      */
-    public void setSQLExceptionDigger(SQLExceptionDigger sqlExceptionDigger) {
+    public void setSQLExceptionDigger(final SQLExceptionDigger sqlExceptionDigger) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting sqlExceptionDigger: " + sqlExceptionDigger);
         }
         if (sqlExceptionDigger == null) {
             throw new IllegalArgumentException(
-                    "The argument 'sqlExceptionDigger' should not be null.");
+                "The argument 'sqlExceptionDigger' should not be null.");
         }
         _sqlExceptionDigger = sqlExceptionDigger;
     }
 
     // ===================================================================================
-    //                                                                  OutsideSql Package
-    //                                                                  ==================
+    // OutsideSql Package
+    // ==================
     /**
      * @return The package of outside SQL. (NullAllowed)
      */
@@ -386,9 +402,10 @@ public class DBFluteConfig {
     }
 
     /**
-     * @param outsideSqlPackage The package of outside SQL. (NullAllowed)
+     * @param outsideSqlPackage
+     *            The package of outside SQL. (NullAllowed)
      */
-    public void setOutsideSqlPackage(String outsideSqlPackage) {
+    public void setOutsideSqlPackage(final String outsideSqlPackage) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting outsideSqlPackage: " + outsideSqlPackage);
@@ -398,13 +415,13 @@ public class DBFluteConfig {
 
     // [DBFlute-0.8.2]
     // ===================================================================================
-    //                                                                    SQL Log Registry
-    //                                                                    ================
+    // SQL Log Registry
+    // ================
     public boolean isUseSqlLogRegistry() {
         return _useSqlLogRegistry;
     }
 
-    public void setUseSqlLogRegistry(boolean useSqlLogRegistry) {
+    public void setUseSqlLogRegistry(final boolean useSqlLogRegistry) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting useSqlLogRegistry: " + useSqlLogRegistry);
@@ -414,8 +431,8 @@ public class DBFluteConfig {
 
     // [DBFlute-0.9.6.4]
     // ===================================================================================
-    //                                                                      Sequence Cache
-    //                                                                      ==============
+    // Sequence Cache
+    // ==============
     /**
      * @return The key generator of sequence cache. (NullAllowed)
      */
@@ -424,22 +441,23 @@ public class DBFluteConfig {
     }
 
     /**
-     * @param sequenceCacheKeyGenerator The key generator of sequence cache. (NullAllowed)
+     * @param sequenceCacheKeyGenerator
+     *            The key generator of sequence cache. (NullAllowed)
      */
     public void setSequenceCacheKeyGenerator(
-            SequenceCacheKeyGenerator sequenceCacheKeyGenerator) {
+            final SequenceCacheKeyGenerator sequenceCacheKeyGenerator) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting sequenceCacheKeyGenerator: "
-                    + sequenceCacheKeyGenerator);
+                + sequenceCacheKeyGenerator);
         }
         _sequenceCacheKeyGenerator = sequenceCacheKeyGenerator;
     }
 
     // [DBFlute-0.9.6.9]
     // ===================================================================================
-    //                                                                   SqlClause Creator
-    //                                                                   =================
+    // SqlClause Creator
+    // =================
     /**
      * @return The creator of SQL clause. (NullAllowed)
      */
@@ -448,9 +466,10 @@ public class DBFluteConfig {
     }
 
     /**
-     * @param sqlClauseCreator The creator of SQL clause. (NullAllowed)
+     * @param sqlClauseCreator
+     *            The creator of SQL clause. (NullAllowed)
      */
-    public void setSqlClauseCreator(SqlClauseCreator sqlClauseCreator) {
+    public void setSqlClauseCreator(final SqlClauseCreator sqlClauseCreator) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting sqlClauseCreator: " + sqlClauseCreator);
@@ -460,8 +479,8 @@ public class DBFluteConfig {
 
     // [DBFlute-0.9.7.6]
     // ===================================================================================
-    //                                                                 TableSqlName Filter
-    //                                                                 ===================
+    // TableSqlName Filter
+    // ===================
     /**
      * @return The SQL name filter for table. (NullAllowed)
      */
@@ -471,11 +490,13 @@ public class DBFluteConfig {
 
     /**
      * Set the SQL name filter for table. <br />
-     * This setting should be called before container's initialization.
-     * (its exact meaning is: before class loading of DBMeta for table)
-     * @param tableSqlNameFilter The SQL name filter for table. (NullAllowed)
+     * This setting should be called before container's initialization. (its
+     * exact meaning is: before class loading of DBMeta for table)
+     * 
+     * @param tableSqlNameFilter
+     *            The SQL name filter for table. (NullAllowed)
      */
-    public void setTableSqlNameFilter(SqlNameFilter tableSqlNameFilter) {
+    public void setTableSqlNameFilter(final SqlNameFilter tableSqlNameFilter) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting tableSqlNameFilter: " + tableSqlNameFilter);
@@ -485,34 +506,34 @@ public class DBFluteConfig {
 
     // [DBFlute-0.9.7.0]
     // ===================================================================================
-    //                                                                 OutsideSql Executor
-    //                                                                 ===================
+    // OutsideSql Executor
+    // ===================
     public OutsideSqlExecutorFactory getOutsideSqlExecutorFactory() {
         return _outsideSqlExecutorFactory;
     }
 
     public void setOutsideSqlExecutorFactory(
-            OutsideSqlExecutorFactory outsideSqlExecutorFactory) {
+            final OutsideSqlExecutorFactory outsideSqlExecutorFactory) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting outsideSqlExecutorFactory: "
-                    + outsideSqlExecutorFactory);
+                + outsideSqlExecutorFactory);
         }
         _outsideSqlExecutorFactory = outsideSqlExecutorFactory;
     }
 
     // ===================================================================================
-    //                                                                 Database Dependency
-    //                                                                 ===================
+    // Database Dependency
+    // ===================
 
     // ===================================================================================
-    //                                                                      Internal Debug
-    //                                                                      ==============
+    // Internal Debug
+    // ==============
     public boolean isInternalDebug() {
         return _internalDebug;
     }
 
-    public void setInternalDebug(boolean internalDebug) {
+    public void setInternalDebug(final boolean internalDebug) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting internalDebug: " + internalDebug);
@@ -521,24 +542,27 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                                          Value Type
-    //                                                                          ==========
+    // Value Type
+    // ==========
     /**
      * Register the basic value type. <br />
-     * This setting is shared per DBMS in the same class loader. 
-     * @param keyType The type as key. (NotNull)
-     * @param valueType The basic value type. (NotNull)
+     * This setting is shared per DBMS in the same class loader.
+     * 
+     * @param keyType
+     *            The type as key. (NotNull)
+     * @param valueType
+     *            The basic value type. (NotNull)
      */
-    public void registerBasicValueType(Class<?> keyType, ValueType valueType) {
+    public void registerBasicValueType(final Class<?> keyType, final ValueType valueType) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Registering basic valueType: " + keyType + " = "
-                    + valueType);
+                + valueType);
         }
         TnValueTypes.registerBasicValueType(currentDBDef(), keyType, valueType);
     }
 
-    public void removeBasicValueType(Class<?> keyType) {
+    public void removeBasicValueType(final Class<?> keyType) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Removing basic valueType: " + keyType);
@@ -549,20 +573,23 @@ public class DBFluteConfig {
     /**
      * Register the plug-in value type. <br />
      * This setting is shared per DBMS in the same class loader.
-     * @param keyName The name as key. (NotNull)
-     * @param valueType The plug-in value type. (NotNull)
+     * 
+     * @param keyName
+     *            The name as key. (NotNull)
+     * @param valueType
+     *            The plug-in value type. (NotNull)
      */
-    public void registerPluginValueType(String keyName, ValueType valueType) {
+    public void registerPluginValueType(final String keyName, final ValueType valueType) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Registering plug-in valueType: " + keyName + " = "
-                    + valueType);
+                + valueType);
         }
         TnValueTypes
-                .registerPluginValueType(currentDBDef(), keyName, valueType);
+            .registerPluginValueType(currentDBDef(), keyName, valueType);
     }
 
-    public void removePluginValueType(String keyName) {
+    public void removePluginValueType(final String keyName) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Removing plug-in valueType: keyName=" + keyName);
@@ -571,8 +598,8 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    //                                                                  Configuration Lock
-    //                                                                  ==================
+    // Configuration Lock
+    // ==================
     public boolean isLocked() {
         return _locked;
     }
@@ -595,31 +622,31 @@ public class DBFluteConfig {
         if (!isLocked()) {
             return;
         }
-        String msg = "The configuration of DBFlute is locked.";
+        final String msg = "The configuration of DBFlute is locked.";
         throw new IllegalDBFluteConfigAccessException(msg);
     }
 
     // ===================================================================================
-    //                                                                       Assist Helper
-    //                                                                       =============
+    // Assist Helper
+    // =============
     protected DBDef currentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
-    protected boolean isCurrentDBDef(DBDef currentDBDef) {
+    protected boolean isCurrentDBDef(final DBDef currentDBDef) {
         return DBCurrent.getInstance().isCurrentDBDef(currentDBDef);
     }
 
     // ===================================================================================
-    //                                                                   Implemented Class
-    //                                                                   =================
+    // Implemented Class
+    // =================
     // -----------------------------------------------------
-    //                                                Spring
-    //                                                ------
+    // Spring
+    // ------
     protected static class SpringDBCPDataSourceHandler implements
             DataSourceHandler {
 
-        public Connection getConnection(DataSource ds) throws SQLException {
+        public Connection getConnection(final DataSource ds) throws SQLException {
             final Connection conn = getConnectionFromUtils(ds);
             if (isConnectionTransactional(conn, ds)) {
                 return new NotClosingConnectionWrapper(conn);
@@ -628,14 +655,14 @@ public class DBFluteConfig {
             }
         }
 
-        public Connection getConnectionFromUtils(DataSource ds) {
+        public Connection getConnectionFromUtils(final DataSource ds) {
             throw new IllegalStateException(
-                    "This method is only for Spring Framework.");
+                "This method is only for Spring Framework.");
         }
 
-        public boolean isConnectionTransactional(Connection conn, DataSource ds) {
+        public boolean isConnectionTransactional(final Connection conn, final DataSource ds) {
             throw new IllegalStateException(
-                    "This method is only for Spring Framework.");
+                "This method is only for Spring Framework.");
         }
 
         @Override
@@ -645,46 +672,46 @@ public class DBFluteConfig {
     }
 
     // -----------------------------------------------------
-    //                                                Oracle
-    //                                                ------
+    // Oracle
+    // ------
     public static class ImplementedOracleAgent implements OracleAgent {
 
-        public Object toOracleDate(Timestamp timestamp) {
+        public Object toOracleDate(final Timestamp timestamp) {
             throw new UnsupportedOperationException(
-                    "This method is only for Oracle.");
+                "This method is only for Oracle.");
         }
 
-        public Object toOracleArray(Connection conn, String arrayTypeName,
-                Object arrayValue) throws SQLException {
+        public Object toOracleArray(final Connection conn, final String arrayTypeName,
+                final Object arrayValue) throws SQLException {
             throw new UnsupportedOperationException(
-                    "This method is only for Oracle.");
+                "This method is only for Oracle.");
         }
 
-        public Object toStandardArray(Object oracleArray) throws SQLException {
+        public Object toStandardArray(final Object oracleArray) throws SQLException {
             throw new UnsupportedOperationException(
-                    "This method is only for Oracle.");
+                "This method is only for Oracle.");
         }
 
-        public boolean isOracleArray(Object obj) {
+        public boolean isOracleArray(final Object obj) {
             throw new UnsupportedOperationException(
-                    "This method is only for Oracle.");
+                "This method is only for Oracle.");
         }
 
-        public Object toOracleStruct(Connection conn, String structTypeName,
-                Object[] attrs) throws SQLException {
+        public Object toOracleStruct(final Connection conn, final String structTypeName,
+                final Object[] attrs) throws SQLException {
             throw new UnsupportedOperationException(
-                    "This method is only for Oracle.");
+                "This method is only for Oracle.");
         }
 
-        public Object[] toStandardStructAttributes(Object oracleStruct)
+        public Object[] toStandardStructAttributes(final Object oracleStruct)
                 throws SQLException {
             throw new UnsupportedOperationException(
-                    "This method is only for Oracle.");
+                "This method is only for Oracle.");
         }
 
-        public boolean isOracleStruct(Object obj) {
+        public boolean isOracleStruct(final Object obj) {
             throw new UnsupportedOperationException(
-                    "This method is only for Oracle.");
+                "This method is only for Oracle.");
         }
 
         public PhysicalConnectionDigger getPhysicalConnectionDigger() {
@@ -702,8 +729,8 @@ public class DBFluteConfig {
 
     public static class ImplementedOracleArrayType extends OracleArrayType {
 
-        public ImplementedOracleArrayType(String arrayTypeName,
-                Class<?> elementType) {
+        public ImplementedOracleArrayType(final String arrayTypeName,
+                final Class<?> elementType) {
             super(arrayTypeName, elementType);
         }
 
@@ -715,8 +742,8 @@ public class DBFluteConfig {
 
     public static class ImplementedOracleStructType extends OracleStructType {
 
-        public ImplementedOracleStructType(String structTypeName,
-                Class<?> entityType) {
+        public ImplementedOracleStructType(final String structTypeName,
+                final Class<?> entityType) {
             super(structTypeName, entityType);
         }
 
@@ -727,15 +754,15 @@ public class DBFluteConfig {
     }
 
     // -----------------------------------------------------
-    //                                   Physical Connection
-    //                                   -------------------
+    // Physical Connection
+    // -------------------
     public static class ImplementedPhysicalConnectionDigger implements
             PhysicalConnectionDigger {
 
         public Connection digUp(Connection conn) throws SQLException {
             if (conn instanceof NotClosingConnectionWrapper) {
-                conn = ((NotClosingConnectionWrapper) conn)
-                        .getActualConnection();
+                conn =
+                    ((NotClosingConnectionWrapper) conn).getActualConnection();
             }
             conn = resolveS2DBCP(conn);
             conn = resolveCommonsDBCP(conn);
@@ -751,31 +778,32 @@ public class DBFluteConfig {
 
         protected Connection resolveCommonsDBCP(Connection conn) {
             if ("org.apache.commons.dbcp.PoolingDataSource$PoolGuardConnectionWrapper"
-                    .equals(conn.getClass().getName())) {
+                .equals(conn.getClass().getName())) {
                 conn = getFieldConnection(conn, "delegate");
             }
             if ("org.apache.commons.dbcp.PoolableConnection".equals(conn
-                    .getClass().getName())) {
+                .getClass()
+                .getName())) {
                 conn = getFieldConnection(conn, "_conn");
             }
             return conn;
         }
 
-        protected Connection getFieldConnection(Connection conn,
-                String fieldName) {
-            Field field = DfReflectionUtil.getWholeField(conn.getClass(),
-                    fieldName);
+        protected Connection getFieldConnection(final Connection conn,
+                final String fieldName) {
+            final Field field =
+                DfReflectionUtil.getWholeField(conn.getClass(), fieldName);
             return (Connection) DfReflectionUtil.getValueForcedly(field, conn);
         }
     }
 
     // -----------------------------------------------------
-    //                                          SQLException
-    //                                          ------------
+    // SQLException
+    // ------------
     public static class ImplementedSQLExceptionDigger implements
             SQLExceptionDigger {
 
-        public SQLException digUp(Throwable cause) {
+        public SQLException digUp(final Throwable cause) {
             SQLException found = resolveS2DBCP(cause);
             if (found != null) {
                 return found;
@@ -787,10 +815,10 @@ public class DBFluteConfig {
             return null;
         }
 
-        protected SQLException resolveS2DBCP(Throwable cause) {
+        protected SQLException resolveS2DBCP(final Throwable cause) {
             if (cause instanceof SQLRuntimeException) {
-                Throwable nestedCause = ((SQLRuntimeException) cause)
-                        .getCause();
+                final Throwable nestedCause =
+                    ((SQLRuntimeException) cause).getCause();
                 if (nestedCause instanceof SQLException) {
                     return (SQLException) nestedCause;
                 }
@@ -798,8 +826,8 @@ public class DBFluteConfig {
             return null;
         }
 
-        protected SQLException resolveDefault(Throwable cause) {
-            Throwable nestedCause = cause.getCause();
+        protected SQLException resolveDefault(final Throwable cause) {
+            final Throwable nestedCause = cause.getCause();
             if (nestedCause instanceof SQLException) {
                 return (SQLException) nestedCause;
             }

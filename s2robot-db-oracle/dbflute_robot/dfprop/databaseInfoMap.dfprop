@@ -17,7 +17,7 @@
 map:{
     ; driver = oracle.jdbc.driver.OracleDriver
     ; url = jdbc:oracle:thin:@localhost:1521:XE
-    ; schema =  
+    ; schema = s2robot
     ; user = s2robot
     ; password = s2robot
 
@@ -59,6 +59,8 @@ map:{
         #    ex) list:{PURCHASE ; contain:MEMBER}
         #
         #; tableTargetList = list:{FOO_TABLE ; prefix:FOO_ ; suffix:_FOO ; contain:_FOO_}
+        ; tableTargetList = list:{URL_QUEUE; URL_FILTER; ACCESS_RESULT; ACCESS_RESULT_DATA}
+
 
         # o columnExceptMap: (NotRequired - Default 'map:{}')
         #  If you want to exclude some columns in generating target,

@@ -22,21 +22,23 @@ import org.seasar.robot.dbflute.bhv.DeleteOption;
 /**
  * The behavior of URL_FILTER.
  * <p>
- * You can implement your original methods here.
- * This class remains when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlFilterBhv extends BsUrlFilterBhv {
-    public int deleteBySessionId(String sessionId) {
-        UrlFilterCB cb = new UrlFilterCB();
+    public int deleteBySessionId(final String sessionId) {
+        final UrlFilterCB cb = new UrlFilterCB();
         cb.query().setSessionId_Equal(sessionId);
         return queryDelete(cb);
     }
 
     public int deleteAll() {
-        UrlFilterCB cb = new UrlFilterCB();
-        return varyingQueryDelete(cb,
-                new DeleteOption<UrlFilterCB>().allowNonQueryDelete());
+        final UrlFilterCB cb = new UrlFilterCB();
+        return varyingQueryDelete(
+            cb,
+            new DeleteOption<UrlFilterCB>().allowNonQueryDelete());
     }
 }

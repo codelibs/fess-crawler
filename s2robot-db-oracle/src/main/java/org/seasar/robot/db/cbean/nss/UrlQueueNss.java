@@ -19,16 +19,17 @@ import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
 
 /**
  * The nest select set-upper of URL_QUEUE.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueNss {
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     protected UrlQueueCQ _query;
 
-    public UrlQueueNss(UrlQueueCQ query) {
+    public UrlQueueNss(final UrlQueueCQ query) {
         _query = query;
     }
 
@@ -37,7 +38,7 @@ public class UrlQueueNss {
     }
 
     // ===================================================================================
-    //                                                                     Nested Relation
-    //                                                                     ===============
+    // Nested Relation
+    // ===============
 
 }

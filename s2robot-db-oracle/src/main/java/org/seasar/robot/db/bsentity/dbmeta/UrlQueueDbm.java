@@ -31,13 +31,14 @@ import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
  * The DB meta of URL_QUEUE. (Singleton)
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    //                                                                           Singleton
-    //                                                                           =========
+    // Singleton
+    // =========
     private static final UrlQueueDbm _instance = new UrlQueueDbm();
 
     private UrlQueueDbm() {
@@ -48,24 +49,26 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                       Current DBDef
-    //                                                                       =============
+    // Current DBDef
+    // =============
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // ===================================================================================
-    //                                                                          Table Info
-    //                                                                          ==========
+    // Table Info
+    // ==========
     protected final String _tableDbName = "URL_QUEUE";
 
     protected final String _tablePropertyName = "urlQueue";
 
-    protected final TableSqlName _tableSqlName = new TableSqlName("URL_QUEUE",
-            _tableDbName);
+    protected final TableSqlName _tableSqlName = new TableSqlName(
+        "URL_QUEUE",
+        _tableDbName);
     {
-        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
-                .getTableSqlNameFilter());
+        _tableSqlName.xacceptFilter(DBFluteConfig
+            .getInstance()
+            .getTableSqlNameFilter());
     }
 
     public String getTableDbName() {
@@ -81,41 +84,167 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Column Info
-    //                                                                         ===========
-    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, true,
-            "id", Long.class, true, false, "NUMBER", 12, 0, false, null, null,
-            null, null, null);
+    // Column Info
+    // ===========
+    protected final ColumnInfo _columnId = cci(
+        "ID",
+        "ID",
+        null,
+        null,
+        true,
+        "id",
+        Long.class,
+        true,
+        false,
+        "NUMBER",
+        19,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnSessionId = cci("SESSION_ID",
-            "SESSION_ID", null, null, true, "sessionId", String.class, false,
-            false, "VARCHAR2", 20, 0, false, null, null, null, null, null);
+    protected final ColumnInfo _columnSessionId = cci(
+        "SESSION_ID",
+        "SESSION_ID",
+        null,
+        null,
+        true,
+        "sessionId",
+        String.class,
+        false,
+        false,
+        "VARCHAR2",
+        20,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnMethod = cci("METHOD", "METHOD", null,
-            null, true, "method", String.class, false, false, "VARCHAR2", 10,
-            0, false, null, null, null, null, null);
+    protected final ColumnInfo _columnMethod = cci(
+        "METHOD",
+        "METHOD",
+        null,
+        null,
+        true,
+        "method",
+        String.class,
+        false,
+        false,
+        "VARCHAR2",
+        10,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null, true,
-            "url", String.class, false, false, "VARCHAR2", 4000, 0, false,
-            null, null, null, null, null);
+    protected final ColumnInfo _columnUrl = cci(
+        "URL",
+        "URL",
+        null,
+        null,
+        true,
+        "url",
+        String.class,
+        false,
+        false,
+        "VARCHAR2",
+        4000,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnParentUrl = cci("PARENT_URL",
-            "PARENT_URL", null, null, false, "parentUrl", String.class, false,
-            false, "VARCHAR2", 4000, 0, false, null, null, null, null, null);
+    protected final ColumnInfo _columnParentUrl = cci(
+        "PARENT_URL",
+        "PARENT_URL",
+        null,
+        null,
+        false,
+        "parentUrl",
+        String.class,
+        false,
+        false,
+        "VARCHAR2",
+        4000,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnDepth = cci("DEPTH", "DEPTH", null, null,
-            true, "depth", Integer.class, false, false, "NUMBER", 5, 0, false,
-            null, null, null, null, null);
+    protected final ColumnInfo _columnDepth = cci(
+        "DEPTH",
+        "DEPTH",
+        null,
+        null,
+        true,
+        "depth",
+        Integer.class,
+        false,
+        false,
+        "NUMBER",
+        5,
+        0,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnLastModified = cci("LAST_MODIFIED",
-            "LAST_MODIFIED", null, null, false, "lastModified",
-            java.sql.Timestamp.class, false, false, "TIMESTAMP(6)", 11, 6,
-            false, null, null, null, null, null);
+    protected final ColumnInfo _columnLastModified = cci(
+        "LAST_MODIFIED",
+        "LAST_MODIFIED",
+        null,
+        null,
+        false,
+        "lastModified",
+        java.sql.Timestamp.class,
+        false,
+        false,
+        "TIMESTAMP(6)",
+        11,
+        6,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
-    protected final ColumnInfo _columnCreateTime = cci("CREATE_TIME",
-            "CREATE_TIME", null, null, true, "createTime",
-            java.sql.Timestamp.class, false, false, "TIMESTAMP(6)", 11, 6,
-            false, null, null, null, null, null);
+    protected final ColumnInfo _columnCreateTime = cci(
+        "CREATE_TIME",
+        "CREATE_TIME",
+        null,
+        null,
+        true,
+        "createTime",
+        java.sql.Timestamp.class,
+        false,
+        false,
+        "TIMESTAMP(6)",
+        11,
+        6,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
 
     public ColumnInfo columnId() {
         return _columnId;
@@ -149,8 +278,9 @@ public class UrlQueueDbm extends AbstractDBMeta {
         return _columnCreateTime;
     }
 
+    @Override
     protected List<ColumnInfo> ccil() {
-        List<ColumnInfo> ls = newArrayList();
+        final List<ColumnInfo> ls = newArrayList();
         ls.add(columnId());
         ls.add(columnSessionId());
         ls.add(columnMethod());
@@ -167,11 +297,11 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Unique Info
-    //                                                                         ===========
+    // Unique Info
+    // ===========
     // -----------------------------------------------------
-    //                                       Primary Element
-    //                                       ---------------
+    // Primary Element
+    // ---------------
     public UniqueInfo getPrimaryUniqueInfo() {
         return cpui(columnId());
     }
@@ -185,38 +315,42 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                       Relation Info
-    //                                                                       =============
+    // Relation Info
+    // =============
     // -----------------------------------------------------
-    //                                      Foreign Property
-    //                                      ----------------
+    // Foreign Property
+    // ----------------
 
     // -----------------------------------------------------
-    //                                     Referrer Property
-    //                                     -----------------
+    // Referrer Property
+    // -----------------
 
     // ===================================================================================
-    //                                                                        Various Info
-    //                                                                        ============
+    // Various Info
+    // ============
+    @Override
     public boolean hasSequence() {
         return true;
     }
 
+    @Override
     public String getSequenceName() {
         return "URL_QUEUE_SEQ";
     }
 
+    @Override
     public Integer getSequenceIncrementSize() {
         return 50;
     }
 
+    @Override
     public Integer getSequenceCacheSize() {
         return 50;
     }
 
     // ===================================================================================
-    //                                                                           Type Name
-    //                                                                           =========
+    // Type Name
+    // =========
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.UrlQueue";
     }
@@ -234,15 +368,15 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                         Object Type
-    //                                                                         ===========
+    // Object Type
+    // ===========
     public Class<UrlQueue> getEntityType() {
         return UrlQueue.class;
     }
 
     // ===================================================================================
-    //                                                                     Object Instance
-    //                                                                     ===============
+    // Object Instance
+    // ===============
     public Entity newEntity() {
         return newMyEntity();
     }
@@ -252,26 +386,26 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    //                                                                     Entity Handling
-    //                                                                     ===============  
-    public void acceptPrimaryKeyMap(Entity e, Map<String, ? extends Object> m) {
+    // Entity Handling
+    // ===============
+    public void acceptPrimaryKeyMap(final Entity e, final Map<String, ? extends Object> m) {
         doAcceptPrimaryKeyMap((UrlQueue) e, m, _epsMap);
     }
 
-    public Map<String, Object> extractPrimaryKeyMap(Entity e) {
+    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
         return doExtractPrimaryKeyMap(e);
     }
 
-    public Map<String, Object> extractAllColumnMap(Entity e) {
+    public Map<String, Object> extractAllColumnMap(final Entity e) {
         return doExtractAllColumnMap(e);
     }
 
     // ===================================================================================
-    //                                                               Entity Property Setup
-    //                                                               =====================
+    // Entity Property Setup
+    // =====================
     // It's very INTERNAL!
     protected final Map<String, Eps<UrlQueue>> _epsMap = StringKeyMap
-            .createAsFlexibleConcurrent();
+        .createAsFlexibleConcurrent();
     {
         setupEps(_epsMap, new EpsId(), columnId());
         setupEps(_epsMap, new EpsSessionId(), columnSessionId());
@@ -283,59 +417,59 @@ public class UrlQueueDbm extends AbstractDBMeta {
         setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
     }
 
-    public boolean hasEntityPropertySetupper(String propertyName) {
+    public boolean hasEntityPropertySetupper(final String propertyName) {
         return _epsMap.containsKey(propertyName);
     }
 
-    public void setupEntityProperty(String propertyName, Object entity,
-            Object value) {
+    public void setupEntityProperty(final String propertyName, final Object entity,
+            final Object value) {
         findEps(_epsMap, propertyName).setup((UrlQueue) entity, value);
     }
 
     public class EpsId implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setId(ctl(v));
         }
     }
 
     public static class EpsSessionId implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setSessionId((String) v);
         }
     }
 
     public static class EpsMethod implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setMethod((String) v);
         }
     }
 
     public static class EpsUrl implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setUrl((String) v);
         }
     }
 
     public static class EpsParentUrl implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setParentUrl((String) v);
         }
     }
 
     public class EpsDepth implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setDepth(cti(v));
         }
     }
 
     public static class EpsLastModified implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setLastModified((java.sql.Timestamp) v);
         }
     }
 
     public static class EpsCreateTime implements Eps<UrlQueue> {
-        public void setup(UrlQueue e, Object v) {
+        public void setup(final UrlQueue e, final Object v) {
             e.setCreateTime((java.sql.Timestamp) v);
         }
     }

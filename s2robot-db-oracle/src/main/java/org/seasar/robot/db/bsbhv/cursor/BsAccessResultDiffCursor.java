@@ -23,13 +23,14 @@ import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypes;
 
 /**
  * The cursor of AccessResultDiff.
+ * 
  * @author DBFlute(AutoGenerator)
  */
 public class BsAccessResultDiffCursor {
 
     // -----------------------------------------------------
-    //                                        Column DB Name
-    //                                        --------------
+    // Column DB Name
+    // --------------
     /** DB name of ID. */
     public static final String DB_NAME_ID = "ID";
 
@@ -67,12 +68,12 @@ public class BsAccessResultDiffCursor {
     public static final String DB_NAME_CREATE_TIME = "CREATE_TIME";
 
     // ===================================================================================
-    //                                                                           Attribute
-    //                                                                           =========
+    // Attribute
+    // =========
     /** Wrapped result set. */
     protected ResultSet _rs;
 
-    protected ValueType _vtId = vt(Long.class);
+    protected ValueType _vtId = vt(java.math.BigDecimal.class);
 
     protected ValueType _vtSessionId = vt(String.class);
 
@@ -90,43 +91,46 @@ public class BsAccessResultDiffCursor {
 
     protected ValueType _vtMimeType = vt(String.class);
 
-    protected ValueType _vtContentLength = vt(Long.class);
+    protected ValueType _vtContentLength = vt(java.math.BigDecimal.class);
 
     protected ValueType _vtExecutionTime = vt(Integer.class);
 
     protected ValueType _vtCreateTime = vt(java.sql.Timestamp.class);
 
-    protected ValueType vt(Class<?> type) {
+    protected ValueType vt(final Class<?> type) {
         return TnValueTypes.getValueType(type);
     }
 
-    protected ValueType vt(Class<?> type, String name) {
-        ValueType valueType = TnValueTypes.getPluginValueType(name);
+    protected ValueType vt(final Class<?> type, final String name) {
+        final ValueType valueType = TnValueTypes.getPluginValueType(name);
         return valueType != null ? valueType : vt(type);
     }
 
     // ===================================================================================
-    //                                                                         Constructor
-    //                                                                         ===========
+    // Constructor
+    // ===========
     public BsAccessResultDiffCursor() {
     }
 
     // ===================================================================================
-    //                                                                             Prepare
-    //                                                                             =======
+    // Prepare
+    // =======
     /**
      * Accept result set.
-     * @param rs Result set. (NotNull)
+     * 
+     * @param rs
+     *            Result set. (NotNull)
      */
-    public void accept(ResultSet rs) {
+    public void accept(final ResultSet rs) {
         this._rs = rs;
     }
 
     // ===================================================================================
-    //                                                                              Direct
-    //                                                                              ======
+    // Direct
+    // ======
     /**
      * Get wrapped result set.
+     * 
      * @return Wrapped result set. (NotNull)
      */
     public java.sql.ResultSet cursor() {
@@ -134,10 +138,11 @@ public class BsAccessResultDiffCursor {
     }
 
     // ===================================================================================
-    //                                                                            Delegate
-    //                                                                            ========
+    // Delegate
+    // ========
     /**
      * Move to next result.
+     * 
      * @return Is exist next result.
      * @throws java.sql.SQLException
      */
@@ -146,19 +151,21 @@ public class BsAccessResultDiffCursor {
     }
 
     // ===================================================================================
-    //                                                                  Type Safe Accessor
-    //                                                                  ==================
+    // Type Safe Accessor
+    // ==================
     /**
      * Get the value of id.
+     * 
      * @return The value of id. (NullAllowed)
      * @throws java.sql.SQLException
      */
-    public Long getId() throws SQLException {
-        return (Long) _vtId.getValue(_rs, DB_NAME_ID);
+    public java.math.BigDecimal getId() throws SQLException {
+        return (java.math.BigDecimal) _vtId.getValue(_rs, DB_NAME_ID);
     }
 
     /**
      * Get the value of sessionId.
+     * 
      * @return The value of sessionId. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -168,6 +175,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of ruleId.
+     * 
      * @return The value of ruleId. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -177,6 +185,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of url.
+     * 
      * @return The value of url. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -186,6 +195,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of parentUrl.
+     * 
      * @return The value of parentUrl. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -195,6 +205,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of status.
+     * 
      * @return The value of status. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -204,16 +215,19 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of httpStatusCode.
+     * 
      * @return The value of httpStatusCode. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public Integer getHttpStatusCode() throws SQLException {
-        return (Integer) _vtHttpStatusCode.getValue(_rs,
-                DB_NAME_HTTP_STATUS_CODE);
+        return (Integer) _vtHttpStatusCode.getValue(
+            _rs,
+            DB_NAME_HTTP_STATUS_CODE);
     }
 
     /**
      * Get the value of method.
+     * 
      * @return The value of method. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -223,6 +237,7 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of mimeType.
+     * 
      * @return The value of mimeType. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -232,15 +247,19 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of contentLength.
+     * 
      * @return The value of contentLength. (NullAllowed)
      * @throws java.sql.SQLException
      */
-    public Long getContentLength() throws SQLException {
-        return (Long) _vtContentLength.getValue(_rs, DB_NAME_CONTENT_LENGTH);
+    public java.math.BigDecimal getContentLength() throws SQLException {
+        return (java.math.BigDecimal) _vtContentLength.getValue(
+            _rs,
+            DB_NAME_CONTENT_LENGTH);
     }
 
     /**
      * Get the value of executionTime.
+     * 
      * @return The value of executionTime. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -250,12 +269,14 @@ public class BsAccessResultDiffCursor {
 
     /**
      * Get the value of createTime.
+     * 
      * @return The value of createTime. (NullAllowed)
      * @throws java.sql.SQLException
      */
     public java.sql.Timestamp getCreateTime() throws SQLException {
-        return (java.sql.Timestamp) _vtCreateTime.getValue(_rs,
-                DB_NAME_CREATE_TIME);
+        return (java.sql.Timestamp) _vtCreateTime.getValue(
+            _rs,
+            DB_NAME_CREATE_TIME);
     }
 
 }

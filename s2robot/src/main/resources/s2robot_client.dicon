@@ -33,8 +33,12 @@
 				</initMethod>
 			</component>
 		</arg>
+		<arg>5</arg><!-- timeToLive -->
+		<arg>@java.util.concurrent.TimeUnit@MINUTES</arg><!-- tunit -->
+		<!-- Increase max total connection to 200 -->
 		<property name="maxTotal">200</property>
-		<property name="defaultMaxPerRoute">200</property>
+		<!-- Increase default max connection per route to 20 -->
+		<property name="defaultMaxPerRoute">20</property>
 		<destroyMethod name="shutdown"></destroyMethod>
 	</component>
 

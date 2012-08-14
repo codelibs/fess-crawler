@@ -380,5 +380,10 @@
       <version>3.0-beta-4</version>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>jp.gr.java_conf.dangan</groupId>
+      <artifactId>jlha</artifactId>
+      <version>0.06-05</version>
+    </dependency>
   </dependencies>
 </project>

@@ -9,6 +9,7 @@
 	<component name="msPublisherExtractor" class="org.seasar.robot.extractor.impl.MsPublisherExtractor"/>
 	<component name="msVisioExtractor" class="org.seasar.robot.extractor.impl.MsVisioExtractor"/>
 	<component name="pdfExtractor" class="org.seasar.robot.extractor.impl.PdfExtractor"/>
+	<component name="lhaExtractor" class="org.seasar.robot.extractor.impl.LhaExtractor"/>
 	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
 	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
 	<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
@@ -54,6 +55,12 @@
 "application/pdf"
 			}</arg>
 			<arg>pdfExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>{
+"application/x-lharc"
+			}</arg>
+			<arg>lhaExtractor</arg>
 		</initMethod>
 		<initMethod name="addExtractor">
 			<arg>{

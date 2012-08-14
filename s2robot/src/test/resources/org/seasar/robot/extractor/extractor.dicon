@@ -20,6 +20,7 @@
 	</component>
 	<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
 	<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
+	<component name="lhaExtractor" class="org.seasar.robot.extractor.impl.LhaExtractor"/>
 	<component name="zipExtractor" class="org.seasar.robot.extractor.impl.ZipExtractor"/>
 	<component name="tarExtractor" class="org.seasar.robot.extractor.impl.TarExtractor"/>
 	<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
@@ -74,6 +75,10 @@
 		<initMethod name="addExtractor">
 			<arg>"application/zip"</arg>
 			<arg>zipExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
+			<arg>"application/x-lharc"</arg>
+			<arg>lhaExtractor</arg>
 		</initMethod>
 		<initMethod name="addExtractor">
 			<arg>"application/x-tar"</arg>

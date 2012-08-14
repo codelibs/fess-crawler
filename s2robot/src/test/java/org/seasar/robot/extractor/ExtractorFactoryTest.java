@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.entity.ExtractData;
+import org.seasar.robot.extractor.impl.LhaExtractor;
 import org.seasar.robot.extractor.impl.PdfExtractor;
 import org.seasar.robot.extractor.impl.TikaExtractor;
 
@@ -88,6 +89,9 @@ public class ExtractorFactoryTest extends S2TestCase {
 
         key = "application/pdf";
         assertTrue(extractorFactory.getExtractor(key) instanceof PdfExtractor);
+
+        key = "application/x-lharc";
+        assertTrue(extractorFactory.getExtractor(key) instanceof LhaExtractor);
 
     }
 }

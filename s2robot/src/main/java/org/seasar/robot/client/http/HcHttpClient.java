@@ -551,7 +551,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             } else {
                 final InputStream responseBodyStream = httpEntity.getContent();
                 final File outputFile =
-                    File.createTempFile("s2robot-CommonsHttpClient-", ".out");
+                    File.createTempFile("s2robot-HcHttpClient-", ".out");
                 DeferredFileOutputStream dfos = null;
                 try {
                     try {

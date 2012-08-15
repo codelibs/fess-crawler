@@ -15,6 +15,7 @@
  */
 package org.seasar.robot.helper.impl;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -71,7 +72,9 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         metadata.add(Metadata.RESOURCE_NAME_KEY, filename);
 
         try {
-            final MediaType mediaType = mimeTypes.detect(is, metadata);
+            final MediaType mediaType =
+                mimeTypes.detect(is == null || is.markSupported() ? is
+                    : new BufferedInputStream(is), metadata);
             return mediaType.getType() + "/" + mediaType.getSubtype();
         } catch (IOException e) {
             throw new MimeTypeException("Could not detect a content type.", e);

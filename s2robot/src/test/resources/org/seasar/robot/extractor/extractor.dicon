@@ -77,6 +77,10 @@
 			<arg>zipExtractor</arg>
 		</initMethod>
 		<initMethod name="addExtractor">
+			<arg>"application/x-lha"</arg>
+			<arg>lhaExtractor</arg>
+		</initMethod>
+		<initMethod name="addExtractor">
 			<arg>"application/x-lharc"</arg>
 			<arg>lhaExtractor</arg>
 		</initMethod>

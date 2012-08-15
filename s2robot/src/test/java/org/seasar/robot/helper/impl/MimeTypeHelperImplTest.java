@@ -124,8 +124,7 @@ public class MimeTypeHelperImplTest extends S2TestCase {
         assertEquals(
             "application/zip",
             mimeTypeHelper.getContentType(zipStream, "hoge.zip"));
-        assertEquals(
-            "application/x-lharc",
+        assertEquals("application/x-lharc", // TODO is it correct?
             mimeTypeHelper.getContentType(lhaStream, "hoge.lzh"));
 
         assertEquals(

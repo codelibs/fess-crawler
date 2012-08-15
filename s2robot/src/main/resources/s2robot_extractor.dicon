@@ -58,6 +58,7 @@
 		</initMethod>
 		<initMethod name="addExtractor">
 			<arg>{
+"application/x-lha",
 "application/x-lharc"
 			}</arg>
 			<arg>lhaExtractor</arg>

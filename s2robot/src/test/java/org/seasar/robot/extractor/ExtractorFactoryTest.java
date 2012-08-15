@@ -90,6 +90,8 @@ public class ExtractorFactoryTest extends S2TestCase {
         key = "application/pdf";
         assertTrue(extractorFactory.getExtractor(key) instanceof PdfExtractor);
 
+        key = "application/x-lha";
+        assertTrue(extractorFactory.getExtractor(key) instanceof LhaExtractor);
         key = "application/x-lharc";
         assertTrue(extractorFactory.getExtractor(key) instanceof LhaExtractor);
 

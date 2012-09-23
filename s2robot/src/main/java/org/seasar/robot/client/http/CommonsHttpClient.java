@@ -548,12 +548,10 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                     final Date d = parseLastModified(value);
                     if (d != null) {
                         responseData.setLastModified(d);
-                    } else {
-                        responseData.setLastModified(new Date()); // set current
-                                                                  // time
                     }
                 }
-            } else {
+            }
+            if (responseData.getLastModified() == null) {
                 responseData.setLastModified(new Date()); // set current time
             }
 

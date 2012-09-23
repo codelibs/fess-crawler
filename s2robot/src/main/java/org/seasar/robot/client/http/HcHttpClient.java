@@ -647,19 +647,17 @@ public class HcHttpClient extends AbstractS2RobotClient {
             }
             final Header lastModifiedHeader =
                 response.getFirstHeader("Last-Modified");
-            if (lastModifiedHeader == null) {
-                responseData.setLastModified(new Date()); // set current time
-            } else {
+            if (lastModifiedHeader != null) {
                 final String value = lastModifiedHeader.getValue();
                 if (StringUtil.isNotBlank(value)) {
                     final Date d = parseLastModified(value);
-                    if (d == null) {
-                        // set current time
-                        responseData.setLastModified(new Date());
-                    } else {
+                    if (d != null) {
                         responseData.setLastModified(d);
                     }
                 }
+            }
+            if (responseData.getLastModified() == null) {
+                responseData.setLastModified(new Date()); // set current time
             }
 
             return responseData;

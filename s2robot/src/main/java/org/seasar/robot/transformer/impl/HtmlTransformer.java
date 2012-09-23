@@ -493,6 +493,8 @@ public class HtmlTransformer extends AbstractTransformer {
             url = url.substring(0, idx);
         }
 
+        url = url.replaceAll(Pattern.quote("/./"), "/");
+
         idx = url.indexOf(";jsessionid");
         if (idx >= 0) {
             url = url.replaceFirst(";jsessionid=[a-zA-Z0-9\\.]*", "");

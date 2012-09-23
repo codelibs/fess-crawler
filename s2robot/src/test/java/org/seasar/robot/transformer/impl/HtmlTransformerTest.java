@@ -26,7 +26,7 @@ import org.seasar.robot.entity.ResultData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class HtmlTransformerTest extends S2TestCase {
     public HtmlTransformer htmlTransformer;
@@ -109,49 +109,70 @@ public class HtmlTransformerTest extends S2TestCase {
         assertEquals(url, htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html#hoge";
-        assertEquals("http://hoge/index.html",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html#";
-        assertEquals("http://hoge/index.html",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge";
-        assertEquals("http://hoge/index.html",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge.fuga";
-        assertEquals("http://hoge/index.html",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge?a=1";
-        assertEquals("http://hoge/index.html?a=1",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html?a=1",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge.fuga?a=1";
-        assertEquals("http://hoge/index.html?a=1",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html?a=1",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge?a=1&b=2";
-        assertEquals("http://hoge/index.html?a=1&b=2",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html?a=1&b=2",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge#HOGE";
-        assertEquals("http://hoge/index.html",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid=hoge?a=1#HOGE";
-        assertEquals("http://hoge/index.html?a=1",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html?a=1",
+            htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/./index.html";
+        assertEquals(
+            "http://hoge/index.html",
+            htmlTransformer.normalizeUrl(url));
+
+        url = "http://hoge/a/index.html";
+        assertEquals(
+            "http://hoge/a/index.html",
+            htmlTransformer.normalizeUrl(url));
 
         // invalid cases
         url = "http://hoge/index.html;jsessionid";
-        assertEquals("http://hoge/index.html;jsessionid",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html;jsessionid",
+            htmlTransformer.normalizeUrl(url));
 
         url = "http://hoge/index.html;jsessionid?a=1#HOGE";
-        assertEquals("http://hoge/index.html;jsessionid?a=1",
-                htmlTransformer.normalizeUrl(url));
+        assertEquals(
+            "http://hoge/index.html;jsessionid?a=1",
+            htmlTransformer.normalizeUrl(url));
 
     }
 
@@ -256,8 +277,10 @@ public class HtmlTransformerTest extends S2TestCase {
     }
 
     public void test_encodeUrl_valid() {
-        String url = "http://TEST.com/hoge/;jsessionid?p=id&test=テスト&u=18718&v=123%3d#test";
-        String result = "http://TEST.com/hoge/;jsessionid?p=id&test=%E3%83%86%E3%82%B9%E3%83%88&u=18718&v=123%3d#test";
+        String url =
+            "http://TEST.com/hoge/;jsessionid?p=id&test=テスト&u=18718&v=123%3d#test";
+        String result =
+            "http://TEST.com/hoge/;jsessionid?p=id&test=%E3%83%86%E3%82%B9%E3%83%88&u=18718&v=123%3d#test";
         assertEquals(result, htmlTransformer.encodeUrl(url, "UTF-8"));
 
         url = ".-*_:/+%=&?#[]@~!$'(),;";

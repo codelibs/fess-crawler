@@ -343,6 +343,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 clientConnectionManager,
                 connectionCheckInterval,
                 idleConnectionTimeout);
+        connectionMonitor.setDaemon(true);
         connectionMonitor.start();
 
         httpClient = defaultHttpClient;

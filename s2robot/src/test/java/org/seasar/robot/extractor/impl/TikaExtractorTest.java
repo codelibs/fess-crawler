@@ -112,7 +112,7 @@ public class TikaExtractorTest extends S2TestCase {
                 + StringUtils.join(extractData.getValues(key), "|"));
         }
         assertEquals("こめんと", extractData.getValues("Comments")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
         assertEquals("太郎", extractData.getValues("Author")[0]);
         assertEquals(
             "2009-06-26T21:41:00Z",
@@ -148,8 +148,8 @@ public class TikaExtractorTest extends S2TestCase {
                 + StringUtils.join(extractData.getValues(key), "|"));
         }
         assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
-        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
         assertEquals(
             "Microsoft Office Word",
             extractData.getValues("Application-Name")[0]);
@@ -199,8 +199,8 @@ public class TikaExtractorTest extends S2TestCase {
                 + StringUtils.join(extractData.getValues(key), "|"));
         }
         assertEquals("こめんと", extractData.getValues("Comments")[0]);
-        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
         assertEquals(
             "Microsoft Excel",
             extractData.getValues("Application-Name")[0]);
@@ -234,8 +234,8 @@ public class TikaExtractorTest extends S2TestCase {
                 + StringUtils.join(extractData.getValues(key), "|"));
         }
         assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
-        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
         assertEquals(
             "Microsoft Excel",
             extractData.getValues("Application-Name")[0]);
@@ -277,8 +277,8 @@ public class TikaExtractorTest extends S2TestCase {
         assertEquals("2", extractData.getValues("Revision-Number")[0]);
         assertEquals("こめんと", extractData.getValues("Comments")[0]);
         assertEquals("1", extractData.getValues("Slide-Count")[0]);
-        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
         assertEquals(
             "Microsoft PowerPoint",
             extractData.getValues("Application-Name")[0]);
@@ -317,8 +317,8 @@ public class TikaExtractorTest extends S2TestCase {
         assertEquals("2", extractData.getValues("Revision-Number")[0]);
         assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
         assertEquals("1", extractData.getValues("Slide-Count")[0]);
-        assertEquals("sugaya", extractData.getValues("Last-Author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("subject")[0]);
+        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
+        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
         assertEquals(
             "Microsoft Office PowerPoint",
             extractData.getValues("Application-Name")[0]);

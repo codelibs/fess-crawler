@@ -301,7 +301,7 @@
     <dependency>
       <groupId>net.sourceforge.nekohtml</groupId>
       <artifactId>nekohtml</artifactId>
-      <version>1.9.15</version>
+      <version>1.9.17</version>
     </dependency>
     <dependency>
       <groupId>xalan</groupId>
@@ -316,12 +316,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.6</version>
+      <version>1.7.2</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.6</version>
+      <version>1.7.2</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -332,7 +332,7 @@
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-parsers</artifactId>
-      <version>1.1</version>
+      <version>1.2</version>
       <exclusions>
         <!-- netcdf causes a problem.. -->
         <exclusion>
@@ -344,7 +344,7 @@
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
-      <version>1.7.0</version>
+      <version>1.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
@@ -367,7 +367,7 @@
     <dependency>
       <groupId>com.ibm.icu</groupId>
       <artifactId>icu4j</artifactId>
-      <version>49.1</version>
+      <version>50.1</version>
     </dependency>
     <dependency>
       <groupId>org.samba.jcifs</groupId>

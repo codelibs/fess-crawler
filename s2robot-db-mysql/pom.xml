@@ -4,7 +4,7 @@
   <groupId>org.seasar.robot</groupId>
   <artifactId>s2-robot-db-mysql</artifactId>
   <packaging>jar</packaging>
-  <version>0.5.5</version>
+  <version>0.5.6-SNAPSHOT</version>
   <name>s2-robot-db-mysql</name>
   <build>
     <pluginManagement>
@@ -94,7 +94,7 @@
           <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.14</version>
+            <version>5.1.21</version>
           </dependency>
         </dependencies>
         <configuration>
@@ -188,7 +188,7 @@
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.14</version>
+      <version>5.1.21</version>
     </dependency>
     <dependency>
       <groupId>org.seasar.robot</groupId>

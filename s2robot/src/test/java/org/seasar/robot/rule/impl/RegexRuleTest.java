@@ -22,7 +22,7 @@ import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class RegexRuleTest extends S2TestCase {
     @Override
@@ -93,8 +93,21 @@ public class RegexRuleTest extends S2TestCase {
         assertFalse(regexRule.match(getTestData4()));
     }
 
+    public void test_match_httpStatus() {
+        RegexRule regexRule = new RegexRule();
+        regexRule.defaultRule = false;
+        regexRule.allRequired = true;
+        regexRule.addRule("httpStatusCode", Pattern.compile("200"));
+
+        assertTrue(regexRule.match(getTestData1()));
+        assertTrue(regexRule.match(getTestData2()));
+        assertFalse(regexRule.match(getTestData3()));
+        assertFalse(regexRule.match(getTestData4()));
+    }
+
     private ResponseData getTestData1() {
         ResponseData responseData = new ResponseData();
+        responseData.setHttpStatusCode(200);
         responseData.setUrl("http://example.com/");
         responseData.setMimeType("text/html");
         return responseData;
@@ -102,6 +115,7 @@ public class RegexRuleTest extends S2TestCase {
 
     private ResponseData getTestData2() {
         ResponseData responseData = new ResponseData();
+        responseData.setHttpStatusCode(200);
         responseData.setUrl("https://example.com/");
         responseData.setMimeType("text/html");
         return responseData;
@@ -109,6 +123,7 @@ public class RegexRuleTest extends S2TestCase {
 
     private ResponseData getTestData3() {
         ResponseData responseData = new ResponseData();
+        responseData.setHttpStatusCode(404);
         responseData.setUrl("http://example.com/");
         responseData.setMimeType("text/plain");
         return responseData;
@@ -116,6 +131,7 @@ public class RegexRuleTest extends S2TestCase {
 
     private ResponseData getTestData4() {
         ResponseData responseData = new ResponseData();
+        responseData.setHttpStatusCode(404);
         responseData.setUrl("https://example.com/");
         responseData.setMimeType("text/plain");
         return responseData;

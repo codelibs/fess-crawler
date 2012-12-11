@@ -205,20 +205,29 @@ public class S2RobotThread implements Runnable {
                             robotContext,
                             urlQueue);
                     } catch (ChildUrlsException e) {
-                        final Set<String> childUrlSet = e.getChildUrlList();
-                        log(
-                            logHelper,
-                            LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
-                            robotContext,
-                            urlQueue,
-                            childUrlSet);
-                        synchronized (robotContext.accessCountLock) {
-                            // add an url
-                            storeChildUrls(
-                                childUrlSet,
-                                urlQueue.getUrl(),
-                                urlQueue.getDepth() == null ? 1 : urlQueue
-                                    .getDepth() + 1);
+                        try {
+                            final Set<String> childUrlSet = e.getChildUrlList();
+                            log(
+                                logHelper,
+                                LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
+                                robotContext,
+                                urlQueue,
+                                childUrlSet);
+                            synchronized (robotContext.accessCountLock) {
+                                // add an url
+                                storeChildUrls(
+                                    childUrlSet,
+                                    urlQueue.getUrl(),
+                                    urlQueue.getDepth() == null ? 1 : urlQueue
+                                        .getDepth() + 1);
+                            }
+                        } catch (Exception e1) {
+                            log(
+                                logHelper,
+                                LogType.CRAWLING_EXCETPION,
+                                robotContext,
+                                urlQueue,
+                                e1);
                         }
                         if (noWaitOnFolder) {
                             continue;

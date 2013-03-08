@@ -29,8 +29,6 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.apache.pdfbox.util.PDFTextStripper;
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
@@ -96,6 +94,7 @@ public class PdfExtractor implements Extractor {
             stripper.writeText(document, output);
             output.flush();
             ExtractData extractData = new ExtractData(baos.toString(encoding));
+            extractMetadata(document, extractData);
             return extractData;
         } catch (Exception e) {
             throw new ExtractException(e);
@@ -110,29 +109,15 @@ public class PdfExtractor implements Extractor {
         }
     }
 
-    private void extractMetadata(PDDocument document, ExtractData extractData)
-            throws TikaException {
+    private void extractMetadata(PDDocument document, ExtractData extractData) {
         PDDocumentInformation info = document.getDocumentInformation();
-        addMetadata(extractData, Metadata.TITLE, info.getTitle());
-        addMetadata(extractData, Metadata.AUTHOR, info.getAuthor());
-        addMetadata(extractData, Metadata.CREATOR, info.getCreator());
-        addMetadata(extractData, Metadata.KEYWORDS, info.getKeywords());
-        addMetadata(extractData, "producer", info.getProducer());
-        addMetadata(extractData, Metadata.SUBJECT, info.getSubject());
-        addMetadata(extractData, "trapped", info.getTrapped());
-        try {
-            addMetadata(extractData, "created", info.getCreationDate());
-        } catch (IOException e) {
-            // Invalid date format, just ignore
+        if (info == null) {
+            return;
         }
-        try {
-            Calendar modified = info.getModificationDate();
-            addMetadata(
-                extractData,
-                Metadata.LAST_MODIFIED.toString(),
-                modified);
-        } catch (IOException e) {
-            // Invalid date format, just ignore
+
+        for (String key : info.getMetadataKeys()) {
+            String value = info.getCustomMetadataValue(key);
+            addMetadata(extractData, key, value);
         }
     }
 

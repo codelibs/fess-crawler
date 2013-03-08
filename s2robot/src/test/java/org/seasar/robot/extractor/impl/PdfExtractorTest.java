@@ -44,10 +44,16 @@ public class PdfExtractorTest extends S2TestCase {
 
     public void test_getText() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
-        String content = pdfExtractor.getText(in, null).getContent();
+        ExtractData extractData = pdfExtractor.getText(in, null);
+        String content = extractData.getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+        assertEquals("Writer", extractData.getValues("Creator")[0]);
+        assertEquals("OpenOffice.org 3.0", extractData.getValues("Producer")[0]);
+        assertEquals(
+            "D:20090627222631+09'00'",
+            extractData.getValues("CreationDate")[0]);
     }
 
     public void test_getText_pass() {

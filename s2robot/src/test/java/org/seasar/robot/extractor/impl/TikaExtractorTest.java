@@ -158,7 +158,7 @@ public class TikaExtractorTest extends S2TestCase {
         assertEquals(
             "3",
             extractData.getValues("Character-Count-With-Spaces")[0]);
-        assertEquals("2010-07-22T00:21:00Z", extractData.getValues("date")[0]);
+        assertEquals("2012-05-18T22:44:00Z", extractData.getValues("date")[0]);
         assertEquals("2", extractData.getValues("Total-Time")[0]);
         assertEquals("太郎", extractData.getValues("creator")[0]);
         assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
@@ -244,7 +244,7 @@ public class TikaExtractorTest extends S2TestCase {
             "2012-05-18T22:50:00Z",
             extractData.getValues("Last-Modified")[0]);
         assertEquals("14.0300", extractData.getValues("Application-Version")[0]);
-        assertEquals("1997-01-08T22:48:59Z", extractData.getValues("date")[0]);
+        assertEquals("2012-05-18T22:50:00Z", extractData.getValues("date")[0]);
         assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
         assertEquals("太郎", extractData.getValues("creator")[0]);
         assertEquals(
@@ -327,7 +327,7 @@ public class TikaExtractorTest extends S2TestCase {
             "2012-05-18T22:47:45Z",
             extractData.getValues("Last-Modified")[0]);
         assertEquals("14.0000", extractData.getValues("Application-Version")[0]);
-        assertEquals("2009-06-26T21:44:55Z", extractData.getValues("date")[0]);
+        assertEquals("2012-05-18T22:47:45Z", extractData.getValues("date")[0]);
         assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
         assertEquals("太郎", extractData.getValues("creator")[0]);
         assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);

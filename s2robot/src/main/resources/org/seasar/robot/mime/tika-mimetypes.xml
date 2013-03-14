@@ -475,6 +475,7 @@
     <glob pattern="*.owl"/>
     <glob pattern="^rdf$" isregex="true"/>
     <glob pattern="^owl$" isregex="true"/>
+    <glob pattern="*.xmp"/>
   </mime-type>
 
   <mime-type type="application/reginfo+xml">
@@ -1349,11 +1350,6 @@
     <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
-  <mime-type type="application/vnd.ms-excel.template.macroenabled.12">
-    <glob pattern="*.xltm"/>
-    <sub-class-of type="application/x-tika-ooxml"/>
-  </mime-type>
-
   <mime-type type="application/vnd.ms-fontobject">
     <glob pattern="*.eot"/>
   </mime-type>
@@ -1793,11 +1789,6 @@
 
   <mime-type type="application/vnd.openxmlformats-officedocument.presentationml.slide">
     <glob pattern="*.sldx"/>
-    <sub-class-of type="application/x-tika-ooxml"/>
-  </mime-type>
-
-  <mime-type type="application/vnd.openxmlformats-officedocument.presentationml.slideshow">
-    <glob pattern="*.ppsx"/>
     <sub-class-of type="application/x-tika-ooxml"/>
   </mime-type>
 
@@ -2720,7 +2711,9 @@
   <mime-type type="application/x-hdf">
     <_comment>Hierarchical Data Format File</_comment>
     <magic priority="50">
+      <!-- HDF4 -->
       <match value="0x0e031301" type="big32" offset="0"/>
+      <!-- HDF5 -->
       <match value="\211HDF\r\n\032" type="string" offset="0"/>
     </magic>
     <glob pattern="*.hdf"/>
@@ -3730,7 +3723,18 @@
   <mime-type type="image/ief">
     <glob pattern="*.ief"/>
   </mime-type>
-  <mime-type type="image/jp2"/>
+
+  <mime-type type="image/jp2">
+    <sub-class-of type="image/x-jp2-container" />
+    <acronym>JP2</acronym>
+    <_comment>JPEG 2000 Part 1 (JP2)</_comment>
+    <magic priority="50">
+      <match value="0x0000000C6A5020200D0A870A" type="string" offset="0">
+        <match value="0x6a703220" type="string" offset="20"/>
+      </match>
+    </magic>
+    <glob pattern="*.jp2"/>
+  </mime-type>
 
   <mime-type type="image/jpeg">
     <acronym>JPEG</acronym>
@@ -3748,9 +3752,44 @@
     <glob pattern="*.jfi"/>
   </mime-type>
 
-  <mime-type type="image/jpm"/>
-  <mime-type type="image/jpx"/>
+  <mime-type type="image/jpm">
+    <alias type="video/jpm"/>
+    <sub-class-of type="image/x-jp2-container" />
+    <acronym>JP2</acronym>
+    <_comment>JPEG 2000 Part 6 (JPM)</_comment>
+    <magic priority="50">
+      <match value="0x0000000C6A5020200D0A870A" type="string" offset="0">
+        <match value="0x6a706d20" type="string" offset="20"/>
+      </match>
+    </magic>
+    <glob pattern="*.jpm"/>
+    <glob pattern="*.jpgm"/>
+  </mime-type>
+
+  <mime-type type="image/jpx">
+    <sub-class-of type="image/x-jp2-container" />
+    <acronym>JP2</acronym>
+    <_comment>JPEG 2000 Part 2 (JPX)</_comment>
+    <magic priority="50">
+      <match value="0x0000000C6A5020200D0A870A" type="string" offset="0">
+        <match value="0x6a707820" type="string" offset="20"/>
+      </match>
+    </magic>
+    <glob pattern="*.jpf"/>
+  </mime-type>
+
   <mime-type type="image/naplps"/>
+
+  <mime-type type="image/nitf">
+    <alias type="image/ntf"/>
+    <magic priority="50">
+      <match value="NITF01.10" type="string" offset="0"/>
+      <match value="NITF02.000" type="string" offset="0"/>
+      <match value="NITF02.100" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.ntf"/>
+    <glob pattern="*.nitf"/>
+  </mime-type>
 
   <mime-type type="image/png">
     <acronym>PNG</acronym>
@@ -3904,6 +3943,21 @@
       <match value="\000\000\001\000" type="string" offset="0"/>
     </magic>
     <glob pattern="*.ico"/>
+  </mime-type>
+
+  <mime-type type="image/x-jp2-codestream">
+    <_comment>JPEG 2000 Codestream</_comment>
+    <magic priority="25">
+      <match value="0xff4fff51" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.j2c"/>
+  </mime-type>
+
+  <mime-type type="image/x-jp2-container">
+    <_comment>JPEG 2000 Container Format</_comment>
+    <magic priority="50">
+      <match value="0x0000000C6A5020200D0A870A" type="string" offset="0"/>
+    </magic>
   </mime-type>
 
   <mime-type type="image/x-niff">
@@ -4144,8 +4198,12 @@
       <match value="Return-Path:" type="string" offset="0"/>
       <match value="From:" type="string" offset="0"/>
       <match value="Received:" type="string" offset="0"/>
-      <match type="string" value="Message-ID:" offset="0"/>
-      <match type="string" value="Date:" offset="0"/>
+      <match value="Message-ID:" type="string" offset="0"/>
+      <match value="Date:" type="string" offset="0"/>
+      <match value="MIME-Version:" type="string" offset="0"/>
+      <match value="X-Notes-Item:" type="string" offset="0">
+        <match value="Message-ID:" type="string" offset="0:8192"/>
+      </match>
     </magic>
     <glob pattern="*.eml"/>
     <glob pattern="*.mime"/>
@@ -4584,6 +4642,18 @@
     <sub-class-of type="text/plain"/>
   </mime-type>
 
+  <mime-type type="text/x-clojure">
+    <_comment>Clojure source code</_comment>
+    <glob pattern="*.clj"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-coffeescript">
+    <_comment>CoffeeScript source code</_comment>
+    <glob pattern="*.coffee"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
   <mime-type type="text/x-csrc">
     <alias type="text/x-c"/>
     <_comment>C source code</_comment>
@@ -4678,6 +4748,12 @@
     <sub-class-of type="text/plain"/>
   </mime-type>
 
+  <mime-type type="text/x-go">
+    <_comment>Go source code</_comment>
+    <glob pattern="*.go"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
   <mime-type type="text/x-groovy">
     <_comment>Groovy source code</_comment>
     <glob pattern="*.groovy"/>
@@ -4697,6 +4773,12 @@
     <sub-class-of type="text/plain"/>
   </mime-type>
 
+  <mime-type type="text/x-ini">
+    <_comment>Configuration file</_comment>
+    <glob pattern="*.ini"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
   <mime-type type="text/x-java-source">
     <_comment>Java source code</_comment>
     <alias type="text/x-java" />
@@ -4713,6 +4795,12 @@
       <match value="&lt;%--" type="string" offset="0"/>
     </magic>
     <glob pattern="*.jsp"/>
+  </mime-type>
+
+  <mime-type type="text/x-less">
+    <_comment>LESS source code</_comment>
+    <glob pattern="*.less"/>
+    <sub-class-of type="text/plain"/>
   </mime-type>
 
   <mime-type type="text/x-lex">
@@ -4760,6 +4848,13 @@
   <mime-type type="text/x-objcsrc">
     <_comment>Objective-C source code</_comment>
     <glob pattern="*.m"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-ocaml">
+    <_comment>Ocaml source code</_comment>
+    <glob pattern="*.ocaml"/>
+    <glob pattern="*.mli"/>
     <sub-class-of type="text/plain"/>
   </mime-type>
 
@@ -4825,6 +4920,14 @@
     <sub-class-of type="text/plain"/>
   </mime-type>
 
+  <mime-type type="text/x-rst">
+    <_comment>reStructuredText source code</_comment>
+    <glob pattern="*.rest"/>
+    <glob pattern="*.rst"/>
+    <glob pattern="*.restx"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
   <mime-type type="text/x-rexx">
     <_comment>Rexx source code</_comment>
     <glob pattern="*.rexx"/>
@@ -4834,6 +4937,12 @@
   <mime-type type="text/x-ruby">
     <_comment>Ruby source code</_comment>
     <glob pattern="*.rb"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-scala">
+    <_comment>Scala source code</_comment>
+    <glob pattern="*.scala"/>
     <sub-class-of type="text/plain"/>
   </mime-type>
 
@@ -4857,6 +4966,12 @@
 
   <mime-type type="text/x-setext">
     <glob pattern="*.etx"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-stsrc">
+    <_comment>Smalltalk source code</_comment>
+    <glob pattern="*.st"/>
     <sub-class-of type="text/plain"/>
   </mime-type>
 
@@ -4919,9 +5034,24 @@
     <sub-class-of type="text/plain"/>
   </mime-type>
 
+  <mime-type type="text/x-web-markdown">
+    <_comment>Markdown source code</_comment>
+    <glob pattern="*.md"/>
+    <glob pattern="*.mdtext"/>
+    <glob pattern="*.mkd"/>
+    <glob pattern="*.markdown"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
   <mime-type type="text/x-yacc">
     <_comment>Yacc/Bison source code</_comment>
     <glob pattern="*.y"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-yaml">
+    <_comment>YAML source code</_comment>
+    <glob pattern="*.yaml"/>
     <sub-class-of type="text/plain"/>
   </mime-type>
 
@@ -4969,14 +5099,20 @@
     <glob pattern="*.jpgv"/>
   </mime-type>
   <mime-type type="video/jpeg2000"/>
-  <mime-type type="video/jpm">
-    <glob pattern="*.jpm"/>
-    <glob pattern="*.jpgm"/>
-  </mime-type>
+
   <mime-type type="video/mj2">
+    <sub-class-of type="image/x-jp2-container" />
+    <acronym>MJ2</acronym>
+    <_comment>JPEG 2000 Part 3 (Motion JPEG, MJ2)</_comment>
+    <magic priority="50">
+      <match value="0x0000000C6A5020200D0A870A" type="string" offset="0">
+        <match value="0x6d6a7032" type="string" offset="20"/>
+      </match>
+    </magic>
     <glob pattern="*.mj2"/>
     <glob pattern="*.mjp2"/>
   </mime-type>
+
   <mime-type type="video/mp1s"/>
   <mime-type type="video/mp2p"/>
   <mime-type type="video/mp2t"/>
@@ -5004,10 +5140,6 @@
     <glob pattern="*.mpe"/>
     <glob pattern="*.m1v"/>
     <glob pattern="*.m2v"/>
-  </mime-type>
-
-  <mime-type type="video/vnd.mpegurl">
-    <glob pattern="*.mxu"/>
   </mime-type>
 
   <mime-type type="video/mpeg4-generic"/>

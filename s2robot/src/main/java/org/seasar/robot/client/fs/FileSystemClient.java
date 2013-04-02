@@ -69,6 +69,11 @@ public class FileSystemClient extends AbstractS2RobotClient {
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
     public ResponseData doGet(final String uri) {
+        return getResponseData(uri, true);
+    }
+
+    protected ResponseData getResponseData(final String uri,
+            boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
         final String filePath = preprocessUri(uri);
@@ -119,20 +124,24 @@ public class FileSystemClient extends AbstractS2RobotClient {
             responseData.setCharSet(geCharSet(file));
             responseData.setLastModified(new Date(file.lastModified()));
             if (file.canRead()) {
-                File outputFile = null;
-                try {
-                    outputFile =
-                        File
-                            .createTempFile("s2robot-FileSystemClient-", ".out");
-                    FileUtil.copy(file, outputFile);
-                    responseData.setResponseBody(new TemporaryFileInputStream(
-                        outputFile));
-                } catch (Exception e) {
-                    logger.warn("I/O Exception.", e);
-                    responseData.setHttpStatusCode(500);
-                    if (outputFile != null && !outputFile.delete()) {
-                        logger.warn("Could not delete "
-                            + outputFile.getAbsolutePath());
+                if (includeContent) {
+                    File outputFile = null;
+                    try {
+                        outputFile =
+                            File.createTempFile(
+                                "s2robot-FileSystemClient-",
+                                ".out");
+                        FileUtil.copy(file, outputFile);
+                        responseData
+                            .setResponseBody(new TemporaryFileInputStream(
+                                outputFile));
+                    } catch (Exception e) {
+                        logger.warn("I/O Exception.", e);
+                        responseData.setHttpStatusCode(500);
+                        if (outputFile != null && !outputFile.delete()) {
+                            logger.warn("Could not delete "
+                                + outputFile.getAbsolutePath());
+                        }
                     }
                 }
             } else {
@@ -141,11 +150,13 @@ public class FileSystemClient extends AbstractS2RobotClient {
             }
         } else if (file.isDirectory()) {
             final Set<String> childUrlSet = new HashSet<String>();
-            final File[] files = file.listFiles();
-            if (files != null) {
-                for (File f : files) {
-                    final String chileUri = f.toURI().toASCIIString();
-                    childUrlSet.add(chileUri);
+            if (includeContent) {
+                final File[] files = file.listFiles();
+                if (files != null) {
+                    for (File f : files) {
+                        final String chileUri = f.toURI().toASCIIString();
+                        childUrlSet.add(chileUri);
+                    }
                 }
             }
             throw new ChildUrlsException(childUrlSet);
@@ -207,7 +218,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
      */
     public ResponseData doHead(final String url) {
         try {
-            final ResponseData responseData = doGet(url);
+            final ResponseData responseData = getResponseData(url, false);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
         } catch (ChildUrlsException e) {

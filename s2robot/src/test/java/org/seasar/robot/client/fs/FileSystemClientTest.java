@@ -28,7 +28,7 @@ import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class FileSystemClientTest extends S2TestCase {
     public FileSystemClient fsClient;
@@ -52,10 +52,10 @@ public class FileSystemClientTest extends S2TestCase {
             for (String url : urlSet.toArray(new String[urlSet.size()])) {
                 if (url.indexOf(".svn") < 0) {
                     assertTrue(url.contains("test/dir1")
-                            || url.contains("test/dir2")
-                            || url.contains("test/text1.txt")
-                            || url.contains("test/text2.txt")
-                            || url.contains("test/text%203.txt"));
+                        || url.contains("test/dir2")
+                        || url.contains("test/text1.txt")
+                        || url.contains("test/text2.txt")
+                        || url.contains("test/text%203.txt"));
                 }
             }
         }
@@ -72,13 +72,15 @@ public class FileSystemClientTest extends S2TestCase {
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
         assertTrue(6 == responseData.getContentLength()
-                || 7 == responseData.getContentLength());
+            || 7 == responseData.getContentLength());
         assertNotNull(responseData.getLastModified());
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
         assertTrue(responseData.getUrl().endsWith("test/text1.txt"));
-        String content = new String(InputStreamUtil.getBytes(responseData
-                .getResponseBody()), "UTF-8");
+        String content =
+            new String(
+                InputStreamUtil.getBytes(responseData.getResponseBody()),
+                "UTF-8");
         assertEquals("test1", content.trim());
     }
 
@@ -96,8 +98,10 @@ public class FileSystemClientTest extends S2TestCase {
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
         assertTrue(responseData.getUrl().endsWith("test/text%203.txt"));
-        String content = new String(InputStreamUtil.getBytes(responseData
-                .getResponseBody()), "UTF-8");
+        String content =
+            new String(
+                InputStreamUtil.getBytes(responseData.getResponseBody()),
+                "UTF-8");
         assertEquals("test3\n", content);
     }
 
@@ -148,7 +152,8 @@ public class FileSystemClientTest extends S2TestCase {
         ResponseData responseData = fsClient.doHead("file:" + path);
         assertNotNull(responseData.getLastModified());
         assertTrue(responseData.getLastModified().getTime() < new Date()
-                .getTime());
+            .getTime());
+        assertNull(responseData.getResponseBody());
     }
 
     public void test_doHead_dir() throws Exception {

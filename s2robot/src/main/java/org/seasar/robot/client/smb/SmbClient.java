@@ -112,6 +112,11 @@ public class SmbClient extends AbstractS2RobotClient {
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
     public ResponseData doGet(final String uri) {
+        return getResponseData(uri, true);
+    }
+
+    protected ResponseData getResponseData(final String uri,
+            boolean includeContent) {
         if (smbAuthenticationHolder == null) {
             init();
         }
@@ -189,20 +194,24 @@ public class SmbClient extends AbstractS2RobotClient {
                 }
 
                 if (file.canRead()) {
-                    File outputFile = null;
-                    try {
-                        outputFile =
-                            File.createTempFile("s2robot-SmbClient-", ".out");
-                        copy(file, outputFile);
-                        responseData
-                            .setResponseBody(new TemporaryFileInputStream(
-                                outputFile));
-                    } catch (Exception e) {
-                        logger.warn("I/O Exception.", e);
-                        responseData.setHttpStatusCode(500);
-                        if (outputFile != null && !outputFile.delete()) {
-                            logger.warn("Could not delete "
-                                + outputFile.getAbsolutePath());
+                    if (includeContent) {
+                        File outputFile = null;
+                        try {
+                            outputFile =
+                                File.createTempFile(
+                                    "s2robot-SmbClient-",
+                                    ".out");
+                            copy(file, outputFile);
+                            responseData
+                                .setResponseBody(new TemporaryFileInputStream(
+                                    outputFile));
+                        } catch (Exception e) {
+                            logger.warn("I/O Exception.", e);
+                            responseData.setHttpStatusCode(500);
+                            if (outputFile != null && !outputFile.delete()) {
+                                logger.warn("Could not delete "
+                                    + outputFile.getAbsolutePath());
+                            }
                         }
                     }
                 } else {
@@ -211,11 +220,13 @@ public class SmbClient extends AbstractS2RobotClient {
                 }
             } else if (file.isDirectory()) {
                 final Set<String> childUrlSet = new HashSet<String>();
-                final SmbFile[] files = file.listFiles();
-                if (files != null) {
-                    for (SmbFile f : files) {
-                        final String chileUri = f.toString();
-                        childUrlSet.add(chileUri);
+                if (includeContent) {
+                    final SmbFile[] files = file.listFiles();
+                    if (files != null) {
+                        for (SmbFile f : files) {
+                            final String chileUri = f.toString();
+                            childUrlSet.add(chileUri);
+                        }
                     }
                 }
                 throw new ChildUrlsException(childUrlSet);
@@ -263,7 +274,7 @@ public class SmbClient extends AbstractS2RobotClient {
      */
     public ResponseData doHead(final String url) {
         try {
-            final ResponseData responseData = doGet(url);
+            final ResponseData responseData = getResponseData(url, false);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
         } catch (ChildUrlsException e) {

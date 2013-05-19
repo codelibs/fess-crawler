@@ -90,6 +90,8 @@ public class FaultTolerantClientTest extends S2TestCase {
             fail();
         } catch (RobotMultipleCrawlAccessException e) {
             // ok
+            Throwable[] causes = e.getCauses();
+            assertEquals(5, causes.length);
         }
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
@@ -115,6 +117,8 @@ public class FaultTolerantClientTest extends S2TestCase {
             fail();
         } catch (RobotMultipleCrawlAccessException e) {
             // ok
+            Throwable[] causes = e.getCauses();
+            assertEquals(2, causes.length);
         }
         assertEquals(1, testListener.startCount);
         assertEquals(2, testListener.requestCount);
@@ -203,6 +207,8 @@ public class FaultTolerantClientTest extends S2TestCase {
             fail();
         } catch (RobotMultipleCrawlAccessException e) {
             // ok
+            Throwable[] causes = e.getCauses();
+            assertEquals(5, causes.length);
         }
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
@@ -228,6 +234,8 @@ public class FaultTolerantClientTest extends S2TestCase {
             fail();
         } catch (RobotMultipleCrawlAccessException e) {
             // ok
+            Throwable[] causes = e.getCauses();
+            assertEquals(2, causes.length);
         }
         assertEquals(1, testListener.startCount);
         assertEquals(2, testListener.requestCount);

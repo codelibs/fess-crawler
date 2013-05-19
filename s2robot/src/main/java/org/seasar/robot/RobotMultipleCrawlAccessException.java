@@ -35,7 +35,11 @@ public class RobotMultipleCrawlAccessException extends
     public RobotMultipleCrawlAccessException(String message,
             final Throwable[] throwables) {
         super(message);
-        this.throwables = throwables;
+        if (throwables == null) {
+            this.throwables = new Throwable[0];
+        } else {
+            this.throwables = throwables;
+        }
     }
 
     @Override
@@ -60,5 +64,9 @@ public class RobotMultipleCrawlAccessException extends
             t.printStackTrace(s);
             count++;
         }
+    }
+
+    public Throwable[] getCauses() {
+        return throwables;
     }
 }

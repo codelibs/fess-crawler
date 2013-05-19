@@ -25,7 +25,7 @@ import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class S2RobotClientFactoryTest extends S2TestCase {
     public S2RobotClientFactory clientFactory;
@@ -42,17 +42,20 @@ public class S2RobotClientFactoryTest extends S2TestCase {
         url = "http://hoge.com/";
         client = clientFactory.getClient(url);
         assertNotNull(client);
-        assertTrue(client instanceof HcHttpClient);
+        assertTrue(client instanceof FaultTolerantClient);
+        assertTrue(((FaultTolerantClient) client).getRobotClient() instanceof HcHttpClient);
 
         url = "https://hoge.com/";
         client = clientFactory.getClient(url);
         assertNotNull(client);
-        assertTrue(client instanceof HcHttpClient);
+        assertTrue(client instanceof FaultTolerantClient);
+        assertTrue(((FaultTolerantClient) client).getRobotClient() instanceof HcHttpClient);
 
         url = "file:/home/hoge";
         client = clientFactory.getClient(url);
         assertNotNull(client);
-        assertTrue(client instanceof FileSystemClient);
+        assertTrue(client instanceof FaultTolerantClient);
+        assertTrue(((FaultTolerantClient) client).getRobotClient() instanceof FileSystemClient);
 
     }
 

@@ -32,11 +32,14 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.io.TemporaryResources;
+import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.apache.tika.sax.SecureContentHandler;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
@@ -47,6 +50,7 @@ import org.seasar.robot.extractor.Extractor;
 import org.seasar.robot.util.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 /**
@@ -60,6 +64,8 @@ public class TikaExtractor implements Extractor {
     public String outputEncoding = Constants.UTF_8;
 
     public boolean readAsTextIfFailed = true;
+
+    public long maxCompressionRatio = 100;
 
     protected Map<String, String> pdfPasswordMap =
         new HashMap<String, String>();
@@ -83,6 +89,7 @@ public class TikaExtractor implements Extractor {
             throw new ExtractException("Could not create a temp file.", e);
         }
 
+        TemporaryResources tmp = new TemporaryResources();
         try {
             OutputStream out = null;
             try {
@@ -92,7 +99,8 @@ public class TikaExtractor implements Extractor {
                 IOUtils.closeQuietly(out);
             }
 
-            InputStream in = new FileInputStream(tempFile);
+            TikaInputStream tis =
+                TikaInputStream.get(new FileInputStream(tempFile), tmp);
 
             final PrintStream originalOutStream = System.out;
             final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -134,8 +142,8 @@ public class TikaExtractor implements Extractor {
 
                 final StringWriter writer = new StringWriter();
                 parser.parse(
-                    in,
-                    new BodyContentHandler(writer),
+                    tis,
+                    createContentHandler(tis, writer),
                     metadata,
                     parseContext);
 
@@ -143,35 +151,41 @@ public class TikaExtractor implements Extractor {
                 if (StringUtil.isBlank(content)) {
                     if (resourceName != null) {
                         // retry without a resource name
-                        IOUtils.closeQuietly(in);
-                        in = new FileInputStream(tempFile);
+                        IOUtils.closeQuietly(tis);
+                        tis =
+                            TikaInputStream.get(
+                                new FileInputStream(tempFile),
+                                tmp);
                         final Metadata metadata2 =
                             createMetadata(null, contentType, contentEncoding);
                         final StringWriter writer2 = new StringWriter();
                         parser.parse(
-                            in,
-                            new BodyContentHandler(writer2),
+                            tis,
+                            createContentHandler(tis, writer2),
                             metadata2,
                             parseContext);
                         content = normalizeContent(writer2);
                     }
                     if (StringUtil.isBlank(content) && contentType != null) {
                         // retry without a content type
-                        IOUtils.closeQuietly(in);
-                        in = new FileInputStream(tempFile);
+                        IOUtils.closeQuietly(tis);
+                        tis =
+                            TikaInputStream.get(
+                                new FileInputStream(tempFile),
+                                tmp);
                         final Metadata metadata3 =
                             createMetadata(null, null, contentEncoding);
                         final StringWriter writer3 = new StringWriter();
                         parser.parse(
-                            in,
-                            new BodyContentHandler(writer3),
+                            tis,
+                            createContentHandler(tis, writer3),
                             metadata3,
                             parseContext);
                         content = normalizeContent(writer3);
                     }
 
                     if (readAsTextIfFailed && StringUtil.isBlank(content)) {
-                        IOUtils.closeQuietly(in);
+                        IOUtils.closeQuietly(tis);
                         if (contentEncoding == null) {
                             contentEncoding = Constants.UTF_8;
                         }
@@ -215,14 +229,19 @@ public class TikaExtractor implements Extractor {
                     final Extractor xmlExtractor =
                         SingletonS2Container.getComponent("xmlExtractor");
                     if (xmlExtractor != null) {
-                        IOUtils.closeQuietly(in);
-                        in = new FileInputStream(tempFile);
-                        return xmlExtractor.getText(in, params);
+                        IOUtils.closeQuietly(tis);
+                        FileInputStream fis = null;
+                        try {
+                            fis = new FileInputStream(tempFile);
+                            return xmlExtractor.getText(fis, params);
+                        } finally {
+                            IOUtils.closeQuietly(fis);
+                        }
                     }
                 }
                 throw e;
             } finally {
-                IOUtils.closeQuietly(in);
+                IOUtils.closeQuietly(tis);
                 if (originalOutStream != null) {
                     System.setOut(originalOutStream);
                 }
@@ -249,9 +268,27 @@ public class TikaExtractor implements Extractor {
         } catch (Exception e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
-            if (tempFile != null && !tempFile.delete()) {
-                tempFile.deleteOnExit();
+            try {
+                tmp.dispose();
+            } catch (TikaException e) {
+                throw new ExtractException("Could not extract a content.", e);
+            } finally {
+                if (tempFile != null && !tempFile.delete()) {
+                    tempFile.deleteOnExit();
+                }
             }
+        }
+    }
+
+    protected ContentHandler createContentHandler(TikaInputStream tis,
+            final StringWriter writer) {
+        if (maxCompressionRatio != 100) {
+            SecureContentHandler sch =
+                new SecureContentHandler(new BodyContentHandler(writer), tis);
+            sch.setMaximumCompressionRatio(maxCompressionRatio);
+            return sch;
+        } else {
+            return new BodyContentHandler(writer);
         }
     }
 

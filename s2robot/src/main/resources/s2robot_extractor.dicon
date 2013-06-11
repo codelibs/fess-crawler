@@ -3,7 +3,10 @@
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
 	<component name="tikaExtractor" class="org.seasar.robot.extractor.impl.TikaExtractor">
-		<property name="maxCompressionRatio">5</property>
+		<!-- 
+		<property name="maxCompressionRatio">1</property>
+		<property name="maxUncompressionSize">10000000</property>
+		 -->
 	</component>
 	<component name="msWordExtractor" class="org.seasar.robot.extractor.impl.MsWordExtractor"/>
 	<component name="msExcelExtractor" class="org.seasar.robot.extractor.impl.MsExcelExtractor"/>

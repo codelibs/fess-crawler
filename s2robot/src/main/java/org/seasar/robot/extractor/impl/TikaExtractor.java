@@ -70,6 +70,8 @@ public class TikaExtractor implements Extractor {
 
     public long maxCompressionRatio = 100;
 
+    public long maxUncompressionSize = 1000000;
+
     protected Map<String, String> pdfPasswordMap =
         new HashMap<String, String>();
 
@@ -348,6 +350,7 @@ public class TikaExtractor implements Extractor {
                     new SecureContentHandler(handler, tis);
 
                 sch.setMaximumCompressionRatio(maxCompressionRatio);
+                sch.setOutputThreshold(maxUncompressionSize);
 
                 try {
                     // Parse the document

@@ -28,6 +28,7 @@ import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
+import org.seasar.robot.extractor.ExtractException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -358,6 +359,19 @@ public class TikaExtractorTest extends S2TestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));
+    }
+
+    public void test_getTika_zip_bom() {
+        InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/zip/test_size.zip");
+        tikaExtractor.maxCompressionRatio = 1;
+        tikaExtractor.maxUncompressionSize = 10000;
+        try {
+            tikaExtractor.getText(in, null);
+            fail();
+        } catch (ExtractException e) {
+            logger.info(e.getMessage());
+        }
     }
 
     public void test_getTika_tar() {

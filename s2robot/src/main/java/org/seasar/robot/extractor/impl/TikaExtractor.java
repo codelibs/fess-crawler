@@ -221,6 +221,9 @@ public class TikaExtractor implements Extractor {
 
                 return extractData;
             } catch (TikaException e) {
+                if (e.getMessage().indexOf("bomb") >= 0) {
+                    throw e;
+                }
                 final Throwable cause = e.getCause();
                 if (cause instanceof SAXException) {
                     final Extractor xmlExtractor =

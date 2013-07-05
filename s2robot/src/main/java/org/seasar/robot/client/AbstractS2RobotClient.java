@@ -17,19 +17,30 @@ package org.seasar.robot.client;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author shinsuke
  * 
  */
 public abstract class AbstractS2RobotClient implements S2RobotClient {
 
+    private static final Logger logger = LoggerFactory
+        .getLogger(AbstractS2RobotClient.class); // NOPMD
+
     private Map<String, Object> initParamMap;
 
     protected <T> T getInitParameter(final String key, final T defaultValue) {
         if (initParamMap != null) {
-            final T value = (T) initParamMap.get(key);
-            if (value != null) {
-                return value;
+            try {
+                final T value = (T) initParamMap.get(key);
+                if (value != null) {
+                    return value;
+                }
+            } catch (Exception e) {
+                logger.warn("Could not load init parameters: " + key + " from "
+                    + initParamMap, e);
             }
         }
         return defaultValue;

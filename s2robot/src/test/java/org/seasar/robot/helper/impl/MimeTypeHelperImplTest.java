@@ -38,6 +38,10 @@ public class MimeTypeHelperImplTest extends S2TestCase {
         MimeTypeHelper mimeTypeHelper =
             SingletonS2Container.getComponent(MimeTypeHelperImpl.class);
         InputStream is = ResourceUtil.getResourceAsStream("test/text1.txt");
+        InputStream htmlStream =
+            ResourceUtil.getResourceAsStream("html/test1.html");
+        InputStream shtmlStream =
+            ResourceUtil.getResourceAsStream("html/test1.shtml");
         InputStream msWordStream =
             ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         InputStream msExcelStream =
@@ -66,8 +70,13 @@ public class MimeTypeHelperImplTest extends S2TestCase {
             mimeTypeHelper.getContentType(is, "hoge.txt"));
         assertEquals(
             "text/html",
-            mimeTypeHelper.getContentType(is, "hoge.html"));
-        assertEquals("text/html", mimeTypeHelper.getContentType(is, "hoge.htm"));
+            mimeTypeHelper.getContentType(htmlStream, "hoge.html"));
+        assertEquals(
+            "text/html",
+            mimeTypeHelper.getContentType(htmlStream, "hoge.htm"));
+        assertEquals(
+            "text/html",
+            mimeTypeHelper.getContentType(shtmlStream, "hoge.shtml"));
 
         assertEquals(
             "text/plain",

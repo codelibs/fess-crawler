@@ -55,6 +55,7 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -119,6 +120,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
         "basicAuthentications";
 
     public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
+
+    public static final String COOKIES_PROPERTY = "cookies";
 
     public static final String AUTH_SCHEME_FACTORIES_PROPERTY =
         "authSchemeFactories";
@@ -321,6 +324,13 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
         // cookie store
         defaultHttpClient.setCookieStore(cookieStore);
+        if (cookieStore != null) {
+            final Cookie[] cookies =
+                getInitParameter(COOKIES_PROPERTY, new Cookie[0]);
+            for (Cookie cookie : cookies) {
+                cookieStore.addCookie(cookie);
+            }
+        }
 
         if (!httpClientPropertyMap.isEmpty()) {
             BeanDesc beanDesc =

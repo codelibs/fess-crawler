@@ -500,12 +500,18 @@ public class HtmlTransformer extends AbstractTransformer {
             url = url.replaceFirst(";jsessionid=[a-zA-Z0-9\\.]*", "");
         }
 
-        if (url.indexOf("/../") >= 0 || url.indexOf(' ') >= 0) {
+        if (url.indexOf(' ') >= 0) {
             // invalid URL
             if (logger.isDebugEnabled()) {
                 logger.debug("INVALID URL: " + url);
             }
             return null;
+        }
+
+        String oldUrl = null;
+        while (url.indexOf("/../") >= 0 && !url.equals(oldUrl)) {
+            oldUrl = url;
+            url = url.replaceFirst("/[^/]+/\\.\\./", "/");
         }
 
         return url;

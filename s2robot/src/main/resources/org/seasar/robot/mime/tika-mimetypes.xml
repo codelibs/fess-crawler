@@ -171,6 +171,9 @@
   <mime-type type="application/iges"/>
 
   <mime-type type="application/illustrator">
+    <acronym>AI</acronym>
+    <_comment>Adobe Illustrator Artwork</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/Adobe_Illustrator_Artwork</tika:link>
     <glob pattern="*.ai"/>]
     <sub-class-of type="application/postscript"/>
   </mime-type>
@@ -186,6 +189,9 @@
   <mime-type type="application/isup"/>
 
   <mime-type type="application/java-archive">
+    <_comment>Java Archive</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/.jar</tika:link>
+    <tika:uti>com.sun.java-archive</tika:uti>
     <sub-class-of type="application/zip"/>
     <glob pattern="*.jar"/>
   </mime-type>
@@ -296,6 +302,8 @@
     <!-- Use DefaultDetector / org.apache.tika.parser.microsoft.POIFSContainerDetector for more reliable detection of OLE2 documents -->
     <alias type="application/vnd.ms-word"/>
     <_comment>Microsoft Word Document</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/.doc</tika:link>
+    <tika:uti>com.microsoft.word.doc</tika:uti>
     <magic priority="50">
       <match value="Microsoft\ Word\ 6.0\ Document" type="string" offset="2080"/>
       <match value="Documento\ Microsoft\ Word\ 6" type="string" offset="2080"/>
@@ -314,6 +322,22 @@
     <glob pattern="*.doc"/>
     <glob pattern="*.dot"/>
     <sub-class-of type="application/x-tika-msoffice"/>
+  </mime-type>
+
+  <mime-type type="application/msword2">
+    <!-- Pre-OLE2, not a subtype of application/x-tika-msoffice -->
+    <_comment>Microsoft Word 2 Document</_comment>
+    <magic priority="50">
+      <match value="0x9ba5" type="string" />
+      <match value="0xdba5" type="string" />
+    </magic>
+  </mime-type>
+  <mime-type type="application/msword5">
+    <!-- Pre-OLE2, not a subtype of application/x-tika-msoffice -->
+    <_comment>Microsoft Word 5 Document</_comment>
+    <magic priority="50">
+      <match value="0xfe37" type="string" />
+    </magic>
   </mime-type>
 
   <mime-type type="application/mxf">
@@ -383,6 +407,9 @@
     <alias type="application/x-pdf"/>
     <acronym>PDF</acronym>
     <_comment>Portable Document Format</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/PDF</tika:link>
+    <tika:link>http://www.adobe.com/devnet/pdf/pdf_reference_archive.html</tika:link>
+    <tika:uti>com.adobe.pdf</tika:uti>
     <magic priority="50">
       <match value="%PDF-" type="string" offset="0"/>
     </magic>
@@ -2317,6 +2344,14 @@
     <glob pattern="*.a"/>
   </mime-type>
 
+  <mime-type type="application/x-arj">
+    <alias type="application/x-arj-compressed"/>
+    <magic priority="50">
+      <match value="0x60ea" type="string" offset="0" />
+    </magic>
+    <glob pattern="*.arj"/>
+  </mime-type>
+
   <mime-type type="application/x-authorware-bin">
     <glob pattern="*.aab"/>
     <glob pattern="*.x32"/>
@@ -2589,6 +2624,17 @@
     <magic priority="50">
       <match value="0x01000000" type="string" offset="0"/>
     </magic>
+  </mime-type>
+
+  <mime-type type="application/x-filemaker">
+    <acronym>FP7</acronym>
+    <_comment>FileMaker Pro 7</_comment>
+    <magic priority="50">
+      <match value="0xC04842414D37" type="string" offset="14" >
+      <match value="0x4842414D323130314F43543939C102480750726F20372E30C0C0" type="string" offset="525" />
+    </match>
+    </magic>
+    <glob pattern="*.fp7" />
   </mime-type>
 
   <mime-type type="application/x-font-bdf">
@@ -2990,6 +3036,88 @@
     </magic>
   </mime-type>
 
+  <mime-type type="application/x-sas">
+    <_comment>SAS Program</_comment>
+    <glob pattern="*.sas"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+  <mime-type type="application/x-sas-program-data">
+    <_comment>SAS Stored Program (DATA Step)</_comment>
+    <glob pattern="*.ss7"/>
+    <glob pattern="*.sas7bpgm"/>
+  </mime-type>
+  <mime-type type="application/x-sas-audit">
+    <_comment>SAS Audit</_comment>
+    <glob pattern="*.st7"/>
+    <glob pattern="*.sas7baud"/>
+  </mime-type>
+  <mime-type type="application/x-sas-data">
+    <_comment>SAS Data Set</_comment>
+    <glob pattern="*.sd7"/>
+    <glob pattern="*.sas7bdat"/>
+    <magic priority="40">
+      <match value="SAS FILE" type="string" offset="84" />
+    </magic>
+  </mime-type>
+  <mime-type type="application/x-sas-view">
+    <_comment>SAS Data Set View</_comment>
+    <glob pattern="*.sv7"/>
+    <glob pattern="*.sas7bvew"/>
+  </mime-type>
+  <mime-type type="application/x-sas-data-index">
+    <_comment>SAS Data Set Index</_comment>
+    <glob pattern="*.si7"/>
+    <glob pattern="*.sas7bndx"/>
+  </mime-type>
+  <mime-type type="application/x-sas-catalog">
+    <_comment>SAS Catalog</_comment>
+    <glob pattern="*.sc7"/>
+    <glob pattern="*.sas7bcat"/>
+  </mime-type>
+  <mime-type type="application/x-sas-access">
+    <_comment>SAS Access Descriptor</_comment>
+    <glob pattern="*.sa7"/>
+    <glob pattern="*.sas7bacs"/>
+  </mime-type>
+  <mime-type type="application/x-sas-fdb">
+    <_comment>SAS FDB Consolidation Database File</_comment>
+    <glob pattern="*.sf7"/>
+    <glob pattern="*.sas7bfdb"/>
+  </mime-type>
+  <mime-type type="application/x-sas-mddb">
+    <_comment>SAS MDDB Multi-Dimensional Database File</_comment>
+    <glob pattern="*.sm7"/>
+    <glob pattern="*.sas7bmdb"/>
+  </mime-type>
+  <mime-type type="application/x-sas-dmdb">
+    <_comment>SAS DMDB Data Mining Database File</_comment>
+    <glob pattern="*.s7m"/>
+    <glob pattern="*.sas7bdmd"/>
+  </mime-type>
+  <mime-type type="application/x-sas-itemstor">
+    <_comment>SAS Item Store (ItemStor) File</_comment>
+    <glob pattern="*.sr7"/>
+    <glob pattern="*.sas7bitm"/>
+  </mime-type>
+  <mime-type type="application/x-sas-utility">
+    <_comment>SAS Utility</_comment>
+    <glob pattern="*.su7"/>
+    <glob pattern="*.sas7butl"/>
+  </mime-type>
+  <mime-type type="application/x-sas-putility">
+    <_comment>SAS Permanent Utility</_comment>
+    <glob pattern="*.sp7"/>
+    <glob pattern="*.sas7bput"/>
+  </mime-type>
+  <mime-type type="application/x-sas-transport">
+    <_comment>SAS Transport File</_comment>
+    <glob pattern="*.stx"/>
+  </mime-type>
+  <mime-type type="application/x-sas-backup">
+    <_comment>SAS Backup</_comment>
+    <glob pattern="*.sas7bbak"/>
+  </mime-type>
+
   <mime-type type="application/x-sc">
     <magic priority="50">
       <match value="Spreadsheet" type="string" offset="38"/>
@@ -3134,6 +3262,12 @@
     <_comment>Password Protected OOXML File</_comment>
   </mime-type>
 
+  <mime-type type="application/x-uc2-compressed">
+    <magic priority="50">
+      <match value="UC2\x1a" type="string" offset="0" />
+    </magic>
+    <glob pattern="*.uc2"/>
+  </mime-type>
   <mime-type type="application/x-ustar">
     <glob pattern="*.ustar"/>
   </mime-type>
@@ -3201,6 +3335,10 @@
   <mime-type type="application/xhtml-voice+xml"/>
 
   <mime-type type="application/xml">
+    <acronym>XML</acronym>
+    <_comment>Extensible Markup Language</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/Xml</tika:link>
+    <tika:uti>public.xml</tika:uti>
     <alias type="text/xml"/>
     <magic priority="50">
       <match value="&lt;?xml" type="string" offset="0"/>
@@ -3218,6 +3356,7 @@
     <glob pattern="*.xsd"/>
     <!-- S2ROBOT added -->
     <glob pattern="*.mm"/>
+    <glob pattern="*.dicon"/>
     <sub-class-of type="text/plain" />
   </mime-type>
 
@@ -3258,6 +3397,8 @@
 
   <mime-type type="application/zip">
     <_comment>Compressed Archive File</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/ZIP_(file_format)</tika:link>
+    <tika:uti>com.pkware.zip-archive</tika:uti>
     <alias type="application/x-zip-compressed"/>
     <magic priority="40">
       <match value="PK\003\004" type="string" offset="0"/>
@@ -3675,6 +3816,8 @@
     <alias type="image/bmp"/>
     <acronym>BMP</acronym>
     <_comment>Windows bitmap</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/BMP_file_format</tika:link>
+    <tika:uti>com.microsoft.bmp</tika:uti>
     <magic priority="50">
       <match value="BM" type="string" offset="0">
         <match value="0x0100" type="string" offset="26">
@@ -3713,6 +3856,8 @@
   <mime-type type="image/gif">
     <acronym>GIF</acronym>
     <_comment>Graphics Interchange Format</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/Gif</tika:link>
+    <tika:uti>com.compuserve.gif</tika:uti>
     <magic priority="50">
       <match value="GIF87a" type="string" offset="0"/>
       <match value="GIF89a" type="string" offset="0"/>
@@ -3739,6 +3884,8 @@
   <mime-type type="image/jpeg">
     <acronym>JPEG</acronym>
     <_comment>Joint Photographic Experts Group</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/Jpeg</tika:link>
+    <tika:uti>public.jpeg</tika:uti>
     <magic priority="50">
       <!-- FFD8 is the SOI (Start Of Image) marker.              -->
       <!-- It is followed by another marker that starts with FF. -->
@@ -3859,6 +4006,7 @@
   <mime-type type="image/vnd.dwg">
     <acronym>DWG</acronym>
     <_comment>AutoCad Drawing</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/.dwg</tika:link>
     <alias type="image/x-dwg"/>
     <alias type="application/acad"/>
     <alias type="application/x-acad"/>
@@ -3866,6 +4014,8 @@
     <alias type="application/dwg"/>
     <alias type="application/x-dwg"/>
     <alias type="application/x-autocad"/>
+    <alias type="image/vnd.dwg"/>
+    <alias type="drawing/dwg"/>
     <glob pattern="*.dwg"/>
     <magic priority="50">
       <match value="MC0.0" type="string" offset="0"/>
@@ -3882,6 +4032,9 @@
   </mime-type>
 
   <mime-type type="image/vnd.dxf">
+    <acronym>DXF</acronym>
+    <_comment>AutoCAD DXF</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/AutoCAD_DXF</tika:link>
     <glob pattern="*.dxf"/>
   </mime-type>
   <mime-type type="image/vnd.fastbidsheet">
@@ -3900,7 +4053,20 @@
     <glob pattern="*.rlc"/>
   </mime-type>
   <mime-type type="image/vnd.globalgraphics.pgb"/>
-  <mime-type type="image/vnd.microsoft.icon"/>
+
+  <mime-type type="image/vnd.microsoft.icon">
+    <acronym>ICO</acronym>
+    <tika:link>http://en.wikipedia.org/wiki/.ico</tika:link>
+    <tika:uti>com.microsoft.ico</tika:uti>
+    <alias type="image/x-icon" />
+    <magic priority="50">
+      <match value="\102\101\050\000\000\000\056\000\000\000\000\000\000\000"
+             type="string" offset="0"/>
+      <match value="\000\000\001\000" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.ico"/>
+  </mime-type>
+
   <mime-type type="image/vnd.mix"/>
   <mime-type type="image/vnd.ms-modi">
     <glob pattern="*.mdi"/>
@@ -3936,15 +4102,6 @@
     <glob pattern="*.fh7"/>
   </mime-type>
 
-  <mime-type type="image/x-icon">
-    <magic priority="50">
-      <match value="\102\101\050\000\000\000\056\000\000\000\000\000\000\000"
-             type="string" offset="0"/>
-      <match value="\000\000\001\000" type="string" offset="0"/>
-    </magic>
-    <glob pattern="*.ico"/>
-  </mime-type>
-
   <mime-type type="image/x-jp2-codestream">
     <_comment>JPEG 2000 Codestream</_comment>
     <magic priority="25">
@@ -3971,8 +4128,13 @@
     <glob pattern="*.pcx"/>
   </mime-type>
   <mime-type type="image/x-pict">
+    <_comment>Apple Macintosh QuickDraw/PICT Format</_comment>
+    <magic priority="50">
+      <match value="0x001102FF0C00" type="string" offset="522"/>
+    </magic>
     <glob pattern="*.pic"/>
     <glob pattern="*.pct"/>
+    <glob pattern="*.pict"/>
   </mime-type>
 
   <mime-type type="image/x-portable-anymap">
@@ -4342,6 +4504,9 @@
   <mime-type type="text/example"/>
 
   <mime-type type="text/html">
+    <_comment>HyperText Markup Language</_comment>
+    <acronym>HTML</acronym>
+    <tika:uti>public.html</tika:uti>
      <!-- TIKA-327: if you encounter tags in the HTML
           with no declared namespace, it's not XHTML, it's just
           bad HTML, unfortunately.
@@ -4376,6 +4541,8 @@
       <match value="&lt;HTML" type="string" offset="0:64"/>
       <match value="&lt;BODY" type="string" offset="0"/>
       <match value="&lt;body" type="string" offset="0"/>
+      <match value="&lt;DIV" type="string" offset="0"/>
+      <match value="&lt;div" type="string" offset="0"/>
       <match value="&lt;TITLE" type="string" offset="0"/>
       <match value="&lt;title" type="string" offset="0"/>
       <match value="&lt;h1" type="string" offset="0"/>
@@ -4407,6 +4574,7 @@
     <glob pattern="*.txt"/>
     <glob pattern="*.text"/>
     <glob pattern="*.conf"/>
+    <glob pattern="*.cfg"/>
     <glob pattern="*.def"/>
     <glob pattern="*.list"/>
     <glob pattern="*.in"/>
@@ -4595,7 +4763,7 @@
       <match value="#!/usr/bin/awk" type="string" offset="0"/>
       <match value="#! /usr/bin/awk" type="string" offset="0"/>
     </magic>
-    <glob pattenr="*.awk"/>
+    <glob pattern="*.awk"/>
     <sub-class-of type="text/plain"/>
   </mime-type>
 
@@ -5300,4 +5468,46 @@
       <root-XML namespaceURI="http://www.gribuser.ru/xml/fictionbook/2.0" localName="FictionBook"/>
       <glob pattern="*.fb2"/>
   </mime-type>
+
+    <mime-type type="text/x-asciidoc">
+    <_comment>Asciidoc source code</_comment>
+    <glob pattern="*.asciidoc"/>
+    <glob pattern="*.adoc"/>
+    <glob pattern="*.ad"/>
+    <glob pattern="*.ad.txt"/>
+    <glob pattern="*.adoc.txt"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-d">
+    <_comment>D source code</_comment>
+    <glob pattern="*.d"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-haml">
+    <_comment>HAML source code</_comment>
+    <glob pattern="*.haml"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-haxe">
+    <_comment>Haxe source code</_comment>
+    <glob pattern="*.hx"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="text/x-rsrc">
+    <_comment>R source code</_comment>
+    <glob pattern="*.r"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="application/xquery">
+    <_comment>XQuery source code</_comment>
+    <glob pattern="*.xq"/>
+    <glob pattern="*.xquery"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
 </mime-info>

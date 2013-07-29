@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
@@ -67,6 +66,8 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.seasar.extension.timer.TimeoutManager;
+import org.seasar.extension.timer.TimeoutTask;
 import org.seasar.framework.beans.BeanDesc;
 import org.seasar.framework.beans.PropertyDesc;
 import org.seasar.framework.beans.factory.BeanDescFactory;
@@ -144,7 +145,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
     private final Map<String, Object> httpClientPropertyMap =
         new HashMap<String, Object>();
 
-    private ConnectionMonitor connectionMonitor;
+    private TimeoutTask connectionMonitorTask;
 
     public Integer connectionTimeout;
 
@@ -186,7 +187,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public Map<String, AuthSchemeFactory> authSchemeFactoryMap;
 
-    public long connectionCheckInterval = 5000;
+    public int connectionCheckInterval = 5000;
 
     public long idleConnectionTimeout = 60 * 1000; // 1min
 
@@ -348,21 +349,21 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 }
             }
         }
-        connectionMonitor =
-            new ConnectionMonitor(
-                clientConnectionManager,
+        connectionMonitorTask =
+            TimeoutManager.getInstance().addTimeoutTarget(
+                new HcConnectionMonitorTarget(
+                    clientConnectionManager,
+                    idleConnectionTimeout),
                 connectionCheckInterval,
-                idleConnectionTimeout);
-        connectionMonitor.setDaemon(true);
-        connectionMonitor.start();
+                true);
 
         httpClient = defaultHttpClient;
     }
 
     @DestroyMethod
     public void destroy() {
-        if (connectionMonitor != null) {
-            connectionMonitor.shutdown();
+        if (connectionMonitorTask != null) {
+            connectionMonitorTask.cancel();
         }
         if (httpClient != null) {
             httpClient.getConnectionManager().shutdown();
@@ -760,52 +761,4 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
     }
 
-    public static class ConnectionMonitor extends Thread {
-
-        private final ClientConnectionManager clientConnectionManager;
-
-        private volatile boolean shutdown = false;
-
-        private long connectionCheckInterval;
-
-        private long idleConnectionTimeout;
-
-        public ConnectionMonitor(
-                ClientConnectionManager clientConnectionManager,
-                long connectionCheckInterval, long idleConnectionTimeout) {
-            super();
-            this.clientConnectionManager = clientConnectionManager;
-            this.connectionCheckInterval = connectionCheckInterval;
-            this.idleConnectionTimeout = idleConnectionTimeout;
-        }
-
-        @Override
-        public void run() {
-            while (!shutdown) {
-                synchronized (this) {
-                    try {
-                        wait(connectionCheckInterval);
-                        // Close expired connections
-                        clientConnectionManager.closeExpiredConnections();
-                        // Close idle connections
-                        clientConnectionManager.closeIdleConnections(
-                            idleConnectionTimeout,
-                            TimeUnit.MILLISECONDS);
-                    } catch (Exception e) {
-                        logger.warn(
-                            "A connection monitoring exception occurs.",
-                            e);
-                    }
-                }
-            }
-        }
-
-        public void shutdown() {
-            shutdown = true;
-            synchronized (this) {
-                notifyAll();
-            }
-        }
-
-    }
 }

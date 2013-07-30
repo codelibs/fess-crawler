@@ -187,7 +187,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public Map<String, AuthSchemeFactory> authSchemeFactoryMap;
 
-    public int connectionCheckInterval = 5000;
+    public int connectionCheckInterval = 5; // sec
 
     public long idleConnectionTimeout = 60 * 1000; // 1min
 

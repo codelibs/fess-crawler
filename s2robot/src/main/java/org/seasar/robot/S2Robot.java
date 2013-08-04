@@ -73,6 +73,8 @@ public class S2Robot implements Runnable {
 
     protected Thread parentThread;
 
+    protected ThreadGroup robotThreadGroup;
+
     public S2Robot() {
         robotContext = new S2RobotContext();
         final SimpleDateFormat sdf =
@@ -142,6 +144,13 @@ public class S2Robot implements Runnable {
 
     public void stop() {
         robotContext.running = false;
+        try {
+            if (robotThreadGroup != null) {
+                robotThreadGroup.interrupt();
+            }
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     public UrlFilter getUrlFilter() {
@@ -202,8 +211,7 @@ public class S2Robot implements Runnable {
 
         urlFilter.init(robotContext.sessionId);
 
-        final ThreadGroup threadGroup =
-            new ThreadGroup("Robot-" + robotContext.sessionId);
+        robotThreadGroup = new ThreadGroup("Robot-" + robotContext.sessionId);
         Thread[] threads = new Thread[robotContext.getNumOfThread()];
         for (int i = 0; i < robotContext.getNumOfThread(); i++) {
             final S2RobotThread robotThread =
@@ -211,7 +219,7 @@ public class S2Robot implements Runnable {
             robotThread.robotContext = robotContext;
             robotThread.clientFactory = clientFactory;
             threads[i] =
-                new Thread(threadGroup, robotThread, "Robot-"
+                new Thread(robotThreadGroup, robotThread, "Robot-"
                     + robotContext.sessionId + "-" + Integer.toString(i + 1));
             threads[i].setDaemon(daemon);
             threads[i].setPriority(threadPriority);

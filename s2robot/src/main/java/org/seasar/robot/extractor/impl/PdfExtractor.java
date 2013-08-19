@@ -51,6 +51,8 @@ public class PdfExtractor implements Extractor {
 
     protected Map<String, String> passwordMap = new HashMap<String, String>();
 
+    protected Object pdfBoxLockObj = new Object();
+
     /*
      * (non-Javadoc)
      * 
@@ -62,48 +64,51 @@ public class PdfExtractor implements Extractor {
         if (in == null) {
             throw new RobotSystemException("The inputstream is null.");
         }
-        PDDocument document = null;
-        try {
-            document = PDDocument.load(in, null, force);
-            if (document.isEncrypted() && params != null) {
-                String password = params.get(ExtractData.PDF_PASSWORD);
-                if (password == null) {
-                    password =
-                        getPassword(
-                            params.get(ExtractData.URL),
-                            params.get(ExtractData.RESOURCE_NAME_KEY));
-                }
-                if (password != null) {
-                    final StandardDecryptionMaterial sdm =
-                        new StandardDecryptionMaterial(password);
-                    document.openProtection(sdm);
-                    final AccessPermission ap =
-                        document.getCurrentAccessPermission();
+        synchronized (pdfBoxLockObj) {
+            PDDocument document = null;
+            try {
+                document = PDDocument.load(in, null, force);
+                if (document.isEncrypted() && params != null) {
+                    String password = params.get(ExtractData.PDF_PASSWORD);
+                    if (password == null) {
+                        password =
+                            getPassword(
+                                params.get(ExtractData.URL),
+                                params.get(ExtractData.RESOURCE_NAME_KEY));
+                    }
+                    if (password != null) {
+                        final StandardDecryptionMaterial sdm =
+                            new StandardDecryptionMaterial(password);
+                        document.openProtection(sdm);
+                        final AccessPermission ap =
+                            document.getCurrentAccessPermission();
 
-                    if (!ap.canExtractContent()) {
-                        throw new IOException(
-                            "You do not have permission to extract text.");
+                        if (!ap.canExtractContent()) {
+                            throw new IOException(
+                                "You do not have permission to extract text.");
+                        }
                     }
                 }
-            }
 
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final Writer output = new OutputStreamWriter(baos, encoding);
-            final PDFTextStripper stripper = new PDFTextStripper(encoding);
-            stripper.setForceParsing(force);
-            stripper.writeText(document, output);
-            output.flush();
-            ExtractData extractData = new ExtractData(baos.toString(encoding));
-            extractMetadata(document, extractData);
-            return extractData;
-        } catch (Exception e) {
-            throw new ExtractException(e);
-        } finally {
-            if (document != null) {
-                try {
-                    document.close();
-                } catch (IOException e) {
-                    // NOP
+                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                final Writer output = new OutputStreamWriter(baos, encoding);
+                final PDFTextStripper stripper = new PDFTextStripper(encoding);
+                stripper.setForceParsing(force);
+                stripper.writeText(document, output);
+                output.flush();
+                ExtractData extractData =
+                    new ExtractData(baos.toString(encoding));
+                extractMetadata(document, extractData);
+                return extractData;
+            } catch (Exception e) {
+                throw new ExtractException(e);
+            } finally {
+                if (document != null) {
+                    try {
+                        document.close();
+                    } catch (IOException e) {
+                        // NOP
+                    }
                 }
             }
         }

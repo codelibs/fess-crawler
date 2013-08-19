@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -190,6 +191,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
     public int connectionCheckInterval = 5; // sec
 
     public long idleConnectionTimeout = 60 * 1000; // 1min
+
+    public Pattern redirectHttpStatusPattern = Pattern.compile("[3][0-9][0-9]");
 
     public synchronized void init() {
         if (httpClient != null) {
@@ -580,7 +583,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
             final int httpStatusCode = response.getStatusLine().getStatusCode();
             // redirect
-            if (httpStatusCode >= 300 && httpStatusCode < 400) {
+            if (isRedirectHttpStatus(httpStatusCode)) {
                 final Header locationHeader =
                     response.getFirstHeader("location");
                 if (locationHeader == null) {
@@ -743,6 +746,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
         } finally {
             EntityUtils.consumeQuietly(httpEntity);
         }
+    }
+
+    protected boolean isRedirectHttpStatus(final int httpStatusCode) {
+        return redirectHttpStatusPattern.matcher(
+            Integer.toString(httpStatusCode)).matches();
     }
 
     private HttpResponse executeHttpClient(final HttpUriRequest httpRequest)

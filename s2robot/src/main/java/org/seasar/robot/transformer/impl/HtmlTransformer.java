@@ -68,8 +68,11 @@ import org.xml.sax.InputSource;
  * 
  */
 public class HtmlTransformer extends AbstractTransformer {
+
     private static final Logger logger = LoggerFactory // NOPMD
         .getLogger(HtmlTransformer.class);
+
+    protected static final String LOCATION_HEADER = "Location";
 
     protected Map<String, String> featureMap = new HashMap<String, String>();
 
@@ -178,6 +181,15 @@ public class HtmlTransformer extends AbstractTransformer {
             } finally {
                 IOUtils.closeQuietly(fis);
             }
+        }
+
+        Object redirectUrlObj =
+            responseData.getMetaDataMap().get(LOCATION_HEADER);
+        if (redirectUrlObj instanceof String) {
+            final UrlConvertHelper urlConvertHelper =
+                SingletonS2Container.getComponent(UrlConvertHelper.class);
+            resultData.addUrl(urlConvertHelper.convert(redirectUrlObj
+                .toString()));
         }
 
         // clean up

@@ -35,5 +35,6 @@ public enum LogType {
     START_THREAD, //
     FINISHED_THREAD, //
     NO_RESPONSE_PROCESSOR, //
-    NO_RULE
+    NO_RULE, //
+    SYSTEM_ERROR
 }

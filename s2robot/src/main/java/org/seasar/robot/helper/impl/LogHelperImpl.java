@@ -198,6 +198,13 @@ public class LogHelperImpl implements LogHelper {
             }
             break;
         }
+        case SYSTEM_ERROR: {
+            Throwable t = (Throwable) objs[0];
+            if (logger.isErrorEnabled()) {
+                logger.error("System Error.", t);
+            }
+            break;
+        }
         default:
             break;
         }

@@ -283,6 +283,8 @@ public class S2RobotThread implements Runnable {
                         .delay(IntervalController.WAIT_NEW_URL);
                 }
             }
+        } catch (Throwable t) {
+            log(logHelper, LogType.SYSTEM_ERROR, t);
         } finally {
             // remove robotContext from thread
             CrawlingParameterUtil.setRobotContext(null);

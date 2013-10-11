@@ -47,23 +47,13 @@
 		<destroyMethod name="shutdown"></destroyMethod>
 	</component>
 
-	<component name="internalFsClient" class="org.seasar.robot.client.fs.FileSystemClient" instance="prototype">
+	<component name="fsClient" class="org.seasar.robot.client.fs.FileSystemClient" instance="prototype">
 		<property name="charset">"UTF-8"</property>
-	</component>
-	<component name="fsClient" class="org.seasar.robot.client.FaultTolerantClient" instance="prototype">
-		<property name="robotClient">internalFsClient</property>
-		<property name="maxRetryCount">5</property>
-		<property name="retryInterval">500</property>
 	</component>
 
-	<component name="internalSmbClient" class="org.seasar.robot.client.smb.SmbClient" instance="prototype">
+	<component name="smbClient" class="org.seasar.robot.client.smb.SmbClient" instance="prototype">
 		<property name="charset">"UTF-8"</property>
 		<!-- ntlmPasswordAuthentication -->
-	</component>
-	<component name="smbClient" class="org.seasar.robot.client.FaultTolerantClient" instance="prototype">
-		<property name="robotClient">internalSmbClient</property>
-		<property name="maxRetryCount">5</property>
-		<property name="retryInterval">500</property>
 	</component>
 
 <!-- 

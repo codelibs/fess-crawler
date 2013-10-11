@@ -41,6 +41,7 @@ public class BinaryTransformer extends AbstractTransformer {
      * org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity
      * .AccessResultData)
      */
+    @Override
     public ResultData transform(final ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotCrawlAccessException("No response body.");
@@ -55,7 +56,7 @@ public class BinaryTransformer extends AbstractTransformer {
             resultData.setData(IOUtils.toByteArray(bis));
             resultData.setEncoding(responseData.getCharSet());
             return resultData;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RobotSystemException(
                 "Could not convert the input stream.",
                 e);
@@ -72,6 +73,7 @@ public class BinaryTransformer extends AbstractTransformer {
      * org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity
      * .AccessResultData)
      */
+    @Override
     public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {

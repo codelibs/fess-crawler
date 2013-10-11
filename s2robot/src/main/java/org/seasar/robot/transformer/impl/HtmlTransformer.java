@@ -96,9 +96,10 @@ public class HtmlTransformer extends AbstractTransformer {
             + "^\\s*callto:",
         Pattern.CASE_INSENSITIVE);
 
-    private ThreadLocal<CachedXPathAPI> xpathAPI =
+    private final ThreadLocal<CachedXPathAPI> xpathAPI =
         new ThreadLocal<CachedXPathAPI>();
 
+    @Override
     public ResultData transform(final ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotCrawlAccessException("No response body.");
@@ -113,14 +114,14 @@ public class HtmlTransformer extends AbstractTransformer {
             fis = new FileInputStream(tempFile);
             responseData.setResponseBody(fis);
             updateCharset(responseData);
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
@@ -140,14 +141,14 @@ public class HtmlTransformer extends AbstractTransformer {
             fis = new FileInputStream(tempFile);
             responseData.setResponseBody(fis);
             storeData(responseData, resultData);
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             IOUtils.closeQuietly(fis);
             // clean up
             if (!tempFile.delete()) {
@@ -164,14 +165,14 @@ public class HtmlTransformer extends AbstractTransformer {
                 fis = new FileInputStream(tempFile);
                 responseData.setResponseBody(fis);
                 storeChildUrls(responseData, resultData);
-            } catch (RobotSystemException e) {
+            } catch (final RobotSystemException e) {
                 IOUtils.closeQuietly(fis);
                 // clean up
                 if (!tempFile.delete()) {
                     logger.warn("Could not delete a temp file: " + tempFile);
                 }
                 throw e;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 IOUtils.closeQuietly(fis);
                 // clean up
                 if (!tempFile.delete()) {
@@ -183,7 +184,7 @@ public class HtmlTransformer extends AbstractTransformer {
             }
         }
 
-        Object redirectUrlObj =
+        final Object redirectUrlObj =
             responseData.getMetaDataMap().get(LOCATION_HEADER);
         if (redirectUrlObj instanceof String) {
             final UrlConvertHelper urlConvertHelper =
@@ -208,7 +209,7 @@ public class HtmlTransformer extends AbstractTransformer {
             tempFile = File.createTempFile("s2robot-HtmlTransformer-", ".html");
             fos = new FileOutputStream(tempFile);
             StreamUtil.drain(is, fos);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             IOUtils.closeQuietly(fos);
             // clean up
             if (tempFile != null && !tempFile.delete()) {
@@ -259,7 +260,8 @@ public class HtmlTransformer extends AbstractTransformer {
             final String baseHref = getBaseHref(document);
             final URL url =
                 new URL(baseHref == null ? responseData.getUrl() : baseHref);
-            for (Map.Entry<String, String> entry : childUrlRuleMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : childUrlRuleMap
+                .entrySet()) {
                 urlList.addAll(getUrlFromTagAttribute(
                     url,
                     document,
@@ -268,7 +270,7 @@ public class HtmlTransformer extends AbstractTransformer {
                     responseData.getCharSet()));
             }
             urlList = convertChildUrlList(urlList);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.warn("Could not create child urls.", e);
         } finally {
             xpathAPI.remove();
@@ -285,11 +287,11 @@ public class HtmlTransformer extends AbstractTransformer {
             final UrlConvertHelper urlConvertHelper =
                 SingletonS2Container.getComponent(UrlConvertHelper.class);
             final List<String> newUrlList = new ArrayList<String>();
-            for (String url : urlList) {
+            for (final String url : urlList) {
                 newUrlList.add(urlConvertHelper.convert(url));
             }
             return newUrlList;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // NOP
         }
         return urlList;
@@ -326,7 +328,7 @@ public class HtmlTransformer extends AbstractTransformer {
         }
         try {
             Charset.forName(charsetName);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return false;
         }
         return true;
@@ -343,7 +345,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 final String content = new String(buffer, 0, size);
                 encoding = parseCharset(content);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RobotCrawlAccessException("Could not load a content.", e);
         }
 
@@ -351,7 +353,7 @@ public class HtmlTransformer extends AbstractTransformer {
             final EncodingHelper encodingHelper =
                 SingletonS2Container.getComponent(EncodingHelper.class);
             encoding = encodingHelper.normalize(encoding);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // NOP
         }
 
@@ -383,17 +385,17 @@ public class HtmlTransformer extends AbstractTransformer {
         final DOMParser parser = new DOMParser();
         try {
             // feature
-            for (Map.Entry<String, String> entry : featureMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
                 parser.setFeature(
                     entry.getKey(),
                     "true".equalsIgnoreCase(entry.getValue()) ? true : false);
             }
 
             // property
-            for (Map.Entry<String, String> entry : propertyMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : propertyMap.entrySet()) {
                 parser.setProperty(entry.getKey(), entry.getValue());
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException("Invalid parser configuration.", e);
         }
 
@@ -404,7 +406,7 @@ public class HtmlTransformer extends AbstractTransformer {
         NodeList list;
         try {
             list = getXPathAPI().selectNodeList(document, "//BASE");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.warn("Could not get a base tag. ", e);
             return null;
         }
@@ -442,7 +444,7 @@ public class HtmlTransformer extends AbstractTransformer {
                         encoding);
                 }
             }
-        } catch (TransformerException e) {
+        } catch (final TransformerException e) {
             logger.warn("Could not get urls: (" + xpath + ", " + attr + ")", e);
         }
         return urlList;
@@ -467,7 +469,7 @@ public class HtmlTransformer extends AbstractTransformer {
                     logger.debug("Skip Child: " + u);
                 }
             }
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             logger.warn("Malformed URL: " + attrValue, e);
         }
     }
@@ -478,13 +480,13 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         final StringBuilder buf = new StringBuilder(url.length() + 100);
-        for (char c : url.toCharArray()) {
+        for (final char c : url.toCharArray()) {
             if (CharUtil.isUrlChar(c)) {
                 buf.append(c);
             } else {
                 try {
                     buf.append(URLEncoder.encode(String.valueOf(c), enc));
-                } catch (UnsupportedEncodingException e) {
+                } catch (final UnsupportedEncodingException e) {
                     // NOP
                 }
             }
@@ -562,6 +564,7 @@ public class HtmlTransformer extends AbstractTransformer {
      * Returns data as HTML content of String.
      * 
      */
+    @Override
     public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
@@ -578,14 +581,14 @@ public class HtmlTransformer extends AbstractTransformer {
         try {
             return new String(data, encoding == null ? Constants.UTF_8
                 : encoding);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + encoding
                     + ". Changed to " + Constants.UTF_8, e);
             }
             try {
                 return new String(data, Constants.UTF_8);
-            } catch (UnsupportedEncodingException e1) {
+            } catch (final UnsupportedEncodingException e1) {
                 throw new RobotSystemException("Unexpected exception", e1);
             }
         }

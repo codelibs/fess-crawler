@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ package org.seasar.robot.db.cbean.cq.bs;
 
 import java.util.Map;
 
+import org.seasar.dbflute.cbean.ConditionQuery;
+import org.seasar.dbflute.cbean.cvalue.ConditionValue;
+import org.seasar.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
 import org.seasar.robot.db.cbean.AccessResultDataCB;
 import org.seasar.robot.db.cbean.cq.AccessResultCQ;
 import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
 import org.seasar.robot.db.cbean.cq.ciq.AccessResultDataCIQ;
-import org.seasar.robot.dbflute.cbean.ConditionQuery;
-import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
  * The base condition-query of ACCESS_RESULT_DATA.
@@ -41,14 +41,15 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     // ===================================================================================
     // Constructor
     // ===========
-    public BsAccessResultDataCQ(final ConditionQuery childQuery, final SqlClause sqlClause,
-            final String aliasName, final int nestLevel) {
+    public BsAccessResultDataCQ(final ConditionQuery childQuery,
+            final SqlClause sqlClause, final String aliasName,
+            final int nestLevel) {
         super(childQuery, sqlClause, aliasName, nestLevel);
     }
 
     // ===================================================================================
-    // Inline
-    // ======
+    // InlineView/OrClause
+    // ===================
     /**
      * Prepare InlineView query. <br />
      * {select ... from ... left outer join (select * from ACCESS_RESULT_DATA)
@@ -62,13 +63,19 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
      */
     public AccessResultDataCIQ inline() {
         if (_inlineQuery == null) {
-            _inlineQuery = createInlineQuery();
+            _inlineQuery = xcreateCIQ();
         }
         _inlineQuery.xsetOnClause(false);
         return _inlineQuery;
     }
 
-    protected AccessResultDataCIQ createInlineQuery() {
+    protected AccessResultDataCIQ xcreateCIQ() {
+        final AccessResultDataCIQ ciq = xnewCIQ();
+        ciq.xsetBaseCB(_baseCB);
+        return ciq;
+    }
+
+    protected AccessResultDataCIQ xnewCIQ() {
         return new AccessResultDataCIQ(
             xgetReferrerQuery(),
             xgetSqlClause(),
@@ -125,9 +132,10 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     @Override
-    public String keepId_InScopeRelation_AccessResult(final AccessResultCQ subQuery) {
+    public String keepId_InScopeRelation_AccessResult(
+            final AccessResultCQ subQuery) {
         if (_id_InScopeRelation_AccessResultMap == null) {
-            _id_InScopeRelation_AccessResultMap = newLinkedHashMap();
+            _id_InScopeRelation_AccessResultMap = newLinkedHashMapSized(4);
         }
         final String key =
             "subQueryMapKey" + (_id_InScopeRelation_AccessResultMap.size() + 1);
@@ -142,9 +150,10 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     @Override
-    public String keepId_NotInScopeRelation_AccessResult(final AccessResultCQ subQuery) {
+    public String keepId_NotInScopeRelation_AccessResult(
+            final AccessResultCQ subQuery) {
         if (_id_NotInScopeRelation_AccessResultMap == null) {
-            _id_NotInScopeRelation_AccessResultMap = newLinkedHashMap();
+            _id_NotInScopeRelation_AccessResultMap = newLinkedHashMapSized(4);
         }
         final String key =
             "subQueryMapKey"
@@ -154,7 +163,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as ascend.
+     * Add order-by as ascend. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @return this. (NotNull)
      */
@@ -164,7 +174,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as descend.
+     * Add order-by as descend. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @return this. (NotNull)
      */
@@ -188,7 +199,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as ascend.
+     * Add order-by as ascend. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @return this. (NotNull)
      */
@@ -198,7 +210,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as descend.
+     * Add order-by as descend. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @return this. (NotNull)
      */
@@ -222,7 +235,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as ascend.
+     * Add order-by as ascend. <br />
+     * DATA: {BLOB(4000)}
      * 
      * @return this. (NotNull)
      */
@@ -232,7 +246,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as descend.
+     * Add order-by as descend. <br />
+     * DATA: {BLOB(4000)}
      * 
      * @return this. (NotNull)
      */
@@ -256,7 +271,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as ascend.
+     * Add order-by as ascend. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @return this. (NotNull)
      */
@@ -266,7 +282,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     /**
-     * Add order-by as descend.
+     * Add order-by as descend. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @return this. (NotNull)
      */
@@ -276,8 +293,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     // ===================================================================================
-    // Specified Derived OrderBy
-    // =========================
+    // SpecifiedDerivedOrderBy
+    // =======================
     /**
      * Add order-by for specified derived column as ascend.
      * 
@@ -296,7 +313,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
      *            (NotNull)
      * @return this. (NotNull)
      */
-    public BsAccessResultDataCQ addSpecifiedDerivedOrderBy_Asc(final String aliasName) {
+    public BsAccessResultDataCQ addSpecifiedDerivedOrderBy_Asc(
+            final String aliasName) {
         registerSpecifiedDerivedOrderBy_Asc(aliasName);
         return this;
     }
@@ -319,7 +337,8 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
      *            (NotNull)
      * @return this. (NotNull)
      */
-    public BsAccessResultDataCQ addSpecifiedDerivedOrderBy_Desc(final String aliasName) {
+    public BsAccessResultDataCQ addSpecifiedDerivedOrderBy_Desc(
+            final String aliasName) {
         registerSpecifiedDerivedOrderBy_Desc(aliasName);
         return this;
     }
@@ -328,10 +347,13 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     // Union Query
     // ===========
     @Override
-    protected void reflectRelationOnUnionQuery(final ConditionQuery baseQueryAsSuper,
+    protected void reflectRelationOnUnionQuery(
+            final ConditionQuery baseQueryAsSuper,
             final ConditionQuery unionQueryAsSuper) {
-        final AccessResultDataCQ baseQuery = (AccessResultDataCQ) baseQueryAsSuper;
-        final AccessResultDataCQ unionQuery = (AccessResultDataCQ) unionQueryAsSuper;
+        final AccessResultDataCQ baseQuery =
+            (AccessResultDataCQ) baseQueryAsSuper;
+        final AccessResultDataCQ unionQuery =
+            (AccessResultDataCQ) unionQueryAsSuper;
         if (baseQuery.hasConditionQueryAccessResult()) {
             unionQuery.queryAccessResult().reflectRelationOnUnionQuery(
                 baseQuery.queryAccessResult(),
@@ -344,7 +366,7 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     // =============
     /**
      * Get the condition-query for relation table. <br />
-     * ACCESS_RESULT as 'accessResult'.
+     * ACCESS_RESULT by my ID, named 'accessResult'.
      * 
      * @return The instance of condition-query. (NotNull)
      */
@@ -368,6 +390,7 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
         final String jan = resolveJoinAliasName(nrp, xgetNextNestLevel());
         final AccessResultCQ cq =
             new AccessResultCQ(this, xgetSqlClause(), jan, xgetNextNestLevel());
+        cq.xsetBaseCB(_baseCB);
         cq.xsetForeignPropertyName("accessResult");
         cq.xsetRelationPath(nrp);
         return cq;
@@ -375,17 +398,23 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
 
     protected void xsetupOuterJoinAccessResult() {
         final AccessResultCQ cq = getConditionQueryAccessResult();
-        final Map<String, String> joinOnMap = newLinkedHashMap();
+        final Map<String, String> joinOnMap = newLinkedHashMapSized(4);
         joinOnMap.put("ID", "ID");
-        registerOuterJoin(cq, joinOnMap);
+        registerOuterJoin(cq, joinOnMap, "accessResult");
     }
 
     public boolean hasConditionQueryAccessResult() {
         return _conditionQueryAccessResult != null;
     }
 
+    @Override
+    protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
+            final String property) {
+        return null;
+    }
+
     // ===================================================================================
-    // Scalar SubQuery
+    // ScalarCondition
     // ===============
     protected Map<String, AccessResultDataCQ> _scalarConditionMap;
 
@@ -396,7 +425,7 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     @Override
     public String keepScalarCondition(final AccessResultDataCQ subQuery) {
         if (_scalarConditionMap == null) {
-            _scalarConditionMap = newLinkedHashMap();
+            _scalarConditionMap = newLinkedHashMapSized(4);
         }
         final String key = "subQueryMapKey" + (_scalarConditionMap.size() + 1);
         _scalarConditionMap.put(key, subQuery);
@@ -404,22 +433,96 @@ public class BsAccessResultDataCQ extends AbstractBsAccessResultDataCQ {
     }
 
     // ===================================================================================
-    // MySelf InScope SubQuery
-    // =======================
-    protected Map<String, AccessResultDataCQ> _myselfInScopeRelationMap;
+    // MyselfDerived
+    // =============
+    protected Map<String, AccessResultDataCQ> _specifyMyselfDerivedMap;
 
-    public Map<String, AccessResultDataCQ> getMyselfInScopeRelation() {
-        return _myselfInScopeRelationMap;
+    public Map<String, AccessResultDataCQ> getSpecifyMyselfDerived() {
+        return _specifyMyselfDerivedMap;
     }
 
     @Override
-    public String keepMyselfInScopeRelation(final AccessResultDataCQ subQuery) {
-        if (_myselfInScopeRelationMap == null) {
-            _myselfInScopeRelationMap = newLinkedHashMap();
+    public String keepSpecifyMyselfDerived(final AccessResultDataCQ subQuery) {
+        if (_specifyMyselfDerivedMap == null) {
+            _specifyMyselfDerivedMap = newLinkedHashMapSized(4);
         }
-        final String key = "subQueryMapKey" + (_myselfInScopeRelationMap.size() + 1);
-        _myselfInScopeRelationMap.put(key, subQuery);
-        return "myselfInScopeRelation." + key;
+        final String key =
+            "subQueryMapKey" + (_specifyMyselfDerivedMap.size() + 1);
+        _specifyMyselfDerivedMap.put(key, subQuery);
+        return "specifyMyselfDerived." + key;
+    }
+
+    protected Map<String, AccessResultDataCQ> _queryMyselfDerivedMap;
+
+    public Map<String, AccessResultDataCQ> getQueryMyselfDerived() {
+        return _queryMyselfDerivedMap;
+    }
+
+    @Override
+    public String keepQueryMyselfDerived(final AccessResultDataCQ subQuery) {
+        if (_queryMyselfDerivedMap == null) {
+            _queryMyselfDerivedMap = newLinkedHashMapSized(4);
+        }
+        final String key =
+            "subQueryMapKey" + (_queryMyselfDerivedMap.size() + 1);
+        _queryMyselfDerivedMap.put(key, subQuery);
+        return "queryMyselfDerived." + key;
+    }
+
+    protected Map<String, Object> _qyeryMyselfDerivedParameterMap;
+
+    public Map<String, Object> getQueryMyselfDerivedParameter() {
+        return _qyeryMyselfDerivedParameterMap;
+    }
+
+    @Override
+    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
+        if (_qyeryMyselfDerivedParameterMap == null) {
+            _qyeryMyselfDerivedParameterMap = newLinkedHashMapSized(4);
+        }
+        final String key =
+            "subQueryParameterKey"
+                + (_qyeryMyselfDerivedParameterMap.size() + 1);
+        _qyeryMyselfDerivedParameterMap.put(key, parameterValue);
+        return "queryMyselfDerivedParameter." + key;
+    }
+
+    // ===================================================================================
+    // MyselfExists
+    // ============
+    protected Map<String, AccessResultDataCQ> _myselfExistsMap;
+
+    public Map<String, AccessResultDataCQ> getMyselfExists() {
+        return _myselfExistsMap;
+    }
+
+    @Override
+    public String keepMyselfExists(final AccessResultDataCQ subQuery) {
+        if (_myselfExistsMap == null) {
+            _myselfExistsMap = newLinkedHashMapSized(4);
+        }
+        final String key = "subQueryMapKey" + (_myselfExistsMap.size() + 1);
+        _myselfExistsMap.put(key, subQuery);
+        return "myselfExists." + key;
+    }
+
+    // ===================================================================================
+    // MyselfInScope
+    // =============
+    protected Map<String, AccessResultDataCQ> _myselfInScopeMap;
+
+    public Map<String, AccessResultDataCQ> getMyselfInScope() {
+        return _myselfInScopeMap;
+    }
+
+    @Override
+    public String keepMyselfInScope(final AccessResultDataCQ subQuery) {
+        if (_myselfInScopeMap == null) {
+            _myselfInScopeMap = newLinkedHashMapSized(4);
+        }
+        final String key = "subQueryMapKey" + (_myselfInScopeMap.size() + 1);
+        _myselfInScopeMap.put(key, subQuery);
+        return "myselfInScope." + key;
     }
 
     // ===================================================================================

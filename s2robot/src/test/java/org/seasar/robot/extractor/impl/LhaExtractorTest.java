@@ -40,9 +40,9 @@ public class LhaExtractorTest extends S2TestCase {
     }
 
     public void test_getText() {
-        InputStream in =
+        final InputStream in =
             ResourceUtil.getResourceAsStream("extractor/lha/test.lzh");
-        String content = lhaExtractor.getText(in, null).getContent();
+        final String content = lhaExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -53,7 +53,7 @@ public class LhaExtractorTest extends S2TestCase {
         try {
             lhaExtractor.getText(null, null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }

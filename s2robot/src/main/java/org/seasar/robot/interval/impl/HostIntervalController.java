@@ -84,7 +84,7 @@ public class HostIntervalController extends DefaultIntervalController {
                     lastTime.wait(delayTime);
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(e);
         }
     }

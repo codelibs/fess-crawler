@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.seasar.framework.util.FileUtil;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
@@ -71,15 +72,17 @@ public class CommandExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         final String resourceName =
-            params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
+            params == null ? null : params
+                .get(TikaMetadataKeys.RESOURCE_NAME_KEY);
 
         String extention;
         String filePrefix;
         if (StringUtil.isNotBlank(resourceName)) {
-            String name = getFileName(resourceName);
+            final String name = getFileName(resourceName);
             final String[] strings = name.split("\\.");
             final StringBuilder buf = new StringBuilder();
             if (strings.length > 1) {
@@ -140,7 +143,7 @@ public class CommandExtractor implements Extractor {
             }
 
             return extractData;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
             if (inputFile != null && !inputFile.delete()) {
@@ -152,9 +155,9 @@ public class CommandExtractor implements Extractor {
         }
     }
 
-    String getFileName(String resourceName) {
-        String name = resourceName.replaceAll("/+$", "");
-        int pos = name.lastIndexOf('/');
+    String getFileName(final String resourceName) {
+        final String name = resourceName.replaceAll("/+$", "");
+        final int pos = name.lastIndexOf('/');
         if (pos >= 0) {
             return name.substring(pos + 1);
         }
@@ -212,9 +215,9 @@ public class CommandExtractor implements Extractor {
                 logger.info("Exit Code: " + exitValue + " - Process Output:\n"
                     + it.getOutput());
             }
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             throw e;
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             if (mt != null && mt.isTeminated()) {
                 throw new ExecutionTimeoutException(
                     "The command execution is timeout: " + cmdList,
@@ -222,20 +225,20 @@ public class CommandExtractor implements Extractor {
             } else {
                 throw new RobotSystemException("Process terminated.", e);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException("Process terminated.", e);
         } finally {
             if (mt != null) {
                 mt.setFinished(true);
                 try {
                     mt.interrupt();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                 }
             }
             if (currentProcess != null) {
                 try {
                     currentProcess.destroy();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                 }
             }
             currentProcess = null;
@@ -322,14 +325,14 @@ public class CommandExtractor implements Extractor {
         public void run() {
             try {
                 Thread.sleep(timeout);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
             }
 
             if (!finished) {
                 try {
                     process.destroy();
                     teminated = true;
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (logger.isInfoEnabled()) {
                         logger.info("Could not kill the subprocess.", e);
                     }
@@ -362,11 +365,11 @@ public class CommandExtractor implements Extractor {
         private final int maxLineBuffer;
 
         public InputStreamThread(final InputStream is, final String charset,
-                int maxOutputLineBuffer) {
+                final int maxOutputLineBuffer) {
             super();
             try {
                 br = new BufferedReader(new InputStreamReader(is, charset));
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 throw new RobotSystemException(e);
             }
             maxLineBuffer = maxOutputLineBuffer;
@@ -387,7 +390,7 @@ public class CommandExtractor implements Extractor {
                     if (list.size() > maxLineBuffer) {
                         list.remove(0);
                     }
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     throw new RobotSystemException(e);
                 }
             }
@@ -395,7 +398,7 @@ public class CommandExtractor implements Extractor {
 
         public String getOutput() {
             final StringBuilder buf = new StringBuilder();
-            for (String value : list) {
+            for (final String value : list) {
                 buf.append(value).append("\n");
             }
             return buf.toString();

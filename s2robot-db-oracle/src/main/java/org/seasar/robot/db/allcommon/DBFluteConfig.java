@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,29 +24,30 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.seasar.dbflute.DBDef;
+import org.seasar.dbflute.QLog;
+import org.seasar.dbflute.XLog;
+import org.seasar.dbflute.bhv.core.supplement.SequenceCacheKeyGenerator;
+import org.seasar.dbflute.cbean.cipher.GearedCipherManager;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseCreator;
+import org.seasar.dbflute.dbmeta.name.SqlNameFilter;
+import org.seasar.dbflute.exception.IllegalDBFluteConfigAccessException;
+import org.seasar.dbflute.jdbc.DataSourceHandler;
+import org.seasar.dbflute.jdbc.NotClosingConnectionWrapper;
+import org.seasar.dbflute.jdbc.PhysicalConnectionDigger;
+import org.seasar.dbflute.jdbc.SQLExceptionDigger;
+import org.seasar.dbflute.jdbc.StatementConfig;
+import org.seasar.dbflute.jdbc.ValueType;
+import org.seasar.dbflute.outsidesql.factory.OutsideSqlExecutorFactory;
+import org.seasar.dbflute.s2dao.valuetype.TnValueTypes;
+import org.seasar.dbflute.s2dao.valuetype.plugin.OracleAgent;
+import org.seasar.dbflute.s2dao.valuetype.plugin.OracleArrayType;
+import org.seasar.dbflute.s2dao.valuetype.plugin.OracleDateType;
+import org.seasar.dbflute.s2dao.valuetype.plugin.OracleStructType;
+import org.seasar.dbflute.twowaysql.DisplaySqlBuilder;
+import org.seasar.dbflute.util.DfReflectionUtil;
 import org.seasar.extension.dbcp.ConnectionWrapper;
 import org.seasar.framework.exception.SQLRuntimeException;
-import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.QLog;
-import org.seasar.robot.dbflute.XLog;
-import org.seasar.robot.dbflute.bhv.core.supplement.SequenceCacheKeyGenerator;
-import org.seasar.robot.dbflute.bhv.outsidesql.factory.OutsideSqlExecutorFactory;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseCreator;
-import org.seasar.robot.dbflute.dbmeta.name.SqlNameFilter;
-import org.seasar.robot.dbflute.exception.IllegalDBFluteConfigAccessException;
-import org.seasar.robot.dbflute.jdbc.DataSourceHandler;
-import org.seasar.robot.dbflute.jdbc.NotClosingConnectionWrapper;
-import org.seasar.robot.dbflute.jdbc.PhysicalConnectionDigger;
-import org.seasar.robot.dbflute.jdbc.SQLExceptionDigger;
-import org.seasar.robot.dbflute.jdbc.StatementConfig;
-import org.seasar.robot.dbflute.jdbc.ValueType;
-import org.seasar.robot.dbflute.s2dao.valuetype.TnValueTypes;
-import org.seasar.robot.dbflute.s2dao.valuetype.plugin.OracleAgent;
-import org.seasar.robot.dbflute.s2dao.valuetype.plugin.OracleArrayType;
-import org.seasar.robot.dbflute.s2dao.valuetype.plugin.OracleDateType;
-import org.seasar.robot.dbflute.s2dao.valuetype.plugin.OracleStructType;
-import org.seasar.robot.dbflute.twowaysql.DisplaySqlBuilder;
-import org.seasar.robot.dbflute.util.DfReflectionUtil;
 
 /**
  * @author DBFlute(AutoGenerator)
@@ -59,15 +60,6 @@ public class DBFluteConfig {
     /** Log instance. */
     private static final Log _log = LogFactory.getLog(DBFluteConfig.class);
 
-    /** The default package of outside SQL. */
-    private static final String DEFAULT_OUTSIDE_SQL_PACKAGE = null;
-
-    /**
-     * The default value of whether it uses SQL Log Registry. The default value
-     * is false.
-     */
-    private static final boolean DEFAULT_USE_SQL_LOG_REGISTRY = false;
-
     /** Singleton instance. */
     private static final DBFluteConfig _instance = new DBFluteConfig();
 
@@ -78,13 +70,21 @@ public class DBFluteConfig {
     // Configuration
     // -------------
     // condition-bean or parameter-bean
-    protected boolean _disableSelectIndex;
+    protected boolean _pagingCountLater = true;
+
+    protected boolean _pagingCountLeastJoin = true;
+
+    protected boolean _innerJoinAutoDetect = true;
 
     protected boolean _emptyStringQueryAllowed;
 
     protected boolean _emptyStringParameterAllowed;
 
     protected boolean _invalidQueryChecked;
+
+    protected boolean _disableSelectIndex;
+
+    protected boolean _checkCountBeforeQueryUpdate = false;
 
     // logging
     protected boolean _queryLogLevelInfo;
@@ -98,15 +98,17 @@ public class DBFluteConfig {
     // environment
     protected StatementConfig _defaultStatementConfig;
 
+    protected Integer _cursorSelectFetchSize;
+
     protected DataSourceHandler _dataSourceHandler;
 
     protected PhysicalConnectionDigger _physicalConnectionDigger;
 
     protected SQLExceptionDigger _sqlExceptionDigger;
 
-    protected String _outsideSqlPackage = DEFAULT_OUTSIDE_SQL_PACKAGE;
+    protected String _outsideSqlPackage;
 
-    protected boolean _useSqlLogRegistry = DEFAULT_USE_SQL_LOG_REGISTRY;
+    protected boolean _useSqlLogRegistry = false;
 
     // extension
     protected SequenceCacheKeyGenerator _sequenceCacheKeyGenerator;
@@ -116,6 +118,8 @@ public class DBFluteConfig {
     protected SqlNameFilter _tableSqlNameFilter;
 
     protected OutsideSqlExecutorFactory _outsideSqlExecutorFactory;
+
+    protected GearedCipherManager _gearedCipherManager;
 
     // internal
     protected boolean _internalDebug;
@@ -163,18 +167,46 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    // Select Index
-    // ============
-    public boolean isDisableSelectIndex() {
-        return _disableSelectIndex;
+    // Paging Select
+    // =============
+    public boolean isPagingCountLater() {
+        return _pagingCountLater;
     }
 
-    public void setDisableSelectIndex(final boolean disableSelectIndex) {
+    public void setPagingCountLater(final boolean pagingCountLater) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
-            _log.info("...Setting disableSelectIndex: " + disableSelectIndex);
+            _log.info("...Setting pagingCountLater: " + pagingCountLater);
         }
-        _disableSelectIndex = disableSelectIndex;
+        _pagingCountLater = pagingCountLater;
+    }
+
+    public boolean isPagingCountLeastJoin() {
+        return _pagingCountLeastJoin;
+    }
+
+    public void setPagingCountLeastJoin(final boolean pagingCountLeastJoin) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Setting pagingCountLeastJoin: "
+                + pagingCountLeastJoin);
+        }
+        _pagingCountLeastJoin = pagingCountLeastJoin;
+    }
+
+    // ===================================================================================
+    // Inner Join
+    // ==========
+    public boolean isInnerJoinAutoDetect() {
+        return _innerJoinAutoDetect;
+    }
+
+    public void setInnerJoinAutoDetect(final boolean innerJoinAutoDetect) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Setting innerJoinAutoDetect: " + innerJoinAutoDetect);
+        }
+        _innerJoinAutoDetect = innerJoinAutoDetect;
     }
 
     // ===================================================================================
@@ -242,6 +274,38 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
+    // Select Index
+    // ============
+    public boolean isDisableSelectIndex() {
+        return _disableSelectIndex;
+    }
+
+    public void setDisableSelectIndex(final boolean disableSelectIndex) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Setting disableSelectIndex: " + disableSelectIndex);
+        }
+        _disableSelectIndex = disableSelectIndex;
+    }
+
+    // ===================================================================================
+    // Query Update
+    // ============
+    public boolean isCheckCountBeforeQueryUpdate() {
+        return _checkCountBeforeQueryUpdate;
+    }
+
+    public void setCheckCountBeforeQueryUpdate(
+            final boolean checkCountBeforeQueryUpdate) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Setting checkCountBeforeQueryUpdate: "
+                + checkCountBeforeQueryUpdate);
+        }
+        _checkCountBeforeQueryUpdate = checkCountBeforeQueryUpdate;
+    }
+
+    // ===================================================================================
     // Query Log Level Info
     // ====================
     public void setQueryLogLevelInfo(final boolean queryLogLevelInfo) {
@@ -257,7 +321,8 @@ public class DBFluteConfig {
     // ===================================================================================
     // Execute Status Log Level Info
     // =============================
-    public void setExecuteStatusLogLevelInfo(final boolean executeStatusLogLevelInfo) {
+    public void setExecuteStatusLogLevelInfo(
+            final boolean executeStatusLogLevelInfo) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting executeStatusLogLevelInfo: "
@@ -296,19 +361,36 @@ public class DBFluteConfig {
     }
 
     // ===================================================================================
-    // Default Statement Config
-    // ========================
+    // Default StatementConfig
+    // =======================
     public StatementConfig getDefaultStatementConfig() {
         return _defaultStatementConfig;
     }
 
-    public void setDefaultStatementConfig(final StatementConfig defaultStatementConfig) {
+    public void setDefaultStatementConfig(
+            final StatementConfig defaultStatementConfig) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting defaultStatementConfig: "
                 + defaultStatementConfig);
         }
         _defaultStatementConfig = defaultStatementConfig;
+    }
+
+    // ===================================================================================
+    // CursorSelect FetchSize
+    // ======================
+    public Integer getCursorSelectFetchSize() {
+        return _cursorSelectFetchSize;
+    }
+
+    public void setCursorSelectFetchSize(final Integer cursorSelectFetchSize) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Setting cursorSelectFetchSize: "
+                + cursorSelectFetchSize);
+        }
+        _cursorSelectFetchSize = cursorSelectFetchSize;
     }
 
     // [DBFlute-0.9.0]
@@ -379,7 +461,8 @@ public class DBFluteConfig {
      * @param sqlExceptionDigger
      *            The digger of SQLException. (NotNull)
      */
-    public void setSQLExceptionDigger(final SQLExceptionDigger sqlExceptionDigger) {
+    public void setSQLExceptionDigger(
+            final SQLExceptionDigger sqlExceptionDigger) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Setting sqlExceptionDigger: " + sqlExceptionDigger);
@@ -522,6 +605,23 @@ public class DBFluteConfig {
         _outsideSqlExecutorFactory = outsideSqlExecutorFactory;
     }
 
+    // [DBFlute-0.9.7.0]
+    // ===================================================================================
+    // Geared Cipher Manager
+    // =====================
+    public GearedCipherManager getGearedCipherManager() {
+        return _gearedCipherManager;
+    }
+
+    public void setGearedCipherManager(
+            final GearedCipherManager gearedCipherManager) {
+        assertNotLocked();
+        if (_log.isInfoEnabled()) {
+            _log.info("...Setting gearedCipherManager: " + gearedCipherManager);
+        }
+        _gearedCipherManager = gearedCipherManager;
+    }
+
     // ===================================================================================
     // Database Dependency
     // ===================
@@ -553,7 +653,8 @@ public class DBFluteConfig {
      * @param valueType
      *            The basic value type. (NotNull)
      */
-    public void registerBasicValueType(final Class<?> keyType, final ValueType valueType) {
+    public void registerBasicValueType(final Class<?> keyType,
+            final ValueType valueType) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Registering basic valueType: " + keyType + " = "
@@ -579,7 +680,8 @@ public class DBFluteConfig {
      * @param valueType
      *            The plug-in value type. (NotNull)
      */
-    public void registerPluginValueType(final String keyName, final ValueType valueType) {
+    public void registerPluginValueType(final String keyName,
+            final ValueType valueType) {
         assertNotLocked();
         if (_log.isInfoEnabled()) {
             _log.info("...Registering plug-in valueType: " + keyName + " = "
@@ -605,6 +707,9 @@ public class DBFluteConfig {
     }
 
     public void lock() {
+        if (_locked) {
+            return;
+        }
         if (_log.isInfoEnabled()) {
             _log.info("...Locking the configuration of DBFlute");
         }
@@ -612,6 +717,9 @@ public class DBFluteConfig {
     }
 
     public void unlock() {
+        if (!_locked) {
+            return;
+        }
         if (_log.isInfoEnabled()) {
             _log.info("...Unlocking the configuration of DBFlute");
         }
@@ -643,10 +751,12 @@ public class DBFluteConfig {
     // -----------------------------------------------------
     // Spring
     // ------
-    protected static class SpringDBCPDataSourceHandler implements
+    protected static class SpringTransactionalDataSourceHandler implements
             DataSourceHandler {
 
-        public Connection getConnection(final DataSource ds) throws SQLException {
+        @Override
+        public Connection getConnection(final DataSource ds)
+                throws SQLException {
             final Connection conn = getConnectionFromUtils(ds);
             if (isConnectionTransactional(conn, ds)) {
                 return new NotClosingConnectionWrapper(conn);
@@ -660,14 +770,10 @@ public class DBFluteConfig {
                 "This method is only for Spring Framework.");
         }
 
-        public boolean isConnectionTransactional(final Connection conn, final DataSource ds) {
+        public boolean isConnectionTransactional(final Connection conn,
+                final DataSource ds) {
             throw new IllegalStateException(
                 "This method is only for Spring Framework.");
-        }
-
-        @Override
-        public String toString() {
-            return "SpringDBCPDataSourceHandler(for Spring and Commons-DBCP)";
         }
     }
 
@@ -676,44 +782,55 @@ public class DBFluteConfig {
     // ------
     public static class ImplementedOracleAgent implements OracleAgent {
 
+        @Override
         public Object toOracleDate(final Timestamp timestamp) {
             throw new UnsupportedOperationException(
                 "This method is only for Oracle.");
         }
 
-        public Object toOracleArray(final Connection conn, final String arrayTypeName,
-                final Object arrayValue) throws SQLException {
+        @Override
+        public Object toOracleArray(final Connection conn,
+                final String arrayTypeName, final Object arrayValue)
+                throws SQLException {
             throw new UnsupportedOperationException(
                 "This method is only for Oracle.");
         }
 
-        public Object toStandardArray(final Object oracleArray) throws SQLException {
+        @Override
+        public Object toStandardArray(final Object oracleArray)
+                throws SQLException {
             throw new UnsupportedOperationException(
                 "This method is only for Oracle.");
         }
 
+        @Override
         public boolean isOracleArray(final Object obj) {
             throw new UnsupportedOperationException(
                 "This method is only for Oracle.");
         }
 
-        public Object toOracleStruct(final Connection conn, final String structTypeName,
-                final Object[] attrs) throws SQLException {
+        @Override
+        public Object toOracleStruct(final Connection conn,
+                final String structTypeName, final Object[] attrs)
+                throws SQLException {
             throw new UnsupportedOperationException(
                 "This method is only for Oracle.");
         }
 
+        @Override
         public Object[] toStandardStructAttributes(final Object oracleStruct)
                 throws SQLException {
             throw new UnsupportedOperationException(
                 "This method is only for Oracle.");
         }
 
+        @Override
         public boolean isOracleStruct(final Object obj) {
             throw new UnsupportedOperationException(
                 "This method is only for Oracle.");
         }
 
+        @Override
         public PhysicalConnectionDigger getPhysicalConnectionDigger() {
             return DBFluteConfig.getInstance().getPhysicalConnectionDigger();
         }
@@ -759,34 +876,41 @@ public class DBFluteConfig {
     public static class ImplementedPhysicalConnectionDigger implements
             PhysicalConnectionDigger {
 
-        public Connection digUp(Connection conn) throws SQLException {
+        @Override
+        public Connection digUp(final Connection conn) throws SQLException {
+            Connection digged = unwrap(conn);
+            digged = resolveS2DBCP(digged);
+            digged = resolveCommonsDBCP(digged);
+            return digged;
+        }
+
+        protected Connection unwrap(final Connection conn) {
             if (conn instanceof NotClosingConnectionWrapper) {
-                conn =
-                    ((NotClosingConnectionWrapper) conn).getActualConnection();
+                return ((NotClosingConnectionWrapper) conn)
+                    .getActualConnection();
             }
-            conn = resolveS2DBCP(conn);
-            conn = resolveCommonsDBCP(conn);
             return conn;
         }
 
-        protected Connection resolveS2DBCP(Connection conn) {
+        protected Connection resolveS2DBCP(final Connection conn) {
             if (conn instanceof ConnectionWrapper) {
-                conn = ((ConnectionWrapper) conn).getPhysicalConnection();
+                return ((ConnectionWrapper) conn).getPhysicalConnection();
             }
             return conn;
         }
 
-        protected Connection resolveCommonsDBCP(Connection conn) {
+        protected Connection resolveCommonsDBCP(final Connection conn) {
+            Connection resolved = conn;
             if ("org.apache.commons.dbcp.PoolingDataSource$PoolGuardConnectionWrapper"
-                .equals(conn.getClass().getName())) {
-                conn = getFieldConnection(conn, "delegate");
+                .equals(resolved.getClass().getName())) {
+                resolved = getFieldConnection(resolved, "delegate");
             }
-            if ("org.apache.commons.dbcp.PoolableConnection".equals(conn
+            if ("org.apache.commons.dbcp.PoolableConnection".equals(resolved
                 .getClass()
                 .getName())) {
-                conn = getFieldConnection(conn, "_conn");
+                resolved = getFieldConnection(resolved, "_conn");
             }
-            return conn;
+            return resolved;
         }
 
         protected Connection getFieldConnection(final Connection conn,
@@ -803,6 +927,7 @@ public class DBFluteConfig {
     public static class ImplementedSQLExceptionDigger implements
             SQLExceptionDigger {
 
+        @Override
         public SQLException digUp(final Throwable cause) {
             SQLException found = resolveS2DBCP(cause);
             if (found != null) {

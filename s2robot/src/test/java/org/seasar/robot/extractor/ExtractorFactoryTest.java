@@ -39,10 +39,10 @@ public class ExtractorFactoryTest extends S2TestCase {
     }
 
     public void test_addExtractor() {
-        ExtractorFactory extractorFactory = new ExtractorFactory();
-        Extractor extractor = new Extractor() {
-            public ExtractData getText(InputStream in,
-                    Map<String, String> params) {
+        final ExtractorFactory extractorFactory = new ExtractorFactory();
+        final Extractor extractor = new Extractor() {
+            public ExtractData getText(final InputStream in,
+                    final Map<String, String> params) {
                 return null;
             }
         };
@@ -53,16 +53,16 @@ public class ExtractorFactoryTest extends S2TestCase {
     }
 
     public void test_addExtractor_list() {
-        ExtractorFactory extractorFactory = new ExtractorFactory();
-        Extractor extractor = new Extractor() {
-            public ExtractData getText(InputStream in,
-                    Map<String, String> params) {
+        final ExtractorFactory extractorFactory = new ExtractorFactory();
+        final Extractor extractor = new Extractor() {
+            public ExtractData getText(final InputStream in,
+                    final Map<String, String> params) {
                 return null;
             }
         };
 
         assertNull(extractorFactory.getExtractor("test"));
-        List<String> list = new ArrayList<String>();
+        final List<String> list = new ArrayList<String>();
         list.add("test");
         extractorFactory.addExtractor(list, extractor);
         assertEquals(extractor, extractorFactory.getExtractor("test"));

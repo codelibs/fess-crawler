@@ -92,7 +92,7 @@ public class MemoryDataHelper {
 
     public synchronized List<AccessResult> getAccessResultList(final String url) {
         final List<AccessResult> acList = new ArrayList<AccessResult>();
-        for (Map.Entry<String, Map<String, AccessResult>> entry : sessionMap
+        for (final Map.Entry<String, Map<String, AccessResult>> entry : sessionMap
             .entrySet()) {
             if (entry.getValue() != null) {
                 final AccessResult ar = entry.getValue().get(url);

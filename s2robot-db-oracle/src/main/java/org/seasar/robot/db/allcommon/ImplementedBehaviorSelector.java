@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,18 @@
 package org.seasar.robot.db.allcommon;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.seasar.dbflute.BehaviorSelector;
+import org.seasar.dbflute.bhv.BehaviorReadable;
+import org.seasar.dbflute.dbmeta.DBMeta;
+import org.seasar.dbflute.util.DfTraceViewUtil;
+import org.seasar.dbflute.util.DfTypeUtil;
 import org.seasar.framework.container.ComponentNotFoundRuntimeException;
 import org.seasar.framework.container.S2Container;
-import org.seasar.robot.dbflute.BehaviorSelector;
-import org.seasar.robot.dbflute.bhv.BehaviorReadable;
-import org.seasar.robot.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.dbflute.util.DfTraceViewUtil;
-import org.seasar.robot.dbflute.util.DfTypeUtil;
 
 /**
  * The implementation of behavior selector.
@@ -48,7 +48,7 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     // =========
     /** The cache of behavior. */
     protected final Map<Class<? extends BehaviorReadable>, BehaviorReadable> _behaviorCache =
-        newConcurrentHashMap();
+        newHashMap();
 
     /** The container of Seasar. */
     protected S2Container _container;
@@ -59,6 +59,7 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     /**
      * Initialize condition-bean meta data. <br />
      */
+    @Override
     public void initializeConditionBeanMetaData() {
         final Map<String, DBMeta> dbmetaMap =
             DBMetaInstanceHandler.getUnmodifiableDBMetaMap();
@@ -94,6 +95,7 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      *            Behavior type. (NotNull)
      * @return Behavior. (NotNull)
      */
+    @Override
     @SuppressWarnings("unchecked")
     public <BEHAVIOR extends BehaviorReadable> BEHAVIOR select(
             final Class<BEHAVIOR> behaviorType) {
@@ -104,6 +106,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
         synchronized (_behaviorCache) {
             bhv = (BEHAVIOR) _behaviorCache.get(behaviorType);
             if (bhv != null) {
+                // a previous thread might have initialized
+                // or reading might failed by same-time writing
                 return bhv;
             }
             bhv = getComponent(behaviorType);
@@ -119,6 +123,7 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      *            Table flexible-name. (NotNull)
      * @return Behavior-readable. (NotNull)
      */
+    @Override
     public BehaviorReadable byName(final String tableFlexibleName) {
         assertStringNotNullAndNotTrimmedEmpty(
             "tableFlexibleName",
@@ -159,15 +164,14 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     // Component
     // =========
     @SuppressWarnings("unchecked")
-    protected <COMPONENT> COMPONENT getComponent(final Class<COMPONENT> componentType) { // only
-                                                                                   // for
-                                                                                   // behavior
+    protected <COMPONENT> COMPONENT getComponent(
+            final Class<COMPONENT> componentType) { // only for behavior
         assertObjectNotNull("componentType", componentType);
         assertObjectNotNull("_container", _container);
         try {
             return (COMPONENT) _container.getComponent(componentType);
-        } catch (final ComponentNotFoundRuntimeException e) { // Normally it doesn't
-                                                        // come.
+        } catch (final ComponentNotFoundRuntimeException e) { // Normally it
+                                                              // doesn't come.
             final COMPONENT component;
             try {
                 // for HotDeploy Mode
@@ -194,8 +198,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
         return DfTypeUtil.toClassTitle(obj);
     }
 
-    protected <KEY, VALUE> ConcurrentHashMap<KEY, VALUE> newConcurrentHashMap() {
-        return new ConcurrentHashMap<KEY, VALUE>();
+    protected <KEY, VALUE> HashMap<KEY, VALUE> newHashMap() {
+        return new HashMap<KEY, VALUE>();
     }
 
     // ===================================================================================
@@ -213,7 +217,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      *            Value. (NotNull)
      * @exception IllegalArgumentException
      */
-    protected void assertObjectNotNull(final String variableName, final Object value) {
+    protected void assertObjectNotNull(final String variableName,
+            final Object value) {
         if (variableName == null) {
             final String msg =
                 "The value should not be null: variableName=null value="
@@ -238,8 +243,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
      * @param value
      *            Value. (NotNull)
      */
-    protected void assertStringNotNullAndNotTrimmedEmpty(final String variableName,
-            final String value) {
+    protected void assertStringNotNullAndNotTrimmedEmpty(
+            final String variableName, final String value) {
         assertObjectNotNull("variableName", variableName);
         assertObjectNotNull("value", value);
         if (value.trim().length() == 0) {
@@ -254,6 +259,6 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     // Accessor
     // ========
     public void setContainer(final S2Container container) {
-        this._container = container;
+        _container = container;
     }
 }

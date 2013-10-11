@@ -40,8 +40,8 @@ public class TextExtractorTest extends S2TestCase {
     }
 
     public void test_getText() {
-        InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
-        String content = textExtractor.getText(in, null).getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+        final String content = textExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -51,7 +51,7 @@ public class TextExtractorTest extends S2TestCase {
         try {
             textExtractor.getText(null, null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }

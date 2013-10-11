@@ -41,13 +41,13 @@ public class HtmlTransformerTest extends S2TestCase {
     }
 
     public void test_transform() {
-        byte[] data = new String("xyz").getBytes();
-        ByteArrayInputStream bais = new ByteArrayInputStream(data);
-        ResponseData responseData = new ResponseData();
+        final byte[] data = new String("xyz").getBytes();
+        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://hoge/");
         responseData.setResponseBody(bais);
         responseData.setCharSet("ISO-8859-1");
-        ResultData resultData = htmlTransformer.transform(responseData);
+        final ResultData resultData = htmlTransformer.transform(responseData);
         assertEquals("xyz", new String(resultData.getData()));
     }
 
@@ -55,7 +55,7 @@ public class HtmlTransformerTest extends S2TestCase {
         try {
             htmlTransformer.transform(null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
         }
     }
 
@@ -195,19 +195,19 @@ public class HtmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData() throws Exception {
-        String value = "<html><body>hoge</body></html>";
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final String value = "<html><body>hoge</body></html>";
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("htmlTransformer");
 
-        Object obj = htmlTransformer.getData(accessResultDataImpl);
+        final Object obj = htmlTransformer.getData(accessResultDataImpl);
         assertEquals(value, obj);
     }
 
     public void test_getData_wrongName() throws Exception {
-        String value = "<html><body>hoge</body></html>";
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final String value = "<html><body>hoge</body></html>";
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
@@ -215,18 +215,18 @@ public class HtmlTransformerTest extends S2TestCase {
         try {
             htmlTransformer.getData(accessResultDataImpl);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
 
         }
     }
 
     public void test_getData_nullData() throws Exception {
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("htmlTransformer");
 
-        Object obj = htmlTransformer.getData(accessResultDataImpl);
+        final Object obj = htmlTransformer.getData(accessResultDataImpl);
         assertNull(obj);
     }
 

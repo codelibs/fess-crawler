@@ -31,10 +31,12 @@ public abstract class AbstractTransformer implements Transformer {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public abstract ResultData transform(ResponseData responseData);
 
 }

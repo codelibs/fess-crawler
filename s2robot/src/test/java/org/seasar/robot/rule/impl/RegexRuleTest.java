@@ -31,7 +31,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     public void test_match_default() {
-        RegexRule regexRule = new RegexRule();
+        final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = true;
         regexRule.allRequired = true;
         regexRule.addRule("url", Pattern.compile("http:.*"));
@@ -44,7 +44,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     public void test_match_url() {
-        RegexRule regexRule = new RegexRule();
+        final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
         regexRule.allRequired = true;
         regexRule.addRule("url", Pattern.compile("http:.*"));
@@ -56,7 +56,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     public void test_match_mimeType() {
-        RegexRule regexRule = new RegexRule();
+        final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
         regexRule.allRequired = true;
         regexRule.addRule("mimeType", Pattern.compile("text/plain"));
@@ -68,7 +68,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     public void test_match_and() {
-        RegexRule regexRule = new RegexRule();
+        final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
         regexRule.allRequired = true;
         regexRule.addRule("url", Pattern.compile("http:.*"));
@@ -81,7 +81,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     public void test_match_or() {
-        RegexRule regexRule = new RegexRule();
+        final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
         regexRule.allRequired = false;
         regexRule.addRule("url", Pattern.compile("http:.*"));
@@ -94,7 +94,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     public void test_match_httpStatus() {
-        RegexRule regexRule = new RegexRule();
+        final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
         regexRule.allRequired = true;
         regexRule.addRule("httpStatusCode", Pattern.compile("200"));
@@ -106,7 +106,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     private ResponseData getTestData1() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setHttpStatusCode(200);
         responseData.setUrl("http://example.com/");
         responseData.setMimeType("text/html");
@@ -114,7 +114,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     private ResponseData getTestData2() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setHttpStatusCode(200);
         responseData.setUrl("https://example.com/");
         responseData.setMimeType("text/html");
@@ -122,7 +122,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     private ResponseData getTestData3() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setHttpStatusCode(404);
         responseData.setUrl("http://example.com/");
         responseData.setMimeType("text/plain");
@@ -130,7 +130,7 @@ public class RegexRuleTest extends S2TestCase {
     }
 
     private ResponseData getTestData4() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setHttpStatusCode(404);
         responseData.setUrl("https://example.com/");
         responseData.setMimeType("text/plain");

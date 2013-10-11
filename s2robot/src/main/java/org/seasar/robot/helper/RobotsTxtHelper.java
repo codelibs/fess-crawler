@@ -60,7 +60,7 @@ public class RobotsTxtHelper {
     public RobotsTxt parse(final InputStream stream, final String charsetName) {
         try {
             return parse(new InputStreamReader(stream, charsetName));
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new RobotSystemException(e);
         }
     }
@@ -79,7 +79,7 @@ public class RobotsTxtHelper {
                 lines.add(line);
             }
             return parse(lines);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RobotSystemException("Could not read from Reader.", e);
         }
     }
@@ -120,7 +120,7 @@ public class RobotsTxtHelper {
                     currentDirectives.setCrawlDelay(Math.max(
                         0,
                         Integer.parseInt(value)));
-                } catch (NumberFormatException e) {
+                } catch (final NumberFormatException e) {
                     continue; // the format of robots.txt is invalid
                 }
             }

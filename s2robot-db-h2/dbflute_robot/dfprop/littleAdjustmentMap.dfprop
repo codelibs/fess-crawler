@@ -1,8 +1,8 @@
 # /---------------------------------------------------------------------------
-# littleAdjustmentMap: (Default 'map:{}')
+# littleAdjustmentMap: (NotRequired - Default map:{})
 #
 # The various settings about a little adjustment.
-# 
+#
 # o isAvailableAddingSchemaToTableSqlName: (NotRequired - Default false)
 # o isAvailableAddingCatalogToTableSqlName: (NotRequired - Default false)
 # o isAvailableDatabaseDependency: (NotRequired - Default false)
@@ -13,15 +13,24 @@
 # o isMakeEntityChaseRelation: (NotRequired - Default false)
 # o isEntityConvertEmptyStringToNull: (NotRequired - Default false)
 # o isMakeConditionQueryEqualEmptyString: (NotRequired - Default false)
+# o isPagingCountLater: (NotRequired - Default true)
+# o isPagingCountLeastJoin: (NotRequired - Default true)
+# o isInnerJoinAutoDetect: (NotRequired - Default true)
+# o isTableDispNameUpperCase: (NotRequired - Default false)
+# o isTableSqlNameUpperCase: (NotRequired - Default false)
+# o isColumnSqlNameUpperCase: (NotRequired - Default false)
 # o isMakeDeprecated: (NotRequired - Default false)
 # o isMakeRecentlyDeprecated: (NotRequired - Default true)
+# o extendedDBFluteInitializerClass: (NotRequired - Default '')
 # o extendedImplementedInvokerAssistantClass: (NotRequired - Default '')
 # o extendedImplementedCommonColumnAutoSetupperClass: (NotRequired - Default '')
 # o extendedS2DaoSettingClass: (NotRequired - Default '')
 # o shortCharHandlingMode: (NotRequired - Default NONE)
 # o quoteTableNameList: (NotRequired - Default list:{})
 # o quoteColumnNameList: (NotRequired - Default list:{})
-# 
+# o relationalNullObjectMap: (NotRequired - Default map:{})
+# o cursorSelectFetchSize: (NotRequired - Default null)
+#
 # *The line that starts with '#' means comment-out.
 #
 map:{
@@ -147,6 +156,77 @@ map:{
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isPagingCountLater: (NotRequired - Default true)
+    #   [true]
+    #     The count SQL for paging are executed after paging main select.
+    #
+    #   [false]
+    #     Non.
+    #
+    #; isPagingCountLater = true
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isPagingCountLeastJoin: (NotRequired - Default true)
+    #   [true]
+    #     Join statements in count SQL of paging select are trimmed
+    #     for performance tuning. (only countable joins are valid)
+    #
+    #   [false]
+    #     Non.
+    #
+    #; isPagingCountLeastJoin = true
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isInnerJoinAutoDetect: (NotRequired - Default true)
+    #   [true]
+    #     Joins that can be inner-join on condition-bean are auto-detected
+    #     for performance tuning. (DBFlute uses NotNull constraint info)
+    #
+    #   [false]
+    #     Non.
+    #
+    #; isInnerJoinAutoDetect = true
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isTableDispNameUpperCase: (NotRequired - Default false)
+    #   [true]
+    #     Table names for display, e.g. on documents,
+    #     are forcedly treated as upper case.
+    #
+    #   [false]
+    #     Non.
+    #
+    #; isTableDispNameUpperCase = false
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isTableSqlNameUpperCase: (NotRequired - Default false)
+    #   [true]
+    #     Table names on SQL executed by condition-bean or behavior
+    #     are forcedly treated as upper case. (except outside-SQL)
+    #
+    #   [false]
+    #     Non.
+    #
+    #; isTableSqlNameUpperCase = false
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isColumnSqlNameUpperCase: (NotRequired - Default false)
+    #   [true]
+    #     Column names on SQL executed by condition-bean or behavior
+    #     are forcedly treated as upper case. (except outside-SQL)
+    #
+    #   [false]
+    #     Non.
+    #
+    #; isColumnSqlNameUpperCase = false
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isMakeDeprecated: (NotRequired - Default false)
     #   [true]
     #     Make deprecated method and class and so on...
@@ -168,6 +248,17 @@ map:{
     #     Non.
     #
     #; isMakeRecentlyDeprecated = true
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o extendedDBFluteInitializerClass: (NotRequired - Default '')
+    #  If you want to extend the embedded DBFlute initializer,
+    #  specify the class name of your original initializer
+    #  that extends the embedded one.
+    #  *Basically for fixed DBFluteConfig settings
+    #
+    # @JavaOnly
+    #; extendedDBFluteInitializerClass = com.example.ExtendedDBFluteInitializer
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -228,6 +319,27 @@ map:{
     #  Specified columns is quoted on auto-generated SQL.
     #
     #; quoteColumnNameList = list:{}
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o relationalNullObjectMap: (NotRequired - Default map:{})
+    #  You can get a null object when the relation is null.
+    #
+    #; relationalNullObjectMap = map:{
+    #    ; providerPackage = $$packageBase$$.nogen.cache
+    #    ; foreignMap = map:{
+    #        ; MEMBER_STATUS = CachedMemberStatus.get($$PrimaryKey$$)
+    #        ; MEMBER_SECURITY = CachedMemberSecurity.get($$PrimaryKey$$)
+    #    }
+    #}
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o cursorSelectFetchSize: (NotRequired - Default null)
+    #  The fetch size of JDBC parameter for cursor select.
+    #  For example, specify Integer.MIN_VALUE to enable fetch of MySQL.
+    #
+    #; cursorSelectFetchSize = Integer.MIN_VALUE
     # - - - - - - - - - -/
 }
 # ----------------/

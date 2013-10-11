@@ -77,9 +77,11 @@ public class XmlTransformer extends AbstractTransformer {
 
     private boolean includeAware;
 
-    private Map<String, Object> attributeMap = new HashMap<String, Object>();
+    private final Map<String, Object> attributeMap =
+        new HashMap<String, Object>();
 
-    private Map<String, String> featureMap = new HashMap<String, String>();
+    private final Map<String, String> featureMap =
+        new HashMap<String, String>();
 
     protected Map<String, String> fieldRuleMap =
         new LinkedHashMap<String, String>();
@@ -95,7 +97,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     protected Class<?> dataClass = null;
 
-    private ThreadLocal<CachedXPathAPI> xpathAPI =
+    private final ThreadLocal<CachedXPathAPI> xpathAPI =
         new ThreadLocal<CachedXPathAPI>();
 
     /**
@@ -103,6 +105,7 @@ public class XmlTransformer extends AbstractTransformer {
      * 
      * @return XML content of String.
      */
+    @Override
     public Object getData(final AccessResultData accessResultData) {
         if (dataClass == null) {
             // check transformer name
@@ -120,14 +123,14 @@ public class XmlTransformer extends AbstractTransformer {
             try {
                 return new String(data, encoding == null ? Constants.UTF_8
                     : encoding);
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 if (logger.isInfoEnabled()) {
                     logger.info("Invalid charsetName: " + encoding
                         + ". Changed to " + Constants.UTF_8, e);
                 }
                 try {
                     return new String(data, Constants.UTF_8);
-                } catch (UnsupportedEncodingException e1) {
+                } catch (final UnsupportedEncodingException e1) {
                     throw new RobotSystemException("Unexpected exception", e1);
                 }
             }
@@ -143,7 +146,7 @@ public class XmlTransformer extends AbstractTransformer {
             final Object obj = dataClass.newInstance();
             Beans.copy(dataMap, obj).execute();
             return obj;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(
                 "Could not create/copy a data map to " + dataClass,
                 e);
@@ -158,7 +161,7 @@ public class XmlTransformer extends AbstractTransformer {
      * .robot.entity.ResponseData)
      */
     @Override
-    public ResultData transform(ResponseData responseData) {
+    public ResultData transform(final ResponseData responseData) {
         if (responseData == null || responseData.getResponseBody() == null) {
             throw new RobotCrawlAccessException("No response body.");
         }
@@ -169,14 +172,15 @@ public class XmlTransformer extends AbstractTransformer {
 
         try {
             fis = new FileInputStream(tempFile);
-            DocumentBuilderFactory factory =
+            final DocumentBuilderFactory factory =
                 DocumentBuilderFactory.newInstance();
 
-            for (Map.Entry<String, Object> entry : attributeMap.entrySet()) {
+            for (final Map.Entry<String, Object> entry : attributeMap
+                .entrySet()) {
                 factory.setAttribute(entry.getKey(), entry.getValue());
             }
 
-            for (Map.Entry<String, String> entry : featureMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
                 factory.setFeature(
                     entry.getKey(),
                     "true".equalsIgnoreCase(entry.getValue()));
@@ -191,13 +195,14 @@ public class XmlTransformer extends AbstractTransformer {
             factory.setValidating(validating);
             factory.setXIncludeAware(includeAware);
 
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            final DocumentBuilder builder = factory.newDocumentBuilder();
 
-            Document doc = builder.parse(fis);
+            final Document doc = builder.parse(fis);
 
             final StringBuilder buf = new StringBuilder(1000);
             buf.append(getResultDataHeader());
-            for (Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : fieldRuleMap
+                .entrySet()) {
                 final List<String> nodeStrList = new ArrayList<String>();
                 try {
                     final NodeList nodeList =
@@ -206,7 +211,7 @@ public class XmlTransformer extends AbstractTransformer {
                         final Node node = nodeList.item(i);
                         nodeStrList.add(node.getTextContent());
                     }
-                } catch (TransformerException e) {
+                } catch (final TransformerException e) {
                     logger.warn("Could not parse a value of " + entry.getKey()
                         + ":" + entry.getValue(), e);
                 }
@@ -226,7 +231,7 @@ public class XmlTransformer extends AbstractTransformer {
 
             try {
                 resultData.setData(buf.toString().getBytes(charsetName));
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 if (logger.isInfoEnabled()) {
                     logger.info("Invalid charsetName: " + charsetName
                         + ". Changed to " + Constants.UTF_8, e);
@@ -234,16 +239,16 @@ public class XmlTransformer extends AbstractTransformer {
                 charsetName = Constants.UTF_8;
                 try {
                     resultData.setData(buf.toString().getBytes(charsetName));
-                } catch (UnsupportedEncodingException e1) {
+                } catch (final UnsupportedEncodingException e1) {
                     throw new RobotSystemException("Unexpected exception", e);
                 }
             }
             resultData.setEncoding(charsetName);
 
             return resultData;
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException("Could not store data.", e);
         } finally {
             IOUtils.closeQuietly(fis);
@@ -254,11 +259,11 @@ public class XmlTransformer extends AbstractTransformer {
         }
     }
 
-    protected NodeList getNodeList(Document doc, String xpath)
+    protected NodeList getNodeList(final Document doc, final String xpath)
             throws TransformerException {
-        DefaultPrefixResolver prefixResolver =
-            new DefaultPrefixResolver((doc.getNodeType() == Node.DOCUMENT_NODE)
-                ? ((Document) doc).getDocumentElement() : doc);
+        final DefaultPrefixResolver prefixResolver =
+            new DefaultPrefixResolver(doc.getNodeType() == Node.DOCUMENT_NODE
+                ? doc.getDocumentElement() : doc);
         return getXPathAPI().eval(doc, xpath, prefixResolver).nodelist();
     }
 
@@ -279,7 +284,7 @@ public class XmlTransformer extends AbstractTransformer {
             tempFile = File.createTempFile("s2robot-XmlTransformer-", ".xml");
             fos = new FileOutputStream(tempFile);
             StreamUtil.drain(is, fos);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             IOUtils.closeQuietly(fos);
             // clean up
             if (tempFile != null && !tempFile.delete()) {
@@ -313,7 +318,7 @@ public class XmlTransformer extends AbstractTransformer {
         final StringBuilder buf = new StringBuilder();
         buf.append("<list>");
         if (values != null && !values.isEmpty()) {
-            for (String value : values) {
+            for (final String value : values) {
                 buf.append("<item>");
                 buf.append(trimSpace(XmlUtil.escapeXml(value)));
                 buf.append("</item>");
@@ -344,11 +349,11 @@ public class XmlTransformer extends AbstractTransformer {
         return value;
     }
 
-    public void addAttribute(String name, Object value) {
+    public void addAttribute(final String name, final Object value) {
         attributeMap.put(name, value);
     }
 
-    public void addFeature(String key, String value) {
+    public void addFeature(final String key, final String value) {
         featureMap.put(key, value);
     }
 
@@ -367,7 +372,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param fieldRuleMap
      *            the fieldRuleMap to set
      */
-    public void setFieldRuleMap(Map<String, String> fieldRuleMap) {
+    public void setFieldRuleMap(final Map<String, String> fieldRuleMap) {
         this.fieldRuleMap = fieldRuleMap;
     }
 
@@ -382,7 +387,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param trimSpace
      *            the trimSpace to set
      */
-    public void setTrimSpace(boolean trimSpace) {
+    public void setTrimSpace(final boolean trimSpace) {
         this.trimSpace = trimSpace;
     }
 
@@ -397,7 +402,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param charsetName
      *            the charsetName to set
      */
-    public void setCharsetName(String charsetName) {
+    public void setCharsetName(final String charsetName) {
         this.charsetName = charsetName;
     }
 
@@ -412,7 +417,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param dataClass
      *            the dataClass to set
      */
-    public void setDataClass(Class<?> dataClass) {
+    public void setDataClass(final Class<?> dataClass) {
         this.dataClass = dataClass;
     }
 
@@ -427,7 +432,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param namespaceAware
      *            the namespaceAware to set
      */
-    public void setNamespaceAware(boolean namespaceAware) {
+    public void setNamespaceAware(final boolean namespaceAware) {
         this.namespaceAware = namespaceAware;
     }
 
@@ -442,7 +447,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param coalescing
      *            the coalescing to set
      */
-    public void setCoalescing(boolean coalescing) {
+    public void setCoalescing(final boolean coalescing) {
         this.coalescing = coalescing;
     }
 
@@ -457,7 +462,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param expandEntityRef
      *            the expandEntityRef to set
      */
-    public void setExpandEntityRef(boolean expandEntityRef) {
+    public void setExpandEntityRef(final boolean expandEntityRef) {
         this.expandEntityRef = expandEntityRef;
     }
 
@@ -472,7 +477,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param ignoringComments
      *            the ignoringComments to set
      */
-    public void setIgnoringComments(boolean ignoringComments) {
+    public void setIgnoringComments(final boolean ignoringComments) {
         this.ignoringComments = ignoringComments;
     }
 
@@ -488,7 +493,7 @@ public class XmlTransformer extends AbstractTransformer {
      *            the ignoringElementContentWhitespace to set
      */
     public void setIgnoringElementContentWhitespace(
-            boolean ignoringElementContentWhitespace) {
+            final boolean ignoringElementContentWhitespace) {
         this.ignoringElementContentWhitespace =
             ignoringElementContentWhitespace;
     }
@@ -504,7 +509,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param validating
      *            the validating to set
      */
-    public void setValidating(boolean validating) {
+    public void setValidating(final boolean validating) {
         this.validating = validating;
     }
 
@@ -519,7 +524,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param includeAware
      *            the includeAware to set
      */
-    public void setIncludeAware(boolean includeAware) {
+    public void setIncludeAware(final boolean includeAware) {
         this.includeAware = includeAware;
     }
 
@@ -528,7 +533,7 @@ public class XmlTransformer extends AbstractTransformer {
         /**
          * @param xpathExpressionContext
          */
-        public DefaultPrefixResolver(Node xpathExpressionContext) {
+        public DefaultPrefixResolver(final Node xpathExpressionContext) {
             super(xpathExpressionContext);
         }
 
@@ -540,8 +545,9 @@ public class XmlTransformer extends AbstractTransformer {
          * java.lang.String, org.w3c.dom.Node)
          */
         @Override
-        public String getNamespaceForPrefix(String prefix, Node namespaceContext) {
-            String namespace =
+        public String getNamespaceForPrefix(final String prefix,
+                final Node namespaceContext) {
+            final String namespace =
                 super.getNamespaceForPrefix(prefix, namespaceContext);
             if (StringUtil.isNotBlank(namespace)) {
                 return namespace;

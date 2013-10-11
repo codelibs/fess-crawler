@@ -25,6 +25,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
@@ -53,6 +54,7 @@ public class TarExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -99,12 +101,14 @@ public class TarExtractor implements Extractor {
                         try {
                             final Map<String, String> map =
                                 new HashMap<String, String>();
-                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
+                            map.put(
+                                TikaMetadataKeys.RESOURCE_NAME_KEY,
+                                filename);
                             buf.append(extractor.getText(
                                 new IgnoreCloseInputStream(ais),
                                 map).getContent());
                             buf.append('\n');
-                        } catch (Exception e) {
+                        } catch (final Exception e) {
                             if (logger.isDebugEnabled()) {
                                 logger.debug(
                                     "Exception in an internal extractor.",
@@ -114,7 +118,7 @@ public class TarExtractor implements Extractor {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (buf.length() == 0) {
                 throw new ExtractException("Could not extract a content.", e);
             }

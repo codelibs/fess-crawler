@@ -33,53 +33,53 @@ public class RuleManagerImplTest extends S2TestCase {
     }
 
     public void test_getRule() {
-        Rule rule = ruleManager.getRule(new ResponseData());
+        final Rule rule = ruleManager.getRule(new ResponseData());
         assertNotNull(rule);
         assertEquals("fileRule", rule.getRuleId());
     }
 
     public void test_getRule_sitemaps1() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
-        Rule rule = ruleManager.getRule(responseData);
+        final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
     }
 
     public void test_getRule_sitemaps2() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml.gz");
-        Rule rule = ruleManager.getRule(responseData);
+        final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
     }
 
     public void test_getRule_sitemaps3() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt");
-        Rule rule = ruleManager.getRule(responseData);
+        final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
     }
 
     public void test_getRule_sitemaps4() {
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt.gz");
-        Rule rule = ruleManager.getRule(responseData);
+        final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
     }
 
     public void test_checkRule() {
-        Rule rule = ruleManager.getRule(new ResponseData());
+        final Rule rule = ruleManager.getRule(new ResponseData());
         assertNotNull(rule);
         assertEquals("fileRule", rule.getRuleId());
 
-        RegexRule rule2 = new RegexRule();
+        final RegexRule rule2 = new RegexRule();
         rule2.setAllRequired(true);
         rule2.addRule("url", "http:.*");
 
-        RegexRule rule3 = new RegexRule();
+        final RegexRule rule3 = new RegexRule();
         rule3.addRule("url", "http:.*");
 
         assertFalse(ruleManager.hasRule(rule2));

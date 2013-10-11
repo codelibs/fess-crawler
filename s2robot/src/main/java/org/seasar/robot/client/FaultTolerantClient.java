@@ -50,7 +50,8 @@ public class FaultTolerantClient implements S2RobotClient {
      * @see
      * org.seasar.robot.client.S2RobotClient#setInitParameterMap(java.util.Map)
      */
-    public void setInitParameterMap(Map<String, Object> params) {
+    @Override
+    public void setInitParameterMap(final Map<String, Object> params) {
         client.setInitParameterMap(params);
     }
 
@@ -59,9 +60,11 @@ public class FaultTolerantClient implements S2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
+    @Override
     public ResponseData doGet(final String url) {
         return doRequest(Constants.GET_METHOD, url, new Requester() {
-            public ResponseData execute(String url) {
+            @Override
+            public ResponseData execute(final String url) {
                 return client.doGet(url);
             }
         });
@@ -72,16 +75,18 @@ public class FaultTolerantClient implements S2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doHead(java.lang.String)
      */
+    @Override
     public ResponseData doHead(final String url) {
         return doRequest(Constants.HEAD_METHOD, url, new Requester() {
-            public ResponseData execute(String url) {
+            @Override
+            public ResponseData execute(final String url) {
                 return client.doHead(url);
             }
         });
     }
 
-    protected ResponseData doRequest(String method, String url,
-            Requester requester) {
+    protected ResponseData doRequest(final String method, final String url,
+            final Requester requester) {
         if (listener != null) {
             listener.onRequestStart(this, method, url);
         }
@@ -96,11 +101,11 @@ public class FaultTolerantClient implements S2RobotClient {
 
                 try {
                     return requester.execute(url);
-                } catch (MaxLengthExceededException e) {
+                } catch (final MaxLengthExceededException e) {
                     throw e;
-                } catch (ChildUrlsException e) {
+                } catch (final ChildUrlsException e) {
                     throw e;
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Failed to access to " + url, e);
                     }
@@ -117,7 +122,7 @@ public class FaultTolerantClient implements S2RobotClient {
 
                 try {
                     Thread.sleep(retryInterval);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     // ignore
                 }
                 count++;
@@ -136,7 +141,7 @@ public class FaultTolerantClient implements S2RobotClient {
         return client;
     }
 
-    public void setRobotClient(S2RobotClient client) {
+    public void setRobotClient(final S2RobotClient client) {
         this.client = client;
     }
 
@@ -144,7 +149,7 @@ public class FaultTolerantClient implements S2RobotClient {
         return maxRetryCount;
     }
 
-    public void setMaxRetryCount(int maxRetryCount) {
+    public void setMaxRetryCount(final int maxRetryCount) {
         this.maxRetryCount = maxRetryCount;
     }
 
@@ -152,7 +157,7 @@ public class FaultTolerantClient implements S2RobotClient {
         return retryInterval;
     }
 
-    public void setRetryInterval(long retryInterval) {
+    public void setRetryInterval(final long retryInterval) {
         this.retryInterval = retryInterval;
     }
 
@@ -160,7 +165,7 @@ public class FaultTolerantClient implements S2RobotClient {
         return listener;
     }
 
-    public void setRequestListener(RequestListener listener) {
+    public void setRequestListener(final RequestListener listener) {
         this.listener = listener;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class DBDataServiceImpl implements DataService {
     private static final Logger logger = LoggerFactory
-            .getLogger(DBDataServiceImpl.class);
+        .getLogger(DBDataServiceImpl.class);
 
     @Resource
     protected AccessResultBhv accessResultBhv;
@@ -53,39 +53,50 @@ public class DBDataServiceImpl implements DataService {
     @Resource
     protected AccessResultDataBhv accessResultDataBhv;
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#store(org.seasar.robot.entity.AccessResult)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.DataService#store(org.seasar.robot.entity.
+     * AccessResult)
      */
+    @Override
     public void store(final AccessResult accessResult) {
         if (accessResult == null) {
             throw new RobotSystemException("AccessResult is null.");
         }
 
         accessResultBhv
-                .insert((org.seasar.robot.db.exentity.AccessResult) accessResult);
+            .insert((org.seasar.robot.db.exentity.AccessResult) accessResult);
 
         AccessResultData accessResultData = accessResult.getAccessResultData();
         if (accessResultData == null) {
-            accessResultData = new org.seasar.robot.db.exentity.AccessResultData();
+            accessResultData =
+                new org.seasar.robot.db.exentity.AccessResultData();
             accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
         }
         accessResultData.setId(accessResult.getId());
         accessResultDataBhv
-                .insert((org.seasar.robot.db.exentity.AccessResultData) accessResultData);
+            .insert((org.seasar.robot.db.exentity.AccessResultData) accessResultData);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#getCount(java.lang.String)
      */
+    @Override
     public int getCount(final String sessionId) {
         final AccessResultCB cb = new AccessResultCB();
         cb.query().setSessionId_Equal(sessionId);
         return accessResultBhv.selectCount(cb);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#delete(java.lang.String)
      */
+    @Override
     public void delete(final String sessionId) {
         int count = accessResultDataBhv.deleteBySessionId(sessionId);
 
@@ -100,9 +111,12 @@ public class DBDataServiceImpl implements DataService {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#deleteAll()
      */
+    @Override
     public void deleteAll() {
         int count = accessResultDataBhv.deleteAll();
 
@@ -117,9 +131,14 @@ public class DBDataServiceImpl implements DataService {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#getAccessResult(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.DataService#getAccessResult(java.lang.String,
+     * java.lang.String)
      */
+    @Override
     public AccessResult getAccessResult(final String sessionId, final String url) {
         final AccessResultCB cb = new AccessResultCB();
         cb.setupSelect_AccessResultDataAsOne();
@@ -128,98 +147,130 @@ public class DBDataServiceImpl implements DataService {
         return accessResultBhv.selectEntity(cb);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#getAccessResultList(java.lang.String, boolean)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.DataService#getAccessResultList(java.lang.String
+     * , boolean)
      */
-    public List<AccessResult> getAccessResultList(final String url, final boolean hasData) {
+    @Override
+    public List<AccessResult> getAccessResultList(final String url,
+            final boolean hasData) {
         final AccessResultCB cb = new AccessResultCB();
         if (hasData) {
             cb.setupSelect_AccessResultDataAsOne();
         }
         cb.query().setUrl_Equal(url);
         cb.query().addOrderBy_CreateTime_Desc();
-        final List<org.seasar.robot.db.exentity.AccessResult> list = accessResultBhv
-                .selectList(cb);
+        final List<org.seasar.robot.db.exentity.AccessResult> list =
+            accessResultBhv.selectList(cb);
 
-        final List<AccessResult> accessResultList = new ArrayList<AccessResult>();
+        final List<AccessResult> accessResultList =
+            new ArrayList<AccessResult>();
         accessResultList.addAll(list);
         return accessResultList;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#iterate(java.lang.String, org.seasar.robot.util.AccessResultCallback)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.DataService#iterate(java.lang.String,
+     * org.seasar.robot.util.AccessResultCallback)
      */
+    @Override
     public void iterate(final String sessionId,
             final AccessResultCallback accessResultCallback) {
         final AccessResultCB cb = new AccessResultCB();
         cb.setupSelect_AccessResultDataAsOne();
         cb.query().setSessionId_Equal(sessionId);
         cb.query().addOrderBy_CreateTime_Asc();
-        accessResultBhv
-                .selectCursor(
-                        cb,
-                        new EntityRowHandler<org.seasar.robot.db.exentity.AccessResult>() {
-                            public void handle(
-                                    final org.seasar.robot.db.exentity.AccessResult entity) {
-                                accessResultCallback.iterate(entity);
-                            }
-                        });
+        accessResultBhv.selectCursor(
+            cb,
+            new EntityRowHandler<org.seasar.robot.db.exentity.AccessResult>() {
+                @Override
+                public void handle(
+                        final org.seasar.robot.db.exentity.AccessResult entity) {
+                    accessResultCallback.iterate(entity);
+                }
+            });
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String, java.lang.String, org.seasar.robot.util.AccessResultCallback)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String,
+     * java.lang.String, org.seasar.robot.util.AccessResultCallback)
      */
-    public void iterateUrlDiff(final String oldSessionId, final String newSessionId,
+    @Override
+    public void iterateUrlDiff(final String oldSessionId,
+            final String newSessionId,
             final AccessResultCallback accessResultCallback) {
 
         final AccessResultPmb pmb = new AccessResultPmb();
         pmb.setOldSessionId(oldSessionId);
         pmb.setNewSessionId(newSessionId);
-        final AccessResultDiffCursorHandler handler = new AccessResultDiffCursorHandler() {
-            @Override
-            public Object fetchCursor(final AccessResultDiffCursor cursor)
-                    throws SQLException {
-                while (cursor.next()) {
-                    final AccessResult accessResult = new org.seasar.robot.db.exentity.AccessResult();
-                    Beans.copy(cursor, accessResult).execute();
-                    accessResultCallback.iterate(accessResult);
+        final AccessResultDiffCursorHandler handler =
+            new AccessResultDiffCursorHandler() {
+                @Override
+                public Object fetchCursor(final AccessResultDiffCursor cursor)
+                        throws SQLException {
+                    while (cursor.next()) {
+                        final AccessResult accessResult =
+                            new org.seasar.robot.db.exentity.AccessResult();
+                        Beans.copy(cursor, accessResult).execute();
+                        accessResultCallback.iterate(accessResult);
+                    }
+                    return null;
                 }
-                return null;
-            }
-        };
+            };
         accessResultBhv
-                .outsideSql()
-                .cursorHandling()
-                .selectCursor(BsAccessResultBhv.PATH_selectListByUrlDiff, pmb,
-                        handler);
+            .outsideSql()
+            .cursorHandling()
+            .selectCursor(
+                BsAccessResultBhv.PATH_selectListByUrlDiff,
+                pmb,
+                handler);
 
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.AccessResult)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.
+     * AccessResult)
      */
+    @Override
     public void update(final AccessResult accessResult) {
         accessResultBhv
-                .update((org.seasar.robot.db.exentity.AccessResult) accessResult);
+            .update((org.seasar.robot.db.exentity.AccessResult) accessResult);
 
         if (accessResult.getAccessResultData() != null) {
             accessResultDataBhv
-                    .update((org.seasar.robot.db.exentity.AccessResultData) accessResult
-                            .getAccessResultData());
+                .update((org.seasar.robot.db.exentity.AccessResultData) accessResult
+                    .getAccessResultData());
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.DataService#update(java.util.List)
      */
+    @Override
     public void update(final List<AccessResult> accessResultList) {
-        final List<org.seasar.robot.db.exentity.AccessResult> arList = new ArrayList<org.seasar.robot.db.exentity.AccessResult>();
-        final List<org.seasar.robot.db.exentity.AccessResultData> ardList = new ArrayList<org.seasar.robot.db.exentity.AccessResultData>();
+        final List<org.seasar.robot.db.exentity.AccessResult> arList =
+            new ArrayList<org.seasar.robot.db.exentity.AccessResult>();
+        final List<org.seasar.robot.db.exentity.AccessResultData> ardList =
+            new ArrayList<org.seasar.robot.db.exentity.AccessResultData>();
 
         for (final AccessResult accessResult : accessResultList) {
-            arList.add((org.seasar.robot.db.exentity.AccessResult) accessResult);
+            arList
+                .add((org.seasar.robot.db.exentity.AccessResult) accessResult);
             if (accessResult.getAccessResultData() != null) {
-                ardList.add((org.seasar.robot.db.exentity.AccessResultData) accessResult
+                ardList
+                    .add((org.seasar.robot.db.exentity.AccessResultData) accessResult
                         .getAccessResultData());
             }
         }

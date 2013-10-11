@@ -68,12 +68,13 @@ public class FileSystemClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
+    @Override
     public ResponseData doGet(final String uri) {
         return getResponseData(uri, true);
     }
 
     protected ResponseData getResponseData(final String uri,
-            boolean includeContent) {
+            final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
         final String filePath = preprocessUri(uri);
@@ -82,7 +83,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
         File file = null;
         try {
             file = new File(new URI(filePath));
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             logger.warn("Could not parse url: " + filePath, e);
         }
 
@@ -99,7 +100,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 responseData.setMimeType(mimeTypeHelper.getContentType(
                     is,
                     file.getName()));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 responseData.setMimeType(mimeTypeHelper.getContentType(
                     null,
                     file.getName()));
@@ -135,7 +136,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                         responseData
                             .setResponseBody(new TemporaryFileInputStream(
                                 outputFile));
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         logger.warn("I/O Exception.", e);
                         responseData.setHttpStatusCode(500);
                         if (outputFile != null && !outputFile.delete()) {
@@ -153,7 +154,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
             if (includeContent) {
                 final File[] files = file.listFiles();
                 if (files != null) {
-                    for (File f : files) {
+                    for (final File f : files) {
                         final String chileUri = f.toURI().toASCIIString();
                         childUrlSet.add(chileUri);
                     }
@@ -181,7 +182,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
 
         final StringBuilder buf = new StringBuilder(filePath.length() + 100);
         try {
-            for (char c : filePath.toCharArray()) {
+            for (final char c : filePath.toCharArray()) {
                 if (c == ' ') {
                     buf.append("%20");
                 } else {
@@ -193,7 +194,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                     }
                 }
             }
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             return filePath;
         }
         return buf.toString();
@@ -216,12 +217,13 @@ public class FileSystemClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doHead(java.lang.String)
      */
+    @Override
     public ResponseData doHead(final String url) {
         try {
             final ResponseData responseData = getResponseData(url, false);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
-        } catch (ChildUrlsException e) {
+        } catch (final ChildUrlsException e) {
             return null;
         }
     }

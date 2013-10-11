@@ -38,10 +38,10 @@ public class SitemapsHelperTest extends S2TestCase {
     }
 
     public void test_parseXmlSitemaps() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("sitemaps/sitemap1.xml");
-        SitemapSet sitemapSet = sitemapsHelper.parse(in);
-        Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(5, sitemaps.length);
         assertTrue(sitemapSet.isUrlSet());
         assertFalse(sitemapSet.isIndex());
@@ -81,10 +81,10 @@ public class SitemapsHelperTest extends S2TestCase {
     }
 
     public void test_parseXmlSitemapsGz() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("sitemaps/sitemap1.xml.gz");
-        SitemapSet sitemapSet = sitemapsHelper.parse(in);
-        Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(5, sitemaps.length);
         assertTrue(sitemapSet.isUrlSet());
         assertFalse(sitemapSet.isIndex());
@@ -124,10 +124,10 @@ public class SitemapsHelperTest extends S2TestCase {
     }
 
     public void test_parseTextSitemaps() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("sitemaps/sitemap1.txt");
-        SitemapSet sitemapSet = sitemapsHelper.parse(in);
-        Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(5, sitemaps.length);
         assertTrue(sitemapSet.isUrlSet());
         assertFalse(sitemapSet.isIndex());
@@ -167,10 +167,10 @@ public class SitemapsHelperTest extends S2TestCase {
     }
 
     public void test_parseXmlSitemapsIndex() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("sitemaps/sitemap2.xml");
-        SitemapSet sitemapSet = sitemapsHelper.parse(in);
-        Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(2, sitemaps.length);
         assertFalse(sitemapSet.isUrlSet());
         assertTrue(sitemapSet.isIndex());
@@ -186,10 +186,10 @@ public class SitemapsHelperTest extends S2TestCase {
     }
 
     public void test_parseXmlSitemapsIndexGz() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("sitemaps/sitemap2.xml.gz");
-        SitemapSet sitemapSet = sitemapsHelper.parse(in);
-        Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(2, sitemaps.length);
         assertFalse(sitemapSet.isUrlSet());
         assertTrue(sitemapSet.isIndex());
@@ -205,49 +205,49 @@ public class SitemapsHelperTest extends S2TestCase {
     }
 
     public void test_parseXmlSitemaps_invalid1() {
-        byte[] bytes = "".getBytes();
-        InputStream in = new ByteArrayInputStream(bytes);
+        final byte[] bytes = "".getBytes();
+        final InputStream in = new ByteArrayInputStream(bytes);
 
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (RobotSitemapsException e) {
+        } catch (final RobotSitemapsException e) {
             // NOP
         }
     }
 
     public void test_parseXmlSitemaps_invalid2() {
-        byte[] bytes = "test".getBytes();
-        InputStream in = new ByteArrayInputStream(bytes);
+        final byte[] bytes = "test".getBytes();
+        final InputStream in = new ByteArrayInputStream(bytes);
 
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (RobotSitemapsException e) {
+        } catch (final RobotSitemapsException e) {
             // NOP
         }
     }
 
     public void test_parseXmlSitemaps_invalid3() {
-        byte[] bytes = "<urlset".getBytes();
-        InputStream in = new ByteArrayInputStream(bytes);
+        final byte[] bytes = "<urlset".getBytes();
+        final InputStream in = new ByteArrayInputStream(bytes);
 
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (RobotSitemapsException e) {
+        } catch (final RobotSitemapsException e) {
             // NOP
         }
     }
 
     public void test_parseXmlSitemaps_invalid4() {
-        byte[] bytes = "<sitemap".getBytes();
-        InputStream in = new ByteArrayInputStream(bytes);
+        final byte[] bytes = "<sitemap".getBytes();
+        final InputStream in = new ByteArrayInputStream(bytes);
 
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (RobotSitemapsException e) {
+        } catch (final RobotSitemapsException e) {
             // NOP
         }
     }

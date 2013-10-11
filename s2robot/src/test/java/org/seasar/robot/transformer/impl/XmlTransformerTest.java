@@ -47,7 +47,7 @@ public class XmlTransformerTest extends S2TestCase {
     }
 
     public void test_transform() throws Exception {
-        String result =
+        final String result =
             "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
@@ -58,16 +58,16 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"tel\">090-xxxx-xxxx</field>\n"//
                 + "</doc>";
 
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
             .getResourceAsStream("extractor/test.xml"));
         responseData.setCharSet(Constants.UTF_8);
-        ResultData resultData = xmlTransformer.transform(responseData);
+        final ResultData resultData = xmlTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
     }
 
     public void test_transformNs() throws Exception {
-        String result =
+        final String result =
             "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
@@ -78,16 +78,16 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"tel\">090-xxxx-xxxx</field>\n"//
                 + "</doc>";
 
-        ResponseData responseData = new ResponseData();
+        final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
             .getResourceAsStream("extractor/test_ns.xml"));
         responseData.setCharSet(Constants.UTF_8);
-        ResultData resultData = xmlNsTransformer.transform(responseData);
+        final ResultData resultData = xmlNsTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
     }
 
     public void test_getData() throws Exception {
-        String value =
+        final String value =
             "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
@@ -95,47 +95,47 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlTransformer");
 
-        Object obj = xmlTransformer.getData(accessResultDataImpl);
+        final Object obj = xmlTransformer.getData(accessResultDataImpl);
         assertEquals(value, obj);
     }
 
     public void test_getData_wrongName() throws Exception {
-        String value = "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
             + "<doc>\n"//
             + "<field name=\"title\">タイトル</field>\n"//
             + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
             + "</doc>";
 
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
 
         try {
-            Object obj = xmlTransformer.getData(accessResultDataImpl);
+            final Object obj = xmlTransformer.getData(accessResultDataImpl);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
         }
     }
 
     public void test_getData_nullData() throws Exception {
-        String value = "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
             + "<doc>\n"//
             + "<field name=\"title\">タイトル</field>\n"//
             + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
             + "</doc>";
 
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlTransformer");
 
-        Object obj = xmlTransformer.getData(accessResultDataImpl);
+        final Object obj = xmlTransformer.getData(accessResultDataImpl);
         assertNull(obj);
     }
 
@@ -145,7 +145,7 @@ public class XmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap() throws Exception {
-        String value =
+        final String value =
             "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
@@ -153,17 +153,17 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlMapTransformer");
 
-        Object obj = xmlMapTransformer.getData(accessResultDataImpl);
+        final Object obj = xmlMapTransformer.getData(accessResultDataImpl);
         assertTrue(obj instanceof Map);
-        Map<String, String> map = (Map) obj;
+        final Map<String, String> map = (Map) obj;
         assertEquals("タイトル", map.get("title"));
         assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", map.get("body"));
-        List<String> list = new ArrayList<String>();
+        final List<String> list = new ArrayList<String>();
         list.add("リスト1");
         list.add("リスト2");
         list.add("リスト3");
@@ -171,7 +171,7 @@ public class XmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap_entity() throws Exception {
-        String value =
+        final String value =
             "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
@@ -179,17 +179,17 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlEntityTransformer");
 
-        Object obj = xmlEntityTransformer.getData(accessResultDataImpl);
+        final Object obj = xmlEntityTransformer.getData(accessResultDataImpl);
         assertTrue(obj instanceof TestEntity);
-        TestEntity entity = (TestEntity) obj;
+        final TestEntity entity = (TestEntity) obj;
         assertEquals("タイトル", entity.getTitle());
         assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", entity.getBody());
-        List<String> list = new ArrayList<String>();
+        final List<String> list = new ArrayList<String>();
         list.add("リスト1");
         list.add("リスト2");
         list.add("リスト3");
@@ -197,24 +197,24 @@ public class XmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap_entity_emptyList() throws Exception {
-        String value = "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
             + "<doc>\n"//
             + "<field name=\"title\">タイトル</field>\n"//
             + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
             + "<field name=\"list\"><list></list></field>\n"//
             + "</doc>";
 
-        AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlEntityTransformer");
 
-        Object obj = xmlEntityTransformer.getData(accessResultDataImpl);
+        final Object obj = xmlEntityTransformer.getData(accessResultDataImpl);
         assertTrue(obj instanceof TestEntity);
-        TestEntity entity = (TestEntity) obj;
+        final TestEntity entity = (TestEntity) obj;
         assertEquals("タイトル", entity.getTitle());
         assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", entity.getBody());
-        List<String> list = new ArrayList<String>();
+        final List<String> list = new ArrayList<String>();
         assertEquals(list, entity.getList());
     }
 }

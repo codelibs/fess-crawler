@@ -32,7 +32,7 @@ public class ContentLengthHelperTest extends S2TestCase {
     }
 
     public void test_getMaxLength() {
-        String mimeType = "text/plain";
+        final String mimeType = "text/plain";
 
         assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper
                 .getMaxLength(mimeType));

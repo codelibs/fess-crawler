@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,30 @@ package org.seasar.robot.db.bsbhv;
 
 import java.util.List;
 
+import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.bhv.AbstractBehaviorWritable;
+import org.seasar.dbflute.bhv.DeleteOption;
+import org.seasar.dbflute.bhv.InsertOption;
+import org.seasar.dbflute.bhv.QueryInsertSetupper;
+import org.seasar.dbflute.bhv.UpdateOption;
+import org.seasar.dbflute.cbean.ConditionBean;
+import org.seasar.dbflute.cbean.EntityRowHandler;
+import org.seasar.dbflute.cbean.ListResultBean;
+import org.seasar.dbflute.cbean.PagingResultBean;
+import org.seasar.dbflute.cbean.SpecifyQuery;
+import org.seasar.dbflute.dbmeta.DBMeta;
+import org.seasar.dbflute.outsidesql.executor.OutsideSqlBasicExecutor;
 import org.seasar.robot.db.bsentity.dbmeta.AccessResultDataDbm;
 import org.seasar.robot.db.cbean.AccessResultDataCB;
+import org.seasar.robot.db.exbhv.AccessResultDataBhv;
 import org.seasar.robot.db.exentity.AccessResult;
 import org.seasar.robot.db.exentity.AccessResultData;
-import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.bhv.AbstractBehaviorWritable;
-import org.seasar.robot.dbflute.bhv.DeleteOption;
-import org.seasar.robot.dbflute.bhv.InsertOption;
-import org.seasar.robot.dbflute.bhv.QueryInsertSetupper;
-import org.seasar.robot.dbflute.bhv.UpdateOption;
-import org.seasar.robot.dbflute.cbean.ConditionBean;
-import org.seasar.robot.dbflute.cbean.EntityRowHandler;
-import org.seasar.robot.dbflute.cbean.ListResultBean;
-import org.seasar.robot.dbflute.cbean.PagingResultBean;
-import org.seasar.robot.dbflute.cbean.SpecifyQuery;
-import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
  * The behavior of ACCESS_RESULT_DATA as TABLE. <br />
  * 
  * <pre>
- * [primary-key]
+ * [primary key]
  *     ID
  * 
  * [column]
@@ -53,16 +55,16 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  * [version-no]
  *     
  * 
- * [foreign-table]
+ * [foreign table]
  *     ACCESS_RESULT
  * 
- * [referrer-table]
+ * [referrer table]
  *     
  * 
- * [foreign-property]
+ * [foreign property]
  *     accessResult
  * 
- * [referrer-property]
+ * [referrer property]
  *     
  * </pre>
  * 
@@ -73,17 +75,18 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     // ===================================================================================
     // Definition
     // ==========
-    /* df:BehaviorQueryPathBegin */
+    /* df:beginQueryPath */
     public static final String PATH_deleteAll = "deleteAll";
 
     public static final String PATH_deleteBySessionId = "deleteBySessionId";
 
-    /* df:BehaviorQueryPathEnd */
+    /* df:endQueryPath */
 
     // ===================================================================================
     // Table name
     // ==========
     /** @return The name on database of table. (NotNull) */
+    @Override
     public String getTableDbName() {
         return "ACCESS_RESULT_DATA";
     }
@@ -92,6 +95,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     // DBMeta
     // ======
     /** @return The instance of DBMeta. (NotNull) */
+    @Override
     public DBMeta getDBMeta() {
         return AccessResultDataDbm.getInstance();
     }
@@ -105,11 +109,13 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     // New Instance
     // ============
     /** {@inheritDoc} */
+    @Override
     public Entity newEntity() {
         return newMyEntity();
     }
 
     /** {@inheritDoc} */
+    @Override
     public ConditionBean newConditionBean() {
         return newMyConditionBean();
     }
@@ -141,7 +147,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of AccessResultData. (NotNull)
-     * @return The selected count.
+     * @return The count for the condition. (NotMinus)
      */
     public int selectCount(final AccessResultDataCB cb) {
         return doSelectCountUniquely(cb);
@@ -149,60 +155,21 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     protected int doSelectCountUniquely(final AccessResultDataCB cb) { // called
                                                                        // by
-        // selectCount(cb)
-        assertCBNotNull(cb);
+                                                                       // selectCount(cb)
+        assertCBStateValid(cb);
         return delegateSelectCountUniquely(cb);
     }
 
     protected int doSelectCountPlainly(final AccessResultDataCB cb) { // called
                                                                       // by
-        // selectPage(cb)
-        assertCBNotNull(cb);
+                                                                      // selectPage(cb)
+        assertCBStateValid(cb);
         return delegateSelectCountPlainly(cb);
     }
 
     @Override
     protected int doReadCount(final ConditionBean cb) {
         return selectCount(downcast(cb));
-    }
-
-    // ===================================================================================
-    // Cursor Select
-    // =============
-    /**
-     * Select the cursor by the condition-bean.
-     * 
-     * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * accessResultDataBhv.<span style="color: #FD4747">selectCursor</span>(cb, new EntityRowHandler&lt;AccessResultData&gt;() {
-     *     public void handle(AccessResultData entity) {
-     *         ... = entity.getFoo...();
-     *     }
-     * });
-     * </pre>
-     * 
-     * @param cb
-     *            The condition-bean of AccessResultData. (NotNull)
-     * @param entityRowHandler
-     *            The handler of entity row of AccessResultData. (NotNull)
-     */
-    public void selectCursor(final AccessResultDataCB cb,
-            final EntityRowHandler<AccessResultData> entityRowHandler) {
-        doSelectCursor(cb, entityRowHandler, AccessResultData.class);
-    }
-
-    protected <ENTITY extends AccessResultData> void doSelectCursor(
-            final AccessResultDataCB cb,
-            final EntityRowHandler<ENTITY> entityRowHandler,
-            final Class<ENTITY> entityType) {
-        assertCBNotNull(cb);
-        assertObjectNotNull(
-            "entityRowHandler<AccessResultData>",
-            entityRowHandler);
-        assertObjectNotNull("entityType", entityType);
-        assertSpecifyDerivedReferrerEntityProperty(cb, entityType);
-        delegateSelectCursor(cb, entityRowHandler, entityType);
     }
 
     // ===================================================================================
@@ -224,11 +191,11 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of AccessResultData. (NotNull)
-     * @return The selected entity. (NullAllowed: If the condition has no data,
+     * @return The entity selected by the condition. (NullAllowed: if no data,
      *         it returns null)
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public AccessResultData selectEntity(final AccessResultDataCB cb) {
@@ -237,11 +204,15 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends AccessResultData> ENTITY doSelectEntity(
             final AccessResultDataCB cb, final Class<ENTITY> entityType) {
+        assertCBStateValid(cb);
         return helpSelectEntityInternally(
             cb,
+            entityType,
             new InternalSelectEntityCallback<ENTITY, AccessResultDataCB>() {
+                @Override
                 public List<ENTITY> callbackSelectList(
-                        final AccessResultDataCB cb) {
+                        final AccessResultDataCB cb,
+                        final Class<ENTITY> entityType) {
                     return doSelectList(cb, entityType);
                 }
             });
@@ -264,12 +235,13 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of AccessResultData. (NotNull)
-     * @return The selected entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @return The entity selected by the condition. (NotNull: if no data,
+     *         throws exception)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public AccessResultData selectEntityWithDeletedCheck(
@@ -279,11 +251,15 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends AccessResultData> ENTITY doSelectEntityWithDeletedCheck(
             final AccessResultDataCB cb, final Class<ENTITY> entityType) {
+        assertCBStateValid(cb);
         return helpSelectEntityWithDeletedCheckInternally(
             cb,
+            entityType,
             new InternalSelectEntityWithDeletedCheckCallback<ENTITY, AccessResultDataCB>() {
+                @Override
                 public List<ENTITY> callbackSelectList(
-                        final AccessResultDataCB cb) {
+                        final AccessResultDataCB cb,
+                        final Class<ENTITY> entityType) {
                     return doSelectList(cb, entityType);
                 }
             });
@@ -299,11 +275,11 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * 
      * @param id
      *            The one of primary key. (NotNull)
-     * @return The selected entity. (NullAllowed: If the primary-key value has
-     *         no data, it returns null)
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @return The entity selected by the PK. (NullAllowed: if no data, it
+     *         returns null)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public AccessResultData selectByPKValue(final Long id) {
@@ -320,12 +296,13 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * 
      * @param id
      *            The one of primary key. (NotNull)
-     * @return The selected entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @return The entity selected by the PK. (NotNull: if no data, throws
+     *         exception)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public AccessResultData selectByPKValueWithDeletedCheck(final Long id) {
@@ -362,8 +339,9 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of AccessResultData. (NotNull)
-     * @return The result bean of selected list. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.DangerousResultSizeException
+     * @return The result bean of selected list. (NotNull: if no data, returns
+     *         empty list)
+     * @exception org.seasar.dbflute.exception.DangerousResultSizeException
      *                When the result size is over the specified safety size.
      */
     public ListResultBean<AccessResultData> selectList(
@@ -373,13 +351,14 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends AccessResultData> ListResultBean<ENTITY> doSelectList(
             final AccessResultDataCB cb, final Class<ENTITY> entityType) {
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         assertObjectNotNull("entityType", entityType);
         assertSpecifyDerivedReferrerEntityProperty(cb, entityType);
         return helpSelectListInternally(
             cb,
             entityType,
             new InternalSelectListCallback<ENTITY, AccessResultDataCB>() {
+                @Override
                 public List<ENTITY> callbackSelectList(
                         final AccessResultDataCB cb,
                         final Class<ENTITY> entityType) {
@@ -418,8 +397,9 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of AccessResultData. (NotNull)
-     * @return The result bean of selected page. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.DangerousResultSizeException
+     * @return The result bean of selected page. (NotNull: if no data, returns
+     *         bean as empty list)
+     * @exception org.seasar.dbflute.exception.DangerousResultSizeException
      *                When the result size is over the specified safety size.
      */
     public PagingResultBean<AccessResultData> selectPage(
@@ -429,16 +409,18 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends AccessResultData> PagingResultBean<ENTITY> doSelectPage(
             final AccessResultDataCB cb, final Class<ENTITY> entityType) {
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         assertObjectNotNull("entityType", entityType);
         return helpSelectPageInternally(
             cb,
             entityType,
             new InternalSelectPageCallback<ENTITY, AccessResultDataCB>() {
+                @Override
                 public int callbackSelectCount(final AccessResultDataCB cb) {
                     return doSelectCountPlainly(cb);
                 }
 
+                @Override
                 public List<ENTITY> callbackSelectList(
                         final AccessResultDataCB cb,
                         final Class<ENTITY> entityType) {
@@ -451,6 +433,63 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     protected PagingResultBean<? extends Entity> doReadPage(
             final ConditionBean cb) {
         return selectPage(downcast(cb));
+    }
+
+    // ===================================================================================
+    // Cursor Select
+    // =============
+    /**
+     * Select the cursor by the condition-bean.
+     * 
+     * <pre>
+     * AccessResultDataCB cb = new AccessResultDataCB();
+     * cb.query().setFoo...(value);
+     * accessResultDataBhv.<span style="color: #FD4747">selectCursor</span>(cb, new EntityRowHandler&lt;AccessResultData&gt;() {
+     *     public void handle(AccessResultData entity) {
+     *         ... = entity.getFoo...();
+     *     }
+     * });
+     * </pre>
+     * 
+     * @param cb
+     *            The condition-bean of AccessResultData. (NotNull)
+     * @param entityRowHandler
+     *            The handler of entity row of AccessResultData. (NotNull)
+     */
+    public void selectCursor(final AccessResultDataCB cb,
+            final EntityRowHandler<AccessResultData> entityRowHandler) {
+        doSelectCursor(cb, entityRowHandler, AccessResultData.class);
+    }
+
+    protected <ENTITY extends AccessResultData> void doSelectCursor(
+            final AccessResultDataCB cb,
+            final EntityRowHandler<ENTITY> entityRowHandler,
+            final Class<ENTITY> entityType) {
+        assertCBStateValid(cb);
+        assertObjectNotNull(
+            "entityRowHandler<AccessResultData>",
+            entityRowHandler);
+        assertObjectNotNull("entityType", entityType);
+        assertSpecifyDerivedReferrerEntityProperty(cb, entityType);
+        helpSelectCursorInternally(
+            cb,
+            entityRowHandler,
+            entityType,
+            new InternalSelectCursorCallback<ENTITY, AccessResultDataCB>() {
+                @Override
+                public void callbackSelectCursor(final AccessResultDataCB cb,
+                        final EntityRowHandler<ENTITY> entityRowHandler,
+                        final Class<ENTITY> entityType) {
+                    delegateSelectCursor(cb, entityRowHandler, entityType);
+                }
+
+                @Override
+                public List<ENTITY> callbackSelectList(
+                        final AccessResultDataCB cb,
+                        final Class<ENTITY> entityType) {
+                    return doSelectList(cb, entityType);
+                }
+            });
     }
 
     // ===================================================================================
@@ -485,7 +524,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     protected <RESULT, CB extends AccessResultDataCB> SLFunction<CB, RESULT> doScalarSelect(
             final Class<RESULT> resultType, final CB cb) {
         assertObjectNotNull("resultType", resultType);
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         cb.xsetupForScalarSelect();
         cb.getSqlClause().disableSelectIndex(); // for when you use union
         return new SLFunction<CB, RESULT>(cb, resultType);
@@ -502,28 +541,32 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     // ===================================================================================
-    // Pull out Foreign
-    // ================
+    // Pull out Relation
+    // =================
     /**
      * Pull out the list of foreign table 'AccessResult'.
      * 
      * @param accessResultDataList
-     *            The list of accessResultData. (NotNull)
-     * @return The list of foreign table. (NotNull)
+     *            The list of accessResultData. (NotNull, EmptyAllowed)
+     * @return The list of foreign table. (NotNull, EmptyAllowed,
+     *         NotNullElement)
      */
     public List<AccessResult> pulloutAccessResult(
             final List<AccessResultData> accessResultDataList) {
         return helpPulloutInternally(
             accessResultDataList,
             new InternalPulloutCallback<AccessResultData, AccessResult>() {
+                @Override
                 public AccessResult getFr(final AccessResultData e) {
                     return e.getAccessResult();
                 }
 
+                @Override
                 public boolean hasRf() {
                     return true;
                 }
 
+                @Override
                 public void setRfLs(final AccessResult e,
                         final List<AccessResultData> ls) {
                     if (!ls.isEmpty()) {
@@ -534,10 +577,33 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     // ===================================================================================
+    // Extract Column
+    // ==============
+    /**
+     * Extract the value list of (single) primary key id.
+     * 
+     * @param accessResultDataList
+     *            The list of accessResultData. (NotNull, EmptyAllowed)
+     * @return The list of the column value. (NotNull, EmptyAllowed,
+     *         NotNullElement)
+     */
+    public List<Long> extractIdList(
+            final List<AccessResultData> accessResultDataList) {
+        return helpExtractListInternally(
+            accessResultDataList,
+            new InternalExtractCallback<AccessResultData, Long>() {
+                @Override
+                public Long getCV(final AccessResultData e) {
+                    return e.getId();
+                }
+            });
+    }
+
+    // ===================================================================================
     // Entity Update
     // =============
     /**
-     * Insert the entity.
+     * Insert the entity modified-only. (DefaultConstraintsEnabled)
      * 
      * <pre>
      * AccessResultData accessResultData = new AccessResultData();
@@ -550,12 +616,16 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * accessResultDataBhv.<span style="color: #FD4747">insert</span>(accessResultData);
      * ... = accessResultData.getPK...(); <span style="color: #3F7E5E">// if auto-increment, you can get the value after</span>
      * </pre>
+     * <p>
+     * While, when the entity is created by select, all columns are registered.
+     * </p>
      * 
      * @param accessResultData
-     *            The entity of insert target. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     *            The entity of insert target. (NotNull, PrimaryKeyNullAllowed:
+     *            when auto-increment)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void insert(final AccessResultData accessResultData) {
         doInsert(accessResultData, null);
@@ -574,22 +644,25 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
             return;
         }
         assertInsertOptionStatus(option);
+        if (option.hasSpecifiedInsertColumn()) {
+            option
+                .resolveInsertColumnSpecification(createCBForSpecifiedUpdate());
+        }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doCreate(final Entity entity,
             final InsertOption<? extends ConditionBean> option) {
         if (option == null) {
             insert(downcast(entity));
         } else {
-            varyingInsert(downcast(entity), (InsertOption) option);
+            varyingInsert(downcast(entity), downcast(option));
         }
     }
 
     /**
-     * Update the entity modified-only. {UpdateCountZeroException,
-     * ExclusiveControl}
+     * Update the entity modified-only. (ZeroUpdateException,
+     * NonExclusiveControl)
      * 
      * <pre>
      * AccessResultData accessResultData = new AccessResultData();
@@ -608,15 +681,15 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param accessResultData
-     *            The entity of update target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     *            The entity of update target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void update(final AccessResultData accessResultData) {
         doUpdate(accessResultData, null);
@@ -629,6 +702,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
         helpUpdateInternally(
             accessResultData,
             new InternalUpdateCallback<AccessResultData>() {
+                @Override
                 public int callbackDelegateUpdate(final AccessResultData entity) {
                     return delegateUpdate(entity, option);
                 }
@@ -663,13 +737,12 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doModify(final Entity entity,
             final UpdateOption<? extends ConditionBean> option) {
         if (option == null) {
             update(downcast(entity));
         } else {
-            varyingUpdate(downcast(entity), (UpdateOption) option);
+            varyingUpdate(downcast(entity), downcast(option));
         }
     }
 
@@ -680,18 +753,24 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Insert or update the entity modified-only. {ExclusiveControl(when
-     * update)}
+     * Insert or update the entity modified-only. (DefaultConstraintsEnabled,
+     * NonExclusiveControl) <br />
+     * if (the entity has no PK) { insert() } else { update(), but no data,
+     * insert() } <br />
+     * <p>
+     * <span style="color: #FD4747; font-size: 120%">Attention, you cannot
+     * update by unique keys instead of PK.</span>
+     * </p>
      * 
      * @param accessResultData
      *            The entity of insert or update target. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void insertOrUpdate(final AccessResultData accessResultData) {
         doInesrtOrUpdate(accessResultData, null, null);
@@ -703,18 +782,22 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
         helpInsertOrUpdateInternally(
             accessResultData,
             new InternalInsertOrUpdateCallback<AccessResultData, AccessResultDataCB>() {
+                @Override
                 public void callbackInsert(final AccessResultData entity) {
                     doInsert(entity, insertOption);
                 }
 
+                @Override
                 public void callbackUpdate(final AccessResultData entity) {
                     doUpdate(entity, updateOption);
                 }
 
+                @Override
                 public AccessResultDataCB callbackNewMyConditionBean() {
                     return newMyConditionBean();
                 }
 
+                @Override
                 public int callbackSelectCount(final AccessResultDataCB cb) {
                     return selectCount(cb);
                 }
@@ -722,7 +805,6 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doCreateOrModify(final Entity entity,
             InsertOption<? extends ConditionBean> insertOption,
             UpdateOption<? extends ConditionBean> updateOption) {
@@ -730,13 +812,15 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
             insertOrUpdate(downcast(entity));
         } else {
             insertOption =
-                insertOption == null ? new InsertOption() : insertOption;
+                insertOption == null ? new InsertOption<AccessResultDataCB>()
+                    : insertOption;
             updateOption =
-                updateOption == null ? new UpdateOption() : updateOption;
+                updateOption == null ? new UpdateOption<AccessResultDataCB>()
+                    : updateOption;
             varyingInsertOrUpdate(
                 downcast(entity),
-                (InsertOption) insertOption,
-                (UpdateOption) updateOption);
+                downcast(insertOption),
+                downcast(updateOption));
         }
     }
 
@@ -748,7 +832,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Delete the entity. {UpdateCountZeroException, ExclusiveControl}
+     * Delete the entity. (ZeroUpdateException, NonExclusiveControl)
      * 
      * <pre>
      * AccessResultData accessResultData = new AccessResultData();
@@ -763,11 +847,11 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param accessResultData
-     *            The entity of delete target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     *            The entity of delete target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
      */
     public void delete(final AccessResultData accessResultData) {
@@ -781,6 +865,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
         helpDeleteInternally(
             accessResultData,
             new InternalDeleteCallback<AccessResultData>() {
+                @Override
                 public int callbackDelegateDelete(final AccessResultData entity) {
                     return delegateDelete(entity, option);
                 }
@@ -796,13 +881,12 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doRemove(final Entity entity,
             final DeleteOption<? extends ConditionBean> option) {
         if (option == null) {
             delete(downcast(entity));
         } else {
-            varyingDelete(downcast(entity), (DeleteOption) option);
+            varyingDelete(downcast(entity), downcast(option));
         }
     }
 
@@ -816,88 +900,176 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     // Batch Update
     // ============
     /**
-     * Batch-insert the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement. <br />
-     * All columns are insert target. (so default constraints are not available) <br />
-     * And if the table has an identity, entities after the process do not have
-     * incremented values. (When you use the (normal) insert(), an entity after
-     * the process has an incremented value)
+     * Batch-insert the entity list modified-only of same-set columns.
+     * (DefaultConstraintsEnabled) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement. <br />
+     * <p>
+     * <span style="color: #FD4747; font-size: 120%">The columns of least common
+     * multiple are registered like this:</span>
+     * </p>
+     * 
+     * <pre>
+     * for (... : ...) {
+     *     AccessResultData accessResultData = new AccessResultData();
+     *     accessResultData.setFooName("foo");
+     *     if (...) {
+     *         accessResultData.setFooPrice(123);
+     *     }
+     *     <span style="color: #3F7E5E">// FOO_NAME and FOO_PRICE (and record meta columns) are registered</span>
+     *     <span style="color: #3F7E5E">// FOO_PRICE not-called in any entities are registered as null without default value</span>
+     *     <span style="color: #3F7E5E">// columns not-called in all entities are registered as null or default value</span>
+     *     accessResultDataList.add(accessResultData);
+     * }
+     * accessResultDataBhv.<span style="color: #FD4747">batchInsert</span>(accessResultDataList);
+     * </pre>
+     * <p>
+     * While, when the entities are created by select, all columns are
+     * registered.
+     * </p>
+     * <p>
+     * And if the table has an identity, entities after the process don't have
+     * incremented values. (When you use the (normal) insert(), you can get the
+     * incremented value from your entity)
+     * </p>
      * 
      * @param accessResultDataList
-     *            The list of the entity. (NotNull)
-     * @return The array of inserted count.
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNullAllowed: when auto-increment)
+     * @return The array of inserted count. (NotNull, EmptyAllowed)
      */
     public int[] batchInsert(final List<AccessResultData> accessResultDataList) {
-        return doBatchInsert(accessResultDataList, null);
+        final InsertOption<AccessResultDataCB> option =
+            createInsertUpdateOption();
+        return doBatchInsert(accessResultDataList, option);
     }
 
     protected int[] doBatchInsert(
             final List<AccessResultData> accessResultDataList,
             final InsertOption<AccessResultDataCB> option) {
         assertObjectNotNull("accessResultDataList", accessResultDataList);
-        prepareInsertOption(option);
+        prepareBatchInsertOption(accessResultDataList, option);
         return delegateBatchInsert(accessResultDataList, option);
     }
 
+    protected void prepareBatchInsertOption(
+            final List<AccessResultData> accessResultDataList,
+            final InsertOption<AccessResultDataCB> option) {
+        option.xallowInsertColumnModifiedPropertiesFragmented();
+        option
+            .xacceptInsertColumnModifiedPropertiesIfNeeds(accessResultDataList);
+        prepareInsertOption(option);
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
     protected int[] doLumpCreate(final List<Entity> ls,
             final InsertOption<? extends ConditionBean> option) {
         if (option == null) {
-            return batchInsert((List) ls);
+            return batchInsert(downcast(ls));
         } else {
-            return varyingBatchInsert((List) ls, (InsertOption) option);
+            return varyingBatchInsert(downcast(ls), downcast(option));
         }
     }
 
     /**
-     * Batch-update the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement. <br />
-     * All columns are update target. {NOT modified only}
+     * Batch-update the entity list modified-only of same-set columns.
+     * (NonExclusiveControl) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement. <br />
+     * <span style="color: #FD4747; font-size: 120%">You should specify same-set
+     * columns to all entities like this:</span>
+     * 
+     * <pre>
+     * for (... : ...) {
+     *     AccessResultData accessResultData = new AccessResultData();
+     *     accessResultData.setFooName("foo");
+     *     if (...) {
+     *         accessResultData.setFooPrice(123);
+     *     } else {
+     *         accessResultData.setFooPrice(null); <span style="color: #3F7E5E">// updated as null</span>
+     *         <span style="color: #3F7E5E">//accessResultData.setFooDate(...); // *not allowed, fragmented</span>
+     *     }
+     *     <span style="color: #3F7E5E">// FOO_NAME and FOO_PRICE (and record meta columns) are updated</span>
+     *     <span style="color: #3F7E5E">// (others are not updated: their values are kept)</span>
+     *     accessResultDataList.add(accessResultData);
+     * }
+     * accessResultDataBhv.<span style="color: #FD4747">batchUpdate</span>(accessResultDataList);
+     * </pre>
      * 
      * @param accessResultDataList
-     *            The list of the entity. (NotNull)
-     * @return The array of updated count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
+     * @return The array of updated count. (NotNull, EmptyAllowed)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
      */
     public int[] batchUpdate(final List<AccessResultData> accessResultDataList) {
-        return doBatchUpdate(accessResultDataList, null);
+        final UpdateOption<AccessResultDataCB> option =
+            createPlainUpdateOption();
+        return doBatchUpdate(accessResultDataList, option);
     }
 
     protected int[] doBatchUpdate(
             final List<AccessResultData> accessResultDataList,
             final UpdateOption<AccessResultDataCB> option) {
         assertObjectNotNull("accessResultDataList", accessResultDataList);
-        prepareUpdateOption(option);
+        prepareBatchUpdateOption(accessResultDataList, option);
         return delegateBatchUpdate(accessResultDataList, option);
     }
 
+    protected void prepareBatchUpdateOption(
+            final List<AccessResultData> accessResultDataList,
+            final UpdateOption<AccessResultDataCB> option) {
+        option
+            .xacceptUpdateColumnModifiedPropertiesIfNeeds(accessResultDataList);
+        prepareUpdateOption(option);
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
     protected int[] doLumpModify(final List<Entity> ls,
             final UpdateOption<? extends ConditionBean> option) {
         if (option == null) {
-            return batchUpdate((List) ls);
+            return batchUpdate(downcast(ls));
         } else {
-            return varyingBatchUpdate((List) ls, (UpdateOption) option);
+            return varyingBatchUpdate(downcast(ls), downcast(option));
         }
     }
 
     /**
-     * Batch-update the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement. <br />
+     * Batch-update the entity list specified-only. (NonExclusiveControl) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement.
+     * 
+     * <pre>
+     * <span style="color: #3F7E5E">// e.g. update two columns only</span> 
+     * accessResultDataBhv.<span style="color: #FD4747">batchUpdate</span>(accessResultDataList, new SpecifyQuery<AccessResultDataCB>() {
+     *     public void specify(AccessResultDataCB cb) { <span style="color: #3F7E5E">// the two only updated</span>
+     *         cb.specify().<span style="color: #FD4747">columnFooStatusCode()</span>; <span style="color: #3F7E5E">// should be modified in any entities</span>
+     *         cb.specify().<span style="color: #FD4747">columnBarDate()</span>; <span style="color: #3F7E5E">// should be modified in any entities</span>
+     *     }
+     * });
+     * <span style="color: #3F7E5E">// e.g. update every column in the table</span> 
+     * accessResultDataBhv.<span style="color: #FD4747">batchUpdate</span>(accessResultDataList, new SpecifyQuery<AccessResultDataCB>() {
+     *     public void specify(AccessResultDataCB cb) { <span style="color: #3F7E5E">// all columns are updated</span>
+     *         cb.specify().<span style="color: #FD4747">columnEveryColumn()</span>; <span style="color: #3F7E5E">// no check of modified properties</span>
+     *     }
+     * });
+     * </pre>
+     * <p>
      * You can specify update columns used on set clause of update statement.
      * However you do not need to specify common columns for update and an
-     * optimistick lock column because they are specified implicitly.
+     * optimistic lock column because they are specified implicitly.
+     * </p>
+     * <p>
+     * And you should specify columns that are modified in any entities (at
+     * least one entity). But if you specify every column, it has no check.
+     * </p>
      * 
      * @param accessResultDataList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param updateColumnSpec
      *            The specification of update columns. (NotNull)
-     * @return The array of updated count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
+     * @return The array of updated count. (NotNull, EmptyAllowed)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
      */
     public int[] batchUpdate(final List<AccessResultData> accessResultDataList,
             final SpecifyQuery<AccessResultDataCB> updateColumnSpec) {
@@ -913,14 +1085,15 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Batch-delete the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement.
+     * Batch-delete the entity list. (NonExclusiveControl) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement.
      * 
      * @param accessResultDataList
-     *            The list of the entity. (NotNull)
-     * @return The array of deleted count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
+     * @return The array of deleted count. (NotNull, EmptyAllowed)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
      */
     public int[] batchDelete(final List<AccessResultData> accessResultDataList) {
         return doBatchDelete(accessResultDataList, null);
@@ -935,13 +1108,12 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int[] doLumpRemove(final List<Entity> ls,
             final DeleteOption<? extends ConditionBean> option) {
         if (option == null) {
-            return batchDelete((List) ls);
+            return batchDelete(downcast(ls));
         } else {
-            return varyingBatchDelete((List) ls, (DeleteOption) option);
+            return varyingBatchDelete(downcast(ls), downcast(option));
         }
     }
 
@@ -958,7 +1130,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * Insert the several entities by query (modified-only for fixed value).
      * 
      * <pre>
-     * accessResultDataBhv.<span style="color: #FD4747">queryInsert</span>(new QueryInsertSetupper&lt;accessResultData, AccessResultDataCB&gt;() {
+     * accessResultDataBhv.<span style="color: #FD4747">queryInsert</span>(new QueryInsertSetupper&lt;AccessResultData, AccessResultDataCB&gt;() {
      *     public ConditionBean setup(accessResultData entity, AccessResultDataCB intoCB) {
      *         FooCB cb = FooCB();
      *         cb.setupSelect_Bar();
@@ -1006,22 +1178,19 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int doRangeCreate(
             final QueryInsertSetupper<? extends Entity, ? extends ConditionBean> setupper,
             final InsertOption<? extends ConditionBean> option) {
         if (option == null) {
-            return queryInsert((QueryInsertSetupper) setupper);
+            return queryInsert(downcast(setupper));
         } else {
-            return varyingQueryInsert(
-                (QueryInsertSetupper) setupper,
-                (InsertOption) option);
+            return varyingQueryInsert(downcast(setupper), downcast(option));
         }
     }
 
     /**
      * Update the several entities by query non-strictly modified-only.
-     * {NonExclusiveControl}
+     * (NonExclusiveControl)
      * 
      * <pre>
      * AccessResultData accessResultData = new AccessResultData();
@@ -1045,7 +1214,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * @param cb
      *            The condition-bean of AccessResultData. (NotNull)
      * @return The updated count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryUpdateNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryUpdateNotAllowedException
      *                When the query has no condition.
      */
     public int queryUpdate(final AccessResultData accessResultData,
@@ -1057,13 +1226,15 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
             final AccessResultDataCB cb,
             final UpdateOption<AccessResultDataCB> option) {
         assertObjectNotNull("accessResultData", accessResultData);
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         prepareUpdateOption(option);
-        return delegateQueryUpdate(accessResultData, cb, option);
+        return checkCountBeforeQueryUpdateIfNeeds(cb) ? delegateQueryUpdate(
+            accessResultData,
+            cb,
+            option) : 0;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int doRangeModify(final Entity entity, final ConditionBean cb,
             final UpdateOption<? extends ConditionBean> option) {
         if (option == null) {
@@ -1072,12 +1243,12 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
             return varyingQueryUpdate(
                 downcast(entity),
                 (AccessResultDataCB) cb,
-                (UpdateOption) option);
+                downcast(option));
         }
     }
 
     /**
-     * Delete the several entities by query. {NonExclusiveControl}
+     * Delete the several entities by query. (NonExclusiveControl)
      * 
      * <pre>
      * AccessResultDataCB cb = new AccessResultDataCB();
@@ -1088,7 +1259,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * @param cb
      *            The condition-bean of AccessResultData. (NotNull)
      * @return The deleted count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryDeleteNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryDeleteNotAllowedException
      *                When the query has no condition.
      */
     public int queryDelete(final AccessResultDataCB cb) {
@@ -1097,21 +1268,20 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     protected int doQueryDelete(final AccessResultDataCB cb,
             final DeleteOption<AccessResultDataCB> option) {
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         prepareDeleteOption(option);
-        return delegateQueryDelete(cb, option);
+        return checkCountBeforeQueryUpdateIfNeeds(cb) ? delegateQueryDelete(
+            cb,
+            option) : 0;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int doRangeRemove(final ConditionBean cb,
             final DeleteOption<? extends ConditionBean> option) {
         if (option == null) {
             return queryDelete((AccessResultDataCB) cb);
         } else {
-            return varyingQueryDelete(
-                (AccessResultDataCB) cb,
-                (DeleteOption) option);
+            return varyingQueryDelete((AccessResultDataCB) cb, downcast(option));
         }
     }
 
@@ -1139,12 +1309,13 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param accessResultData
-     *            The entity of insert target. (NotNull)
+     *            The entity of insert target. (NotNull, PrimaryKeyNullAllowed:
+     *            when auto-increment)
      * @param option
      *            The option of insert for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void varyingInsert(final AccessResultData accessResultData,
             final InsertOption<AccessResultDataCB> option) {
@@ -1154,7 +1325,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     /**
      * Update the entity with varying requests modified-only.
-     * {UpdateCountZeroException, ExclusiveControl} <br />
+     * (ZeroUpdateException, NonExclusiveControl) <br />
      * For example, self(selfCalculationSpecification),
      * specify(updateColumnSpecification), disableCommonColumnAutoSetup(). <br />
      * Other specifications are same as update(entity).
@@ -1180,17 +1351,17 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param accessResultData
-     *            The entity of update target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
+     *            The entity of update target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
      * @param option
      *            The option of update for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void varyingUpdate(final AccessResultData accessResultData,
             final UpdateOption<AccessResultDataCB> option) {
@@ -1199,8 +1370,8 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Insert or update the entity with varying requests. {ExclusiveControl(when
-     * update)}<br />
+     * Insert or update the entity with varying requests. (ExclusiveControl:
+     * when update) <br />
      * Other specifications are same as insertOrUpdate(entity).
      * 
      * @param accessResultData
@@ -1209,13 +1380,13 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      *            The option of insert for varying requests. (NotNull)
      * @param updateOption
      *            The option of update for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void varyingInsertOrUpdate(final AccessResultData accessResultData,
             final InsertOption<AccessResultDataCB> insertOption,
@@ -1226,19 +1397,19 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Delete the entity with varying requests. {UpdateCountZeroException,
-     * ExclusiveControl} <br />
+     * Delete the entity with varying requests. (ZeroUpdateException,
+     * NonExclusiveControl) <br />
      * Now a valid option does not exist. <br />
      * Other specifications are same as delete(entity).
      * 
      * @param accessResultData
-     *            The entity of delete target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
+     *            The entity of delete target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
      * @param option
      *            The option of update for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
      */
     public void varyingDelete(final AccessResultData accessResultData,
@@ -1257,10 +1428,11 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * Other specifications are same as batchInsert(entityList).
      * 
      * @param accessResultDataList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param option
      *            The option of insert for varying requests. (NotNull)
-     * @return The array of inserted count.
+     * @return The array of updated count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchInsert(
             final List<AccessResultData> accessResultDataList,
@@ -1277,10 +1449,11 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * Other specifications are same as batchUpdate(entityList).
      * 
      * @param accessResultDataList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param option
      *            The option of update for varying requests. (NotNull)
-     * @return The array of updated count.
+     * @return The array of updated count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchUpdate(
             final List<AccessResultData> accessResultDataList,
@@ -1295,10 +1468,11 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * Other specifications are same as batchDelete(entityList).
      * 
      * @param accessResultDataList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param option
      *            The option of delete for varying requests. (NotNull)
-     * @return The array of deleted count.
+     * @return The array of deleted count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchDelete(
             final List<AccessResultData> accessResultDataList,
@@ -1365,7 +1539,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * @param option
      *            The option of update for varying requests. (NotNull)
      * @return The updated count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryUpdateNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryUpdateNotAllowedException
      *                When the query has no condition (if not allowed).
      */
     public int varyingQueryUpdate(final AccessResultData accessResultData,
@@ -1385,13 +1559,54 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * @param option
      *            The option of delete for varying requests. (NotNull)
      * @return The deleted count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryDeleteNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryDeleteNotAllowedException
      *                When the query has no condition (if not allowed).
      */
     public int varyingQueryDelete(final AccessResultDataCB cb,
             final DeleteOption<AccessResultDataCB> option) {
         assertDeleteOptionNotNull(option);
         return doQueryDelete(cb, option);
+    }
+
+    // ===================================================================================
+    // OutsideSql
+    // ==========
+    /**
+     * Prepare the basic executor of outside-SQL to execute it. <br />
+     * The invoker of behavior command should be not null when you call this
+     * method.
+     * 
+     * <pre>
+     * You can use the methods for outside-SQL are as follows:
+     * {Basic}
+     *   o selectList()
+     *   o execute()
+     *   o call()
+     * 
+     * {Entity}
+     *   o entityHandling().selectEntity()
+     *   o entityHandling().selectEntityWithDeletedCheck()
+     * 
+     * {Paging}
+     *   o autoPaging().selectList()
+     *   o autoPaging().selectPage()
+     *   o manualPaging().selectList()
+     *   o manualPaging().selectPage()
+     * 
+     * {Cursor}
+     *   o cursorHandling().selectCursor()
+     * 
+     * {Option}
+     *   o dynamicBinding().selectList()
+     *   o removeBlockComment().selectList()
+     *   o removeLineComment().selectList()
+     *   o formatSql().selectList()
+     * </pre>
+     * 
+     * @return The basic executor of outside-SQL. (NotNull)
+     */
+    public OutsideSqlBasicExecutor<AccessResultDataBhv> outsideSql() {
+        return doOutsideSql();
     }
 
     // ===================================================================================
@@ -1565,5 +1780,35 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
 
     protected AccessResultDataCB downcast(final ConditionBean cb) {
         return helpConditionBeanDowncastInternally(cb, AccessResultDataCB.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<AccessResultData> downcast(
+            final List<? extends Entity> entityList) {
+        return (List<AccessResultData>) entityList;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected InsertOption<AccessResultDataCB> downcast(
+            final InsertOption<? extends ConditionBean> option) {
+        return (InsertOption<AccessResultDataCB>) option;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected UpdateOption<AccessResultDataCB> downcast(
+            final UpdateOption<? extends ConditionBean> option) {
+        return (UpdateOption<AccessResultDataCB>) option;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected DeleteOption<AccessResultDataCB> downcast(
+            final DeleteOption<? extends ConditionBean> option) {
+        return (DeleteOption<AccessResultDataCB>) option;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected QueryInsertSetupper<AccessResultData, AccessResultDataCB> downcast(
+            final QueryInsertSetupper<? extends Entity, ? extends ConditionBean> option) {
+        return (QueryInsertSetupper<AccessResultData, AccessResultDataCB>) option;
     }
 }

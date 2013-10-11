@@ -39,6 +39,7 @@ public class LogHelperImpl implements LogHelper {
      * @see org.seasar.robot.helper.LogHelper#log(org.seasar.robot.log.LogType,
      * java.lang.Object)
      */
+    @Override
     public void log(final LogType key, final Object... objs) {
         switch (key) {
         case START_THREAD: {
@@ -120,7 +121,7 @@ public class LogHelperImpl implements LogHelper {
             final UrlQueue urlQueue = (UrlQueue) objs[1];
             final Set<String> childUrlSet = (Set<String>) objs[2];
             if (logger.isDebugEnabled()) {
-                for (String url : childUrlSet) {
+                for (final String url : childUrlSet) {
                     logger.debug("Child URL: " + url + " from "
                         + urlQueue.getUrl());
                 }

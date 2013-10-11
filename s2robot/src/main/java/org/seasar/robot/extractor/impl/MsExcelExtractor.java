@@ -39,6 +39,7 @@ public class MsExcelExtractor implements Extractor {
      * org.seasar.robot.extractor.impl.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -48,7 +49,7 @@ public class MsExcelExtractor implements Extractor {
             return new ExtractData(
                 new org.apache.poi.hssf.extractor.ExcelExtractor(
                     new HSSFWorkbook(in)).getText());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ExtractException(e);
         }
     }

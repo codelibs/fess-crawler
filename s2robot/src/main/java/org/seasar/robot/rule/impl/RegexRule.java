@@ -52,7 +52,7 @@ public class RegexRule extends AbstractRule {
 
         final Map<String, Object> map = new HashMap<String, Object>();
         Beans.copy(responseData, map).excludesWhitespace().execute();
-        for (Map.Entry<String, Pattern> entry : regexMap.entrySet()) {
+        for (final Map.Entry<String, Pattern> entry : regexMap.entrySet()) {
             String value = "";
             final Object obj = map.get(entry.getKey());
             if (obj != null) {

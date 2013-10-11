@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package org.seasar.robot.db.allcommon;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.cbean.ConditionBeanContext;
-import org.seasar.robot.dbflute.jdbc.DataSourceHandler;
-import org.seasar.robot.dbflute.s2dao.extension.TnSqlLogRegistry;
-import org.seasar.robot.dbflute.util.DfSystemUtil;
+import org.seasar.dbflute.DBDef;
+import org.seasar.dbflute.cbean.ConditionBeanContext;
+import org.seasar.dbflute.jdbc.DataSourceHandler;
+import org.seasar.dbflute.resource.DBFluteSystem;
+import org.seasar.dbflute.s2dao.extension.TnSqlLogRegistry;
 
 /**
  * @author DBFlute(AutoGenerator)
@@ -50,21 +50,38 @@ public class DBFluteInitializer {
         standBy();
     }
 
+    // ===================================================================================
+    // Curtain
+    // =======
+    /**
+     * DBFlute will begin in just a few second.
+     */
     protected void announce() {
         _log.info("...Initializing DBFlute components");
     }
 
+    /**
+     * This is the story for ... <br />
+     * You can override this to set your DBFluteConfig settings with calling
+     * super.prologue() in it.
+     */
     protected void prologue() {
         handleSqlLogRegistry();
         loadCoolClasses();
     }
 
+    /**
+     * Enjoy your DBFlute life.
+     */
     protected void standBy() {
         if (!DBFluteConfig.getInstance().isLocked()) {
             DBFluteConfig.getInstance().lock();
         }
     }
 
+    // ===================================================================================
+    // Contents
+    // ========
     protected void handleSqlLogRegistry() { // for S2Container
         if (DBFluteConfig.getInstance().isUseSqlLogRegistry()) {
             final StringBuilder sb = new StringBuilder();
@@ -112,7 +129,8 @@ public class DBFluteInitializer {
      * @param dataSourceFqcn
      *            The FQCN of data source. (NotNull)
      */
-    protected void setupDataSourceHandler(final String dataSourceFqcn) { // for Spring
+    protected void setupDataSourceHandler(final String dataSourceFqcn) { // for
+                                                                         // Spring
         final DBFluteConfig config = DBFluteConfig.getInstance();
         final DataSourceHandler dataSourceHandler =
             config.getDataSourceHandler();
@@ -122,7 +140,7 @@ public class DBFluteInitializer {
         if (dataSourceFqcn.startsWith("org.apache.commons.dbcp.")) {
             config.unlock();
             config
-                .setDataSourceHandler(new DBFluteConfig.SpringDBCPDataSourceHandler());
+                .setDataSourceHandler(new DBFluteConfig.SpringTransactionalDataSourceHandler());
         }
     }
 
@@ -137,6 +155,6 @@ public class DBFluteInitializer {
     // General Helper
     // ==============
     protected String ln() {
-        return DfSystemUtil.getLineSeparator();
+        return DBFluteSystem.getBasicLn();
     }
 }

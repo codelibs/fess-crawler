@@ -117,7 +117,7 @@ public class S2Robot implements Runnable {
         if (parentThread != null) {
             try {
                 parentThread.join(millis);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 logger.warn("Interrupted job at " + parentThread.getName());
             }
         }
@@ -148,7 +148,7 @@ public class S2Robot implements Runnable {
             if (robotThreadGroup != null) {
                 robotThreadGroup.interrupt();
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // ignore
         }
     }
@@ -203,6 +203,7 @@ public class S2Robot implements Runnable {
      * 
      * @see java.lang.Runnable#run()
      */
+    @Override
     public void run() {
         // context
         robotContext.urlFilter = urlFilter;
@@ -212,7 +213,7 @@ public class S2Robot implements Runnable {
         urlFilter.init(robotContext.sessionId);
 
         robotThreadGroup = new ThreadGroup("Robot-" + robotContext.sessionId);
-        Thread[] threads = new Thread[robotContext.getNumOfThread()];
+        final Thread[] threads = new Thread[robotContext.getNumOfThread()];
         for (int i = 0; i < robotContext.getNumOfThread(); i++) {
             final S2RobotThread robotThread =
                 (S2RobotThread) container.getComponent("robotThread");
@@ -235,7 +236,7 @@ public class S2Robot implements Runnable {
         for (int i = 0; i < robotContext.numOfThread; i++) {
             try {
                 threads[i].join();
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 logger.warn("Interrupted job at " + threads[i].getName());
             }
         }

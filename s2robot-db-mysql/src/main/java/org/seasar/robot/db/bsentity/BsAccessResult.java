@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 package org.seasar.robot.db.bsentity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.dbmeta.DBMeta;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
+import org.seasar.robot.db.exentity.AccessResult;
 import org.seasar.robot.db.exentity.AccessResultData;
-import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
  * The entity of ACCESS_RESULT as TABLE. <br />
@@ -42,22 +45,52 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  * [version-no]
  *     
  * 
- * [foreign-table]
+ * [foreign table]
  *     ACCESS_RESULT_DATA(AsOne)
  * 
- * [referrer-table]
+ * [referrer table]
  *     ACCESS_RESULT_DATA
  * 
- * [foreign-property]
+ * [foreign property]
  *     accessResultDataAsOne
  * 
- * [referrer-property]
+ * [referrer property]
  *     
+ * 
+ * [get/set template]
+ * /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Long id = entity.getId();
+ * String sessionId = entity.getSessionId();
+ * String ruleId = entity.getRuleId();
+ * String url = entity.getUrl();
+ * String parentUrl = entity.getParentUrl();
+ * Integer status = entity.getStatus();
+ * Integer httpStatusCode = entity.getHttpStatusCode();
+ * String method = entity.getMethod();
+ * String mimeType = entity.getMimeType();
+ * Long contentLength = entity.getContentLength();
+ * Integer executionTime = entity.getExecutionTime();
+ * java.sql.Timestamp lastModified = entity.getLastModified();
+ * java.sql.Timestamp createTime = entity.getCreateTime();
+ * entity.setId(id);
+ * entity.setSessionId(sessionId);
+ * entity.setRuleId(ruleId);
+ * entity.setUrl(url);
+ * entity.setParentUrl(parentUrl);
+ * entity.setStatus(status);
+ * entity.setHttpStatusCode(httpStatusCode);
+ * entity.setMethod(method);
+ * entity.setMimeType(mimeType);
+ * entity.setContentLength(contentLength);
+ * entity.setExecutionTime(executionTime);
+ * entity.setLastModified(lastModified);
+ * entity.setCreateTime(createTime);
+ * = = = = = = = = = =/
  * </pre>
  * 
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResult implements Entity, Serializable {
+public abstract class BsAccessResult implements Entity, Serializable, Cloneable {
 
     // ===================================================================================
     // Definition
@@ -80,7 +113,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /** RULE_ID: {VARCHAR(20)} */
     protected String _ruleId;
 
-    /** URL: {IX+, NotNull, TEXT(65535)} */
+    /** URL: {IX, NotNull, TEXT(65535)} */
     protected String _url;
 
     /** PARENT_URL: {TEXT(65535)} */
@@ -113,9 +146,12 @@ public abstract class BsAccessResult implements Entity, Serializable {
     // -----------------------------------------------------
     // Internal
     // --------
-    /** The modified properties for this entity. */
+    /** The modified properties for this entity. (NotNull) */
     protected final EntityModifiedProperties __modifiedProperties =
         newModifiedProperties();
+
+    /** Is the entity created by DBFlute select process? */
+    protected boolean __createdBySelect;
 
     // ===================================================================================
     // Table Name
@@ -123,6 +159,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getTableDbName() {
         return "ACCESS_RESULT";
     }
@@ -130,6 +167,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getTablePropertyName() { // according to Java Beans rule
         return "accessResult";
     }
@@ -140,6 +178,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public DBMeta getDBMeta() {
         return DBMetaInstanceHandler.findDBMeta(getTableDbName());
     }
@@ -150,6 +189,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean hasPrimaryKeyValue() {
         if (getId() == null) {
             return false;
@@ -160,22 +200,22 @@ public abstract class BsAccessResult implements Entity, Serializable {
     // ===================================================================================
     // Foreign Property
     // ================
-    /** ACCESS_RESULT_DATA as 'accessResultDataAsOne'. */
+    /** ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'. */
     protected AccessResultData _accessResultDataAsOne;
 
     /**
-     * ACCESS_RESULT_DATA as 'accessResultDataAsOne'.
+     * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
      * 
      * @return the entity of foreign property(referrer-as-one)
-     *         'accessResultDataAsOne'. (NullAllowed: If the foreign key does
-     *         not have 'NotNull' constraint, please check null.)
+     *         'accessResultDataAsOne'. (NullAllowed: when e.g. no data, no
+     *         setupSelect)
      */
     public AccessResultData getAccessResultDataAsOne() {
         return _accessResultDataAsOne;
     }
 
     /**
-     * ACCESS_RESULT_DATA as 'accessResultDataAsOne'.
+     * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
      * 
      * @param accessResultDataAsOne
      *            The entity of foreign property(referrer-as-one)
@@ -189,12 +229,17 @@ public abstract class BsAccessResult implements Entity, Serializable {
     // ===================================================================================
     // Referrer Property
     // =================
+    protected <ELEMENT> List<ELEMENT> newReferrerList() {
+        return new ArrayList<ELEMENT>();
+    }
+
     // ===================================================================================
     // Modified Properties
     // ===================
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> modifiedProperties() {
         return __modifiedProperties.getPropertyNames();
     }
@@ -202,6 +247,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void clearModifiedInfo() {
         __modifiedProperties.clear();
     }
@@ -209,6 +255,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean hasModification() {
         return !__modifiedProperties.isEmpty();
     }
@@ -218,14 +265,35 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     // ===================================================================================
+    // Birthplace Mark
+    // ===============
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void markAsSelect() {
+        __createdBySelect = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean createdBySelect() {
+        return __createdBySelect;
+    }
+
+    // ===================================================================================
     // Basic Override
     // ==============
     /**
+     * Determine the object is equal with this. <br />
      * If primary-keys or columns of the other are same as this one, returns
      * true.
      * 
      * @param other
-     *            The other entity. (NullAllowed)
+     *            The other entity. (NullAllowed: if null, returns false
+     *            fixedly)
      * @return Comparing result.
      */
     @Override
@@ -245,7 +313,7 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     /**
-     * Calculates the hash-code from primary-keys or columns.
+     * Calculate the hash-code from primary-keys or columns.
      * 
      * @return The hash-code from primary-key or columns.
      */
@@ -262,6 +330,16 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int instanceHash() {
+        return super.hashCode();
+    }
+
+    /**
+     * Convert to display string of entity's data. (no relation data)
+     * 
      * @return The display string of all columns and relation existences.
      *         (NotNull)
      */
@@ -271,9 +349,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     /**
-     * @return The display string of basic informations with one-nested relation
-     *         values. (NotNull)
+     * {@inheritDoc}
      */
+    @Override
     public String toStringWithRelation() {
         final StringBuilder sb = new StringBuilder();
         sb.append(toString());
@@ -290,15 +368,9 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     /**
-     * @param name
-     *            The name for display. (NullAllowed: If it's null, it does not
-     *            have a name)
-     * @param column
-     *            Does it contains column values or not?
-     * @param relation
-     *            Does it contains relation existences or not?
-     * @return The display string for this entity. (NotNull)
+     * {@inheritDoc}
      */
+    @Override
     public String buildDisplayString(final String name, final boolean column,
             final boolean relation) {
         final StringBuilder sb = new StringBuilder();
@@ -316,23 +388,23 @@ public abstract class BsAccessResult implements Entity, Serializable {
     }
 
     protected String buildColumnString() {
-        final String c = ", ";
         final StringBuilder sb = new StringBuilder();
-        sb.append(c).append(getId());
-        sb.append(c).append(getSessionId());
-        sb.append(c).append(getRuleId());
-        sb.append(c).append(getUrl());
-        sb.append(c).append(getParentUrl());
-        sb.append(c).append(getStatus());
-        sb.append(c).append(getHttpStatusCode());
-        sb.append(c).append(getMethod());
-        sb.append(c).append(getMimeType());
-        sb.append(c).append(getContentLength());
-        sb.append(c).append(getExecutionTime());
-        sb.append(c).append(getLastModified());
-        sb.append(c).append(getCreateTime());
-        if (sb.length() > 0) {
-            sb.delete(0, c.length());
+        final String delimiter = ", ";
+        sb.append(delimiter).append(getId());
+        sb.append(delimiter).append(getSessionId());
+        sb.append(delimiter).append(getRuleId());
+        sb.append(delimiter).append(getUrl());
+        sb.append(delimiter).append(getParentUrl());
+        sb.append(delimiter).append(getStatus());
+        sb.append(delimiter).append(getHttpStatusCode());
+        sb.append(delimiter).append(getMethod());
+        sb.append(delimiter).append(getMimeType());
+        sb.append(delimiter).append(getContentLength());
+        sb.append(delimiter).append(getExecutionTime());
+        sb.append(delimiter).append(getLastModified());
+        sb.append(delimiter).append(getCreateTime());
+        if (sb.length() > delimiter.length()) {
+            sb.delete(0, delimiter.length());
         }
         sb.insert(0, "{").append("}");
         return sb.toString();
@@ -344,10 +416,25 @@ public abstract class BsAccessResult implements Entity, Serializable {
         if (_accessResultDataAsOne != null) {
             sb.append(c).append("accessResultDataAsOne");
         }
-        if (sb.length() > 0) {
+        if (sb.length() > c.length()) {
             sb.delete(0, c.length()).insert(0, "(").append(")");
         }
         return sb.toString();
+    }
+
+    /**
+     * Clone entity instance using super.clone(). (shallow copy)
+     * 
+     * @return The cloned instance of this entity. (NotNull)
+     */
+    @Override
+    public AccessResult clone() {
+        try {
+            return (AccessResult) super.clone();
+        } catch (final CloneNotSupportedException e) {
+            throw new IllegalStateException("Failed to clone the entity: "
+                + toString(), e);
+        }
     }
 
     // ===================================================================================
@@ -356,7 +443,8 @@ public abstract class BsAccessResult implements Entity, Serializable {
     /**
      * [get] ID: {PK, ID, NotNull, BIGINT(19)} <br />
      * 
-     * @return The value of the column 'ID'. (NullAllowed)
+     * @return The value of the column 'ID'. (basically NotNull if selected: for
+     *         the constraint)
      */
     public Long getId() {
         return _id;
@@ -366,17 +454,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br />
      * 
      * @param id
-     *            The value of the column 'ID'. (NullAllowed)
+     *            The value of the column 'ID'. (basically NotNull if update:
+     *            for the constraint)
      */
     public void setId(final Long id) {
         __modifiedProperties.addPropertyName("id");
-        this._id = id;
+        _id = id;
     }
 
     /**
      * [get] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
      * 
-     * @return The value of the column 'SESSION_ID'. (NullAllowed)
+     * @return The value of the column 'SESSION_ID'. (basically NotNull if
+     *         selected: for the constraint)
      */
     public String getSessionId() {
         return _sessionId;
@@ -386,17 +476,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
      * 
      * @param sessionId
-     *            The value of the column 'SESSION_ID'. (NullAllowed)
+     *            The value of the column 'SESSION_ID'. (basically NotNull if
+     *            update: for the constraint)
      */
     public void setSessionId(final String sessionId) {
         __modifiedProperties.addPropertyName("sessionId");
-        this._sessionId = sessionId;
+        _sessionId = sessionId;
     }
 
     /**
      * [get] RULE_ID: {VARCHAR(20)} <br />
      * 
-     * @return The value of the column 'RULE_ID'. (NullAllowed)
+     * @return The value of the column 'RULE_ID'. (NullAllowed even if selected:
+     *         for no constraint)
      */
     public String getRuleId() {
         return _ruleId;
@@ -406,37 +498,41 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] RULE_ID: {VARCHAR(20)} <br />
      * 
      * @param ruleId
-     *            The value of the column 'RULE_ID'. (NullAllowed)
+     *            The value of the column 'RULE_ID'. (NullAllowed: null update
+     *            allowed for no constraint)
      */
     public void setRuleId(final String ruleId) {
         __modifiedProperties.addPropertyName("ruleId");
-        this._ruleId = ruleId;
+        _ruleId = ruleId;
     }
 
     /**
-     * [get] URL: {IX+, NotNull, TEXT(65535)} <br />
+     * [get] URL: {IX, NotNull, TEXT(65535)} <br />
      * 
-     * @return The value of the column 'URL'. (NullAllowed)
+     * @return The value of the column 'URL'. (basically NotNull if selected:
+     *         for the constraint)
      */
     public String getUrl() {
         return _url;
     }
 
     /**
-     * [set] URL: {IX+, NotNull, TEXT(65535)} <br />
+     * [set] URL: {IX, NotNull, TEXT(65535)} <br />
      * 
      * @param url
-     *            The value of the column 'URL'. (NullAllowed)
+     *            The value of the column 'URL'. (basically NotNull if update:
+     *            for the constraint)
      */
     public void setUrl(final String url) {
         __modifiedProperties.addPropertyName("url");
-        this._url = url;
+        _url = url;
     }
 
     /**
      * [get] PARENT_URL: {TEXT(65535)} <br />
      * 
-     * @return The value of the column 'PARENT_URL'. (NullAllowed)
+     * @return The value of the column 'PARENT_URL'. (NullAllowed even if
+     *         selected: for no constraint)
      */
     public String getParentUrl() {
         return _parentUrl;
@@ -446,17 +542,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] PARENT_URL: {TEXT(65535)} <br />
      * 
      * @param parentUrl
-     *            The value of the column 'PARENT_URL'. (NullAllowed)
+     *            The value of the column 'PARENT_URL'. (NullAllowed: null
+     *            update allowed for no constraint)
      */
     public void setParentUrl(final String parentUrl) {
         __modifiedProperties.addPropertyName("parentUrl");
-        this._parentUrl = parentUrl;
+        _parentUrl = parentUrl;
     }
 
     /**
      * [get] STATUS: {NotNull, INT(10)} <br />
      * 
-     * @return The value of the column 'STATUS'. (NullAllowed)
+     * @return The value of the column 'STATUS'. (basically NotNull if selected:
+     *         for the constraint)
      */
     public Integer getStatus() {
         return _status;
@@ -466,17 +564,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] STATUS: {NotNull, INT(10)} <br />
      * 
      * @param status
-     *            The value of the column 'STATUS'. (NullAllowed)
+     *            The value of the column 'STATUS'. (basically NotNull if
+     *            update: for the constraint)
      */
     public void setStatus(final Integer status) {
         __modifiedProperties.addPropertyName("status");
-        this._status = status;
+        _status = status;
     }
 
     /**
      * [get] HTTP_STATUS_CODE: {NotNull, INT(10)} <br />
      * 
-     * @return The value of the column 'HTTP_STATUS_CODE'. (NullAllowed)
+     * @return The value of the column 'HTTP_STATUS_CODE'. (basically NotNull if
+     *         selected: for the constraint)
      */
     public Integer getHttpStatusCode() {
         return _httpStatusCode;
@@ -486,17 +586,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] HTTP_STATUS_CODE: {NotNull, INT(10)} <br />
      * 
      * @param httpStatusCode
-     *            The value of the column 'HTTP_STATUS_CODE'. (NullAllowed)
+     *            The value of the column 'HTTP_STATUS_CODE'. (basically NotNull
+     *            if update: for the constraint)
      */
     public void setHttpStatusCode(final Integer httpStatusCode) {
         __modifiedProperties.addPropertyName("httpStatusCode");
-        this._httpStatusCode = httpStatusCode;
+        _httpStatusCode = httpStatusCode;
     }
 
     /**
      * [get] METHOD: {NotNull, VARCHAR(10)} <br />
      * 
-     * @return The value of the column 'METHOD'. (NullAllowed)
+     * @return The value of the column 'METHOD'. (basically NotNull if selected:
+     *         for the constraint)
      */
     public String getMethod() {
         return _method;
@@ -506,17 +608,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] METHOD: {NotNull, VARCHAR(10)} <br />
      * 
      * @param method
-     *            The value of the column 'METHOD'. (NullAllowed)
+     *            The value of the column 'METHOD'. (basically NotNull if
+     *            update: for the constraint)
      */
     public void setMethod(final String method) {
         __modifiedProperties.addPropertyName("method");
-        this._method = method;
+        _method = method;
     }
 
     /**
      * [get] MIME_TYPE: {NotNull, VARCHAR(100)} <br />
      * 
-     * @return The value of the column 'MIME_TYPE'. (NullAllowed)
+     * @return The value of the column 'MIME_TYPE'. (basically NotNull if
+     *         selected: for the constraint)
      */
     public String getMimeType() {
         return _mimeType;
@@ -526,17 +630,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] MIME_TYPE: {NotNull, VARCHAR(100)} <br />
      * 
      * @param mimeType
-     *            The value of the column 'MIME_TYPE'. (NullAllowed)
+     *            The value of the column 'MIME_TYPE'. (basically NotNull if
+     *            update: for the constraint)
      */
     public void setMimeType(final String mimeType) {
         __modifiedProperties.addPropertyName("mimeType");
-        this._mimeType = mimeType;
+        _mimeType = mimeType;
     }
 
     /**
      * [get] CONTENT_LENGTH: {NotNull, BIGINT(19)} <br />
      * 
-     * @return The value of the column 'CONTENT_LENGTH'. (NullAllowed)
+     * @return The value of the column 'CONTENT_LENGTH'. (basically NotNull if
+     *         selected: for the constraint)
      */
     public Long getContentLength() {
         return _contentLength;
@@ -546,17 +652,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] CONTENT_LENGTH: {NotNull, BIGINT(19)} <br />
      * 
      * @param contentLength
-     *            The value of the column 'CONTENT_LENGTH'. (NullAllowed)
+     *            The value of the column 'CONTENT_LENGTH'. (basically NotNull
+     *            if update: for the constraint)
      */
     public void setContentLength(final Long contentLength) {
         __modifiedProperties.addPropertyName("contentLength");
-        this._contentLength = contentLength;
+        _contentLength = contentLength;
     }
 
     /**
      * [get] EXECUTION_TIME: {NotNull, INT(10)} <br />
      * 
-     * @return The value of the column 'EXECUTION_TIME'. (NullAllowed)
+     * @return The value of the column 'EXECUTION_TIME'. (basically NotNull if
+     *         selected: for the constraint)
      */
     public Integer getExecutionTime() {
         return _executionTime;
@@ -566,17 +674,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] EXECUTION_TIME: {NotNull, INT(10)} <br />
      * 
      * @param executionTime
-     *            The value of the column 'EXECUTION_TIME'. (NullAllowed)
+     *            The value of the column 'EXECUTION_TIME'. (basically NotNull
+     *            if update: for the constraint)
      */
     public void setExecutionTime(final Integer executionTime) {
         __modifiedProperties.addPropertyName("executionTime");
-        this._executionTime = executionTime;
+        _executionTime = executionTime;
     }
 
     /**
      * [get] LAST_MODIFIED: {NotNull, DATETIME(19)} <br />
      * 
-     * @return The value of the column 'LAST_MODIFIED'. (NullAllowed)
+     * @return The value of the column 'LAST_MODIFIED'. (basically NotNull if
+     *         selected: for the constraint)
      */
     public java.sql.Timestamp getLastModified() {
         return _lastModified;
@@ -586,17 +696,19 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] LAST_MODIFIED: {NotNull, DATETIME(19)} <br />
      * 
      * @param lastModified
-     *            The value of the column 'LAST_MODIFIED'. (NullAllowed)
+     *            The value of the column 'LAST_MODIFIED'. (basically NotNull if
+     *            update: for the constraint)
      */
     public void setLastModified(final java.sql.Timestamp lastModified) {
         __modifiedProperties.addPropertyName("lastModified");
-        this._lastModified = lastModified;
+        _lastModified = lastModified;
     }
 
     /**
      * [get] CREATE_TIME: {IX+, NotNull, DATETIME(19)} <br />
      * 
-     * @return The value of the column 'CREATE_TIME'. (NullAllowed)
+     * @return The value of the column 'CREATE_TIME'. (basically NotNull if
+     *         selected: for the constraint)
      */
     public java.sql.Timestamp getCreateTime() {
         return _createTime;
@@ -606,10 +718,11 @@ public abstract class BsAccessResult implements Entity, Serializable {
      * [set] CREATE_TIME: {IX+, NotNull, DATETIME(19)} <br />
      * 
      * @param createTime
-     *            The value of the column 'CREATE_TIME'. (NullAllowed)
+     *            The value of the column 'CREATE_TIME'. (basically NotNull if
+     *            update: for the constraint)
      */
     public void setCreateTime(final java.sql.Timestamp createTime) {
         __modifiedProperties.addPropertyName("createTime");
-        this._createTime = createTime;
+        _createTime = createTime;
     }
 }

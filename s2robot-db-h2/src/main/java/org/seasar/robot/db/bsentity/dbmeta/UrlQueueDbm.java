@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package org.seasar.robot.db.bsentity.dbmeta;
 import java.util.List;
 import java.util.Map;
 
+import org.seasar.dbflute.DBDef;
+import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.dbmeta.AbstractDBMeta;
+import org.seasar.dbflute.dbmeta.PropertyGateway;
+import org.seasar.dbflute.dbmeta.info.ColumnInfo;
+import org.seasar.dbflute.dbmeta.info.UniqueInfo;
+import org.seasar.dbflute.dbmeta.name.TableSqlName;
 import org.seasar.robot.db.allcommon.DBCurrent;
 import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.exentity.UrlQueue;
-import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta;
-import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.robot.dbflute.dbmeta.name.TableSqlName;
-import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
  * The DB meta of URL_QUEUE. (Singleton)
@@ -51,8 +51,125 @@ public class UrlQueueDbm extends AbstractDBMeta {
     // ===================================================================================
     // Current DBDef
     // =============
+    @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
+    }
+
+    // ===================================================================================
+    // Property Gateway
+    // ================
+    protected final Map<String, PropertyGateway> _epgMap = newHashMap();
+    {
+        setupEpg(_epgMap, new EpgId(), "id");
+        setupEpg(_epgMap, new EpgSessionId(), "sessionId");
+        setupEpg(_epgMap, new EpgMethod(), "method");
+        setupEpg(_epgMap, new EpgUrl(), "url");
+        setupEpg(_epgMap, new EpgParentUrl(), "parentUrl");
+        setupEpg(_epgMap, new EpgDepth(), "depth");
+        setupEpg(_epgMap, new EpgLastModified(), "lastModified");
+        setupEpg(_epgMap, new EpgCreateTime(), "createTime");
+    }
+
+    @Override
+    public PropertyGateway findPropertyGateway(final String propertyName) {
+        return doFindEpg(_epgMap, propertyName);
+    }
+
+    public static class EpgId implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getId();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setId(ctl(v));
+        }
+    }
+
+    public static class EpgSessionId implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getSessionId();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setSessionId((String) v);
+        }
+    }
+
+    public static class EpgMethod implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getMethod();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setMethod((String) v);
+        }
+    }
+
+    public static class EpgUrl implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getUrl();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setUrl((String) v);
+        }
+    }
+
+    public static class EpgParentUrl implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getParentUrl();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setParentUrl((String) v);
+        }
+    }
+
+    public static class EpgDepth implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getDepth();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setDepth(cti(v));
+        }
+    }
+
+    public static class EpgLastModified implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getLastModified();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setLastModified((java.sql.Timestamp) v);
+        }
+    }
+
+    public static class EpgCreateTime implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getCreateTime();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setCreateTime((java.sql.Timestamp) v);
+        }
     }
 
     // ===================================================================================
@@ -71,14 +188,17 @@ public class UrlQueueDbm extends AbstractDBMeta {
             .getTableSqlNameFilter());
     }
 
+    @Override
     public String getTableDbName() {
         return _tableDbName;
     }
 
+    @Override
     public String getTablePropertyName() {
         return _tablePropertyName;
     }
 
+    @Override
     public TableSqlName getTableSqlName() {
         return _tableSqlName;
     }
@@ -86,25 +206,27 @@ public class UrlQueueDbm extends AbstractDBMeta {
     // ===================================================================================
     // Column Info
     // ===========
-    protected final ColumnInfo _columnId = cci(
-        "ID",
-        "ID",
-        null,
-        null,
-        true,
-        "id",
-        Long.class,
-        true,
-        true,
-        "BIGINT",
-        19,
-        0,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnId =
+        cci(
+            "ID",
+            "ID",
+            null,
+            null,
+            true,
+            "id",
+            Long.class,
+            true,
+            true,
+            "BIGINT",
+            19,
+            0,
+            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_D00ECB4D_9FDC_4FC3_AEC9_258614FCEE2F",
+            false,
+            null,
+            null,
+            null,
+            null,
+            null);
 
     protected final ColumnInfo _columnSessionId = cci(
         "SESSION_ID",
@@ -119,6 +241,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "VARCHAR",
         20,
         0,
+        null,
         false,
         null,
         null,
@@ -139,6 +262,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "VARCHAR",
         10,
         0,
+        null,
         false,
         null,
         null,
@@ -159,6 +283,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "VARCHAR",
         65536,
         0,
+        null,
         false,
         null,
         null,
@@ -179,6 +304,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "VARCHAR",
         65536,
         0,
+        null,
         false,
         null,
         null,
@@ -199,6 +325,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "INTEGER",
         10,
         0,
+        null,
         false,
         null,
         null,
@@ -219,6 +346,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "TIMESTAMP",
         23,
         10,
+        null,
         false,
         null,
         null,
@@ -239,6 +367,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "TIMESTAMP",
         23,
         10,
+        null,
         false,
         null,
         null,
@@ -302,14 +431,17 @@ public class UrlQueueDbm extends AbstractDBMeta {
     // -----------------------------------------------------
     // Primary Element
     // ---------------
-    public UniqueInfo getPrimaryUniqueInfo() {
-        return cpui(columnId());
+    @Override
+    protected UniqueInfo cpui() {
+        return hpcpui(columnId());
     }
 
+    @Override
     public boolean hasPrimaryKey() {
         return true;
     }
 
+    @Override
     public boolean hasCompoundPrimaryKey() {
         return false;
     }
@@ -336,18 +468,17 @@ public class UrlQueueDbm extends AbstractDBMeta {
     // ===================================================================================
     // Type Name
     // =========
+    @Override
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.UrlQueue";
     }
 
+    @Override
     public String getConditionBeanTypeName() {
-        return "org.seasar.robot.db.cbean.bs.UrlQueueCB";
+        return "org.seasar.robot.db.cbean.UrlQueueCB";
     }
 
-    public String getDaoTypeName() {
-        return "org.seasar.robot.db.exdao.UrlQueueDao";
-    }
-
+    @Override
     public String getBehaviorTypeName() {
         return "org.seasar.robot.db.exbhv.UrlQueueBhv";
     }
@@ -355,6 +486,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
     // ===================================================================================
     // Object Type
     // ===========
+    @Override
     public Class<UrlQueue> getEntityType() {
         return UrlQueue.class;
     }
@@ -362,6 +494,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
     // ===================================================================================
     // Object Instance
     // ===============
+    @Override
     public Entity newEntity() {
         return newMyEntity();
     }
@@ -371,92 +504,27 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Entity Handling
-    // ===============
+    // Map Communication
+    // =================
+    @Override
     public void acceptPrimaryKeyMap(final Entity e,
             final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((UrlQueue) e, m, _epsMap);
+        doAcceptPrimaryKeyMap((UrlQueue) e, m);
     }
 
+    @Override
+    public void acceptAllColumnMap(final Entity e,
+            final Map<String, ? extends Object> m) {
+        doAcceptAllColumnMap((UrlQueue) e, m);
+    }
+
+    @Override
     public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
         return doExtractPrimaryKeyMap(e);
     }
 
+    @Override
     public Map<String, Object> extractAllColumnMap(final Entity e) {
         return doExtractAllColumnMap(e);
-    }
-
-    // ===================================================================================
-    // Entity Property Setup
-    // =====================
-    // It's very INTERNAL!
-    protected final Map<String, Eps<UrlQueue>> _epsMap = StringKeyMap
-        .createAsFlexibleConcurrent();
-    {
-        setupEps(_epsMap, new EpsId(), columnId());
-        setupEps(_epsMap, new EpsSessionId(), columnSessionId());
-        setupEps(_epsMap, new EpsMethod(), columnMethod());
-        setupEps(_epsMap, new EpsUrl(), columnUrl());
-        setupEps(_epsMap, new EpsParentUrl(), columnParentUrl());
-        setupEps(_epsMap, new EpsDepth(), columnDepth());
-        setupEps(_epsMap, new EpsLastModified(), columnLastModified());
-        setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
-    }
-
-    public boolean hasEntityPropertySetupper(final String propertyName) {
-        return _epsMap.containsKey(propertyName);
-    }
-
-    public void setupEntityProperty(final String propertyName,
-            final Object entity, final Object value) {
-        findEps(_epsMap, propertyName).setup((UrlQueue) entity, value);
-    }
-
-    public class EpsId implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setId(ctl(v));
-        }
-    }
-
-    public static class EpsSessionId implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setSessionId((String) v);
-        }
-    }
-
-    public static class EpsMethod implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setMethod((String) v);
-        }
-    }
-
-    public static class EpsUrl implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setUrl((String) v);
-        }
-    }
-
-    public static class EpsParentUrl implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setParentUrl((String) v);
-        }
-    }
-
-    public class EpsDepth implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setDepth(cti(v));
-        }
-    }
-
-    public static class EpsLastModified implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setLastModified((java.sql.Timestamp) v);
-        }
-    }
-
-    public static class EpsCreateTime implements Eps<UrlQueue> {
-        public void setup(final UrlQueue e, final Object v) {
-            e.setCreateTime((java.sql.Timestamp) v);
-        }
     }
 }

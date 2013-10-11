@@ -45,7 +45,7 @@ public class XmlExtractor extends AbstractXmlExtractor implements Extractor {
     }
 
     public void setXmlEncodingPattern(final Pattern metaCharsetPattern) {
-        this.xmlEncodingPattern = metaCharsetPattern;
+        xmlEncodingPattern = metaCharsetPattern;
     }
 
     public Pattern getXmlTagPattern() {
@@ -53,6 +53,6 @@ public class XmlExtractor extends AbstractXmlExtractor implements Extractor {
     }
 
     public void setXmlTagPattern(final Pattern htmlTagPattern) {
-        this.xmlTagPattern = htmlTagPattern;
+        xmlTagPattern = htmlTagPattern;
     }
 }

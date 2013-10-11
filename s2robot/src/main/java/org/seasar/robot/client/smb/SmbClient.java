@@ -92,9 +92,9 @@ public class SmbClient extends AbstractS2RobotClient {
                 SMB_AUTHENTICATIONS_PROPERTY,
                 new SmbAuthentication[0]);
         if (smbAuthentications != null) {
-            SmbAuthenticationHolder smbAuthenticationHolder =
+            final SmbAuthenticationHolder smbAuthenticationHolder =
                 new SmbAuthenticationHolder();
-            for (SmbAuthentication smbAuthentication : smbAuthentications) {
+            for (final SmbAuthentication smbAuthentication : smbAuthentications) {
                 smbAuthenticationHolder.add(smbAuthentication);
             }
             this.smbAuthenticationHolder = smbAuthenticationHolder;
@@ -111,12 +111,13 @@ public class SmbClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
      */
+    @Override
     public ResponseData doGet(final String uri) {
         return getResponseData(uri, true);
     }
 
     protected ResponseData getResponseData(final String uri,
-            boolean includeContent) {
+            final boolean includeContent) {
         if (smbAuthenticationHolder == null) {
             init();
         }
@@ -127,7 +128,7 @@ public class SmbClient extends AbstractS2RobotClient {
         responseData.setUrl(filePath);
 
         SmbFile file = null;
-        SmbAuthentication smbAuthentication =
+        final SmbAuthentication smbAuthentication =
             smbAuthenticationHolder.get(filePath);
         try {
             if (smbAuthentication == null) {
@@ -136,7 +137,7 @@ public class SmbClient extends AbstractS2RobotClient {
                 file =
                     new SmbFile(filePath, smbAuthentication.getAuthentication());
             }
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             logger.warn("Could not parse url: " + filePath, e);
         }
 
@@ -154,7 +155,7 @@ public class SmbClient extends AbstractS2RobotClient {
                     responseData.setMimeType(mimeTypeHelper.getContentType(
                         is,
                         file.getName()));
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     responseData.setMimeType(mimeTypeHelper.getContentType(
                         null,
                         file.getName()));
@@ -182,10 +183,10 @@ public class SmbClient extends AbstractS2RobotClient {
                 responseData.setLastModified(new Date(file.lastModified()));
 
                 processAccessControlEntries(responseData, file);
-                Map<String, List<String>> headerFieldMap =
+                final Map<String, List<String>> headerFieldMap =
                     file.getHeaderFields();
                 if (headerFieldMap != null) {
-                    for (Map.Entry<String, List<String>> entry : headerFieldMap
+                    for (final Map.Entry<String, List<String>> entry : headerFieldMap
                         .entrySet()) {
                         responseData.addMetaData(
                             entry.getKey(),
@@ -205,7 +206,7 @@ public class SmbClient extends AbstractS2RobotClient {
                             responseData
                                 .setResponseBody(new TemporaryFileInputStream(
                                     outputFile));
-                        } catch (Exception e) {
+                        } catch (final Exception e) {
                             logger.warn("I/O Exception.", e);
                             responseData.setHttpStatusCode(500);
                             if (outputFile != null && !outputFile.delete()) {
@@ -223,7 +224,7 @@ public class SmbClient extends AbstractS2RobotClient {
                 if (includeContent) {
                     final SmbFile[] files = file.listFiles();
                     if (files != null) {
-                        for (SmbFile f : files) {
+                        for (final SmbFile f : files) {
                             final String chileUri = f.toString();
                             childUrlSet.add(chileUri);
                         }
@@ -235,7 +236,7 @@ public class SmbClient extends AbstractS2RobotClient {
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
             }
-        } catch (SmbException e) {
+        } catch (final SmbException e) {
             throw new RobotCrawlAccessException("Could not access " + uri, e);
         }
 
@@ -245,11 +246,11 @@ public class SmbClient extends AbstractS2RobotClient {
     protected void processAccessControlEntries(final ResponseData responseData,
             final SmbFile file) {
         try {
-            ACE[] aces = file.getSecurity(resolveSids);
+            final ACE[] aces = file.getSecurity(resolveSids);
             if (aces != null) {
                 responseData.addMetaData(SMB_ACCESS_CONTROL_ENTRIES, aces);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RobotCrawlAccessException("Could not access "
                 + file.getPath(), e);
         }
@@ -272,12 +273,13 @@ public class SmbClient extends AbstractS2RobotClient {
      * 
      * @see org.seasar.robot.client.S2RobotClient#doHead(java.lang.String)
      */
+    @Override
     public ResponseData doHead(final String url) {
         try {
             final ResponseData responseData = getResponseData(url, false);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
-        } catch (ChildUrlsException e) {
+        } catch (final ChildUrlsException e) {
             return null;
         }
     }
@@ -297,7 +299,7 @@ public class SmbClient extends AbstractS2RobotClient {
                 out.write(buf, 0, length);
                 out.flush();
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IORuntimeException(e);
         } finally {
             InputStreamUtil.close(in);
@@ -316,7 +318,7 @@ public class SmbClient extends AbstractS2RobotClient {
      * @param resolveSids
      *            the resolveSids to set
      */
-    public void setResolveSids(boolean resolveSids) {
+    public void setResolveSids(final boolean resolveSids) {
         this.resolveSids = resolveSids;
     }
 
@@ -331,7 +333,7 @@ public class SmbClient extends AbstractS2RobotClient {
      * @param charset
      *            the charset to set
      */
-    public void setCharset(String charset) {
+    public void setCharset(final String charset) {
         this.charset = charset;
     }
 }

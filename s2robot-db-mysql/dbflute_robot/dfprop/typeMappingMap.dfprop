@@ -1,5 +1,5 @@
 # /---------------------------------------------------------------------------
-# typeMappingMap: (NotRequired - Default 'map:{}')
+# typeMappingMap: (NotRequired - Default map:{})
 #
 # If you want to change mappings from default mappings,
 # you can specify your original mappings.
@@ -12,7 +12,7 @@
 #   o Numeric(10 - 18 , 0) is mapping to BIGINT
 #   o Numeric(19 - 38 , 0) is mapping to NUMERIC
 #   o Numeric( 1 - 38 , 2) is mapping to NUMERIC
-# 
+#
 # Example:
 # map:{
 #     ; INTEGER = java.lang.Integer

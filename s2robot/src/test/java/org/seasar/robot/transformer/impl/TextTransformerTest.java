@@ -41,27 +41,27 @@ public class TextTransformerTest extends S2TestCase {
     }
 
     public void test_transform_text() throws Exception {
-        byte[] data = new String("xyz").getBytes();
-        ByteArrayInputStream bais = new ByteArrayInputStream(data);
-        ResponseData responseData = new ResponseData();
+        final byte[] data = new String("xyz").getBytes();
+        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        final ResponseData responseData = new ResponseData();
         responseData.setUrl("file:/test.txt");
         responseData.setCharSet(Constants.UTF_8);
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/plain");
-        ResultData resultData = textTransformer.transform(responseData);
+        final ResultData resultData = textTransformer.transform(responseData);
         assertEquals("xyz", new String(resultData.getData(), resultData
                 .getEncoding()));
     }
 
     public void test_transform_html() throws Exception {
-        byte[] data = new String("<html><body>xyz</body></html>").getBytes();
-        ByteArrayInputStream bais = new ByteArrayInputStream(data);
-        ResponseData responseData = new ResponseData();
+        final byte[] data = new String("<html><body>xyz</body></html>").getBytes();
+        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        final ResponseData responseData = new ResponseData();
         responseData.setUrl("file:/test.html");
         responseData.setCharSet(Constants.UTF_8);
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/html");
-        ResultData resultData = textTransformer.transform(responseData);
+        final ResultData resultData = textTransformer.transform(responseData);
         assertEquals("xyz", new String(resultData.getData(), resultData
                 .getEncoding()));
     }
@@ -70,40 +70,40 @@ public class TextTransformerTest extends S2TestCase {
         try {
             textTransformer.transform(null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }
 
     public void test_getData() throws Exception {
-        AccessResultDataImpl accessResultData = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");
         accessResultData.setData("xyz".getBytes());
 
-        Object obj = textTransformer.getData(accessResultData);
+        final Object obj = textTransformer.getData(accessResultData);
         assertNotNull(obj);
         assertTrue(obj instanceof String);
         assertEquals("xyz", obj.toString());
     }
 
     public void test_getData_wrongName() throws Exception {
-        AccessResultDataImpl accessResultData = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("transformer");
         accessResultData.setData("xyz".getBytes());
 
         try {
             textTransformer.getData(accessResultData);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
         }
     }
 
     public void test_getData_nullData() throws Exception {
-        AccessResultDataImpl accessResultData = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");
         accessResultData.setData(null);
 
-        Object obj = textTransformer.getData(accessResultData);
+        final Object obj = textTransformer.getData(accessResultData);
         assertNull(obj);
     }
 }

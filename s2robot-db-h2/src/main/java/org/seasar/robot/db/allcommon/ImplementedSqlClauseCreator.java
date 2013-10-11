@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,25 @@
  */
 package org.seasar.robot.db.allcommon;
 
-import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.cbean.ConditionBean;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseCreator;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseDb2;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseDefault;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseDerby;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseFirebird;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseH2;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseMsAccess;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseMySql;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseOracle;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClausePostgreSql;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseSqlServer;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseSqlite;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClauseSybase;
-import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
+import org.seasar.dbflute.DBDef;
+import org.seasar.dbflute.cbean.ConditionBean;
+import org.seasar.dbflute.cbean.cipher.GearedCipherManager;
+import org.seasar.dbflute.cbean.sqlclause.AbstractSqlClause;
+import org.seasar.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseCreator;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseDb2;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseDefault;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseDerby;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseFirebird;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseH2;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseMsAccess;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseMySql;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseOracle;
+import org.seasar.dbflute.cbean.sqlclause.SqlClausePostgreSql;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseSqlServer;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseSqlite;
+import org.seasar.dbflute.cbean.sqlclause.SqlClauseSybase;
+import org.seasar.dbflute.dbmeta.DBMetaProvider;
 
 /**
  * The creator of SQL clause.
@@ -50,6 +52,7 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
      *            Condition-bean. (NotNull)
      * @return SQL clause. (NotNull)
      */
+    @Override
     public SqlClause createSqlClause(final ConditionBean cb) {
         final String tableDbName = cb.getTableDbName();
         final SqlClause sqlClause = createSqlClause(tableDbName);
@@ -63,11 +66,9 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
      *            The DB name of table. (NotNull)
      * @return SQL clause. (NotNull)
      */
+    @Override
     public SqlClause createSqlClause(final String tableDbName) {
-        final DBMetaProvider dbmetaProvider =
-            DBMetaInstanceHandler.getProvider();
-        final SqlClause sqlClause =
-            doCreateSqlClause(tableDbName, dbmetaProvider);
+        final SqlClause sqlClause = doCreateSqlClause(tableDbName);
         setupSqlClauseOption(sqlClause);
         return sqlClause;
     }
@@ -75,111 +76,120 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
     // ===================================================================================
     // Creation
     // ========
-    protected SqlClause doCreateSqlClause(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        SqlClause sqlClause; // dynamic resolution but no perfect (almost
-                             // static)
+    protected SqlClause doCreateSqlClause(final String tableDbName) {
+        AbstractSqlClause sqlClause; // dynamic resolution but no perfect
+                                     // (almost static)
         if (isCurrentDBDef(DBDef.MySQL)) {
-            sqlClause = createSqlClauseMySql(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseMySql(tableDbName);
         } else if (isCurrentDBDef(DBDef.PostgreSQL)) {
-            sqlClause = createSqlClausePostgreSql(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClausePostgreSql(tableDbName);
         } else if (isCurrentDBDef(DBDef.Oracle)) {
-            sqlClause = createSqlClauseOracle(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseOracle(tableDbName);
         } else if (isCurrentDBDef(DBDef.DB2)) {
-            sqlClause = createSqlClauseDb2(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseDb2(tableDbName);
         } else if (isCurrentDBDef(DBDef.SQLServer)) {
-            sqlClause = createSqlClauseSqlServer(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseSqlServer(tableDbName);
         } else if (isCurrentDBDef(DBDef.H2)) {
-            sqlClause = createSqlClauseH2(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseH2(tableDbName);
         } else if (isCurrentDBDef(DBDef.Derby)) {
-            sqlClause = createSqlClauseDerby(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseDerby(tableDbName);
         } else if (isCurrentDBDef(DBDef.SQLite)) {
-            sqlClause = createSqlClauseSqlite(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseSqlite(tableDbName);
         } else if (isCurrentDBDef(DBDef.MSAccess)) {
-            sqlClause = createSqlClauseMsAccess(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseMsAccess(tableDbName);
         } else if (isCurrentDBDef(DBDef.FireBird)) {
-            sqlClause = createSqlClauseFirebird(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseFirebird(tableDbName);
         } else if (isCurrentDBDef(DBDef.Sybase)) {
-            sqlClause = createSqlClauseSybase(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseSybase(tableDbName);
         } else {
             // as the database when generating
-            sqlClause = createSqlClauseH2(tableDbName, dbmetaProvider);
+            sqlClause = createSqlClauseH2(tableDbName);
         }
+        prepareSupporterComponent(sqlClause);
         return sqlClause;
     }
 
-    protected SqlClause createSqlClauseMySql(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseMySql(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseMySql createSqlClauseMySql(final String tableDbName) {
+        return new SqlClauseMySql(tableDbName);
     }
 
-    protected SqlClause createSqlClausePostgreSql(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClausePostgreSql(tableDbName).provider(dbmetaProvider);
+    protected SqlClausePostgreSql createSqlClausePostgreSql(
+            final String tableDbName) {
+        return new SqlClausePostgreSql(tableDbName);
     }
 
-    protected SqlClause createSqlClauseOracle(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseOracle(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseOracle createSqlClauseOracle(final String tableDbName) {
+        return new SqlClauseOracle(tableDbName);
     }
 
-    protected SqlClause createSqlClauseDb2(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseDb2(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseDb2 createSqlClauseDb2(final String tableDbName) {
+        return new SqlClauseDb2(tableDbName);
     }
 
-    protected SqlClause createSqlClauseSqlServer(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseSqlServer(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseSqlServer createSqlClauseSqlServer(
+            final String tableDbName) {
+        return new SqlClauseSqlServer(tableDbName);
     }
 
-    protected SqlClause createSqlClauseH2(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseH2(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseH2 createSqlClauseH2(final String tableDbName) {
+        return new SqlClauseH2(tableDbName);
     }
 
-    protected SqlClause createSqlClauseDerby(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseDerby(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseDerby createSqlClauseDerby(final String tableDbName) {
+        return new SqlClauseDerby(tableDbName);
     }
 
-    protected SqlClause createSqlClauseSqlite(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseSqlite(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseSqlite createSqlClauseSqlite(final String tableDbName) {
+        return new SqlClauseSqlite(tableDbName);
     }
 
-    protected SqlClause createSqlClauseMsAccess(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseMsAccess(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseMsAccess createSqlClauseMsAccess(final String tableDbName) {
+        return new SqlClauseMsAccess(tableDbName);
     }
 
-    protected SqlClause createSqlClauseFirebird(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseFirebird(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseFirebird createSqlClauseFirebird(final String tableDbName) {
+        return new SqlClauseFirebird(tableDbName);
     }
 
-    protected SqlClause createSqlClauseSybase(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseSybase(tableDbName).provider(dbmetaProvider);
+    protected SqlClauseSybase createSqlClauseSybase(final String tableDbName) {
+        return new SqlClauseSybase(tableDbName);
     }
 
-    protected SqlClause createSqlClauseDefault(final String tableDbName,
-            final DBMetaProvider dbmetaProvider) {
-        return new SqlClauseDefault(tableDbName).provider(dbmetaProvider);
+    protected SqlClause createSqlClauseDefault(final String tableDbName) {
+        return new SqlClauseDefault(tableDbName);
+    }
+
+    protected void prepareSupporterComponent(final AbstractSqlClause sqlClause) {
+        sqlClause.dbmetaProvider(getDBMetaProvider()).cipherManager(
+            getGearedCipherManager());
+    }
+
+    // ===================================================================================
+    // Supporter
+    // =========
+    protected DBMetaProvider getDBMetaProvider() {
+        return DBMetaInstanceHandler.getProvider();
+    }
+
+    protected GearedCipherManager getGearedCipherManager() {
+        return DBFluteConfig.getInstance().getGearedCipherManager();
     }
 
     // ===================================================================================
     // Option
     // ======
     protected void setupSqlClauseOption(final SqlClause sqlClause) {
-        if (isDisableSelectIndex()) {
-            sqlClause.disableSelectIndex();
+        if (isInnerJoinAutoDetect()) {
+            sqlClause.allowInnerJoinAutoDetect();
         }
         if (isEmptyStringQueryAllowed()) {
             sqlClause.allowEmptyStringQuery();
         }
         if (isInvalidQueryChecked()) {
             sqlClause.checkInvalidQuery();
+        }
+        if (isDisableSelectIndex()) {
+            sqlClause.disableSelectIndex();
         }
     }
 
@@ -190,8 +200,8 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
         return DBCurrent.getInstance().isCurrentDBDef(currentDBDef);
     }
 
-    protected boolean isDisableSelectIndex() {
-        return DBFluteConfig.getInstance().isDisableSelectIndex();
+    protected boolean isInnerJoinAutoDetect() {
+        return DBFluteConfig.getInstance().isInnerJoinAutoDetect();
     }
 
     protected boolean isEmptyStringQueryAllowed() {
@@ -200,5 +210,9 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
 
     protected boolean isInvalidQueryChecked() {
         return DBFluteConfig.getInstance().isInvalidQueryChecked();
+    }
+
+    protected boolean isDisableSelectIndex() {
+        return DBFluteConfig.getInstance().isDisableSelectIndex();
     }
 }

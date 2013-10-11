@@ -51,7 +51,7 @@ public class S2RobotClientFactory {
         if (client == null) {
             throw new RobotSystemException("S2RobotClient is null.");
         }
-        for (String regex : regexList) {
+        for (final String regex : regexList) {
             if (StringUtil.isNotBlank(regex)) {
                 clientMap.put(Pattern.compile(regex), client);
             }
@@ -63,7 +63,8 @@ public class S2RobotClientFactory {
             return null;
         }
 
-        for (Map.Entry<Pattern, S2RobotClient> entry : clientMap.entrySet()) {
+        for (final Map.Entry<Pattern, S2RobotClient> entry : clientMap
+            .entrySet()) {
             final Matcher matcher = entry.getKey().matcher(url);
             if (matcher.matches()) {
                 return entry.getValue();
@@ -74,7 +75,7 @@ public class S2RobotClientFactory {
 
     public void setInitParameterMap(final Map<String, Object> params) {
         if (params != null) {
-            for (S2RobotClient client : clientMap.values()) {
+            for (final S2RobotClient client : clientMap.values()) {
                 client.setInitParameterMap(params);
             }
         }

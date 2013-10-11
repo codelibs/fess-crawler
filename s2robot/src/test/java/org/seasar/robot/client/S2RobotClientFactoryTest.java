@@ -60,20 +60,20 @@ public class S2RobotClientFactoryTest extends S2TestCase {
     }
 
     public void test_setInitParameterMap() {
-        Map<String, Object> paramMap = new HashMap<String, Object>();
+        final Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("hoge", "test");
 
         final StringBuilder buf = new StringBuilder();
         clientFactory.addClient("test:.*", new S2RobotClient() {
-            public ResponseData doGet(String url) {
+            public ResponseData doGet(final String url) {
                 return null;
             }
 
-            public void setInitParameterMap(Map<String, Object> params) {
+            public void setInitParameterMap(final Map<String, Object> params) {
                 buf.append("value=").append(params.get("hoge"));
             }
 
-            public ResponseData doHead(String url) {
+            public ResponseData doHead(final String url) {
                 return null;
             }
         });

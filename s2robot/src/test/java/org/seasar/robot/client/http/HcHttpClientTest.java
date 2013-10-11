@@ -39,12 +39,12 @@ public class HcHttpClientTest extends S2TestCase {
     }
 
     public void test_doGet() {
-        S2RobotWebServer server = new S2RobotWebServer(7070);
+        final S2RobotWebServer server = new S2RobotWebServer(7070);
         server.start();
 
-        String url = "http://localhost:7070/";
+        final String url = "http://localhost:7070/";
         try {
-            ResponseData responseData = httpClient.doGet(url);
+            final ResponseData responseData = httpClient.doGet(url);
             assertEquals(200, responseData.getHttpStatusCode());
         } finally {
             server.stop();
@@ -52,19 +52,19 @@ public class HcHttpClientTest extends S2TestCase {
     }
 
     public void test_parseLastModified() {
-        String value = "Mon, 01 Jun 2009 21:02:45 GMT";
-        Date date = httpClient.parseLastModified(value);
+        final String value = "Mon, 01 Jun 2009 21:02:45 GMT";
+        final Date date = httpClient.parseLastModified(value);
         assertNotNull(date);
     }
 
     public void test_processRobotsTxt() {
-        S2RobotWebServer server = new S2RobotWebServer(7070);
+        final S2RobotWebServer server = new S2RobotWebServer(7070);
         server.start();
 
-        String url = "http://localhost:7070/hoge.html";
+        final String url = "http://localhost:7070/hoge.html";
         try {
-            S2RobotContext robotContext = new S2RobotContext();
-            String sessionId = "id1";
+            final S2RobotContext robotContext = new S2RobotContext();
+            final String sessionId = "id1";
             urlFilter.init(sessionId);
             robotContext.setUrlFilter(urlFilter);
             CrawlingParameterUtil.setRobotContext(robotContext);
@@ -95,12 +95,12 @@ public class HcHttpClientTest extends S2TestCase {
     }
 
     public void test_doHead() throws Exception {
-        S2RobotWebServer server = new S2RobotWebServer(7070);
+        final S2RobotWebServer server = new S2RobotWebServer(7070);
         server.start();
 
-        String url = "http://localhost:7070/";
+        final String url = "http://localhost:7070/";
         try {
-            ResponseData responseData = httpClient.doHead(url);
+            final ResponseData responseData = httpClient.doHead(url);
             Thread.sleep(100);
             assertNotNull(responseData.getLastModified());
             assertTrue(responseData.getLastModified().getTime() < new Date()

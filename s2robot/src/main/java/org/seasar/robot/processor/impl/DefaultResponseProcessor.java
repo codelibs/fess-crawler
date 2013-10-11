@@ -52,6 +52,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
      * org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.
      * robot.entity.ResponseData)
      */
+    @Override
     public void process(final ResponseData responseData) {
         if (responseData.getStatus() == Constants.NOT_MODIFIED_STATUS) {
             final UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
@@ -139,7 +140,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
             final Set<String> childUrlList, final String url, final int depth) {
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
-        for (String childUrl : childUrlList) {
+        for (final String childUrl : childUrlList) {
             if (robotContext.getUrlFilter().match(childUrl)) {
                 final UrlQueue uq =
                     SingletonS2Container.getComponent(UrlQueue.class);

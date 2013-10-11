@@ -40,9 +40,9 @@ public class MsPowerPointExtractorTest extends S2TestCase {
     }
 
     public void test_getText() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/msoffice/test.ppt");
-        String content = msPowerPointExtractor.getText(in, null).getContent();
+        final String content = msPowerPointExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -52,7 +52,7 @@ public class MsPowerPointExtractorTest extends S2TestCase {
         try {
             msPowerPointExtractor.getText(null, null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }

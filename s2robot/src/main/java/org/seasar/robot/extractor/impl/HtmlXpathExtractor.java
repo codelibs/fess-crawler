@@ -51,7 +51,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
 
     protected String targetNodePath = "//HTML/BODY | //@alt | //@title";
 
-    private ThreadLocal<CachedXPathAPI> xpathAPI =
+    private final ThreadLocal<CachedXPathAPI> xpathAPI =
         new ThreadLocal<CachedXPathAPI>();
 
     /*
@@ -60,6 +60,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -86,7 +87,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
                 .toString()
                 .replaceAll("\\s+", " ")
                 .trim());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ExtractException(e);
         }
     }
@@ -104,17 +105,17 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         final DOMParser parser = new DOMParser();
         try {
             // feature
-            for (Map.Entry<String, String> entry : featureMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
                 parser.setFeature(
                     entry.getKey(),
                     "true".equalsIgnoreCase(entry.getValue()) ? true : false);
             }
 
             // property
-            for (Map.Entry<String, String> entry : propertyMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : propertyMap.entrySet()) {
                 parser.setProperty(entry.getKey(), entry.getValue());
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException("Invalid parser configuration.", e);
         }
 

@@ -40,13 +40,14 @@ public class SitemapsResponseProcessor implements ResponseProcessor {
      * org.seasar.robot.processor.impl.ResponseProcessor#process(org.seasar.
      * robot.entity.ResponseData)
      */
+    @Override
     public void process(final ResponseData responseData) {
         final SitemapsHelper sitemapsHelper =
             SingletonS2Container.getComponent(SitemapsHelper.class);
         final InputStream responseBody = responseData.getResponseBody();
         final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
         final Set<String> urlSet = new LinkedHashSet<String>();
-        for (Sitemap sitemap : sitemapSet.getSitemaps()) {
+        for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
             urlSet.add(sitemap.getLoc());
         }
         throw new ChildUrlsException(urlSet);

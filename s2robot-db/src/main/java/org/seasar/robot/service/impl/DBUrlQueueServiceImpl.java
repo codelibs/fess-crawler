@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,18 +42,20 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- *
+ * 
  */
 public class DBUrlQueueServiceImpl implements UrlQueueService {
 
     private static final String EMPTY_STRING = "";
 
     private static final Logger logger = LoggerFactory
-            .getLogger(DBUrlQueueServiceImpl.class);
+        .getLogger(DBUrlQueueServiceImpl.class);
 
-    protected static volatile Map<String, LinkedList<UrlQueue>> URL_QUEUE_MAP = new HashMap<String, LinkedList<UrlQueue>>();
+    protected static volatile Map<String, LinkedList<UrlQueue>> URL_QUEUE_MAP =
+        new HashMap<String, LinkedList<UrlQueue>>();
 
-    private static ConcurrentHashMap<String, LruHashMap<String, String>> VISITED_URL_CACHE_MAP = new ConcurrentHashMap<String, LruHashMap<String, String>>();
+    private static ConcurrentHashMap<String, LruHashMap<String, String>> VISITED_URL_CACHE_MAP =
+        new ConcurrentHashMap<String, LruHashMap<String, String>>();
 
     public int cacheSize = 1000;
 
@@ -81,10 +83,16 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         return urlQueueList;
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#updateSessionId(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.UrlQueueService#updateSessionId(java.lang.String
+     * , java.lang.String)
      */
-    public void updateSessionId(final String oldSessionId, final String newSessionId) {
+    @Override
+    public void updateSessionId(final String oldSessionId,
+            final String newSessionId) {
         // not MT-safe
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(oldSessionId);
         // overwrite
@@ -92,13 +100,18 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         URL_QUEUE_MAP.remove(oldSessionId);
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#add(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.UrlQueueService#add(java.lang.String,
+     * java.lang.String)
      */
+    @Override
     public void add(final String sessionId, final String url) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
+            final UrlQueue urlQueue =
+                new org.seasar.robot.db.exentity.UrlQueue();
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
             urlQueue.setUrl(url);
@@ -108,16 +121,24 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#insert(org.seasar.robot.entity.UrlQueue)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.UrlQueueService#insert(org.seasar.robot.entity
+     * .UrlQueue)
      */
+    @Override
     public void insert(final UrlQueue urlQueue) {
         urlQueueBhv.insert((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#delete(java.lang.String)
      */
+    @Override
     public void delete(final String sessionId) {
         final int count = urlQueueBhv.deleteBySessionId(sessionId);
 
@@ -131,9 +152,12 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#deleteAll()
      */
+    @Override
     public void deleteAll() {
         final int count = urlQueueBhv.deleteAll();
 
@@ -147,17 +171,23 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#offerAll(java.lang.String, java.util.List)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.seasar.robot.service.UrlQueueService#offerAll(java.lang.String,
+     * java.util.List)
      */
-    public void offerAll(final String sessionId, final List<UrlQueue> newUrlQueueList) {
+    @Override
+    public void offerAll(final String sessionId,
+            final List<UrlQueue> newUrlQueueList) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final List<org.seasar.robot.db.exentity.UrlQueue> targetList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
+            final List<org.seasar.robot.db.exentity.UrlQueue> targetList =
+                new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
             for (final UrlQueue urlQueue : newUrlQueueList) {
                 if (isNewUrl(urlQueue, urlQueueList, true)) {
                     targetList
-                            .add((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
+                        .add((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
                 }
             }
             urlQueueBhv.batchInsert(targetList);
@@ -165,12 +195,12 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     }
 
     private LruHashMap<String, String> getVisitedUrlCache(final String sessionId) {
-        LruHashMap<String, String> visitedUrlMap = VISITED_URL_CACHE_MAP
-                .get(sessionId);
+        LruHashMap<String, String> visitedUrlMap =
+            VISITED_URL_CACHE_MAP.get(sessionId);
         if (visitedUrlMap == null) {
             visitedUrlMap = new LruHashMap<String, String>(visitedUrlCacheSize);
-            final LruHashMap<String, String> urlMap = VISITED_URL_CACHE_MAP
-                    .putIfAbsent(sessionId, visitedUrlMap);
+            final LruHashMap<String, String> urlMap =
+                VISITED_URL_CACHE_MAP.putIfAbsent(sessionId, visitedUrlMap);
             if (urlMap != null) {
                 visitedUrlMap = urlMap;
             }
@@ -178,8 +208,8 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         return visitedUrlMap;
     }
 
-    protected boolean isNewUrl(final UrlQueue urlQueue, final List<UrlQueue> urlQueueList,
-            final boolean cache) {
+    protected boolean isNewUrl(final UrlQueue urlQueue,
+            final List<UrlQueue> urlQueueList, final boolean cache) {
 
         final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
@@ -239,9 +269,12 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#poll(java.lang.String)
      */
+    @Override
     public UrlQueue poll(final String sessionId) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
@@ -249,8 +282,8 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
                 UrlQueueCB cb = new UrlQueueCB();
                 cb.paging(cacheSize, 1);
                 cb.query().setSessionId_Equal(sessionId);
-                final List<org.seasar.robot.db.exentity.UrlQueue> uqList = urlQueueBhv
-                        .selectPage(cb);
+                final List<org.seasar.robot.db.exentity.UrlQueue> uqList =
+                    urlQueueBhv.selectPage(cb);
                 if (!uqList.isEmpty()) {
                     urlQueueList.addAll(uqList);
 
@@ -268,52 +301,67 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#saveSession(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.UrlQueueService#saveSession(java.lang.String)
      */
+    @Override
     public void saveSession(final String sessionId) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final List<org.seasar.robot.db.exentity.UrlQueue> targetUrlQueueList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
+            final List<org.seasar.robot.db.exentity.UrlQueue> targetUrlQueueList =
+                new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
             for (final UrlQueue urlQueue : urlQueueList) {
                 // clear id
                 urlQueue.setId(null);
                 targetUrlQueueList
-                        .add((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
+                    .add((org.seasar.robot.db.exentity.UrlQueue) urlQueue);
             }
             urlQueueBhv.batchInsert(targetUrlQueueList);
             urlQueueList.clear();
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.seasar.robot.service.UrlQueueService#visited(UrlQueue)
      */
+    @Override
     public boolean visited(final UrlQueue urlQueue) {
-        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(urlQueue
-                .getSessionId());
+        final LinkedList<UrlQueue> urlQueueList =
+            getUrlQueueList(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             return !isNewUrl(urlQueue, urlQueueList, false);
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.seasar.robot.service.UrlQueueService#generateUrlQueues(java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.seasar.robot.service.UrlQueueService#generateUrlQueues(java.lang.
+     * String, java.lang.String)
      */
+    @Override
     public void generateUrlQueues(final String previousSessionId,
             final String sessionId) {
         final AccessResultCB cb = new AccessResultCB();
         cb.query().setSessionId_Equal(previousSessionId);
         cb.query().addOrderBy_CreateTime_Asc();
         final int count = accessResultBhv.selectCount(cb);
-        final List<org.seasar.robot.db.exentity.UrlQueue> urlQueueList = new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
+        final List<org.seasar.robot.db.exentity.UrlQueue> urlQueueList =
+            new ArrayList<org.seasar.robot.db.exentity.UrlQueue>();
         for (int i = 0; i * generatedUrlQueueSize < count; i++) {
             urlQueueList.clear();
             cb.paging(generatedUrlQueueSize, i + 1);
-            final PagingResultBean<AccessResult> selectPage = accessResultBhv
-                    .selectPage(cb);
+            final PagingResultBean<AccessResult> selectPage =
+                accessResultBhv.selectPage(cb);
             for (final AccessResult entity : selectPage) {
-                final org.seasar.robot.db.exentity.UrlQueue urlQueue = new org.seasar.robot.db.exentity.UrlQueue();
+                final org.seasar.robot.db.exentity.UrlQueue urlQueue =
+                    new org.seasar.robot.db.exentity.UrlQueue();
                 urlQueue.setSessionId(sessionId);
                 urlQueue.setMethod(entity.getMethod());
                 urlQueue.setUrl(entity.getUrl());

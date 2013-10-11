@@ -1,43 +1,62 @@
 # /---------------------------------------------------------------------------
-# replaceSchemaDefinitionMap: (Default map:{})
+# replaceSchemaDefinitionMap: (NotRequired - Default map:{})
 #
 # The various settings about replace-schema.
-# 
-# o dataLoadingType: (NotRequired - Default 'ut')
+#
+# o repsEnvType: (NotRequired - Default inherits or 'ut')
 # o isLoggingInsertSql: (NotRequired - Default true)
+# o isLoggingReplaceSql: (NotRequired - Default true)
+# o isErrorSqlContinue: (NotRequired - Default false)
 # o sqlFileEncoding: (NotRequired - Default 'UTF-8')
 # o skipSheet: (NotRequired - Default '')
 # o isIncrementSequenceToDataMax: (NotRequired - Default false)
 # o isSuppressBatchUpdate: (NotRequired - Default false)
-# o isDropGenerateTableOnly: (NotRequired - Default false)
-# o isDropGenerateProcedureOnly: (NotRequired - Default false)
+# o objectTypeTargetList: (NotRequired - Default databaseInfoMap's)
 # o filterVariablesMap: (NotRequired - Default map:{})
 # o additionalUserMap: (NotRequired - Default map:{})
 # o additionalDropMapList: (NotRequired - Default list:{})
+# o playSqlDirectory: (NotRequired - Default 'playsql')
 # o applicationPlaySqlDirectory: (NotRequired - Default '')
+# o arrangeBeforeRepsMap: (NotRequired - Default map:{})
 # o isSuppressTruncateTable: (NotRequired - Default false)
 # o isSuppressDropForeignKey: (NotRequired - Default false)
 # o isSuppressDropTable: (NotRequired - Default false)
 # o isSuppressDropSequence: (NotRequired - Default false)
 # o isSuppressDropProcedure: (NotRequired - Default false)
 # o isSuppressDropDBLink: (NotRequired - Default false)
-# 
+# o initializeFirstSqlList: (NotRequired - Default list:{})
+#
 # *The line that starts with '#' means comment-out.
 #
 map:{
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o dataLoadingType: (NotRequired - Default 'ut')
-    #  The type of data loading.
-    #  If the value is 'ut', the target is './playsql/data/ut/...'.
+    # o repsEnvType: (NotRequired - Default inherits or 'ut')
+    #  The environment type of ReplaceSchema.
+    #   e.g. if ut, data files in './playsql/data/ut/...' are loaded
+    #  If DBFlute environment type is specified, inherits it as default.
     #
-    ; dataLoadingType = ut
+    #; repsEnvType = ut
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isLoggingInsertSql: (NotRequired - Default true)
     #  Does it show insert values on log?
     #
-    ; isLoggingInsertSql = true
+    #; isLoggingInsertSql = true
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isLoggingReplaceSql: (NotRequired - Default true)
+    #  Does it show replace-SQL on log?
+    #
+    #; isLoggingReplaceSql = true
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isErrorSqlContinue: (NotRequired - Default false)
+    #  Does it continue the task when error SQL exists?
+    #
+    #; isErrorSqlContinue = false
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,25 +93,17 @@ map:{
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isDropGenerateTableOnly: (NotRequired - Default false)
-    #  Does it drop only generating target tables that are specified
-    #  in table-target or table-except setting?
+    # o objectTypeTargetList: (NotRequired - Default databaseInfoMap's)
+    #  This property overrides databaseInfoMap's one for ReplaceSchema.
+    #    e.g. Synonym of Oracle --> list:{TABLE ; VIEW ; SYNONYM}
     #
-    #; isDropGenerateTableOnly = false
-    # - - - - - - - - - -/
-
-    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isDropGenerateProcedureOnly: (NotRequired - Default false)
-    #  Does it drop only generating target procedures that are specified
-    #  in table-target or table-except setting?
-    #
-    #; isDropGenerateProcedureOnly = false
+    #; objectTypeTargetList = list:{TABLE ; VIEW}
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o filterVariablesMap: (NotRequired - Default map:{})
     #  You can specify the filter variables for DDL.
-    # 
+    #
     #; filterVariablesMap = map:{abc=AAA}
     # - - - - - - - - - -/
 
@@ -104,14 +115,19 @@ map:{
     #   o url: (NotRequired - Default same as one of main schema)
     #   o schema: (NotRequired - Default treated as no schema setting)
     #   o user: (Required)
-    #   o password: (NotRequired - Default '')
+    #   o password: password plainly or path to password file (with default password)
+    #       e.g. foo or df:dfprop/system-password.txt|foo
+    #       (NotRequired - Default '')
+    #   o isSkipIfNotFoundPasswordFileAndDefault: Does it skip the user SQL statement
+    #       when using password file but not found it and also default password?
+    #       (NotRequired - Default false)
     #
     #; additionalUserMap = map:{
     #    ; system = map:{
     #        #; url = ...
     #        #; schema = ...
     #        ; user = system
-    #        ; password = system
+    #        ; password = df:dfprop/system-password.txt
     #    }
     #}
     # - - - - - - - - - -/
@@ -126,9 +142,6 @@ map:{
     #   o password: (NotRequired - Default same as main schema)
     #   o propertiesMap: (NotRequired - Default map:{})
     #   o objectTypeTargetList: (NotRequired - Default list{TABLE;VIEW})
-    #   o tableExceptList: (NotRequired - Default list{})
-    #   o tableTargetList: (NotRequired - Default list{})
-    #   o isDropAllTable: (NotRequired - Default false)
     #
     #; additionalDropMapList = list:{
     #    ; map:{
@@ -138,60 +151,84 @@ map:{
     #        ; password = NEXTEXAMPLEDB
     #        ; propertiesMap = map:{}
     #        ; objectTypeTargetList = list:{TABLE;VIEW}
-    #        ; tableExceptList = list:{FULL_NAME ; prefix:PREFIX_ ; ...}
-    #        ; tableTargetList = list:{FULL_NAME ; prefix:PREFIX_ ; ...}
-    #        ; isDropAllTable = false
     #    }
     #}
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o playSqlDirectory: (NotRequired - Default 'playsql' relative to DBFlute client)
+    #  This property is relative path to (main) PlaySql directory,
+    #  You should not use this property easily.
+    #
+    #; playSqlDirectory = ../../foo-project/playsql
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o applicationPlaySqlDirectory: (NotRequired - Default '')
-    #  This property is relative path to Application PlaySql directory.
+    #  This property is relative path to Application PlaySql directory,
+    #  which is basically used with ApplicationBehavior.
     #
     #; applicationPlaySqlDirectory = ../../foo-project/dbflute_apbranch/playsql
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o arrangeBeforeRepsMap: (NotRequired - Default map:{})
+    #  You can arrange resource files before ReplaceSchema.
+    #
+    #; arrangeBeforeRepsMap = map:{
+    #    ; copy = map:{
+    #        ; ../erd/*.ddl = ./playsql/replace-schema-10-basic.sql
+    #    }
+    #}
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isSuppressTruncateTable: (NotRequired - Default false)
     #  You can suppress truncating tables at initializing schema.
-    # 
+    #
     #; isSuppressTruncateTable = false
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isSuppressDropForeignKey: (NotRequired - Default false)
     #  You can suppress dropping foreign keys at initializing schema.
-    # 
+    #
     #; isSuppressDropForeignKey = false
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isSuppressDropTable: (NotRequired - Default false)
     #  You can suppress dropping tables at initializing schema.
-    # 
+    #
     #; isSuppressDropTable = false
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isSuppressDropSequence: (NotRequired - Default false)
     #  You can suppress dropping sequences at initializing schema.
-    # 
+    #
     #; isSuppressDropSequence = false
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isSuppressDropProcedure: (NotRequired - Default false)
     #  You can suppress dropping procedures at initializing schema.
-    # 
+    #
     #; isSuppressDropProcedure = false
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o isSuppressDropDBLink: (NotRequired - Default false)
     #  You can suppress dropping DB links at initializing schema.
-    # 
+    #
     #; isSuppressDropDBLink = false
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o initializeFirstSqlList: (NotRequired - Default list:{})
+    #  You can execute the SQL statements before initializing schema.
+    #
+    #; initializeFirstSqlList = list:{}
     # - - - - - - - - - -/
 }
 # ----------------/

@@ -1,5 +1,5 @@
 # /---------------------------------------------------------------------------
-# additionalForeignKeyMap: (NotRequired - Default 'map:{}')
+# additionalForeignKeyMap: (NotRequired - Default map:{})
 #
 # If foreign key does not exist in your database,
 # you can set up here as virtual foreign key for DBFlute.
@@ -25,12 +25,12 @@
 #         ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
 #         ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
 #         ; fixedCondition = 
-#      $$foreignAlias$$.VALID_BEGIN_DATE <= /*targetDate(Date)*/null
-#  and $$foreignAlias$$.VALID_END_DATE >= /*targetDate(Date)*/null 
+#          $$foreignAlias$$.VALID_BEGIN_DATE <= /*targetDate(Date)*/null
+#      and $$foreignAlias$$.VALID_END_DATE >= /*targetDate(Date)*/null 
 #         ; fixedSuffix = AsValid
 #     }
 # }
-# 
+#
 # *The line that starts with '#' means comment-out.
 #
 map:{

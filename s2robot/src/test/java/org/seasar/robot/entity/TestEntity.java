@@ -32,7 +32,7 @@ public class TestEntity {
         return list;
     }
 
-    public void setList(List<String> list) {
+    public void setList(final List<String> list) {
         this.list = list;
     }
 
@@ -40,7 +40,7 @@ public class TestEntity {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(final String title) {
         this.title = title;
     }
 
@@ -48,7 +48,7 @@ public class TestEntity {
         return body;
     }
 
-    public void setBody(String body) {
+    public void setBody(final String body) {
         this.body = body;
     }
 }

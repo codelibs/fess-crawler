@@ -31,6 +31,7 @@ public class NullResponseProcessor implements ResponseProcessor {
      * org.seasar.robot.processor.ResponseProcessor#process(org.seasar.robot
      * .entity.ResponseData)
      */
+    @Override
     public void process(final ResponseData responseData) {
         // do nothing
     }

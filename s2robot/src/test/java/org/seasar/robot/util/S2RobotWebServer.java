@@ -39,22 +39,22 @@ public class S2RobotWebServer {
 
     private boolean tempDocRoot = false;
 
-    public S2RobotWebServer(int port) {
+    public S2RobotWebServer(final int port) {
         this(port, createDocRoot(3));
         tempDocRoot = true;
     }
 
-    public S2RobotWebServer(int port, File docRoot) {
+    public S2RobotWebServer(final int port, final File docRoot) {
         this.port = port;
         this.docRoot = docRoot;
 
         server = new Server(port);
 
-        ResourceHandler resource_handler = new ResourceHandler();
+        final ResourceHandler resource_handler = new ResourceHandler();
         resource_handler.setWelcomeFiles(new String[] { "index.html" });
         resource_handler.setResourceBase(docRoot.getAbsolutePath());
         Log.info("serving " + resource_handler.getBaseResource());
-        HandlerList handlers = new HandlerList();
+        final HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] { resource_handler,
                 new DefaultHandler() });
         server.setHandler(handlers);
@@ -63,7 +63,7 @@ public class S2RobotWebServer {
     public void start() {
         try {
             server.start();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(e);
         }
     }
@@ -72,7 +72,7 @@ public class S2RobotWebServer {
         try {
             server.stop();
             server.join();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(e);
         } finally {
             if (tempDocRoot) {
@@ -81,9 +81,9 @@ public class S2RobotWebServer {
         }
     }
 
-    protected static File createDocRoot(int count) {
+    protected static File createDocRoot(final int count) {
         try {
-            File tempDir = File.createTempFile("robotDocRoot", "");
+            final File tempDir = File.createTempFile("robotDocRoot", "");
             tempDir.delete();
             tempDir.mkdirs();
 
@@ -92,7 +92,7 @@ public class S2RobotWebServer {
             buf.append("User-agent: *").append('\n');
             buf.append("Disallow: /admin/").append('\n');
             buf.append("Disallow: /websvn/").append('\n');
-            File robotTxtFile = new File(tempDir, "robots.txt");
+            final File robotTxtFile = new File(tempDir, "robots.txt");
             FileUtil.write(robotTxtFile.getAbsolutePath(), buf.toString()
                     .getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
@@ -129,34 +129,34 @@ public class S2RobotWebServer {
             generateContents(tempDir, count);
 
             return tempDir;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(e);
         }
     }
 
-    private static void generateContents(File dir, int count) throws Exception {
+    private static void generateContents(final File dir, final int count) throws Exception {
         if (count <= 0) {
             return;
         }
 
-        String content = getHtmlContent(count);
+        final String content = getHtmlContent(count);
 
-        File indexFile = new File(dir, "index.html");
+        final File indexFile = new File(dir, "index.html");
         indexFile.deleteOnExit();
         FileUtil.write(indexFile.getAbsolutePath(), content.getBytes("UTF-8"));
 
         for (int i = 1; i <= 10; i++) {
-            File file = new File(dir, "file" + count + "-" + i + ".html");
+            final File file = new File(dir, "file" + count + "-" + i + ".html");
             file.deleteOnExit();
             FileUtil.write(file.getAbsolutePath(), content.getBytes("UTF-8"));
-            File childDir = new File(dir, "dir" + count + "-" + i);
+            final File childDir = new File(dir, "dir" + count + "-" + i);
             childDir.mkdirs();
             generateContents(childDir, count - 1);
         }
     }
 
-    private static String getHtmlContent(int count) {
-        StringBuilder buf = new StringBuilder();
+    private static String getHtmlContent(final int count) {
+        final StringBuilder buf = new StringBuilder();
         buf.append("<html><head><title>Title ");
         buf.append(count);
         buf.append("</title></head><body><h1>Content ");

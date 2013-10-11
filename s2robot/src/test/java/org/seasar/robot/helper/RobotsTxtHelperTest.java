@@ -32,7 +32,7 @@ public class RobotsTxtHelperTest extends S2TestCase {
 
     public void testParse() {
         RobotsTxt robotsTxt;
-        InputStream in = RobotsTxtHelperTest.class
+        final InputStream in = RobotsTxtHelperTest.class
                 .getResourceAsStream("robots.txt");
         try {
             robotsTxt = robotsTxtHelper.parse(new InputStreamReader(in));

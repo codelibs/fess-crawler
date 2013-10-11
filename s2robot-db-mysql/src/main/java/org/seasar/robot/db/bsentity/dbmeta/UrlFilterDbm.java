@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package org.seasar.robot.db.bsentity.dbmeta;
 import java.util.List;
 import java.util.Map;
 
+import org.seasar.dbflute.DBDef;
+import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.dbmeta.AbstractDBMeta;
+import org.seasar.dbflute.dbmeta.PropertyGateway;
+import org.seasar.dbflute.dbmeta.info.ColumnInfo;
+import org.seasar.dbflute.dbmeta.info.UniqueInfo;
+import org.seasar.dbflute.dbmeta.name.TableSqlName;
 import org.seasar.robot.db.allcommon.DBCurrent;
 import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.exentity.UrlFilter;
-import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta;
-import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.robot.dbflute.dbmeta.name.TableSqlName;
-import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
  * The DB meta of URL_FILTER. (Singleton)
@@ -51,8 +51,86 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // ===================================================================================
     // Current DBDef
     // =============
+    @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
+    }
+
+    // ===================================================================================
+    // Property Gateway
+    // ================
+    protected final Map<String, PropertyGateway> _epgMap = newHashMap();
+    {
+        setupEpg(_epgMap, new EpgId(), "id");
+        setupEpg(_epgMap, new EpgSessionId(), "sessionId");
+        setupEpg(_epgMap, new EpgUrl(), "url");
+        setupEpg(_epgMap, new EpgFilterType(), "filterType");
+        setupEpg(_epgMap, new EpgCreateTime(), "createTime");
+    }
+
+    @Override
+    public PropertyGateway findPropertyGateway(final String propertyName) {
+        return doFindEpg(_epgMap, propertyName);
+    }
+
+    public static class EpgId implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlFilter) e).getId();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlFilter) e).setId(ctl(v));
+        }
+    }
+
+    public static class EpgSessionId implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlFilter) e).getSessionId();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlFilter) e).setSessionId((String) v);
+        }
+    }
+
+    public static class EpgUrl implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlFilter) e).getUrl();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlFilter) e).setUrl((String) v);
+        }
+    }
+
+    public static class EpgFilterType implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlFilter) e).getFilterType();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlFilter) e).setFilterType((String) v);
+        }
+    }
+
+    public static class EpgCreateTime implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlFilter) e).getCreateTime();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlFilter) e).setCreateTime((java.sql.Timestamp) v);
+        }
     }
 
     // ===================================================================================
@@ -71,14 +149,17 @@ public class UrlFilterDbm extends AbstractDBMeta {
             .getTableSqlNameFilter());
     }
 
+    @Override
     public String getTableDbName() {
         return _tableDbName;
     }
 
+    @Override
     public String getTablePropertyName() {
         return _tablePropertyName;
     }
 
+    @Override
     public TableSqlName getTableSqlName() {
         return _tableSqlName;
     }
@@ -99,6 +180,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
         "BIGINT",
         19,
         0,
+        null,
         false,
         null,
         null,
@@ -119,6 +201,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
         "VARCHAR",
         20,
         0,
+        null,
         false,
         null,
         null,
@@ -139,6 +222,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
         "TEXT",
         65535,
         0,
+        null,
         false,
         null,
         null,
@@ -159,6 +243,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
         "VARCHAR",
         1,
         0,
+        null,
         false,
         null,
         null,
@@ -179,6 +264,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
         "DATETIME",
         19,
         0,
+        null,
         false,
         null,
         null,
@@ -227,14 +313,17 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // -----------------------------------------------------
     // Primary Element
     // ---------------
-    public UniqueInfo getPrimaryUniqueInfo() {
-        return cpui(columnId());
+    @Override
+    protected UniqueInfo cpui() {
+        return hpcpui(columnId());
     }
 
+    @Override
     public boolean hasPrimaryKey() {
         return true;
     }
 
+    @Override
     public boolean hasCompoundPrimaryKey() {
         return false;
     }
@@ -261,18 +350,17 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // ===================================================================================
     // Type Name
     // =========
+    @Override
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.UrlFilter";
     }
 
+    @Override
     public String getConditionBeanTypeName() {
-        return "org.seasar.robot.db.cbean.bs.UrlFilterCB";
+        return "org.seasar.robot.db.cbean.UrlFilterCB";
     }
 
-    public String getDaoTypeName() {
-        return "org.seasar.robot.db.exdao.UrlFilterDao";
-    }
-
+    @Override
     public String getBehaviorTypeName() {
         return "org.seasar.robot.db.exbhv.UrlFilterBhv";
     }
@@ -280,6 +368,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // ===================================================================================
     // Object Type
     // ===========
+    @Override
     public Class<UrlFilter> getEntityType() {
         return UrlFilter.class;
     }
@@ -287,6 +376,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // ===================================================================================
     // Object Instance
     // ===============
+    @Override
     public Entity newEntity() {
         return newMyEntity();
     }
@@ -296,71 +386,27 @@ public class UrlFilterDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Entity Handling
-    // ===============
+    // Map Communication
+    // =================
+    @Override
     public void acceptPrimaryKeyMap(final Entity e,
             final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((UrlFilter) e, m, _epsMap);
+        doAcceptPrimaryKeyMap((UrlFilter) e, m);
     }
 
+    @Override
+    public void acceptAllColumnMap(final Entity e,
+            final Map<String, ? extends Object> m) {
+        doAcceptAllColumnMap((UrlFilter) e, m);
+    }
+
+    @Override
     public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
         return doExtractPrimaryKeyMap(e);
     }
 
+    @Override
     public Map<String, Object> extractAllColumnMap(final Entity e) {
         return doExtractAllColumnMap(e);
-    }
-
-    // ===================================================================================
-    // Entity Property Setup
-    // =====================
-    // It's very INTERNAL!
-    protected final Map<String, Eps<UrlFilter>> _epsMap = StringKeyMap
-        .createAsFlexibleConcurrent();
-    {
-        setupEps(_epsMap, new EpsId(), columnId());
-        setupEps(_epsMap, new EpsSessionId(), columnSessionId());
-        setupEps(_epsMap, new EpsUrl(), columnUrl());
-        setupEps(_epsMap, new EpsFilterType(), columnFilterType());
-        setupEps(_epsMap, new EpsCreateTime(), columnCreateTime());
-    }
-
-    public boolean hasEntityPropertySetupper(final String propertyName) {
-        return _epsMap.containsKey(propertyName);
-    }
-
-    public void setupEntityProperty(final String propertyName,
-            final Object entity, final Object value) {
-        findEps(_epsMap, propertyName).setup((UrlFilter) entity, value);
-    }
-
-    public class EpsId implements Eps<UrlFilter> {
-        public void setup(final UrlFilter e, final Object v) {
-            e.setId(ctl(v));
-        }
-    }
-
-    public static class EpsSessionId implements Eps<UrlFilter> {
-        public void setup(final UrlFilter e, final Object v) {
-            e.setSessionId((String) v);
-        }
-    }
-
-    public static class EpsUrl implements Eps<UrlFilter> {
-        public void setup(final UrlFilter e, final Object v) {
-            e.setUrl((String) v);
-        }
-    }
-
-    public static class EpsFilterType implements Eps<UrlFilter> {
-        public void setup(final UrlFilter e, final Object v) {
-            e.setFilterType((String) v);
-        }
-    }
-
-    public static class EpsCreateTime implements Eps<UrlFilter> {
-        public void setup(final UrlFilter e, final Object v) {
-            e.setCreateTime((java.sql.Timestamp) v);
-        }
     }
 }

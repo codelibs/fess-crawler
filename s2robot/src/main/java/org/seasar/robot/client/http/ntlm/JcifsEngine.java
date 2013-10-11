@@ -39,6 +39,7 @@ public class JcifsEngine implements NTLMEngine {
         | NtlmFlags.NTLMSSP_NEGOTIATE_ALWAYS_SIGN
         | NtlmFlags.NTLMSSP_REQUEST_TARGET;
 
+    @Override
     public String generateType1Msg(final String domain, final String workstation)
             throws NTLMEngineException {
         final Type1Message type1Message =
@@ -46,6 +47,7 @@ public class JcifsEngine implements NTLMEngine {
         return Base64.encode(type1Message.toByteArray());
     }
 
+    @Override
     public String generateType3Msg(final String username,
             final String password, final String domain,
             final String workstation, final String challenge)

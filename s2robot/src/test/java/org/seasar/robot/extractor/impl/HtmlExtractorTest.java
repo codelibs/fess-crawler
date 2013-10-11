@@ -42,27 +42,27 @@ public class HtmlExtractorTest extends S2TestCase {
     }
 
     public void test_getHtml_utf8() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.html");
-        String content = htmlExtractor.getText(in, null).getContent();
+        final String content = htmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
 
     public void test_getHtml_sjis() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.html");
-        String content = htmlExtractor.getText(in, null).getContent();
+        final String content = htmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
 
     public void test_getHtml_attr() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_attr.html");
-        String content = htmlExtractor.getText(in, null).getContent();
+        final String content = htmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("本文1"));
@@ -75,27 +75,27 @@ public class HtmlExtractorTest extends S2TestCase {
     }
 
     public void test_getHtml_empty() {
-        InputStream in = new ByteArrayInputStream("".getBytes());
-        String content = htmlExtractor.getText(in, null).getContent();
+        final InputStream in = new ByteArrayInputStream("".getBytes());
+        final String content = htmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);
     }
 
     public void test_getEncoding_utf8() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.html");
-        BufferedInputStream bis = new BufferedInputStream(in);
-        String encoding = htmlExtractor.getEncoding(bis);
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = htmlExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
 
     public void test_getEncoding_sjis() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.html");
-        BufferedInputStream bis = new BufferedInputStream(in);
-        String encoding = htmlExtractor.getEncoding(bis);
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = htmlExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
     }
@@ -104,7 +104,7 @@ public class HtmlExtractorTest extends S2TestCase {
         try {
             htmlExtractor.getText(null, null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }

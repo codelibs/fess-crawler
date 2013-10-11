@@ -42,9 +42,9 @@ public class XmlExtractorTest extends S2TestCase {
     }
 
     public void test_getXml_utf8() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.xml");
-        String content = xmlExtractor.getText(in, null).getContent();
+        final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -52,10 +52,10 @@ public class XmlExtractorTest extends S2TestCase {
     }
 
     public void test_getXml_utf8_ignoreCommentTag() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.xml");
         xmlExtractor.setIgnoreCommentTag(true);
-        String content = xmlExtractor.getText(in, null).getContent();
+        final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -64,69 +64,69 @@ public class XmlExtractorTest extends S2TestCase {
     }
 
     public void test_getXml_sjis() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.xml");
-        String content = xmlExtractor.getText(in, null).getContent();
+        final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
 
     public void test_getXml_entity() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_entity.xml");
-        String content = xmlExtractor.getText(in, null).getContent();
+        final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
 
     public void test_getXml_mm() {
-        InputStream in = ResourceUtil.getResourceAsStream("extractor/test.mm");
-        String content = xmlExtractor.getText(in, null).getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.mm");
+        final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
 
     public void test_getXml_empty() {
-        InputStream in = new ByteArrayInputStream("".getBytes());
-        String content = xmlExtractor.getText(in, null).getContent();
+        final InputStream in = new ByteArrayInputStream("".getBytes());
+        final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);
     }
 
     public void test_getEncoding_utf8() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.xml");
-        BufferedInputStream bis = new BufferedInputStream(in);
-        String encoding = xmlExtractor.getEncoding(bis);
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = xmlExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
 
     public void test_getEncoding_sjis() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.xml");
-        BufferedInputStream bis = new BufferedInputStream(in);
-        String encoding = xmlExtractor.getEncoding(bis);
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = xmlExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
     }
 
     public void test_getEncoding_none() {
-        InputStream in = new ByteArrayInputStream("<hoge></hoge>".getBytes());
-        BufferedInputStream bis = new BufferedInputStream(in);
-        String encoding = xmlExtractor.getEncoding(bis);
+        final InputStream in = new ByteArrayInputStream("<hoge></hoge>".getBytes());
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = xmlExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
 
     public void test_getRdf() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test.rdf");
-        String content = xmlExtractor.getText(in, null).getContent();
+        final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -137,7 +137,7 @@ public class XmlExtractorTest extends S2TestCase {
         try {
             xmlExtractor.getText(null, null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }

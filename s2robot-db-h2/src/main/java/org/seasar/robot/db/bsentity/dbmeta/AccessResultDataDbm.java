@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ package org.seasar.robot.db.bsentity.dbmeta;
 import java.util.List;
 import java.util.Map;
 
+import org.seasar.dbflute.DBDef;
+import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.dbmeta.AbstractDBMeta;
+import org.seasar.dbflute.dbmeta.PropertyGateway;
+import org.seasar.dbflute.dbmeta.info.ColumnInfo;
+import org.seasar.dbflute.dbmeta.info.ForeignInfo;
+import org.seasar.dbflute.dbmeta.info.UniqueInfo;
+import org.seasar.dbflute.dbmeta.name.TableSqlName;
 import org.seasar.robot.db.allcommon.DBCurrent;
 import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.exentity.AccessResultData;
-import org.seasar.robot.dbflute.DBDef;
-import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.dbmeta.AbstractDBMeta;
-import org.seasar.robot.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.robot.dbflute.dbmeta.info.ForeignInfo;
-import org.seasar.robot.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.robot.dbflute.dbmeta.name.TableSqlName;
-import org.seasar.robot.dbflute.helper.StringKeyMap;
 
 /**
  * The DB meta of ACCESS_RESULT_DATA. (Singleton)
@@ -53,8 +53,73 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     // Current DBDef
     // =============
+    @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
+    }
+
+    // ===================================================================================
+    // Property Gateway
+    // ================
+    protected final Map<String, PropertyGateway> _epgMap = newHashMap();
+    {
+        setupEpg(_epgMap, new EpgId(), "id");
+        setupEpg(_epgMap, new EpgTransformerName(), "transformerName");
+        setupEpg(_epgMap, new EpgData(), "data");
+        setupEpg(_epgMap, new EpgEncoding(), "encoding");
+    }
+
+    @Override
+    public PropertyGateway findPropertyGateway(final String propertyName) {
+        return doFindEpg(_epgMap, propertyName);
+    }
+
+    public static class EpgId implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((AccessResultData) e).getId();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((AccessResultData) e).setId(ctl(v));
+        }
+    }
+
+    public static class EpgTransformerName implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((AccessResultData) e).getTransformerName();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((AccessResultData) e).setTransformerName((String) v);
+        }
+    }
+
+    public static class EpgData implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((AccessResultData) e).getData();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((AccessResultData) e).setData((byte[]) v);
+        }
+    }
+
+    public static class EpgEncoding implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((AccessResultData) e).getEncoding();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((AccessResultData) e).setEncoding((String) v);
+        }
     }
 
     // ===================================================================================
@@ -73,14 +138,17 @@ public class AccessResultDataDbm extends AbstractDBMeta {
             .getTableSqlNameFilter());
     }
 
+    @Override
     public String getTableDbName() {
         return _tableDbName;
     }
 
+    @Override
     public String getTablePropertyName() {
         return _tablePropertyName;
     }
 
+    @Override
     public TableSqlName getTableSqlName() {
         return _tableSqlName;
     }
@@ -101,6 +169,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         "BIGINT",
         19,
         0,
+        null,
         false,
         null,
         null,
@@ -121,6 +190,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         "VARCHAR",
         255,
         0,
+        null,
         false,
         null,
         null,
@@ -141,6 +211,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         "BLOB",
         2147483647,
         0,
+        null,
         false,
         null,
         null,
@@ -161,6 +232,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         "VARCHAR",
         20,
         0,
+        null,
         false,
         null,
         null,
@@ -204,14 +276,17 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // -----------------------------------------------------
     // Primary Element
     // ---------------
-    public UniqueInfo getPrimaryUniqueInfo() {
-        return cpui(columnId());
+    @Override
+    protected UniqueInfo cpui() {
+        return hpcpui(columnId());
     }
 
+    @Override
     public boolean hasPrimaryKey() {
         return true;
     }
 
+    @Override
     public boolean hasCompoundPrimaryKey() {
         return false;
     }
@@ -228,13 +303,20 @@ public class AccessResultDataDbm extends AbstractDBMeta {
                 .getInstance()
                 .columnId());
         return cfi(
+            "CONSTRAINT_13",
             "accessResult",
             this,
             AccessResultDbm.getInstance(),
             map,
             0,
             true,
-            false);
+            false,
+            false,
+            false,
+            null,
+            null,
+            false,
+            "accessResultDataAsOne");
     }
 
     // -----------------------------------------------------
@@ -248,18 +330,17 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     // Type Name
     // =========
+    @Override
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.AccessResultData";
     }
 
+    @Override
     public String getConditionBeanTypeName() {
-        return "org.seasar.robot.db.cbean.bs.AccessResultDataCB";
+        return "org.seasar.robot.db.cbean.AccessResultDataCB";
     }
 
-    public String getDaoTypeName() {
-        return "org.seasar.robot.db.exdao.AccessResultDataDao";
-    }
-
+    @Override
     public String getBehaviorTypeName() {
         return "org.seasar.robot.db.exbhv.AccessResultDataBhv";
     }
@@ -267,6 +348,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     // Object Type
     // ===========
+    @Override
     public Class<AccessResultData> getEntityType() {
         return AccessResultData.class;
     }
@@ -274,6 +356,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     // Object Instance
     // ===============
+    @Override
     public Entity newEntity() {
         return newMyEntity();
     }
@@ -283,64 +366,27 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Entity Handling
-    // ===============
+    // Map Communication
+    // =================
+    @Override
     public void acceptPrimaryKeyMap(final Entity e,
             final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((AccessResultData) e, m, _epsMap);
+        doAcceptPrimaryKeyMap((AccessResultData) e, m);
     }
 
+    @Override
+    public void acceptAllColumnMap(final Entity e,
+            final Map<String, ? extends Object> m) {
+        doAcceptAllColumnMap((AccessResultData) e, m);
+    }
+
+    @Override
     public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
         return doExtractPrimaryKeyMap(e);
     }
 
+    @Override
     public Map<String, Object> extractAllColumnMap(final Entity e) {
         return doExtractAllColumnMap(e);
-    }
-
-    // ===================================================================================
-    // Entity Property Setup
-    // =====================
-    // It's very INTERNAL!
-    protected final Map<String, Eps<AccessResultData>> _epsMap = StringKeyMap
-        .createAsFlexibleConcurrent();
-    {
-        setupEps(_epsMap, new EpsId(), columnId());
-        setupEps(_epsMap, new EpsTransformerName(), columnTransformerName());
-        setupEps(_epsMap, new EpsData(), columnData());
-        setupEps(_epsMap, new EpsEncoding(), columnEncoding());
-    }
-
-    public boolean hasEntityPropertySetupper(final String propertyName) {
-        return _epsMap.containsKey(propertyName);
-    }
-
-    public void setupEntityProperty(final String propertyName,
-            final Object entity, final Object value) {
-        findEps(_epsMap, propertyName).setup((AccessResultData) entity, value);
-    }
-
-    public class EpsId implements Eps<AccessResultData> {
-        public void setup(final AccessResultData e, final Object v) {
-            e.setId(ctl(v));
-        }
-    }
-
-    public static class EpsTransformerName implements Eps<AccessResultData> {
-        public void setup(final AccessResultData e, final Object v) {
-            e.setTransformerName((String) v);
-        }
-    }
-
-    public static class EpsData implements Eps<AccessResultData> {
-        public void setup(final AccessResultData e, final Object v) {
-            e.setData((byte[]) v);
-        }
-    }
-
-    public static class EpsEncoding implements Eps<AccessResultData> {
-        public void setup(final AccessResultData e, final Object v) {
-            e.setEncoding((String) v);
-        }
     }
 }

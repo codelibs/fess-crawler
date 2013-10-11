@@ -44,9 +44,9 @@ public class HostIntervalControllerTest extends S2TestCase {
      */
     public void test_delayBeforeProcessing() {
         // 同時実行数
-        int numTasks = 100;
+        final int numTasks = 100;
         // インターバル
-        Long waittime = 100L;
+        final Long waittime = 100L;
 
         CrawlingParameterUtil.setUrlQueue(new UrlQueueImpl());
         final UrlQueue q = CrawlingParameterUtil.getUrlQueue();
@@ -60,7 +60,7 @@ public class HostIntervalControllerTest extends S2TestCase {
         controller.delayMillisForWaitingNewUrl = 0L;
         controller.delayMillisAtNoUrlInQueue = 0L;
 
-        Callable<Integer> testCallable = new Callable<Integer>() {
+        final Callable<Integer> testCallable = new Callable<Integer>() {
             public Integer call() throws Exception {
                 CrawlingParameterUtil.setUrlQueue(q);
                 controller.delayBeforeProcessing();
@@ -69,25 +69,25 @@ public class HostIntervalControllerTest extends S2TestCase {
         };
 
         // Callableタスクを複数生成
-        List<Callable<Integer>> tasks = new ArrayList<Callable<Integer>>();
+        final List<Callable<Integer>> tasks = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < numTasks; i++) {
             tasks.add(testCallable);
         }
 
         // 時間取得
-        StopWatch watch = new StopWatch();
+        final StopWatch watch = new StopWatch();
         watch.start();
 
         // Callableタスク(複数)を実行する
-        ExecutorService executor = Executors.newFixedThreadPool(numTasks);
+        final ExecutorService executor = Executors.newFixedThreadPool(numTasks);
         try {
-            List<Future<Integer>> futures = executor.invokeAll(tasks);
-            for (Future<Integer> future : futures) {
+            final List<Future<Integer>> futures = executor.invokeAll(tasks);
+            for (final Future<Integer> future : futures) {
                 future.get();
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             // no thing to do
-        } catch (ExecutionException e) {
+        } catch (final ExecutionException e) {
             // no thing to do
         }
 

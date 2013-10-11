@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package org.seasar.robot.db.allcommon;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.bhv.core.CommonColumnAutoSetupper;
+import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.bhv.core.CommonColumnAutoSetupper;
 
 /**
  * The basic implementation of the auto set-upper of common column.
@@ -41,12 +41,14 @@ public class ImplementedCommonColumnAutoSetupper implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void handleCommonColumnOfInsertIfNeeds(final Entity targetEntity) {
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public void handleCommonColumnOfUpdateIfNeeds(final Entity targetEntity) {
     }
 

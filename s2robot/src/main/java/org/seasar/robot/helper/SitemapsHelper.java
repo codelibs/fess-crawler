@@ -83,9 +83,9 @@ public class SitemapsHelper {
                 bis.reset();
                 return parse(new GZIPInputStream(bis), false);
             }
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSitemapsException("Could not parse Sitemaps.", e);
         }
     }
@@ -108,7 +108,7 @@ public class SitemapsHelper {
                 }
             }
             return sitemapSet;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSitemapsException(
                 "Could not parse Text Sitemaps.",
                 e);
@@ -122,7 +122,7 @@ public class SitemapsHelper {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSitemapsException("Could not parse XML Sitemaps.", e);
         }
         return handler.getSitemapSet();
@@ -161,11 +161,13 @@ public class SitemapsHelper {
 
         private StringBuilder buf;
 
+        @Override
         public void startDocument() {
             sitemapSet = new SitemapSet();
             sitemapSet.setType(SitemapSet.URLSET);
         }
 
+        @Override
         public void startElement(final String uri, final String localName,
                 final String qName, final Attributes attributes) {
             if (URL_ELEMENT.equals(qName)) {
@@ -181,6 +183,7 @@ public class SitemapsHelper {
             }
         }
 
+        @Override
         public void characters(final char[] ch, final int offset,
                 final int length) {
             if (buf != null) {
@@ -188,6 +191,7 @@ public class SitemapsHelper {
             }
         }
 
+        @Override
         public void endElement(final String uri, final String localName,
                 final String qName) {
             if (URL_ELEMENT.equals(qName)) {
@@ -216,6 +220,7 @@ public class SitemapsHelper {
             }
         }
 
+        @Override
         public void endDocument() {
             // nothing
         }
@@ -232,7 +237,7 @@ public class SitemapsHelper {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSitemapsException(
                 "Could not parse XML Sitemaps Index.",
                 e);
@@ -248,11 +253,13 @@ public class SitemapsHelper {
 
         private StringBuilder buf;
 
+        @Override
         public void startDocument() {
             sitemapSet = new SitemapSet();
             sitemapSet.setType(SitemapSet.INDEX);
         }
 
+        @Override
         public void startElement(final String uri, final String localName,
                 final String qName, final Attributes attributes) {
             if ("sitemap".equals(qName)) {
@@ -264,6 +271,7 @@ public class SitemapsHelper {
             }
         }
 
+        @Override
         public void characters(final char[] ch, final int offset,
                 final int length) {
             if (buf != null) {
@@ -271,6 +279,7 @@ public class SitemapsHelper {
             }
         }
 
+        @Override
         public void endElement(final String uri, final String localName,
                 final String qName) {
             if ("sitemap".equals(qName)) {
@@ -289,6 +298,7 @@ public class SitemapsHelper {
             }
         }
 
+        @Override
         public void endDocument() {
             // nothing
         }

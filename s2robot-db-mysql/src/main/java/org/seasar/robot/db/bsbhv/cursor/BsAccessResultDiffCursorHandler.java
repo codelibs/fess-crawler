@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.seasar.robot.db.bsbhv.cursor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.seasar.dbflute.jdbc.CursorHandler;
 import org.seasar.robot.db.exbhv.cursor.AccessResultDiffCursor;
-import org.seasar.robot.dbflute.jdbc.CursorHandler;
 
 /**
  * The cursor handler of AccessResultDiff.
@@ -29,23 +29,26 @@ import org.seasar.robot.dbflute.jdbc.CursorHandler;
 public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
 
     /**
-     * Handle the result set.
+     * Handle the cursor.
      * 
      * @param rs
-     *            Result set. (NotNull)
-     * @return Result. (NullAllowed)
+     *            The cursor (result set) for the query, which has first
+     *            pointer. (NotNull)
+     * @return The result object of handling process. (NullAllowed)
      * @throws SQLException
      */
+    @Override
     public Object handle(final ResultSet rs) throws SQLException {
         return fetchCursor(createTypeSafeCursor(rs));
     }
 
     /**
-     * Create type safe cursor.
+     * Create the type-safe cursor.
      * 
      * @param rs
-     *            Result set. (NotNull)
-     * @return Type safe cursor. (NullAllowed)
+     *            The cursor (result set) for the query, which has first
+     *            pointer. (NotNull)
+     * @return The created type-safe cursor. (NotNull)
      * @throws SQLException
      */
     protected AccessResultDiffCursor createTypeSafeCursor(final ResultSet rs)
@@ -59,9 +62,10 @@ public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
      * Fetch the cursor.
      * 
      * @param cursor
-     *            Type safe cursor. (NotNull)
-     * @return Result. (NullAllowed)
-     * @throws java.sql.SQLException
+     *            The type-safe cursor for the query, which has first pointer.
+     *            (NotNull)
+     * @return The result object of handling process. (NullAllowed)
+     * @throws SQLException
      */
     protected abstract Object fetchCursor(AccessResultDiffCursor cursor)
             throws SQLException;

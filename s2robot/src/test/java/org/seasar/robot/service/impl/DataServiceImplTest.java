@@ -55,13 +55,13 @@ public class DataServiceImplTest extends S2TestCase {
         dataService.store(accessResult2c);
 
         dataService.iterateUrlDiff("1", "2", new AccessResultCallback() {
-            public void iterate(AccessResult accessResult) {
+            public void iterate(final AccessResult accessResult) {
                 assertEquals(accessResult2c, accessResult);
             }
         });
 
         dataService.iterateUrlDiff("2", "1", new AccessResultCallback() {
-            public void iterate(AccessResult accessResult) {
+            public void iterate(final AccessResult accessResult) {
                 assertEquals(accessResult1b, accessResult);
             }
         });

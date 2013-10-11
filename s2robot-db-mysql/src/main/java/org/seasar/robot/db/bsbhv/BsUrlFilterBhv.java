@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,29 @@ package org.seasar.robot.db.bsbhv;
 
 import java.util.List;
 
+import org.seasar.dbflute.Entity;
+import org.seasar.dbflute.bhv.AbstractBehaviorWritable;
+import org.seasar.dbflute.bhv.DeleteOption;
+import org.seasar.dbflute.bhv.InsertOption;
+import org.seasar.dbflute.bhv.QueryInsertSetupper;
+import org.seasar.dbflute.bhv.UpdateOption;
+import org.seasar.dbflute.cbean.ConditionBean;
+import org.seasar.dbflute.cbean.EntityRowHandler;
+import org.seasar.dbflute.cbean.ListResultBean;
+import org.seasar.dbflute.cbean.PagingResultBean;
+import org.seasar.dbflute.cbean.SpecifyQuery;
+import org.seasar.dbflute.dbmeta.DBMeta;
+import org.seasar.dbflute.outsidesql.executor.OutsideSqlBasicExecutor;
 import org.seasar.robot.db.bsentity.dbmeta.UrlFilterDbm;
 import org.seasar.robot.db.cbean.UrlFilterCB;
+import org.seasar.robot.db.exbhv.UrlFilterBhv;
 import org.seasar.robot.db.exentity.UrlFilter;
-import org.seasar.robot.dbflute.Entity;
-import org.seasar.robot.dbflute.bhv.AbstractBehaviorWritable;
-import org.seasar.robot.dbflute.bhv.DeleteOption;
-import org.seasar.robot.dbflute.bhv.InsertOption;
-import org.seasar.robot.dbflute.bhv.QueryInsertSetupper;
-import org.seasar.robot.dbflute.bhv.UpdateOption;
-import org.seasar.robot.dbflute.cbean.ConditionBean;
-import org.seasar.robot.dbflute.cbean.EntityRowHandler;
-import org.seasar.robot.dbflute.cbean.ListResultBean;
-import org.seasar.robot.dbflute.cbean.PagingResultBean;
-import org.seasar.robot.dbflute.cbean.SpecifyQuery;
-import org.seasar.robot.dbflute.dbmeta.DBMeta;
 
 /**
  * The behavior of URL_FILTER as TABLE. <br />
  * 
  * <pre>
- * [primary-key]
+ * [primary key]
  *     ID
  * 
  * [column]
@@ -52,16 +54,16 @@ import org.seasar.robot.dbflute.dbmeta.DBMeta;
  * [version-no]
  *     
  * 
- * [foreign-table]
+ * [foreign table]
  *     
  * 
- * [referrer-table]
+ * [referrer table]
  *     
  * 
- * [foreign-property]
+ * [foreign property]
  *     
  * 
- * [referrer-property]
+ * [referrer property]
  *     
  * </pre>
  * 
@@ -72,13 +74,14 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     // ===================================================================================
     // Definition
     // ==========
-    /* df:BehaviorQueryPathBegin */
-    /* df:BehaviorQueryPathEnd */
+    /* df:beginQueryPath */
+    /* df:endQueryPath */
 
     // ===================================================================================
     // Table name
     // ==========
     /** @return The name on database of table. (NotNull) */
+    @Override
     public String getTableDbName() {
         return "URL_FILTER";
     }
@@ -87,6 +90,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     // DBMeta
     // ======
     /** @return The instance of DBMeta. (NotNull) */
+    @Override
     public DBMeta getDBMeta() {
         return UrlFilterDbm.getInstance();
     }
@@ -100,11 +104,13 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     // New Instance
     // ============
     /** {@inheritDoc} */
+    @Override
     public Entity newEntity() {
         return newMyEntity();
     }
 
     /** {@inheritDoc} */
+    @Override
     public ConditionBean newConditionBean() {
         return newMyConditionBean();
     }
@@ -136,64 +142,27 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of UrlFilter. (NotNull)
-     * @return The selected count.
+     * @return The count for the condition. (NotMinus)
      */
     public int selectCount(final UrlFilterCB cb) {
         return doSelectCountUniquely(cb);
     }
 
     protected int doSelectCountUniquely(final UrlFilterCB cb) { // called by
-        // selectCount(cb)
-        assertCBNotNull(cb);
+                                                                // selectCount(cb)
+        assertCBStateValid(cb);
         return delegateSelectCountUniquely(cb);
     }
 
     protected int doSelectCountPlainly(final UrlFilterCB cb) { // called by
-        // selectPage(cb)
-        assertCBNotNull(cb);
+                                                               // selectPage(cb)
+        assertCBStateValid(cb);
         return delegateSelectCountPlainly(cb);
     }
 
     @Override
     protected int doReadCount(final ConditionBean cb) {
         return selectCount(downcast(cb));
-    }
-
-    // ===================================================================================
-    // Cursor Select
-    // =============
-    /**
-     * Select the cursor by the condition-bean.
-     * 
-     * <pre>
-     * UrlFilterCB cb = new UrlFilterCB();
-     * cb.query().setFoo...(value);
-     * urlFilterBhv.<span style="color: #FD4747">selectCursor</span>(cb, new EntityRowHandler&lt;UrlFilter&gt;() {
-     *     public void handle(UrlFilter entity) {
-     *         ... = entity.getFoo...();
-     *     }
-     * });
-     * </pre>
-     * 
-     * @param cb
-     *            The condition-bean of UrlFilter. (NotNull)
-     * @param entityRowHandler
-     *            The handler of entity row of UrlFilter. (NotNull)
-     */
-    public void selectCursor(final UrlFilterCB cb,
-            final EntityRowHandler<UrlFilter> entityRowHandler) {
-        doSelectCursor(cb, entityRowHandler, UrlFilter.class);
-    }
-
-    protected <ENTITY extends UrlFilter> void doSelectCursor(
-            final UrlFilterCB cb,
-            final EntityRowHandler<ENTITY> entityRowHandler,
-            final Class<ENTITY> entityType) {
-        assertCBNotNull(cb);
-        assertObjectNotNull("entityRowHandler<UrlFilter>", entityRowHandler);
-        assertObjectNotNull("entityType", entityType);
-        assertSpecifyDerivedReferrerEntityProperty(cb, entityType);
-        delegateSelectCursor(cb, entityRowHandler, entityType);
     }
 
     // ===================================================================================
@@ -215,11 +184,11 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of UrlFilter. (NotNull)
-     * @return The selected entity. (NullAllowed: If the condition has no data,
+     * @return The entity selected by the condition. (NullAllowed: if no data,
      *         it returns null)
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public UrlFilter selectEntity(final UrlFilterCB cb) {
@@ -228,10 +197,14 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends UrlFilter> ENTITY doSelectEntity(
             final UrlFilterCB cb, final Class<ENTITY> entityType) {
+        assertCBStateValid(cb);
         return helpSelectEntityInternally(
             cb,
+            entityType,
             new InternalSelectEntityCallback<ENTITY, UrlFilterCB>() {
-                public List<ENTITY> callbackSelectList(final UrlFilterCB cb) {
+                @Override
+                public List<ENTITY> callbackSelectList(final UrlFilterCB cb,
+                        final Class<ENTITY> entityType) {
                     return doSelectList(cb, entityType);
                 }
             });
@@ -254,12 +227,13 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of UrlFilter. (NotNull)
-     * @return The selected entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @return The entity selected by the condition. (NotNull: if no data,
+     *         throws exception)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public UrlFilter selectEntityWithDeletedCheck(final UrlFilterCB cb) {
@@ -268,10 +242,14 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends UrlFilter> ENTITY doSelectEntityWithDeletedCheck(
             final UrlFilterCB cb, final Class<ENTITY> entityType) {
+        assertCBStateValid(cb);
         return helpSelectEntityWithDeletedCheckInternally(
             cb,
+            entityType,
             new InternalSelectEntityWithDeletedCheckCallback<ENTITY, UrlFilterCB>() {
-                public List<ENTITY> callbackSelectList(final UrlFilterCB cb) {
+                @Override
+                public List<ENTITY> callbackSelectList(final UrlFilterCB cb,
+                        final Class<ENTITY> entityType) {
                     return doSelectList(cb, entityType);
                 }
             });
@@ -287,11 +265,11 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * 
      * @param id
      *            The one of primary key. (NotNull)
-     * @return The selected entity. (NullAllowed: If the primary-key value has
-     *         no data, it returns null)
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @return The entity selected by the PK. (NullAllowed: if no data, it
+     *         returns null)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public UrlFilter selectByPKValue(final Long id) {
@@ -308,12 +286,13 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * 
      * @param id
      *            The one of primary key. (NotNull)
-     * @return The selected entity. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @return The entity selected by the PK. (NotNull: if no data, throws
+     *         exception)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.SelectEntityConditionNotFoundException
+     * @exception org.seasar.dbflute.exception.SelectEntityConditionNotFoundException
      *                When the condition for selecting an entity is not found.
      */
     public UrlFilter selectByPKValueWithDeletedCheck(final Long id) {
@@ -350,8 +329,9 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of UrlFilter. (NotNull)
-     * @return The result bean of selected list. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.DangerousResultSizeException
+     * @return The result bean of selected list. (NotNull: if no data, returns
+     *         empty list)
+     * @exception org.seasar.dbflute.exception.DangerousResultSizeException
      *                When the result size is over the specified safety size.
      */
     public ListResultBean<UrlFilter> selectList(final UrlFilterCB cb) {
@@ -360,13 +340,14 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends UrlFilter> ListResultBean<ENTITY> doSelectList(
             final UrlFilterCB cb, final Class<ENTITY> entityType) {
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         assertObjectNotNull("entityType", entityType);
         assertSpecifyDerivedReferrerEntityProperty(cb, entityType);
         return helpSelectListInternally(
             cb,
             entityType,
             new InternalSelectListCallback<ENTITY, UrlFilterCB>() {
+                @Override
                 public List<ENTITY> callbackSelectList(final UrlFilterCB cb,
                         final Class<ENTITY> entityType) {
                     return delegateSelectList(cb, entityType);
@@ -404,8 +385,9 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * 
      * @param cb
      *            The condition-bean of UrlFilter. (NotNull)
-     * @return The result bean of selected page. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.DangerousResultSizeException
+     * @return The result bean of selected page. (NotNull: if no data, returns
+     *         bean as empty list)
+     * @exception org.seasar.dbflute.exception.DangerousResultSizeException
      *                When the result size is over the specified safety size.
      */
     public PagingResultBean<UrlFilter> selectPage(final UrlFilterCB cb) {
@@ -414,16 +396,18 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     protected <ENTITY extends UrlFilter> PagingResultBean<ENTITY> doSelectPage(
             final UrlFilterCB cb, final Class<ENTITY> entityType) {
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         assertObjectNotNull("entityType", entityType);
         return helpSelectPageInternally(
             cb,
             entityType,
             new InternalSelectPageCallback<ENTITY, UrlFilterCB>() {
+                @Override
                 public int callbackSelectCount(final UrlFilterCB cb) {
                     return doSelectCountPlainly(cb);
                 }
 
+                @Override
                 public List<ENTITY> callbackSelectList(final UrlFilterCB cb,
                         final Class<ENTITY> entityType) {
                     return doSelectList(cb, entityType);
@@ -435,6 +419,60 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     protected PagingResultBean<? extends Entity> doReadPage(
             final ConditionBean cb) {
         return selectPage(downcast(cb));
+    }
+
+    // ===================================================================================
+    // Cursor Select
+    // =============
+    /**
+     * Select the cursor by the condition-bean.
+     * 
+     * <pre>
+     * UrlFilterCB cb = new UrlFilterCB();
+     * cb.query().setFoo...(value);
+     * urlFilterBhv.<span style="color: #FD4747">selectCursor</span>(cb, new EntityRowHandler&lt;UrlFilter&gt;() {
+     *     public void handle(UrlFilter entity) {
+     *         ... = entity.getFoo...();
+     *     }
+     * });
+     * </pre>
+     * 
+     * @param cb
+     *            The condition-bean of UrlFilter. (NotNull)
+     * @param entityRowHandler
+     *            The handler of entity row of UrlFilter. (NotNull)
+     */
+    public void selectCursor(final UrlFilterCB cb,
+            final EntityRowHandler<UrlFilter> entityRowHandler) {
+        doSelectCursor(cb, entityRowHandler, UrlFilter.class);
+    }
+
+    protected <ENTITY extends UrlFilter> void doSelectCursor(
+            final UrlFilterCB cb,
+            final EntityRowHandler<ENTITY> entityRowHandler,
+            final Class<ENTITY> entityType) {
+        assertCBStateValid(cb);
+        assertObjectNotNull("entityRowHandler<UrlFilter>", entityRowHandler);
+        assertObjectNotNull("entityType", entityType);
+        assertSpecifyDerivedReferrerEntityProperty(cb, entityType);
+        helpSelectCursorInternally(
+            cb,
+            entityRowHandler,
+            entityType,
+            new InternalSelectCursorCallback<ENTITY, UrlFilterCB>() {
+                @Override
+                public void callbackSelectCursor(final UrlFilterCB cb,
+                        final EntityRowHandler<ENTITY> entityRowHandler,
+                        final Class<ENTITY> entityType) {
+                    delegateSelectCursor(cb, entityRowHandler, entityType);
+                }
+
+                @Override
+                public List<ENTITY> callbackSelectList(final UrlFilterCB cb,
+                        final Class<ENTITY> entityType) {
+                    return doSelectList(cb, entityType);
+                }
+            });
     }
 
     // ===================================================================================
@@ -469,7 +507,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     protected <RESULT, CB extends UrlFilterCB> SLFunction<CB, RESULT> doScalarSelect(
             final Class<RESULT> resultType, final CB cb) {
         assertObjectNotNull("resultType", resultType);
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         cb.xsetupForScalarSelect();
         cb.getSqlClause().disableSelectIndex(); // for when you use union
         return new SLFunction<CB, RESULT>(cb, resultType);
@@ -486,14 +524,36 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     // ===================================================================================
-    // Pull out Foreign
-    // ================
+    // Pull out Relation
+    // =================
+
+    // ===================================================================================
+    // Extract Column
+    // ==============
+    /**
+     * Extract the value list of (single) primary key id.
+     * 
+     * @param urlFilterList
+     *            The list of urlFilter. (NotNull, EmptyAllowed)
+     * @return The list of the column value. (NotNull, EmptyAllowed,
+     *         NotNullElement)
+     */
+    public List<Long> extractIdList(final List<UrlFilter> urlFilterList) {
+        return helpExtractListInternally(
+            urlFilterList,
+            new InternalExtractCallback<UrlFilter, Long>() {
+                @Override
+                public Long getCV(final UrlFilter e) {
+                    return e.getId();
+                }
+            });
+    }
 
     // ===================================================================================
     // Entity Update
     // =============
     /**
-     * Insert the entity.
+     * Insert the entity modified-only. (DefaultConstraintsEnabled)
      * 
      * <pre>
      * UrlFilter urlFilter = new UrlFilter();
@@ -506,12 +566,16 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * urlFilterBhv.<span style="color: #FD4747">insert</span>(urlFilter);
      * ... = urlFilter.getPK...(); <span style="color: #3F7E5E">// if auto-increment, you can get the value after</span>
      * </pre>
+     * <p>
+     * While, when the entity is created by select, all columns are registered.
+     * </p>
      * 
      * @param urlFilter
-     *            The entity of insert target. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     *            The entity of insert target. (NotNull, PrimaryKeyNullAllowed:
+     *            when auto-increment)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void insert(final UrlFilter urlFilter) {
         doInsert(urlFilter, null);
@@ -529,22 +593,25 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
             return;
         }
         assertInsertOptionStatus(option);
+        if (option.hasSpecifiedInsertColumn()) {
+            option
+                .resolveInsertColumnSpecification(createCBForSpecifiedUpdate());
+        }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doCreate(final Entity entity,
             final InsertOption<? extends ConditionBean> option) {
         if (option == null) {
             insert(downcast(entity));
         } else {
-            varyingInsert(downcast(entity), (InsertOption) option);
+            varyingInsert(downcast(entity), downcast(option));
         }
     }
 
     /**
-     * Update the entity modified-only. {UpdateCountZeroException,
-     * ExclusiveControl}
+     * Update the entity modified-only. (ZeroUpdateException,
+     * NonExclusiveControl)
      * 
      * <pre>
      * UrlFilter urlFilter = new UrlFilter();
@@ -563,15 +630,15 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param urlFilter
-     *            The entity of update target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     *            The entity of update target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void update(final UrlFilter urlFilter) {
         doUpdate(urlFilter, null);
@@ -584,6 +651,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
         helpUpdateInternally(
             urlFilter,
             new InternalUpdateCallback<UrlFilter>() {
+                @Override
                 public int callbackDelegateUpdate(final UrlFilter entity) {
                     return delegateUpdate(entity, option);
                 }
@@ -617,13 +685,12 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doModify(final Entity entity,
             final UpdateOption<? extends ConditionBean> option) {
         if (option == null) {
             update(downcast(entity));
         } else {
-            varyingUpdate(downcast(entity), (UpdateOption) option);
+            varyingUpdate(downcast(entity), downcast(option));
         }
     }
 
@@ -634,18 +701,24 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Insert or update the entity modified-only. {ExclusiveControl(when
-     * update)}
+     * Insert or update the entity modified-only. (DefaultConstraintsEnabled,
+     * NonExclusiveControl) <br />
+     * if (the entity has no PK) { insert() } else { update(), but no data,
+     * insert() } <br />
+     * <p>
+     * <span style="color: #FD4747; font-size: 120%">Attention, you cannot
+     * update by unique keys instead of PK.</span>
+     * </p>
      * 
      * @param urlFilter
      *            The entity of insert or update target. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void insertOrUpdate(final UrlFilter urlFilter) {
         doInesrtOrUpdate(urlFilter, null, null);
@@ -657,18 +730,22 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
         helpInsertOrUpdateInternally(
             urlFilter,
             new InternalInsertOrUpdateCallback<UrlFilter, UrlFilterCB>() {
+                @Override
                 public void callbackInsert(final UrlFilter entity) {
                     doInsert(entity, insertOption);
                 }
 
+                @Override
                 public void callbackUpdate(final UrlFilter entity) {
                     doUpdate(entity, updateOption);
                 }
 
+                @Override
                 public UrlFilterCB callbackNewMyConditionBean() {
                     return newMyConditionBean();
                 }
 
+                @Override
                 public int callbackSelectCount(final UrlFilterCB cb) {
                     return selectCount(cb);
                 }
@@ -676,7 +753,6 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doCreateOrModify(final Entity entity,
             InsertOption<? extends ConditionBean> insertOption,
             UpdateOption<? extends ConditionBean> updateOption) {
@@ -684,13 +760,15 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
             insertOrUpdate(downcast(entity));
         } else {
             insertOption =
-                insertOption == null ? new InsertOption() : insertOption;
+                insertOption == null ? new InsertOption<UrlFilterCB>()
+                    : insertOption;
             updateOption =
-                updateOption == null ? new UpdateOption() : updateOption;
+                updateOption == null ? new UpdateOption<UrlFilterCB>()
+                    : updateOption;
             varyingInsertOrUpdate(
                 downcast(entity),
-                (InsertOption) insertOption,
-                (UpdateOption) updateOption);
+                downcast(insertOption),
+                downcast(updateOption));
         }
     }
 
@@ -702,7 +780,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Delete the entity. {UpdateCountZeroException, ExclusiveControl}
+     * Delete the entity. (ZeroUpdateException, NonExclusiveControl)
      * 
      * <pre>
      * UrlFilter urlFilter = new UrlFilter();
@@ -717,11 +795,11 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param urlFilter
-     *            The entity of delete target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     *            The entity of delete target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
      */
     public void delete(final UrlFilter urlFilter) {
@@ -735,6 +813,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
         helpDeleteInternally(
             urlFilter,
             new InternalDeleteCallback<UrlFilter>() {
+                @Override
                 public int callbackDelegateDelete(final UrlFilter entity) {
                     return delegateDelete(entity, option);
                 }
@@ -749,13 +828,12 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void doRemove(final Entity entity,
             final DeleteOption<? extends ConditionBean> option) {
         if (option == null) {
             delete(downcast(entity));
         } else {
-            varyingDelete(downcast(entity), (DeleteOption) option);
+            varyingDelete(downcast(entity), downcast(option));
         }
     }
 
@@ -769,86 +847,170 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     // Batch Update
     // ============
     /**
-     * Batch-insert the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement. <br />
-     * All columns are insert target. (so default constraints are not available) <br />
-     * And if the table has an identity, entities after the process do not have
-     * incremented values. (When you use the (normal) insert(), an entity after
-     * the process has an incremented value)
+     * Batch-insert the entity list modified-only of same-set columns.
+     * (DefaultConstraintsEnabled) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement. <br />
+     * <p>
+     * <span style="color: #FD4747; font-size: 120%">The columns of least common
+     * multiple are registered like this:</span>
+     * </p>
+     * 
+     * <pre>
+     * for (... : ...) {
+     *     UrlFilter urlFilter = new UrlFilter();
+     *     urlFilter.setFooName("foo");
+     *     if (...) {
+     *         urlFilter.setFooPrice(123);
+     *     }
+     *     <span style="color: #3F7E5E">// FOO_NAME and FOO_PRICE (and record meta columns) are registered</span>
+     *     <span style="color: #3F7E5E">// FOO_PRICE not-called in any entities are registered as null without default value</span>
+     *     <span style="color: #3F7E5E">// columns not-called in all entities are registered as null or default value</span>
+     *     urlFilterList.add(urlFilter);
+     * }
+     * urlFilterBhv.<span style="color: #FD4747">batchInsert</span>(urlFilterList);
+     * </pre>
+     * <p>
+     * While, when the entities are created by select, all columns are
+     * registered.
+     * </p>
+     * <p>
+     * And if the table has an identity, entities after the process don't have
+     * incremented values. (When you use the (normal) insert(), you can get the
+     * incremented value from your entity)
+     * </p>
      * 
      * @param urlFilterList
-     *            The list of the entity. (NotNull)
-     * @return The array of inserted count.
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNullAllowed: when auto-increment)
+     * @return The array of inserted count. (NotNull, EmptyAllowed)
      */
     public int[] batchInsert(final List<UrlFilter> urlFilterList) {
-        return doBatchInsert(urlFilterList, null);
+        final InsertOption<UrlFilterCB> option = createInsertUpdateOption();
+        return doBatchInsert(urlFilterList, option);
     }
 
     protected int[] doBatchInsert(final List<UrlFilter> urlFilterList,
             final InsertOption<UrlFilterCB> option) {
         assertObjectNotNull("urlFilterList", urlFilterList);
-        prepareInsertOption(option);
+        prepareBatchInsertOption(urlFilterList, option);
         return delegateBatchInsert(urlFilterList, option);
     }
 
+    protected void prepareBatchInsertOption(
+            final List<UrlFilter> urlFilterList,
+            final InsertOption<UrlFilterCB> option) {
+        option.xallowInsertColumnModifiedPropertiesFragmented();
+        option.xacceptInsertColumnModifiedPropertiesIfNeeds(urlFilterList);
+        prepareInsertOption(option);
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
     protected int[] doLumpCreate(final List<Entity> ls,
             final InsertOption<? extends ConditionBean> option) {
         if (option == null) {
-            return batchInsert((List) ls);
+            return batchInsert(downcast(ls));
         } else {
-            return varyingBatchInsert((List) ls, (InsertOption) option);
+            return varyingBatchInsert(downcast(ls), downcast(option));
         }
     }
 
     /**
-     * Batch-update the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement. <br />
-     * All columns are update target. {NOT modified only}
+     * Batch-update the entity list modified-only of same-set columns.
+     * (NonExclusiveControl) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement. <br />
+     * <span style="color: #FD4747; font-size: 120%">You should specify same-set
+     * columns to all entities like this:</span>
+     * 
+     * <pre>
+     * for (... : ...) {
+     *     UrlFilter urlFilter = new UrlFilter();
+     *     urlFilter.setFooName("foo");
+     *     if (...) {
+     *         urlFilter.setFooPrice(123);
+     *     } else {
+     *         urlFilter.setFooPrice(null); <span style="color: #3F7E5E">// updated as null</span>
+     *         <span style="color: #3F7E5E">//urlFilter.setFooDate(...); // *not allowed, fragmented</span>
+     *     }
+     *     <span style="color: #3F7E5E">// FOO_NAME and FOO_PRICE (and record meta columns) are updated</span>
+     *     <span style="color: #3F7E5E">// (others are not updated: their values are kept)</span>
+     *     urlFilterList.add(urlFilter);
+     * }
+     * urlFilterBhv.<span style="color: #FD4747">batchUpdate</span>(urlFilterList);
+     * </pre>
      * 
      * @param urlFilterList
-     *            The list of the entity. (NotNull)
-     * @return The array of updated count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
+     * @return The array of updated count. (NotNull, EmptyAllowed)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
      */
     public int[] batchUpdate(final List<UrlFilter> urlFilterList) {
-        return doBatchUpdate(urlFilterList, null);
+        final UpdateOption<UrlFilterCB> option = createPlainUpdateOption();
+        return doBatchUpdate(urlFilterList, option);
     }
 
     protected int[] doBatchUpdate(final List<UrlFilter> urlFilterList,
             final UpdateOption<UrlFilterCB> option) {
         assertObjectNotNull("urlFilterList", urlFilterList);
-        prepareUpdateOption(option);
+        prepareBatchUpdateOption(urlFilterList, option);
         return delegateBatchUpdate(urlFilterList, option);
     }
 
+    protected void prepareBatchUpdateOption(
+            final List<UrlFilter> urlFilterList,
+            final UpdateOption<UrlFilterCB> option) {
+        option.xacceptUpdateColumnModifiedPropertiesIfNeeds(urlFilterList);
+        prepareUpdateOption(option);
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
     protected int[] doLumpModify(final List<Entity> ls,
             final UpdateOption<? extends ConditionBean> option) {
         if (option == null) {
-            return batchUpdate((List) ls);
+            return batchUpdate(downcast(ls));
         } else {
-            return varyingBatchUpdate((List) ls, (UpdateOption) option);
+            return varyingBatchUpdate(downcast(ls), downcast(option));
         }
     }
 
     /**
-     * Batch-update the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement. <br />
+     * Batch-update the entity list specified-only. (NonExclusiveControl) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement.
+     * 
+     * <pre>
+     * <span style="color: #3F7E5E">// e.g. update two columns only</span> 
+     * urlFilterBhv.<span style="color: #FD4747">batchUpdate</span>(urlFilterList, new SpecifyQuery<UrlFilterCB>() {
+     *     public void specify(UrlFilterCB cb) { <span style="color: #3F7E5E">// the two only updated</span>
+     *         cb.specify().<span style="color: #FD4747">columnFooStatusCode()</span>; <span style="color: #3F7E5E">// should be modified in any entities</span>
+     *         cb.specify().<span style="color: #FD4747">columnBarDate()</span>; <span style="color: #3F7E5E">// should be modified in any entities</span>
+     *     }
+     * });
+     * <span style="color: #3F7E5E">// e.g. update every column in the table</span> 
+     * urlFilterBhv.<span style="color: #FD4747">batchUpdate</span>(urlFilterList, new SpecifyQuery<UrlFilterCB>() {
+     *     public void specify(UrlFilterCB cb) { <span style="color: #3F7E5E">// all columns are updated</span>
+     *         cb.specify().<span style="color: #FD4747">columnEveryColumn()</span>; <span style="color: #3F7E5E">// no check of modified properties</span>
+     *     }
+     * });
+     * </pre>
+     * <p>
      * You can specify update columns used on set clause of update statement.
      * However you do not need to specify common columns for update and an
-     * optimistick lock column because they are specified implicitly.
+     * optimistic lock column because they are specified implicitly.
+     * </p>
+     * <p>
+     * And you should specify columns that are modified in any entities (at
+     * least one entity). But if you specify every column, it has no check.
+     * </p>
      * 
      * @param urlFilterList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param updateColumnSpec
      *            The specification of update columns. (NotNull)
-     * @return The array of updated count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
+     * @return The array of updated count. (NotNull, EmptyAllowed)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
      */
     public int[] batchUpdate(final List<UrlFilter> urlFilterList,
             final SpecifyQuery<UrlFilterCB> updateColumnSpec) {
@@ -864,14 +1026,15 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Batch-delete the list. <br />
-     * This method uses 'Batch Update' of java.sql.PreparedStatement.
+     * Batch-delete the entity list. (NonExclusiveControl) <br />
+     * This method uses executeBatch() of java.sql.PreparedStatement.
      * 
      * @param urlFilterList
-     *            The list of the entity. (NotNull)
-     * @return The array of deleted count.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
+     * @return The array of deleted count. (NotNull, EmptyAllowed)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
      */
     public int[] batchDelete(final List<UrlFilter> urlFilterList) {
         return doBatchDelete(urlFilterList, null);
@@ -885,13 +1048,12 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int[] doLumpRemove(final List<Entity> ls,
             final DeleteOption<? extends ConditionBean> option) {
         if (option == null) {
-            return batchDelete((List) ls);
+            return batchDelete(downcast(ls));
         } else {
-            return varyingBatchDelete((List) ls, (DeleteOption) option);
+            return varyingBatchDelete(downcast(ls), downcast(option));
         }
     }
 
@@ -908,7 +1070,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * Insert the several entities by query (modified-only for fixed value).
      * 
      * <pre>
-     * urlFilterBhv.<span style="color: #FD4747">queryInsert</span>(new QueryInsertSetupper&lt;urlFilter, UrlFilterCB&gt;() {
+     * urlFilterBhv.<span style="color: #FD4747">queryInsert</span>(new QueryInsertSetupper&lt;UrlFilter, UrlFilterCB&gt;() {
      *     public ConditionBean setup(urlFilter entity, UrlFilterCB intoCB) {
      *         FooCB cb = FooCB();
      *         cb.setupSelect_Bar();
@@ -956,22 +1118,19 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int doRangeCreate(
             final QueryInsertSetupper<? extends Entity, ? extends ConditionBean> setupper,
             final InsertOption<? extends ConditionBean> option) {
         if (option == null) {
-            return queryInsert((QueryInsertSetupper) setupper);
+            return queryInsert(downcast(setupper));
         } else {
-            return varyingQueryInsert(
-                (QueryInsertSetupper) setupper,
-                (InsertOption) option);
+            return varyingQueryInsert(downcast(setupper), downcast(option));
         }
     }
 
     /**
      * Update the several entities by query non-strictly modified-only.
-     * {NonExclusiveControl}
+     * (NonExclusiveControl)
      * 
      * <pre>
      * UrlFilter urlFilter = new UrlFilter();
@@ -995,7 +1154,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @param cb
      *            The condition-bean of UrlFilter. (NotNull)
      * @return The updated count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryUpdateNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryUpdateNotAllowedException
      *                When the query has no condition.
      */
     public int queryUpdate(final UrlFilter urlFilter, final UrlFilterCB cb) {
@@ -1005,13 +1164,15 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     protected int doQueryUpdate(final UrlFilter urlFilter,
             final UrlFilterCB cb, final UpdateOption<UrlFilterCB> option) {
         assertObjectNotNull("urlFilter", urlFilter);
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         prepareUpdateOption(option);
-        return delegateQueryUpdate(urlFilter, cb, option);
+        return checkCountBeforeQueryUpdateIfNeeds(cb) ? delegateQueryUpdate(
+            urlFilter,
+            cb,
+            option) : 0;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int doRangeModify(final Entity entity, final ConditionBean cb,
             final UpdateOption<? extends ConditionBean> option) {
         if (option == null) {
@@ -1020,12 +1181,12 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
             return varyingQueryUpdate(
                 downcast(entity),
                 (UrlFilterCB) cb,
-                (UpdateOption) option);
+                downcast(option));
         }
     }
 
     /**
-     * Delete the several entities by query. {NonExclusiveControl}
+     * Delete the several entities by query. (NonExclusiveControl)
      * 
      * <pre>
      * UrlFilterCB cb = new UrlFilterCB();
@@ -1036,7 +1197,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @param cb
      *            The condition-bean of UrlFilter. (NotNull)
      * @return The deleted count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryDeleteNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryDeleteNotAllowedException
      *                When the query has no condition.
      */
     public int queryDelete(final UrlFilterCB cb) {
@@ -1045,19 +1206,20 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     protected int doQueryDelete(final UrlFilterCB cb,
             final DeleteOption<UrlFilterCB> option) {
-        assertCBNotNull(cb);
+        assertCBStateValid(cb);
         prepareDeleteOption(option);
-        return delegateQueryDelete(cb, option);
+        return checkCountBeforeQueryUpdateIfNeeds(cb) ? delegateQueryDelete(
+            cb,
+            option) : 0;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected int doRangeRemove(final ConditionBean cb,
             final DeleteOption<? extends ConditionBean> option) {
         if (option == null) {
             return queryDelete((UrlFilterCB) cb);
         } else {
-            return varyingQueryDelete((UrlFilterCB) cb, (DeleteOption) option);
+            return varyingQueryDelete((UrlFilterCB) cb, downcast(option));
         }
     }
 
@@ -1085,12 +1247,13 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param urlFilter
-     *            The entity of insert target. (NotNull)
+     *            The entity of insert target. (NotNull, PrimaryKeyNullAllowed:
+     *            when auto-increment)
      * @param option
      *            The option of insert for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void varyingInsert(final UrlFilter urlFilter,
             final InsertOption<UrlFilterCB> option) {
@@ -1100,7 +1263,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     /**
      * Update the entity with varying requests modified-only.
-     * {UpdateCountZeroException, ExclusiveControl} <br />
+     * (ZeroUpdateException, NonExclusiveControl) <br />
      * For example, self(selfCalculationSpecification),
      * specify(updateColumnSpecification), disableCommonColumnAutoSetup(). <br />
      * Other specifications are same as update(entity).
@@ -1126,17 +1289,17 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * </pre>
      * 
      * @param urlFilter
-     *            The entity of update target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
+     *            The entity of update target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
      * @param option
      *            The option of update for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void varyingUpdate(final UrlFilter urlFilter,
             final UpdateOption<UrlFilterCB> option) {
@@ -1145,8 +1308,8 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Insert or update the entity with varying requests. {ExclusiveControl(when
-     * update)}<br />
+     * Insert or update the entity with varying requests. (ExclusiveControl:
+     * when update) <br />
      * Other specifications are same as insertOrUpdate(entity).
      * 
      * @param urlFilter
@@ -1155,13 +1318,13 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      *            The option of insert for varying requests. (NotNull)
      * @param updateOption
      *            The option of update for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyExistsException
-     *                When the entity already exists. (Unique Constraint
-     *                Violation)
+     * @exception org.seasar.dbflute.exception.EntityAlreadyExistsException
+     *                When the entity already exists. (unique constraint
+     *                violation)
      */
     public void varyingInsertOrUpdate(final UrlFilter urlFilter,
             final InsertOption<UrlFilterCB> insertOption,
@@ -1172,19 +1335,19 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
     }
 
     /**
-     * Delete the entity with varying requests. {UpdateCountZeroException,
-     * ExclusiveControl} <br />
+     * Delete the entity with varying requests. (ZeroUpdateException,
+     * NonExclusiveControl) <br />
      * Now a valid option does not exist. <br />
      * Other specifications are same as delete(entity).
      * 
      * @param urlFilter
-     *            The entity of delete target. (NotNull) {PrimaryKeyRequired,
-     *            ConcurrencyColumnRequired}
+     *            The entity of delete target. (NotNull, PrimaryKeyNotNull,
+     *            ConcurrencyColumnRequired)
      * @param option
      *            The option of update for varying requests. (NotNull)
-     * @exception org.seasar.robot.dbflute.exception.EntityAlreadyDeletedException
-     *                When the entity has already been deleted.
-     * @exception org.seasar.robot.dbflute.exception.EntityDuplicatedException
+     * @exception org.seasar.dbflute.exception.EntityAlreadyDeletedException
+     *                When the entity has already been deleted. (not found)
+     * @exception org.seasar.dbflute.exception.EntityDuplicatedException
      *                When the entity has been duplicated.
      */
     public void varyingDelete(final UrlFilter urlFilter,
@@ -1203,10 +1366,11 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * Other specifications are same as batchInsert(entityList).
      * 
      * @param urlFilterList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param option
      *            The option of insert for varying requests. (NotNull)
-     * @return The array of inserted count.
+     * @return The array of updated count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchInsert(final List<UrlFilter> urlFilterList,
             final InsertOption<UrlFilterCB> option) {
@@ -1222,10 +1386,11 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * Other specifications are same as batchUpdate(entityList).
      * 
      * @param urlFilterList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param option
      *            The option of update for varying requests. (NotNull)
-     * @return The array of updated count.
+     * @return The array of updated count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchUpdate(final List<UrlFilter> urlFilterList,
             final UpdateOption<UrlFilterCB> option) {
@@ -1239,10 +1404,11 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * Other specifications are same as batchDelete(entityList).
      * 
      * @param urlFilterList
-     *            The list of the entity. (NotNull)
+     *            The list of the entity. (NotNull, EmptyAllowed,
+     *            PrimaryKeyNotNull)
      * @param option
      *            The option of delete for varying requests. (NotNull)
-     * @return The array of deleted count.
+     * @return The array of deleted count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchDelete(final List<UrlFilter> urlFilterList,
             final DeleteOption<UrlFilterCB> option) {
@@ -1308,7 +1474,7 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @param option
      *            The option of update for varying requests. (NotNull)
      * @return The updated count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryUpdateNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryUpdateNotAllowedException
      *                When the query has no condition (if not allowed).
      */
     public int varyingQueryUpdate(final UrlFilter urlFilter,
@@ -1327,13 +1493,54 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
      * @param option
      *            The option of delete for varying requests. (NotNull)
      * @return The deleted count.
-     * @exception org.seasar.robot.dbflute.exception.NonQueryDeleteNotAllowedException
+     * @exception org.seasar.dbflute.exception.NonQueryDeleteNotAllowedException
      *                When the query has no condition (if not allowed).
      */
     public int varyingQueryDelete(final UrlFilterCB cb,
             final DeleteOption<UrlFilterCB> option) {
         assertDeleteOptionNotNull(option);
         return doQueryDelete(cb, option);
+    }
+
+    // ===================================================================================
+    // OutsideSql
+    // ==========
+    /**
+     * Prepare the basic executor of outside-SQL to execute it. <br />
+     * The invoker of behavior command should be not null when you call this
+     * method.
+     * 
+     * <pre>
+     * You can use the methods for outside-SQL are as follows:
+     * {Basic}
+     *   o selectList()
+     *   o execute()
+     *   o call()
+     * 
+     * {Entity}
+     *   o entityHandling().selectEntity()
+     *   o entityHandling().selectEntityWithDeletedCheck()
+     * 
+     * {Paging}
+     *   o autoPaging().selectList()
+     *   o autoPaging().selectPage()
+     *   o manualPaging().selectList()
+     *   o manualPaging().selectPage()
+     * 
+     * {Cursor}
+     *   o cursorHandling().selectCursor()
+     * 
+     * {Option}
+     *   o dynamicBinding().selectList()
+     *   o removeBlockComment().selectList()
+     *   o removeLineComment().selectList()
+     *   o formatSql().selectList()
+     * </pre>
+     * 
+     * @return The basic executor of outside-SQL. (NotNull)
+     */
+    public OutsideSqlBasicExecutor<UrlFilterBhv> outsideSql() {
+        return doOutsideSql();
     }
 
     // ===================================================================================
@@ -1504,5 +1711,34 @@ public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable {
 
     protected UrlFilterCB downcast(final ConditionBean cb) {
         return helpConditionBeanDowncastInternally(cb, UrlFilterCB.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<UrlFilter> downcast(final List<? extends Entity> entityList) {
+        return (List<UrlFilter>) entityList;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected InsertOption<UrlFilterCB> downcast(
+            final InsertOption<? extends ConditionBean> option) {
+        return (InsertOption<UrlFilterCB>) option;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected UpdateOption<UrlFilterCB> downcast(
+            final UpdateOption<? extends ConditionBean> option) {
+        return (UpdateOption<UrlFilterCB>) option;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected DeleteOption<UrlFilterCB> downcast(
+            final DeleteOption<? extends ConditionBean> option) {
+        return (DeleteOption<UrlFilterCB>) option;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected QueryInsertSetupper<UrlFilter, UrlFilterCB> downcast(
+            final QueryInsertSetupper<? extends Entity, ? extends ConditionBean> option) {
+        return (QueryInsertSetupper<UrlFilter, UrlFilterCB>) option;
     }
 }

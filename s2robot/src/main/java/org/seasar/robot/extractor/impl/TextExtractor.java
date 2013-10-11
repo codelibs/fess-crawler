@@ -39,6 +39,7 @@ public class TextExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -48,7 +49,7 @@ public class TextExtractor implements Extractor {
             return new ExtractData(new String(
                 InputStreamUtil.getBytes(in),
                 getEncoding()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ExtractException(e);
         }
     }

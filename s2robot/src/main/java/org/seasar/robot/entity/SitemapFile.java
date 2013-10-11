@@ -50,6 +50,7 @@ public class SitemapFile implements Sitemap {
      * 
      * @see org.seasar.robot.entity.Sitemap#getLoc()
      */
+    @Override
     public String getLoc() {
         return loc;
     }
@@ -63,6 +64,7 @@ public class SitemapFile implements Sitemap {
      * 
      * @see org.seasar.robot.entity.Sitemap#getLastmod()
      */
+    @Override
     public String getLastmod() {
         return lastmod;
     }

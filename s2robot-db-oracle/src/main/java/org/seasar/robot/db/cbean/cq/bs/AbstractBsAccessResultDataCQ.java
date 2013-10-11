@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,26 @@ package org.seasar.robot.db.cbean.cq.bs;
 
 import java.util.Collection;
 
+import org.seasar.dbflute.cbean.AbstractConditionQuery;
+import org.seasar.dbflute.cbean.ConditionQuery;
+import org.seasar.dbflute.cbean.SubQuery;
+import org.seasar.dbflute.cbean.chelper.HpQDRFunction;
+import org.seasar.dbflute.cbean.chelper.HpQDRSetupper;
+import org.seasar.dbflute.cbean.chelper.HpSSQFunction;
+import org.seasar.dbflute.cbean.chelper.HpSSQOption;
+import org.seasar.dbflute.cbean.chelper.HpSSQSetupper;
+import org.seasar.dbflute.cbean.ckey.ConditionKey;
+import org.seasar.dbflute.cbean.coption.DerivedReferrerOption;
+import org.seasar.dbflute.cbean.coption.LikeSearchOption;
+import org.seasar.dbflute.cbean.coption.RangeOfOption;
+import org.seasar.dbflute.cbean.cvalue.ConditionValue;
+import org.seasar.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.dbflute.dbmeta.DBMetaProvider;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
 import org.seasar.robot.db.cbean.AccessResultCB;
 import org.seasar.robot.db.cbean.AccessResultDataCB;
 import org.seasar.robot.db.cbean.cq.AccessResultCQ;
 import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
-import org.seasar.robot.dbflute.cbean.AbstractConditionQuery;
-import org.seasar.robot.dbflute.cbean.ConditionQuery;
-import org.seasar.robot.dbflute.cbean.SubQuery;
-import org.seasar.robot.dbflute.cbean.chelper.HpSSQFunction;
-import org.seasar.robot.dbflute.cbean.chelper.HpSSQSetupper;
-import org.seasar.robot.dbflute.cbean.ckey.ConditionKey;
-import org.seasar.robot.dbflute.cbean.coption.LikeSearchOption;
-import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.robot.dbflute.dbmeta.DBMetaProvider;
 
 /**
  * The abstract condition-query of ACCESS_RESULT_DATA.
@@ -45,7 +50,8 @@ public abstract class AbstractBsAccessResultDataCQ extends
     // Constructor
     // ===========
     public AbstractBsAccessResultDataCQ(final ConditionQuery childQuery,
-            final SqlClause sqlClause, final String aliasName, final int nestLevel) {
+            final SqlClause sqlClause, final String aliasName,
+            final int nestLevel) {
         super(childQuery, sqlClause, aliasName, nestLevel);
     }
 
@@ -60,6 +66,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
     // ===================================================================================
     // Table Name
     // ==========
+    @Override
     public String getTableDbName() {
         return "ACCESS_RESULT_DATA";
     }
@@ -73,7 +80,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param id
-     *            The value of id as equal.
+     *            The value of id as equal. (NullAllowed: if null, no condition)
      */
     public void setId_Equal(final Long id) {
         doSetId_Equal(id);
@@ -84,10 +91,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered.
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param id
-     *            The value of id as notEqual.
+     *            The value of id as notEqual. (NullAllowed: if null, no
+     *            condition)
      */
     public void setId_NotEqual(final Long id) {
         doSetId_NotEqual(id);
@@ -98,51 +107,80 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered.
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param id
-     *            The value of id as greaterThan.
+     *            The value of id as greaterThan. (NullAllowed: if null, no
+     *            condition)
      */
     public void setId_GreaterThan(final Long id) {
         regId(CK_GT, id);
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered.
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param id
-     *            The value of id as lessThan.
+     *            The value of id as lessThan. (NullAllowed: if null, no
+     *            condition)
      */
     public void setId_LessThan(final Long id) {
         regId(CK_LT, id);
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered.
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param id
-     *            The value of id as greaterEqual.
+     *            The value of id as greaterEqual. (NullAllowed: if null, no
+     *            condition)
      */
     public void setId_GreaterEqual(final Long id) {
         regId(CK_GE, id);
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered.
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param id
-     *            The value of id as lessEqual.
+     *            The value of id as lessEqual. (NullAllowed: if null, no
+     *            condition)
      */
     public void setId_LessEqual(final Long id) {
         regId(CK_LE, id);
     }
 
     /**
-     * InScope(in (1, 2)). And NullIgnored, NullElementIgnored,
-     * SeveralRegistered.
+     * RangeOf with various options. (versatile) <br />
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br />
+     * And NullIgnored, OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
+     * 
+     * @param minNumber
+     *            The min number of id. (NullAllowed: if null, no
+     *            from-condition)
+     * @param maxNumber
+     *            The max number of id. (NullAllowed: if null, no to-condition)
+     * @param rangeOfOption
+     *            The option of range-of. (NotNull)
+     */
+    public void setId_RangeOf(final Long minNumber, final Long maxNumber,
+            final RangeOfOption rangeOfOption) {
+        regROO(minNumber, maxNumber, getCValueId(), "ID", rangeOfOption);
+    }
+
+    /**
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored,
+     * SeveralRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param idList
-     *            The collection of id as inScope.
+     *            The collection of id as inScope. (NullAllowed: if null (or
+     *            empty), no condition)
      */
     public void setId_InScope(final Collection<Long> idList) {
         doSetId_InScope(idList);
@@ -153,11 +191,13 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * NotInScope(not in (1, 2)). And NullIgnored, NullElementIgnored,
-     * SeveralRegistered.
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored,
+     * SeveralRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      * 
      * @param idList
-     *            The collection of id as notInScope.
+     *            The collection of id as notInScope. (NullAllowed: if null (or
+     *            empty), no condition)
      */
     public void setId_NotInScope(final Collection<Long> idList) {
         doSetId_NotInScope(idList);
@@ -170,7 +210,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
     /**
      * Set up InScopeRelation (sub-query). <br />
      * {in (select ID from ACCESS_RESULT where ...)} <br />
-     * ACCESS_RESULT as 'accessResult'.
+     * ACCESS_RESULT by my ID, named 'accessResult'.
      * 
      * @param subQuery
      *            The sub-query of AccessResult for 'in-scope'. (NotNull)
@@ -183,7 +223,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
         final String subQueryPropertyName =
             keepId_InScopeRelation_AccessResult(cb.query()); // for saving
                                                              // query-value.
-        registerInScopeRelation(cb.query(), "ID", "ID", subQueryPropertyName);
+        registerInScopeRelation(
+            cb.query(),
+            "ID",
+            "ID",
+            subQueryPropertyName,
+            "accessResult");
     }
 
     public abstract String keepId_InScopeRelation_AccessResult(
@@ -192,7 +237,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
     /**
      * Set up NotInScopeRelation (sub-query). <br />
      * {not in (select ID from ACCESS_RESULT where ...)} <br />
-     * ACCESS_RESULT as 'accessResult'.
+     * ACCESS_RESULT by my ID, named 'accessResult'.
      * 
      * @param subQuery
      *            The sub-query of AccessResult for 'not in-scope'. (NotNull)
@@ -205,21 +250,28 @@ public abstract class AbstractBsAccessResultDataCQ extends
         final String subQueryPropertyName =
             keepId_NotInScopeRelation_AccessResult(cb.query()); // for saving
                                                                 // query-value.
-        registerNotInScopeRelation(cb.query(), "ID", "ID", subQueryPropertyName);
+        registerNotInScopeRelation(
+            cb.query(),
+            "ID",
+            "ID",
+            subQueryPropertyName,
+            "accessResult");
     }
 
     public abstract String keepId_NotInScopeRelation_AccessResult(
             AccessResultCQ subQuery);
 
     /**
-     * IsNull(is null). And OnlyOnceRegistered.
+     * IsNull {is null}. And OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      */
     public void setId_IsNull() {
         regId(CK_ISN, DOBJ);
     }
 
     /**
-     * IsNotNull(is not null). And OnlyOnceRegistered.
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br />
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
      */
     public void setId_IsNotNull() {
         regId(CK_ISNN, DOBJ);
@@ -236,7 +288,8 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as equal.
+     *            The value of transformerName as equal. (NullAllowed: if null
+     *            (or empty), no condition)
      */
     public void setTransformerName_Equal(final String transformerName) {
         doSetTransformerName_Equal(fRES(transformerName));
@@ -247,10 +300,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as notEqual.
+     *            The value of transformerName as notEqual. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setTransformerName_NotEqual(final String transformerName) {
         doSetTransformerName_NotEqual(fRES(transformerName));
@@ -261,51 +316,61 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as greaterThan.
+     *            The value of transformerName as greaterThan. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setTransformerName_GreaterThan(final String transformerName) {
         regTransformerName(CK_GT, fRES(transformerName));
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as lessThan.
+     *            The value of transformerName as lessThan. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setTransformerName_LessThan(final String transformerName) {
         regTransformerName(CK_LT, fRES(transformerName));
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as greaterEqual.
+     *            The value of transformerName as greaterEqual. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setTransformerName_GreaterEqual(final String transformerName) {
         regTransformerName(CK_GE, fRES(transformerName));
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as lessEqual.
+     *            The value of transformerName as lessEqual. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setTransformerName_LessEqual(final String transformerName) {
         regTransformerName(CK_LE, fRES(transformerName));
     }
 
     /**
-     * InScope(in ('a', 'b')). And NullOrEmptyIgnored,
-     * NullOrEmptyElementIgnored, SeveralRegistered.
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored,
+     * NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerNameList
-     *            The collection of transformerName as inScope.
+     *            The collection of transformerName as inScope. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setTransformerName_InScope(
             final Collection<String> transformerNameList) {
@@ -322,11 +387,13 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * NotInScope(not in ('a', 'b')). And NullOrEmptyIgnored,
-     * NullOrEmptyElementIgnored, SeveralRegistered.
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored,
+     * NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerNameList
-     *            The collection of transformerName as notInScope.
+     *            The collection of transformerName as notInScope. (NullAllowed:
+     *            if null (or empty), no condition)
      */
     public void setTransformerName_NotInScope(
             final Collection<String> transformerNameList) {
@@ -343,22 +410,28 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * PrefixSearch(like 'xxx%' escape ...). And NullOrEmptyIgnored,
-     * SeveralRegistered.
+     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored,
+     * SeveralRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as prefixSearch.
+     *            The value of transformerName as prefixSearch. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setTransformerName_PrefixSearch(final String transformerName) {
         setTransformerName_LikeSearch(transformerName, cLSOP());
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered.
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}.
+     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)} <br />
+     * 
+     * <pre>e.g. setTransformerName_LikeSearch("xxx", new <span style="color: #FD4747">LikeSearchOption</span>().likeContain());</pre>
      * 
      * @param transformerName
-     *            The value of transformerName as likeSearch.
+     *            The value of transformerName as likeSearch. (NullAllowed: if
+     *            null (or empty), no condition)
      * @param likeSearchOption
      *            The option of like-search. (NotNull)
      */
@@ -375,10 +448,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
     /**
      * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape
      * ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered.
+     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
      * 
      * @param transformerName
-     *            The value of transformerName as notLikeSearch.
+     *            The value of transformerName as notLikeSearch. (NullAllowed:
+     *            if null (or empty), no condition)
      * @param likeSearchOption
      *            The option of not-like-search. (NotNull)
      */
@@ -399,14 +474,16 @@ public abstract class AbstractBsAccessResultDataCQ extends
     abstract protected ConditionValue getCValueTransformerName();
 
     /**
-     * IsNull(is null). And OnlyOnceRegistered.
+     * IsNull {is null}. And OnlyOnceRegistered. <br />
+     * DATA: {BLOB(4000)}
      */
     public void setData_IsNull() {
         regData(CK_ISN, DOBJ);
     }
 
     /**
-     * IsNotNull(is not null). And OnlyOnceRegistered.
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br />
+     * DATA: {BLOB(4000)}
      */
     public void setData_IsNotNull() {
         regData(CK_ISNN, DOBJ);
@@ -423,7 +500,8 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as equal.
+     *            The value of encoding as equal. (NullAllowed: if null (or
+     *            empty), no condition)
      */
     public void setEncoding_Equal(final String encoding) {
         doSetEncoding_Equal(fRES(encoding));
@@ -434,10 +512,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as notEqual.
+     *            The value of encoding as notEqual. (NullAllowed: if null (or
+     *            empty), no condition)
      */
     public void setEncoding_NotEqual(final String encoding) {
         doSetEncoding_NotEqual(fRES(encoding));
@@ -448,51 +528,61 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as greaterThan.
+     *            The value of encoding as greaterThan. (NullAllowed: if null
+     *            (or empty), no condition)
      */
     public void setEncoding_GreaterThan(final String encoding) {
         regEncoding(CK_GT, fRES(encoding));
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as lessThan.
+     *            The value of encoding as lessThan. (NullAllowed: if null (or
+     *            empty), no condition)
      */
     public void setEncoding_LessThan(final String encoding) {
         regEncoding(CK_LT, fRES(encoding));
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as greaterEqual.
+     *            The value of encoding as greaterEqual. (NullAllowed: if null
+     *            (or empty), no condition)
      */
     public void setEncoding_GreaterEqual(final String encoding) {
         regEncoding(CK_GE, fRES(encoding));
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered.
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as lessEqual.
+     *            The value of encoding as lessEqual. (NullAllowed: if null (or
+     *            empty), no condition)
      */
     public void setEncoding_LessEqual(final String encoding) {
         regEncoding(CK_LE, fRES(encoding));
     }
 
     /**
-     * InScope(in ('a', 'b')). And NullOrEmptyIgnored,
-     * NullOrEmptyElementIgnored, SeveralRegistered.
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored,
+     * NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encodingList
-     *            The collection of encoding as inScope.
+     *            The collection of encoding as inScope. (NullAllowed: if null
+     *            (or empty), no condition)
      */
     public void setEncoding_InScope(final Collection<String> encodingList) {
         doSetEncoding_InScope(encodingList);
@@ -503,11 +593,13 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * NotInScope(not in ('a', 'b')). And NullOrEmptyIgnored,
-     * NullOrEmptyElementIgnored, SeveralRegistered.
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored,
+     * NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encodingList
-     *            The collection of encoding as notInScope.
+     *            The collection of encoding as notInScope. (NullAllowed: if
+     *            null (or empty), no condition)
      */
     public void setEncoding_NotInScope(final Collection<String> encodingList) {
         doSetEncoding_NotInScope(encodingList);
@@ -518,22 +610,28 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * PrefixSearch(like 'xxx%' escape ...). And NullOrEmptyIgnored,
-     * SeveralRegistered.
+     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored,
+     * SeveralRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as prefixSearch.
+     *            The value of encoding as prefixSearch. (NullAllowed: if null
+     *            (or empty), no condition)
      */
     public void setEncoding_PrefixSearch(final String encoding) {
         setEncoding_LikeSearch(encoding, cLSOP());
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered.
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}.
+     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR2(20)} <br />
+     * 
+     * <pre>e.g. setEncoding_LikeSearch("xxx", new <span style="color: #FD4747">LikeSearchOption</span>().likeContain());</pre>
      * 
      * @param encoding
-     *            The value of encoding as likeSearch.
+     *            The value of encoding as likeSearch. (NullAllowed: if null (or
+     *            empty), no condition)
      * @param likeSearchOption
      *            The option of like-search. (NotNull)
      */
@@ -550,10 +648,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
     /**
      * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape
      * ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered.
+     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      * 
      * @param encoding
-     *            The value of encoding as notLikeSearch.
+     *            The value of encoding as notLikeSearch. (NullAllowed: if null
+     *            (or empty), no condition)
      * @param likeSearchOption
      *            The option of not-like-search. (NotNull)
      */
@@ -568,14 +668,24 @@ public abstract class AbstractBsAccessResultDataCQ extends
     }
 
     /**
-     * IsNull(is null). And OnlyOnceRegistered.
+     * IsNull {is null}. And OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      */
     public void setEncoding_IsNull() {
         regEncoding(CK_ISN, DOBJ);
     }
 
     /**
-     * IsNotNull(is not null). And OnlyOnceRegistered.
+     * IsNullOrEmpty {is null or empty}. And OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
+     */
+    public void setEncoding_IsNullOrEmpty() {
+        regEncoding(CK_ISNOE, DOBJ);
+    }
+
+    /**
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR2(20)}
      */
     public void setEncoding_IsNotNull() {
         regEncoding(CK_ISNN, DOBJ);
@@ -588,8 +698,8 @@ public abstract class AbstractBsAccessResultDataCQ extends
     abstract protected ConditionValue getCValueEncoding();
 
     // ===================================================================================
-    // Scalar Condition
-    // ================
+    // ScalarCondition
+    // ===============
     /**
      * Prepare ScalarCondition as equal. <br />
      * {where FOO = (select max(BAR) from ...)
@@ -708,36 +818,157 @@ public abstract class AbstractBsAccessResultDataCQ extends
             final String operand) {
         return new HpSSQFunction<AccessResultDataCB>(
             new HpSSQSetupper<AccessResultDataCB>() {
+                @Override
                 public void setup(final String function,
-                        final SubQuery<AccessResultDataCB> subQuery) {
-                    xscalarCondition(function, subQuery, operand);
+                        final SubQuery<AccessResultDataCB> subQuery,
+                        final HpSSQOption<AccessResultDataCB> option) {
+                    xscalarCondition(function, subQuery, operand, option);
                 }
             });
     }
 
     protected void xscalarCondition(final String function,
-            final SubQuery<AccessResultDataCB> subQuery, final String operand) {
+            final SubQuery<AccessResultDataCB> subQuery, final String operand,
+            final HpSSQOption<AccessResultDataCB> option) {
         assertObjectNotNull("subQuery<AccessResultDataCB>", subQuery);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForScalarCondition(this);
+        final AccessResultDataCB cb = xcreateScalarConditionCB();
         subQuery.query(cb);
         final String subQueryPropertyName = keepScalarCondition(cb.query()); // for
-                                                                       // saving
-                                                                       // query-value.
+                                                                             // saving
+                                                                             // query-value
+        option.setPartitionByCBean(xcreateScalarConditionPartitionByCB()); // for
+                                                                           // using
+                                                                           // partition-by
         registerScalarCondition(
             function,
             cb.query(),
             subQueryPropertyName,
-            operand);
+            operand,
+            option);
     }
 
     public abstract String keepScalarCondition(AccessResultDataCQ subQuery);
 
+    protected AccessResultDataCB xcreateScalarConditionCB() {
+        final AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForScalarCondition(this);
+        return cb;
+    }
+
+    protected AccessResultDataCB xcreateScalarConditionPartitionByCB() {
+        final AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForScalarConditionPartitionBy(this);
+        return cb;
+    }
+
     // ===================================================================================
-    // Myself InScope
-    // ==============
+    // MyselfDerived
+    // =============
+    public void xsmyselfDerive(final String function,
+            final SubQuery<AccessResultDataCB> subQuery,
+            final String aliasName, final DerivedReferrerOption option) {
+        assertObjectNotNull("subQuery<AccessResultDataCB>", subQuery);
+        final AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForDerivedReferrer(this);
+        subQuery.query(cb);
+        final String subQueryPropertyName =
+            keepSpecifyMyselfDerived(cb.query()); // for saving query-value.
+        registerSpecifyMyselfDerived(
+            function,
+            cb.query(),
+            "ID",
+            "ID",
+            subQueryPropertyName,
+            "myselfDerived",
+            aliasName,
+            option);
+    }
+
+    public abstract String keepSpecifyMyselfDerived(AccessResultDataCQ subQuery);
+
     /**
-     * Myself InScope (SubQuery). {mainly for CLOB and Union}
+     * Prepare for (Query)MyselfDerived (SubQuery).
+     * 
+     * @return The object to set up a function for myself table. (NotNull)
+     */
+    public HpQDRFunction<AccessResultDataCB> myselfDerived() {
+        return xcreateQDRFunctionMyselfDerived();
+    }
+
+    protected HpQDRFunction<AccessResultDataCB> xcreateQDRFunctionMyselfDerived() {
+        return new HpQDRFunction<AccessResultDataCB>(
+            new HpQDRSetupper<AccessResultDataCB>() {
+                @Override
+                public void setup(final String function,
+                        final SubQuery<AccessResultDataCB> subQuery,
+                        final String operand, final Object value,
+                        final DerivedReferrerOption option) {
+                    xqderiveMyselfDerived(
+                        function,
+                        subQuery,
+                        operand,
+                        value,
+                        option);
+                }
+            });
+    }
+
+    public void xqderiveMyselfDerived(final String function,
+            final SubQuery<AccessResultDataCB> subQuery, final String operand,
+            final Object value, final DerivedReferrerOption option) {
+        assertObjectNotNull("subQuery<AccessResultDataCB>", subQuery);
+        final AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForDerivedReferrer(this);
+        subQuery.query(cb);
+        final String subQueryPropertyName = keepQueryMyselfDerived(cb.query()); // for
+                                                                                // saving
+                                                                                // query-value.
+        final String parameterPropertyName =
+            keepQueryMyselfDerivedParameter(value);
+        registerQueryMyselfDerived(
+            function,
+            cb.query(),
+            "ID",
+            "ID",
+            subQueryPropertyName,
+            "myselfDerived",
+            operand,
+            value,
+            parameterPropertyName,
+            option);
+    }
+
+    public abstract String keepQueryMyselfDerived(AccessResultDataCQ subQuery);
+
+    public abstract String keepQueryMyselfDerivedParameter(Object parameterValue);
+
+    // ===================================================================================
+    // MyselfExists
+    // ============
+    /**
+     * Prepare for MyselfExists (SubQuery).
+     * 
+     * @param subQuery
+     *            The implementation of sub query. (NotNull)
+     */
+    public void myselfExists(final SubQuery<AccessResultDataCB> subQuery) {
+        assertObjectNotNull("subQuery<AccessResultDataCB>", subQuery);
+        final AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForMyselfExists(this);
+        subQuery.query(cb);
+        final String subQueryPropertyName = keepMyselfExists(cb.query()); // for
+                                                                          // saving
+                                                                          // query-value.
+        registerMyselfExists(cb.query(), subQueryPropertyName);
+    }
+
+    public abstract String keepMyselfExists(AccessResultDataCQ subQuery);
+
+    // ===================================================================================
+    // MyselfInScope
+    // =============
+    /**
+     * Prepare for MyselfInScope (SubQuery).
      * 
      * @param subQuery
      *            The implementation of sub query. (NotNull)
@@ -745,15 +976,15 @@ public abstract class AbstractBsAccessResultDataCQ extends
     public void myselfInScope(final SubQuery<AccessResultDataCB> subQuery) {
         assertObjectNotNull("subQuery<AccessResultDataCB>", subQuery);
         final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForInScopeRelation(this);
+        cb.xsetupForMyselfInScope(this);
         subQuery.query(cb);
-        final String subQueryPropertyName = keepMyselfInScopeRelation(cb.query()); // for
-                                                                             // saving
-                                                                             // query-value.
-        registerInScopeRelation(cb.query(), "ID", "ID", subQueryPropertyName);
+        final String subQueryPropertyName = keepMyselfInScope(cb.query()); // for
+                                                                           // saving
+                                                                           // query-value.
+        registerMyselfInScope(cb.query(), subQueryPropertyName);
     }
 
-    public abstract String keepMyselfInScopeRelation(AccessResultDataCQ subQuery);
+    public abstract String keepMyselfInScope(AccessResultDataCQ subQuery);
 
     // ===================================================================================
     // Very Internal

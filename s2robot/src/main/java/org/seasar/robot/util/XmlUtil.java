@@ -65,10 +65,8 @@ public class XmlUtil {
         char c;
         for (int i = 0; i < in.length(); i++) {
             c = in.charAt(i);
-            if ((c == 0x9) || (c == 0xA) || (c == 0xD)
-                || ((c >= 0x20) && (c <= 0xD7FF))
-                || ((c >= 0xE000) && (c <= 0xFFFD))
-                || ((c >= 0x10000) && (c <= 0x10FFFF))) {
+            if (c == 0x9 || c == 0xA || c == 0xD || c >= 0x20 && c <= 0xD7FF
+                || c >= 0xE000 && c <= 0xFFFD || c >= 0x10000 && c <= 0x10FFFF) {
                 buf.append(c);
             }
         }
@@ -97,7 +95,7 @@ public class XmlUtil {
             parser.parse(is, handler);
 
             return handler.getDataMap();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(
                 "Could not create a data map from XML content.",
                 e);
@@ -105,16 +103,19 @@ public class XmlUtil {
     }
 
     private static class DocHandler extends DefaultHandler {
-        private Map<String, Object> dataMap = new HashMap<String, Object>();
+        private final Map<String, Object> dataMap =
+            new HashMap<String, Object>();
 
         private String fieldName;
 
-        private StringBuilder buffer = new StringBuilder(1000);
+        private final StringBuilder buffer = new StringBuilder(1000);
 
+        @Override
         public void startDocument() {
             dataMap.clear();
         }
 
+        @Override
         public void startElement(final String uri, final String localName,
                 final String qName, final Attributes attributes) {
             if ("field".equals(qName)) {
@@ -132,16 +133,18 @@ public class XmlUtil {
             }
         }
 
+        @Override
         public void characters(final char[] ch, final int offset,
                 final int length) {
             buffer.append(new String(ch, offset, length));
         }
 
+        @Override
         public void endElement(final String uri, final String localName,
                 final String qName) {
             if ("field".equals(qName)) {
                 if (fieldName != null) {
-                    Object obj = dataMap.get(fieldName);
+                    final Object obj = dataMap.get(fieldName);
                     if (obj == null) {
                         dataMap.put(fieldName, buffer.toString());
                     }
@@ -151,15 +154,16 @@ public class XmlUtil {
                 // nothing
             } else if ("item".equals(qName)) {
                 if (fieldName != null) {
-                    Object obj = dataMap.get(fieldName);
+                    final Object obj = dataMap.get(fieldName);
                     if (obj instanceof List) {
-                        List<String> list = (List<String>) obj;
+                        final List<String> list = (List<String>) obj;
                         list.add(buffer.toString());
                     }
                 }
             }
         }
 
+        @Override
         public void endDocument() {
             // nothing
         }

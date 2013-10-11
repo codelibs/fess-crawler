@@ -41,7 +41,7 @@ public class UrlFilterImplTest extends S2TestCase {
         assertEquals(1, urlFilter.cachedIncludeList.size());
         assertEquals(0, urlFilter.cachedExcludeList.size());
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
         assertEquals(0, urlFilter.cachedIncludeList.size());
         assertEquals(0, urlFilter.cachedExcludeList.size());
@@ -58,7 +58,7 @@ public class UrlFilterImplTest extends S2TestCase {
         assertEquals(0, urlFilter.cachedIncludeList.size());
         assertEquals(0, urlFilter.cachedExcludeList.size());
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
         assertEquals(0, urlFilter.cachedIncludeList.size());
         assertEquals(0, urlFilter.cachedExcludeList.size());
@@ -75,7 +75,7 @@ public class UrlFilterImplTest extends S2TestCase {
         assertEquals(0, urlFilter.cachedIncludeList.size());
         assertEquals(1, urlFilter.cachedExcludeList.size());
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
         assertEquals(0, urlFilter.cachedIncludeList.size());
         assertEquals(0, urlFilter.cachedExcludeList.size());
@@ -92,7 +92,7 @@ public class UrlFilterImplTest extends S2TestCase {
         assertEquals(0, urlFilter.cachedIncludeList.size());
         assertEquals(0, urlFilter.cachedExcludeList.size());
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
         assertEquals(0, urlFilter.cachedIncludeList.size());
         assertEquals(0, urlFilter.cachedExcludeList.size());
@@ -103,7 +103,7 @@ public class UrlFilterImplTest extends S2TestCase {
     public void test_match_include_case1() {
         urlFilter.addInclude("http://example.com/.*");
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
 
         assertTrue(urlFilter.match("http://example.com/"));
@@ -117,7 +117,7 @@ public class UrlFilterImplTest extends S2TestCase {
         urlFilter.addInclude("http://example.com/.*");
         urlFilter.addInclude("http://test.com/.*");
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
 
         assertTrue(urlFilter.match("http://example.com/"));
@@ -129,7 +129,7 @@ public class UrlFilterImplTest extends S2TestCase {
     public void test_match_exclude_case1() {
         urlFilter.addExclude("http://example.com/.*");
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
 
         assertFalse(urlFilter.match("http://example.com/"));
@@ -143,7 +143,7 @@ public class UrlFilterImplTest extends S2TestCase {
         urlFilter.addExclude("http://example.com/.*");
         urlFilter.addExclude("http://test.com/.*");
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
 
         assertFalse(urlFilter.match("http://example.com/"));
@@ -156,7 +156,7 @@ public class UrlFilterImplTest extends S2TestCase {
         urlFilter.addInclude("http://example.com/.*");
         urlFilter.addExclude("http://example.com/a.*");
 
-        String sessionId = "id1";
+        final String sessionId = "id1";
         urlFilter.init(sessionId);
 
         assertTrue(urlFilter.match("http://example.com/"));

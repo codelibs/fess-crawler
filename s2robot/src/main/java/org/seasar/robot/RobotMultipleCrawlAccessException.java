@@ -32,7 +32,7 @@ public class RobotMultipleCrawlAccessException extends
     /**
      * @param message
      */
-    public RobotMultipleCrawlAccessException(String message,
+    public RobotMultipleCrawlAccessException(final String message,
             final Throwable[] throwables) {
         super(message);
         if (throwables == null) {

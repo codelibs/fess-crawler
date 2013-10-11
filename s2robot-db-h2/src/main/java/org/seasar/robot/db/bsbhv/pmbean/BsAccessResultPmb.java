@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,37 +15,35 @@
  */
 package org.seasar.robot.db.bsbhv.pmbean;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 
+import org.seasar.dbflute.jdbc.FetchBean;
+import org.seasar.dbflute.jdbc.ParameterUtil;
+import org.seasar.dbflute.jdbc.ParameterUtil.ShortCharHandlingMode;
+import org.seasar.dbflute.outsidesql.typed.CursorHandlingPmb;
+import org.seasar.dbflute.util.DfCollectionUtil;
+import org.seasar.dbflute.util.DfTypeUtil;
 import org.seasar.robot.db.allcommon.DBFluteConfig;
-import org.seasar.robot.dbflute.jdbc.FetchBean;
-import org.seasar.robot.dbflute.jdbc.ParameterUtil;
-import org.seasar.robot.dbflute.jdbc.ParameterUtil.ShortCharHandlingMode;
-import org.seasar.robot.dbflute.twowaysql.pmbean.ParameterBean;
-import org.seasar.robot.dbflute.util.DfTypeUtil;
+import org.seasar.robot.db.exbhv.AccessResultBhv;
 
 /**
- * The parameter-bean of AccessResultPmb.
+ * The base class for typed parameter-bean of AccessResult. <br />
+ * This is related to "<span style="color: #AD4747">selectListByUrlDiff</span>"
+ * on AccessResultBhv.
  * 
  * @author DBFlute(AutoGenerator)
  */
-public class BsAccessResultPmb implements ParameterBean, FetchBean,
-        Serializable {
-
-    // ===================================================================================
-    // Definition
-    // ==========
-    /** Serial version UID. (Default) */
-    private static final long serialVersionUID = 1L;
+public class BsAccessResultPmb implements
+        CursorHandlingPmb<AccessResultBhv, Void>, FetchBean {
 
     // ===================================================================================
     // Attribute
     // =========
-    /** newSessionId */
+    /** The parameter of newSessionId. */
     protected String _newSessionId;
 
-    /** oldSessionId */
+    /** The parameter of oldSessionId. */
     protected String _oldSessionId;
 
     /** The max size of safety result. */
@@ -54,7 +52,33 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     // ===================================================================================
     // Constructor
     // ===========
+    /**
+     * Constructor for the typed parameter-bean of AccessResult. <br />
+     * This is related to "<span style="color:
+     * #AD4747">selectListByUrlDiff</span>" on AccessResultBhv.
+     */
     public BsAccessResultPmb() {
+    }
+
+    // ===================================================================================
+    // Typed Implementation
+    // ====================
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getOutsideSqlPath() {
+        return "selectListByUrlDiff";
+    }
+
+    /**
+     * Get the type of an entity for result. (implementation)
+     * 
+     * @return The type instance of an entity, cursor handling. (NotNull)
+     */
+    @Override
+    public Class<Void> getEntityType() {
+        return Void.class;
     }
 
     // ===================================================================================
@@ -63,6 +87,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     /**
      * {@inheritDoc}
      */
+    @Override
     public void checkSafetyResult(final int safetyMaxResultSize) {
         _safetyMaxResultSize = safetyMaxResultSize;
     }
@@ -70,6 +95,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     /**
      * {@inheritDoc}
      */
+    @Override
     public int getSafetyMaxResultSize() {
         return _safetyMaxResultSize;
     }
@@ -102,6 +128,14 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     protected ShortCharHandlingMode getShortCharHandlingMode(
             final String propertyName, final String value, final Integer size) {
         return ShortCharHandlingMode.NONE;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <ELEMENT> ArrayList<ELEMENT> newArrayList(
+            final ELEMENT... elements) {
+        final Object obj = DfCollectionUtil.newArrayList(elements);
+        return (ArrayList<ELEMENT>) obj; // to avoid the warning between JDK6
+                                         // and JDK7
     }
 
     @SuppressWarnings("unchecked")
@@ -158,7 +192,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     // Accessor
     // ========
     /**
-     * [get] newSessionId
+     * [get] newSessionId <br />
      * 
      * @return The value of newSessionId. (Nullable, NotEmptyString(when
      *         String): if empty string, returns null)
@@ -168,7 +202,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     }
 
     /**
-     * [set] newSessionId
+     * [set] newSessionId <br />
      * 
      * @param newSessionId
      *            The value of newSessionId. (NullAllowed)
@@ -178,7 +212,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     }
 
     /**
-     * [get] oldSessionId
+     * [get] oldSessionId <br />
      * 
      * @return The value of oldSessionId. (Nullable, NotEmptyString(when
      *         String): if empty string, returns null)
@@ -188,7 +222,7 @@ public class BsAccessResultPmb implements ParameterBean, FetchBean,
     }
 
     /**
-     * [set] oldSessionId
+     * [set] oldSessionId <br />
      * 
      * @param oldSessionId
      *            The value of oldSessionId. (NullAllowed)

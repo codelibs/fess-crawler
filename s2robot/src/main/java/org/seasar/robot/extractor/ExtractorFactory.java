@@ -45,7 +45,7 @@ public class ExtractorFactory {
         if (keyList == null || keyList.isEmpty()) {
             throw new RobotSystemException("The key list is empty.");
         }
-        for (String key : keyList) {
+        for (final String key : keyList) {
             addExtractor(key, extractor);
         }
     }

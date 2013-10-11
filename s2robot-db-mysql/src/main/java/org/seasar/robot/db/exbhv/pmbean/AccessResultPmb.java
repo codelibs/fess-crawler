@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,19 @@
  */
 package org.seasar.robot.db.exbhv.pmbean;
 
+import org.seasar.robot.db.bsbhv.pmbean.BsAccessResultPmb;
+
 /**
- * The parameter-bean of AccessResultPmb.
+ * <!-- df:beginClassDescription --> The typed parameter-bean of AccessResult.
+ * <span style="color: #AD4747">(typed to cursor)</span><br />
+ * This is related to "<span style="color: #AD4747">selectListByUrlDiff</span>"
+ * on AccessResultBhv. <!-- df:endClassDescription -->
  * <p>
- * You can implement your original methods here. This class is NOT overrided
- * when re-generating.
+ * You can implement your original methods here. This class remains when
+ * re-generating.
  * </p>
  * 
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultPmb extends
-        org.seasar.robot.db.bsbhv.pmbean.BsAccessResultPmb {
+public class AccessResultPmb extends BsAccessResultPmb {
 }

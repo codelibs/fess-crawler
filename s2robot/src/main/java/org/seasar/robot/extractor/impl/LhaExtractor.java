@@ -28,6 +28,7 @@ import jp.gr.java_conf.dangan.util.lha.LhaFile;
 import jp.gr.java_conf.dangan.util.lha.LhaHeader;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
@@ -56,6 +57,7 @@ public class LhaExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -90,10 +92,10 @@ public class LhaExtractor implements Extractor {
             }
 
             lhaFile = new LhaFile(tempFile);
-            Enumeration<LhaHeader> entries = lhaFile.entries();
+            final Enumeration<LhaHeader> entries = lhaFile.entries();
             while (entries.hasMoreElements()) {
-                LhaHeader head = entries.nextElement();
-                String filename = head.getPath();
+                final LhaHeader head = entries.nextElement();
+                final String filename = head.getPath();
                 final String mimeType =
                     mimeTypeHelper.getContentType(null, filename);
                 if (mimeType != null) {
@@ -105,12 +107,14 @@ public class LhaExtractor implements Extractor {
                             is = lhaFile.getInputStream(head);
                             final Map<String, String> map =
                                 new HashMap<String, String>();
-                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
+                            map.put(
+                                TikaMetadataKeys.RESOURCE_NAME_KEY,
+                                filename);
                             buf.append(extractor.getText(
                                 new IgnoreCloseInputStream(is),
                                 map).getContent());
                             buf.append('\n');
-                        } catch (Exception e) {
+                        } catch (final Exception e) {
                             if (logger.isDebugEnabled()) {
                                 logger.debug(
                                     "Exception in an internal extractor.",
@@ -122,13 +126,13 @@ public class LhaExtractor implements Extractor {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
             if (lhaFile != null) {
                 try {
                     lhaFile.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     // ignore
                 }
             }

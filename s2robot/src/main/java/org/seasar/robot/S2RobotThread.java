@@ -115,6 +115,7 @@ public class S2RobotThread implements Runnable {
      * 
      * @see java.lang.Runnable#run()
      */
+    @Override
     public void run() {
         log(logHelper, LogType.START_THREAD, robotContext);
         int threadCheckCount = 0;
@@ -204,7 +205,7 @@ public class S2RobotThread implements Runnable {
                             LogType.FINISHED_CRAWLING,
                             robotContext,
                             urlQueue);
-                    } catch (ChildUrlsException e) {
+                    } catch (final ChildUrlsException e) {
                         try {
                             final Set<String> childUrlSet = e.getChildUrlList();
                             log(
@@ -221,7 +222,7 @@ public class S2RobotThread implements Runnable {
                                     urlQueue.getDepth() == null ? 1 : urlQueue
                                         .getDepth() + 1);
                             }
-                        } catch (Exception e1) {
+                        } catch (final Exception e1) {
                             log(
                                 logHelper,
                                 LogType.CRAWLING_EXCETPION,
@@ -232,14 +233,14 @@ public class S2RobotThread implements Runnable {
                         if (noWaitOnFolder) {
                             continue;
                         }
-                    } catch (RobotCrawlAccessException e) {
+                    } catch (final RobotCrawlAccessException e) {
                         log(
                             logHelper,
                             LogType.CRAWLING_ACCESS_EXCEPTION,
                             robotContext,
                             urlQueue,
                             e);
-                    } catch (Throwable e) {
+                    } catch (final Throwable e) {
                         log(
                             logHelper,
                             LogType.CRAWLING_EXCETPION,
@@ -362,7 +363,7 @@ public class S2RobotThread implements Runnable {
             final String url, final int depth) {
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
-        for (String childUrl : childUrlList) {
+        for (final String childUrl : childUrlList) {
             if (robotContext.urlFilter.match(childUrl)) {
                 final UrlQueue uq =
                     (UrlQueue) container.getComponent(UrlQueue.class);
@@ -422,7 +423,7 @@ public class S2RobotThread implements Runnable {
         return noWaitOnFolder;
     }
 
-    public void setNoWaitOnFolder(boolean noWaitOnFolder) {
+    public void setNoWaitOnFolder(final boolean noWaitOnFolder) {
         this.noWaitOnFolder = noWaitOnFolder;
     }
 }

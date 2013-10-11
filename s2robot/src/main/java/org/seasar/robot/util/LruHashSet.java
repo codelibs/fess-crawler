@@ -28,7 +28,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
         java.io.Serializable {
     private static final long serialVersionUID = 1L;
 
-    private LruHashMap<E, Object> map;
+    private final LruHashMap<E, Object> map;
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
@@ -44,6 +44,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
      * @return an Iterator over the elements in this set.
      * @see ConcurrentModificationException
      */
+    @Override
     public Iterator<E> iterator() {
         return map.keySet().iterator();
     }
@@ -53,6 +54,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
      * 
      * @return the number of elements in this set (its cardinality).
      */
+    @Override
     public int size() {
         return map.size();
     }
@@ -62,6 +64,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
      * 
      * @return <tt>true</tt> if this set contains no elements.
      */
+    @Override
     public boolean isEmpty() {
         return map.isEmpty();
     }
@@ -73,6 +76,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
      *            element whose presence in this set is to be tested.
      * @return <tt>true</tt> if this set contains the specified element.
      */
+    @Override
     public boolean contains(final Object o) {
         return map.containsKey(o);
     }
@@ -85,6 +89,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
      * @return <tt>true</tt> if the set did not already contain the specified
      *         element.
      */
+    @Override
     public boolean add(final E o) {
         return map.put(o, PRESENT) == null;
     }
@@ -96,6 +101,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
      *            object to be removed from this set, if present.
      * @return <tt>true</tt> if the set contained the specified element.
      */
+    @Override
     public boolean remove(final Object o) {
         return map.remove(o) == PRESENT;
     }
@@ -103,6 +109,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
     /**
      * Removes all of the elements from this set.
      */
+    @Override
     public void clear() {
         map.clear();
     }

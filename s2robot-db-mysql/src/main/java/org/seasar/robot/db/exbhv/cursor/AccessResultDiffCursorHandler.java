@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.seasar.robot.db.exbhv.cursor;
 
+import org.seasar.robot.db.bsbhv.cursor.BsAccessResultDiffCursorHandler;
+
 /**
  * The cursor handler of AccessResultDiff.
  * <p>
@@ -25,5 +27,5 @@ package org.seasar.robot.db.exbhv.cursor;
  * @author DBFlute(AutoGenerator)
  */
 public abstract class AccessResultDiffCursorHandler extends
-        org.seasar.robot.db.bsbhv.cursor.BsAccessResultDiffCursorHandler {
+        BsAccessResultDiffCursorHandler {
 }

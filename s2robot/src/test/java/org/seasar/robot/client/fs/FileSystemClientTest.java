@@ -39,7 +39,7 @@ public class FileSystemClientTest extends S2TestCase {
     }
 
     public void test_doGet_dir() {
-        File file = ResourceUtil.getResourceAsFile("test");
+        final File file = ResourceUtil.getResourceAsFile("test");
         String path = file.getAbsolutePath();
         if (!path.startsWith("/")) {
             path = "/" + path.replace('\\', '/');
@@ -47,9 +47,9 @@ public class FileSystemClientTest extends S2TestCase {
         try {
             fsClient.doGet("file://" + path);
             fail();
-        } catch (ChildUrlsException e) {
-            Set<String> urlSet = e.getChildUrlList();
-            for (String url : urlSet.toArray(new String[urlSet.size()])) {
+        } catch (final ChildUrlsException e) {
+            final Set<String> urlSet = e.getChildUrlList();
+            for (final String url : urlSet.toArray(new String[urlSet.size()])) {
                 if (url.indexOf(".svn") < 0) {
                     assertTrue(url.contains("test/dir1")
                         || url.contains("test/dir2")
@@ -63,12 +63,12 @@ public class FileSystemClientTest extends S2TestCase {
     }
 
     public void test_doGet_file() throws Exception {
-        File file = ResourceUtil.getResourceAsFile("test/text1.txt");
+        final File file = ResourceUtil.getResourceAsFile("test/text1.txt");
         String path = file.getAbsolutePath();
         if (!path.startsWith("/")) {
             path = "/" + path.replace('\\', '/');
         }
-        ResponseData responseData = fsClient.doGet("file:" + path);
+        final ResponseData responseData = fsClient.doGet("file:" + path);
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
         assertTrue(6 == responseData.getContentLength()
@@ -77,7 +77,7 @@ public class FileSystemClientTest extends S2TestCase {
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
         assertTrue(responseData.getUrl().endsWith("test/text1.txt"));
-        String content =
+        final String content =
             new String(
                 InputStreamUtil.getBytes(responseData.getResponseBody()),
                 "UTF-8");
@@ -85,12 +85,12 @@ public class FileSystemClientTest extends S2TestCase {
     }
 
     public void test_doGet_file_with_space() throws Exception {
-        File file = ResourceUtil.getResourceAsFile("test/text 3.txt");
+        final File file = ResourceUtil.getResourceAsFile("test/text 3.txt");
         String path = file.getAbsolutePath();
         if (!path.startsWith("/")) {
             path = "/" + path.replace('\\', '/');
         }
-        ResponseData responseData = fsClient.doGet(path);
+        final ResponseData responseData = fsClient.doGet(path);
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
         assertEquals(6, responseData.getContentLength());
@@ -98,7 +98,7 @@ public class FileSystemClientTest extends S2TestCase {
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
         assertTrue(responseData.getUrl().endsWith("test/text%203.txt"));
-        String content =
+        final String content =
             new String(
                 InputStreamUtil.getBytes(responseData.getResponseBody()),
                 "UTF-8");
@@ -134,22 +134,22 @@ public class FileSystemClientTest extends S2TestCase {
         try {
             fsClient.preprocessUri(null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
         }
         try {
             fsClient.preprocessUri("");
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
         }
     }
 
     public void test_doHead_file() throws Exception {
-        File file = ResourceUtil.getResourceAsFile("test/text1.txt");
+        final File file = ResourceUtil.getResourceAsFile("test/text1.txt");
         String path = file.getAbsolutePath();
         if (!path.startsWith("/")) {
             path = "/" + path.replace('\\', '/');
         }
-        ResponseData responseData = fsClient.doHead("file:" + path);
+        final ResponseData responseData = fsClient.doHead("file:" + path);
         assertNotNull(responseData.getLastModified());
         assertTrue(responseData.getLastModified().getTime() < new Date()
             .getTime());
@@ -157,12 +157,12 @@ public class FileSystemClientTest extends S2TestCase {
     }
 
     public void test_doHead_dir() throws Exception {
-        File file = ResourceUtil.getResourceAsFile("test");
+        final File file = ResourceUtil.getResourceAsFile("test");
         String path = file.getAbsolutePath();
         if (!path.startsWith("/")) {
             path = "/" + path.replace('\\', '/');
         }
-        ResponseData responseData = fsClient.doHead("file:" + path);
+        final ResponseData responseData = fsClient.doHead("file:" + path);
         assertNull(responseData);
     }
 }

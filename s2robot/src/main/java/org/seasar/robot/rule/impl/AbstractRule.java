@@ -31,8 +31,10 @@ public abstract class AbstractRule implements Rule {
 
     protected ResponseProcessor responseProcessor;
 
+    @Override
     public abstract boolean match(ResponseData responseData);
 
+    @Override
     public String getRuleId() {
         return ruleId;
     }
@@ -41,6 +43,7 @@ public abstract class AbstractRule implements Rule {
         this.ruleId = ruleId;
     }
 
+    @Override
     public ResponseProcessor getResponseProcessor() {
         return responseProcessor;
     }

@@ -36,6 +36,7 @@ public class MsPowerPointExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -45,7 +46,7 @@ public class MsPowerPointExtractor implements Extractor {
             return new ExtractData(
                 new org.apache.poi.hslf.extractor.PowerPointExtractor(in)
                     .getText());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ExtractException(e);
         }
     }

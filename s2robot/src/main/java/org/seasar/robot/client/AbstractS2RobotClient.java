@@ -38,7 +38,7 @@ public abstract class AbstractS2RobotClient implements S2RobotClient {
                 if (value != null) {
                     return value;
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.warn("Could not load init parameters: " + key + " from "
                     + initParamMap, e);
             }
@@ -46,8 +46,9 @@ public abstract class AbstractS2RobotClient implements S2RobotClient {
         return defaultValue;
     }
 
+    @Override
     public void setInitParameterMap(final Map<String, Object> params) {
-        this.initParamMap = params;
+        initParamMap = params;
     }
 
 }

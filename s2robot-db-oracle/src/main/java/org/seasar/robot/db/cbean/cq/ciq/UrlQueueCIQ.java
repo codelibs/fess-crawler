@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,18 @@
  */
 package org.seasar.robot.db.cbean.cq.ciq;
 
+import java.util.Map;
+
+import org.seasar.dbflute.cbean.ConditionQuery;
+import org.seasar.dbflute.cbean.ckey.ConditionKey;
+import org.seasar.dbflute.cbean.coption.ConditionOption;
+import org.seasar.dbflute.cbean.cvalue.ConditionValue;
+import org.seasar.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
 import org.seasar.robot.db.cbean.UrlQueueCB;
 import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
 import org.seasar.robot.db.cbean.cq.bs.AbstractBsUrlQueueCQ;
 import org.seasar.robot.db.cbean.cq.bs.BsUrlQueueCQ;
-import org.seasar.robot.dbflute.cbean.ConditionQuery;
-import org.seasar.robot.dbflute.cbean.ckey.ConditionKey;
-import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
-import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
  * The condition-query for in-line of URL_QUEUE.
@@ -41,8 +43,9 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     // ===================================================================================
     // Constructor
     // ===========
-    public UrlQueueCIQ(final ConditionQuery childQuery, final SqlClause sqlClause,
-            final String aliasName, final int nestLevel, final BsUrlQueueCQ myCQ) {
+    public UrlQueueCIQ(final ConditionQuery childQuery,
+            final SqlClause sqlClause, final String aliasName,
+            final int nestLevel, final BsUrlQueueCQ myCQ) {
         super(childQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
         _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept
@@ -64,14 +67,16 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(final ConditionKey k,
-            final Object v, final ConditionValue cv, final String col) {
+    protected void setupConditionValueAndRegisterWhereClause(
+            final ConditionKey k, final Object v, final ConditionValue cv,
+            final String col) {
         regIQ(k, v, cv, col);
     }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(final ConditionKey k,
-            final Object v, final ConditionValue cv, final String col, final ConditionOption op) {
+    protected void setupConditionValueAndRegisterWhereClause(
+            final ConditionKey k, final Object v, final ConditionValue cv,
+            final String col, final ConditionOption op) {
         regIQ(k, v, cv, col, op);
     }
 
@@ -133,14 +138,44 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
+    protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
+            final String property) {
+        return null;
+    }
+
+    @Override
     public String keepScalarCondition(final UrlQueueCQ subQuery) {
         throwIICBOE("ScalarCondition");
         return null;
     }
 
     @Override
-    public String keepMyselfInScopeRelation(final UrlQueueCQ subQuery) {
-        throwIICBOE("MyselfInScopeRelation");
+    public String keepSpecifyMyselfDerived(final UrlQueueCQ subQuery) {
+        throwIICBOE("(Specify)MyselfDerived");
+        return null;
+    }
+
+    @Override
+    public String keepQueryMyselfDerived(final UrlQueueCQ subQuery) {
+        throwIICBOE("(Query)MyselfDerived");
+        return null;
+    }
+
+    @Override
+    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
+        throwIICBOE("(Query)MyselfDerived");
+        return null;
+    }
+
+    @Override
+    public String keepMyselfExists(final UrlQueueCQ subQuery) {
+        throwIICBOE("MyselfExists");
+        return null;
+    }
+
+    @Override
+    public String keepMyselfInScope(final UrlQueueCQ subQuery) {
+        throwIICBOE("MyselfInScope");
         return null;
     }
 

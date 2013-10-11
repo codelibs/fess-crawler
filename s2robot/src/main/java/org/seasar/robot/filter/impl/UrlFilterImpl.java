@@ -55,10 +55,11 @@ public class UrlFilterImpl implements UrlFilter {
      * 
      * @see org.seasar.robot.filter.UrlFilter#addExclude(java.lang.String)
      */
+    @Override
     public void addExclude(final String urlPattern) {
         try {
             Pattern.compile(urlPattern);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Invalid exclude pattern: " + urlPattern);
             }
@@ -76,10 +77,11 @@ public class UrlFilterImpl implements UrlFilter {
      * 
      * @see org.seasar.robot.filter.UrlFilter#addInclude(java.lang.String)
      */
+    @Override
     public void addInclude(final String urlPattern) {
         try {
             Pattern.compile(urlPattern);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Invalid include pattern: " + urlPattern);
             }
@@ -97,6 +99,7 @@ public class UrlFilterImpl implements UrlFilter {
      * 
      * @see org.seasar.robot.filter.UrlFilter#clear()
      */
+    @Override
     public void clear() {
         cachedIncludeList.clear();
         cachedExcludeList.clear();
@@ -110,6 +113,7 @@ public class UrlFilterImpl implements UrlFilter {
      * 
      * @see org.seasar.robot.filter.UrlFilter#init(java.lang.String)
      */
+    @Override
     public void init(final String sessionId) {
         this.sessionId = sessionId;
         if (!cachedIncludeList.isEmpty()) {
@@ -131,6 +135,7 @@ public class UrlFilterImpl implements UrlFilter {
      * 
      * @see org.seasar.robot.filter.UrlFilter#match(java.lang.String)
      */
+    @Override
     public boolean match(final String url) {
         final List<Pattern> includeList =
             getUrlFilterService().getIncludeUrlPatternList(sessionId);
@@ -139,7 +144,7 @@ public class UrlFilterImpl implements UrlFilter {
 
         if (!includeList.isEmpty()) {
             boolean match = false;
-            for (Pattern pattern : includeList) {
+            for (final Pattern pattern : includeList) {
                 final Matcher matcher = pattern.matcher(url);
                 if (matcher.matches()) {
                     match = true;
@@ -152,7 +157,7 @@ public class UrlFilterImpl implements UrlFilter {
 
         if (!excludeList.isEmpty()) {
             boolean match = false;
-            for (Pattern pattern : excludeList) {
+            for (final Pattern pattern : excludeList) {
                 final Matcher matcher = pattern.matcher(url);
                 if (matcher.matches()) {
                     match = true;
@@ -171,6 +176,7 @@ public class UrlFilterImpl implements UrlFilter {
      * 
      * @see org.seasar.robot.filter.UrlFilter#processUrl(java.lang.String)
      */
+    @Override
     public void processUrl(final String url) {
         if (includeFilteringPattern != null) {
             addInclude(url.replaceAll(urlPattern, includeFilteringPattern));

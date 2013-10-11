@@ -42,8 +42,9 @@ public class RuleManagerImpl implements RuleManager {
      * @seeorg.seasar.robot.rule.RuleManager#getRule(org.seasar.robot.entity.
      * ResponseData)
      */
+    @Override
     public Rule getRule(final ResponseData responseData) {
-        for (Rule rule : ruleList) {
+        for (final Rule rule : ruleList) {
             if (rule.match(responseData)) {
                 return rule;
             }
@@ -57,6 +58,7 @@ public class RuleManagerImpl implements RuleManager {
      * @see
      * org.seasar.robot.rule.RuleManager#addRule(org.seasar.robot.rule.Rule)
      */
+    @Override
     public void addRule(final Rule rule) {
         ruleList.add(rule);
     }
@@ -67,6 +69,7 @@ public class RuleManagerImpl implements RuleManager {
      * @see
      * org.seasar.robot.rule.RuleManager#hasRule(org.seasar.robot.rule.Rule)
      */
+    @Override
     public boolean hasRule(final Rule rule) {
         return ruleList.contains(rule);
     }
@@ -77,6 +80,7 @@ public class RuleManagerImpl implements RuleManager {
      * @see
      * org.seasar.robot.rule.RuleManager#removeRule(org.seasar.robot.rule.Rule)
      */
+    @Override
     public boolean removeRule(final Rule rule) {
         return ruleList.remove(rule);
     }

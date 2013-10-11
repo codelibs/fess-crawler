@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.db.bsentity.BsAccessResultData;
 
 /**
  * The entity of ACCESS_RESULT_DATA.
@@ -30,8 +31,7 @@ import org.seasar.robot.RobotSystemException;
  * 
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResultData extends
-        org.seasar.robot.db.bsentity.BsAccessResultData implements
+public class AccessResultData extends BsAccessResultData implements
         org.seasar.robot.entity.AccessResultData {
 
     /** Serial version UID. (Default) */
@@ -42,6 +42,7 @@ public class AccessResultData extends
      * 
      * @see org.seasar.robot.entity.AccessResultData#getDataAsString()
      */
+    @Override
     public String getDataAsString() {
         final byte[] data = getData();
         if (data == null) {

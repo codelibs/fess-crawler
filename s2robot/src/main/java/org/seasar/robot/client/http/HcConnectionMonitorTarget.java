@@ -30,13 +30,13 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
     private static final Logger logger = LoggerFactory // NOPMD
         .getLogger(HcConnectionMonitorTarget.class);
 
-    private ClientConnectionManager clientConnectionManager;
+    private final ClientConnectionManager clientConnectionManager;
 
-    private long idleConnectionTimeout;
+    private final long idleConnectionTimeout;
 
     public HcConnectionMonitorTarget(
-            ClientConnectionManager clientConnectionManager,
-            long idleConnectionTimeout) {
+            final ClientConnectionManager clientConnectionManager,
+            final long idleConnectionTimeout) {
         this.clientConnectionManager = clientConnectionManager;
         this.idleConnectionTimeout = idleConnectionTimeout;
     }
@@ -46,6 +46,7 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
      * 
      * @see org.seasar.extension.timer.TimeoutTarget#expired()
      */
+    @Override
     public void expired() {
         try {
             // Close expired connections
@@ -54,7 +55,7 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
             clientConnectionManager.closeIdleConnections(
                 idleConnectionTimeout,
                 TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.warn("A connection monitoring exception occurs.", e);
         }
     }

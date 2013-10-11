@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import org.seasar.framework.beans.util.Beans;
+import org.seasar.robot.db.bsentity.BsAccessResult;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 
@@ -31,12 +32,13 @@ import org.seasar.robot.entity.ResultData;
  * 
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResult extends org.seasar.robot.db.bsentity.BsAccessResult
-        implements org.seasar.robot.entity.AccessResult {
+public class AccessResult extends BsAccessResult implements
+        org.seasar.robot.entity.AccessResult {
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
+    @Override
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
@@ -54,6 +56,7 @@ public class AccessResult extends org.seasar.robot.db.bsentity.BsAccessResult
      * 
      * @see org.seasar.robot.entity.AccessResult#getAccessResultData()
      */
+    @Override
     public AccessResultData getAccessResultData() {
         return getAccessResultDataAsOne();
     }
@@ -65,9 +68,9 @@ public class AccessResult extends org.seasar.robot.db.bsentity.BsAccessResult
      * org.seasar.robot.entity.AccessResult#setAccessResultData(org.seasar.robot
      * .db.exentity.AccessResultData)
      */
+    @Override
     public void setAccessResultData(
             final org.seasar.robot.entity.AccessResultData accessResultData) {
         setAccessResultDataAsOne((AccessResultData) accessResultData);
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.seasar.robot.db.allcommon;
 
-import org.seasar.robot.dbflute.Entity;
+import org.seasar.dbflute.Entity;
 
 /**
  * The interface of entity defined common columns.
@@ -40,7 +40,7 @@ public interface EntityDefinedCommonColumn extends Entity {
     /**
      * Can the entity set up common column by auto? (basically for Framework)
      * 
-     * @return Determination.
+     * @return The determination, true or false.
      */
     boolean canCommonColumnAutoSetup();
 }

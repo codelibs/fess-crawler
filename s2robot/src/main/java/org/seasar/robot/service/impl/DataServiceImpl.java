@@ -48,6 +48,7 @@ public class DataServiceImpl implements DataService {
      * @see org.seasar.robot.service.DataService#store(org.seasar.robot.entity.
      * AccessResult)
      */
+    @Override
     public void store(final AccessResult accessResult) {
         if (accessResult == null) {
             throw new RobotSystemException("AccessResult is null.");
@@ -81,6 +82,7 @@ public class DataServiceImpl implements DataService {
      * 
      * @see org.seasar.robot.service.DataService#getCount(java.lang.String)
      */
+    @Override
     public int getCount(final String sessionId) {
         return dataHelper.getAccessResultMap(sessionId).size();
     }
@@ -90,6 +92,7 @@ public class DataServiceImpl implements DataService {
      * 
      * @see org.seasar.robot.service.DataService#delete(java.lang.String)
      */
+    @Override
     public void delete(final String sessionId) {
         dataHelper.deleteAccessResultMap(sessionId);
     }
@@ -99,6 +102,7 @@ public class DataServiceImpl implements DataService {
      * 
      * @see org.seasar.robot.service.DataService#deleteAll()
      */
+    @Override
     public void deleteAll() {
         dataHelper.clearUrlQueueList();
     }
@@ -110,6 +114,7 @@ public class DataServiceImpl implements DataService {
      * org.seasar.robot.service.DataService#getAccessResult(java.lang.String,
      * java.lang.String)
      */
+    @Override
     public AccessResult getAccessResult(final String sessionId, final String url) {
         return dataHelper.getAccessResultMap(sessionId).get(url);
     }
@@ -121,6 +126,7 @@ public class DataServiceImpl implements DataService {
      * org.seasar.robot.service.DataService#getAccessResultList(java.lang.String
      * , boolean)
      */
+    @Override
     public List<AccessResult> getAccessResultList(final String url,
             final boolean hasData) {
         return dataHelper.getAccessResultList(url);
@@ -132,11 +138,12 @@ public class DataServiceImpl implements DataService {
      * @see org.seasar.robot.service.DataService#iterate(java.lang.String,
      * org.seasar.robot.util.AccessResultCallback)
      */
+    @Override
     public void iterate(final String sessionId,
             final AccessResultCallback accessResultCallback) {
         final Map<String, AccessResult> arMap =
             dataHelper.getAccessResultMap(sessionId);
-        for (Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
+        for (final Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
             accessResultCallback.iterate(entry.getValue());
         }
     }
@@ -148,6 +155,7 @@ public class DataServiceImpl implements DataService {
      * org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String,
      * java.lang.String, org.seasar.robot.util.AccessResultCallback)
      */
+    @Override
     public void iterateUrlDiff(final String oldSessionId,
             final String newSessionId,
             final AccessResultCallback accessResultCallback) {
@@ -155,7 +163,7 @@ public class DataServiceImpl implements DataService {
             dataHelper.getAccessResultMap(oldSessionId);
         final Map<String, AccessResult> newAccessResultMap =
             dataHelper.getAccessResultMap(newSessionId);
-        for (Map.Entry<String, AccessResult> newEntry : newAccessResultMap
+        for (final Map.Entry<String, AccessResult> newEntry : newAccessResultMap
             .entrySet()) {
             if (!oldAccessResultMap.keySet().contains(newEntry.getKey())) {
                 accessResultCallback.iterate(newEntry.getValue());
@@ -169,6 +177,7 @@ public class DataServiceImpl implements DataService {
      * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.
      * AccessResult)
      */
+    @Override
     public void update(final AccessResult accessResult) {
         final Map<String, AccessResult> arMap =
             dataHelper.getAccessResultMap(accessResult.getSessionId());
@@ -184,8 +193,9 @@ public class DataServiceImpl implements DataService {
      * 
      * @see org.seasar.robot.service.DataService#update(java.util.List)
      */
+    @Override
     public void update(final List<AccessResult> accessResultList) {
-        for (AccessResult accessResult : accessResultList) {
+        for (final AccessResult accessResult : accessResultList) {
             update(accessResult);
         }
     }

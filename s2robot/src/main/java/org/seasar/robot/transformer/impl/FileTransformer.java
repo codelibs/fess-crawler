@@ -139,7 +139,7 @@ public class FileTransformer extends HtmlTransformer {
             try {
                 os = new FileOutputStream(file);
                 StreamUtil.drain(is, os);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new RobotSystemException("Could not store "
                     + file.getAbsolutePath(), e);
             } finally {
@@ -149,7 +149,7 @@ public class FileTransformer extends HtmlTransformer {
         }
         try {
             resultData.setData(path.getBytes(charsetName));
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new RobotCrawlAccessException("Invalid charsetName: "
                 + charsetName, e);
         }
@@ -217,10 +217,10 @@ public class FileTransformer extends HtmlTransformer {
         try {
             filePath =
                 new String(data, encoding == null ? Constants.UTF_8 : encoding);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             try {
                 filePath = new String(data, Constants.UTF_8);
-            } catch (UnsupportedEncodingException e1) {
+            } catch (final UnsupportedEncodingException e1) {
                 throw new RobotSystemException("Unexpected exception.", e1);
             }
         }

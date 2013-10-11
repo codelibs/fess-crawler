@@ -91,12 +91,12 @@ public class RobotsTxt {
         }
 
         public boolean allows(final String path) {
-            for (String allowedPath : allowedPaths) {
+            for (final String allowedPath : allowedPaths) {
                 if (path.startsWith(allowedPath)) {
                     return true;
                 }
             }
-            for (String disallowedPath : disallowedPaths) {
+            for (final String disallowedPath : disallowedPaths) {
                 if (path.startsWith(disallowedPath)) {
                     return false;
                 }
@@ -105,11 +105,11 @@ public class RobotsTxt {
         }
 
         public void addAllow(final String path) {
-            this.allowedPaths.add(path);
+            allowedPaths.add(path);
         }
 
         public void addDisallow(final String path) {
-            this.disallowedPaths.add(path);
+            disallowedPaths.add(path);
         }
 
         public String[] getAllows() {

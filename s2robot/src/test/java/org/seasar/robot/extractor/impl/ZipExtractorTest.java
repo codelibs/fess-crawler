@@ -40,9 +40,9 @@ public class ZipExtractorTest extends S2TestCase {
     }
 
     public void test_getText() {
-        InputStream in = ResourceUtil
+        final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/zip/test.zip");
-        String content = zipExtractor.getText(in, null).getContent();
+        final String content = zipExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -53,7 +53,7 @@ public class ZipExtractorTest extends S2TestCase {
         try {
             zipExtractor.getText(null, null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }

@@ -39,6 +39,7 @@ public class MsPublisherExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -46,7 +47,7 @@ public class MsPublisherExtractor implements Extractor {
         }
         try {
             return new ExtractData(new PublisherTextExtractor(in).getText());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ExtractException(e);
         }
     }

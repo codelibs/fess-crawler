@@ -35,34 +35,34 @@ public class MimeTypeHelperImplTest extends S2TestCase {
     }
 
     public void test_getContentType() {
-        MimeTypeHelper mimeTypeHelper =
+        final MimeTypeHelper mimeTypeHelper =
             SingletonS2Container.getComponent(MimeTypeHelperImpl.class);
-        InputStream is = ResourceUtil.getResourceAsStream("test/text1.txt");
-        InputStream htmlStream =
+        final InputStream is = ResourceUtil.getResourceAsStream("test/text1.txt");
+        final InputStream htmlStream =
             ResourceUtil.getResourceAsStream("html/test1.html");
-        InputStream shtmlStream =
+        final InputStream shtmlStream =
             ResourceUtil.getResourceAsStream("html/test1.shtml");
-        InputStream msWordStream =
+        final InputStream msWordStream =
             ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
-        InputStream msExcelStream =
+        final InputStream msExcelStream =
             ResourceUtil.getResourceAsStream("extractor/msoffice/test.xls");
-        InputStream msPowerPointStream =
+        final InputStream msPowerPointStream =
             ResourceUtil.getResourceAsStream("extractor/msoffice/test.ppt");
-        InputStream msWordXStream =
+        final InputStream msWordXStream =
             ResourceUtil.getResourceAsStream("extractor/msoffice/test.docx");
-        InputStream msExcelXStream =
+        final InputStream msExcelXStream =
             ResourceUtil.getResourceAsStream("extractor/msoffice/test.xlsx");
-        InputStream msPowerPointXStream =
+        final InputStream msPowerPointXStream =
             ResourceUtil.getResourceAsStream("extractor/msoffice/test.pptx");
-        InputStream zipStream =
+        final InputStream zipStream =
             ResourceUtil.getResourceAsStream("extractor/zip/test.zip");
-        InputStream lhaStream =
+        final InputStream lhaStream =
             ResourceUtil.getResourceAsStream("extractor/lha/test.lzh");
-        InputStream gzStream =
+        final InputStream gzStream =
             ResourceUtil.getResourceAsStream("extractor/gz/test.tar.gz");
-        InputStream pdfStream =
+        final InputStream pdfStream =
             ResourceUtil.getResourceAsStream("extractor/test.pdf");
-        InputStream freeMindStream =
+        final InputStream freeMindStream =
             ResourceUtil.getResourceAsStream("extractor/test.mm");
 
         assertEquals(
@@ -147,20 +147,20 @@ public class MimeTypeHelperImplTest extends S2TestCase {
     }
 
     public void test_getContentType_null() {
-        MimeTypeHelper mimeTypeHelper =
+        final MimeTypeHelper mimeTypeHelper =
             SingletonS2Container.getComponent(MimeTypeHelperImpl.class);
-        InputStream is = ResourceUtil.getResourceAsStream("test/text1.txt");
+        final InputStream is = ResourceUtil.getResourceAsStream("test/text1.txt");
 
         try {
             mimeTypeHelper.getContentType(null, "");
             fail();
-        } catch (MimeTypeException e) {
+        } catch (final MimeTypeException e) {
         }
 
         try {
             mimeTypeHelper.getContentType(is, "");
             fail();
-        } catch (MimeTypeException e) {
+        } catch (final MimeTypeException e) {
         }
 
         assertEquals("text/plain", mimeTypeHelper.getContentType(is, " "));

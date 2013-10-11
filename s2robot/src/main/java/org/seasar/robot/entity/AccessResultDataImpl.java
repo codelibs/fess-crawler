@@ -39,6 +39,7 @@ public class AccessResultDataImpl implements AccessResultData {
      * 
      * @see org.seasar.robot.entity.AccessResultData#getId()
      */
+    @Override
     public Long getId() {
         return id;
     }
@@ -48,6 +49,7 @@ public class AccessResultDataImpl implements AccessResultData {
      * 
      * @see org.seasar.robot.entity.AccessResultData#setId(java.lang.Long)
      */
+    @Override
     public void setId(final Long id) {
         this.id = id;
     }
@@ -57,6 +59,7 @@ public class AccessResultDataImpl implements AccessResultData {
      * 
      * @see org.seasar.robot.entity.AccessResultData#getTransformerName()
      */
+    @Override
     public String getTransformerName() {
         return transformerName;
     }
@@ -68,6 +71,7 @@ public class AccessResultDataImpl implements AccessResultData {
      * org.seasar.robot.entity.AccessResultData#setTransformerName(java.lang
      * .String)
      */
+    @Override
     public void setTransformerName(final String transformerName) {
         this.transformerName = transformerName;
     }
@@ -77,6 +81,7 @@ public class AccessResultDataImpl implements AccessResultData {
      * 
      * @see org.seasar.robot.entity.AccessResultData#getData()
      */
+    @Override
     public byte[] getData() {
         return data;
     }
@@ -86,14 +91,17 @@ public class AccessResultDataImpl implements AccessResultData {
      * 
      * @see org.seasar.robot.entity.AccessResultData#setData(java.lang.String)
      */
+    @Override
     public void setData(final byte[] data) {
         this.data = data;
     }
 
+    @Override
     public String getEncoding() {
         return encoding;
     }
 
+    @Override
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
@@ -103,6 +111,7 @@ public class AccessResultDataImpl implements AccessResultData {
      * 
      * @see org.seasar.robot.entity.AccessResultData#getDataAsString()
      */
+    @Override
     public String getDataAsString() {
         if (data == null) {
             return null;
@@ -110,10 +119,10 @@ public class AccessResultDataImpl implements AccessResultData {
         try {
             return new String(data, StringUtil.isNotBlank(encoding) ? encoding
                 : Constants.UTF_8);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             try {
                 return new String(data, Constants.UTF_8);
-            } catch (UnsupportedEncodingException e1) {
+            } catch (final UnsupportedEncodingException e1) {
                 throw new RobotSystemException("Unexpected exception.", e1);
             }
         }

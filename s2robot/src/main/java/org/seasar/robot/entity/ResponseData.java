@@ -57,7 +57,7 @@ public class ResponseData {
 
     private int status = Constants.OK_STATUS;
 
-    private Map<String, Object> metaDataMap =
+    private final Map<String, Object> metaDataMap =
         new LinkedHashMap<String, Object>();
 
     public int getHttpStatusCode() {
@@ -65,7 +65,7 @@ public class ResponseData {
     }
 
     public void setHttpStatusCode(final int statusCode) {
-        this.httpStatusCode = statusCode;
+        httpStatusCode = statusCode;
     }
 
     public InputStream getResponseBody() {
@@ -97,7 +97,7 @@ public class ResponseData {
     }
 
     public void setMimeType(final String contentType) {
-        this.mimeType = contentType;
+        mimeType = contentType;
     }
 
     public String getUrl() {
@@ -187,8 +187,8 @@ public class ResponseData {
 
     @Deprecated
     public Map<String, String> getHeaderMap() {
-        Map<String, String> headerMap = new HashMap<String, String>();
-        for (Map.Entry<String, Object> entry : metaDataMap.entrySet()) {
+        final Map<String, String> headerMap = new HashMap<String, String>();
+        for (final Map.Entry<String, Object> entry : metaDataMap.entrySet()) {
             if (entry.getValue() instanceof String) {
                 headerMap.put(entry.getKey(), (String) entry.getValue());
             }

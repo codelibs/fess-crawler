@@ -32,51 +32,63 @@ public class IgnoreCloseInputStream extends InputStream {
         this.inputStream = inputStream;
     }
 
+    @Override
     public void close() throws IOException {
         // inputStream.close();
     }
 
+    @Override
     public int available() throws IOException {
         return inputStream.available();
     }
 
+    @Override
     public boolean equals(final Object obj) {
         return inputStream.equals(obj);
     }
 
+    @Override
     public int hashCode() {
         return inputStream.hashCode();
     }
 
+    @Override
     public void mark(final int readlimit) {
         inputStream.mark(readlimit);
     }
 
+    @Override
     public boolean markSupported() {
         return inputStream.markSupported();
     }
 
+    @Override
     public int read() throws IOException {
         return inputStream.read();
     }
 
+    @Override
     public int read(final byte[] b, final int off, final int len)
             throws IOException {
         return inputStream.read(b, off, len);
     }
 
+    @Override
     public int read(final byte[] b) throws IOException {
         return inputStream.read(b);
     }
 
+    @Override
     public void reset() throws IOException {
         inputStream.reset();
     }
 
+    @Override
     public long skip(final long n) throws IOException {
         return inputStream.skip(n);
     }
 
+    @Override
     public String toString() {
         return inputStream.toString();
     }

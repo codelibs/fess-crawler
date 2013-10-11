@@ -1,13 +1,13 @@
 # /---------------------------------------------------------------------------
-# additionalTableMap: (NotRequired - Default 'map:{}')
-# 
+# additionalTableMap: (NotRequired - Default map:{})
+#
 # This property is valid at only JDBC task.
 # You should use this when JDBC can not provide table information
 # and when you have no table but call stored procedures only.
-# 
+#
 # The element 'columnMap' is only required in table elements. 
 # The element 'type' is only required in column elements. 
-# 
+#
 # Specification:
 # map: {
 #     [table-name] = map:{
@@ -23,7 +23,7 @@
 #         ; comment = [table comment]
 #     }
 # }
-# 
+#
 # *The line that starts with '#' means comment-out.
 #
 map:{

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.exception.IORuntimeException;
 import org.seasar.framework.util.FileUtil;
@@ -34,7 +35,7 @@ import org.seasar.robot.extractor.ExecutionTimeoutException;
  */
 public class CommandExtractorTest extends S2TestCase {
 
-    private File createScriptTempFile(int sleep) {
+    private File createScriptTempFile(final int sleep) {
         String extention;
         String content;
         if (File.separator.equals("/")) {
@@ -52,23 +53,23 @@ public class CommandExtractorTest extends S2TestCase {
             file.deleteOnExit();
             FileUtil.write(file.getAbsolutePath(), content.getBytes());
             return file;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IORuntimeException(e);
         }
     }
 
-    private File createContentFile(String extention, byte[] data) {
+    private File createContentFile(final String extention, final byte[] data) {
         try {
-            File file = File.createTempFile("content", extention);
+            final File file = File.createTempFile("content", extention);
             file.deleteOnExit();
             FileUtil.write(file.getAbsolutePath(), data);
             return file;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IORuntimeException(e);
         }
     }
 
-    private String getCommand(File scriptFile) {
+    private String getCommand(final File scriptFile) {
         if (File.separator.equals("/")) {
             // Unix
             return "sh " + scriptFile.getAbsolutePath()
@@ -80,53 +81,53 @@ public class CommandExtractorTest extends S2TestCase {
     }
 
     public void test_getText() throws IOException {
-        File scriptFile = createScriptTempFile(3);
-        String content = "TEST";
-        File contentFile = createContentFile(".txt", content.getBytes());
+        final File scriptFile = createScriptTempFile(3);
+        final String content = "TEST";
+        final File contentFile = createContentFile(".txt", content.getBytes());
 
-        CommandExtractor extractor = new CommandExtractor();
+        final CommandExtractor extractor = new CommandExtractor();
         extractor.command = getCommand(scriptFile);
-        Map<String, String> params = new HashMap<String, String>();
-        ExtractData text =
+        final Map<String, String> params = new HashMap<String, String>();
+        final ExtractData text =
             extractor.getText(new FileInputStream(contentFile), params);
         assertEquals(content, text.getContent());
     }
 
     public void test_getText_withUrl() throws IOException {
-        File scriptFile = createScriptTempFile(3);
-        String content = "TEST";
-        File contentFile = createContentFile(".txt", content.getBytes());
+        final File scriptFile = createScriptTempFile(3);
+        final String content = "TEST";
+        final File contentFile = createContentFile(".txt", content.getBytes());
 
-        CommandExtractor extractor = new CommandExtractor();
+        final CommandExtractor extractor = new CommandExtractor();
         extractor.command = getCommand(scriptFile);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(ExtractData.RESOURCE_NAME_KEY, "hoge/fuga.txt");
-        ExtractData text =
+        final Map<String, String> params = new HashMap<String, String>();
+        params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, "hoge/fuga.txt");
+        final ExtractData text =
             extractor.getText(new FileInputStream(contentFile), params);
         assertEquals(content, text.getContent());
     }
 
     public void test_getText_timeout() throws IOException {
-        File scriptFile = createScriptTempFile(3);
-        String content = "TEST";
-        File contentFile = createContentFile(".txt", content.getBytes());
+        final File scriptFile = createScriptTempFile(3);
+        final String content = "TEST";
+        final File contentFile = createContentFile(".txt", content.getBytes());
 
-        CommandExtractor extractor = new CommandExtractor();
+        final CommandExtractor extractor = new CommandExtractor();
         extractor.executionTimeout = 1000L;
         extractor.command = getCommand(scriptFile);
-        Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<String, String>();
         try {
             extractor.getText(new FileInputStream(contentFile), params);
             fail();
-        } catch (ExecutionTimeoutException e) {
+        } catch (final ExecutionTimeoutException e) {
         }
     }
 
     public void test_parseCommand() {
-        CommandExtractor extractor = new CommandExtractor();
+        final CommandExtractor extractor = new CommandExtractor();
 
         String cmd = "";
-        Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<String, String>();
         List<String> list = extractor.parseCommand(cmd, params);
         assertEquals(0, list.size());
 
@@ -185,7 +186,7 @@ public class CommandExtractorTest extends S2TestCase {
     }
 
     public void test_getFileName() {
-        CommandExtractor extractor = new CommandExtractor();
+        final CommandExtractor extractor = new CommandExtractor();
         String expected;
         String actual;
         String value;

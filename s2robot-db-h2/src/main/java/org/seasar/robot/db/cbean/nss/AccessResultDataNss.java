@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.seasar.robot.db.cbean.nss;
 
+import org.seasar.dbflute.cbean.ConditionQuery;
 import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
-import org.seasar.robot.dbflute.cbean.ConditionQuery;
 
 /**
  * The nest select set-upper of ACCESS_RESULT_DATA.
@@ -41,8 +41,16 @@ public class AccessResultDataNss {
     // ===================================================================================
     // Nested Relation
     // ===============
+    /**
+     * With nested relation columns to select clause. <br />
+     * ACCESS_RESULT by my ID, named 'accessResult'.
+     * 
+     * @return The set-upper of more nested relation.
+     *         {...with[nested-relation].with[more-nested-relation]} (NotNull)
+     */
     public AccessResultNss withAccessResult() {
         _query.doNss(new AccessResultDataCQ.NssCall() {
+            @Override
             public ConditionQuery qf() {
                 return _query.queryAccessResult();
             }

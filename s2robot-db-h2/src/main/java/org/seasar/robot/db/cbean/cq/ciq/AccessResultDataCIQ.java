@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,19 @@
  */
 package org.seasar.robot.db.cbean.cq.ciq;
 
+import java.util.Map;
+
+import org.seasar.dbflute.cbean.ConditionQuery;
+import org.seasar.dbflute.cbean.ckey.ConditionKey;
+import org.seasar.dbflute.cbean.coption.ConditionOption;
+import org.seasar.dbflute.cbean.cvalue.ConditionValue;
+import org.seasar.dbflute.cbean.sqlclause.SqlClause;
+import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
 import org.seasar.robot.db.cbean.AccessResultDataCB;
 import org.seasar.robot.db.cbean.cq.AccessResultCQ;
 import org.seasar.robot.db.cbean.cq.AccessResultDataCQ;
 import org.seasar.robot.db.cbean.cq.bs.AbstractBsAccessResultDataCQ;
 import org.seasar.robot.db.cbean.cq.bs.BsAccessResultDataCQ;
-import org.seasar.robot.dbflute.cbean.ConditionQuery;
-import org.seasar.robot.dbflute.cbean.ckey.ConditionKey;
-import org.seasar.robot.dbflute.cbean.coption.ConditionOption;
-import org.seasar.robot.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.robot.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.robot.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
  * The condition-query for in-line of ACCESS_RESULT_DATA.
@@ -127,14 +129,44 @@ public class AccessResultDataCIQ extends AbstractBsAccessResultDataCQ {
     }
 
     @Override
+    protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
+            final String property) {
+        return null;
+    }
+
+    @Override
     public String keepScalarCondition(final AccessResultDataCQ subQuery) {
         throwIICBOE("ScalarCondition");
         return null;
     }
 
     @Override
-    public String keepMyselfInScopeRelation(final AccessResultDataCQ subQuery) {
-        throwIICBOE("MyselfInScopeRelation");
+    public String keepSpecifyMyselfDerived(final AccessResultDataCQ subQuery) {
+        throwIICBOE("(Specify)MyselfDerived");
+        return null;
+    }
+
+    @Override
+    public String keepQueryMyselfDerived(final AccessResultDataCQ subQuery) {
+        throwIICBOE("(Query)MyselfDerived");
+        return null;
+    }
+
+    @Override
+    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
+        throwIICBOE("(Query)MyselfDerived");
+        return null;
+    }
+
+    @Override
+    public String keepMyselfExists(final AccessResultDataCQ subQuery) {
+        throwIICBOE("MyselfExists");
+        return null;
+    }
+
+    @Override
+    public String keepMyselfInScope(final AccessResultDataCQ subQuery) {
+        throwIICBOE("MyselfInScope");
         return null;
     }
 

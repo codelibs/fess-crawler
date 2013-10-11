@@ -57,6 +57,7 @@ public class AccessResultImpl implements AccessResult {
     @Binding(bindingType = BindingType.NONE)
     protected AccessResultData accessResultData;
 
+    @Override
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
@@ -77,6 +78,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getId()
      */
+    @Override
     public Long getId() {
         return id;
     }
@@ -86,6 +88,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setId(java.lang.Long)
      */
+    @Override
     public void setId(final Long id) {
         this.id = id;
     }
@@ -95,6 +98,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getSessionId()
      */
+    @Override
     public String getSessionId() {
         return sessionId;
     }
@@ -104,6 +108,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setSessionId(java.lang.String)
      */
+    @Override
     public void setSessionId(final String sessionId) {
         this.sessionId = sessionId;
     }
@@ -113,6 +118,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getRuleId()
      */
+    @Override
     public String getRuleId() {
         return ruleId;
     }
@@ -122,6 +128,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setRuleId(java.lang.String)
      */
+    @Override
     public void setRuleId(final String ruleId) {
         this.ruleId = ruleId;
     }
@@ -131,6 +138,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getUrl()
      */
+    @Override
     public String getUrl() {
         return url;
     }
@@ -140,6 +148,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setUrl(java.lang.String)
      */
+    @Override
     public void setUrl(final String url) {
         this.url = url;
     }
@@ -149,6 +158,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getParentUrl()
      */
+    @Override
     public String getParentUrl() {
         return parentUrl;
     }
@@ -158,6 +168,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setParentUrl(java.lang.String)
      */
+    @Override
     public void setParentUrl(final String parentUrl) {
         this.parentUrl = parentUrl;
     }
@@ -167,6 +178,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getStatus()
      */
+    @Override
     public Integer getStatus() {
         return status;
     }
@@ -176,6 +188,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setStatus(java.lang.Integer)
      */
+    @Override
     public void setStatus(final Integer status) {
         this.status = status;
     }
@@ -185,6 +198,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getHttpStatusCode()
      */
+    @Override
     public Integer getHttpStatusCode() {
         return httpStatusCode;
     }
@@ -195,6 +209,7 @@ public class AccessResultImpl implements AccessResult {
      * @see
      * org.seasar.robot.entity.AccessResult#setHttpStatusCode(java.lang.Integer)
      */
+    @Override
     public void setHttpStatusCode(final Integer httpStatusCode) {
         this.httpStatusCode = httpStatusCode;
     }
@@ -204,6 +219,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getMethod()
      */
+    @Override
     public String getMethod() {
         return method;
     }
@@ -213,6 +229,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setMethod(java.lang.String)
      */
+    @Override
     public void setMethod(final String method) {
         this.method = method;
     }
@@ -222,6 +239,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getMimeType()
      */
+    @Override
     public String getMimeType() {
         return mimeType;
     }
@@ -231,6 +249,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#setMimeType(java.lang.String)
      */
+    @Override
     public void setMimeType(final String mimeType) {
         this.mimeType = mimeType;
     }
@@ -240,6 +259,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getCreateTime()
      */
+    @Override
     public Timestamp getCreateTime() {
         return createTime;
     }
@@ -250,6 +270,7 @@ public class AccessResultImpl implements AccessResult {
      * @see
      * org.seasar.robot.entity.AccessResult#setCreateTime(java.sql.Timestamp)
      */
+    @Override
     public void setCreateTime(final Timestamp createTime) {
         this.createTime = createTime;
     }
@@ -259,6 +280,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getAccessResultDataAsOne()
      */
+    @Override
     public AccessResultData getAccessResultData() {
         return accessResultData;
     }
@@ -270,8 +292,9 @@ public class AccessResultImpl implements AccessResult {
      * org.seasar.robot.entity.AccessResult#setAccessResultDataAsOne(org.seasar
      * .robot.db.exentity.AccessResultData)
      */
+    @Override
     public void setAccessResultData(final AccessResultData accessResultDataAsOne) {
-        this.accessResultData = accessResultDataAsOne;
+        accessResultData = accessResultDataAsOne;
     }
 
     /*
@@ -279,6 +302,7 @@ public class AccessResultImpl implements AccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getExecutionTime()
      */
+    @Override
     public Integer getExecutionTime() {
         return executionTime;
     }
@@ -289,22 +313,27 @@ public class AccessResultImpl implements AccessResult {
      * @see
      * org.seasar.robot.entity.AccessResult#setExecutionTime(java.lang.Integer)
      */
+    @Override
     public void setExecutionTime(final Integer executionTime) {
         this.executionTime = executionTime;
     }
 
+    @Override
     public Long getContentLength() {
         return contentLength;
     }
 
+    @Override
     public void setContentLength(final Long contentLength) {
         this.contentLength = contentLength;
     }
 
+    @Override
     public Timestamp getLastModified() {
         return lastModified;
     }
 
+    @Override
     public void setLastModified(final Timestamp lastModified) {
         this.lastModified = lastModified;
     }

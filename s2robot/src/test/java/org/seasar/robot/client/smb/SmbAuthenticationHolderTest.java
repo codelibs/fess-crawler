@@ -24,15 +24,15 @@ import org.seasar.extension.unit.S2TestCase;
 public class SmbAuthenticationHolderTest extends S2TestCase {
 
     public void test_get() {
-        SmbAuthenticationHolder smbAuthenticationHolder =
+        final SmbAuthenticationHolder smbAuthenticationHolder =
             new SmbAuthenticationHolder();
-        SmbAuthentication hogeAuth = new SmbAuthentication();
+        final SmbAuthentication hogeAuth = new SmbAuthentication();
         hogeAuth.setServer("hoge");
         smbAuthenticationHolder.add(hogeAuth);
-        SmbAuthentication fugaAuth = new SmbAuthentication();
+        final SmbAuthentication fugaAuth = new SmbAuthentication();
         fugaAuth.setServer("fuga");
         smbAuthenticationHolder.add(fugaAuth);
-        SmbAuthentication fooAuth = new SmbAuthentication();
+        final SmbAuthentication fooAuth = new SmbAuthentication();
         fooAuth.setServer("foo");
         fooAuth.setPort(1000);
         smbAuthenticationHolder.add(fooAuth);

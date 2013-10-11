@@ -23,19 +23,20 @@ import java.util.Map;
  * 
  */
 public class SmbAuthenticationHolder {
-    private Map<String, SmbAuthentication> authMap =
+    private final Map<String, SmbAuthentication> authMap =
         new HashMap<String, SmbAuthentication>();
 
-    public void add(SmbAuthentication auth) {
+    public void add(final SmbAuthentication auth) {
         authMap.put(auth.getPathPrefix(), auth);
     }
 
-    public SmbAuthentication get(String path) {
+    public SmbAuthentication get(final String path) {
         if (path == null) {
             return null;
         }
 
-        for (Map.Entry<String, SmbAuthentication> entry : authMap.entrySet()) {
+        for (final Map.Entry<String, SmbAuthentication> entry : authMap
+            .entrySet()) {
             if (path.startsWith(entry.getKey())) {
                 return entry.getValue();
             }

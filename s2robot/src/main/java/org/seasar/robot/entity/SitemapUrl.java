@@ -89,6 +89,7 @@ public class SitemapUrl implements Sitemap {
      */
     private String priority;
 
+    @Override
     public String getLoc() {
         return loc;
     }
@@ -97,6 +98,7 @@ public class SitemapUrl implements Sitemap {
         this.loc = loc;
     }
 
+    @Override
     public String getLastmod() {
         return lastmod;
     }

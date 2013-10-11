@@ -88,7 +88,7 @@ public class XpathTransformer extends HtmlTransformer {
                 is.setEncoding(responseData.getCharSet());
             }
             parser.parse(is);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotCrawlAccessException("Could not parse "
                 + responseData.getUrl(), e);
         }
@@ -96,7 +96,7 @@ public class XpathTransformer extends HtmlTransformer {
 
         final StringBuilder buf = new StringBuilder(1000);
         buf.append(getResultDataHeader());
-        for (Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
+        for (final Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
             final String path = entry.getValue();
             try {
                 final XObject xObj = getXPathAPI().eval(document, path);
@@ -147,7 +147,7 @@ public class XpathTransformer extends HtmlTransformer {
                             obj.toString()));
                     break;
                 }
-            } catch (TransformerException e) {
+            } catch (final TransformerException e) {
                 logger.warn("Could not parse a value of " + entry.getKey()
                     + ":" + entry.getValue());
             }
@@ -157,7 +157,7 @@ public class XpathTransformer extends HtmlTransformer {
 
         try {
             resultData.setData(buf.toString().getBytes(charsetName));
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName
                     + ". Changed to " + Constants.UTF_8, e);
@@ -165,7 +165,7 @@ public class XpathTransformer extends HtmlTransformer {
             charsetName = Constants.UTF_8;
             try {
                 resultData.setData(buf.toString().getBytes(charsetName));
-            } catch (UnsupportedEncodingException e1) {
+            } catch (final UnsupportedEncodingException e1) {
                 throw new RobotSystemException("Unexpected exception", e);
             }
         }
@@ -190,7 +190,7 @@ public class XpathTransformer extends HtmlTransformer {
         final StringBuilder buf = new StringBuilder();
         buf.append("<list>");
         if (values != null && !values.isEmpty()) {
-            for (String value : values) {
+            for (final String value : values) {
                 buf.append("<item>");
                 buf.append(trimSpace(XmlUtil.escapeXml(value)));
                 buf.append("</item>");
@@ -246,7 +246,7 @@ public class XpathTransformer extends HtmlTransformer {
             final Object obj = dataClass.newInstance();
             Beans.copy(dataMap, obj).execute();
             return obj;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(
                 "Could not create/copy a data map to " + dataClass,
                 e);
@@ -276,7 +276,7 @@ public class XpathTransformer extends HtmlTransformer {
             parser.parse(is, handler);
 
             return handler.getDataMap();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotSystemException(
                 "Could not create a data map from XML content.",
                 e);
@@ -285,7 +285,8 @@ public class XpathTransformer extends HtmlTransformer {
 
     @Deprecated
     protected static class DocHandler extends DefaultHandler {
-        private Map<String, Object> dataMap = new HashMap<String, Object>();
+        private final Map<String, Object> dataMap =
+            new HashMap<String, Object>();
 
         private String fieldName;
 
@@ -293,10 +294,12 @@ public class XpathTransformer extends HtmlTransformer {
 
         private boolean itemData = false;
 
+        @Override
         public void startDocument() {
             dataMap.clear();
         }
 
+        @Override
         public void startElement(final String uri, final String localName,
                 final String qName, final Attributes attributes) {
             if ("field".equals(qName)) {
@@ -311,6 +314,7 @@ public class XpathTransformer extends HtmlTransformer {
             }
         }
 
+        @Override
         public void characters(final char[] ch, final int offset,
                 final int length) {
             if (fieldName != null) {
@@ -333,6 +337,7 @@ public class XpathTransformer extends HtmlTransformer {
             }
         }
 
+        @Override
         public void endElement(final String uri, final String localName,
                 final String qName) {
             if ("field".equals(qName)) {
@@ -344,6 +349,7 @@ public class XpathTransformer extends HtmlTransformer {
             }
         }
 
+        @Override
         public void endDocument() {
             // nothing
         }

@@ -29,7 +29,7 @@ public class ChildUrlsException extends RobotSystemException {
 
     private static final long serialVersionUID = 1L;
 
-    private Set<String> childUrlList;
+    private final Set<String> childUrlList;
 
     public ChildUrlsException(final Set<String> childUrlList) {
         super("Threw child urls(" + childUrlList.size() + ").");

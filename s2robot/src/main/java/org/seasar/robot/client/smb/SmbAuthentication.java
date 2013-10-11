@@ -33,7 +33,7 @@ public class SmbAuthentication {
     private String domain;
 
     public String getPathPrefix() {
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         buf.append("smb://");
         if (server != null) {
             buf.append(server);
@@ -57,7 +57,7 @@ public class SmbAuthentication {
         return server;
     }
 
-    public void setServer(String server) {
+    public void setServer(final String server) {
         this.server = server;
     }
 
@@ -65,7 +65,7 @@ public class SmbAuthentication {
         return port;
     }
 
-    public void setPort(int port) {
+    public void setPort(final int port) {
         this.port = port;
     }
 
@@ -73,7 +73,7 @@ public class SmbAuthentication {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(final String username) {
         this.username = username;
     }
 
@@ -81,7 +81,7 @@ public class SmbAuthentication {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(final String password) {
         this.password = password;
     }
 
@@ -89,7 +89,7 @@ public class SmbAuthentication {
         return domain;
     }
 
-    public void setDomain(String domain) {
+    public void setDomain(final String domain) {
         this.domain = domain;
     }
 }

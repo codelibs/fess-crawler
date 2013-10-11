@@ -43,6 +43,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getId()
      */
+    @Override
     public Long getId() {
         return id;
     }
@@ -52,6 +53,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setId(java.lang.Long)
      */
+    @Override
     public void setId(final Long id) {
         this.id = id;
     }
@@ -61,6 +63,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getSessionId()
      */
+    @Override
     public String getSessionId() {
         return sessionId;
     }
@@ -70,6 +73,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setSessionId(java.lang.String)
      */
+    @Override
     public void setSessionId(final String sessionId) {
         this.sessionId = sessionId;
     }
@@ -79,6 +83,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getMethod()
      */
+    @Override
     public String getMethod() {
         return method;
     }
@@ -88,6 +93,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setMethod(java.lang.String)
      */
+    @Override
     public void setMethod(final String method) {
         this.method = method;
     }
@@ -97,6 +103,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getUrl()
      */
+    @Override
     public String getUrl() {
         return url;
     }
@@ -106,6 +113,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setUrl(java.lang.String)
      */
+    @Override
     public void setUrl(final String url) {
         this.url = url;
     }
@@ -115,6 +123,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getParentUrl()
      */
+    @Override
     public String getParentUrl() {
         return parentUrl;
     }
@@ -124,6 +133,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setParentUrl(java.lang.String)
      */
+    @Override
     public void setParentUrl(final String parentUrl) {
         this.parentUrl = parentUrl;
     }
@@ -133,6 +143,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getDepth()
      */
+    @Override
     public Integer getDepth() {
         return depth;
     }
@@ -142,6 +153,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setDepth(java.lang.Integer)
      */
+    @Override
     public void setDepth(final Integer depth) {
         this.depth = depth;
     }
@@ -151,6 +163,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getCreateTime()
      */
+    @Override
     public Timestamp getCreateTime() {
         return createTime;
     }
@@ -160,6 +173,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setCreateTime(java.sql.Timestamp)
      */
+    @Override
     public void setCreateTime(final Timestamp createTime) {
         this.createTime = createTime;
     }
@@ -169,6 +183,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#getLastModified()
      */
+    @Override
     public Timestamp getLastModified() {
         return lastModified;
     }
@@ -178,6 +193,7 @@ public class UrlQueueImpl implements UrlQueue {
      * 
      * @see org.seasar.robot.entity.UrlQueue#setLastModified(java.sql.Timestamp)
      */
+    @Override
     public void setLastModified(final Timestamp lastModified) {
         this.lastModified = lastModified;
     }

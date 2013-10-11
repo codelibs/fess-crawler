@@ -48,6 +48,7 @@ public class AuthenticationImpl implements Authentication {
      * 
      * @see org.seasar.robot.client.http.Authentication#getAuthScope()
      */
+    @Override
     public AuthScope getAuthScope() {
         return authScope;
     }
@@ -57,6 +58,7 @@ public class AuthenticationImpl implements Authentication {
      * 
      * @see org.seasar.robot.client.http.Authentication#getCredentials()
      */
+    @Override
     public Credentials getCredentials() {
         return credentials;
     }
@@ -74,6 +76,7 @@ public class AuthenticationImpl implements Authentication {
      * 
      * @see org.seasar.robot.client.http.Authentication#getAuthScheme()
      */
+    @Override
     public AuthScheme getAuthScheme() {
         return authScheme;
     }

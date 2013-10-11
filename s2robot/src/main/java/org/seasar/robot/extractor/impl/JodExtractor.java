@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.OfficeManager;
 import org.seasar.framework.container.annotation.tiger.DestroyMethod;
@@ -54,9 +55,10 @@ public class JodExtractor implements Extractor {
 
     public String outputEncoding = Constants.UTF_8;
 
-    private Map<String, String> extensionMap = new HashMap<String, String>();
+    private final Map<String, String> extensionMap =
+        new HashMap<String, String>();
 
-    private Map<String, Extractor> extractorMap =
+    private final Map<String, Extractor> extractorMap =
         new HashMap<String, Extractor>();
 
     public JodExtractor() {
@@ -100,7 +102,7 @@ public class JodExtractor implements Extractor {
         officeManager.stop();
     }
 
-    public void addConversionRule(String inExt, String outExt) {
+    public void addConversionRule(final String inExt, final String outExt) {
         extensionMap.put(inExt, outExt);
     }
 
@@ -110,18 +112,21 @@ public class JodExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    @Override
+    public ExtractData getText(final InputStream in,
+            final Map<String, String> params) {
         if (in == null) {
             throw new RobotSystemException("in is null.");
         }
 
         final String resourceName =
-            params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
+            params == null ? null : params
+                .get(TikaMetadataKeys.RESOURCE_NAME_KEY);
 
         String extension;
         String filePrefix;
         if (StringUtil.isNotBlank(resourceName)) {
-            String name = getFileName(resourceName);
+            final String name = getFileName(resourceName);
             final String[] strings = name.split("\\.");
             final StringBuilder buf = new StringBuilder();
             if (strings.length > 1) {
@@ -150,7 +155,7 @@ public class JodExtractor implements Extractor {
                     StringUtil.isNotBlank(extension) ? "." + extension
                         : extension,
                     tempDir);
-            String outExt = getOutputExtension(extension);
+            final String outExt = getOutputExtension(extension);
             outputFile =
                 File.createTempFile("cmdextout_" + filePrefix + "_", "."
                     + outExt, tempDir);
@@ -158,7 +163,7 @@ public class JodExtractor implements Extractor {
             // store to a file
             StreamUtil.drain(in, inputFile);
 
-            OfficeDocumentConverter converter =
+            final OfficeDocumentConverter converter =
                 new OfficeDocumentConverter(officeManager);
             converter.convert(inputFile, outputFile);
 
@@ -171,7 +176,7 @@ public class JodExtractor implements Extractor {
             }
 
             return extractData;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
             if (inputFile != null && !inputFile.delete()) {
@@ -183,18 +188,19 @@ public class JodExtractor implements Extractor {
         }
     }
 
-    protected String getOutputContent(File outputFile, String outExt)
+    protected String getOutputContent(final File outputFile, final String outExt)
             throws UnsupportedEncodingException {
-        Extractor extractor = getExtractor(outExt);
+        final Extractor extractor = getExtractor(outExt);
         if (extractor != null) {
-            Map<String, String> params = new HashMap<String, String>();
-            params.put(ExtractData.RESOURCE_NAME_KEY, outputFile.getName());
+            final Map<String, String> params = new HashMap<String, String>();
+            params
+                .put(TikaMetadataKeys.RESOURCE_NAME_KEY, outputFile.getName());
             FileInputStream in = null;
             try {
                 in = new FileInputStream(outputFile);
-                ExtractData extractData = extractor.getText(in, params);
+                final ExtractData extractData = extractor.getText(in, params);
                 return extractData.getContent();
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 throw new ExtractException("Could not open "
                     + outputFile.getAbsolutePath(), e);
             } finally {
@@ -204,7 +210,7 @@ public class JodExtractor implements Extractor {
         return new String(FileUtil.getBytes(outputFile), outputEncoding);
     }
 
-    private Extractor getExtractor(String ext) {
+    private Extractor getExtractor(final String ext) {
         return extractorMap.get(ext);
     }
 
@@ -212,14 +218,14 @@ public class JodExtractor implements Extractor {
      * @param extension
      * @return
      */
-    private String getOutputExtension(String extension) {
-        String outExt = extensionMap.get(extension);
+    private String getOutputExtension(final String extension) {
+        final String outExt = extensionMap.get(extension);
         return outExt == null ? "txt" : outExt;
     }
 
-    private String getFileName(String resourceName) {
-        String name = resourceName.replaceAll("/+$", "");
-        int pos = name.lastIndexOf('/');
+    private String getFileName(final String resourceName) {
+        final String name = resourceName.replaceAll("/+$", "");
+        final int pos = name.lastIndexOf('/');
         if (pos >= 0) {
             return name.substring(pos + 1);
         }

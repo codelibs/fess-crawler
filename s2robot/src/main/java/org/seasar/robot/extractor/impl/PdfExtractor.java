@@ -29,6 +29,7 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.apache.pdfbox.util.PDFTextStripper;
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.ExtractData;
@@ -59,6 +60,7 @@ public class PdfExtractor implements Extractor {
      * @see org.seasar.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
+    @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
         if (in == null) {
@@ -74,7 +76,7 @@ public class PdfExtractor implements Extractor {
                         password =
                             getPassword(
                                 params.get(ExtractData.URL),
-                                params.get(ExtractData.RESOURCE_NAME_KEY));
+                                params.get(TikaMetadataKeys.RESOURCE_NAME_KEY));
                     }
                     if (password != null) {
                         final StandardDecryptionMaterial sdm =
@@ -96,17 +98,17 @@ public class PdfExtractor implements Extractor {
                 stripper.setForceParsing(force);
                 stripper.writeText(document, output);
                 output.flush();
-                ExtractData extractData =
+                final ExtractData extractData =
                     new ExtractData(baos.toString(encoding));
                 extractMetadata(document, extractData);
                 return extractData;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new ExtractException(e);
             } finally {
                 if (document != null) {
                     try {
                         document.close();
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         // NOP
                     }
                 }
@@ -114,26 +116,28 @@ public class PdfExtractor implements Extractor {
         }
     }
 
-    private void extractMetadata(PDDocument document, ExtractData extractData) {
-        PDDocumentInformation info = document.getDocumentInformation();
+    private void extractMetadata(final PDDocument document,
+            final ExtractData extractData) {
+        final PDDocumentInformation info = document.getDocumentInformation();
         if (info == null) {
             return;
         }
 
-        for (String key : info.getMetadataKeys()) {
-            String value = info.getCustomMetadataValue(key);
+        for (final String key : info.getMetadataKeys()) {
+            final String value = info.getCustomMetadataValue(key);
             addMetadata(extractData, key, value);
         }
     }
 
-    private void addMetadata(ExtractData extractData, String name, String value) {
+    private void addMetadata(final ExtractData extractData, final String name,
+            final String value) {
         if (value != null) {
             extractData.putValue(name, value);
         }
     }
 
-    private void addMetadata(ExtractData extractData, String name,
-            Calendar value) {
+    private void addMetadata(final ExtractData extractData, final String name,
+            final Calendar value) {
         if (value != null) {
             extractData.putValue(name, value.getTime().toString());
         }
@@ -151,15 +155,15 @@ public class PdfExtractor implements Extractor {
         return force;
     }
 
-    public void setForce(boolean force) {
+    public void setForce(final boolean force) {
         this.force = force;
     }
 
-    public void addPassword(String regex, String password) {
+    public void addPassword(final String regex, final String password) {
         passwordMap.put(regex, password);
     }
 
-    String getPassword(String url, String resourceName) {
+    String getPassword(final String url, final String resourceName) {
         if (passwordMap.size() == 0) {
             return null;
         }
@@ -172,7 +176,7 @@ public class PdfExtractor implements Extractor {
         }
 
         if (value != null) {
-            for (Map.Entry<String, String> entry : passwordMap.entrySet()) {
+            for (final Map.Entry<String, String> entry : passwordMap.entrySet()) {
                 if (value.matches(entry.getKey())) {
                     return entry.getValue();
                 }

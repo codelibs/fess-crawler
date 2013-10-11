@@ -31,6 +31,7 @@ public abstract class AbstractIntervalController implements IntervalController {
      * 
      * @see org.seasar.robot.interval.IntervalController#delay(int)
      */
+    @Override
     public void delay(final int type) {
         try {
             switch (type) {
@@ -50,11 +51,11 @@ public abstract class AbstractIntervalController implements IntervalController {
                 // NOP
                 break;
             }
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             if (!ignoreException) {
                 throw e;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (!ignoreException) {
                 throw new RobotSystemException("Could not stop a process.", e);
             }

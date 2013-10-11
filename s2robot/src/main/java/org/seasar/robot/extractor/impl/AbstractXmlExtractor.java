@@ -64,7 +64,7 @@ public abstract class AbstractXmlExtractor {
                 StringEscapeUtils.unescapeHtml(new String(InputStreamUtil
                     .getBytes(bis), enc));
             return new ExtractData(extractString(content));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ExtractException(e);
         }
     }
@@ -90,14 +90,14 @@ public abstract class AbstractXmlExtractor {
                     return enc;
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Use a default encoding: " + encoding, e);
             }
         } finally {
             try {
                 bis.reset();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new ExtractException(e);
             }
         }

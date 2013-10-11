@@ -1,32 +1,47 @@
 # /---------------------------------------------------------------------------
-# classificationDefinitionMap: (NotRequired - Default 'map:{}')
+# classificationDefinitionMap: (NotRequired - Default map:{})
 #
 # The definition of classification.
 #
 # Specification:
 # map: {
 #     [classification-name] = list:{
-#         ; map:{topComment=[comment]; codeType=[String(default) or Number or Boolean]}
-#         ; map:{code=[code]; name=[name]; alias=[alias]; comment=[comment]}
+#         ; map:{
+#             ; topComment=[comment]; codeType=[String(default) or Number or Boolean]}
+#             ; isCheckImplicitSet=[true or false(default)]
+#             ; isUseDocumentOnly=[true or false(default)]
+#             ; isSuppressAutoDeploy=[true or false(default)]
+#             ; groupingMap = map:{
+#                 ; [group-name] = map:{
+#                     ; groupComment=[comment]
+#                     ; elementList=list:{[the list of classification element's name]}
+#                 }
+#             }
+#         }
+#         # classification elements for implicit classification
+#         ; map:{
+#             ; code=[code]; name=[name]; alias=[alias]; comment=[comment]
+#             ; sisterCode=[code or code-list]; subItemMap=map:{[free-map]}
+#         }
+#         # settings for table classification
 #         ; map:{
 #             ; table=[table-name]
 #             ; code=[column-name for code]; name=[column-name for name]
 #             ; alias=[column-name for alias]; comment=[column-name for comment]}
 #             ; where=[condition for select]; orderBy=[column-name for ordering]
 #             ; exceptCodeList=[the list of except code]
-#             ; suppressAutoDeploy=[true or false(default)]
 #         }
 #     }
 # }
-# 
+#
 # *The line that starts with '#' means comment-out.
 #
 map:{
     # example for implicit classification
     #; Flg = list:{
     #    ; map:{topComment=general boolean classification for every flg-column; codeType=Number}
-    #    ; map:{code=1; name=True ; alias=Yes; comment=means valid}
-    #    ; map:{code=0; name=False; alias=No ; comment=means invalid}
+    #    ; map:{code=1; name=True ; alias=Checked  ; comment=means yes; sisterCode=true}
+    #    ; map:{code=0; name=False; alias=Unchecked; comment=means no ; sisterCode=false}
     #}
     # example for table classification
     #; MemberStatus = list:{

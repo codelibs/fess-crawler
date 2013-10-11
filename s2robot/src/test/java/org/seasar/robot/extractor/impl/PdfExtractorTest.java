@@ -43,9 +43,9 @@ public class PdfExtractorTest extends S2TestCase {
     }
 
     public void test_getText() {
-        InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
-        ExtractData extractData = pdfExtractor.getText(in, null);
-        String content = extractData.getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        final ExtractData extractData = pdfExtractor.getText(in, null);
+        final String content = extractData.getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -57,11 +57,11 @@ public class PdfExtractorTest extends S2TestCase {
     }
 
     public void test_getText_pass() {
-        InputStream in =
+        final InputStream in =
             ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
-        Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<String, String>();
         params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
-        String content = pdfExtractor.getText(in, params).getContent();
+        final String content = pdfExtractor.getText(in, params).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -71,7 +71,7 @@ public class PdfExtractorTest extends S2TestCase {
         try {
             pdfExtractor.getText(null, null);
             fail();
-        } catch (RobotSystemException e) {
+        } catch (final RobotSystemException e) {
             // NOP
         }
     }

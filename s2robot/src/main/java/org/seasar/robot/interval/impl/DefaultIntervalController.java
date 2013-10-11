@@ -69,7 +69,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
         if (delayMillisAfterProcessing > 0) {
             try {
                 Thread.sleep(delayMillisAfterProcessing);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RobotSystemException(e);
             }
         }
@@ -87,7 +87,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
         if (delayMillisAtNoUrlInQueue > 0) {
             try {
                 Thread.sleep(delayMillisAtNoUrlInQueue);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RobotSystemException(e);
             }
         }
@@ -104,7 +104,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
         if (delayMillisBeforeProcessing > 0) {
             try {
                 Thread.sleep(delayMillisBeforeProcessing);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RobotSystemException(e);
             }
         }
@@ -121,7 +121,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
         if (delayMillisForWaitingNewUrl > 0) {
             try {
                 Thread.sleep(delayMillisForWaitingNewUrl);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RobotSystemException(e);
             }
         }

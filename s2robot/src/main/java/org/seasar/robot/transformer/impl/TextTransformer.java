@@ -22,12 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.metadata.HttpHeaders;
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
-import org.seasar.robot.entity.ExtractData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.extractor.Extractor;
@@ -63,13 +64,14 @@ public class TextTransformer extends AbstractTransformer {
             extractorFactory.getExtractor(responseData.getMimeType());
         final InputStream in = responseData.getResponseBody();
         final Map<String, String> params = new HashMap<String, String>();
-        params
-            .put(ExtractData.RESOURCE_NAME_KEY, getResourceName(responseData));
-        params.put(ExtractData.CONTENT_TYPE, responseData.getMimeType());
+        params.put(
+            TikaMetadataKeys.RESOURCE_NAME_KEY,
+            getResourceName(responseData));
+        params.put(HttpHeaders.CONTENT_TYPE, responseData.getMimeType());
         String content = null;
         try {
             content = extractor.getText(in, params).getContent();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RobotCrawlAccessException("Could not extract data.", e);
         } finally {
             IOUtils.closeQuietly(in);
@@ -79,7 +81,7 @@ public class TextTransformer extends AbstractTransformer {
         resultData.setTransformerName(getName());
         try {
             resultData.setData(content.getBytes(charsetName));
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new RobotCrawlAccessException("Unsupported encoding: "
                 + charsetName, e);
         }
@@ -94,6 +96,7 @@ public class TextTransformer extends AbstractTransformer {
      * org.seasar.robot.transformer.Transformer#getData(org.seasar.robot.entity
      * .AccessResultData)
      */
+    @Override
     public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
@@ -107,7 +110,7 @@ public class TextTransformer extends AbstractTransformer {
         }
         try {
             return new String(data, charsetName);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new RobotCrawlAccessException("Unsupported encoding: "
                 + charsetName, e);
         }
@@ -128,7 +131,7 @@ public class TextTransformer extends AbstractTransformer {
         }
         try {
             return URLDecoder.decode(name, enc);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             return name;
         }
     }

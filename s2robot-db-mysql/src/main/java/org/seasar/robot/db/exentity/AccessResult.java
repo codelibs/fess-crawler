@@ -32,15 +32,13 @@ import org.seasar.robot.entity.ResultData;
  * 
  * @author DBFlute(AutoGenerator)
  */
-public class AccessResult extends BsAccessResult {
+public class AccessResult extends BsAccessResult implements
+        org.seasar.robot.entity.AccessResult {
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
-    public AccessResult() {
-        super();
-    }
-
+    @Override
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
@@ -58,6 +56,7 @@ public class AccessResult extends BsAccessResult {
      * 
      * @see org.seasar.robot.entity.AccessResult#getAccessResultData()
      */
+    @Override
     public AccessResultData getAccessResultData() {
         return getAccessResultDataAsOne();
     }
@@ -69,6 +68,7 @@ public class AccessResult extends BsAccessResult {
      * org.seasar.robot.entity.AccessResult#setAccessResultData(org.seasar.robot
      * .db.exentity.AccessResultData)
      */
+    @Override
     public void setAccessResultData(
             final org.seasar.robot.entity.AccessResultData accessResultData) {
         setAccessResultDataAsOne((AccessResultData) accessResultData);

@@ -38,10 +38,6 @@ public class AccessResult extends BsAccessResult implements
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
-    public AccessResult() {
-        super();
-    }
-
     @Override
     public void init(final ResponseData responseData,
             final ResultData resultData) {

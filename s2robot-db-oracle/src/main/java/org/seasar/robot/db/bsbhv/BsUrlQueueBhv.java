@@ -43,7 +43,7 @@ import org.seasar.robot.db.exentity.UrlQueue;
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, METHOD, URL, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
+ *     ID, SESSION_ID, METHOD, URL, ENCODING, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
  * 
  * [sequence]
  *     URL_QUEUE_SEQ

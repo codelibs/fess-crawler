@@ -33,7 +33,7 @@ import org.seasar.robot.db.exentity.UrlQueue;
  *     ID
  * 
  * [column]
- *     ID, SESSION_ID, METHOD, URL, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
+ *     ID, SESSION_ID, METHOD, URL, ENCODING, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
  * 
  * [sequence]
  *     
@@ -62,6 +62,7 @@ import org.seasar.robot.db.exentity.UrlQueue;
  * String sessionId = entity.getSessionId();
  * String method = entity.getMethod();
  * String url = entity.getUrl();
+ * String encoding = entity.getEncoding();
  * String parentUrl = entity.getParentUrl();
  * Integer depth = entity.getDepth();
  * java.sql.Timestamp lastModified = entity.getLastModified();
@@ -70,6 +71,7 @@ import org.seasar.robot.db.exentity.UrlQueue;
  * entity.setSessionId(sessionId);
  * entity.setMethod(method);
  * entity.setUrl(url);
+ * entity.setEncoding(encoding);
  * entity.setParentUrl(parentUrl);
  * entity.setDepth(depth);
  * entity.setLastModified(lastModified);
@@ -104,6 +106,9 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /** URL: {IX+, NotNull, VARCHAR(65536)} */
     protected String _url;
+
+    /** ENCODING: {VARCHAR(20)} */
+    protected String _encoding;
 
     /** PARENT_URL: {VARCHAR(65536)} */
     protected String _parentUrl;
@@ -333,6 +338,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
         sb.append(delimiter).append(getSessionId());
         sb.append(delimiter).append(getMethod());
         sb.append(delimiter).append(getUrl());
+        sb.append(delimiter).append(getEncoding());
         sb.append(delimiter).append(getParentUrl());
         sb.append(delimiter).append(getDepth());
         sb.append(delimiter).append(getLastModified());
@@ -452,6 +458,28 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     public void setUrl(final String url) {
         __modifiedProperties.addPropertyName("url");
         _url = url;
+    }
+
+    /**
+     * [get] ENCODING: {VARCHAR(20)} <br />
+     * 
+     * @return The value of the column 'ENCODING'. (NullAllowed even if
+     *         selected: for no constraint)
+     */
+    public String getEncoding() {
+        return _encoding;
+    }
+
+    /**
+     * [set] ENCODING: {VARCHAR(20)} <br />
+     * 
+     * @param encoding
+     *            The value of the column 'ENCODING'. (NullAllowed: null update
+     *            allowed for no constraint)
+     */
+    public void setEncoding(final String encoding) {
+        __modifiedProperties.addPropertyName("encoding");
+        _encoding = encoding;
     }
 
     /**

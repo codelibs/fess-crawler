@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 the Seasar Foundation and the Others.
+ * Copyright 2004-2013 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
@@ -106,7 +106,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                         resultData.getChildUrlSet(),
                         urlQueue.getUrl(),
                         urlQueue.getDepth() == null ? 1
-                            : urlQueue.getDepth() + 1);
+                            : urlQueue.getDepth() + 1,
+                        resultData.getEncoding());
 
                     // count up
                     if (robotContext.getMaxAccessCount() > 0) {
@@ -137,7 +138,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
     }
 
     private void storeChildUrls(final S2RobotContext robotContext,
-            final Set<String> childUrlList, final String url, final int depth) {
+            final Set<String> childUrlList, final String url, final int depth,
+            String encoding) {
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (final String childUrl : childUrlList) {
@@ -147,15 +149,18 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 uq.setCreateTime(new Timestamp(System.currentTimeMillis()));
                 uq.setDepth(depth);
                 uq.setMethod(Constants.GET_METHOD);
+                uq.setEncoding(encoding);
                 uq.setParentUrl(url);
                 uq.setSessionId(robotContext.getSessionId());
                 uq.setUrl(childUrl);
                 childList.add(uq);
             }
         }
-        CrawlingParameterUtil.getUrlQueueService().offerAll(
-            robotContext.getSessionId(),
-            childList);
+        if (!childList.isEmpty()) {
+            CrawlingParameterUtil.getUrlQueueService().offerAll(
+                robotContext.getSessionId(),
+                childList);
+        }
     }
 
     public Transformer getTransformer() {

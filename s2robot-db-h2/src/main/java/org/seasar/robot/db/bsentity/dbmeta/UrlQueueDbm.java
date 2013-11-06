@@ -65,6 +65,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         setupEpg(_epgMap, new EpgSessionId(), "sessionId");
         setupEpg(_epgMap, new EpgMethod(), "method");
         setupEpg(_epgMap, new EpgUrl(), "url");
+        setupEpg(_epgMap, new EpgEncoding(), "encoding");
         setupEpg(_epgMap, new EpgParentUrl(), "parentUrl");
         setupEpg(_epgMap, new EpgDepth(), "depth");
         setupEpg(_epgMap, new EpgLastModified(), "lastModified");
@@ -121,6 +122,18 @@ public class UrlQueueDbm extends AbstractDBMeta {
         @Override
         public void write(final Entity e, final Object v) {
             ((UrlQueue) e).setUrl((String) v);
+        }
+    }
+
+    public static class EpgEncoding implements PropertyGateway {
+        @Override
+        public Object read(final Entity e) {
+            return ((UrlQueue) e).getEncoding();
+        }
+
+        @Override
+        public void write(final Entity e, final Object v) {
+            ((UrlQueue) e).setEncoding((String) v);
         }
     }
 
@@ -220,7 +233,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
             "BIGINT",
             19,
             0,
-            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_D00ECB4D_9FDC_4FC3_AEC9_258614FCEE2F",
+            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_AFCBF138_0BDA_44F7_987B_7FA22F62D796",
             false,
             null,
             null,
@@ -282,6 +295,27 @@ public class UrlQueueDbm extends AbstractDBMeta {
         false,
         "VARCHAR",
         65536,
+        0,
+        null,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
+
+    protected final ColumnInfo _columnEncoding = cci(
+        "ENCODING",
+        "ENCODING",
+        null,
+        null,
+        false,
+        "encoding",
+        String.class,
+        false,
+        false,
+        "VARCHAR",
+        20,
         0,
         null,
         false,
@@ -391,6 +425,10 @@ public class UrlQueueDbm extends AbstractDBMeta {
         return _columnUrl;
     }
 
+    public ColumnInfo columnEncoding() {
+        return _columnEncoding;
+    }
+
     public ColumnInfo columnParentUrl() {
         return _columnParentUrl;
     }
@@ -414,6 +452,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         ls.add(columnSessionId());
         ls.add(columnMethod());
         ls.add(columnUrl());
+        ls.add(columnEncoding());
         ls.add(columnParentUrl());
         ls.add(columnDepth());
         ls.add(columnLastModified());

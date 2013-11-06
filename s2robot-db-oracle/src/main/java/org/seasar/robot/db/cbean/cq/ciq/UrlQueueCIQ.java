@@ -118,6 +118,11 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
+    protected ConditionValue getCValueEncoding() {
+        return _myCQ.getEncoding();
+    }
+
+    @Override
     protected ConditionValue getCValueParentUrl() {
         return _myCQ.getParentUrl();
     }

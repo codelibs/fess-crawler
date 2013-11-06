@@ -400,6 +400,15 @@ public class BsUrlQueueCB extends AbstractConditionBean {
         }
 
         /**
+         * ENCODING: {VARCHAR(20)}
+         * 
+         * @return The information object of specified column. (NotNull)
+         */
+        public HpSpecifiedColumn columnEncoding() {
+            return doColumn("ENCODING");
+        }
+
+        /**
          * PARENT_URL: {TEXT(65535)}
          * 
          * @return The information object of specified column. (NotNull)

@@ -181,7 +181,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
             "BIGINT",
             19,
             0,
-            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_223573E1_578E_4E43_A97C_C74F44019976",
+            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_E5964BB2_E004_4562_A293_C71A4B454B8B",
             false,
             null,
             null,

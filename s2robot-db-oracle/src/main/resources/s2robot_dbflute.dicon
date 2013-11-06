@@ -10,7 +10,7 @@
     <component name="invokerAssistant" class="org.seasar.robot.db.allcommon.ImplementedInvokerAssistant"/>
     <component name="commonColumnAutoSetupper" class="org.seasar.robot.db.allcommon.ImplementedCommonColumnAutoSetupper"/>
     <component name="behaviorSelector" class="org.seasar.robot.db.allcommon.ImplementedBehaviorSelector"/>
-    <component name="behaviorCommandInvoker" class="org.seasar.robot.dbflute.bhv.core.BehaviorCommandInvoker"/>
+    <component name="behaviorCommandInvoker" class="org.seasar.dbflute.bhv.core.BehaviorCommandInvoker"/>
 
     <!-- The components of Behavior. -->
     <component name="accessResultBhv" class="org.seasar.robot.db.exbhv.AccessResultBhv"/>

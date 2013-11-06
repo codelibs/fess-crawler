@@ -753,6 +753,208 @@ public abstract class AbstractBsUrlQueueCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as equal. (NullAllowed: if null (or
+     *            empty), no condition)
+     */
+    public void setEncoding_Equal(final String encoding) {
+        doSetEncoding_Equal(fRES(encoding));
+    }
+
+    protected void doSetEncoding_Equal(final String encoding) {
+        regEncoding(CK_EQ, encoding);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as notEqual. (NullAllowed: if null (or
+     *            empty), no condition)
+     */
+    public void setEncoding_NotEqual(final String encoding) {
+        doSetEncoding_NotEqual(fRES(encoding));
+    }
+
+    protected void doSetEncoding_NotEqual(final String encoding) {
+        regEncoding(CK_NES, encoding);
+    }
+
+    /**
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as greaterThan. (NullAllowed: if null
+     *            (or empty), no condition)
+     */
+    public void setEncoding_GreaterThan(final String encoding) {
+        regEncoding(CK_GT, fRES(encoding));
+    }
+
+    /**
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as lessThan. (NullAllowed: if null (or
+     *            empty), no condition)
+     */
+    public void setEncoding_LessThan(final String encoding) {
+        regEncoding(CK_LT, fRES(encoding));
+    }
+
+    /**
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as greaterEqual. (NullAllowed: if null
+     *            (or empty), no condition)
+     */
+    public void setEncoding_GreaterEqual(final String encoding) {
+        regEncoding(CK_GE, fRES(encoding));
+    }
+
+    /**
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as lessEqual. (NullAllowed: if null (or
+     *            empty), no condition)
+     */
+    public void setEncoding_LessEqual(final String encoding) {
+        regEncoding(CK_LE, fRES(encoding));
+    }
+
+    /**
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored,
+     * NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encodingList
+     *            The collection of encoding as inScope. (NullAllowed: if null
+     *            (or empty), no condition)
+     */
+    public void setEncoding_InScope(final Collection<String> encodingList) {
+        doSetEncoding_InScope(encodingList);
+    }
+
+    public void doSetEncoding_InScope(final Collection<String> encodingList) {
+        regINS(CK_INS, cTL(encodingList), getCValueEncoding(), "ENCODING");
+    }
+
+    /**
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored,
+     * NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encodingList
+     *            The collection of encoding as notInScope. (NullAllowed: if
+     *            null (or empty), no condition)
+     */
+    public void setEncoding_NotInScope(final Collection<String> encodingList) {
+        doSetEncoding_NotInScope(encodingList);
+    }
+
+    public void doSetEncoding_NotInScope(final Collection<String> encodingList) {
+        regINS(CK_NINS, cTL(encodingList), getCValueEncoding(), "ENCODING");
+    }
+
+    /**
+     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored,
+     * SeveralRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as prefixSearch. (NullAllowed: if null
+     *            (or empty), no condition)
+     */
+    public void setEncoding_PrefixSearch(final String encoding) {
+        setEncoding_LikeSearch(encoding, cLSOP());
+    }
+
+    /**
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}.
+     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR(20)} <br />
+     * 
+     * <pre>e.g. setEncoding_LikeSearch("xxx", new <span style="color: #FD4747">LikeSearchOption</span>().likeContain());</pre>
+     * 
+     * @param encoding
+     *            The value of encoding as likeSearch. (NullAllowed: if null (or
+     *            empty), no condition)
+     * @param likeSearchOption
+     *            The option of like-search. (NotNull)
+     */
+    public void setEncoding_LikeSearch(final String encoding,
+            final LikeSearchOption likeSearchOption) {
+        regLSQ(
+            CK_LS,
+            fRES(encoding),
+            getCValueEncoding(),
+            "ENCODING",
+            likeSearchOption);
+    }
+
+    /**
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape
+     * ...} <br />
+     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @param encoding
+     *            The value of encoding as notLikeSearch. (NullAllowed: if null
+     *            (or empty), no condition)
+     * @param likeSearchOption
+     *            The option of not-like-search. (NotNull)
+     */
+    public void setEncoding_NotLikeSearch(final String encoding,
+            final LikeSearchOption likeSearchOption) {
+        regLSQ(
+            CK_NLS,
+            fRES(encoding),
+            getCValueEncoding(),
+            "ENCODING",
+            likeSearchOption);
+    }
+
+    /**
+     * IsNull {is null}. And OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     */
+    public void setEncoding_IsNull() {
+        regEncoding(CK_ISN, DOBJ);
+    }
+
+    /**
+     * IsNullOrEmpty {is null or empty}. And OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     */
+    public void setEncoding_IsNullOrEmpty() {
+        regEncoding(CK_ISNOE, DOBJ);
+    }
+
+    /**
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br />
+     * ENCODING: {VARCHAR(20)}
+     */
+    public void setEncoding_IsNotNull() {
+        regEncoding(CK_ISNN, DOBJ);
+    }
+
+    protected void regEncoding(final ConditionKey k, final Object v) {
+        regQ(k, v, getCValueEncoding(), "ENCODING");
+    }
+
+    abstract protected ConditionValue getCValueEncoding();
+
+    /**
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
      * PARENT_URL: {VARCHAR(65536)}
      * 
      * @param parentUrl

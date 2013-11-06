@@ -254,6 +254,42 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
         return this;
     }
 
+    protected ConditionValue _encoding;
+
+    public ConditionValue getEncoding() {
+        if (_encoding == null) {
+            _encoding = nCV();
+        }
+        return _encoding;
+    }
+
+    @Override
+    protected ConditionValue getCValueEncoding() {
+        return getEncoding();
+    }
+
+    /**
+     * Add order-by as ascend. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @return this. (NotNull)
+     */
+    public BsUrlQueueCQ addOrderBy_Encoding_Asc() {
+        regOBA("ENCODING");
+        return this;
+    }
+
+    /**
+     * Add order-by as descend. <br />
+     * ENCODING: {VARCHAR(20)}
+     * 
+     * @return this. (NotNull)
+     */
+    public BsUrlQueueCQ addOrderBy_Encoding_Desc() {
+        regOBD("ENCODING");
+        return this;
+    }
+
     protected ConditionValue _parentUrl;
 
     public ConditionValue getParentUrl() {

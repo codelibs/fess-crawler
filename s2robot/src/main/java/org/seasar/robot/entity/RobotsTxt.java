@@ -120,4 +120,9 @@ public class RobotsTxt {
             return disallowedPaths.toArray(new String[disallowedPaths.size()]);
         }
     }
+
+    @Override
+    public String toString() {
+        return "RobotsTxt [agentsToDirectives=" + agentsToDirectives + "]";
+    }
 }

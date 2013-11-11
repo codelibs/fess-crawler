@@ -338,4 +338,15 @@ public class AccessResultImpl implements AccessResult {
         this.lastModified = lastModified;
     }
 
+    @Override
+    public String toString() {
+        return "AccessResultImpl [id=" + id + ", sessionId=" + sessionId
+            + ", ruleId=" + ruleId + ", url=" + url + ", parentUrl="
+            + parentUrl + ", status=" + status + ", httpStatusCode="
+            + httpStatusCode + ", method=" + method + ", mimeType=" + mimeType
+            + ", createTime=" + createTime + ", executionTime=" + executionTime
+            + ", contentLength=" + contentLength + ", lastModified="
+            + lastModified + ", accessResultData=" + accessResultData + "]";
+    }
+
 }

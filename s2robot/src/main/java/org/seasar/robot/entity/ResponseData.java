@@ -196,4 +196,16 @@ public class ResponseData {
         return headerMap;
     }
 
+    @Override
+    public String toString() {
+        return "ResponseData [url=" + url + ", httpStatusCode="
+            + httpStatusCode + ", responseBody=" + responseBody + ", charSet="
+            + charSet + ", contentLength=" + contentLength + ", mimeType="
+            + mimeType + ", method=" + method + ", parentUrl=" + parentUrl
+            + ", ruleId=" + ruleId + ", sessionId=" + sessionId
+            + ", executionTime=" + executionTime + ", lastModified="
+            + lastModified + ", redirectLocation=" + redirectLocation
+            + ", status=" + status + ", metaDataMap=" + metaDataMap + "]";
+    }
+
 }

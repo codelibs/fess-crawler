@@ -76,4 +76,10 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
     public void setContent(final String content) {
         this.content = content;
     }
+
+    @Override
+    public String toString() {
+        return "ExtractData [metadata=" + metadata + ", content=" + content
+            + "]";
+    }
 }

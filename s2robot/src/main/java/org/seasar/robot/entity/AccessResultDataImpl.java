@@ -128,4 +128,10 @@ public class AccessResultDataImpl implements AccessResultData {
         }
     }
 
+    @Override
+    public String toString() {
+        return "AccessResultDataImpl [id=" + id + ", transformerName="
+            + transformerName + ", encoding=" + encoding + "]";
+    }
+
 }

@@ -90,4 +90,9 @@ public class SitemapFile implements Sitemap {
     public int hashCode() {
         return loc.hashCode() + lastmod.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "SitemapFile [loc=" + loc + ", lastmod=" + lastmod + "]";
+    }
 }

@@ -221,4 +221,14 @@ public class UrlFilterImpl implements UrlFilter {
         return urlFilterService;
     }
 
+    @Override
+    public String toString() {
+        return "UrlFilterImpl [urlPattern=" + urlPattern
+            + ", includeFilteringPattern=" + includeFilteringPattern
+            + ", excludeFilteringPattern=" + excludeFilteringPattern
+            + ", cachedIncludeList=" + cachedIncludeList
+            + ", cachedExcludeList=" + cachedExcludeList + ", sessionId="
+            + sessionId + ", urlFilterService=" + urlFilterService + "]";
+    }
+
 }

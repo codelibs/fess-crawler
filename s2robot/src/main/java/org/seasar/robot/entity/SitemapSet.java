@@ -58,4 +58,10 @@ public class SitemapSet implements Serializable {
     public boolean isIndex() {
         return INDEX.equals(type);
     }
+
+    @Override
+    public String toString() {
+        return "SitemapSet [sitemapList=" + sitemapList + ", type=" + type
+            + "]";
+    }
 }

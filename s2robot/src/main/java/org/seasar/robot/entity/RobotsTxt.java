@@ -150,4 +150,10 @@ public class RobotsTxt {
         }
     }
 
+    @Override
+    public String toString() {
+        return "RobotsTxt [directiveMap=" + directiveMap + ", sitemapList="
+            + sitemapList + "]";
+    }
+
 }

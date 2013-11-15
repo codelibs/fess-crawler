@@ -79,4 +79,10 @@ public class ResultData implements Serializable {
         this.encoding = encoding;
     }
 
+    @Override
+    public String toString() {
+        return "ResultData [transformerName=" + transformerName + ", encoding="
+            + encoding + ", childUrlSet=" + childUrlSet + "]";
+    }
+
 }

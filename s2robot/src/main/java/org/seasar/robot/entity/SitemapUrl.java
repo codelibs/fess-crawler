@@ -144,4 +144,10 @@ public class SitemapUrl implements Sitemap {
             + priority.hashCode();
     }
 
+    @Override
+    public String toString() {
+        return "SitemapUrl [loc=" + loc + ", lastmod=" + lastmod
+            + ", changefreq=" + changefreq + ", priority=" + priority + "]";
+    }
+
 }

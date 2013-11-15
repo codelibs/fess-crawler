@@ -25,6 +25,7 @@ import org.seasar.robot.RobotSystemException;
  * @author shinsuke
  * 
  */
+@Deprecated
 public class BasicAuthentication {
     private String host;
 

@@ -67,6 +67,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  * 
  */
+@Deprecated
 public class CommonsHttpClient extends AbstractS2RobotClient {
 
     public static final String CONNECTION_TIMEOUT_PROPERTY =

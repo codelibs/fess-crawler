@@ -314,10 +314,10 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                 final RobotsTxt robotsTxt =
                     robotsTxtHelper.parse(getMethod.getResponseBodyAsStream());
                 if (robotsTxt != null) {
-                    final RobotsTxt.Directives directives =
-                        robotsTxt.getDirectives(userAgent);
-                    if (directives != null) {
-                        for (String urlPattern : directives.getDisallows()) {
+                    final RobotsTxt.Directive directive =
+                        robotsTxt.getMatchedDirective(userAgent);
+                    if (directive != null) {
+                        for (String urlPattern : directive.getDisallows()) {
                             if (StringUtil.isNotBlank(urlPattern)) {
                                 urlPattern =
                                     convertRobotsTxtPathPattern(urlPattern);

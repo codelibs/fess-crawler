@@ -248,6 +248,8 @@ public class S2RobotThread implements Runnable {
                             urlQueue,
                             e);
                     } finally {
+                        addSitemapsFromRobotsTxt(urlQueue);
+
                         if (responseData != null) {
                             IOUtils
                                 .closeQuietly(responseData.getResponseBody());
@@ -292,6 +294,29 @@ public class S2RobotThread implements Runnable {
             CrawlingParameterUtil.setDataService(null);
         }
         log(logHelper, LogType.FINISHED_THREAD, robotContext);
+    }
+
+    protected void addSitemapsFromRobotsTxt(final UrlQueue urlQueue) {
+        String[] sitemaps = robotContext.removeSitemaps();
+        if (sitemaps != null) {
+            for (String childUrl : sitemaps) {
+                try {
+                    storeChildUrl(
+                        childUrl,
+                        urlQueue.getUrl(),
+                        urlQueue.getDepth() == null ? 1
+                            : urlQueue.getDepth() + 1);
+                } catch (Exception e) {
+                    log(
+                        logHelper,
+                        LogType.PROCESS_CHILD_URL_BY_EXCEPTION,
+                        robotContext,
+                        urlQueue,
+                        childUrl,
+                        e);
+                }
+            }
+        }
     }
 
     protected S2RobotClient getClient(final String url) {

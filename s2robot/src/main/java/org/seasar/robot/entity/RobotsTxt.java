@@ -18,69 +18,94 @@ package org.seasar.robot.entity;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.seasar.robot.Constants;
 
 public class RobotsTxt {
-    protected static final String ALL_BOTS = "*";
+    private static final String ALL_BOTS = "*";
 
-    protected final Map<String, Directives> agentsToDirectives =
-        new LinkedHashMap<String, Directives>();
+    protected final Map<Pattern, Directive> directiveMap =
+        new LinkedHashMap<Pattern, Directive>();
 
-    public RobotsTxt() {
-        final Directives defaultDirectives = new Directives();
-        defaultDirectives.crawlDelay = 0;
-        agentsToDirectives.put(ALL_BOTS, defaultDirectives);
-    }
+    private final List<String> sitemapList = new ArrayList<String>();
 
     public boolean allows(final String path, final String userAgent) {
-        final Directives directives =
-            getDirectives(userAgent.toLowerCase(Locale.ENGLISH));
-        if (directives == null) {
+        final Directive directive = getMatchedDirective(userAgent);
+        if (directive == null) {
             return true;
         }
-        return directives.allows(path);
+        return directive.allows(path);
     }
 
     public int getCrawlDelay(final String userAgent) {
-        final Directives directives =
-            getDirectives(userAgent.toLowerCase(Locale.ENGLISH));
-        if (directives == null) {
+        final Directive directive = getMatchedDirective(userAgent);
+        if (directive == null) {
             return 0;
         }
-        return directives.getCrawlDelay();
+        return directive.getCrawlDelay();
     }
 
-    public Directives getDirectives(final String userAgent) {
-        return getDirectives(userAgent, ALL_BOTS);
-    }
-
-    public Directives getDirectives(final String userAgent,
-            final String defaultUserAgent) {
-        Directives directives = agentsToDirectives.get(userAgent);
-        if (directives == null && defaultUserAgent != null) {
-            directives = agentsToDirectives.get(defaultUserAgent);
+    public Directive getMatchedDirective(final String userAgent) {
+        final String target;
+        if (userAgent == null) {
+            target = Constants.EMPTY_STRING;
+        } else {
+            target = userAgent;
         }
-        return directives;
+
+        int maxUaLength = -1;
+        Directive matchedDirective = null;
+        for (final Map.Entry<Pattern, Directive> entry : directiveMap
+            .entrySet()) {
+            if (entry.getKey().matcher(target).find()) {
+                final Directive directive = entry.getValue();
+                final String ua = directive.getUserAgent();
+                int uaLength = 0;
+                if (!ALL_BOTS.equals(ua)) {
+                    uaLength = ua.length();
+                }
+                if (uaLength > maxUaLength) {
+                    matchedDirective = directive;
+                    maxUaLength = uaLength;
+                }
+            }
+        }
+
+        return matchedDirective;
     }
 
-    public void addDirectives(final String userAgent,
-            final Directives directives) {
-        agentsToDirectives.put(userAgent, directives);
+    public Directive getDirective(final String userAgent) {
+        return directiveMap.get(userAgent);
     }
 
-    public String[] getUserAgents() {
-        final Set<String> userAgentSet = agentsToDirectives.keySet();
-        return userAgentSet.toArray(new String[userAgentSet.size()]);
+    public void addDirective(final Directive directive) {
+        directiveMap.put(Pattern.compile(
+            directive.getUserAgent().replace("*", ".*"),
+            Pattern.CASE_INSENSITIVE), directive);
     }
 
-    public static class Directives {
+    public void addSitemap(final String url) {
+        sitemapList.add(url);
+    }
+
+    public String[] getSitemaps() {
+        return sitemapList.toArray(new String[sitemapList.size()]);
+    }
+
+    public static class Directive {
+        private final String userAgent;
+
         private int crawlDelay;
 
         private final List<String> allowedPaths = new ArrayList<String>();
 
         private final List<String> disallowedPaths = new ArrayList<String>();
+
+        public Directive(final String userAgent) {
+            this.userAgent = userAgent;
+        }
 
         public void setCrawlDelay(final int crawlDelay) {
             this.crawlDelay = crawlDelay;
@@ -88,6 +113,10 @@ public class RobotsTxt {
 
         public int getCrawlDelay() {
             return crawlDelay;
+        }
+
+        public String getUserAgent() {
+            return userAgent;
         }
 
         public boolean allows(final String path) {
@@ -120,4 +149,5 @@ public class RobotsTxt {
             return disallowedPaths.toArray(new String[disallowedPaths.size()]);
         }
     }
+
 }

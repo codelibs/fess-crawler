@@ -119,12 +119,25 @@ public class LogHelperImpl implements LogHelper {
         case PROCESS_CHILD_URLS_BY_EXCEPTION: {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
             final UrlQueue urlQueue = (UrlQueue) objs[1];
+            @SuppressWarnings("unchecked")
             final Set<String> childUrlSet = (Set<String>) objs[2];
             if (logger.isDebugEnabled()) {
                 for (final String url : childUrlSet) {
                     logger.debug("Child URL: " + url + " from "
                         + urlQueue.getUrl());
                 }
+            }
+            break;
+        }
+        case PROCESS_CHILD_URL_BY_EXCEPTION: {
+            // S2RobotContext robotContext = (S2RobotContext) objs[0];
+            final UrlQueue urlQueue = (UrlQueue) objs[1];
+            final String url = (String) objs[2];
+            final Throwable e = (Throwable) objs[3];
+            if (logger.isDebugEnabled()) {
+                logger.debug(
+                    "Child URL: " + url + " from " + urlQueue.getUrl(),
+                    e);
             }
             break;
         }

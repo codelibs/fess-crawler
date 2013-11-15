@@ -13,29 +13,27 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.log;
+package org.seasar.robot;
 
 /**
  * @author shinsuke
  * 
  */
-public enum LogType {
-    START_CRAWLING, //
-    UNSUPPORTED_URL_AT_CRAWLING_STARTED, //
-    CHECK_LAST_MODIFIED, //
-    NOT_MODIFIED, //
-    GET_CONTENT, //
-    REDIRECT_LOCATION, //
-    PROCESS_RESPONSE, //
-    FINISHED_CRAWLING, //
-    PROCESS_CHILD_URLS_BY_EXCEPTION, //
-    PROCESS_CHILD_URL_BY_EXCEPTION, //
-    CRAWLING_ACCESS_EXCEPTION, //
-    CRAWLING_EXCETPION, //
-    NO_URL_IN_QUEUE, //
-    START_THREAD, //
-    FINISHED_THREAD, //
-    NO_RESPONSE_PROCESSOR, //
-    NO_RULE, //
-    SYSTEM_ERROR
+public class RobotTxtException extends RobotSystemException {
+
+    /**
+     * @param message
+     * @param cause
+     */
+    public RobotTxtException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * @param message
+     */
+    public RobotTxtException(final String message) {
+        super(message);
+    }
+
 }

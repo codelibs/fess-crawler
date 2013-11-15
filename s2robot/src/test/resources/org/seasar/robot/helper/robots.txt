@@ -15,3 +15,16 @@ Disallow: /private/
 Disallow: /help        # disallows /help.html, /help/index.html, etc.
 Allow: /help/faq.html
 Crawl-delay: 3
+
+User-agent: Crawler
+Disallow: /aaa
+
+User-agent: Crawler/1.0
+Disallow: /bbb
+
+User-agent: Crawler/2.0
+Disallow: /ccc
+
+sitemap: http://www.example.com/sitmap.xml
+sitemap: http://www.example.net/sitmap.xml
+

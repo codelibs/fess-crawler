@@ -47,6 +47,8 @@ public class S2RobotContext {
 
     protected Set<String> robotTxtUrlSet = new LruHashSet<String>(10000);
 
+    protected ThreadLocal<String[]> sitemapsLocal = new ThreadLocal<String[]>();
+
     /** The number of a thread */
     protected int numOfThread = 10;
 
@@ -161,5 +163,17 @@ public class S2RobotContext {
 
     public void setMaxAccessCount(final long maxAccessCount) {
         this.maxAccessCount = maxAccessCount;
+    }
+
+    public void addSitemaps(String[] sitemaps) {
+        sitemapsLocal.set(sitemaps);
+    }
+
+    public String[] removeSitemaps() {
+        String[] sitemaps = sitemapsLocal.get();
+        if (sitemaps != null) {
+            sitemapsLocal.remove();
+        }
+        return sitemaps;
     }
 }

@@ -16,7 +16,6 @@
 package org.seasar.robot.helper;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.extension.unit.S2TestCase;
@@ -32,53 +31,78 @@ public class RobotsTxtHelperTest extends S2TestCase {
 
     public void testParse() {
         RobotsTxt robotsTxt;
-        final InputStream in = RobotsTxtHelperTest.class
-                .getResourceAsStream("robots.txt");
+        final InputStream in =
+            RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
         try {
-            robotsTxt = robotsTxtHelper.parse(new InputStreamReader(in));
+            robotsTxt = robotsTxtHelper.parse(in);
         } finally {
             IOUtils.closeQuietly(in);
         }
 
-        assertTrue(robotsTxt.allows("/aaa", "S2Robot"));
-        assertTrue(robotsTxt.allows("/private/", "S2Robot"));
-        assertTrue(robotsTxt.allows("/private/index.html", "S2Robot"));
-        assertTrue(robotsTxt.allows("/help/", "S2Robot"));
-        assertTrue(robotsTxt.allows("/help.html", "S2Robot"));
-        assertTrue(robotsTxt.allows("/help/faq.html", "S2Robot"));
-        assertTrue(robotsTxt.allows("/foo/bar/", "S2Robot"));
-        assertTrue(robotsTxt.allows("/foo/bar/index.html", "S2Robot"));
-        assertEquals(0, robotsTxt.getCrawlDelay("S2Robot"));
+        for (String userAgent : new String[] { "S2Robot", "S2Robot/1.0",
+            "Mozilla S2Robot" }) {
+            assertTrue(robotsTxt.allows("/aaa", userAgent));
+            assertTrue(robotsTxt.allows("/private/", userAgent));
+            assertTrue(robotsTxt.allows("/private/index.html", userAgent));
+            assertTrue(robotsTxt.allows("/help/", userAgent));
+            assertTrue(robotsTxt.allows("/help.html", userAgent));
+            assertTrue(robotsTxt.allows("/help/faq.html", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/index.html", userAgent));
+            assertEquals(0, robotsTxt.getCrawlDelay(userAgent));
+        }
 
-        assertFalse(robotsTxt.allows("/aaa", "BruteBot"));
-        assertFalse(robotsTxt.allows("/private/", "BruteBot"));
-        assertFalse(robotsTxt.allows("/private/index.html", "BruteBot"));
-        assertFalse(robotsTxt.allows("/help/", "BruteBot"));
-        assertFalse(robotsTxt.allows("/help.html", "BruteBot"));
-        assertFalse(robotsTxt.allows("/help/faq.html", "BruteBot"));
-        assertTrue(robotsTxt.allows("/foo/bar/", "BruteBot"));
-        assertTrue(robotsTxt.allows("/foo/bar/index.html", "BruteBot"));
-        assertEquals(1314000, robotsTxt.getCrawlDelay("BruteBot"));
+        for (String userAgent : new String[] { "BruteBot", "FOO BruteBot/1.0" }) {
+            assertFalse(robotsTxt.allows("/aaa", userAgent));
+            assertFalse(robotsTxt.allows("/private/", userAgent));
+            assertFalse(robotsTxt.allows("/private/index.html", userAgent));
+            assertFalse(robotsTxt.allows("/help/", userAgent));
+            assertFalse(robotsTxt.allows("/help.html", userAgent));
+            assertFalse(robotsTxt.allows("/help/faq.html", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/index.html", userAgent));
+            assertEquals(1314000, robotsTxt.getCrawlDelay(userAgent));
+        }
 
-        assertTrue(robotsTxt.allows("/aaa", "GOOGLEBOT"));
-        assertTrue(robotsTxt.allows("/private/", "GOOGLEBOT"));
-        assertTrue(robotsTxt.allows("/private/index.html", "GOOGLEBOT"));
-        assertTrue(robotsTxt.allows("/help/", "GOOGLEBOT"));
-        assertTrue(robotsTxt.allows("/help.html", "GOOGLEBOT"));
-        assertTrue(robotsTxt.allows("/help/faq.html", "GOOGLEBOT"));
-        assertTrue(robotsTxt.allows("/foo/bar/", "GOOGLEBOT"));
-        assertTrue(robotsTxt.allows("/foo/bar/index.html", "GOOGLEBOT"));
-        assertEquals(1, robotsTxt.getCrawlDelay("GOOGLEBOT"));
+        for (String userAgent : new String[] { "GOOGLEBOT", "GoogleBot",
+            "googlebot" }) {
+            assertTrue(robotsTxt.allows("/aaa", userAgent));
+            assertTrue(robotsTxt.allows("/private/", userAgent));
+            assertTrue(robotsTxt.allows("/private/index.html", userAgent));
+            assertTrue(robotsTxt.allows("/help/", userAgent));
+            assertTrue(robotsTxt.allows("/help.html", userAgent));
+            assertTrue(robotsTxt.allows("/help/faq.html", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/index.html", userAgent));
+            assertEquals(1, robotsTxt.getCrawlDelay(userAgent));
+        }
 
-        assertTrue(robotsTxt.allows("/aaa", "UnknownBot"));
-        assertFalse(robotsTxt.allows("/private/", "UnknownBot"));
-        assertFalse(robotsTxt.allows("/private/index.html", "UnknownBot"));
-        assertFalse(robotsTxt.allows("/help/", "UnknownBot"));
-        assertFalse(robotsTxt.allows("/help.html", "UnknownBot"));
-        assertTrue(robotsTxt.allows("/help/faq.html", "UnknownBot"));
-        assertTrue(robotsTxt.allows("/foo/bar/", "UnknownBot"));
-        assertTrue(robotsTxt.allows("/foo/bar/index.html", "UnknownBot"));
-        assertEquals(3, robotsTxt.getCrawlDelay("UnknownBot"));
+        for (String userAgent : new String[] { "UnknownBot", "", " ", null }) {
+            assertTrue(robotsTxt.allows("/aaa", userAgent));
+            assertFalse(robotsTxt.allows("/private/", userAgent));
+            assertFalse(robotsTxt.allows("/private/index.html", userAgent));
+            assertFalse(robotsTxt.allows("/help/", userAgent));
+            assertFalse(robotsTxt.allows("/help.html", userAgent));
+            assertTrue(robotsTxt.allows("/help/faq.html", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/", userAgent));
+            assertTrue(robotsTxt.allows("/foo/bar/index.html", userAgent));
+            assertEquals(3, robotsTxt.getCrawlDelay(userAgent));
+        }
+
+        assertFalse(robotsTxt.allows("/aaa", "Crawler"));
+        assertTrue(robotsTxt.allows("/bbb", "Crawler"));
+        assertTrue(robotsTxt.allows("/ccc", "Crawler"));
+        assertTrue(robotsTxt.allows("/aaa", "Crawler/1.0"));
+        assertFalse(robotsTxt.allows("/bbb", "Crawler/1.0"));
+        assertTrue(robotsTxt.allows("/ccc", "Crawler/1.0"));
+        assertTrue(robotsTxt.allows("/aaa", "Crawler/2.0"));
+        assertTrue(robotsTxt.allows("/bbb", "Crawler/2.0"));
+        assertFalse(robotsTxt.allows("/ccc", "Crawler/2.0"));
+
+        String[] sitemaps = robotsTxt.getSitemaps();
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/sitmap.xml", sitemaps[0]);
+        assertEquals("http://www.example.net/sitmap.xml", sitemaps[1]);
 
     }
 

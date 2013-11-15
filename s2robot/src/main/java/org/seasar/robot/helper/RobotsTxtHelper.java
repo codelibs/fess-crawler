@@ -16,42 +16,55 @@
 package org.seasar.robot.helper;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.input.BOMInputStream;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
-import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.RobotTxtException;
 import org.seasar.robot.entity.RobotsTxt;
+import org.seasar.robot.entity.RobotsTxt.Directive;
 
+/**
+ * Robots.txt Specifications:
+ * <ul>
+ * <li><a href=
+ * "https://developers.google.com/webmasters/control-crawl-index/docs/robots_txt"
+ * >https://developers.google.com/webmasters/control-crawl-index/docs/robots_txt
+ * </a></li>
+ * </ul>
+ * 
+ * @author bowez
+ * @author shinsuke
+ * 
+ */
 public class RobotsTxtHelper {
 
-    protected static final Pattern USER_AGENT = Pattern
-        .compile("^User-agent:\\s*([^\\s]+)\\s*$");
+    protected static final Pattern USER_AGENT_RECORD = Pattern.compile(
+        "^user-agent:\\s*([^\\s]+)\\s*$",
+        Pattern.CASE_INSENSITIVE);
 
-    protected static final Pattern DISALLOW = Pattern
-        .compile("^Disallow:\\s*([^\\s]*)\\s*$");
+    protected static final Pattern DISALLOW_RECORD = Pattern.compile(
+        "^disallow:\\s*([^\\s]*)\\s*$",
+        Pattern.CASE_INSENSITIVE);
 
-    protected static final Pattern ALLOW = Pattern
-        .compile("^Allow:\\s*([^\\s]*)\\s*$");
+    protected static final Pattern ALLOW_RECORD = Pattern.compile(
+        "^allow:\\s*([^\\s]*)\\s*$",
+        Pattern.CASE_INSENSITIVE);
 
-    protected static final Pattern CRAWL_DELAY = Pattern
-        .compile("^Crawl-delay:\\s*([^\\s]+)\\s*$");
+    protected static final Pattern CRAWL_DELAY_RECORD = Pattern.compile(
+        "^crawl-delay:\\s*([^\\s]+)\\s*$",
+        Pattern.CASE_INSENSITIVE);
 
-    // TODO sitemaps
-
-    public RobotsTxt parse(final String text) {
-        final String[] lines = text.split("(\\r\\n)|\\r|\\n");
-        return parse(java.util.Arrays.asList(lines));
-    }
+    protected static final Pattern SITEMAP_RECORD = Pattern.compile(
+        "^sitemap:\\s*([^\\s]+)\\s*$",
+        Pattern.CASE_INSENSITIVE);
 
     public RobotsTxt parse(final InputStream stream) {
         return parse(stream, Constants.UTF_8);
@@ -59,73 +72,76 @@ public class RobotsTxtHelper {
 
     public RobotsTxt parse(final InputStream stream, final String charsetName) {
         try {
-            return parse(new InputStreamReader(stream, charsetName));
-        } catch (final UnsupportedEncodingException e) {
-            throw new RobotSystemException(e);
-        }
-    }
+            final BufferedReader reader =
+                new BufferedReader(new InputStreamReader(new BOMInputStream(
+                    stream), charsetName));
 
-    public RobotsTxt parse(final Reader reader) {
-        BufferedReader br;
-        if (reader instanceof BufferedReader) {
-            br = (BufferedReader) reader;
-        } else {
-            br = new BufferedReader(reader);
-        }
-        final List<String> lines = new ArrayList<String>();
-        String line;
-        try {
-            while ((line = br.readLine()) != null) {
-                lines.add(line);
-            }
-            return parse(lines);
-        } catch (final IOException e) {
-            throw new RobotSystemException("Could not read from Reader.", e);
-        }
-    }
+            String line;
+            final RobotsTxt robotsTxt = new RobotsTxt();
+            final List<Directive> currentDirectiveList =
+                new ArrayList<Directive>();
+            boolean isGroupRecodeStarted = false;
+            while ((line = reader.readLine()) != null) {
+                line = stripComment(line).trim();
+                if (StringUtil.isEmpty(line)) {
+                    continue;
+                }
 
-    protected RobotsTxt parse(final List<String> lines) {
-        final RobotsTxt robotsTxt = new RobotsTxt();
-        RobotsTxt.Directives currentDirectives = null;
-        for (String line : lines) {
-            line = stripComment(line);
-            line = line.trim();
-            String value;
-            if (StringUtil.isEmpty(line)) {
-                continue;
-            } else if ((value = getValue(USER_AGENT, line)) != null) {
-                final String userAgent = value.toLowerCase(Locale.ENGLISH);
-                currentDirectives = robotsTxt.getDirectives(userAgent, null);
-                if (currentDirectives == null) {
-                    currentDirectives = new RobotsTxt.Directives();
-                    robotsTxt.addDirectives(userAgent, currentDirectives);
-                }
-            } else if ((value = getValue(DISALLOW, line)) != null) {
-                if (currentDirectives == null) {
-                    continue; // the format of robots.txt is invalid
-                }
-                if (value.length() > 0) {
-                    currentDirectives.addDisallow(value);
-                }
-            } else if ((value = getValue(ALLOW, line)) != null) {
-                if (currentDirectives == null) {
-                    continue; // the format of robots.txt is invalid
-                }
-                currentDirectives.addAllow(value);
-            } else if ((value = getValue(CRAWL_DELAY, line)) != null) {
-                if (currentDirectives == null) {
-                    continue; // the format of robots.txt is invalid
-                }
-                try {
-                    currentDirectives.setCrawlDelay(Math.max(
-                        0,
-                        Integer.parseInt(value)));
-                } catch (final NumberFormatException e) {
-                    continue; // the format of robots.txt is invalid
+                String value;
+                if ((value = getValue(USER_AGENT_RECORD, line)) != null) {
+                    if (isGroupRecodeStarted) {
+                        currentDirectiveList.clear();
+                        isGroupRecodeStarted = false;
+                    }
+                    final String userAgent = value.toLowerCase(Locale.ENGLISH);
+                    Directive currentDirective =
+                        robotsTxt.getDirective(userAgent);
+                    if (currentDirective == null) {
+                        currentDirective = new Directive(userAgent);
+                        robotsTxt.addDirective(currentDirective);
+                        currentDirectiveList.add(currentDirective);
+                    }
+                } else {
+                    isGroupRecodeStarted = true;
+                    if ((value = getValue(DISALLOW_RECORD, line)) != null) {
+                        if (!currentDirectiveList.isEmpty()
+                            && value.length() > 0) {
+                            for (final Directive directive : currentDirectiveList) {
+                                directive.addDisallow(value);
+                            }
+                        }
+                    } else if ((value = getValue(ALLOW_RECORD, line)) != null) {
+                        if (!currentDirectiveList.isEmpty()
+                            && value.length() > 0) {
+                            for (final Directive directive : currentDirectiveList) {
+                                directive.addAllow(value);
+                            }
+                        }
+                    } else if ((value = getValue(CRAWL_DELAY_RECORD, line)) != null) {
+                        if (!currentDirectiveList.isEmpty()) {
+                            try {
+                                final int crawlDelay = Integer.parseInt(value);
+                                for (final Directive directive : currentDirectiveList) {
+                                    directive.setCrawlDelay(Math.max(
+                                        0,
+                                        crawlDelay));
+                                }
+                            } catch (final NumberFormatException e) {
+                                // ignore
+                            }
+                        }
+                    } else if ((value = getValue(SITEMAP_RECORD, line)) != null) {
+                        if (value.length() > 0) {
+                            robotsTxt.addSitemap(value);
+                        }
+                    }
                 }
             }
+
+            return robotsTxt;
+        } catch (final Exception e) {
+            throw new RobotTxtException("Failed to parse robots.txt.", e);
         }
-        return robotsTxt;
     }
 
     protected String getValue(final Pattern pattern, final String line) {

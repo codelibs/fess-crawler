@@ -139,7 +139,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
 
     private void storeChildUrls(final S2RobotContext robotContext,
             final Set<String> childUrlList, final String url, final int depth,
-            String encoding) {
+            final String encoding) {
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (final String childUrl : childUrlList) {

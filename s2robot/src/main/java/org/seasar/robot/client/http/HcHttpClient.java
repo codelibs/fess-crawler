@@ -194,6 +194,10 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public Pattern redirectHttpStatusPattern = Pattern.compile("[3][0-9][0-9]");
 
+    public boolean useRobotsTxtDisallows = true;
+
+    public boolean useRobotsTxtAllows = false;
+
     public synchronized void init() {
         if (httpClient != null) {
             return;
@@ -279,8 +283,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // user agent
-        final String userAgent =
-            getInitParameter(USER_AGENT_PROPERTY, this.userAgent);
+        userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent);
         if (StringUtil.isNotBlank(userAgent)) {
             HttpProtocolParams.setUserAgent(params, userAgent);
         }
@@ -462,15 +465,33 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     final RobotsTxt robotsTxt =
                         robotsTxtHelper.parse(httpEntity.getContent());
                     if (robotsTxt != null) {
-                        final RobotsTxt.Directives directives =
-                            robotsTxt.getDirectives(userAgent);
-                        if (directives != null) {
-                            for (String urlPattern : directives.getDisallows()) {
-                                if (StringUtil.isNotBlank(urlPattern)) {
-                                    urlPattern =
-                                        convertRobotsTxtPathPattern(urlPattern);
-                                    robotContext.getUrlFilter().addExclude(
-                                        hostUrl + urlPattern);
+                        String[] sitemaps = robotsTxt.getSitemaps();
+                        if (sitemaps.length > 0) {
+                            robotContext.addSitemaps(sitemaps);
+                        }
+
+                        final RobotsTxt.Directive directive =
+                            robotsTxt.getMatchedDirective(userAgent);
+                        if (directive != null) {
+                            if (useRobotsTxtDisallows) {
+                                for (String urlPattern : directive
+                                    .getDisallows()) {
+                                    if (StringUtil.isNotBlank(urlPattern)) {
+                                        urlPattern =
+                                            convertRobotsTxtPathPattern(urlPattern);
+                                        robotContext.getUrlFilter().addExclude(
+                                            hostUrl + urlPattern);
+                                    }
+                                }
+                            }
+                            if (useRobotsTxtAllows) {
+                                for (String urlPattern : directive.getAllows()) {
+                                    if (StringUtil.isNotBlank(urlPattern)) {
+                                        urlPattern =
+                                            convertRobotsTxtPathPattern(urlPattern);
+                                        robotContext.getUrlFilter().addInclude(
+                                            hostUrl + urlPattern);
+                                    }
                                 }
                             }
                         }
@@ -752,7 +773,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             Integer.toString(httpStatusCode)).matches();
     }
 
-    private HttpResponse executeHttpClient(final HttpUriRequest httpRequest)
+    protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest)
             throws IOException, ClientProtocolException {
         return httpClient.execute(httpRequest, new BasicHttpContext(
             httpClientContext));

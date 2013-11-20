@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
@@ -68,6 +69,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.seasar.extension.timer.TimeoutManager;
+import org.seasar.extension.timer.TimeoutTarget;
 import org.seasar.extension.timer.TimeoutTask;
 import org.seasar.framework.beans.BeanDesc;
 import org.seasar.framework.beans.PropertyDesc;
@@ -97,6 +99,8 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class HcHttpClient extends AbstractS2RobotClient {
+
+    public static final String ACCESS_TIMEOUT_PROPERTY = "accessTimeout";
 
     public static final String CONNECTION_TIMEOUT_PROPERTY =
         "connectionTimeout";
@@ -147,6 +151,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
         new HashMap<String, Object>();
 
     private TimeoutTask connectionMonitorTask;
+
+    public Integer accessTimeout; // sec
 
     public Integer connectionTimeout;
 
@@ -211,6 +217,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
             new DefaultHttpClient(clientConnectionManager);
         final HttpParams params = defaultHttpClient.getParams();
 
+        final Integer accessTimeoutParam =
+            getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout);
+        if (accessTimeoutParam != null) {
+            accessTimeout = accessTimeoutParam;
+        }
         final Integer connectionTimeoutParam =
             getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout);
         if (connectionTimeoutParam != null) {
@@ -566,6 +577,33 @@ public class HcHttpClient extends AbstractS2RobotClient {
             logger.debug("Accessing " + url);
         }
 
+        // start
+        AccessTimeoutTarget accessTimeoutTarget = null;
+        TimeoutTask accessTimeoutTask = null;
+        if (accessTimeout != null) {
+            accessTimeoutTarget =
+                new AccessTimeoutTarget(Thread.currentThread());
+            accessTimeoutTask =
+                TimeoutManager.getInstance().addTimeoutTarget(
+                    accessTimeoutTarget,
+                    accessTimeout.intValue(),
+                    false);
+        }
+
+        try {
+            return processHttpMethod(url, httpRequest);
+        } finally {
+            if (accessTimeout != null) {
+                accessTimeoutTarget.stop();
+                if (!accessTimeoutTask.isCanceled()) {
+                    accessTimeoutTask.cancel();
+                }
+            }
+        }
+    }
+
+    protected ResponseData processHttpMethod(final String url,
+            final HttpUriRequest httpRequest) {
         try {
             processRobotsTxt(url);
         } catch (final RobotCrawlAccessException e) {
@@ -789,4 +827,43 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
     }
 
+    protected static class AccessTimeoutTarget implements TimeoutTarget {
+
+        private static final int MAX_LOOP_COUNT = 10;
+
+        protected Thread runninThread;
+
+        protected AtomicBoolean running = new AtomicBoolean();
+
+        protected AccessTimeoutTarget(Thread thread) {
+            runninThread = thread;
+            running.set(true);
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.seasar.extension.timer.TimeoutTarget#expired()
+         */
+        @Override
+        public void expired() {
+            int count = 0;
+            while (running.get() && count < MAX_LOOP_COUNT) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Interrupt " + runninThread);
+                }
+                runninThread.interrupt();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                count++;
+            }
+        }
+
+        public void stop() {
+            running.set(false);
+        }
+    }
 }

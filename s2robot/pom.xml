@@ -102,17 +102,17 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.2.5</version>
+      <version>4.2.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpmime</artifactId>
-      <version>4.2.5</version>
+      <version>4.2.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient-cache</artifactId>
-      <version>4.2.5</version>
+      <version>4.2.6</version>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
@@ -123,7 +123,7 @@
     <dependency>
       <groupId>net.sourceforge.nekohtml</groupId>
       <artifactId>nekohtml</artifactId>
-      <version>1.9.18</version>
+      <version>1.9.19</version>
     </dependency>
     <dependency>
       <groupId>xalan</groupId>
@@ -182,7 +182,7 @@
     <dependency>
       <groupId>com.ibm.icu</groupId>
       <artifactId>icu4j</artifactId>
-      <version>51.1</version>
+      <version>52.1</version>
     </dependency>
     <dependency>
       <groupId>org.samba.jcifs</groupId>

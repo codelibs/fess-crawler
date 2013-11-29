@@ -333,6 +333,7 @@ public class S2RobotThread implements Runnable {
                 // head method
                 responseData = client.doHead(urlQueue.getUrl());
                 if (responseData != null
+                    && responseData.getLastModified() != null
                     && responseData.getLastModified().getTime() <= urlQueue
                         .getLastModified()
                         .getTime() && responseData.getHttpStatusCode() == 200) {

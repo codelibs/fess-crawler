@@ -46,6 +46,7 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
 import org.seasar.framework.container.SingletonS2Container;
+import org.seasar.framework.container.annotation.tiger.InitMethod;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
@@ -74,8 +75,26 @@ public class TikaExtractor implements Extractor {
 
     public long maxUncompressionSize = 1000000;
 
+    public int initialBufferSize = 10000;
+
+    public TikaConfig tikaConfig;
+
     protected Map<String, String> pdfPasswordMap =
         new HashMap<String, String>();
+
+    @InitMethod
+    public void init() {
+        if (tikaConfig == null) {
+            tikaConfig = TikaConfig.getDefaultConfig();
+        }
+
+        if (logger.isDebugEnabled()) {
+            Parser parser = tikaConfig.getParser();
+            logger.debug(
+                "supportedTypes: {}",
+                parser.getSupportedTypes(new ParseContext()));
+        }
+    }
 
     /*
      * (non-Javadoc)
@@ -125,9 +144,6 @@ public class TikaExtractor implements Extractor {
                     params == null ? null : params
                         .get(HttpHeaders.CONTENT_ENCODING);
 
-                final Metadata metadata =
-                    createMetadata(resourceName, contentType, contentEncoding);
-
                 // password for pdf
                 String pdfPassword =
                     params == null ? null : params
@@ -138,15 +154,19 @@ public class TikaExtractor implements Extractor {
                             params.get(ExtractData.URL),
                             resourceName);
                 }
-                if (pdfPassword != null) {
-                    metadata.add(ExtractData.PDF_PASSWORD, pdfPassword);
-                }
+
+                final Metadata metadata =
+                    createMetadata(
+                        resourceName,
+                        contentType,
+                        contentEncoding,
+                        pdfPassword);
 
                 final Parser parser = new DetectParser();
                 final ParseContext parseContext = new ParseContext();
                 parseContext.set(Parser.class, parser);
 
-                final StringWriter writer = new StringWriter();
+                final StringWriter writer = new StringWriter(initialBufferSize);
                 parser.parse(
                     in,
                     new BodyContentHandler(writer),
@@ -156,12 +176,21 @@ public class TikaExtractor implements Extractor {
                 String content = normalizeContent(writer);
                 if (StringUtil.isBlank(content)) {
                     if (resourceName != null) {
-                        // retry without a resource name
                         IOUtils.closeQuietly(in);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(
+                                "retry without a resource name: {}",
+                                resourceName);
+                        }
                         in = new FileInputStream(tempFile);
                         final Metadata metadata2 =
-                            createMetadata(null, contentType, contentEncoding);
-                        final StringWriter writer2 = new StringWriter();
+                            createMetadata(
+                                null,
+                                contentType,
+                                contentEncoding,
+                                pdfPassword);
+                        final StringWriter writer2 =
+                            new StringWriter(initialBufferSize);
                         parser.parse(
                             in,
                             new BodyContentHandler(writer2),
@@ -170,12 +199,21 @@ public class TikaExtractor implements Extractor {
                         content = normalizeContent(writer2);
                     }
                     if (StringUtil.isBlank(content) && contentType != null) {
-                        // retry without a content type
                         IOUtils.closeQuietly(in);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(
+                                "retry without a content type: {}",
+                                contentType);
+                        }
                         in = new FileInputStream(tempFile);
                         final Metadata metadata3 =
-                            createMetadata(null, null, contentEncoding);
-                        final StringWriter writer3 = new StringWriter();
+                            createMetadata(
+                                null,
+                                null,
+                                contentEncoding,
+                                pdfPassword);
+                        final StringWriter writer3 =
+                            new StringWriter(initialBufferSize);
                         parser.parse(
                             in,
                             new BodyContentHandler(writer3),
@@ -186,6 +224,9 @@ public class TikaExtractor implements Extractor {
 
                     if (readAsTextIfFailed && StringUtil.isBlank(content)) {
                         IOUtils.closeQuietly(in);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("read the content as a text.");
+                        }
                         if (contentEncoding == null) {
                             contentEncoding = Constants.UTF_8;
                         }
@@ -195,7 +236,8 @@ public class TikaExtractor implements Extractor {
                                 new BufferedReader(new InputStreamReader(
                                     new FileInputStream(tempFile),
                                     contentEncoding));
-                            final StringWriter writer4 = new StringWriter();
+                            final StringWriter writer4 =
+                                new StringWriter(initialBufferSize);
                             String line;
                             while ((line = br.readLine()) != null) {
                                 writer4.write(line
@@ -220,6 +262,10 @@ public class TikaExtractor implements Extractor {
                 Arrays.sort(names);
                 for (final String name : names) {
                     extractData.putValues(name, metadata.getValues(name));
+                }
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Result: metadata: {}", metadata);
                 }
 
                 return extractData;
@@ -301,7 +347,8 @@ public class TikaExtractor implements Extractor {
     }
 
     private Metadata createMetadata(final String resourceName,
-            final String contentType, final String contentEncoding) {
+            final String contentType, final String contentEncoding,
+            String pdfPassword) {
         final Metadata metadata = new Metadata();
         if (StringUtil.isNotEmpty(resourceName)) {
             metadata.set(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
@@ -312,6 +359,14 @@ public class TikaExtractor implements Extractor {
         if (StringUtil.isNotBlank(contentEncoding)) {
             metadata.set(HttpHeaders.CONTENT_ENCODING, contentEncoding);
         }
+        if (pdfPassword != null) {
+            metadata.add(ExtractData.PDF_PASSWORD, pdfPassword);
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("metadata: {}", metadata);
+        }
+
         return metadata;
     }
 
@@ -333,7 +388,7 @@ public class TikaExtractor implements Extractor {
          * configuration.
          */
         public DetectParser() {
-            this(TikaConfig.getDefaultConfig());
+            this(tikaConfig);
         }
 
         public DetectParser(final TikaConfig config) {
@@ -360,6 +415,17 @@ public class TikaExtractor implements Extractor {
 
                 sch.setMaximumCompressionRatio(maxCompressionRatio);
                 sch.setOutputThreshold(maxUncompressionSize);
+
+                if (logger.isDebugEnabled()) {
+                    logger
+                        .debug(
+                            "type: {}, metadata: {}, maxCompressionRatio: {}, maxUncompressionSize: {}",
+                            type,
+                            metadata,
+                            maxCompressionRatio,
+                            maxUncompressionSize);
+
+                }
 
                 try {
                     // Parse the document

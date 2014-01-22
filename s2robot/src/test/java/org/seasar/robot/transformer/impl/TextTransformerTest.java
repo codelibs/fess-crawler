@@ -49,12 +49,14 @@ public class TextTransformerTest extends S2TestCase {
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/plain");
         final ResultData resultData = textTransformer.transform(responseData);
-        assertEquals("xyz", new String(resultData.getData(), resultData
-                .getEncoding()));
+        assertEquals(
+            "xyz",
+            new String(resultData.getData(), resultData.getEncoding()));
     }
 
     public void test_transform_html() throws Exception {
-        final byte[] data = new String("<html><body>xyz</body></html>").getBytes();
+        final byte[] data =
+            new String("<html><body>xyz</body></html>").getBytes();
         final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("file:/test.html");
@@ -62,8 +64,9 @@ public class TextTransformerTest extends S2TestCase {
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/html");
         final ResultData resultData = textTransformer.transform(responseData);
-        assertEquals("xyz", new String(resultData.getData(), resultData
-                .getEncoding()));
+        assertEquals(
+            "xyz",
+            new String(resultData.getData(), resultData.getEncoding()));
     }
 
     public void test_transform_null() {
@@ -76,7 +79,8 @@ public class TextTransformerTest extends S2TestCase {
     }
 
     public void test_getData() throws Exception {
-        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData =
+            new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");
         accessResultData.setData("xyz".getBytes());
 
@@ -87,7 +91,8 @@ public class TextTransformerTest extends S2TestCase {
     }
 
     public void test_getData_wrongName() throws Exception {
-        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData =
+            new AccessResultDataImpl();
         accessResultData.setTransformerName("transformer");
         accessResultData.setData("xyz".getBytes());
 
@@ -99,7 +104,8 @@ public class TextTransformerTest extends S2TestCase {
     }
 
     public void test_getData_nullData() throws Exception {
-        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData =
+            new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");
         accessResultData.setData(null);
 

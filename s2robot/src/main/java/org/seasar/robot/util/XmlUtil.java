@@ -35,7 +35,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author shinsuke
  * 
  */
-public class XmlUtil {
+public final class XmlUtil {
 
     private XmlUtil() {
     }
@@ -150,12 +150,13 @@ public class XmlUtil {
                     }
                     fieldName = null;
                 }
-            } else if ("list".equals(qName)) {
+                // } else if ("list".equals(qName)) {
                 // nothing
             } else if ("item".equals(qName)) {
                 if (fieldName != null) {
                     final Object obj = dataMap.get(fieldName);
                     if (obj instanceof List) {
+                        @SuppressWarnings("unchecked")
                         final List<String> list = (List<String>) obj;
                         list.add(buffer.toString());
                     }

@@ -54,16 +54,19 @@ public class FileTransformerTest extends S2TestCase {
         String url;
 
         url = "http://www.example.com/";
-        assertEquals("http_CLN_/www.example.com/index.html", fileTransformer
-                .getFilePath(url));
+        assertEquals(
+            "http_CLN_/www.example.com/index.html",
+            fileTransformer.getFilePath(url));
 
         url = "http://www.example.com/action?a=1";
-        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1",
-                fileTransformer.getFilePath(url));
+        assertEquals(
+            "http_CLN_/www.example.com/action_QUEST_a=1",
+            fileTransformer.getFilePath(url));
 
         url = "http://www.example.com/action?a=1&b=2";
-        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1_AMP_b=2",
-                fileTransformer.getFilePath(url));
+        assertEquals(
+            "http_CLN_/www.example.com/action_QUEST_a=1_AMP_b=2",
+            fileTransformer.getFilePath(url));
     }
 
     public void test_transform() throws Exception {
@@ -75,10 +78,13 @@ public class FileTransformerTest extends S2TestCase {
         responseData.setCharSet("UTF-8");
         setBaseDir();
         final ResultData resultData = fileTransformer.transform(responseData);
-        assertEquals("http_CLN_/www.example.com/submit_QUEST_a=1_AMP_b=2",
-                new String(resultData.getData(), "UTF-8"));
-        final File file = new File(fileTransformer.baseDir, new String(resultData
-                .getData(), "UTF-8"));
+        assertEquals(
+            "http_CLN_/www.example.com/submit_QUEST_a=1_AMP_b=2",
+            new String(resultData.getData(), "UTF-8"));
+        final File file =
+            new File(fileTransformer.baseDir, new String(
+                resultData.getData(),
+                "UTF-8"));
         assertEquals("xyz", new String(FileUtil.getBytes(file)));
     }
 
@@ -124,28 +130,32 @@ public class FileTransformerTest extends S2TestCase {
 
         path = "hoge.html/hoge2.html";
         file = fileTransformer.createFile(path);
-        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
-                + File.separator + "hoge2.html");
+        resultFile =
+            new File(fileTransformer.baseDir, "hoge.html_2" + File.separator
+                + "hoge2.html");
         assertEquals(resultFile, file);
         FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
 
         path = "hoge.html/hoge3.html";
         file = fileTransformer.createFile(path);
-        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
-                + File.separator + "hoge3.html");
+        resultFile =
+            new File(fileTransformer.baseDir, "hoge.html_2" + File.separator
+                + "hoge3.html");
         assertEquals(resultFile, file);
         FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
 
         path = "hoge.html/hoge2.html";
         file = fileTransformer.createFile(path);
-        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
-                + File.separator + "hoge2.html_0");
+        resultFile =
+            new File(fileTransformer.baseDir, "hoge.html_2" + File.separator
+                + "hoge2.html_0");
         assertEquals(resultFile, file);
         FileUtil.write(file.getAbsolutePath(), "abc".getBytes());
     }
 
     public void test_getData() throws Exception {
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData("hoge.txt".getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("fileTransformer");
@@ -158,7 +168,8 @@ public class FileTransformerTest extends S2TestCase {
     }
 
     public void test_getData_wrongName() throws Exception {
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData("hoge.txt".getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
@@ -173,7 +184,8 @@ public class FileTransformerTest extends S2TestCase {
     }
 
     public void test_getData_nullData() throws Exception {
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("fileTransformer");

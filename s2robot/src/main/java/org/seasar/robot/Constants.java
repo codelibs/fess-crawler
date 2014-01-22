@@ -15,6 +15,8 @@
  */
 package org.seasar.robot;
 
+import java.nio.charset.Charset;
+
 /**
  * @author shinsuke
  * 
@@ -32,8 +34,13 @@ public final class Constants {
 
     public static final String UTF_8 = "UTF-8";
 
+    public static final Charset UTF_8_CHARSET = Charset.forName(UTF_8);
+
+    public static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
+
     public static final String EMPTY_STRING = "";
 
     private Constants() {
     }
+
 }

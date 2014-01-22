@@ -188,8 +188,7 @@ public class JodExtractor implements Extractor {
         }
     }
 
-    protected String getOutputContent(final File outputFile, final String outExt)
-            throws UnsupportedEncodingException {
+    protected String getOutputContent(final File outputFile, final String outExt) {
         final Extractor extractor = getExtractor(outExt);
         if (extractor != null) {
             final Map<String, String> params = new HashMap<String, String>();
@@ -207,7 +206,13 @@ public class JodExtractor implements Extractor {
                 IOUtils.closeQuietly(in);
             }
         }
-        return new String(FileUtil.getBytes(outputFile), outputEncoding);
+        try {
+            return new String(FileUtil.getBytes(outputFile), outputEncoding);
+        } catch (UnsupportedEncodingException e) {
+            return new String(
+                FileUtil.getBytes(outputFile),
+                Constants.UTF_8_CHARSET);
+        }
     }
 
     private Extractor getExtractor(final String ext) {

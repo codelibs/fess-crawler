@@ -95,7 +95,8 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlTransformer");
@@ -111,7 +112,8 @@ public class XmlTransformerTest extends S2TestCase {
             + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
             + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
@@ -130,7 +132,8 @@ public class XmlTransformerTest extends S2TestCase {
             + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
             + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlTransformer");
@@ -153,7 +156,8 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlMapTransformer");
@@ -179,7 +183,8 @@ public class XmlTransformerTest extends S2TestCase {
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlEntityTransformer");
@@ -204,7 +209,8 @@ public class XmlTransformerTest extends S2TestCase {
             + "<field name=\"list\"><list></list></field>\n"//
             + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlEntityTransformer");

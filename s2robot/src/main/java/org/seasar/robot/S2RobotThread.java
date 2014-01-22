@@ -285,7 +285,7 @@ public class S2RobotThread implements Runnable {
                         .delay(IntervalController.WAIT_NEW_URL);
                 }
             }
-        } catch (final Throwable t) {
+        } catch (final Throwable t) { // NOPMD
             log(logHelper, LogType.SYSTEM_ERROR, t);
         } finally {
             // remove robotContext from thread

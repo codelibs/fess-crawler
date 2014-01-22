@@ -19,7 +19,6 @@ import java.io.UnsupportedEncodingException;
 
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
-import org.seasar.robot.RobotSystemException;
 
 /**
  * @author shinsuke
@@ -120,11 +119,7 @@ public class AccessResultDataImpl implements AccessResultData {
             return new String(data, StringUtil.isNotBlank(encoding) ? encoding
                 : Constants.UTF_8);
         } catch (final UnsupportedEncodingException e) {
-            try {
-                return new String(data, Constants.UTF_8);
-            } catch (final UnsupportedEncodingException e1) {
-                throw new RobotSystemException("Unexpected exception.", e1);
-            }
+            return new String(data, Constants.UTF_8_CHARSET);
         }
     }
 

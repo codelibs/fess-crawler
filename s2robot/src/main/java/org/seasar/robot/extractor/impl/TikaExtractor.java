@@ -313,7 +313,7 @@ public class TikaExtractor implements Extractor {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
             if (tempFile != null && !tempFile.delete()) {
-                tempFile.deleteOnExit();
+                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
             }
         }
     }

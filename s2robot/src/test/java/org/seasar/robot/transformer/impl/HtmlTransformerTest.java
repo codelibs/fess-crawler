@@ -196,7 +196,8 @@ public class HtmlTransformerTest extends S2TestCase {
 
     public void test_getData() throws Exception {
         final String value = "<html><body>hoge</body></html>";
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("htmlTransformer");
@@ -207,7 +208,8 @@ public class HtmlTransformerTest extends S2TestCase {
 
     public void test_getData_wrongName() throws Exception {
         final String value = "<html><body>hoge</body></html>";
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes());
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
@@ -221,7 +223,8 @@ public class HtmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData_nullData() throws Exception {
-        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl =
+            new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("htmlTransformer");

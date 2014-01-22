@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -133,13 +132,6 @@ public class PdfExtractor implements Extractor {
             final String value) {
         if (value != null) {
             extractData.putValue(name, value);
-        }
-    }
-
-    private void addMetadata(final ExtractData extractData, final String name,
-            final Calendar value) {
-        if (value != null) {
-            extractData.putValue(name, value.getTime().toString());
         }
     }
 

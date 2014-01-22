@@ -586,11 +586,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 logger.info("Invalid charsetName: " + encoding
                     + ". Changed to " + Constants.UTF_8, e);
             }
-            try {
-                return new String(data, Constants.UTF_8);
-            } catch (final UnsupportedEncodingException e1) {
-                throw new RobotSystemException("Unexpected exception", e1);
-            }
+            return new String(data, Constants.UTF_8_CHARSET);
         }
     }
 

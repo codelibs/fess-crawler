@@ -370,7 +370,10 @@ public class CommandExtractor implements Extractor {
             try {
                 br = new BufferedReader(new InputStreamReader(is, charset));
             } catch (final UnsupportedEncodingException e) {
-                throw new RobotSystemException(e);
+                br =
+                    new BufferedReader(new InputStreamReader(
+                        is,
+                        Constants.UTF_8_CHARSET));
             }
             maxLineBuffer = maxOutputLineBuffer;
         }

@@ -218,11 +218,7 @@ public class FileTransformer extends HtmlTransformer {
             filePath =
                 new String(data, encoding == null ? Constants.UTF_8 : encoding);
         } catch (final UnsupportedEncodingException e) {
-            try {
-                filePath = new String(data, Constants.UTF_8);
-            } catch (final UnsupportedEncodingException e1) {
-                throw new RobotSystemException("Unexpected exception.", e1);
-            }
+            filePath = new String(data, Constants.UTF_8_CHARSET);
         }
         return new File(baseDir, filePath);
     }

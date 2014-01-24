@@ -34,7 +34,7 @@ public interface UrlFilter {
      * Check if a given url is a target.
      * 
      * @param url
-     * @return
+     * @return true if url is matched
      */
     boolean match(String url);
 

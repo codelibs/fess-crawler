@@ -323,7 +323,7 @@ public class TikaExtractor implements Extractor {
     }
 
     String getPdfPassword(final String url, final String resourceName) {
-        if (pdfPasswordMap.size() == 0) {
+        if (pdfPasswordMap.isEmpty()) {
             return null;
         }
 

@@ -152,14 +152,12 @@ public final class XmlUtil {
                 }
                 // } else if ("list".equals(qName)) {
                 // nothing
-            } else if ("item".equals(qName)) {
-                if (fieldName != null) {
-                    final Object obj = dataMap.get(fieldName);
-                    if (obj instanceof List) {
-                        @SuppressWarnings("unchecked")
-                        final List<String> list = (List<String>) obj;
-                        list.add(buffer.toString());
-                    }
+            } else if ("item".equals(qName) && fieldName != null) {
+                final Object obj = dataMap.get(fieldName);
+                if (obj instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    final List<String> list = (List<String>) obj;
+                    list.add(buffer.toString());
                 }
             }
         }

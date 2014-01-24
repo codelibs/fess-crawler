@@ -33,13 +33,12 @@ public class EncodingHelper {
     public String normalize(final String enc) {
         if (StringUtil.isBlank(enc)) {
             return defaultEncoding;
-        } else {
-            final String newEnc = encodingMap.get(enc);
-            if (StringUtil.isBlank(newEnc)) {
-                return enc;
-            } else {
-                return newEnc;
-            }
         }
+
+        final String newEnc = encodingMap.get(enc);
+        if (StringUtil.isBlank(newEnc)) {
+            return enc;
+        }
+        return newEnc;
     }
 }

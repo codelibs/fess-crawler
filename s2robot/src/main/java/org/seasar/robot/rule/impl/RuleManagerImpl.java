@@ -28,8 +28,6 @@ import org.seasar.robot.rule.RuleManager;
  */
 public class RuleManagerImpl implements RuleManager {
 
-    private static final long serialVersionUID = 1L;
-
     protected List<Rule> ruleList;
 
     public RuleManagerImpl() {

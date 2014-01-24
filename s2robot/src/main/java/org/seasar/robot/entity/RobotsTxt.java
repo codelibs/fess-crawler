@@ -77,7 +77,15 @@ public class RobotsTxt {
     }
 
     public Directive getDirective(final String userAgent) {
-        return directiveMap.get(userAgent);
+        if (userAgent == null) {
+            return null;
+        }
+        for (Directive directive : directiveMap.values()) {
+            if (userAgent.equals(directive.getUserAgent())) {
+                return directive;
+            }
+        }
+        return null;
     }
 
     public void addDirective(final Directive directive) {

@@ -268,13 +268,13 @@ public class CommonsHttpClient extends AbstractS2RobotClient {
                 logger.debug(robotTxtUrl + " is already visited.");
             }
             return;
-        } else {
-            if (logger.isInfoEnabled()) {
-                logger.info("Checking URL: " + robotTxtUrl);
-            }
-            // add url to a set
-            robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
         }
+
+        if (logger.isInfoEnabled()) {
+            logger.info("Checking URL: " + robotTxtUrl);
+        }
+        // add url to a set
+        robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
 
         final GetMethod getMethod = new GetMethod(robotTxtUrl);
 

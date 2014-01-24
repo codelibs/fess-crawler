@@ -375,10 +375,8 @@ public class HtmlTransformer extends AbstractTransformer {
     protected String getDuplicateUrl(final String url) {
         if (url.endsWith("/")) {
             return url.substring(0, url.length() - 1);
-        } else {
-            return url + "/";
         }
-
+        return url + "/";
     }
 
     protected DOMParser getDomParser() {

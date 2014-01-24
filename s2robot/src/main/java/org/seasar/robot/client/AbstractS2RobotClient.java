@@ -34,6 +34,7 @@ public abstract class AbstractS2RobotClient implements S2RobotClient {
     protected <T> T getInitParameter(final String key, final T defaultValue) {
         if (initParamMap != null) {
             try {
+                @SuppressWarnings("unchecked")
                 final T value = (T) initParamMap.get(key);
                 if (value != null) {
                     return value;

@@ -222,9 +222,8 @@ public class CommandExtractor implements Extractor {
                 throw new ExecutionTimeoutException(
                     "The command execution is timeout: " + cmdList,
                     e);
-            } else {
-                throw new RobotSystemException("Process terminated.", e);
             }
+            throw new RobotSystemException("Process terminated.", e);
         } catch (final Exception e) {
             throw new RobotSystemException("Process terminated.", e);
         } finally {

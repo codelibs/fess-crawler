@@ -72,6 +72,7 @@ public class RobotsTxtHelper {
 
     public RobotsTxt parse(final InputStream stream, final String charsetName) {
         try {
+            @SuppressWarnings("resource")
             final BufferedReader reader =
                 new BufferedReader(new InputStreamReader(new BOMInputStream(
                     stream), charsetName));

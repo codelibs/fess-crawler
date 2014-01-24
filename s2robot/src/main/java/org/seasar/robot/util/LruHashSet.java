@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * @author shinsuke
+ * @param <E>
  * 
  */
 public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,

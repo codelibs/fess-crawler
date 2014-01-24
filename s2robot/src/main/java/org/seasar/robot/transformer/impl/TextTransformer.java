@@ -33,12 +33,16 @@ import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.extractor.Extractor;
 import org.seasar.robot.extractor.ExtractorFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  * 
  */
 public class TextTransformer extends AbstractTransformer {
+    private static final Logger logger = LoggerFactory // NOPMD
+        .getLogger(TextTransformer.class);
 
     protected String charsetName = Constants.UTF_8;
 
@@ -82,8 +86,12 @@ public class TextTransformer extends AbstractTransformer {
         try {
             resultData.setData(content.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
-            throw new RobotCrawlAccessException("Unsupported encoding: "
-                + charsetName, e);
+            if (logger.isInfoEnabled()) {
+                logger.info("Invalid charsetName: " + charsetName
+                    + ". Changed to " + Constants.UTF_8, e);
+            }
+            charsetName = Constants.UTF_8_CHARSET.name();
+            resultData.setData(content.getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
         return resultData;

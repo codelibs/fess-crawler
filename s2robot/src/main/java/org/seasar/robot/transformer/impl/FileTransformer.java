@@ -24,12 +24,13 @@ import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.io.IOUtils;
 import org.seasar.robot.Constants;
-import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.util.StreamUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * FileTransformer stores WEB data as a file path.
@@ -38,6 +39,9 @@ import org.seasar.robot.util.StreamUtil;
  * 
  */
 public class FileTransformer extends HtmlTransformer {
+    private static final Logger logger = LoggerFactory // NOPMD
+        .getLogger(FileTransformer.class);
+
     /**
      * A path to store downloaded files. The default path is a current
      * directory.
@@ -150,8 +154,12 @@ public class FileTransformer extends HtmlTransformer {
         try {
             resultData.setData(path.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
-            throw new RobotCrawlAccessException("Invalid charsetName: "
-                + charsetName, e);
+            if (logger.isInfoEnabled()) {
+                logger.info("Invalid charsetName: " + charsetName
+                    + ". Changed to " + Constants.UTF_8, e);
+            }
+            charsetName = Constants.UTF_8_CHARSET.name();
+            resultData.setData(path.getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
     }
@@ -175,7 +183,7 @@ public class FileTransformer extends HtmlTransformer {
      * Generate a path from a url.
      * 
      * @param url
-     * @return
+     * @return path
      */
     protected String getFilePath(final String url) {
         return url.replaceAll("/+", "/")//

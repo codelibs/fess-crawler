@@ -92,6 +92,7 @@ public class LhaExtractor implements Extractor {
             }
 
             lhaFile = new LhaFile(tempFile);
+            @SuppressWarnings("unchecked")
             final Enumeration<LhaHeader> entries = lhaFile.entries();
             while (entries.hasMoreElements()) {
                 final LhaHeader head = entries.nextElement();
@@ -136,8 +137,8 @@ public class LhaExtractor implements Extractor {
                     // ignore
                 }
             }
-            if (tempFile != null) {
-                tempFile.delete();
+            if (tempFile != null && !tempFile.delete()) {
+                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
             }
         }
 

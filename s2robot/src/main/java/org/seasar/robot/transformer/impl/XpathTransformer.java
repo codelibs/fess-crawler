@@ -162,12 +162,9 @@ public class XpathTransformer extends HtmlTransformer {
                 logger.info("Invalid charsetName: " + charsetName
                     + ". Changed to " + Constants.UTF_8, e);
             }
-            charsetName = Constants.UTF_8;
-            try {
-                resultData.setData(buf.toString().getBytes(charsetName));
-            } catch (final UnsupportedEncodingException e1) {
-                throw new RobotSystemException("Unexpected exception", e);
-            }
+            charsetName = Constants.UTF_8_CHARSET.name();
+            resultData
+                .setData(buf.toString().getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
     }
@@ -321,10 +318,9 @@ public class XpathTransformer extends HtmlTransformer {
                 final Object value = dataMap.get(fieldName);
                 if (listData && itemData) {
                     if (value != null) {
-                        ((List<String>) value).add(new String(
-                            ch,
-                            offset,
-                            length));
+                        @SuppressWarnings("unchecked")
+                        List<String> list = (List<String>) value;
+                        list.add(new String(ch, offset, length));
                     }
                 } else {
                     if (value == null) {

@@ -21,7 +21,8 @@ import java.util.Map;
 /**
  * From {@link org.seasar.framework.util.LruHashMap}
  * 
- * @author shinsuke
+ * @param <K>
+ * @param <V>
  * 
  */
 public class LruHashMap<K, V> extends LinkedHashMap<K, V> {

@@ -132,9 +132,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         if (robotContext.getMaxAccessCount() > 0) {
             return robotContext.getAccessCount() < robotContext
                 .getMaxAccessCount();
-        } else {
-            return true;
         }
+        return true;
     }
 
     private void storeChildUrls(final S2RobotContext robotContext,

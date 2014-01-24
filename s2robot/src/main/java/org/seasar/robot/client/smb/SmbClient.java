@@ -92,12 +92,12 @@ public class SmbClient extends AbstractS2RobotClient {
                 SMB_AUTHENTICATIONS_PROPERTY,
                 new SmbAuthentication[0]);
         if (smbAuthentications != null) {
-            final SmbAuthenticationHolder smbAuthenticationHolder =
+            final SmbAuthenticationHolder holder =
                 new SmbAuthenticationHolder();
             for (final SmbAuthentication smbAuthentication : smbAuthentications) {
-                smbAuthenticationHolder.add(smbAuthentication);
+                holder.add(smbAuthentication);
             }
-            this.smbAuthenticationHolder = smbAuthenticationHolder;
+            this.smbAuthenticationHolder = holder;
         }
     }
 

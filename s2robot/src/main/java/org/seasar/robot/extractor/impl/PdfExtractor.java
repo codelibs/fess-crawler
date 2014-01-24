@@ -156,7 +156,7 @@ public class PdfExtractor implements Extractor {
     }
 
     String getPassword(final String url, final String resourceName) {
-        if (passwordMap.size() == 0) {
+        if (passwordMap.isEmpty()) {
             return null;
         }
 

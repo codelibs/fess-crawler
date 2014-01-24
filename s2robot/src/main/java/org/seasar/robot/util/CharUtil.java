@@ -52,8 +52,7 @@ public final class CharUtil {
             || c == ';' // added
         ) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 }

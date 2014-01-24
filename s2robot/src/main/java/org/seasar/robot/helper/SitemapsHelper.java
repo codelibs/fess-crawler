@@ -48,7 +48,7 @@ public class SitemapsHelper {
      * This method does not close the input stream.
      * 
      * @param in
-     * @return
+     * @return a sitemap set
      */
     public SitemapSet parse(final InputStream in) {
         return parse(in, true);

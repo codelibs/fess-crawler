@@ -232,20 +232,16 @@ public class XmlTransformer extends AbstractTransformer {
                     logger.info("Invalid charsetName: " + charsetName
                         + ". Changed to " + Constants.UTF_8, e);
                 }
-                charsetName = Constants.UTF_8;
-                try {
-                    resultData.setData(buf.toString().getBytes(charsetName));
-                } catch (final UnsupportedEncodingException e1) {
-                    throw new RobotSystemException("Unexpected exception", e);
-                }
+                charsetName = Constants.UTF_8_CHARSET.name();
+                resultData.setData(buf.toString().getBytes(
+                    Constants.UTF_8_CHARSET));
             }
             resultData.setEncoding(charsetName);
 
             return resultData;
+        } catch (final RobotSystemException e) {
+            throw e;
         } catch (final Exception e) {
-            if (e instanceof RobotSystemException) {
-                throw (RobotSystemException) e;
-            }
             throw new RobotSystemException("Could not store data.", e);
         } finally {
             IOUtils.closeQuietly(fis);

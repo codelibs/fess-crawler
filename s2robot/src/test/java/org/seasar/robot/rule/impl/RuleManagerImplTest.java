@@ -15,7 +15,12 @@
  */
 package org.seasar.robot.rule.impl;
 
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
 import org.seasar.extension.unit.S2TestCase;
+import org.seasar.framework.util.ResourceUtil;
+import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.rule.Rule;
 import org.seasar.robot.rule.RuleManager;
@@ -41,33 +46,77 @@ public class RuleManagerImplTest extends S2TestCase {
     public void test_getRule_sitemaps1() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
+        InputStream is =
+            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
+        responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
+        IOUtils.closeQuietly(is);
+        IOUtils.closeQuietly(responseData.getResponseBody());
     }
 
     public void test_getRule_sitemaps2() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml.gz");
+        InputStream is =
+            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml.gz");
+        responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
+        IOUtils.closeQuietly(is);
+        IOUtils.closeQuietly(responseData.getResponseBody());
     }
 
     public void test_getRule_sitemaps3() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt");
+        InputStream is =
+            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.txt");
+        responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
+        IOUtils.closeQuietly(is);
+        IOUtils.closeQuietly(responseData.getResponseBody());
     }
 
     public void test_getRule_sitemaps4() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt.gz");
+        InputStream is =
+            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml.gz");
+        responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
+        IOUtils.closeQuietly(is);
+        IOUtils.closeQuietly(responseData.getResponseBody());
+    }
+
+    public void test_getRule_sitemaps5() {
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://www.example.com/sitemap/");
+        InputStream is =
+            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
+        responseData.setResponseBody(is);
+        final Rule rule = ruleManager.getRule(responseData);
+        assertNotNull(rule);
+        assertEquals("sitemapsRule", rule.getRuleId());
+        IOUtils.closeQuietly(is);
+        IOUtils.closeQuietly(responseData.getResponseBody());
+    }
+
+    public void test_getRule_sitemaps1_nocontent() {
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://www.example.com/sitemap1.xml");
+        try {
+            ruleManager.getRule(responseData);
+            fail();
+        } catch (RobotCrawlAccessException e) {
+            // ok
+        }
     }
 
     public void test_checkRule() {

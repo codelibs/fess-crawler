@@ -31,6 +31,8 @@ import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.SitemapFile;
 import org.seasar.robot.entity.SitemapSet;
 import org.seasar.robot.entity.SitemapUrl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -39,8 +41,48 @@ import org.xml.sax.helpers.DefaultHandler;
  * 
  */
 public class SitemapsHelper {
+    private static final Logger logger = LoggerFactory
+        .getLogger(SitemapsHelper.class);
 
     public int preloadSize = 512;
+
+    public boolean isValid(final InputStream in) {
+        return isValid(in, true);
+    }
+
+    protected boolean isValid(final InputStream in, final boolean recursive) {
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        bis.mark(preloadSize);
+
+        final byte[] bytes = new byte[preloadSize];
+        try {
+            if (bis.read(bytes) == -1) {
+                return false;
+            }
+
+            final String preloadDate = new String(bytes, Constants.UTF_8);
+            if (preloadDate.indexOf("<urlset") >= 0) {
+                // XML Sitemaps
+                return true;
+            } else if (preloadDate.indexOf("<sitemapindex") >= 0) {
+                // XML Sitemaps Index
+                return true;
+            } else if (preloadDate.startsWith("http://")
+                || preloadDate.startsWith("https://")) {
+                // Text Sitemaps Index
+                return true;
+            } else {
+                // gz
+                bis.reset();
+                return isValid(new GZIPInputStream(bis), false);
+            }
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to validate a file.", e);
+            }
+        }
+        return false;
+    }
 
     /**
      * Generates SitemapSet instance.

@@ -18,7 +18,6 @@ package org.seasar.robot.transformer.impl;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -53,7 +52,7 @@ import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.helper.EncodingHelper;
 import org.seasar.robot.helper.UrlConvertHelper;
 import org.seasar.robot.util.CharUtil;
-import org.seasar.robot.util.StreamUtil;
+import org.seasar.robot.util.ResponseDataUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -105,7 +104,8 @@ public class HtmlTransformer extends AbstractTransformer {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        final File tempFile = createResponseBodyFile(responseData);
+        final File tempFile =
+            ResponseDataUtil.createResponseBodyFile(responseData);
 
         FileInputStream fis = null;
 
@@ -199,30 +199,6 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         return resultData;
-    }
-
-    protected File createResponseBodyFile(final ResponseData responseData) {
-        File tempFile = null;
-        final InputStream is = responseData.getResponseBody();
-        FileOutputStream fos = null;
-        try {
-            tempFile = File.createTempFile("s2robot-HtmlTransformer-", ".html");
-            fos = new FileOutputStream(tempFile);
-            StreamUtil.drain(is, fos);
-        } catch (final Exception e) {
-            IOUtils.closeQuietly(fos);
-            // clean up
-            if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
-            throw new RobotCrawlAccessException(
-                "Could not read a response body: " + responseData.getUrl(),
-                e);
-        } finally {
-            IOUtils.closeQuietly(is);
-            IOUtils.closeQuietly(fos);
-        }
-        return tempFile;
     }
 
     protected boolean isHtml(final ResponseData responseData) {

@@ -17,8 +17,6 @@ package org.seasar.robot.transformer.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +41,7 @@ import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.entity.AccessResultData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
-import org.seasar.robot.util.StreamUtil;
+import org.seasar.robot.util.ResponseDataUtil;
 import org.seasar.robot.util.XmlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,7 +160,8 @@ public class XmlTransformer extends AbstractTransformer {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        final File tempFile = createResponseBodyFile(responseData);
+        final File tempFile =
+            ResponseDataUtil.createResponseBodyFile(responseData);
 
         FileInputStream fis = null;
 
@@ -267,30 +266,6 @@ public class XmlTransformer extends AbstractTransformer {
             xpathAPI.set(cachedXPathAPI);
         }
         return cachedXPathAPI;
-    }
-
-    protected File createResponseBodyFile(final ResponseData responseData) {
-        File tempFile = null;
-        final InputStream is = responseData.getResponseBody();
-        FileOutputStream fos = null;
-        try {
-            tempFile = File.createTempFile("s2robot-XmlTransformer-", ".xml");
-            fos = new FileOutputStream(tempFile);
-            StreamUtil.drain(is, fos);
-        } catch (final Exception e) {
-            IOUtils.closeQuietly(fos);
-            // clean up
-            if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
-            throw new RobotCrawlAccessException(
-                "Could not read a response body: " + responseData.getUrl(),
-                e);
-        } finally {
-            IOUtils.closeQuietly(is);
-            IOUtils.closeQuietly(fos);
-        }
-        return tempFile;
     }
 
     protected String getResultDataHeader() {

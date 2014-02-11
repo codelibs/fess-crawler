@@ -42,6 +42,10 @@ public class TemporaryFileInputStream extends InputStream {
         fileInputStream = new FileInputStream(tempFile);
     }
 
+    public File getTemporaryFile() {
+        return tempFile;
+    }
+
     /*
      * (non-Javadoc)
      * 

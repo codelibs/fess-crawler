@@ -66,11 +66,17 @@ public class RobotsTxtHelper {
         "^sitemap:\\s*([^\\s]+)\\s*$",
         Pattern.CASE_INSENSITIVE);
 
+    protected boolean enabled = true;
+
     public RobotsTxt parse(final InputStream stream) {
         return parse(stream, Constants.UTF_8);
     }
 
     public RobotsTxt parse(final InputStream stream, final String charsetName) {
+        if (!enabled) {
+            return null;
+        }
+
         try {
             @SuppressWarnings("resource")
             final BufferedReader reader =
@@ -159,6 +165,14 @@ public class RobotsTxtHelper {
             return line.substring(0, commentIndex);
         }
         return line;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
 }

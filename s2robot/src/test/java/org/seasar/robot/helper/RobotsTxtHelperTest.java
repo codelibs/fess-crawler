@@ -106,4 +106,15 @@ public class RobotsTxtHelperTest extends S2TestCase {
 
     }
 
+    public void testParse_disable() {
+        final InputStream in =
+            RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
+        robotsTxtHelper.setEnabled(false);
+        try {
+            assertNull(robotsTxtHelper.parse(in));
+        } finally {
+            robotsTxtHelper.setEnabled(true);
+            IOUtils.closeQuietly(in);
+        }
+    }
 }

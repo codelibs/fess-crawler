@@ -121,6 +121,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String USER_AGENT_PROPERTY = "userAgent";
 
+    public static final String ROBOTS_TXT_ENABLED_PROPERTY = "robotsTxtEnabled";
+
     public static final String BASIC_AUTHENTICATIONS_PROPERTY =
         "basicAuthentications";
 
@@ -296,6 +298,13 @@ public class HcHttpClient extends AbstractS2RobotClient {
         userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent);
         if (StringUtil.isNotBlank(userAgent)) {
             HttpProtocolParams.setUserAgent(params, userAgent);
+        }
+
+        // robots.txt parser
+        final Boolean robotsTxtEnabled =
+            getInitParameter(ROBOTS_TXT_ENABLED_PROPERTY, Boolean.TRUE);
+        if (robotsTxtHelper != null) {
+            robotsTxtHelper.setEnabled(robotsTxtEnabled.booleanValue());
         }
 
         // Authentication

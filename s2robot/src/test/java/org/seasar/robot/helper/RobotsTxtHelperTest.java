@@ -92,12 +92,19 @@ public class RobotsTxtHelperTest extends S2TestCase {
         assertFalse(robotsTxt.allows("/aaa", "Crawler"));
         assertTrue(robotsTxt.allows("/bbb", "Crawler"));
         assertTrue(robotsTxt.allows("/ccc", "Crawler"));
+        assertTrue(robotsTxt.allows("/ddd", "Crawler"));
         assertTrue(robotsTxt.allows("/aaa", "Crawler/1.0"));
         assertFalse(robotsTxt.allows("/bbb", "Crawler/1.0"));
         assertTrue(robotsTxt.allows("/ccc", "Crawler/1.0"));
+        assertTrue(robotsTxt.allows("/ddd", "Crawler/1.0"));
         assertTrue(robotsTxt.allows("/aaa", "Crawler/2.0"));
         assertTrue(robotsTxt.allows("/bbb", "Crawler/2.0"));
         assertFalse(robotsTxt.allows("/ccc", "Crawler/2.0"));
+        assertTrue(robotsTxt.allows("/ddd", "Crawler/2.0"));
+        assertTrue(robotsTxt.allows("/aaa", "Hoge Crawler"));
+        assertTrue(robotsTxt.allows("/bbb", "Hoge Crawler"));
+        assertTrue(robotsTxt.allows("/ccc", "Hoge Crawler"));
+        assertFalse(robotsTxt.allows("/ddd", "Hoge Crawler"));
 
         String[] sitemaps = robotsTxt.getSitemaps();
         assertEquals(2, sitemaps.length);

@@ -25,6 +25,9 @@ Disallow: /bbb
 User-agent: Crawler/2.0
 Disallow: /ccc
 
+User-agent: Hoge Crawler
+Disallow: /ddd
+
 sitemap: http://www.example.com/sitmap.xml
 sitemap: http://www.example.net/sitmap.xml
 

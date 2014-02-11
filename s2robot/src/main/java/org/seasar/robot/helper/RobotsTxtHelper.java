@@ -47,7 +47,7 @@ import org.seasar.robot.entity.RobotsTxt.Directive;
 public class RobotsTxtHelper {
 
     protected static final Pattern USER_AGENT_RECORD = Pattern.compile(
-        "^user-agent:\\s*([^\\s]+)\\s*$",
+        "^user-agent:\\s*([^\\t\\n\\x0B\\f\\r]+)\\s*$",
         Pattern.CASE_INSENSITIVE);
 
     protected static final Pattern DISALLOW_RECORD = Pattern.compile(

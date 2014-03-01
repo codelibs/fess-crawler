@@ -6,7 +6,7 @@
 	<include path="s2robot_contentlength.dicon"/>
 
 	<component name="internalHttpClient" class="org.seasar.robot.client.http.HcHttpClient" instance="prototype">
-		<property name="cookiePolicy">@org.apache.http.client.params.CookiePolicy@BEST_MATCH</property>
+		<property name="cookieSpec">@org.apache.http.client.params.CookiePolicy@BEST_MATCH</property>
 		<property name="clientConnectionManager">clientConnectionManager</property>
 	</component>
 	<component name="httpClient" class="org.seasar.robot.client.FaultTolerantClient" instance="prototype">
@@ -15,29 +15,7 @@
 		<property name="retryInterval">500</property>
 	</component>
 	
-	<component name="clientConnectionManager" class="org.apache.http.impl.conn.PoolingClientConnectionManager">
-		<arg>
-			<component class="org.apache.http.conn.scheme.SchemeRegistry">
-				<initMethod name="register">
-					<arg>
-						<component class="org.apache.http.conn.scheme.Scheme">
-							<arg>"http"</arg>
-							<arg>80</arg>
-							<arg>@org.apache.http.conn.scheme.PlainSocketFactory@getSocketFactory()</arg>
-						</component>
-					</arg>
-				</initMethod>
-				<initMethod name="register">
-					<arg>
-						<component class="org.apache.http.conn.scheme.Scheme">
-							<arg>"https"</arg>
-							<arg>443</arg>
-							<arg>@org.apache.http.conn.ssl.SSLSocketFactory@getSocketFactory()</arg>
-						</component>
-					</arg>
-				</initMethod>
-			</component>
-		</arg>
+	<component name="clientConnectionManager" class="org.apache.http.impl.conn.PoolingHttpClientConnectionManager">
 		<arg>5</arg><!-- timeToLive -->
 		<arg>@java.util.concurrent.TimeUnit@MINUTES</arg><!-- tunit -->
 		<!-- Increase max total connection to 200 -->
@@ -55,12 +33,6 @@
 		<property name="charset">"UTF-8"</property>
 		<!-- ntlmPasswordAuthentication -->
 	</component>
-
-<!-- 
-	<component name="httpClient" class="org.seasar.robot.client.http.CommonsHttpClient" instance="prototype">
-		<property name="cookiePolicy">@org.apache.commons.httpclient.cookie.CookiePolicy@BROWSER_COMPATIBILITY</property>
-	</component>
- -->
 
 	<component name="clientFactory" class="org.seasar.robot.client.S2RobotClientFactory" instance="prototype">
 		<initMethod name="addClient">

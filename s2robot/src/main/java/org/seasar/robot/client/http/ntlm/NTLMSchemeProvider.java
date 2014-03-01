@@ -16,9 +16,9 @@
 package org.seasar.robot.client.http.ntlm;
 
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeFactory;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.impl.auth.NTLMScheme;
-import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * This class is AuthSchemeFactory implementation for NTLM.
@@ -26,10 +26,10 @@ import org.apache.http.params.HttpParams;
  * @author shinsuke
  * 
  */
-public class NTLMSchemeFactory implements AuthSchemeFactory {
+public class NTLMSchemeProvider implements AuthSchemeProvider {
 
     @Override
-    public AuthScheme newInstance(final HttpParams params) {
+    public AuthScheme create(final HttpContext context) {
         return new NTLMScheme(new JcifsEngine());
     }
 

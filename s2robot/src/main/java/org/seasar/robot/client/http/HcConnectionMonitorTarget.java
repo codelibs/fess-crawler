@@ -17,7 +17,7 @@ package org.seasar.robot.client.http;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.seasar.extension.timer.TimeoutTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +30,12 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
     private static final Logger logger = LoggerFactory // NOPMD
         .getLogger(HcConnectionMonitorTarget.class);
 
-    private final ClientConnectionManager clientConnectionManager;
+    private final HttpClientConnectionManager clientConnectionManager;
 
     private final long idleConnectionTimeout;
 
     public HcConnectionMonitorTarget(
-            final ClientConnectionManager clientConnectionManager,
+            final HttpClientConnectionManager clientConnectionManager,
             final long idleConnectionTimeout) {
         this.clientConnectionManager = clientConnectionManager;
         this.idleConnectionTimeout = idleConnectionTimeout;

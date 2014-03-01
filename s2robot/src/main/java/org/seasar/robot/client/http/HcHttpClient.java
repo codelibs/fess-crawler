@@ -43,29 +43,29 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeFactory;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.seasar.extension.timer.TimeoutManager;
 import org.seasar.extension.timer.TimeoutTarget;
@@ -109,8 +109,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
 
-    public static final String LINGER_PROPERTY = "linger";
-
     public static final String PROXY_HOST_PROPERTY = "proxyHost";
 
     public static final String PROXY_PORT_PROPERTY = "proxyPort";
@@ -130,8 +128,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String COOKIES_PROPERTY = "cookies";
 
-    public static final String AUTH_SCHEME_FACTORIES_PROPERTY =
-        "authSchemeFactories";
+    public static final String AUTH_SCHEME_PROVIDERS_PROPERTY =
+        "authSchemeProviders";
 
     private static final Logger logger = LoggerFactory // NOPMD
         .getLogger(HcHttpClient.class);
@@ -144,7 +142,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
-    protected volatile DefaultHttpClient httpClient; // NOPMD
+    protected volatile CloseableHttpClient httpClient;
 
     private final List<Header> requestHeaderList = new ArrayList<Header>();
 
@@ -165,14 +163,12 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public Integer soTimeout;
 
-    public Integer linger;
-
-    public String cookiePolicy;
+    public String cookieSpec;
 
     public String userAgent = "S2Robot";
 
     @Binding(bindingType = BindingType.MAY)
-    public HttpContext httpClientContext = new BasicHttpContext();
+    public HttpClientContext httpClientContext = HttpClientContext.create();
 
     public String proxyHost;
 
@@ -191,9 +187,9 @@ public class HcHttpClient extends AbstractS2RobotClient {
     @Binding(bindingType = BindingType.MAY)
     public CookieStore cookieStore = new BasicCookieStore();
 
-    public ClientConnectionManager clientConnectionManager;
+    public HttpClientConnectionManager clientConnectionManager;
 
-    public Map<String, AuthSchemeFactory> authSchemeFactoryMap;
+    public Map<String, AuthSchemeProvider> authSchemeProviderMap;
 
     public int connectionCheckInterval = 5; // sec
 
@@ -214,90 +210,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
             logger.debug("Initializing " + HcHttpClient.class.getName());
         }
 
-        final DefaultHttpClient defaultHttpClient =
-            new DefaultHttpClient(clientConnectionManager);
-        final HttpParams params = defaultHttpClient.getParams();
-
+        // access timeout
         final Integer accessTimeoutParam =
             getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout);
         if (accessTimeoutParam != null) {
             accessTimeout = accessTimeoutParam;
-        }
-        final Integer connectionTimeoutParam =
-            getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout);
-        if (connectionTimeoutParam != null) {
-            HttpConnectionParams.setConnectionTimeout(
-                params,
-                connectionTimeoutParam);
-        }
-        final Boolean staleCheckingEnabledParam =
-            getInitParameter(
-                STALE_CHECKING_ENABLED_PROPERTY,
-                staleCheckingEnabled);
-        if (staleCheckingEnabledParam != null) {
-            HttpConnectionParams.setStaleCheckingEnabled(
-                params,
-                staleCheckingEnabledParam);
-        }
-        final Integer soTimeoutParam =
-            getInitParameter(SO_TIMEOUT_PROPERTY, soTimeout);
-        if (soTimeoutParam != null) {
-            HttpConnectionParams.setSoTimeout(params, soTimeoutParam);
-        }
-        final Integer lingerParam = getInitParameter(LINGER_PROPERTY, linger);
-        if (lingerParam != null) {
-            HttpConnectionParams.setLinger(params, lingerParam);
-        }
-
-        // AuthSchemeFactory
-        final Map<String, AuthSchemeFactory> factoryMap =
-            getInitParameter(
-                AUTH_SCHEME_FACTORIES_PROPERTY,
-                this.authSchemeFactoryMap);
-        if (factoryMap != null) {
-            for (final Map.Entry<String, AuthSchemeFactory> entry : factoryMap
-                .entrySet()) {
-                defaultHttpClient.getAuthSchemes().register(
-                    entry.getKey(),
-                    entry.getValue());
-            }
-        }
-
-        final AuthCache authCache = new BasicAuthCache();
-        boolean useAuthCache = false;
-
-        // proxy
-        final String proxyHost =
-            getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
-        final Integer proxyPort =
-            getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort);
-        if (proxyHost != null && proxyPort != null) {
-            final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-            params.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-
-            final Credentials credentials =
-                getInitParameter(
-                    PROXY_CREDENTIALS_PROPERTY,
-                    this.proxyCredentials);
-            if (credentials != null) {
-                defaultHttpClient.getCredentialsProvider().setCredentials(
-                    new AuthScope(proxyHost, proxyPort),
-                    credentials);
-                final AuthScheme authScheme =
-                    getInitParameter(
-                        PROXY_AUTH_SCHEME_PROPERTY,
-                        this.proxyAuthScheme);
-                if (authScheme != null) {
-                    authCache.put(proxy, authScheme);
-                    useAuthCache = true;
-                }
-            }
-        }
-
-        // user agent
-        userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent);
-        if (StringUtil.isNotBlank(userAgent)) {
-            HttpProtocolParams.setUserAgent(params, userAgent);
         }
 
         // robots.txt parser
@@ -307,14 +224,101 @@ public class HcHttpClient extends AbstractS2RobotClient {
             robotsTxtHelper.setEnabled(robotsTxtEnabled.booleanValue());
         }
 
+        // httpclient
+        org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder =
+            RequestConfig.custom();
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+
+        final Integer connectionTimeoutParam =
+            getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout);
+        if (connectionTimeoutParam != null) {
+            requestConfigBuilder.setConnectTimeout(connectionTimeoutParam);
+
+        }
+        final Boolean staleCheckingEnabledParam =
+            getInitParameter(
+                STALE_CHECKING_ENABLED_PROPERTY,
+                staleCheckingEnabled);
+        if (staleCheckingEnabledParam != null) {
+            requestConfigBuilder
+                .setStaleConnectionCheckEnabled(staleCheckingEnabledParam);
+        }
+        final Integer soTimeoutParam =
+            getInitParameter(SO_TIMEOUT_PROPERTY, soTimeout);
+        if (soTimeoutParam != null) {
+            requestConfigBuilder.setSocketTimeout(soTimeoutParam);
+        }
+
+        // AuthSchemeFactory
+        RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder =
+            RegistryBuilder.create();
+        final Map<String, AuthSchemeProvider> factoryMap =
+            getInitParameter(
+                AUTH_SCHEME_PROVIDERS_PROPERTY,
+                this.authSchemeProviderMap);
+        if (factoryMap != null) {
+            for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap
+                .entrySet()) {
+                authSchemeProviderBuilder.register(
+                    entry.getKey(),
+                    entry.getValue());
+            }
+        }
+
+        // user agent
+        userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent);
+        if (StringUtil.isNotBlank(userAgent)) {
+            httpClientBuilder.setUserAgent(proxyHost);
+        }
+
+        CredentialsProvider credsProvider = null;
+        AuthCache authCache = null;
+
+        // proxy
+        final String proxyHost =
+            getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
+        final Integer proxyPort =
+            getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort);
+        if (proxyHost != null && proxyPort != null) {
+            final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+            DefaultProxyRoutePlanner routePlanner =
+                new DefaultProxyRoutePlanner(proxy);
+            httpClientBuilder.setRoutePlanner(routePlanner);
+
+            final Credentials credentials =
+                getInitParameter(
+                    PROXY_CREDENTIALS_PROPERTY,
+                    this.proxyCredentials);
+            if (credentials != null) {
+                authCache = new BasicAuthCache();
+                credsProvider = new BasicCredentialsProvider();
+
+                credsProvider.setCredentials(
+                    new AuthScope(proxyHost, proxyPort),
+                    credentials);
+                final AuthScheme authScheme =
+                    getInitParameter(
+                        PROXY_AUTH_SCHEME_PROPERTY,
+                        this.proxyAuthScheme);
+                if (authScheme != null) {
+                    authCache.put(proxy, authScheme);
+                }
+            }
+        }
+
         // Authentication
         final Authentication[] siteCredentialList =
             getInitParameter(
                 BASIC_AUTHENTICATIONS_PROPERTY,
                 new Authentication[0]);
+        if (siteCredentialList != null && siteCredentialList.length > 0
+            && authCache == null) {
+            authCache = new BasicAuthCache();
+            credsProvider = new BasicCredentialsProvider();
+        }
         for (final Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
-            defaultHttpClient.getCredentialsProvider().setCredentials(
+            credsProvider.setCredentials(
                 authScope,
                 authentication.getCredentials());
             final AuthScheme authScheme = authentication.getAuthScheme();
@@ -322,11 +326,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 final HttpHost targetHost =
                     new HttpHost(authScope.getHost(), authScope.getPort());
                 authCache.put(targetHost, authScheme);
-                useAuthCache = true;
             }
         }
-        if (useAuthCache) {
-            httpClientContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+        if (authCache != null) {
+            httpClientContext.setAuthCache(authCache);
+            httpClientContext.setCredentialsProvider(credsProvider);
         }
 
         // Request Header
@@ -341,12 +345,15 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // do not redirect
-        defaultHttpClient.getParams().setBooleanParameter(
-            ClientPNames.HANDLE_REDIRECTS,
-            false);
+        requestConfigBuilder.setRedirectsEnabled(false);
+
+        // cookie
+        if (cookieSpec != null) {
+            requestConfigBuilder.setCookieSpec(cookieSpec);
+        }
 
         // cookie store
-        defaultHttpClient.setCookieStore(cookieStore);
+        httpClientBuilder.setDefaultCookieStore(cookieStore);
         if (cookieStore != null) {
             final Cookie[] cookies =
                 getInitParameter(COOKIES_PROPERTY, new Cookie[0]);
@@ -355,22 +362,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
             }
         }
 
-        if (!httpClientPropertyMap.isEmpty()) {
-            final BeanDesc beanDesc =
-                BeanDescFactory.getBeanDesc(DefaultHttpClient.class);
-            for (final Map.Entry<String, Object> entry : httpClientPropertyMap
-                .entrySet()) {
-                final String propertyName = entry.getKey();
-                if (beanDesc.hasPropertyDesc(propertyName)) {
-                    final PropertyDesc propertyDesc =
-                        beanDesc.getPropertyDesc(propertyName);
-                    propertyDesc.setValue(defaultHttpClient, entry.getValue());
-                } else {
-                    logger.warn("DefaultHttpClient does not have "
-                        + propertyName + ".");
-                }
-            }
-        }
         connectionMonitorTask =
             TimeoutManager.getInstance().addTimeoutTarget(
                 new HcConnectionMonitorTarget(
@@ -379,7 +370,30 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 connectionCheckInterval,
                 true);
 
-        httpClient = defaultHttpClient;
+        CloseableHttpClient closeableHttpClient =
+            httpClientBuilder
+                .setConnectionManager(clientConnectionManager)
+                .setDefaultRequestConfig(requestConfigBuilder.build())
+                .build();
+        if (!httpClientPropertyMap.isEmpty()) {
+            final BeanDesc beanDesc =
+                BeanDescFactory.getBeanDesc(closeableHttpClient.getClass());
+            for (final Map.Entry<String, Object> entry : httpClientPropertyMap
+                .entrySet()) {
+                final String propertyName = entry.getKey();
+                if (beanDesc.hasPropertyDesc(propertyName)) {
+                    final PropertyDesc propertyDesc =
+                        beanDesc.getPropertyDesc(propertyName);
+                    propertyDesc
+                        .setValue(closeableHttpClient, entry.getValue());
+                } else {
+                    logger.warn("DefaultHttpClient does not have "
+                        + propertyName + ".");
+                }
+            }
+        }
+
+        httpClient = closeableHttpClient;
     }
 
     @DestroyMethod
@@ -388,7 +402,11 @@ public class HcHttpClient extends AbstractS2RobotClient {
             connectionMonitorTask.cancel();
         }
         if (httpClient != null) {
-            httpClient.getConnectionManager().shutdown();
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                logger.error("Failed to close httpClient.", e);
+            }
         }
     }
 
@@ -440,13 +458,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
         robotContext.getRobotTxtUrlSet().add(robotTxtUrl);
 
         final HttpGet httpGet = new HttpGet(robotTxtUrl);
-
-        // cookie
-        if (cookiePolicy != null) {
-            httpGet.getParams().setParameter(
-                ClientPNames.COOKIE_POLICY,
-                cookiePolicy);
-        }
 
         // request header
         for (final Header header : requestHeaderList) {
@@ -625,13 +636,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Crawling Access Exception at " + url, e);
             }
-        }
-
-        // cookie
-        if (cookiePolicy != null) {
-            httpRequest.getParams().setParameter(
-                ClientPNames.COOKIE_POLICY,
-                cookiePolicy);
         }
 
         // request header

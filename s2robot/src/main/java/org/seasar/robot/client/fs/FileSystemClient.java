@@ -88,7 +88,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
         }
 
         if (file == null) {
-            responseData.setHttpStatusCode(404);
+            responseData.setHttpStatusCode(Constants.NOT_FOUND);
             responseData.setCharSet(charset);
             responseData.setContentLength(0);
         } else if (file.isFile()) {

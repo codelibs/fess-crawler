@@ -143,7 +143,7 @@ public class SmbClient extends AbstractS2RobotClient {
 
         try {
             if (file == null) {
-                responseData.setHttpStatusCode(404);
+                responseData.setHttpStatusCode(Constants.NOT_FOUND);
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
             } else if (file.isFile()) {

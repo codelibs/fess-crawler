@@ -31,6 +31,8 @@
 		<property name="responseProcessor">
 			<component class="org.seasar.robot.processor.impl.DefaultResponseProcessor">
 				<property name="transformer">fileTransformer</property>
+				<property name="successfulHttpCodes">new int[] {200}</property>
+				<property name="notModifiedHttpCodes">new int[] {304}</property>
 			</component>
 		</property>
 	</component>

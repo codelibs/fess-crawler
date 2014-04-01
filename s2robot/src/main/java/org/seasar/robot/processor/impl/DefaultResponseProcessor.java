@@ -45,6 +45,10 @@ public class DefaultResponseProcessor implements ResponseProcessor {
 
     protected Transformer transformer;
 
+    protected int[] successfulHttpCodes;
+
+    protected int[] notModifiedHttpCodes;
+
     /*
      * (non-Javadoc)
      * 
@@ -54,7 +58,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
      */
     @Override
     public void process(final ResponseData responseData) {
-        if (responseData.getStatus() == Constants.NOT_MODIFIED_STATUS) {
+        if (isNotModified(responseData)) {
             final UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
             final ResultData resultData = new ResultData();
             final Set<String> emptySet = Collections.emptySet();
@@ -63,7 +67,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
             resultData.setEncoding(Constants.UTF_8);
             resultData.setTransformerName(Constants.NO_TRANSFORMER);
             processResult(urlQueue, responseData, resultData);
-        } else {
+        } else if (isSuccessful(responseData)) {
             if (transformer == null) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("No Transformer for (" + responseData.getUrl()
@@ -81,7 +85,36 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     processResult(urlQueue, responseData, resultData);
                 }
             }
+        } else if (logger.isDebugEnabled()) {
+            logger.debug("Ignore a response(" + responseData.getStatus()
+                + "): " + responseData.getUrl());
         }
+    }
+
+    protected boolean isSuccessful(ResponseData responseData) {
+        if (successfulHttpCodes == null) {
+            return true;
+        }
+        int httpStatusCode = responseData.getHttpStatusCode();
+        for (int code : successfulHttpCodes) {
+            if (code == httpStatusCode) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean isNotModified(final ResponseData responseData) {
+        if (notModifiedHttpCodes == null) {
+            return false;
+        }
+        int httpStatusCode = responseData.getHttpStatusCode();
+        for (int code : notModifiedHttpCodes) {
+            if (code == httpStatusCode) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void processResult(final UrlQueue urlQueue,
@@ -168,5 +201,21 @@ public class DefaultResponseProcessor implements ResponseProcessor {
 
     public void setTransformer(final Transformer transformer) {
         this.transformer = transformer;
+    }
+
+    public int[] getSuccessfulHttpCodes() {
+        return successfulHttpCodes;
+    }
+
+    public void setSuccessfulHttpCodes(int[] successfulHttpCodes) {
+        this.successfulHttpCodes = successfulHttpCodes;
+    }
+
+    public int[] getNotModifiedHttpCodes() {
+        return notModifiedHttpCodes;
+    }
+
+    public void setNotModifiedHttpCodes(int[] notModifiedHttpCodes) {
+        this.notModifiedHttpCodes = notModifiedHttpCodes;
     }
 }

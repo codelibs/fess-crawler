@@ -30,6 +30,8 @@ public final class Constants {
 
     public static final int NOT_MODIFIED_STATUS = 304;
 
+    public static final int NOT_FOUND = 404;
+
     public static final String NO_TRANSFORMER = "NONE";
 
     public static final String UTF_8 = "UTF-8";

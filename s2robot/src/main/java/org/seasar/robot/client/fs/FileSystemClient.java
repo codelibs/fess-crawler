@@ -88,7 +88,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
         }
 
         if (file == null) {
-            responseData.setHttpStatusCode(Constants.NOT_FOUND);
+            responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
             responseData.setCharSet(charset);
             responseData.setContentLength(0);
         } else if (file.isFile()) {
@@ -121,7 +121,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 }
             }
 
-            responseData.setHttpStatusCode(200);
+            responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
             responseData.setCharSet(geCharSet(file));
             responseData.setLastModified(new Date(file.lastModified()));
             if (file.canRead()) {
@@ -138,7 +138,8 @@ public class FileSystemClient extends AbstractS2RobotClient {
                                 outputFile));
                     } catch (final Exception e) {
                         logger.warn("I/O Exception.", e);
-                        responseData.setHttpStatusCode(500);
+                        responseData
+                            .setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                         if (outputFile != null && !outputFile.delete()) {
                             logger.warn("Could not delete "
                                 + outputFile.getAbsolutePath());
@@ -147,7 +148,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 }
             } else {
                 // Forbidden
-                responseData.setHttpStatusCode(403);
+                responseData.setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
             }
         } else if (file.isDirectory()) {
             final Set<String> childUrlSet = new HashSet<String>();
@@ -162,7 +163,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
             }
             throw new ChildUrlsException(childUrlSet);
         } else {
-            responseData.setHttpStatusCode(404);
+            responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
             responseData.setCharSet(charset);
             responseData.setContentLength(0);
         }

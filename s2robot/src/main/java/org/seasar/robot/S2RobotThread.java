@@ -345,7 +345,7 @@ public class S2RobotThread implements Runnable {
                     responseData.setSessionId(robotContext.sessionId);
                     responseData.setStatus(Constants.NOT_MODIFIED_STATUS);
                     responseData
-                        .setHttpStatusCode(Constants.NOT_MODIFIED_STATUS);
+                        .setHttpStatusCode(Constants.NOT_MODIFIED_STATUS_CODE);
                     processResponse(urlQueue, responseData);
 
                     return false;

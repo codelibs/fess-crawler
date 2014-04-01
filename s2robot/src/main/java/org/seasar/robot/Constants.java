@@ -30,7 +30,15 @@ public final class Constants {
 
     public static final int NOT_MODIFIED_STATUS = 304;
 
-    public static final int NOT_FOUND = 404;
+    public static final int OK_STATUS_CODE = 200;
+
+    public static final int NOT_MODIFIED_STATUS_CODE = 304;
+
+    public static final int FORBIDDEN_STATUS_CODE = 403;
+
+    public static final int NOT_FOUND_STATUS_CODE = 404;
+
+    public static final int SERVER_ERROR_STATUS_CODE = 500;
 
     public static final String NO_TRANSFORMER = "NONE";
 

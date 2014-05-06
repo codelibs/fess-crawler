@@ -147,7 +147,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                         robotContext.setAccessCount(robotContext
                             .getAccessCount() + 1);
                     }
-                } else {
+                } else if (robotContext.getMaxDepth() < 0
+                    || urlQueue.getDepth() <= robotContext.getMaxDepth()) {
                     // cancel crawling
                     final List<UrlQueue> newUrlQueueList =
                         new ArrayList<UrlQueue>();
@@ -172,6 +173,11 @@ public class DefaultResponseProcessor implements ResponseProcessor {
     private void storeChildUrls(final S2RobotContext robotContext,
             final Set<String> childUrlList, final String url, final int depth,
             final String encoding) {
+        if (robotContext.getMaxDepth() >= 0
+            && depth > robotContext.getMaxDepth()) {
+            return;
+        }
+
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (final String childUrl : childUrlList) {

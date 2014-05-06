@@ -391,6 +391,11 @@ public class S2RobotThread implements Runnable {
 
     protected void storeChildUrls(final Set<String> childUrlList,
             final String url, final int depth) {
+        if (robotContext.getMaxDepth() >= 0
+            && depth > robotContext.getMaxDepth()) {
+            return;
+        }
+
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (final String childUrl : childUrlList) {
@@ -411,6 +416,11 @@ public class S2RobotThread implements Runnable {
 
     protected void storeChildUrl(final String childUrl, final String url,
             final int depth) {
+        if (robotContext.getMaxDepth() >= 0
+            && depth > robotContext.getMaxDepth()) {
+            return;
+        }
+
         // add url and filter
         if (robotContext.urlFilter.match(childUrl)) {
             final List<UrlQueue> childList = new ArrayList<UrlQueue>(1);

@@ -268,7 +268,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         // user agent
         userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent);
         if (StringUtil.isNotBlank(userAgent)) {
-            httpClientBuilder.setUserAgent(proxyHost);
+            httpClientBuilder.setUserAgent(userAgent);
         }
 
         CredentialsProvider credsProvider = null;

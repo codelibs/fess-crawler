@@ -29,6 +29,7 @@ import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.framework.container.factory.SingletonS2ContainerFactory;
 import org.seasar.framework.util.StringUtil;
+import org.seasar.robot.builder.RequestDataBuilder;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.client.S2RobotClientFactory;
 import org.seasar.robot.client.fs.ChildUrlsException;
@@ -167,7 +168,12 @@ public class S2RobotThread implements Runnable {
                                 urlQueue);
                             // access an url
                             final long startTime = System.currentTimeMillis();
-                            responseData = client.doGet(urlQueue.getUrl());
+                            responseData =
+                                client.execute(RequestDataBuilder
+                                    .newRequestData()
+                                    .method(urlQueue.getMethod())
+                                    .url(urlQueue.getUrl())
+                                    .build());
                             responseData.setExecutionTime(System
                                 .currentTimeMillis() - startTime);
                             responseData.setParentUrl(urlQueue.getParentUrl());
@@ -297,16 +303,16 @@ public class S2RobotThread implements Runnable {
     }
 
     protected void addSitemapsFromRobotsTxt(final UrlQueue urlQueue) {
-        String[] sitemaps = robotContext.removeSitemaps();
+        final String[] sitemaps = robotContext.removeSitemaps();
         if (sitemaps != null) {
-            for (String childUrl : sitemaps) {
+            for (final String childUrl : sitemaps) {
                 try {
                     storeChildUrl(
                         childUrl,
                         urlQueue.getUrl(),
                         urlQueue.getDepth() == null ? 1
                             : urlQueue.getDepth() + 1);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     log(
                         logHelper,
                         LogType.PROCESS_CHILD_URL_BY_EXCEPTION,
@@ -331,7 +337,12 @@ public class S2RobotThread implements Runnable {
             ResponseData responseData = null;
             try {
                 // head method
-                responseData = client.doHead(urlQueue.getUrl());
+                responseData =
+                    client.execute(RequestDataBuilder
+                        .newRequestData()
+                        .head()
+                        .url(urlQueue.getUrl())
+                        .build());
                 if (responseData != null
                     && responseData.getLastModified() != null
                     && responseData.getLastModified().getTime() <= urlQueue

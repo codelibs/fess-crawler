@@ -225,9 +225,9 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // httpclient
-        org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder =
+        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder =
             RequestConfig.custom();
-        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
         final Integer connectionTimeoutParam =
             getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout);
@@ -250,12 +250,12 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // AuthSchemeFactory
-        RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder =
+        final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder =
             RegistryBuilder.create();
         final Map<String, AuthSchemeProvider> factoryMap =
             getInitParameter(
                 AUTH_SCHEME_PROVIDERS_PROPERTY,
-                this.authSchemeProviderMap);
+                authSchemeProviderMap);
         if (factoryMap != null) {
             for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap
                 .entrySet()) {
@@ -281,14 +281,12 @@ public class HcHttpClient extends AbstractS2RobotClient {
             getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort);
         if (proxyHost != null && proxyPort != null) {
             final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-            DefaultProxyRoutePlanner routePlanner =
+            final DefaultProxyRoutePlanner routePlanner =
                 new DefaultProxyRoutePlanner(proxy);
             httpClientBuilder.setRoutePlanner(routePlanner);
 
             final Credentials credentials =
-                getInitParameter(
-                    PROXY_CREDENTIALS_PROPERTY,
-                    this.proxyCredentials);
+                getInitParameter(PROXY_CREDENTIALS_PROPERTY, proxyCredentials);
             if (credentials != null) {
                 authCache = new BasicAuthCache();
                 credsProvider = new BasicCredentialsProvider();
@@ -299,7 +297,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 final AuthScheme authScheme =
                     getInitParameter(
                         PROXY_AUTH_SCHEME_PROPERTY,
-                        this.proxyAuthScheme);
+                        proxyAuthScheme);
                 if (authScheme != null) {
                     authCache.put(proxy, authScheme);
                 }
@@ -370,7 +368,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 connectionCheckInterval,
                 true);
 
-        CloseableHttpClient closeableHttpClient =
+        final CloseableHttpClient closeableHttpClient =
             httpClientBuilder
                 .setConnectionManager(clientConnectionManager)
                 .setDefaultRequestConfig(requestConfigBuilder.build())
@@ -404,7 +402,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         if (httpClient != null) {
             try {
                 httpClient.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 logger.error("Failed to close httpClient.", e);
             }
         }
@@ -495,7 +493,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     final RobotsTxt robotsTxt =
                         robotsTxtHelper.parse(httpEntity.getContent());
                     if (robotsTxt != null) {
-                        String[] sitemaps = robotsTxt.getSitemaps();
+                        final String[] sitemaps = robotsTxt.getSitemaps();
                         if (sitemaps.length > 0) {
                             robotContext.addSitemaps(sitemaps);
                         }
@@ -847,7 +845,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
         protected AtomicBoolean running = new AtomicBoolean();
 
-        protected AccessTimeoutTarget(Thread thread) {
+        protected AccessTimeoutTarget(final Thread thread) {
             runninThread = thread;
             running.set(true);
         }
@@ -867,7 +865,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 runninThread.interrupt();
                 try {
                     Thread.sleep(1000);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     // ignore
                 }
                 count++;

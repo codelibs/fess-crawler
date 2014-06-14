@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Ajax Test</title>
+    <script language="javascript" src="js/jquery-2.1.1.min.js" type="text/javascript"></script>
+    <script language="javascript" src="js/test.js" type="text/javascript"></script>
+</head>
+<body>
+    <div id="header">
+        <h1>Ajax Test Site</h1>
+    </div>
+    <div id="menubar">
+        <ul>
+            <li><a id="home" href="javascript:void(0)">Home</a></li>
+            <li><a id="info" href="javascript:void(0)">Information</a></li>
+        </ul>
+    </div>
+    <div id="left">
+        <h2>Menu 1</h2>
+        <ul class="test">
+            <li><a href="javascript:void(0)" onclick="openPage('menu-1-1.html')">Menu 1-1</a></li>
+            <li><a href="javascript:void(0)" onclick="openPage('menu-1-2.html')">Menu 1-2</a></li>
+        </ul>
+        <h2>Menu 2</h2>
+        <ul class="test">
+            <li><a href="javascript:void(0)" onclick="openPage('menu-2-1.html')">Menu 2-1</a></li>
+            <li><a href="javascript:void(0)" onclick="openPage('menu-2-2.html')">Menu 2-2</a></li>
+        </ul>
+    </div>
+    <div id="content"></div>
+    <div id="form">
+        <form method="post" action="form.html">
+            <input type="text" name="query" value="aaa">
+            <input type="hidden" name="secret" value="xxx">
+            <input type="submit" name="Submit">
+        </form>
+    </div>
+	<a href="#" onclick="addFooter('XXX')">Footer</a>
+	<div id="footer">
+	</div>
+</body>
+</html>

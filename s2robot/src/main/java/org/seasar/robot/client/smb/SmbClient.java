@@ -97,7 +97,7 @@ public class SmbClient extends AbstractS2RobotClient {
             for (final SmbAuthentication smbAuthentication : smbAuthentications) {
                 holder.add(smbAuthentication);
             }
-            this.smbAuthenticationHolder = holder;
+            smbAuthenticationHolder = holder;
         }
     }
 

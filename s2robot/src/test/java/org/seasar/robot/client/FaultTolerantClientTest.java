@@ -22,7 +22,9 @@ import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotMultipleCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.builder.RequestDataBuilder;
 import org.seasar.robot.client.FaultTolerantClient.RequestListener;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 
 /**
@@ -43,7 +45,12 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.doGet(url);
+        final ResponseData response =
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .get()
+                .url(url)
+                .build());
         assertEquals(1, testListener.startCount);
         assertEquals(1, testListener.requestCount);
         assertEquals(0, testListener.exceptionCount);
@@ -64,7 +71,12 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.doGet(url);
+        final ResponseData response =
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .get()
+                .url(url)
+                .build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -86,7 +98,11 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.doGet(url);
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .get()
+                .url(url)
+                .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -113,7 +129,11 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.doGet(url);
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .get()
+                .url(url)
+                .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -140,7 +160,12 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.doGet(url);
+        final ResponseData response =
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .get()
+                .url(url)
+                .build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -160,7 +185,12 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.doHead(url);
+        final ResponseData response =
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .head()
+                .url(url)
+                .build());
         assertEquals(1, testListener.startCount);
         assertEquals(1, testListener.requestCount);
         assertEquals(0, testListener.exceptionCount);
@@ -181,7 +211,12 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.doHead(url);
+        final ResponseData response =
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .head()
+                .url(url)
+                .build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -203,7 +238,11 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.doHead(url);
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .head()
+                .url(url)
+                .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -230,7 +269,11 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.doHead(url);
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .head()
+                .url(url)
+                .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -257,7 +300,12 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.doHead(url);
+        final ResponseData response =
+            client.execute(RequestDataBuilder
+                .newRequestData()
+                .head()
+                .url(url)
+                .build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -279,6 +327,7 @@ public class FaultTolerantClientTest extends S2TestCase {
 
         long previousTime;
 
+        @Override
         public void setInitParameterMap(final Map<String, Object> params) {
         }
 
@@ -287,7 +336,8 @@ public class FaultTolerantClientTest extends S2TestCase {
          * 
          * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
          */
-        public ResponseData doGet(final String url) {
+        @Override
+        public ResponseData execute(final RequestData request) {
             final long now = System.currentTimeMillis();
             if (now - previousTime < interval) {
                 throw new IllegalStateException();
@@ -300,8 +350,8 @@ public class FaultTolerantClientTest extends S2TestCase {
             }
 
             final ResponseData responseData = new ResponseData();
-            responseData.setUrl(url);
-            responseData.setMethod(Constants.GET_METHOD);
+            responseData.setUrl(request.getUrl());
+            responseData.setMethod(request.getMethod().toString());
             return responseData;
         }
 
@@ -345,27 +395,31 @@ public class FaultTolerantClientTest extends S2TestCase {
 
         String requestMethod;
 
-        public void onRequestStart(final FaultTolerantClient client, final String method,
-                final String url) {
+        @Override
+        public void onRequestStart(final FaultTolerantClient client,
+                final RequestData request) {
             startCount++;
         }
 
-        public void onRequest(final FaultTolerantClient client, final String method,
-                final String url, final int count) {
+        @Override
+        public void onRequest(final FaultTolerantClient client,
+                final RequestData request, final int count) {
             requestCount++;
-            requestUrl = url;
-            requestMethod = method;
+            requestUrl = request.getUrl();
+            requestMethod = request.getMethod().toString();
         }
 
-        public void onRequestEnd(final FaultTolerantClient client, final String method,
-                final String url, final List<Exception> exceptionList) {
+        @Override
+        public void onRequestEnd(final FaultTolerantClient client,
+                RequestData request, final List<Exception> exceptionList) {
             endCount++;
         }
 
-        public void onException(final FaultTolerantClient client, final String method,
-                final String url, final int count, final Exception e) {
+        @Override
+        public void onException(final FaultTolerantClient client,
+                RequestData request, final int count, final Exception e) {
             exceptionCount++;
-            exceptionUrl = url;
+            exceptionUrl = request.getUrl();
         }
 
     }

@@ -19,10 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.seasar.robot.Constants;
+import org.seasar.framework.container.annotation.tiger.Binding;
+import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.seasar.robot.MaxLengthExceededException;
 import org.seasar.robot.RobotMultipleCrawlAccessException;
-import org.seasar.robot.client.fs.ChildUrlsException;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ public class FaultTolerantClient implements S2RobotClient {
 
     protected long retryInterval = 500;
 
+    @Binding(bindingType = BindingType.MAY)
     protected RequestListener listener;
 
     /*
@@ -55,40 +57,10 @@ public class FaultTolerantClient implements S2RobotClient {
         client.setInitParameterMap(params);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.seasar.robot.client.S2RobotClient#doGet(java.lang.String)
-     */
     @Override
-    public ResponseData doGet(final String url) {
-        return doRequest(Constants.GET_METHOD, url, new Requester() {
-            @Override
-            public ResponseData execute(final String url) {
-                return client.doGet(url);
-            }
-        });
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.seasar.robot.client.S2RobotClient#doHead(java.lang.String)
-     */
-    @Override
-    public ResponseData doHead(final String url) {
-        return doRequest(Constants.HEAD_METHOD, url, new Requester() {
-            @Override
-            public ResponseData execute(final String url) {
-                return client.doHead(url);
-            }
-        });
-    }
-
-    protected ResponseData doRequest(final String method, final String url,
-            final Requester requester) {
+    public ResponseData execute(final RequestData request) {
         if (listener != null) {
-            listener.onRequestStart(this, method, url);
+            listener.onRequestStart(this, request);
         }
 
         List<Exception> exceptionList = null;
@@ -96,22 +68,22 @@ public class FaultTolerantClient implements S2RobotClient {
             int count = 0;
             while (count < maxRetryCount) {
                 if (listener != null) {
-                    listener.onRequest(this, method, url, count);
+                    listener.onRequest(this, request, count);
                 }
 
                 try {
-                    return requester.execute(url);
+                    return client.execute(request);
                 } catch (final MaxLengthExceededException e) {
-                    throw e;
-                } catch (final ChildUrlsException e) {
                     throw e;
                 } catch (final Exception e) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Failed to access to " + url, e);
+                        logger.debug(
+                            "Failed to access to " + request.getUrl(),
+                            e);
                     }
 
                     if (listener != null) {
-                        listener.onException(this, method, url, count, e);
+                        listener.onException(this, request, count, e);
                     }
 
                     if (exceptionList == null) {
@@ -128,11 +100,11 @@ public class FaultTolerantClient implements S2RobotClient {
                 count++;
             }
             throw new RobotMultipleCrawlAccessException(
-                "Failed to access to " + url,
+                "Failed to access to " + request.getUrl(),
                 exceptionList.toArray(new Throwable[exceptionList.size()]));
         } finally {
             if (listener != null) {
-                listener.onRequestEnd(this, method, url, exceptionList);
+                listener.onRequestEnd(this, request, exceptionList);
             }
         }
     }
@@ -169,22 +141,17 @@ public class FaultTolerantClient implements S2RobotClient {
         this.listener = listener;
     }
 
-    interface Requester {
-        ResponseData execute(String url);
-    }
-
     public interface RequestListener {
 
-        void onRequestStart(FaultTolerantClient client, String method,
-                String url);
+        void onRequestStart(FaultTolerantClient client, RequestData request);
 
-        void onRequest(FaultTolerantClient client, String method, String url,
+        void onRequest(FaultTolerantClient client, RequestData request,
                 int count);
 
-        void onRequestEnd(FaultTolerantClient client, String method,
-                String url, List<Exception> exceptionList);
+        void onRequestEnd(FaultTolerantClient client, RequestData request,
+                List<Exception> exceptionList);
 
-        void onException(FaultTolerantClient client, String method, String url,
+        void onException(FaultTolerantClient client, RequestData request,
                 int count, Exception e);
 
     }

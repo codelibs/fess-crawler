@@ -89,7 +89,7 @@ public class TikaExtractor implements Extractor {
         }
 
         if (logger.isDebugEnabled()) {
-            Parser parser = tikaConfig.getParser();
+            final Parser parser = tikaConfig.getParser();
             logger.debug(
                 "supportedTypes: {}",
                 parser.getSupportedTypes(new ParseContext()));
@@ -348,7 +348,7 @@ public class TikaExtractor implements Extractor {
 
     private Metadata createMetadata(final String resourceName,
             final String contentType, final String contentEncoding,
-            String pdfPassword) {
+            final String pdfPassword) {
         final Metadata metadata = new Metadata();
         if (StringUtil.isNotEmpty(resourceName)) {
             metadata.set(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);

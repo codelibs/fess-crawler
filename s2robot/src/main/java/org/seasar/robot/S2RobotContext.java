@@ -165,12 +165,12 @@ public class S2RobotContext {
         this.maxAccessCount = maxAccessCount;
     }
 
-    public void addSitemaps(String[] sitemaps) {
+    public void addSitemaps(final String[] sitemaps) {
         sitemapsLocal.set(sitemaps);
     }
 
     public String[] removeSitemaps() {
-        String[] sitemaps = sitemapsLocal.get();
+        final String[] sitemaps = sitemapsLocal.get();
         if (sitemaps != null) {
             sitemapsLocal.remove();
         }

@@ -21,6 +21,7 @@ import java.util.Map;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.client.fs.FileSystemClient;
 import org.seasar.robot.client.http.HcHttpClient;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 
 /**
@@ -64,17 +65,16 @@ public class S2RobotClientFactoryTest extends S2TestCase {
 
         final StringBuilder buf = new StringBuilder();
         clientFactory.addClient("test:.*", new S2RobotClient() {
-            public ResponseData doGet(final String url) {
+            @Override
+            public ResponseData execute(final RequestData request) {
                 return null;
             }
 
+            @Override
             public void setInitParameterMap(final Map<String, Object> params) {
                 buf.append("value=").append(params.get("hoge"));
             }
 
-            public ResponseData doHead(final String url) {
-                return null;
-            }
         });
 
         clientFactory.setInitParameterMap(paramMap);

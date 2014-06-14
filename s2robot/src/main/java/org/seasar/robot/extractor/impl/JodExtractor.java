@@ -208,7 +208,7 @@ public class JodExtractor implements Extractor {
         }
         try {
             return new String(FileUtil.getBytes(outputFile), outputEncoding);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             return new String(
                 FileUtil.getBytes(outputFile),
                 Constants.UTF_8_CHARSET);

@@ -26,6 +26,8 @@ public final class Constants {
 
     public static final String HEAD_METHOD = "HEAD";
 
+    public static final String POST_METHOD = "POST";
+
     public static final int OK_STATUS = 0;
 
     public static final int NOT_MODIFIED_STATUS = 304;

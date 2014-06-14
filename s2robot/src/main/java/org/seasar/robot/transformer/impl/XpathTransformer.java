@@ -15,24 +15,19 @@
  */
 package org.seasar.robot.transformer.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.TransformerException;
 
 import org.apache.xpath.objects.XObject;
 import org.cyberneko.html.parsers.DOMParser;
 import org.seasar.framework.beans.util.Beans;
-import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
@@ -45,9 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
-import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * XpathTransformer stores WEB data as XML content.
@@ -250,111 +243,6 @@ public class XpathTransformer extends HtmlTransformer {
         }
     }
 
-    @Deprecated
-    protected Map<String, Object> getDataMap(
-            final AccessResultData accessResultData) {
-        // create input source
-        final InputSource is =
-            new InputSource(
-                new ByteArrayInputStream(accessResultData.getData()));
-        if (StringUtil.isNotBlank(accessResultData.getEncoding())) {
-            is.setEncoding(accessResultData.getEncoding());
-        }
-
-        // create handler
-        final DocHandler handler = new DocHandler();
-
-        // create a sax instance
-        final SAXParserFactory spfactory = SAXParserFactory.newInstance();
-        try {
-            // create a sax parser
-            final SAXParser parser = spfactory.newSAXParser();
-            // parse a content
-            parser.parse(is, handler);
-
-            return handler.getDataMap();
-        } catch (final Exception e) {
-            throw new RobotSystemException(
-                "Could not create a data map from XML content.",
-                e);
-        }
-    }
-
-    @Deprecated
-    protected static class DocHandler extends DefaultHandler {
-        private final Map<String, Object> dataMap =
-            new HashMap<String, Object>();
-
-        private String fieldName;
-
-        private boolean listData = false;
-
-        private boolean itemData = false;
-
-        @Override
-        public void startDocument() {
-            dataMap.clear();
-        }
-
-        @Override
-        public void startElement(final String uri, final String localName,
-                final String qName, final Attributes attributes) {
-            if ("field".equals(qName)) {
-                fieldName = attributes.getValue("name");
-            } else if ("list".equals(qName)) {
-                listData = true;
-                if (!dataMap.containsKey(fieldName)) {
-                    dataMap.put(fieldName, new ArrayList<String>());
-                }
-            } else if ("item".equals(qName)) {
-                itemData = true;
-            }
-        }
-
-        @Override
-        public void characters(final char[] ch, final int offset,
-                final int length) {
-            if (fieldName != null) {
-                final Object value = dataMap.get(fieldName);
-                if (listData && itemData) {
-                    if (value != null) {
-                        @SuppressWarnings("unchecked")
-                        List<String> list = (List<String>) value;
-                        list.add(new String(ch, offset, length));
-                    }
-                } else {
-                    if (value == null) {
-                        dataMap.put(fieldName, new String(ch, offset, length));
-                    } else {
-                        dataMap.put(fieldName, value
-                            + new String(ch, offset, length));
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void endElement(final String uri, final String localName,
-                final String qName) {
-            if ("field".equals(qName)) {
-                fieldName = null;
-            } else if ("list".equals(qName)) {
-                listData = false;
-            } else if ("item".equals(qName)) {
-                itemData = false;
-            }
-        }
-
-        @Override
-        public void endDocument() {
-            // nothing
-        }
-
-        public Map<String, Object> getDataMap() {
-            return dataMap;
-        }
-    }
-
     public Map<String, String> getFieldRuleMap() {
         return fieldRuleMap;
     }
@@ -387,8 +275,4 @@ public class XpathTransformer extends HtmlTransformer {
         this.dataClass = dataClass;
     }
 
-    @Deprecated
-    protected String escapeXml(final String value) {
-        return XmlUtil.escapeXml(value);
-    }
 }

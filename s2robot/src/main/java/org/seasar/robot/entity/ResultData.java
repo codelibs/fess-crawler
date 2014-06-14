@@ -33,7 +33,7 @@ public class ResultData implements Serializable {
 
     private String encoding;
 
-    private Set<String> childUrlSet = new LinkedHashSet<String>();
+    private Set<RequestData> childUrlSet = new LinkedHashSet<RequestData>();
 
     public byte[] getData() {
         return data;
@@ -43,12 +43,14 @@ public class ResultData implements Serializable {
         this.data = data;
     }
 
-    public void addUrl(final String url) {
+    public void addUrl(final RequestData url) {
         childUrlSet.add(url);
     }
 
-    public void addAllUrl(final Collection<String> c) {
-        childUrlSet.addAll(c);
+    public void addAllUrl(final Collection<RequestData> c) {
+        if (c != null) {
+            childUrlSet.addAll(c);
+        }
     }
 
     public void removeUrl(final String url) {
@@ -63,11 +65,11 @@ public class ResultData implements Serializable {
         this.transformerName = transformerName;
     }
 
-    public Set<String> getChildUrlSet() {
+    public Set<RequestData> getChildUrlSet() {
         return childUrlSet;
     }
 
-    public void setChildUrlSet(final Set<String> childUrlSet) {
+    public void setChildUrlSet(final Set<RequestData> childUrlSet) {
         this.childUrlSet = childUrlSet;
     }
 

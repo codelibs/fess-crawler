@@ -46,7 +46,9 @@ import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotCrawlAccessException;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.builder.RequestDataBuilder;
 import org.seasar.robot.entity.AccessResultData;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.helper.EncodingHelper;
@@ -189,8 +191,11 @@ public class HtmlTransformer extends AbstractTransformer {
         if (redirectUrlObj instanceof String) {
             final UrlConvertHelper urlConvertHelper =
                 SingletonS2Container.getComponent(UrlConvertHelper.class);
-            resultData.addUrl(urlConvertHelper.convert(redirectUrlObj
-                .toString()));
+            resultData.addUrl(RequestDataBuilder
+                .newRequestData()
+                .get()
+                .url(urlConvertHelper.convert(redirectUrlObj.toString()))
+                .build());
         }
 
         // clean up
@@ -227,7 +232,7 @@ public class HtmlTransformer extends AbstractTransformer {
 
     protected void storeChildUrls(final ResponseData responseData,
             final ResultData resultData) {
-        List<String> urlList = new ArrayList<String>();
+        List<RequestData> requestDataList = new ArrayList<RequestData>();
         try {
             final DOMParser parser = getDomParser();
             parser.parse(new InputSource(responseData.getResponseBody()));
@@ -238,39 +243,48 @@ public class HtmlTransformer extends AbstractTransformer {
                 new URL(baseHref == null ? responseData.getUrl() : baseHref);
             for (final Map.Entry<String, String> entry : childUrlRuleMap
                 .entrySet()) {
-                urlList.addAll(getUrlFromTagAttribute(
+                for (final String childUrl : getUrlFromTagAttribute(
                     url,
                     document,
                     entry.getKey(),
                     entry.getValue(),
-                    responseData.getCharSet()));
+                    responseData.getCharSet())) {
+                    requestDataList.add(RequestDataBuilder
+                        .newRequestData()
+                        .get()
+                        .url(childUrl)
+                        .build());
+                }
             }
-            urlList = convertChildUrlList(urlList);
+            requestDataList = convertChildUrlList(requestDataList);
         } catch (final Exception e) {
             logger.warn("Could not create child urls.", e);
         } finally {
             xpathAPI.remove();
         }
-        resultData.addAllUrl(urlList);
+        resultData.addAllUrl(requestDataList);
+
+        resultData.addAllUrl(responseData.getChildUrlSet());
 
         final String u = responseData.getUrl();
         resultData.removeUrl(u);
         resultData.removeUrl(getDuplicateUrl(u));
     }
 
-    protected List<String> convertChildUrlList(final List<String> urlList) {
+    protected List<RequestData> convertChildUrlList(
+            final List<RequestData> requestDataList) {
         try {
             final UrlConvertHelper urlConvertHelper =
                 SingletonS2Container.getComponent(UrlConvertHelper.class);
-            final List<String> newUrlList = new ArrayList<String>();
-            for (final String url : urlList) {
-                newUrlList.add(urlConvertHelper.convert(url));
+            for (final RequestData requestData : requestDataList) {
+                requestData.setUrl(urlConvertHelper.convert(requestData
+                    .getUrl()));
             }
-            return newUrlList;
+            return requestDataList;
         } catch (final Exception e) {
             // NOP
         }
-        return urlList;
+        return requestDataList;
     }
 
     protected void storeData(final ResponseData responseData,

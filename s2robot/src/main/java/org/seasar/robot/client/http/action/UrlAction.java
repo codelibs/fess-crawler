@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2010 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,26 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.client;
+package org.seasar.robot.client.http.action;
 
 import java.util.Map;
 
-import org.seasar.robot.entity.RequestData;
+import org.openqa.selenium.WebDriver;
 import org.seasar.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- * 
+ *
  */
-public interface S2RobotClient {
+public interface UrlAction {
+    public static final String URL_SPLITTER = "\n";
 
-    void setInitParameterMap(Map<String, Object> params);
+    public static final String URL_ACTION = "urlaction";
 
-    ResponseData execute(RequestData data);
+    String getName();
+
+    void navigate(WebDriver webDriver, Map<String, String> paramMap);
+
+    void collect(String url, WebDriver webDriver, ResponseData responseData);
 
 }

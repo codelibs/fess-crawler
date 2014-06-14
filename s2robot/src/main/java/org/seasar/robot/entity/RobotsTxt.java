@@ -80,7 +80,7 @@ public class RobotsTxt {
         if (userAgent == null) {
             return null;
         }
-        for (Directive directive : directiveMap.values()) {
+        for (final Directive directive : directiveMap.values()) {
             if (userAgent.equals(directive.getUserAgent())) {
                 return directive;
             }

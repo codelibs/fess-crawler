@@ -17,6 +17,9 @@ package org.seasar.robot.client;
 
 import java.util.Map;
 
+import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.RequestData;
+import org.seasar.robot.entity.ResponseData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +53,33 @@ public abstract class AbstractS2RobotClient implements S2RobotClient {
     @Override
     public void setInitParameterMap(final Map<String, Object> params) {
         initParamMap = params;
+    }
+
+    @Override
+    public ResponseData execute(final RequestData request) {
+        switch (request.getMethod()) {
+        case GET:
+            return doGet(request.getUrl());
+        case HEAD:
+            return doHead(request.getUrl());
+        case POST:
+            return doPost(request.getUrl());
+        default:
+            throw new RobotSystemException(request.getMethod()
+                + " method is not supported.");
+        }
+    }
+
+    protected ResponseData doGet(final String url) {
+        throw new RobotSystemException("GET method is not supported.");
+    }
+
+    protected ResponseData doHead(final String url) {
+        throw new RobotSystemException("HEAD method is not supported.");
+    }
+
+    protected ResponseData doPost(final String url) {
+        throw new RobotSystemException("POST method is not supported.");
     }
 
 }

@@ -39,25 +39,25 @@ public class SitemapsRule extends RegexRule {
         .getLogger(SitemapsRule.class);
 
     @Override
-    public boolean match(ResponseData responseData) {
+    public boolean match(final ResponseData responseData) {
         if (super.match(responseData)) {
-            File tempFile =
+            final File tempFile =
                 ResponseDataUtil.createResponseBodyFile(responseData);
             try {
                 responseData.setResponseBody(new TemporaryFileInputStream(
                     tempFile));
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 throw new RobotSystemException("File does not exists: "
                     + tempFile.getAbsolutePath(), e);
             }
 
             InputStream is = null;
             try {
-                SitemapsHelper sitemapsHelper =
+                final SitemapsHelper sitemapsHelper =
                     SingletonS2Container.getComponent("sitemapsHelper");
                 is = new FileInputStream(tempFile);
                 return sitemapsHelper.isValid(is);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Failed a sitemap check: " + responseData, e);
                 }

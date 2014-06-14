@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components>
+	<component name="webDriver"
+		class="org.openqa.selenium.phantomjs.PhantomJSDriver"
+		instance="prototype">
+	</component>
+
+	<component name="webDriverClient"
+		class="org.seasar.robot.client.http.WebDriverClient">
+		<property name="webDriverPool">
+			<component 
+				class="org.apache.commons.pool2.impl.GenericObjectPool">
+				<arg>
+					<component
+						class="org.seasar.robot.pool.S2PooledObjectFactory">
+						<property name="componentName">"webDriver"</property>
+					</component>
+				</arg>
+			</component>
+		</property>
+		<initMethod name="addUrlProcessor">
+			<arg>
+				<component class="org.seasar.robot.client.http.action.AOnClickAction">
+					<property name="name">"aOnClick"</property>
+					<property name="cssQuery">"a"</property>
+				</component>
+			</arg>
+		</initMethod>
+		<initMethod name="addUrlProcessor">
+			<arg>
+				<component class="org.seasar.robot.client.http.action.FormAction">
+					<property name="name">"form"</property>
+					<property name="cssQuery">"form"</property>
+				</component>
+			</arg>
+		</initMethod>
+	</component>
+</components>

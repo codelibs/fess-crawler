@@ -17,7 +17,6 @@ package org.seasar.robot.processor.impl;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +24,7 @@ import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.robot.Constants;
 import org.seasar.robot.S2RobotContext;
 import org.seasar.robot.entity.AccessResult;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
 import org.seasar.robot.entity.UrlQueue;
@@ -61,8 +61,6 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         if (isNotModified(responseData)) {
             final UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
             final ResultData resultData = new ResultData();
-            final Set<String> emptySet = Collections.emptySet();
-            resultData.setChildUrlSet(emptySet);
             resultData.setData(new byte[0]);
             resultData.setEncoding(Constants.UTF_8);
             resultData.setTransformerName(Constants.NO_TRANSFORMER);
@@ -91,12 +89,12 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         }
     }
 
-    protected boolean isSuccessful(ResponseData responseData) {
+    protected boolean isSuccessful(final ResponseData responseData) {
         if (successfulHttpCodes == null) {
             return true;
         }
-        int httpStatusCode = responseData.getHttpStatusCode();
-        for (int code : successfulHttpCodes) {
+        final int httpStatusCode = responseData.getHttpStatusCode();
+        for (final int code : successfulHttpCodes) {
             if (code == httpStatusCode) {
                 return true;
             }
@@ -108,8 +106,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         if (notModifiedHttpCodes == null) {
             return false;
         }
-        int httpStatusCode = responseData.getHttpStatusCode();
-        for (int code : notModifiedHttpCodes) {
+        final int httpStatusCode = responseData.getHttpStatusCode();
+        for (final int code : notModifiedHttpCodes) {
             if (code == httpStatusCode) {
                 return true;
             }
@@ -171,8 +169,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
     }
 
     private void storeChildUrls(final S2RobotContext robotContext,
-            final Set<String> childUrlList, final String url, final int depth,
-            final String encoding) {
+            final Set<RequestData> childUrlList, final String url,
+            final int depth, final String encoding) {
         if (robotContext.getMaxDepth() >= 0
             && depth > robotContext.getMaxDepth()) {
             return;
@@ -180,17 +178,17 @@ public class DefaultResponseProcessor implements ResponseProcessor {
 
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
-        for (final String childUrl : childUrlList) {
-            if (robotContext.getUrlFilter().match(childUrl)) {
+        for (final RequestData childUrl : childUrlList) {
+            if (robotContext.getUrlFilter().match(childUrl.getUrl())) {
                 final UrlQueue uq =
                     SingletonS2Container.getComponent(UrlQueue.class);
                 uq.setCreateTime(new Timestamp(System.currentTimeMillis()));
                 uq.setDepth(depth);
-                uq.setMethod(Constants.GET_METHOD);
+                uq.setMethod(childUrl.getMethod().name());
                 uq.setEncoding(encoding);
                 uq.setParentUrl(url);
                 uq.setSessionId(robotContext.getSessionId());
-                uq.setUrl(childUrl);
+                uq.setUrl(childUrl.getUrl());
                 childList.add(uq);
             }
         }
@@ -213,7 +211,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         return successfulHttpCodes;
     }
 
-    public void setSuccessfulHttpCodes(int[] successfulHttpCodes) {
+    public void setSuccessfulHttpCodes(final int[] successfulHttpCodes) {
         this.successfulHttpCodes = successfulHttpCodes;
     }
 
@@ -221,7 +219,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         return notModifiedHttpCodes;
     }
 
-    public void setNotModifiedHttpCodes(int[] notModifiedHttpCodes) {
+    public void setNotModifiedHttpCodes(final int[] notModifiedHttpCodes) {
         this.notModifiedHttpCodes = notModifiedHttpCodes;
     }
 }

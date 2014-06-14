@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2010 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,28 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.seasar.robot.client;
-
-import java.util.Map;
-
-import org.seasar.robot.entity.RequestData;
-import org.seasar.robot.entity.ResponseData;
+package org.seasar.robot.client.http.action;
 
 /**
  * @author shinsuke
- * 
+ *
  */
-public interface S2RobotClient {
+public abstract class BaseUrlAction implements UrlAction {
 
-    void setInitParameterMap(Map<String, Object> params);
+    protected static final String INDEX = "index";
 
-    ResponseData execute(RequestData data);
+    protected static final String CSS_QUERY = "cssQuery";
 
+    public String cssQuery;
+
+    protected String name;
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
 }

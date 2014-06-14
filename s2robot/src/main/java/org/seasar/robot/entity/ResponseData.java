@@ -17,9 +17,10 @@ package org.seasar.robot.entity;
 
 import java.io.InputStream;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.seasar.robot.Constants;
 
@@ -59,6 +60,9 @@ public class ResponseData {
 
     private final Map<String, Object> metaDataMap =
         new LinkedHashMap<String, Object>();
+
+    private final Set<RequestData> childUrlSet =
+        new LinkedHashSet<RequestData>();
 
     public int getHttpStatusCode() {
         return httpStatusCode;
@@ -180,20 +184,16 @@ public class ResponseData {
         return metaDataMap;
     }
 
-    @Deprecated
-    public void addHeader(final String name, final String value) {
-        metaDataMap.put(name, value);
+    public void addChildUrl(final RequestData url) {
+        childUrlSet.add(url);
     }
 
-    @Deprecated
-    public Map<String, String> getHeaderMap() {
-        final Map<String, String> headerMap = new HashMap<String, String>();
-        for (final Map.Entry<String, Object> entry : metaDataMap.entrySet()) {
-            if (entry.getValue() instanceof String) {
-                headerMap.put(entry.getKey(), (String) entry.getValue());
-            }
-        }
-        return headerMap;
+    public void removeChildUrl(final String url) {
+        childUrlSet.remove(url);
+    }
+
+    public Set<RequestData> getChildUrlSet() {
+        return childUrlSet;
     }
 
     @Override
@@ -205,7 +205,7 @@ public class ResponseData {
             + ", ruleId=" + ruleId + ", sessionId=" + sessionId
             + ", executionTime=" + executionTime + ", lastModified="
             + lastModified + ", redirectLocation=" + redirectLocation
-            + ", status=" + status + ", metaDataMap=" + metaDataMap + "]";
+            + ", status=" + status + ", metaDataMap=" + metaDataMap
+            + ", childUrlSet=" + childUrlSet + "]";
     }
-
 }

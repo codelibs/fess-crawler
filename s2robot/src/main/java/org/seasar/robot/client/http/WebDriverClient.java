@@ -46,8 +46,8 @@ public class WebDriverClient extends AbstractS2RobotClient {
 
     protected Map<String, UrlAction> urlActionMap = new LinkedHashMap<>();
 
-    public void addUrlProcessor(final UrlAction urlProcessor) {
-        urlActionMap.put(urlProcessor.getName(), urlProcessor);
+    public void addUrlAction(final UrlAction urlAction) {
+        urlActionMap.put(urlAction.getName(), urlAction);
     }
 
     @Override
@@ -81,15 +81,13 @@ public class WebDriverClient extends AbstractS2RobotClient {
             }
 
             if (paramMap != null) {
-                final String processorName =
-                    paramMap.get(UrlAction.URL_ACTION);
-                final UrlAction urlProcessor =
-                    urlActionMap.get(processorName);
-                if (urlProcessor == null) {
+                final String processorName = paramMap.get(UrlAction.URL_ACTION);
+                final UrlAction urlAction = urlActionMap.get(processorName);
+                if (urlAction == null) {
                     throw new RobotSystemException("Unknown processor: "
                         + processorName);
                 }
-                urlProcessor.navigate(webDriver, paramMap);
+                urlAction.navigate(webDriver, paramMap);
             }
 
             final String source = webDriver.getPageSource();
@@ -109,8 +107,8 @@ public class WebDriverClient extends AbstractS2RobotClient {
             responseData.setResponseBody(new ByteArrayInputStream(source
                 .getBytes(charSet)));
 
-            for (final UrlAction urlProcessor : urlActionMap.values()) {
-                urlProcessor.collect(url, webDriver, responseData);
+            for (final UrlAction urlAction : urlActionMap.values()) {
+                urlAction.collect(url, webDriver, responseData);
             }
 
             return responseData;
@@ -118,10 +116,12 @@ public class WebDriverClient extends AbstractS2RobotClient {
             throw new RobotSystemException("Failed to access "
                 + request.getUrl(), e);
         } finally {
-            try {
-                webDriverPool.returnObject(webDriver);
-            } catch (final Exception e) {
-                logger.warn("Failed to return a returned object.", e);
+            if (webDriver != null) {
+                try {
+                    webDriverPool.returnObject(webDriver);
+                } catch (final Exception e) {
+                    logger.warn("Failed to return a returned object.", e);
+                }
             }
         }
     }

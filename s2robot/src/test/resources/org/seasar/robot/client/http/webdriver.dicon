@@ -3,24 +3,28 @@
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
 	<component name="webDriver"
-		class="org.openqa.selenium.phantomjs.PhantomJSDriver"
+		class="org.seasar.robot.client.http.webdriver.S2WebJSDriver"
 		instance="prototype">
+		<initMethod name="phantomjs"></initMethod>
 	</component>
-
+	<component name="webDriverPool" class="org.apache.commons.pool2.impl.GenericObjectPool">
+		<arg>
+			<component
+				class="org.seasar.robot.pool.S2PooledObjectFactory">
+				<property name="componentName">"webDriver"</property>
+				<property name="onDestroyListener">
+					<component
+						class="org.seasar.robot.client.http.webdriver.S2WebJSDriver$OnDestroyListener">
+					</component>
+				</property>
+			</component>
+		</arg>
+		<destroyMethod name="close"></destroyMethod>
+	</component>
 	<component name="webDriverClient"
 		class="org.seasar.robot.client.http.WebDriverClient">
-		<property name="webDriverPool">
-			<component 
-				class="org.apache.commons.pool2.impl.GenericObjectPool">
-				<arg>
-					<component
-						class="org.seasar.robot.pool.S2PooledObjectFactory">
-						<property name="componentName">"webDriver"</property>
-					</component>
-				</arg>
-			</component>
-		</property>
-		<initMethod name="addUrlProcessor">
+		<property name="webDriverPool">webDriverPool</property>
+		<initMethod name="addUrlAction">
 			<arg>
 				<component class="org.seasar.robot.client.http.action.AOnClickAction">
 					<property name="name">"aOnClick"</property>
@@ -28,7 +32,7 @@
 				</component>
 			</arg>
 		</initMethod>
-		<initMethod name="addUrlProcessor">
+		<initMethod name="addUrlAction">
 			<arg>
 				<component class="org.seasar.robot.client.http.action.FormAction">
 					<property name="name">"form"</property>

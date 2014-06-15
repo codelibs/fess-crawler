@@ -21,12 +21,17 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.seasar.framework.container.SingletonS2Container;
 
 /**
+ * 
+ * @param <T>
+ * 
  * @author shinsuke
  *
  */
 public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
 
     public String componentName;
+
+    public OnDestroyListener<T> onDestroyListener;
 
     /*
      * (non-Javadoc)
@@ -35,7 +40,9 @@ public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
      */
     @Override
     public T create() throws Exception {
-        return (T) SingletonS2Container.getComponent(componentName);
+        @SuppressWarnings("unchecked")
+        T component = (T) SingletonS2Container.getComponent(componentName);
+        return component;
     }
 
     /*
@@ -49,4 +56,14 @@ public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
         return new DefaultPooledObject<T>(obj);
     }
 
+    @Override
+    public void destroyObject(PooledObject<T> p) throws Exception {
+        if (onDestroyListener != null) {
+            onDestroyListener.onDestroy(p);
+        }
+    }
+
+    public interface OnDestroyListener<T> {
+        public void onDestroy(PooledObject<T> p);
+    }
 }

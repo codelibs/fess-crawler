@@ -49,7 +49,7 @@ import org.seasar.framework.container.annotation.tiger.BindingType;
  * @author shinsuke
  *
  */
-public class S2WebJSDriver implements WebDriver, JavascriptExecutor, FindsById,
+public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
         FindsByClassName, FindsByLinkText, FindsByName, FindsByCssSelector,
         FindsByTagName, FindsByXPath, HasInputDevices, HasCapabilities,
         TakesScreenshot {
@@ -117,10 +117,10 @@ public class S2WebJSDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     public static class OnDestroyListener
             implements
-            org.seasar.robot.pool.S2PooledObjectFactory.OnDestroyListener<S2WebJSDriver> {
+            org.seasar.robot.pool.S2PooledObjectFactory.OnDestroyListener<S2WebDriver> {
         @Override
-        public void onDestroy(PooledObject<S2WebJSDriver> p) {
-            S2WebJSDriver driver = p.getObject();
+        public void onDestroy(PooledObject<S2WebDriver> p) {
+            S2WebDriver driver = p.getObject();
             driver.quit();
         }
     }

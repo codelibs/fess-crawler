@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -37,21 +40,24 @@ import org.seasar.robot.extractor.Extractor;
 
 /**
  * Gets a text from .doc file.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class PdfExtractor implements Extractor {
     protected String encoding = "UTF-8";
 
     /**
-     * When true, the parser will skip corrupt pdf objects and
+     * When true, the parser will skip corrupt pdf objects and will continue
+     * parsing at the next object in the file
      */
     protected boolean force = false;
 
     protected Map<String, String> passwordMap = new HashMap<String, String>();
 
     protected Object pdfBoxLockObj = new Object();
+
+    protected long timeout = 30000; // 30sec
 
     /*
      * (non-Javadoc)
@@ -95,7 +101,29 @@ public class PdfExtractor implements Extractor {
                 final Writer output = new OutputStreamWriter(baos, encoding);
                 final PDFTextStripper stripper = new PDFTextStripper(encoding);
                 stripper.setForceParsing(force);
-                stripper.writeText(document, output);
+                final AtomicBoolean done = new AtomicBoolean(false);
+                final PDDocument doc = document;
+                final Set<Exception> exceptionSet = new HashSet<>();
+                Thread task = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            stripper.writeText(doc, output);
+                            done.set(true);
+                        } catch (Exception e) {
+                            exceptionSet.add(e);
+                        }
+                    }
+                });
+                task.start();
+                task.join(timeout);
+                if (!done.get()) {
+                    task.interrupt();
+                    throw new ExtractException(
+                        "PDFBox process cannot finish in " + timeout + " sec.");
+                } else if (!exceptionSet.isEmpty()) {
+                    throw exceptionSet.iterator().next();
+                }
                 output.flush();
                 final ExtractData extractData =
                     new ExtractData(baos.toString(encoding));
@@ -176,5 +204,13 @@ public class PdfExtractor implements Extractor {
         }
 
         return null;
+    }
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
     }
 }

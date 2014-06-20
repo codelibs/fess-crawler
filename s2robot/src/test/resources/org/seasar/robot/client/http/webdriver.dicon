@@ -14,7 +14,7 @@
 				<property name="componentName">"webDriver"</property>
 				<property name="onDestroyListener">
 					<component
-						class="org.seasar.robot.client.http.webdriver.S2WebJSDriver$OnDestroyListener">
+						class="org.seasar.robot.client.http.webdriver.S2WebDriver$OnDestroyListener">
 					</component>
 				</property>
 			</component>

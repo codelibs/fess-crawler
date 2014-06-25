@@ -516,6 +516,8 @@ public class HtmlTransformer extends AbstractTransformer {
             url = url.replaceFirst("/[^/]+/\\.\\./", "/");
         }
 
+        url = url.replaceAll("([^:])/+", "$1/");
+
         return url;
     }
 

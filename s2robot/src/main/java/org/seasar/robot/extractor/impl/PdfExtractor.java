@@ -109,16 +109,21 @@ public class PdfExtractor implements Extractor {
                     public void run() {
                         try {
                             stripper.writeText(doc, output);
-                            done.set(true);
                         } catch (Exception e) {
                             exceptionSet.add(e);
+                        } finally {
+                            done.set(true);
                         }
                     }
                 });
+                task.setDaemon(true);
                 task.start();
                 task.join(timeout);
                 if (!done.get()) {
-                    task.interrupt();
+                    for (int i = 0; i < 100 && !done.get(); i++) {
+                        task.interrupt();
+                        Thread.sleep(50);
+                    }
                     throw new ExtractException(
                         "PDFBox process cannot finish in " + timeout + " sec.");
                 } else if (!exceptionSet.isEmpty()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,17 @@ import org.seasar.dbflute.dbmeta.name.TableSqlName;
 import org.seasar.robot.db.allcommon.DBCurrent;
 import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.exentity.AccessResult;
+import org.seasar.robot.db.exentity.AccessResultData;
 
 /**
  * The DB meta of ACCESS_RESULT. (Singleton)
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    // Singleton
-    // =========
+    //                                                                           Singleton
+    //                                                                           =========
     private static final AccessResultDbm _instance = new AccessResultDbm();
 
     private AccessResultDbm() {
@@ -50,16 +50,19 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Current DBDef
-    // =============
+    //                                                                       Current DBDef
+    //                                                                       =============
     @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // ===================================================================================
-    // Property Gateway
-    // ================
+    //                                                                    Property Gateway
+    //                                                                    ================
+    // -----------------------------------------------------
+    //                                       Column Property
+    //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
         setupEpg(_epgMap, new EpgId(), "id");
@@ -77,170 +80,198 @@ public class AccessResultDbm extends AbstractDBMeta {
         setupEpg(_epgMap, new EpgCreateTime(), "createTime");
     }
 
-    @Override
-    public PropertyGateway findPropertyGateway(final String propertyName) {
-        return doFindEpg(_epgMap, propertyName);
-    }
-
     public static class EpgId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getId();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setId(ctl(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setId(ctl(vl));
         }
     }
 
     public static class EpgSessionId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getSessionId();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getSessionId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setSessionId((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setSessionId((String) vl);
         }
     }
 
     public static class EpgRuleId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getRuleId();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getRuleId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setRuleId((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setRuleId((String) vl);
         }
     }
 
     public static class EpgUrl implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getUrl();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getUrl();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setUrl((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setUrl((String) vl);
         }
     }
 
     public static class EpgParentUrl implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getParentUrl();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getParentUrl();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setParentUrl((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setParentUrl((String) vl);
         }
     }
 
     public static class EpgStatus implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getStatus();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getStatus();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setStatus(cti(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setStatus(cti(vl));
         }
     }
 
     public static class EpgHttpStatusCode implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getHttpStatusCode();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getHttpStatusCode();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setHttpStatusCode(cti(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setHttpStatusCode(cti(vl));
         }
     }
 
     public static class EpgMethod implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getMethod();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getMethod();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setMethod((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setMethod((String) vl);
         }
     }
 
     public static class EpgMimeType implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getMimeType();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getMimeType();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setMimeType((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setMimeType((String) vl);
         }
     }
 
     public static class EpgContentLength implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getContentLength();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getContentLength();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setContentLength(ctl(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setContentLength(ctl(vl));
         }
     }
 
     public static class EpgExecutionTime implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getExecutionTime();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getExecutionTime();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setExecutionTime(cti(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setExecutionTime(cti(vl));
         }
     }
 
     public static class EpgLastModified implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getLastModified();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getLastModified();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setLastModified((java.sql.Timestamp) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setLastModified((java.sql.Timestamp) vl);
         }
     }
 
     public static class EpgCreateTime implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResult) e).getCreateTime();
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getCreateTime();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResult) e).setCreateTime((java.sql.Timestamp) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setCreateTime((java.sql.Timestamp) vl);
         }
     }
 
+    @Override
+    public PropertyGateway findPropertyGateway(final String prop) {
+        return doFindEpg(_epgMap, prop);
+    }
+
+    // -----------------------------------------------------
+    //                                      Foreign Property
+    //                                      ----------------
+    protected final Map<String, PropertyGateway> _efpgMap = newHashMap();
+    {
+        setupEfpg(
+            _efpgMap,
+            new EfpgAccessResultDataAsOne(),
+            "accessResultDataAsOne");
+    }
+
+    public class EfpgAccessResultDataAsOne implements PropertyGateway {
+        @Override
+        public Object read(final Entity et) {
+            return ((AccessResult) et).getAccessResultDataAsOne();
+        }
+
+        @Override
+        public void write(final Entity et, final Object vl) {
+            ((AccessResult) et).setAccessResultDataAsOne((AccessResultData) vl);
+        }
+    }
+
+    @Override
+    public PropertyGateway findForeignPropertyGateway(final String prop) {
+        return doFindEfpg(_efpgMap, prop);
+    }
+
     // ===================================================================================
-    // Table Info
-    // ==========
+    //                                                                          Table Info
+    //                                                                          ==========
     protected final String _tableDbName = "ACCESS_RESULT";
 
     protected final String _tablePropertyName = "accessResult";
@@ -270,23 +301,24 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Column Info
-    // ===========
+    //                                                                         Column Info
+    //                                                                         ===========
     protected final ColumnInfo _columnId =
         cci(
             "ID",
             "ID",
             null,
             null,
-            true,
-            "id",
             Long.class,
+            "id",
+            null,
+            true,
             true,
             true,
             "BIGINT",
             19,
             0,
-            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_320021F1_181E_481F_954A_E7C177F0E178",
+            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_7A496CBE_0B89_45E9_92D6_22B4646749E6",
             false,
             null,
             null,
@@ -299,11 +331,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "SESSION_ID",
         null,
         null,
-        true,
-        "sessionId",
         String.class,
+        "sessionId",
+        null,
         false,
         false,
+        true,
         "VARCHAR",
         20,
         0,
@@ -320,9 +353,10 @@ public class AccessResultDbm extends AbstractDBMeta {
         "RULE_ID",
         null,
         null,
-        false,
-        "ruleId",
         String.class,
+        "ruleId",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -341,11 +375,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "URL",
         null,
         null,
-        true,
-        "url",
         String.class,
+        "url",
+        null,
         false,
         false,
+        true,
         "VARCHAR",
         65536,
         0,
@@ -362,9 +397,10 @@ public class AccessResultDbm extends AbstractDBMeta {
         "PARENT_URL",
         null,
         null,
-        false,
-        "parentUrl",
         String.class,
+        "parentUrl",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -383,11 +419,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "STATUS",
         null,
         null,
-        true,
-        "status",
         Integer.class,
+        "status",
+        null,
         false,
         false,
+        true,
         "INTEGER",
         10,
         0,
@@ -404,11 +441,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "HTTP_STATUS_CODE",
         null,
         null,
-        true,
-        "httpStatusCode",
         Integer.class,
+        "httpStatusCode",
+        null,
         false,
         false,
+        true,
         "INTEGER",
         10,
         0,
@@ -425,11 +463,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "METHOD",
         null,
         null,
-        true,
-        "method",
         String.class,
+        "method",
+        null,
         false,
         false,
+        true,
         "VARCHAR",
         10,
         0,
@@ -446,11 +485,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "MIME_TYPE",
         null,
         null,
-        true,
-        "mimeType",
         String.class,
+        "mimeType",
+        null,
         false,
         false,
+        true,
         "VARCHAR",
         100,
         0,
@@ -467,11 +507,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "CONTENT_LENGTH",
         null,
         null,
-        true,
-        "contentLength",
         Long.class,
+        "contentLength",
+        null,
         false,
         false,
+        true,
         "BIGINT",
         19,
         0,
@@ -488,11 +529,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "EXECUTION_TIME",
         null,
         null,
-        true,
-        "executionTime",
         Integer.class,
+        "executionTime",
+        null,
         false,
         false,
+        true,
         "INTEGER",
         10,
         0,
@@ -509,11 +551,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "LAST_MODIFIED",
         null,
         null,
-        true,
-        "lastModified",
         java.sql.Timestamp.class,
+        "lastModified",
+        null,
         false,
         false,
+        true,
         "TIMESTAMP",
         23,
         10,
@@ -530,11 +573,12 @@ public class AccessResultDbm extends AbstractDBMeta {
         "CREATE_TIME",
         null,
         null,
-        true,
-        "createTime",
         java.sql.Timestamp.class,
+        "createTime",
+        null,
         false,
         false,
+        true,
         "TIMESTAMP",
         23,
         10,
@@ -546,54 +590,106 @@ public class AccessResultDbm extends AbstractDBMeta {
         null,
         null);
 
+    /**
+     * ID: {PK, ID, NotNull, BIGINT(19)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnId() {
         return _columnId;
     }
 
+    /**
+     * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnSessionId() {
         return _columnSessionId;
     }
 
+    /**
+     * RULE_ID: {VARCHAR(20)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnRuleId() {
         return _columnRuleId;
     }
 
+    /**
+     * URL: {IX+, NotNull, VARCHAR(65536)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnUrl() {
         return _columnUrl;
     }
 
+    /**
+     * PARENT_URL: {VARCHAR(65536)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnParentUrl() {
         return _columnParentUrl;
     }
 
+    /**
+     * STATUS: {NotNull, INTEGER(10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnStatus() {
         return _columnStatus;
     }
 
+    /**
+     * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnHttpStatusCode() {
         return _columnHttpStatusCode;
     }
 
+    /**
+     * METHOD: {NotNull, VARCHAR(10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnMethod() {
         return _columnMethod;
     }
 
+    /**
+     * MIME_TYPE: {NotNull, VARCHAR(100)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnMimeType() {
         return _columnMimeType;
     }
 
+    /**
+     * CONTENT_LENGTH: {NotNull, BIGINT(19)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnContentLength() {
         return _columnContentLength;
     }
 
+    /**
+     * EXECUTION_TIME: {NotNull, INTEGER(10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnExecutionTime() {
         return _columnExecutionTime;
     }
 
+    /**
+     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnLastModified() {
         return _columnLastModified;
     }
 
+    /**
+     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnCreateTime() {
         return _columnCreateTime;
     }
@@ -622,11 +718,11 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Unique Info
-    // ===========
+    //                                                                         Unique Info
+    //                                                                         ===========
     // -----------------------------------------------------
-    // Primary Element
-    // ---------------
+    //                                       Primary Element
+    //                                       ---------------
     @Override
     protected UniqueInfo cpui() {
         return hpcpui(columnId());
@@ -643,13 +739,19 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Relation Info
-    // =============
+    //                                                                       Relation Info
+    //                                                                       =============
+    // cannot cache because it uses related DB meta instance while booting
+    // (instead, cached by super's collection)
     // -----------------------------------------------------
-    // Foreign Property
-    // ----------------
+    //                                      Foreign Property
+    //                                      ----------------
+    /**
+     * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
+     * @return The information object of foreign property(referrer-as-one). (NotNull)
+     */
     public ForeignInfo foreignAccessResultDataAsOne() {
-        final Map<ColumnInfo, ColumnInfo> map =
+        final Map<ColumnInfo, ColumnInfo> mp =
             newLinkedHashMap(columnId(), AccessResultDataDbm
                 .getInstance()
                 .columnId());
@@ -658,8 +760,9 @@ public class AccessResultDbm extends AbstractDBMeta {
             "accessResultDataAsOne",
             this,
             AccessResultDataDbm.getInstance(),
-            map,
+            mp,
             0,
+            null,
             true,
             false,
             true,
@@ -671,20 +774,20 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     // -----------------------------------------------------
-    // Referrer Property
-    // -----------------
+    //                                     Referrer Property
+    //                                     -----------------
 
     // ===================================================================================
-    // Various Info
-    // ============
+    //                                                                        Various Info
+    //                                                                        ============
     @Override
     public boolean hasIdentity() {
         return true;
     }
 
     // ===================================================================================
-    // Type Name
-    // =========
+    //                                                                           Type Name
+    //                                                                           =========
     @Override
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.AccessResult";
@@ -701,16 +804,16 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Object Type
-    // ===========
+    //                                                                         Object Type
+    //                                                                         ===========
     @Override
     public Class<AccessResult> getEntityType() {
         return AccessResult.class;
     }
 
     // ===================================================================================
-    // Object Instance
-    // ===============
+    //                                                                     Object Instance
+    //                                                                     ===============
     @Override
     public Entity newEntity() {
         return newMyEntity();
@@ -721,27 +824,27 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Map Communication
-    // =================
+    //                                                                   Map Communication
+    //                                                                   =================
     @Override
-    public void acceptPrimaryKeyMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((AccessResult) e, m);
+    public void acceptPrimaryKeyMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptPrimaryKeyMap((AccessResult) et, mp);
     }
 
     @Override
-    public void acceptAllColumnMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptAllColumnMap((AccessResult) e, m);
+    public void acceptAllColumnMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptAllColumnMap((AccessResult) et, mp);
     }
 
     @Override
-    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
-        return doExtractPrimaryKeyMap(e);
+    public Map<String, Object> extractPrimaryKeyMap(final Entity et) {
+        return doExtractPrimaryKeyMap(et);
     }
 
     @Override
-    public Map<String, Object> extractAllColumnMap(final Entity e) {
-        return doExtractAllColumnMap(e);
+    public Map<String, Object> extractAllColumnMap(final Entity et) {
+        return doExtractAllColumnMap(et);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,168 +16,92 @@
 package org.seasar.robot.db.cbean.cq.ciq;
 
 import java.util.Map;
-
-import org.seasar.dbflute.cbean.ConditionQuery;
-import org.seasar.dbflute.cbean.ckey.ConditionKey;
+import org.seasar.dbflute.cbean.*;
+import org.seasar.dbflute.cbean.ckey.*;
 import org.seasar.dbflute.cbean.coption.ConditionOption;
 import org.seasar.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
-import org.seasar.robot.db.cbean.UrlFilterCB;
-import org.seasar.robot.db.cbean.cq.UrlFilterCQ;
-import org.seasar.robot.db.cbean.cq.bs.AbstractBsUrlFilterCQ;
-import org.seasar.robot.db.cbean.cq.bs.BsUrlFilterCQ;
+import org.seasar.robot.db.cbean.*;
+import org.seasar.robot.db.cbean.cq.bs.*;
+import org.seasar.robot.db.cbean.cq.*;
 
 /**
  * The condition-query for in-line of URL_FILTER.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlFilterCIQ extends AbstractBsUrlFilterCQ {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected BsUrlFilterCQ _myCQ;
 
     // ===================================================================================
-    // Constructor
-    // ===========
-    public UrlFilterCIQ(final ConditionQuery childQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel, final BsUrlFilterCQ myCQ) {
-        super(childQuery, sqlClause, aliasName, nestLevel);
+    //                                                                         Constructor
+    //                                                                         ===========
+    public UrlFilterCIQ(ConditionQuery referrerQuery, SqlClause sqlClause
+                        , String aliasName, int nestLevel, BsUrlFilterCQ myCQ) {
+        super(referrerQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept
-                                                                // foreign
-                                                                // property name
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
         _relationPath = _myCQ.xgetRelationPath(); // accept relation path
         _inline = true;
     }
 
     // ===================================================================================
-    // Override about Register
-    // =======================
-    @Override
-    protected void reflectRelationOnUnionQuery(final ConditionQuery bq,
-            final ConditionQuery uq) {
-        final String msg =
-            "InlineView must not need UNION method: " + bq + " : " + uq;
-        throw new IllegalConditionBeanOperationException(msg);
-    }
+    //                                                             Override about Register
+    //                                                             =======================
+    protected void reflectRelationOnUnionQuery(ConditionQuery bq, ConditionQuery uq)
+    { throw new IllegalConditionBeanOperationException("InlineView cannot use Union: " + bq + " : " + uq); }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(
-            final ConditionKey k, final Object v, final ConditionValue cv,
-            final String col) {
-        regIQ(k, v, cv, col);
-    }
+    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k, Object v, ConditionValue cv, String col)
+    { regIQ(k, v, cv, col); }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(
-            final ConditionKey k, final Object v, final ConditionValue cv,
-            final String col, final ConditionOption op) {
-        regIQ(k, v, cv, col, op);
-    }
+    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k, Object v, ConditionValue cv, String col, ConditionOption op)
+    { regIQ(k, v, cv, col, op); }
 
     @Override
-    protected void registerWhereClause(final String wc) {
-        registerInlineWhereClause(wc);
-    }
+    protected void registerWhereClause(String wc)
+    { registerInlineWhereClause(wc); }
 
     @Override
     protected boolean isInScopeRelationSuppressLocalAliasName() {
-        if (_onClause) {
-            throw new IllegalConditionBeanOperationException(
-                "InScopeRelation on OnClause is unsupported.");
-        }
+        if (_onClause) { throw new IllegalConditionBeanOperationException("InScopeRelation on OnClause is unsupported."); }
         return true;
     }
 
     // ===================================================================================
-    // Override about Query
-    // ====================
-    @Override
-    protected ConditionValue getCValueId() {
-        return _myCQ.getId();
-    }
+    //                                                                Override about Query
+    //                                                                ====================
+    protected ConditionValue getCValueId() { return _myCQ.getId(); }
+    protected ConditionValue getCValueSessionId() { return _myCQ.getSessionId(); }
+    protected ConditionValue getCValueUrl() { return _myCQ.getUrl(); }
+    protected ConditionValue getCValueFilterType() { return _myCQ.getFilterType(); }
+    protected ConditionValue getCValueCreateTime() { return _myCQ.getCreateTime(); }
+    protected Map<String, Object> xfindFixedConditionDynamicParameterMap(String pp) { return null; }
+    public String keepScalarCondition(UrlFilterCQ sq)
+    { throwIICBOE("ScalarCondition"); return null; }
+    public String keepSpecifyMyselfDerived(UrlFilterCQ sq)
+    { throwIICBOE("(Specify)MyselfDerived"); return null;}
+    public String keepQueryMyselfDerived(UrlFilterCQ sq)
+    { throwIICBOE("(Query)MyselfDerived"); return null;}
+    public String keepQueryMyselfDerivedParameter(Object vl)
+    { throwIICBOE("(Query)MyselfDerived"); return null;}
+    public String keepMyselfExists(UrlFilterCQ sq)
+    { throwIICBOE("MyselfExists"); return null;}
+    public String keepMyselfInScope(UrlFilterCQ sq)
+    { throwIICBOE("MyselfInScope"); return null;}
 
-    @Override
-    protected ConditionValue getCValueSessionId() {
-        return _myCQ.getSessionId();
-    }
-
-    @Override
-    protected ConditionValue getCValueUrl() {
-        return _myCQ.getUrl();
-    }
-
-    @Override
-    protected ConditionValue getCValueFilterType() {
-        return _myCQ.getFilterType();
-    }
-
-    @Override
-    protected ConditionValue getCValueCreateTime() {
-        return _myCQ.getCreateTime();
-    }
-
-    @Override
-    protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
-            final String property) {
-        return null;
-    }
-
-    @Override
-    public String keepScalarCondition(final UrlFilterCQ subQuery) {
-        throwIICBOE("ScalarCondition");
-        return null;
-    }
-
-    @Override
-    public String keepSpecifyMyselfDerived(final UrlFilterCQ subQuery) {
-        throwIICBOE("(Specify)MyselfDerived");
-        return null;
-    }
-
-    @Override
-    public String keepQueryMyselfDerived(final UrlFilterCQ subQuery) {
-        throwIICBOE("(Query)MyselfDerived");
-        return null;
-    }
-
-    @Override
-    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
-        throwIICBOE("(Query)MyselfDerived");
-        return null;
-    }
-
-    @Override
-    public String keepMyselfExists(final UrlFilterCQ subQuery) {
-        throwIICBOE("MyselfExists");
-        return null;
-    }
-
-    @Override
-    public String keepMyselfInScope(final UrlFilterCQ subQuery) {
-        throwIICBOE("MyselfInScope");
-        return null;
-    }
-
-    protected void throwIICBOE(final String name) { // throwInlineIllegalConditionBeanOperationException()
-        throw new IllegalConditionBeanOperationException(name
-            + " at InlineView is unsupported.");
-    }
+    protected void throwIICBOE(String name)
+    { throw new IllegalConditionBeanOperationException(name + " at InlineView is unsupported."); }
 
     // ===================================================================================
-    // Very Internal
-    // =============
+    //                                                                       Very Internal
+    //                                                                       =============
     // very internal (for suppressing warn about 'Not Use Import')
-    protected String xinCB() {
-        return UrlFilterCB.class.getName();
-    }
-
-    protected String xinCQ() {
-        return UrlFilterCQ.class.getName();
-    }
+    protected String xinCB() { return UrlFilterCB.class.getName(); }
+    protected String xinCQ() { return UrlFilterCQ.class.getName(); }
 }

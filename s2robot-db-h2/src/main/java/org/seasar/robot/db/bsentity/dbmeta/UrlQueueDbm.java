@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,13 @@ import org.seasar.robot.db.exentity.UrlQueue;
 
 /**
  * The DB meta of URL_QUEUE. (Singleton)
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    // Singleton
-    // =========
+    //                                                                           Singleton
+    //                                                                           =========
     private static final UrlQueueDbm _instance = new UrlQueueDbm();
 
     private UrlQueueDbm() {
@@ -49,22 +48,26 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Current DBDef
-    // =============
+    //                                                                       Current DBDef
+    //                                                                       =============
     @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // ===================================================================================
-    // Property Gateway
-    // ================
+    //                                                                    Property Gateway
+    //                                                                    ================
+    // -----------------------------------------------------
+    //                                       Column Property
+    //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
         setupEpg(_epgMap, new EpgId(), "id");
         setupEpg(_epgMap, new EpgSessionId(), "sessionId");
         setupEpg(_epgMap, new EpgMethod(), "method");
         setupEpg(_epgMap, new EpgUrl(), "url");
+        setupEpg(_epgMap, new EpgMetaData(), "metaData");
         setupEpg(_epgMap, new EpgEncoding(), "encoding");
         setupEpg(_epgMap, new EpgParentUrl(), "parentUrl");
         setupEpg(_epgMap, new EpgDepth(), "depth");
@@ -72,122 +75,134 @@ public class UrlQueueDbm extends AbstractDBMeta {
         setupEpg(_epgMap, new EpgCreateTime(), "createTime");
     }
 
-    @Override
-    public PropertyGateway findPropertyGateway(final String propertyName) {
-        return doFindEpg(_epgMap, propertyName);
-    }
-
     public static class EpgId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getId();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setId(ctl(v));
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setId(ctl(vl));
         }
     }
 
     public static class EpgSessionId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getSessionId();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getSessionId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setSessionId((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setSessionId((String) vl);
         }
     }
 
     public static class EpgMethod implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getMethod();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getMethod();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setMethod((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setMethod((String) vl);
         }
     }
 
     public static class EpgUrl implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getUrl();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getUrl();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setUrl((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setUrl((String) vl);
+        }
+    }
+
+    public static class EpgMetaData implements PropertyGateway {
+        @Override
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getMetaData();
+        }
+
+        @Override
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setMetaData((String) vl);
         }
     }
 
     public static class EpgEncoding implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getEncoding();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getEncoding();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setEncoding((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setEncoding((String) vl);
         }
     }
 
     public static class EpgParentUrl implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getParentUrl();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getParentUrl();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setParentUrl((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setParentUrl((String) vl);
         }
     }
 
     public static class EpgDepth implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getDepth();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getDepth();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setDepth(cti(v));
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setDepth(cti(vl));
         }
     }
 
     public static class EpgLastModified implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getLastModified();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getLastModified();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setLastModified((java.sql.Timestamp) v);
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setLastModified((java.sql.Timestamp) vl);
         }
     }
 
     public static class EpgCreateTime implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((UrlQueue) e).getCreateTime();
+        public Object read(final Entity et) {
+            return ((UrlQueue) et).getCreateTime();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((UrlQueue) e).setCreateTime((java.sql.Timestamp) v);
+        public void write(final Entity et, final Object vl) {
+            ((UrlQueue) et).setCreateTime((java.sql.Timestamp) vl);
         }
     }
 
+    @Override
+    public PropertyGateway findPropertyGateway(final String prop) {
+        return doFindEpg(_epgMap, prop);
+    }
+
     // ===================================================================================
-    // Table Info
-    // ==========
+    //                                                                          Table Info
+    //                                                                          ==========
     protected final String _tableDbName = "URL_QUEUE";
 
     protected final String _tablePropertyName = "urlQueue";
@@ -217,23 +232,24 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Column Info
-    // ===========
+    //                                                                         Column Info
+    //                                                                         ===========
     protected final ColumnInfo _columnId =
         cci(
             "ID",
             "ID",
             null,
             null,
-            true,
-            "id",
             Long.class,
+            "id",
+            null,
+            true,
             true,
             true,
             "BIGINT",
             19,
             0,
-            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_AFCBF138_0BDA_44F7_987B_7FA22F62D796",
+            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_48C51FAA_E0C6_49C8_9C4A_16F314C4E0A9",
             false,
             null,
             null,
@@ -246,11 +262,12 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "SESSION_ID",
         null,
         null,
-        true,
-        "sessionId",
         String.class,
+        "sessionId",
+        null,
         false,
         false,
+        true,
         "VARCHAR",
         20,
         0,
@@ -267,11 +284,12 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "METHOD",
         null,
         null,
-        true,
-        "method",
         String.class,
+        "method",
+        null,
         false,
         false,
+        true,
         "VARCHAR",
         10,
         0,
@@ -288,9 +306,32 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "URL",
         null,
         null,
-        true,
-        "url",
         String.class,
+        "url",
+        null,
+        false,
+        false,
+        true,
+        "VARCHAR",
+        65536,
+        0,
+        null,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
+
+    protected final ColumnInfo _columnMetaData = cci(
+        "META_DATA",
+        "META_DATA",
+        null,
+        null,
+        String.class,
+        "metaData",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -309,9 +350,10 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "ENCODING",
         null,
         null,
-        false,
-        "encoding",
         String.class,
+        "encoding",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -330,9 +372,10 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "PARENT_URL",
         null,
         null,
-        false,
-        "parentUrl",
         String.class,
+        "parentUrl",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -351,11 +394,12 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "DEPTH",
         null,
         null,
-        true,
-        "depth",
         Integer.class,
+        "depth",
+        null,
         false,
         false,
+        true,
         "INTEGER",
         10,
         0,
@@ -372,9 +416,10 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "LAST_MODIFIED",
         null,
         null,
-        false,
-        "lastModified",
         java.sql.Timestamp.class,
+        "lastModified",
+        null,
+        false,
         false,
         false,
         "TIMESTAMP",
@@ -393,11 +438,12 @@ public class UrlQueueDbm extends AbstractDBMeta {
         "CREATE_TIME",
         null,
         null,
-        true,
-        "createTime",
         java.sql.Timestamp.class,
+        "createTime",
+        null,
         false,
         false,
+        true,
         "TIMESTAMP",
         23,
         10,
@@ -409,38 +455,82 @@ public class UrlQueueDbm extends AbstractDBMeta {
         null,
         null);
 
+    /**
+     * ID: {PK, ID, NotNull, BIGINT(19)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnId() {
         return _columnId;
     }
 
+    /**
+     * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnSessionId() {
         return _columnSessionId;
     }
 
+    /**
+     * METHOD: {NotNull, VARCHAR(10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnMethod() {
         return _columnMethod;
     }
 
+    /**
+     * URL: {NotNull, VARCHAR(65536)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnUrl() {
         return _columnUrl;
     }
 
+    /**
+     * META_DATA: {VARCHAR(65536)}
+     * @return The information object of specified column. (NotNull)
+     */
+    public ColumnInfo columnMetaData() {
+        return _columnMetaData;
+    }
+
+    /**
+     * ENCODING: {VARCHAR(20)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnEncoding() {
         return _columnEncoding;
     }
 
+    /**
+     * PARENT_URL: {VARCHAR(65536)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnParentUrl() {
         return _columnParentUrl;
     }
 
+    /**
+     * DEPTH: {NotNull, INTEGER(10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnDepth() {
         return _columnDepth;
     }
 
+    /**
+     * LAST_MODIFIED: {TIMESTAMP(23, 10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnLastModified() {
         return _columnLastModified;
     }
 
+    /**
+     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnCreateTime() {
         return _columnCreateTime;
     }
@@ -452,6 +542,7 @@ public class UrlQueueDbm extends AbstractDBMeta {
         ls.add(columnSessionId());
         ls.add(columnMethod());
         ls.add(columnUrl());
+        ls.add(columnMetaData());
         ls.add(columnEncoding());
         ls.add(columnParentUrl());
         ls.add(columnDepth());
@@ -465,11 +556,11 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Unique Info
-    // ===========
+    //                                                                         Unique Info
+    //                                                                         ===========
     // -----------------------------------------------------
-    // Primary Element
-    // ---------------
+    //                                       Primary Element
+    //                                       ---------------
     @Override
     protected UniqueInfo cpui() {
         return hpcpui(columnId());
@@ -486,27 +577,29 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Relation Info
-    // =============
+    //                                                                       Relation Info
+    //                                                                       =============
+    // cannot cache because it uses related DB meta instance while booting
+    // (instead, cached by super's collection)
     // -----------------------------------------------------
-    // Foreign Property
-    // ----------------
+    //                                      Foreign Property
+    //                                      ----------------
 
     // -----------------------------------------------------
-    // Referrer Property
-    // -----------------
+    //                                     Referrer Property
+    //                                     -----------------
 
     // ===================================================================================
-    // Various Info
-    // ============
+    //                                                                        Various Info
+    //                                                                        ============
     @Override
     public boolean hasIdentity() {
         return true;
     }
 
     // ===================================================================================
-    // Type Name
-    // =========
+    //                                                                           Type Name
+    //                                                                           =========
     @Override
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.UrlQueue";
@@ -523,16 +616,16 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Object Type
-    // ===========
+    //                                                                         Object Type
+    //                                                                         ===========
     @Override
     public Class<UrlQueue> getEntityType() {
         return UrlQueue.class;
     }
 
     // ===================================================================================
-    // Object Instance
-    // ===============
+    //                                                                     Object Instance
+    //                                                                     ===============
     @Override
     public Entity newEntity() {
         return newMyEntity();
@@ -543,27 +636,27 @@ public class UrlQueueDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Map Communication
-    // =================
+    //                                                                   Map Communication
+    //                                                                   =================
     @Override
-    public void acceptPrimaryKeyMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((UrlQueue) e, m);
+    public void acceptPrimaryKeyMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptPrimaryKeyMap((UrlQueue) et, mp);
     }
 
     @Override
-    public void acceptAllColumnMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptAllColumnMap((UrlQueue) e, m);
+    public void acceptAllColumnMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptAllColumnMap((UrlQueue) et, mp);
     }
 
     @Override
-    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
-        return doExtractPrimaryKeyMap(e);
+    public Map<String, Object> extractPrimaryKeyMap(final Entity et) {
+        return doExtractPrimaryKeyMap(et);
     }
 
     @Override
-    public Map<String, Object> extractAllColumnMap(final Entity e) {
-        return doExtractAllColumnMap(e);
+    public Map<String, Object> extractAllColumnMap(final Entity et) {
+        return doExtractAllColumnMap(et);
     }
 }

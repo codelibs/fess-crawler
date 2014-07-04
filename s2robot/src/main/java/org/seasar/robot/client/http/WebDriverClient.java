@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2010 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.commons.pool2.ObjectPool;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
 import org.seasar.robot.client.AbstractS2RobotClient;
@@ -58,17 +59,9 @@ public class WebDriverClient extends AbstractS2RobotClient {
 
             Map<String, String> paramMap = null;
             String url = request.getUrl();
-            final int pos = url.indexOf(UrlAction.URL_SPLITTER);
-            if (pos == 0) {
-                throw new RobotSystemException("Invalid split position.");
-            } else if (pos > 0) {
-                final String[] params = url.split(UrlAction.URL_SPLITTER);
-                if (params.length > 1) {
-                    url = params[0];
-                    paramMap = parseParamMap(params[1]);
-                } else {
-                    url = params[0];
-                }
+            String metaData = request.getMetaData();
+            if (StringUtil.isNotBlank(metaData)) {
+                paramMap = parseParamMap(metaData);
             }
 
             if (!url.equals(webDriver.getCurrentUrl())) {
@@ -76,7 +69,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("Base URL: " + url + ", Content: "
+                logger.debug("Base URL: " + url + "\nContent: "
                     + webDriver.getPageSource());
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,40 +31,36 @@ import org.seasar.robot.db.cbean.cq.bs.BsAccessResultCQ;
 
 /**
  * The condition-query for in-line of ACCESS_RESULT.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultCIQ extends AbstractBsAccessResultCQ {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected BsAccessResultCQ _myCQ;
 
     // ===================================================================================
-    // Constructor
-    // ===========
-    public AccessResultCIQ(final ConditionQuery childQuery,
+    //                                                                         Constructor
+    //                                                                         ===========
+    public AccessResultCIQ(final ConditionQuery referrerQuery,
             final SqlClause sqlClause, final String aliasName,
             final int nestLevel, final BsAccessResultCQ myCQ) {
-        super(childQuery, sqlClause, aliasName, nestLevel);
+        super(referrerQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept
-                                                                // foreign
-                                                                // property name
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
         _relationPath = _myCQ.xgetRelationPath(); // accept relation path
         _inline = true;
     }
 
     // ===================================================================================
-    // Override about Register
-    // =======================
+    //                                                             Override about Register
+    //                                                             =======================
     @Override
     protected void reflectRelationOnUnionQuery(final ConditionQuery bq,
             final ConditionQuery uq) {
-        final String msg =
-            "InlineView must not need UNION method: " + bq + " : " + uq;
-        throw new IllegalConditionBeanOperationException(msg);
+        throw new IllegalConditionBeanOperationException(
+            "InlineView cannot use Union: " + bq + " : " + uq);
     }
 
     @Override
@@ -96,8 +92,8 @@ public class AccessResultCIQ extends AbstractBsAccessResultCQ {
     }
 
     // ===================================================================================
-    // Override about Query
-    // ====================
+    //                                                                Override about Query
+    //                                                                ====================
     @Override
     protected ConditionValue getCValueId() {
         return _myCQ.getId();
@@ -191,54 +187,54 @@ public class AccessResultCIQ extends AbstractBsAccessResultCQ {
 
     @Override
     protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
-            final String property) {
+            final String pp) {
         return null;
     }
 
     @Override
-    public String keepScalarCondition(final AccessResultCQ subQuery) {
+    public String keepScalarCondition(final AccessResultCQ sq) {
         throwIICBOE("ScalarCondition");
         return null;
     }
 
     @Override
-    public String keepSpecifyMyselfDerived(final AccessResultCQ subQuery) {
+    public String keepSpecifyMyselfDerived(final AccessResultCQ sq) {
         throwIICBOE("(Specify)MyselfDerived");
         return null;
     }
 
     @Override
-    public String keepQueryMyselfDerived(final AccessResultCQ subQuery) {
+    public String keepQueryMyselfDerived(final AccessResultCQ sq) {
         throwIICBOE("(Query)MyselfDerived");
         return null;
     }
 
     @Override
-    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
+    public String keepQueryMyselfDerivedParameter(final Object vl) {
         throwIICBOE("(Query)MyselfDerived");
         return null;
     }
 
     @Override
-    public String keepMyselfExists(final AccessResultCQ subQuery) {
+    public String keepMyselfExists(final AccessResultCQ sq) {
         throwIICBOE("MyselfExists");
         return null;
     }
 
     @Override
-    public String keepMyselfInScope(final AccessResultCQ subQuery) {
+    public String keepMyselfInScope(final AccessResultCQ sq) {
         throwIICBOE("MyselfInScope");
         return null;
     }
 
-    protected void throwIICBOE(final String name) { // throwInlineIllegalConditionBeanOperationException()
+    protected void throwIICBOE(final String name) {
         throw new IllegalConditionBeanOperationException(name
             + " at InlineView is unsupported.");
     }
 
     // ===================================================================================
-    // Very Internal
-    // =============
+    //                                                                       Very Internal
+    //                                                                       =============
     // very internal (for suppressing warn about 'Not Use Import')
     protected String xinCB() {
         return AccessResultCB.class.getName();

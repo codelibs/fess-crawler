@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,18 +23,8 @@ import org.seasar.dbflute.cbean.OrQuery;
 import org.seasar.dbflute.cbean.SpecifyQuery;
 import org.seasar.dbflute.cbean.SubQuery;
 import org.seasar.dbflute.cbean.UnionQuery;
-import org.seasar.dbflute.cbean.chelper.HpAbstractSpecification;
-import org.seasar.dbflute.cbean.chelper.HpCBPurpose;
-import org.seasar.dbflute.cbean.chelper.HpCalculator;
-import org.seasar.dbflute.cbean.chelper.HpColQyHandler;
-import org.seasar.dbflute.cbean.chelper.HpColQyOperand;
-import org.seasar.dbflute.cbean.chelper.HpColumnSpHandler;
-import org.seasar.dbflute.cbean.chelper.HpSDRFunction;
-import org.seasar.dbflute.cbean.chelper.HpSDRSetupper;
-import org.seasar.dbflute.cbean.chelper.HpSpQyCall;
-import org.seasar.dbflute.cbean.chelper.HpSpecifiedColumn;
-import org.seasar.dbflute.cbean.coption.ConditionOption;
-import org.seasar.dbflute.cbean.coption.DerivedReferrerOption;
+import org.seasar.dbflute.cbean.chelper.*;
+import org.seasar.dbflute.cbean.coption.*;
 import org.seasar.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.dbflute.cbean.sqlclause.SqlClauseCreator;
 import org.seasar.dbflute.dbmeta.DBMetaProvider;
@@ -43,24 +33,23 @@ import org.seasar.robot.db.allcommon.DBFluteConfig;
 import org.seasar.robot.db.allcommon.DBMetaInstanceHandler;
 import org.seasar.robot.db.allcommon.ImplementedInvokerAssistant;
 import org.seasar.robot.db.allcommon.ImplementedSqlClauseCreator;
-import org.seasar.robot.db.cbean.UrlQueueCB;
-import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
+import org.seasar.robot.db.cbean.*;
+import org.seasar.robot.db.cbean.cq.*;
 
 /**
  * The base condition-bean of URL_QUEUE.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class BsUrlQueueCB extends AbstractConditionBean {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected UrlQueueCQ _conditionQuery;
 
     // ===================================================================================
-    // Constructor
-    // ===========
+    //                                                                         Constructor
+    //                                                                         ===========
     public BsUrlQueueCB() {
         if (DBFluteConfig.getInstance().isPagingCountLater()) {
             enablePagingCountLater();
@@ -74,63 +63,61 @@ public class BsUrlQueueCB extends AbstractConditionBean {
     }
 
     // ===================================================================================
-    // SqlClause
-    // =========
+    //                                                                           SqlClause
+    //                                                                           =========
     @Override
     protected SqlClause createSqlClause() {
-        final SqlClauseCreator creator =
-            DBFluteConfig.getInstance().getSqlClauseCreator();
+        SqlClauseCreator creator = DBFluteConfig.getInstance().getSqlClauseCreator();
         if (creator != null) {
             return creator.createSqlClause(this);
         }
-        return new ImplementedSqlClauseCreator().createSqlClause(this); // as
-                                                                        // default
+        return new ImplementedSqlClauseCreator().createSqlClause(this); // as default
     }
 
     // ===================================================================================
-    // DBMeta Provider
-    // ===============
+    //                                                                     DBMeta Provider
+    //                                                                     ===============
     @Override
     protected DBMetaProvider getDBMetaProvider() {
         return DBMetaInstanceHandler.getProvider(); // as default
     }
 
     // ===================================================================================
-    // Table Name
-    // ==========
-    @Override
+    //                                                                          Table Name
+    //                                                                          ==========
     public String getTableDbName() {
         return "URL_QUEUE";
     }
 
     // ===================================================================================
-    // PrimaryKey Handling
-    // ===================
-    public void acceptPrimaryKey(final Long id) {
+    //                                                                 PrimaryKey Handling
+    //                                                                 ===================
+    /**
+     * Accept the query condition of primary key as equal.
+     * @param id : PK, NotNull, NUMBER(19). (NotNull)
+     */
+    public void acceptPrimaryKey(Long id) {
         assertObjectNotNull("id", id);
-        final BsUrlQueueCB cb = this;
-        cb.query().setId_Equal(id);
+        BsUrlQueueCB cb = this;
+        cb.query().setId_Equal(id);;
     }
 
-    @Override
     public ConditionBean addOrderBy_PK_Asc() {
         query().addOrderBy_Id_Asc();
         return this;
     }
 
-    @Override
     public ConditionBean addOrderBy_PK_Desc() {
         query().addOrderBy_Id_Desc();
         return this;
     }
 
     // ===================================================================================
-    // Query
-    // =====
+    //                                                                               Query
+    //                                                                               =====
     /**
      * Prepare for various queries. <br />
      * Examples of main functions are following:
-     * 
      * <pre>
      * <span style="color: #3F7E5E">// Basic Queries</span>
      * cb.query().setMemberId_Equal(value);        <span style="color: #3F7E5E">// =</span>
@@ -155,7 +142,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      * cb.query().setBirthdate_IsNull();    <span style="color: #3F7E5E">// is null</span>
      * cb.query().setBirthdate_IsNotNull(); <span style="color: #3F7E5E">// is not null</span>
      * 
-     * <span style="color: #3F7E5E">// ExistsReferrer: (co-related sub-query)</span>
+     * <span style="color: #3F7E5E">// ExistsReferrer: (correlated sub-query)</span>
      * <span style="color: #3F7E5E">// {where exists (select PURCHASE_ID from PURCHASE where ...)}</span>
      * cb.query().existsPurchaseList(new SubQuery&lt;PurchaseCB&gt;() {
      *     public void query(PurchaseCB subCB) {
@@ -173,7 +160,7 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      * });
      * cb.query().notInScopeMemberStatus...
      * 
-     * <span style="color: #3F7E5E">// (Query)DerivedReferrer: (co-related sub-query)</span>
+     * <span style="color: #3F7E5E">// (Query)DerivedReferrer: (correlated sub-query)</span>
      * cb.query().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
      *     public void query(PurchaseCB subCB) {
      *         subCB.specify().columnPurchasePrice(); <span style="color: #3F7E5E">// derived column for function</span>
@@ -200,17 +187,14 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      * cb.query().queryMemberStatus()...;
      * cb.query().queryMemberAddressAsValid(targetDate)...;
      * </pre>
-     * 
-     * @return The instance of condition-query for base-point table to set up
-     *         query. (NotNull)
+     * @return The instance of condition-query for base-point table to set up query. (NotNull)
      */
     public UrlQueueCQ query() {
-        assertQueryPurpose(); // assert only when user-public query
+        assertQueryPurpose(); // assert only when user-public query 
         return getConditionQuery();
     }
 
-    public UrlQueueCQ getConditionQuery() { // public for parameter comment and
-                                            // internal
+    public UrlQueueCQ getConditionQuery() { // public for parameter comment and internal
         if (_conditionQuery == null) {
             _conditionQuery = createLocalCQ();
         }
@@ -218,99 +202,76 @@ public class BsUrlQueueCB extends AbstractConditionBean {
     }
 
     protected UrlQueueCQ createLocalCQ() {
-        return xcreateCQ(null, getSqlClause(), getSqlClause()
-            .getBasePointAliasName(), 0);
+        return xcreateCQ(null, getSqlClause(), getSqlClause().getBasePointAliasName(), 0);
     }
 
-    protected UrlQueueCQ xcreateCQ(final ConditionQuery childQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel) {
-        final UrlQueueCQ cq =
-            xnewCQ(childQuery, sqlClause, aliasName, nestLevel);
+    protected UrlQueueCQ xcreateCQ(ConditionQuery childQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
+        UrlQueueCQ cq = xnewCQ(childQuery, sqlClause, aliasName, nestLevel);
         cq.xsetBaseCB(this);
         return cq;
     }
 
-    protected UrlQueueCQ xnewCQ(final ConditionQuery childQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel) {
+    protected UrlQueueCQ xnewCQ(ConditionQuery childQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
         return new UrlQueueCQ(childQuery, sqlClause, aliasName, nestLevel);
     }
 
-    @Override
     public ConditionQuery localCQ() {
         return getConditionQuery();
     }
 
     // ===================================================================================
-    // Union
-    // =====
+    //                                                                               Union
+    //                                                                               =====
     /**
      * Set up 'union' for base-point table. <br />
-     * You don't need to call SetupSelect in union-query, because it inherits
-     * calls before. (Don't call SetupSelect after here)
-     * 
+     * You don't need to call SetupSelect in union-query,
+     * because it inherits calls before. (Don't call SetupSelect after here)
      * <pre>
-     * cb.query().<span style="color: #FD4747">union</span>(new UnionQuery&lt;UrlQueueCB&gt;() {
+     * cb.query().<span style="color: #DD4747">union</span>(new UnionQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB unionCB) {
      *         unionCB.query().setXxx...
      *     }
      * });
      * </pre>
-     * 
-     * @param unionQuery
-     *            The query of 'union'. (NotNull)
+     * @param unionQuery The query of 'union'. (NotNull)
      */
-    public void union(final UnionQuery<UrlQueueCB> unionQuery) {
-        final UrlQueueCB cb = new UrlQueueCB();
-        cb.xsetupForUnion(this);
-        xsyncUQ(cb);
-        unionQuery.query(cb);
-        xsaveUCB(cb);
-        final UrlQueueCQ cq = cb.query();
-        query().xsetUnionQuery(cq);
+    public void union(UnionQuery<UrlQueueCB> unionQuery) {
+        final UrlQueueCB cb = new UrlQueueCB(); cb.xsetupForUnion(this); xsyncUQ(cb); 
+        try { lock(); unionQuery.query(cb); } finally { unlock(); } xsaveUCB(cb);
+        final UrlQueueCQ cq = cb.query(); query().xsetUnionQuery(cq);
     }
 
     /**
      * Set up 'union all' for base-point table. <br />
-     * You don't need to call SetupSelect in union-query, because it inherits
-     * calls before. (Don't call SetupSelect after here)
-     * 
+     * You don't need to call SetupSelect in union-query,
+     * because it inherits calls before. (Don't call SetupSelect after here)
      * <pre>
-     * cb.query().<span style="color: #FD4747">unionAll</span>(new UnionQuery&lt;UrlQueueCB&gt;() {
+     * cb.query().<span style="color: #DD4747">unionAll</span>(new UnionQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB unionCB) {
      *         unionCB.query().setXxx...
      *     }
      * });
      * </pre>
-     * 
-     * @param unionQuery
-     *            The query of 'union all'. (NotNull)
+     * @param unionQuery The query of 'union all'. (NotNull)
      */
-    public void unionAll(final UnionQuery<UrlQueueCB> unionQuery) {
-        final UrlQueueCB cb = new UrlQueueCB();
-        cb.xsetupForUnion(this);
-        xsyncUQ(cb);
-        unionQuery.query(cb);
-        xsaveUCB(cb);
-        final UrlQueueCQ cq = cb.query();
-        query().xsetUnionAllQuery(cq);
+    public void unionAll(UnionQuery<UrlQueueCB> unionQuery) {
+        final UrlQueueCB cb = new UrlQueueCB(); cb.xsetupForUnion(this); xsyncUQ(cb);
+        try { lock(); unionQuery.query(cb); } finally { unlock(); } xsaveUCB(cb);
+        final UrlQueueCQ cq = cb.query(); query().xsetUnionAllQuery(cq);
     }
 
     // ===================================================================================
-    // SetupSelect
-    // ===========
-
+    //                                                                         SetupSelect
+    //                                                                         ===========
     // [DBFlute-0.7.4]
     // ===================================================================================
-    // Specify
-    // =======
+    //                                                                             Specify
+    //                                                                             =======
     protected HpSpecification _specification;
 
     /**
      * Prepare for SpecifyColumn, (Specify)DerivedReferrer. <br />
      * This method should be called after SetupSelect.
-     * 
      * <pre>
      * cb.setupSelect_MemberStatus(); <span style="color: #3F7E5E">// should be called before specify()</span>
      * cb.specify().columnMemberName();
@@ -322,282 +283,190 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * }, aliasName);
      * </pre>
-     * 
      * @return The instance of specification. (NotNull)
      */
     public HpSpecification specify() {
         assertSpecifyPurpose();
-        if (_specification == null) {
-            _specification =
-                new HpSpecification(this, new HpSpQyCall<UrlQueueCQ>() {
-                    @Override
-                    public boolean has() {
-                        return true;
-                    }
-
-                    @Override
-                    public UrlQueueCQ qy() {
-                        return getConditionQuery();
-                    }
-                }, _purpose, getDBMetaProvider());
-        }
+        if (_specification == null) { _specification = new HpSpecification(this
+            , new HpSpQyCall<UrlQueueCQ>() {
+                public boolean has() { return true; }
+                public UrlQueueCQ qy() { return getConditionQuery(); }
+            }
+            , _purpose, getDBMetaProvider()); }
         return _specification;
     }
 
-    @Override
     public HpColumnSpHandler localSp() {
         return specify();
     }
 
-    @Override
     public boolean hasSpecifiedColumn() {
-        return _specification != null
-            && _specification.isAlreadySpecifiedRequiredColumn();
+        return _specification != null && _specification.isAlreadySpecifiedRequiredColumn();
     }
 
-    public static class HpSpecification extends
-            HpAbstractSpecification<UrlQueueCQ> {
-        public HpSpecification(final ConditionBean baseCB,
-                final HpSpQyCall<UrlQueueCQ> qyCall, final HpCBPurpose purpose,
-                final DBMetaProvider dbmetaProvider) {
-            super(baseCB, qyCall, purpose, dbmetaProvider);
-        }
-
+    public static class HpSpecification extends HpAbstractSpecification<UrlQueueCQ> {
+        public HpSpecification(ConditionBean baseCB, HpSpQyCall<UrlQueueCQ> qyCall
+                             , HpCBPurpose purpose, DBMetaProvider dbmetaProvider)
+        { super(baseCB, qyCall, purpose, dbmetaProvider); }
         /**
          * ID: {PK, NotNull, NUMBER(19)}
-         * 
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnId() {
-            return doColumn("ID");
-        }
-
+        public HpSpecifiedColumn columnId() { return doColumn("ID"); }
         /**
-         * SESSION_ID: {IX, NotNull, VARCHAR2(20)}
-         * 
+         * SESSION_ID: {IX+, NotNull, VARCHAR2(20)}
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnSessionId() {
-            return doColumn("SESSION_ID");
-        }
-
+        public HpSpecifiedColumn columnSessionId() { return doColumn("SESSION_ID"); }
         /**
          * METHOD: {NotNull, VARCHAR2(10)}
-         * 
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnMethod() {
-            return doColumn("METHOD");
-        }
-
+        public HpSpecifiedColumn columnMethod() { return doColumn("METHOD"); }
         /**
-         * URL: {IX+, NotNull, VARCHAR2(4000)}
-         * 
+         * URL: {NotNull, VARCHAR2(4000)}
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnUrl() {
-            return doColumn("URL");
-        }
-
+        public HpSpecifiedColumn columnUrl() { return doColumn("URL"); }
+        /**
+         * META_DATA: {VARCHAR2(4000)}
+         * @return The information object of specified column. (NotNull)
+         */
+        public HpSpecifiedColumn columnMetaData() { return doColumn("META_DATA"); }
         /**
          * ENCODING: {VARCHAR2(20)}
-         * 
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnEncoding() {
-            return doColumn("ENCODING");
-        }
-
+        public HpSpecifiedColumn columnEncoding() { return doColumn("ENCODING"); }
         /**
          * PARENT_URL: {VARCHAR2(4000)}
-         * 
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnParentUrl() {
-            return doColumn("PARENT_URL");
-        }
-
+        public HpSpecifiedColumn columnParentUrl() { return doColumn("PARENT_URL"); }
         /**
          * DEPTH: {NotNull, NUMBER(5)}
-         * 
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnDepth() {
-            return doColumn("DEPTH");
-        }
-
+        public HpSpecifiedColumn columnDepth() { return doColumn("DEPTH"); }
         /**
          * LAST_MODIFIED: {TIMESTAMP(6)(11, 6)}
-         * 
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnLastModified() {
-            return doColumn("LAST_MODIFIED");
-        }
-
+        public HpSpecifiedColumn columnLastModified() { return doColumn("LAST_MODIFIED"); }
         /**
-         * CREATE_TIME: {IX+, NotNull, TIMESTAMP(6)(11, 6)}
-         * 
+         * CREATE_TIME: {NotNull, TIMESTAMP(6)(11, 6)}
          * @return The information object of specified column. (NotNull)
          */
-        public HpSpecifiedColumn columnCreateTime() {
-            return doColumn("CREATE_TIME");
-        }
-
-        @Override
-        public void everyColumn() {
-            doEveryColumn();
-        }
-
-        @Override
-        public void exceptRecordMetaColumn() {
-            doExceptRecordMetaColumn();
-        }
-
+        public HpSpecifiedColumn columnCreateTime() { return doColumn("CREATE_TIME"); }
+        public void everyColumn() { doEveryColumn(); }
+        public void exceptRecordMetaColumn() { doExceptRecordMetaColumn(); }
         @Override
         protected void doSpecifyRequiredColumn() {
             columnId(); // PK
         }
-
         @Override
-        protected String getTableDbName() {
-            return "URL_QUEUE";
-        }
-
+        protected String getTableDbName() { return "URL_QUEUE"; }
         /**
          * Prepare for (Specify)MyselfDerived (SubQuery).
-         * 
          * @return The object to set up a function for myself table. (NotNull)
          */
         public HpSDRFunction<UrlQueueCB, UrlQueueCQ> myselfDerived() {
-            assertDerived("myselfDerived");
-            if (xhasSyncQyCall()) {
-                xsyncQyCall().qy();
-            } // for sync (for example, this in ColumnQuery)
-            return new HpSDRFunction<UrlQueueCB, UrlQueueCQ>(
-                _baseCB,
-                _qyCall.qy(),
-                new HpSDRSetupper<UrlQueueCB, UrlQueueCQ>() {
-                    @Override
-                    public void setup(final String function,
-                            final SubQuery<UrlQueueCB> subQuery,
-                            final UrlQueueCQ cq, final String aliasName,
-                            final DerivedReferrerOption option) {
-                        cq
-                            .xsmyselfDerive(
-                                function,
-                                subQuery,
-                                aliasName,
-                                option);
-                    }
-                },
-                _dbmetaProvider);
+            assertDerived("myselfDerived"); if (xhasSyncQyCall()) { xsyncQyCall().qy(); } // for sync (for example, this in ColumnQuery)
+            return new HpSDRFunction<UrlQueueCB, UrlQueueCQ>(_baseCB, _qyCall.qy(), new HpSDRSetupper<UrlQueueCB, UrlQueueCQ>() {
+                public void setup(String fn, SubQuery<UrlQueueCB> sq, UrlQueueCQ cq, String al, DerivedReferrerOption op) {
+                    cq.xsmyselfDerive(fn, sq, al, op); } }, _dbmetaProvider);
         }
     }
 
     // [DBFlute-0.9.5.3]
     // ===================================================================================
-    // ColumnQuery
-    // ===========
+    //                                                                        Column Query
+    //                                                                        ============
     /**
      * Set up column-query. {column1 = column2}
-     * 
      * <pre>
      * <span style="color: #3F7E5E">// where FOO &lt; BAR</span>
-     * cb.<span style="color: #FD4747">columnQuery</span>(new SpecifyQuery&lt;UrlQueueCB&gt;() {
+     * cb.<span style="color: #DD4747">columnQuery</span>(new SpecifyQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB cb) {
-     *         cb.specify().<span style="color: #FD4747">columnFoo()</span>; <span style="color: #3F7E5E">// left column</span>
+     *         cb.specify().<span style="color: #DD4747">columnFoo()</span>; <span style="color: #3F7E5E">// left column</span>
      *     }
      * }).lessThan(new SpecifyQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB cb) {
-     *         cb.specify().<span style="color: #FD4747">columnBar()</span>; <span style="color: #3F7E5E">// right column</span>
+     *         cb.specify().<span style="color: #DD4747">columnBar()</span>; <span style="color: #3F7E5E">// right column</span>
      *     }
      * }); <span style="color: #3F7E5E">// you can calculate for right column like '}).plus(3);'</span>
      * </pre>
-     * 
-     * @param leftSpecifyQuery
-     *            The specify-query for left column. (NotNull)
+     * @param leftSpecifyQuery The specify-query for left column. (NotNull)
      * @return The object for setting up operand and right column. (NotNull)
      */
-    public HpColQyOperand<UrlQueueCB> columnQuery(
-            final SpecifyQuery<UrlQueueCB> leftSpecifyQuery) {
+    public HpColQyOperand<UrlQueueCB> columnQuery(final SpecifyQuery<UrlQueueCB> leftSpecifyQuery) {
         return new HpColQyOperand<UrlQueueCB>(new HpColQyHandler<UrlQueueCB>() {
-            @Override
-            public HpCalculator handle(final SpecifyQuery<UrlQueueCB> rightSp,
-                    final String operand) {
-                return xcolqy(
-                    xcreateColumnQueryCB(),
-                    xcreateColumnQueryCB(),
-                    leftSpecifyQuery,
-                    rightSp,
-                    operand);
+            public HpCalculator handle(SpecifyQuery<UrlQueueCB> rightSp, String operand) {
+                return xcolqy(xcreateColumnQueryCB(), xcreateColumnQueryCB(), leftSpecifyQuery, rightSp, operand);
             }
         });
     }
 
     protected UrlQueueCB xcreateColumnQueryCB() {
-        final UrlQueueCB cb = new UrlQueueCB();
-        cb.xsetupForColumnQuery(this);
+        UrlQueueCB cb = new UrlQueueCB();
+        cb.xsetupForColumnQuery((UrlQueueCB)this);
         return cb;
     }
 
     // ===================================================================================
-    // Dream Cruise
-    // ============
+    //                                                                        Dream Cruise
+    //                                                                        ============
     /**
      * Welcome to the Dream Cruise for condition-bean deep world. <br />
      * This is very specialty so you can get the frontier spirit. Bon voyage!
-     * 
-     * @return The condition-bean for dream cruise, which is linked to main
-     *         condition-bean.
+     * @return The condition-bean for dream cruise, which is linked to main condition-bean.
      */
     public UrlQueueCB dreamCruiseCB() {
-        final UrlQueueCB cb = new UrlQueueCB();
-        cb.xsetupForDreamCruise(this);
+        UrlQueueCB cb = new UrlQueueCB();
+        cb.xsetupForDreamCruise((UrlQueueCB) this);
         return cb;
     }
 
-    @Override
     protected ConditionBean xdoCreateDreamCruiseCB() {
         return dreamCruiseCB();
     }
 
     // [DBFlute-0.9.6.3]
     // ===================================================================================
-    // OrScopeQuery
-    // ============
+    //                                                                       OrScope Query
+    //                                                                       =============
     /**
      * Set up the query for or-scope. <br />
      * (Same-column-and-same-condition-key conditions are allowed in or-scope)
-     * 
      * <pre>
      * <span style="color: #3F7E5E">// where (FOO = '...' or BAR = '...')</span>
-     * cb.<span style="color: #FD4747">orScopeQuery</span>(new OrQuery&lt;UrlQueueCB&gt;() {
+     * cb.<span style="color: #DD4747">orScopeQuery</span>(new OrQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB orCB) {
      *         orCB.query().setFOO_Equal...
      *         orCB.query().setBAR_Equal...
      *     }
      * });
      * </pre>
-     * 
-     * @param orQuery
-     *            The query for or-condition. (NotNull)
+     * @param orQuery The query for or-condition. (NotNull)
      */
-    public void orScopeQuery(final OrQuery<UrlQueueCB> orQuery) {
-        xorSQ((UrlQueueCB) this, orQuery);
+    public void orScopeQuery(OrQuery<UrlQueueCB> orQuery) {
+        xorSQ((UrlQueueCB)this, orQuery);
+    }
+
+    @Override
+    protected HpCBPurpose xhandleOrSQPurposeChange() {
+        return null; // means no check
     }
 
     /**
      * Set up the and-part of or-scope. <br />
-     * (However nested or-scope query and as-or-split of like-search in and-part
-     * are unsupported)
-     * 
+     * (However nested or-scope query and as-or-split of like-search in and-part are unsupported)
      * <pre>
      * <span style="color: #3F7E5E">// where (FOO = '...' or (BAR = '...' and QUX = '...'))</span>
-     * cb.<span style="color: #FD4747">orScopeQuery</span>(new OrQuery&lt;UrlQueueCB&gt;() {
+     * cb.<span style="color: #DD4747">orScopeQuery</span>(new OrQuery&lt;UrlQueueCB&gt;() {
      *     public void query(UrlQueueCB orCB) {
      *         orCB.query().setFOO_Equal...
-     *         orCB.<span style="color: #FD4747">orScopeQueryAndPart</span>(new AndQuery&lt;UrlQueueCB&gt;() {
+     *         orCB.<span style="color: #DD4747">orScopeQueryAndPart</span>(new AndQuery&lt;UrlQueueCB&gt;() {
      *             public void query(UrlQueueCB andCB) {
      *                 andCB.query().setBar_...
      *                 andCB.query().setQux_...
@@ -606,81 +475,53 @@ public class BsUrlQueueCB extends AbstractConditionBean {
      *     }
      * });
      * </pre>
-     * 
-     * @param andQuery
-     *            The query for and-condition. (NotNull)
+     * @param andQuery The query for and-condition. (NotNull)
      */
-    public void orScopeQueryAndPart(final AndQuery<UrlQueueCB> andQuery) {
-        xorSQAP((UrlQueueCB) this, andQuery);
+    public void orScopeQueryAndPart(AndQuery<UrlQueueCB> andQuery) {
+        xorSQAP((UrlQueueCB)this, andQuery);
     }
 
     // ===================================================================================
-    // DisplaySQL
-    // ==========
+    //                                                                          DisplaySQL
+    //                                                                          ==========
     @Override
-    protected SqlAnalyzerFactory getSqlAnalyzerFactory() {
-        return new ImplementedInvokerAssistant().assistSqlAnalyzerFactory();
-    }
-
+    protected SqlAnalyzerFactory getSqlAnalyzerFactory()
+    { return new ImplementedInvokerAssistant().assistSqlAnalyzerFactory(); }
     @Override
-    protected String getLogDateFormat() {
-        return DBFluteConfig.getInstance().getLogDateFormat();
-    }
-
+    protected String getLogDateFormat() { return DBFluteConfig.getInstance().getLogDateFormat(); }
     @Override
-    protected String getLogTimestampFormat() {
-        return DBFluteConfig.getInstance().getLogTimestampFormat();
-    }
+    protected String getLogTimestampFormat() { return DBFluteConfig.getInstance().getLogTimestampFormat(); }
 
     // ===================================================================================
-    // Meta Handling
-    // =============
-    @Override
+    //                                                                       Meta Handling
+    //                                                                       =============
     public boolean hasUnionQueryOrUnionAllQuery() {
         return query().hasUnionQueryOrUnionAllQuery();
     }
 
     // ===================================================================================
-    // Purpose Type
-    // ============
+    //                                                                        Purpose Type
+    //                                                                        ============
     @Override
-    protected void xprepareSyncQyCall(final ConditionBean mainCB) {
+    protected void xprepareSyncQyCall(ConditionBean mainCB) {
         final UrlQueueCB cb;
         if (mainCB != null) {
-            cb = (UrlQueueCB) mainCB;
+            cb = (UrlQueueCB)mainCB;
         } else {
             cb = new UrlQueueCB();
         }
         specify().xsetSyncQyCall(new HpSpQyCall<UrlQueueCQ>() {
-            @Override
-            public boolean has() {
-                return true;
-            }
-
-            @Override
-            public UrlQueueCQ qy() {
-                return cb.query();
-            }
+            public boolean has() { return true; }
+            public UrlQueueCQ qy() { return cb.query(); }
         });
     }
 
     // ===================================================================================
-    // Internal
-    // ========
+    //                                                                            Internal
+    //                                                                            ========
     // very internal (for suppressing warn about 'Not Use Import')
-    protected String getConditionBeanClassNameInternally() {
-        return UrlQueueCB.class.getName();
-    }
-
-    protected String getConditionQueryClassNameInternally() {
-        return UrlQueueCQ.class.getName();
-    }
-
-    protected String getSubQueryClassNameInternally() {
-        return SubQuery.class.getName();
-    }
-
-    protected String getConditionOptionClassNameInternally() {
-        return ConditionOption.class.getName();
-    }
+    protected String getConditionBeanClassNameInternally() { return UrlQueueCB.class.getName(); }
+    protected String getConditionQueryClassNameInternally() { return UrlQueueCQ.class.getName(); }
+    protected String getSubQueryClassNameInternally() { return SubQuery.class.getName(); }
+    protected String getConditionOptionClassNameInternally() { return ConditionOption.class.getName(); }
 }

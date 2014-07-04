@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@ import org.seasar.robot.db.bsbhv.pmbean.BsAccessResultPmb;
 
 /**
  * <!-- df:beginClassDescription --> The typed parameter-bean of AccessResult.
- * The typed parameter-bean of AccessResult. <span style="color: #AD4747">(typed
- * to cursor)</span><br />
- * This is related to "<span style="color: #AD4747">selectListByUrlDiff</span>"
+ * The typed parameter-bean of AccessResult. <span style="color: #AD4747">(typed to cursor)</span><br />
+ * This is related to "<span style="color: #AD4747">selectListByUrlDiff</span>" on AccessResultBhv. <br />
  * on AccessResultBhv. on AccessResultBhv. <!-- df:endClassDescription -->
  * <p>
  * You can implement your original methods here. This class remains when

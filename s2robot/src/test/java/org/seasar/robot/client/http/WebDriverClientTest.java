@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.seasar.extension.unit.S2TestCase;
+import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.builder.RequestDataBuilder;
@@ -54,6 +55,9 @@ public class WebDriverClientTest extends S2TestCase {
                     .url(url)
                     .build());
             assertEquals(200, responseData.getHttpStatusCode());
+            assertTrue(new String(InputStreamUtil.getBytes(responseData
+                .getResponseBody()), Constants.UTF_8_CHARSET)
+                .contains("Ajax Test"));
             Set<RequestData> childUrlSet = responseData.getChildUrlSet();
             assertEquals(6, childUrlSet.size());
             Iterator<RequestData> requestDataIter = childUrlSet.iterator();
@@ -63,28 +67,43 @@ public class WebDriverClientTest extends S2TestCase {
             assertEquals(
                 "http://localhost:7070/#menu-1-1.html",
                 responseData1.getUrl());
+            assertTrue(new String(InputStreamUtil.getBytes(responseData1
+                .getResponseBody()), Constants.UTF_8_CHARSET)
+                .contains("MENU 11"));
             ResponseData responseData2 =
                 webDriverClient.execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData2.getMethod());
             assertEquals(
                 "http://localhost:7070/#menu-1-2.html",
                 responseData2.getUrl());
+            assertTrue(new String(InputStreamUtil.getBytes(responseData2
+                .getResponseBody()), Constants.UTF_8_CHARSET)
+                .contains("MENU 12"));
             ResponseData responseData3 =
                 webDriverClient.execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData3.getMethod());
             assertEquals(
                 "http://localhost:7070/#menu-2-1.html",
                 responseData3.getUrl());
+            assertTrue(new String(InputStreamUtil.getBytes(responseData3
+                .getResponseBody()), Constants.UTF_8_CHARSET)
+                .contains("MENU 21"));
             ResponseData responseData4 =
                 webDriverClient.execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData4.getMethod());
             assertEquals(
                 "http://localhost:7070/#menu-2-2.html",
                 responseData4.getUrl());
+            assertTrue(new String(InputStreamUtil.getBytes(responseData4
+                .getResponseBody()), Constants.UTF_8_CHARSET)
+                .contains("MENU 22"));
             ResponseData responseData5 =
                 webDriverClient.execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData5.getMethod());
             assertEquals("http://localhost:7070/#", responseData5.getUrl());
+            assertTrue(new String(InputStreamUtil.getBytes(responseData5
+                .getResponseBody()), Constants.UTF_8_CHARSET)
+                .contains("Ajax Test"));
             ResponseData responseData6 =
                 webDriverClient.execute(requestDataIter.next());
             assertEquals(Constants.POST_METHOD, responseData6.getMethod());

@@ -5,6 +5,7 @@
 	<component name="webDriver"
 		class="org.seasar.robot.client.http.webdriver.S2WebDriver"
 		instance="prototype">
+        <!-- <property name="phantomjsBinaryPath">".../phantomjs"</property> -->
 		<initMethod name="phantomjs"></initMethod>
 	</component>
 	<component name="webDriverPool" class="org.apache.commons.pool2.impl.GenericObjectPool">

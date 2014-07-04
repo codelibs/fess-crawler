@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,9 @@ import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.MaxLengthExceededException;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.builder.RequestDataBuilder;
 import org.seasar.robot.client.AbstractS2RobotClient;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.helper.ContentLengthHelper;
 import org.seasar.robot.helper.MimeTypeHelper;
@@ -151,17 +153,21 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 responseData.setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
             }
         } else if (file.isDirectory()) {
-            final Set<String> childUrlSet = new HashSet<String>();
+            final Set<RequestData> requestDataSet = new HashSet<>();
             if (includeContent) {
                 final File[] files = file.listFiles();
                 if (files != null) {
                     for (final File f : files) {
                         final String chileUri = f.toURI().toASCIIString();
-                        childUrlSet.add(chileUri);
+                        requestDataSet.add(RequestDataBuilder
+                            .newRequestData()
+                            .get()
+                            .url(chileUri)
+                            .build());
                     }
                 }
             }
-            throw new ChildUrlsException(childUrlSet);
+            throw new ChildUrlsException(requestDataSet);
         } else {
             responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
             responseData.setCharSet(charset);

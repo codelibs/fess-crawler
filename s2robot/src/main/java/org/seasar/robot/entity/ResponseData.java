@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,12 +188,19 @@ public class ResponseData {
         childUrlSet.add(url);
     }
 
-    public void removeChildUrl(final String url) {
+    public void removeChildUrl(final RequestData url) {
         childUrlSet.remove(url);
     }
 
     public Set<RequestData> getChildUrlSet() {
         return childUrlSet;
+    }
+
+    public RequestData getRequestData() {
+        RequestData requestData = new RequestData();
+        requestData.setMethod(method);
+        requestData.setUrl(url);
+        return requestData;
     }
 
     @Override

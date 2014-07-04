@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,45 +22,35 @@ import org.seasar.dbflute.DBDef;
 import org.seasar.dbflute.Entity;
 import org.seasar.dbflute.dbmeta.AbstractDBMeta;
 import org.seasar.dbflute.dbmeta.PropertyGateway;
-import org.seasar.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.dbflute.dbmeta.info.ForeignInfo;
-import org.seasar.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.dbflute.dbmeta.name.TableSqlName;
-import org.seasar.robot.db.allcommon.DBCurrent;
-import org.seasar.robot.db.allcommon.DBFluteConfig;
-import org.seasar.robot.db.exentity.AccessResultData;
+import org.seasar.dbflute.dbmeta.info.*;
+import org.seasar.dbflute.dbmeta.name.*;
+import org.seasar.robot.db.allcommon.*;
+import org.seasar.robot.db.exentity.*;
 
 /**
  * The DB meta of ACCESS_RESULT_DATA. (Singleton)
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    // Singleton
-    // =========
-    private static final AccessResultDataDbm _instance =
-        new AccessResultDataDbm();
-
-    private AccessResultDataDbm() {
-    }
-
-    public static AccessResultDataDbm getInstance() {
-        return _instance;
-    }
+    //                                                                           Singleton
+    //                                                                           =========
+    private static final AccessResultDataDbm _instance = new AccessResultDataDbm();
+    private AccessResultDataDbm() {}
+    public static AccessResultDataDbm getInstance() { return _instance; }
 
     // ===================================================================================
-    // Current DBDef
-    // =============
-    @Override
-    public DBDef getCurrentDBDef() {
-        return DBCurrent.getInstance().currentDBDef();
-    }
+    //                                                                       Current DBDef
+    //                                                                       =============
+    public DBDef getCurrentDBDef() { return DBCurrent.getInstance().currentDBDef(); }
 
     // ===================================================================================
-    // Property Gateway
-    // ================
+    //                                                                    Property Gateway
+    //                                                                    ================
+    // -----------------------------------------------------
+    //                                       Column Property
+    //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
         setupEpg(_epgMap, new EpgId(), "id");
@@ -68,197 +58,81 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         setupEpg(_epgMap, new EpgData(), "data");
         setupEpg(_epgMap, new EpgEncoding(), "encoding");
     }
-
-    @Override
-    public PropertyGateway findPropertyGateway(final String propertyName) {
-        return doFindEpg(_epgMap, propertyName);
-    }
-
     public static class EpgId implements PropertyGateway {
-        @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getId();
-        }
-
-        @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setId(ctl(v));
-        }
+        public Object read(Entity et) { return ((AccessResultData)et).getId(); }
+        public void write(Entity et, Object vl) { ((AccessResultData)et).setId(ctl(vl)); }
     }
-
     public static class EpgTransformerName implements PropertyGateway {
-        @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getTransformerName();
-        }
-
-        @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setTransformerName((String) v);
-        }
+        public Object read(Entity et) { return ((AccessResultData)et).getTransformerName(); }
+        public void write(Entity et, Object vl) { ((AccessResultData)et).setTransformerName((String)vl); }
     }
-
     public static class EpgData implements PropertyGateway {
-        @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getData();
-        }
-
-        @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setData((byte[]) v);
-        }
+        public Object read(Entity et) { return ((AccessResultData)et).getData(); }
+        public void write(Entity et, Object vl) { ((AccessResultData)et).setData((byte[])vl); }
     }
-
     public static class EpgEncoding implements PropertyGateway {
-        @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getEncoding();
-        }
-
-        @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setEncoding((String) v);
-        }
+        public Object read(Entity et) { return ((AccessResultData)et).getEncoding(); }
+        public void write(Entity et, Object vl) { ((AccessResultData)et).setEncoding((String)vl); }
     }
+    public PropertyGateway findPropertyGateway(String prop)
+    { return doFindEpg(_epgMap, prop); }
 
-    // ===================================================================================
-    // Table Info
-    // ==========
-    protected final String _tableDbName = "ACCESS_RESULT_DATA";
-
-    protected final String _tablePropertyName = "accessResultData";
-
-    protected final TableSqlName _tableSqlName = new TableSqlName(
-        "ACCESS_RESULT_DATA",
-        _tableDbName);
+    // -----------------------------------------------------
+    //                                      Foreign Property
+    //                                      ----------------
+    protected final Map<String, PropertyGateway> _efpgMap = newHashMap();
     {
-        _tableSqlName.xacceptFilter(DBFluteConfig
-            .getInstance()
-            .getTableSqlNameFilter());
+        setupEfpg(_efpgMap, new EfpgAccessResult(), "accessResult");
     }
-
-    @Override
-    public String getTableDbName() {
-        return _tableDbName;
+    public class EfpgAccessResult implements PropertyGateway {
+        public Object read(Entity et) { return ((AccessResultData)et).getAccessResult(); }
+        public void write(Entity et, Object vl) { ((AccessResultData)et).setAccessResult((AccessResult)vl); }
     }
-
-    @Override
-    public String getTablePropertyName() {
-        return _tablePropertyName;
-    }
-
-    @Override
-    public TableSqlName getTableSqlName() {
-        return _tableSqlName;
-    }
+    public PropertyGateway findForeignPropertyGateway(String prop)
+    { return doFindEfpg(_efpgMap, prop); }
 
     // ===================================================================================
-    // Column Info
-    // ===========
-    protected final ColumnInfo _columnId = cci(
-        "ID",
-        "ID",
-        null,
-        null,
-        true,
-        "id",
-        Long.class,
-        true,
-        false,
-        "NUMBER",
-        19,
-        0,
-        null,
-        false,
-        null,
-        null,
-        "accessResult",
-        null,
-        null);
+    //                                                                          Table Info
+    //                                                                          ==========
+    protected final String _tableDbName = "ACCESS_RESULT_DATA";
+    protected final String _tablePropertyName = "accessResultData";
+    protected final TableSqlName _tableSqlName = new TableSqlName("ACCESS_RESULT_DATA", _tableDbName);
+    { _tableSqlName.xacceptFilter(DBFluteConfig.getInstance().getTableSqlNameFilter()); }
+    public String getTableDbName() { return _tableDbName; }
+    public String getTablePropertyName() { return _tablePropertyName; }
+    public TableSqlName getTableSqlName() { return _tableSqlName; }
 
-    protected final ColumnInfo _columnTransformerName = cci(
-        "TRANSFORMER_NAME",
-        "TRANSFORMER_NAME",
-        null,
-        null,
-        true,
-        "transformerName",
-        String.class,
-        false,
-        false,
-        "VARCHAR2",
-        255,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    // ===================================================================================
+    //                                                                         Column Info
+    //                                                                         ===========
+    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, Long.class, "id", null, true, false, true, "NUMBER", 19, 0, null, false, null, null, "accessResult", null, null);
+    protected final ColumnInfo _columnTransformerName = cci("TRANSFORMER_NAME", "TRANSFORMER_NAME", null, null, String.class, "transformerName", null, false, false, true, "VARCHAR2", 255, 0, null, false, null, null, null, null, null);
+    protected final ColumnInfo _columnData = cci("DATA", "DATA", null, null, byte[].class, "data", null, false, false, false, "BLOB", 4000, 0, null, false, null, null, null, null, null);
+    protected final ColumnInfo _columnEncoding = cci("ENCODING", "ENCODING", null, null, String.class, "encoding", null, false, false, false, "VARCHAR2", 20, 0, null, false, null, null, null, null, null);
 
-    protected final ColumnInfo _columnData = cci(
-        "DATA",
-        "DATA",
-        null,
-        null,
-        false,
-        "data",
-        byte[].class,
-        false,
-        false,
-        "BLOB",
-        4000,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    /**
+     * ID: {PK, NotNull, NUMBER(19), FK to ACCESS_RESULT}
+     * @return The information object of specified column. (NotNull)
+     */
+    public ColumnInfo columnId() { return _columnId; }
+    /**
+     * TRANSFORMER_NAME: {NotNull, VARCHAR2(255)}
+     * @return The information object of specified column. (NotNull)
+     */
+    public ColumnInfo columnTransformerName() { return _columnTransformerName; }
+    /**
+     * DATA: {BLOB(4000)}
+     * @return The information object of specified column. (NotNull)
+     */
+    public ColumnInfo columnData() { return _columnData; }
+    /**
+     * ENCODING: {VARCHAR2(20)}
+     * @return The information object of specified column. (NotNull)
+     */
+    public ColumnInfo columnEncoding() { return _columnEncoding; }
 
-    protected final ColumnInfo _columnEncoding = cci(
-        "ENCODING",
-        "ENCODING",
-        null,
-        null,
-        false,
-        "encoding",
-        String.class,
-        false,
-        false,
-        "VARCHAR2",
-        20,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
-
-    public ColumnInfo columnId() {
-        return _columnId;
-    }
-
-    public ColumnInfo columnTransformerName() {
-        return _columnTransformerName;
-    }
-
-    public ColumnInfo columnData() {
-        return _columnData;
-    }
-
-    public ColumnInfo columnEncoding() {
-        return _columnEncoding;
-    }
-
-    @Override
     protected List<ColumnInfo> ccil() {
-        final List<ColumnInfo> ls = newArrayList();
+        List<ColumnInfo> ls = newArrayList();
         ls.add(columnId());
         ls.add(columnTransformerName());
         ls.add(columnData());
@@ -266,127 +140,68 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         return ls;
     }
 
-    {
-        initializeInformationResource();
-    }
+    { initializeInformationResource(); }
 
     // ===================================================================================
-    // Unique Info
-    // ===========
+    //                                                                         Unique Info
+    //                                                                         ===========
     // -----------------------------------------------------
-    // Primary Element
-    // ---------------
-    @Override
-    protected UniqueInfo cpui() {
-        return hpcpui(columnId());
-    }
-
-    @Override
-    public boolean hasPrimaryKey() {
-        return true;
-    }
-
-    @Override
-    public boolean hasCompoundPrimaryKey() {
-        return false;
-    }
+    //                                       Primary Element
+    //                                       ---------------
+    protected UniqueInfo cpui() { return hpcpui(columnId()); }
+    public boolean hasPrimaryKey() { return true; }
+    public boolean hasCompoundPrimaryKey() { return false; }
 
     // ===================================================================================
-    // Relation Info
-    // =============
+    //                                                                       Relation Info
+    //                                                                       =============
+    // cannot cache because it uses related DB meta instance while booting
+    // (instead, cached by super's collection)
     // -----------------------------------------------------
-    // Foreign Property
-    // ----------------
+    //                                      Foreign Property
+    //                                      ----------------
+    /**
+     * ACCESS_RESULT by my ID, named 'accessResult'.
+     * @return The information object of foreign property. (NotNull)
+     */
     public ForeignInfo foreignAccessResult() {
-        final Map<ColumnInfo, ColumnInfo> map =
-            newLinkedHashMap(columnId(), AccessResultDbm
-                .getInstance()
-                .columnId());
-        return cfi(
-            "ACCESS_RESULT_DATA_FK",
-            "accessResult",
-            this,
-            AccessResultDbm.getInstance(),
-            map,
-            0,
-            true,
-            false,
-            false,
-            false,
-            null,
-            null,
-            false,
-            "accessResultDataAsOne");
+        Map<ColumnInfo, ColumnInfo> mp = newLinkedHashMap(columnId(), AccessResultDbm.getInstance().columnId());
+        return cfi("ACCESS_RESULT_DATA_FK", "accessResult", this, AccessResultDbm.getInstance(), mp, 0, null, true, false, false, false, null, null, false, "accessResultDataAsOne");
     }
 
     // -----------------------------------------------------
-    // Referrer Property
-    // -----------------
+    //                                     Referrer Property
+    //                                     -----------------
 
     // ===================================================================================
-    // Various Info
-    // ============
+    //                                                                        Various Info
+    //                                                                        ============
 
     // ===================================================================================
-    // Type Name
-    // =========
-    @Override
-    public String getEntityTypeName() {
-        return "org.seasar.robot.db.exentity.AccessResultData";
-    }
-
-    @Override
-    public String getConditionBeanTypeName() {
-        return "org.seasar.robot.db.cbean.AccessResultDataCB";
-    }
-
-    @Override
-    public String getBehaviorTypeName() {
-        return "org.seasar.robot.db.exbhv.AccessResultDataBhv";
-    }
+    //                                                                           Type Name
+    //                                                                           =========
+    public String getEntityTypeName() { return "org.seasar.robot.db.exentity.AccessResultData"; }
+    public String getConditionBeanTypeName() { return "org.seasar.robot.db.cbean.AccessResultDataCB"; }
+    public String getBehaviorTypeName() { return "org.seasar.robot.db.exbhv.AccessResultDataBhv"; }
 
     // ===================================================================================
-    // Object Type
-    // ===========
-    @Override
-    public Class<AccessResultData> getEntityType() {
-        return AccessResultData.class;
-    }
+    //                                                                         Object Type
+    //                                                                         ===========
+    public Class<AccessResultData> getEntityType() { return AccessResultData.class; }
 
     // ===================================================================================
-    // Object Instance
-    // ===============
-    @Override
-    public Entity newEntity() {
-        return newMyEntity();
-    }
-
-    public AccessResultData newMyEntity() {
-        return new AccessResultData();
-    }
+    //                                                                     Object Instance
+    //                                                                     ===============
+    public Entity newEntity() { return newMyEntity(); }
+    public AccessResultData newMyEntity() { return new AccessResultData(); }
 
     // ===================================================================================
-    // Map Communication
-    // =================
-    @Override
-    public void acceptPrimaryKeyMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((AccessResultData) e, m);
-    }
-
-    @Override
-    public void acceptAllColumnMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptAllColumnMap((AccessResultData) e, m);
-    }
-
-    @Override
-    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
-        return doExtractPrimaryKeyMap(e);
-    }
-
-    @Override
-    public Map<String, Object> extractAllColumnMap(final Entity e) {
-        return doExtractAllColumnMap(e);
-    }
+    //                                                                   Map Communication
+    //                                                                   =================
+    public void acceptPrimaryKeyMap(Entity et, Map<String, ? extends Object> mp)
+    { doAcceptPrimaryKeyMap((AccessResultData)et, mp); }
+    public void acceptAllColumnMap(Entity et, Map<String, ? extends Object> mp)
+    { doAcceptAllColumnMap((AccessResultData)et, mp); }
+    public Map<String, Object> extractPrimaryKeyMap(Entity et) { return doExtractPrimaryKeyMap(et); }
+    public Map<String, Object> extractAllColumnMap(Entity et) { return doExtractAllColumnMap(et); }
 }

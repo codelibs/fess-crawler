@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -266,9 +266,9 @@ public class HtmlTransformer extends AbstractTransformer {
 
         resultData.addAllUrl(responseData.getChildUrlSet());
 
-        final String u = responseData.getUrl();
-        resultData.removeUrl(u);
-        resultData.removeUrl(getDuplicateUrl(u));
+        final RequestData requestData = responseData.getRequestData();
+        resultData.removeUrl(requestData);
+        resultData.removeUrl(getDuplicateUrl(requestData));
     }
 
     protected List<RequestData> convertChildUrlList(
@@ -362,11 +362,14 @@ public class HtmlTransformer extends AbstractTransformer {
         return null;
     }
 
-    protected String getDuplicateUrl(final String url) {
+    protected RequestData getDuplicateUrl(final RequestData requestData) {
+        String url = requestData.getUrl();
         if (url.endsWith("/")) {
-            return url.substring(0, url.length() - 1);
+            requestData.setUrl(url.substring(0, url.length() - 1));
+        } else {
+            requestData.setUrl(url + "/");
         }
-        return url + "/";
+        return requestData;
     }
 
     protected DOMParser getDomParser() {

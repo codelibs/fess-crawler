@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import org.seasar.dbflute.DBDef;
 public class DBCurrent {
 
     // ===================================================================================
-    // Definition
-    // ==========
+    //                                                                          Definition
+    //                                                                          ==========
     /** Log instance. */
     private static final Log _log = LogFactory.getLog(DBCurrent.class);
 
@@ -34,8 +34,8 @@ public class DBCurrent {
     private static final DBCurrent _instance = new DBCurrent();
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected DBDef _currentDBDef;
     {
         _currentDBDef = DBDef.codeOf("mysql");
@@ -43,10 +43,10 @@ public class DBCurrent {
             _currentDBDef = DBDef.Unknown;
         }
     }
-
+	
     // ===================================================================================
-    // Constructor
-    // ===========
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor.
      */
@@ -54,11 +54,10 @@ public class DBCurrent {
     }
 
     // ===================================================================================
-    // Singleton
-    // =========
+    //                                                                           Singleton
+    //                                                                           =========
     /**
      * Get singleton instance.
-     * 
      * @return Singleton instance. (NotNull)
      */
     public static DBCurrent getInstance() {
@@ -66,17 +65,16 @@ public class DBCurrent {
     }
 
     // ===================================================================================
-    // Current DBDef
-    // =============
-    public void initializeCurrentDBDef(final DBDef currentDBDef) {
-        if (_log.isInfoEnabled()) {
-            _log.info("...Setting currentDBDef: " + currentDBDef);
-        }
-        if (currentDBDef == null) {
-            final String msg =
-                "The argument 'currentDBDef' should not be null!";
-            throw new IllegalArgumentException(msg);
-        }
+    //                                                                       Current DBDef
+    //                                                                       =============
+    public void initializeCurrentDBDef(DBDef currentDBDef) {
+	    if (_log.isInfoEnabled()) {
+		    _log.info("...Setting currentDBDef: " + currentDBDef);
+		}
+		if (currentDBDef == null) {
+		    String msg = "The argument 'currentDBDef' should not be null!";
+		    throw new IllegalArgumentException(msg);
+		}
         _currentDBDef = currentDBDef;
     }
 
@@ -84,7 +82,7 @@ public class DBCurrent {
         return _currentDBDef;
     }
 
-    public boolean isCurrentDBDef(final DBDef currentDBDef) {
-        return _currentDBDef.equals(currentDBDef);
+    public boolean isCurrentDBDef(DBDef currentDBDef) {
+	    return _currentDBDef.equals(currentDBDef);
     }
 }

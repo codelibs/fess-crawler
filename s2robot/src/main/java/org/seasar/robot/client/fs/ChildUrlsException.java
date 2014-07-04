@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.seasar.robot.client.fs;
 import java.util.Set;
 
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.RequestData;
 
 /**
  * ChildUrlsException is thrown when having child urls.
@@ -29,14 +30,14 @@ public class ChildUrlsException extends RobotSystemException {
 
     private static final long serialVersionUID = 1L;
 
-    private final Set<String> childUrlList;
+    private final Set<RequestData> childUrlList;
 
-    public ChildUrlsException(final Set<String> childUrlList) {
+    public ChildUrlsException(final Set<RequestData> childUrlList) {
         super("Threw child urls(" + childUrlList.size() + ").");
         this.childUrlList = childUrlList;
     }
 
-    public Set<String> getChildUrlList() {
+    public Set<RequestData> getChildUrlList() {
         return childUrlList;
     }
 }

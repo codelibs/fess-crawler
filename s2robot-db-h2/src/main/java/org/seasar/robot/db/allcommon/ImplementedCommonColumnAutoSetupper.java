@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,21 @@ import org.seasar.dbflute.bhv.core.CommonColumnAutoSetupper;
 
 /**
  * The basic implementation of the auto set-upper of common column.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class ImplementedCommonColumnAutoSetupper implements
         CommonColumnAutoSetupper {
 
     // =====================================================================================
-    // Definition
-    // ==========
+    //                                                                            Definition
+    //                                                                            ==========
     /** Log instance. */
     private static final Log _log = LogFactory
         .getLog(ImplementedCommonColumnAutoSetupper.class);
 
     // =====================================================================================
-    // Set up
-    // ======
+    //                                                                                Set up
+    //                                                                                ======
     /**
      * {@inheritDoc}
      */
@@ -53,8 +52,8 @@ public class ImplementedCommonColumnAutoSetupper implements
     }
 
     // =====================================================================================
-    // Logging
-    // =======
+    //                                                                               Logging
+    //                                                                               =======
     protected boolean isInternalDebugEnabled() {
         return DBFluteConfig.getInstance().isInternalDebug()
             && _log.isDebugEnabled();

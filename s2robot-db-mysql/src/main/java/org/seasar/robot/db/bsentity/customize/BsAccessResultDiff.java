@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 package org.seasar.robot.db.bsentity.customize;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 
-import org.seasar.dbflute.Entity;
 import org.seasar.dbflute.dbmeta.DBMeta;
-import org.seasar.robot.db.exentity.customize.AccessResultDiff;
+import org.seasar.dbflute.Entity;
+import org.seasar.robot.db.exentity.customize.*;
 
 /**
  * The entity of AccessResultDiff. <br />
- * 
  * <pre>
  * [primary-key]
  *     
@@ -83,24 +82,22 @@ import org.seasar.robot.db.exentity.customize.AccessResultDiff;
  * entity.setCreateTime(createTime);
  * = = = = = = = = = =/
  * </pre>
- * 
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResultDiff implements Entity, Serializable,
-        Cloneable {
+public abstract class BsAccessResultDiff implements Entity, Serializable, Cloneable {
 
     // ===================================================================================
-    // Definition
-    // ==========
+    //                                                                          Definition
+    //                                                                          ==========
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     // -----------------------------------------------------
-    // Column
-    // ------
+    //                                                Column
+    //                                                ------
     /** ID: {BIGINT(20), refers to ACCESS_RESULT.ID} */
     protected Long _id;
 
@@ -138,22 +135,23 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
     protected java.sql.Timestamp _createTime;
 
     // -----------------------------------------------------
-    // Internal
-    // --------
+    //                                              Internal
+    //                                              --------
+    /** The unique-driven properties for this entity. (NotNull) */
+    protected final EntityUniqueDrivenProperties __uniqueDrivenProperties = newUniqueDrivenProperties();
+
     /** The modified properties for this entity. (NotNull) */
-    protected final EntityModifiedProperties __modifiedProperties =
-        newModifiedProperties();
+    protected final EntityModifiedProperties __modifiedProperties = newModifiedProperties();
 
     /** Is the entity created by DBFlute select process? */
     protected boolean __createdBySelect;
 
     // ===================================================================================
-    // Table Name
-    // ==========
+    //                                                                          Table Name
+    //                                                                          ==========
     /**
      * {@inheritDoc}
      */
-    @Override
     public String getTableDbName() {
         return "AccessResultDiff";
     }
@@ -161,51 +159,57 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
     /**
      * {@inheritDoc}
      */
-    @Override
     public String getTablePropertyName() { // according to Java Beans rule
         return "accessResultDiff";
     }
 
     // ===================================================================================
-    // DBMeta
-    // ======
+    //                                                                              DBMeta
+    //                                                                              ======
     /**
      * {@inheritDoc}
      */
-    @Override
     public DBMeta getDBMeta() {
-        return org.seasar.robot.db.bsentity.customize.dbmeta.AccessResultDiffDbm
-            .getInstance();
+        return org.seasar.robot.db.bsentity.customize.dbmeta.AccessResultDiffDbm.getInstance();
     }
 
     // ===================================================================================
-    // Primary Key
-    // ===========
+    //                                                                         Primary Key
+    //                                                                         ===========
     /**
      * {@inheritDoc}
      */
-    @Override
     public boolean hasPrimaryKeyValue() {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public Set<String> myuniqueDrivenProperties() {
+        return __uniqueDrivenProperties.getPropertyNames();
+    }
+
+    protected EntityUniqueDrivenProperties newUniqueDrivenProperties() {
+        return new EntityUniqueDrivenProperties();
+    }
+
     // ===================================================================================
-    // Foreign Property
-    // ================
+    //                                                                    Foreign Property
+    //                                                                    ================
     // ===================================================================================
-    // Referrer Property
-    // =================
+    //                                                                   Referrer Property
+    //                                                                   =================
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
 
     // ===================================================================================
-    // Modified Properties
-    // ===================
+    //                                                                 Modified Properties
+    //                                                                 ===================
     /**
      * {@inheritDoc}
      */
-    @Override
     public Set<String> modifiedProperties() {
         return __modifiedProperties.getPropertyNames();
     }
@@ -213,7 +217,6 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
     /**
      * {@inheritDoc}
      */
-    @Override
     public void clearModifiedInfo() {
         __modifiedProperties.clear();
     }
@@ -221,7 +224,6 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
     /**
      * {@inheritDoc}
      */
-    @Override
     public boolean hasModification() {
         return !__modifiedProperties.isEmpty();
     }
@@ -231,12 +233,11 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
     }
 
     // ===================================================================================
-    // Birthplace Mark
-    // ===============
+    //                                                                     Birthplace Mark
+    //                                                                     ===============
     /**
      * {@inheritDoc}
      */
-    @Override
     public void markAsSelect() {
         __createdBySelect = true;
     }
@@ -244,126 +245,85 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
     /**
      * {@inheritDoc}
      */
-    @Override
     public boolean createdBySelect() {
         return __createdBySelect;
     }
 
     // ===================================================================================
-    // Basic Override
-    // ==============
+    //                                                                      Basic Override
+    //                                                                      ==============
     /**
      * Determine the object is equal with this. <br />
-     * If primary-keys or columns of the other are same as this one, returns
-     * true.
-     * 
-     * @param other
-     *            The other entity. (NullAllowed: if null, returns false
-     *            fixedly)
+     * If primary-keys or columns of the other are same as this one, returns true.
+     * @param obj The object as other entity. (NullAllowed: if null, returns false fixedly)
      * @return Comparing result.
      */
-    @Override
-    public boolean equals(final Object other) {
-        if (other == null || !(other instanceof BsAccessResultDiff)) {
-            return false;
-        }
-        final BsAccessResultDiff otherEntity = (BsAccessResultDiff) other;
-        if (!xSV(getId(), otherEntity.getId())) {
-            return false;
-        }
-        if (!xSV(getSessionId(), otherEntity.getSessionId())) {
-            return false;
-        }
-        if (!xSV(getRuleId(), otherEntity.getRuleId())) {
-            return false;
-        }
-        if (!xSV(getUrl(), otherEntity.getUrl())) {
-            return false;
-        }
-        if (!xSV(getParentUrl(), otherEntity.getParentUrl())) {
-            return false;
-        }
-        if (!xSV(getStatus(), otherEntity.getStatus())) {
-            return false;
-        }
-        if (!xSV(getHttpStatusCode(), otherEntity.getHttpStatusCode())) {
-            return false;
-        }
-        if (!xSV(getMethod(), otherEntity.getMethod())) {
-            return false;
-        }
-        if (!xSV(getMimeType(), otherEntity.getMimeType())) {
-            return false;
-        }
-        if (!xSV(getContentLength(), otherEntity.getContentLength())) {
-            return false;
-        }
-        if (!xSV(getExecutionTime(), otherEntity.getExecutionTime())) {
-            return false;
-        }
-        if (!xSV(getCreateTime(), otherEntity.getCreateTime())) {
-            return false;
-        }
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof BsAccessResultDiff)) { return false; }
+        BsAccessResultDiff other = (BsAccessResultDiff)obj;
+        if (!xSV(getId(), other.getId())) { return false; }
+        if (!xSV(getSessionId(), other.getSessionId())) { return false; }
+        if (!xSV(getRuleId(), other.getRuleId())) { return false; }
+        if (!xSV(getUrl(), other.getUrl())) { return false; }
+        if (!xSV(getParentUrl(), other.getParentUrl())) { return false; }
+        if (!xSV(getStatus(), other.getStatus())) { return false; }
+        if (!xSV(getHttpStatusCode(), other.getHttpStatusCode())) { return false; }
+        if (!xSV(getMethod(), other.getMethod())) { return false; }
+        if (!xSV(getMimeType(), other.getMimeType())) { return false; }
+        if (!xSV(getContentLength(), other.getContentLength())) { return false; }
+        if (!xSV(getExecutionTime(), other.getExecutionTime())) { return false; }
+        if (!xSV(getCreateTime(), other.getCreateTime())) { return false; }
         return true;
     }
-
-    protected boolean xSV(final Object value1, final Object value2) { // isSameValue()
-        return InternalUtil.isSameValue(value1, value2);
+    protected boolean xSV(Object v1, Object v2) {
+        return FunCustodial.isSameValue(v1, v2);
     }
 
     /**
      * Calculate the hash-code from primary-keys or columns.
-     * 
      * @return The hash-code from primary-key or columns.
      */
-    @Override
     public int hashCode() {
-        int result = 17;
-        result = xCH(result, getTableDbName());
-        result = xCH(result, getId());
-        result = xCH(result, getSessionId());
-        result = xCH(result, getRuleId());
-        result = xCH(result, getUrl());
-        result = xCH(result, getParentUrl());
-        result = xCH(result, getStatus());
-        result = xCH(result, getHttpStatusCode());
-        result = xCH(result, getMethod());
-        result = xCH(result, getMimeType());
-        result = xCH(result, getContentLength());
-        result = xCH(result, getExecutionTime());
-        result = xCH(result, getCreateTime());
-        return result;
+        int hs = 17;
+        hs = xCH(hs, getTableDbName());
+        hs = xCH(hs, getId());
+        hs = xCH(hs, getSessionId());
+        hs = xCH(hs, getRuleId());
+        hs = xCH(hs, getUrl());
+        hs = xCH(hs, getParentUrl());
+        hs = xCH(hs, getStatus());
+        hs = xCH(hs, getHttpStatusCode());
+        hs = xCH(hs, getMethod());
+        hs = xCH(hs, getMimeType());
+        hs = xCH(hs, getContentLength());
+        hs = xCH(hs, getExecutionTime());
+        hs = xCH(hs, getCreateTime());
+        return hs;
     }
-
-    protected int xCH(final int result, final Object value) { // calculateHashcode()
-        return InternalUtil.calculateHashcode(result, value);
+    protected int xCH(int hs, Object vl) {
+        return FunCustodial.calculateHashcode(hs, vl);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public int instanceHash() {
         return super.hashCode();
     }
 
     /**
      * Convert to display string of entity's data. (no relation data)
-     * 
-     * @return The display string of all columns and relation existences.
-     *         (NotNull)
+     * @return The display string of all columns and relation existences. (NotNull)
      */
-    @Override
     public String toString() {
-        return buildDisplayString(InternalUtil.toClassTitle(this), true, true);
+        return buildDisplayString(FunCustodial.toClassTitle(this), true, true);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public String toStringWithRelation() {
-        final StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         sb.append(toString());
         return sb.toString();
     }
@@ -371,72 +331,57 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
     /**
      * {@inheritDoc}
      */
-    @Override
-    public String buildDisplayString(final String name, final boolean column,
-            final boolean relation) {
-        final StringBuilder sb = new StringBuilder();
-        if (name != null) {
-            sb.append(name).append(column || relation ? ":" : "");
-        }
-        if (column) {
-            sb.append(buildColumnString());
-        }
-        if (relation) {
-            sb.append(buildRelationString());
-        }
+    public String buildDisplayString(String name, boolean column, boolean relation) {
+        StringBuilder sb = new StringBuilder();
+        if (name != null) { sb.append(name).append(column || relation ? ":" : ""); }
+        if (column) { sb.append(buildColumnString()); }
+        if (relation) { sb.append(buildRelationString()); }
         sb.append("@").append(Integer.toHexString(hashCode()));
         return sb.toString();
     }
-
     protected String buildColumnString() {
-        final StringBuilder sb = new StringBuilder();
-        final String delimiter = ", ";
-        sb.append(delimiter).append(getId());
-        sb.append(delimiter).append(getSessionId());
-        sb.append(delimiter).append(getRuleId());
-        sb.append(delimiter).append(getUrl());
-        sb.append(delimiter).append(getParentUrl());
-        sb.append(delimiter).append(getStatus());
-        sb.append(delimiter).append(getHttpStatusCode());
-        sb.append(delimiter).append(getMethod());
-        sb.append(delimiter).append(getMimeType());
-        sb.append(delimiter).append(getContentLength());
-        sb.append(delimiter).append(getExecutionTime());
-        sb.append(delimiter).append(getCreateTime());
-        if (sb.length() > delimiter.length()) {
-            sb.delete(0, delimiter.length());
+        StringBuilder sb = new StringBuilder();
+        String dm = ", ";
+        sb.append(dm).append(getId());
+        sb.append(dm).append(getSessionId());
+        sb.append(dm).append(getRuleId());
+        sb.append(dm).append(getUrl());
+        sb.append(dm).append(getParentUrl());
+        sb.append(dm).append(getStatus());
+        sb.append(dm).append(getHttpStatusCode());
+        sb.append(dm).append(getMethod());
+        sb.append(dm).append(getMimeType());
+        sb.append(dm).append(getContentLength());
+        sb.append(dm).append(getExecutionTime());
+        sb.append(dm).append(getCreateTime());
+        if (sb.length() > dm.length()) {
+            sb.delete(0, dm.length());
         }
         sb.insert(0, "{").append("}");
         return sb.toString();
     }
-
     protected String buildRelationString() {
         return "";
     }
 
     /**
-     * Clone entity instance using super.clone(). (shallow copy)
-     * 
+     * Clone entity instance using super.clone(). (shallow copy) 
      * @return The cloned instance of this entity. (NotNull)
      */
-    @Override
     public AccessResultDiff clone() {
         try {
-            return (AccessResultDiff) super.clone();
-        } catch (final CloneNotSupportedException e) {
-            throw new IllegalStateException("Failed to clone the entity: "
-                + toString(), e);
+            return (AccessResultDiff)super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException("Failed to clone the entity: " + toString(), e);
         }
     }
 
     // ===================================================================================
-    // Accessor
-    // ========
+    //                                                                            Accessor
+    //                                                                            ========
     /**
      * [get] ID: {BIGINT(20), refers to ACCESS_RESULT.ID} <br />
-     * 
-     * @return The value of the column 'ID'. (NullAllowed even if selected: for
-     *         no constraint)
+     * @return The value of the column 'ID'. (NullAllowed even if selected: for no constraint)
      */
     public Long getId() {
         return _id;
@@ -444,21 +389,16 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] ID: {BIGINT(20), refers to ACCESS_RESULT.ID} <br />
-     * 
-     * @param id
-     *            The value of the column 'ID'. (NullAllowed: null update
-     *            allowed for no constraint)
+     * @param id The value of the column 'ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setId(final Long id) {
+    public void setId(Long id) {
         __modifiedProperties.addPropertyName("id");
-        _id = id;
+        this._id = id;
     }
 
     /**
      * [get] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br />
-     * 
-     * @return The value of the column 'SESSION_ID'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'SESSION_ID'. (NullAllowed even if selected: for no constraint)
      */
     public String getSessionId() {
         return _sessionId;
@@ -466,21 +406,16 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br />
-     * 
-     * @param sessionId
-     *            The value of the column 'SESSION_ID'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setSessionId(final String sessionId) {
+    public void setSessionId(String sessionId) {
         __modifiedProperties.addPropertyName("sessionId");
-        _sessionId = sessionId;
+        this._sessionId = sessionId;
     }
 
     /**
      * [get] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br />
-     * 
-     * @return The value of the column 'RULE_ID'. (NullAllowed even if selected:
-     *         for no constraint)
+     * @return The value of the column 'RULE_ID'. (NullAllowed even if selected: for no constraint)
      */
     public String getRuleId() {
         return _ruleId;
@@ -488,21 +423,16 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br />
-     * 
-     * @param ruleId
-     *            The value of the column 'RULE_ID'. (NullAllowed: null update
-     *            allowed for no constraint)
+     * @param ruleId The value of the column 'RULE_ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setRuleId(final String ruleId) {
+    public void setRuleId(String ruleId) {
         __modifiedProperties.addPropertyName("ruleId");
-        _ruleId = ruleId;
+        this._ruleId = ruleId;
     }
 
     /**
      * [get] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br />
-     * 
-     * @return The value of the column 'URL'. (NullAllowed even if selected: for
-     *         no constraint)
+     * @return The value of the column 'URL'. (NullAllowed even if selected: for no constraint)
      */
     public String getUrl() {
         return _url;
@@ -510,21 +440,16 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br />
-     * 
-     * @param url
-     *            The value of the column 'URL'. (NullAllowed: null update
-     *            allowed for no constraint)
+     * @param url The value of the column 'URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setUrl(final String url) {
+    public void setUrl(String url) {
         __modifiedProperties.addPropertyName("url");
-        _url = url;
+        this._url = url;
     }
 
     /**
      * [get] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br />
-     * 
-     * @return The value of the column 'PARENT_URL'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'PARENT_URL'. (NullAllowed even if selected: for no constraint)
      */
     public String getParentUrl() {
         return _parentUrl;
@@ -532,21 +457,16 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br />
-     * 
-     * @param parentUrl
-     *            The value of the column 'PARENT_URL'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setParentUrl(final String parentUrl) {
+    public void setParentUrl(String parentUrl) {
         __modifiedProperties.addPropertyName("parentUrl");
-        _parentUrl = parentUrl;
+        this._parentUrl = parentUrl;
     }
 
     /**
      * [get] STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} <br />
-     * 
-     * @return The value of the column 'STATUS'. (NullAllowed even if selected:
-     *         for no constraint)
+     * @return The value of the column 'STATUS'. (NullAllowed even if selected: for no constraint)
      */
     public Integer getStatus() {
         return _status;
@@ -554,45 +474,33 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} <br />
-     * 
-     * @param status
-     *            The value of the column 'STATUS'. (NullAllowed: null update
-     *            allowed for no constraint)
+     * @param status The value of the column 'STATUS'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setStatus(final Integer status) {
+    public void setStatus(Integer status) {
         __modifiedProperties.addPropertyName("status");
-        _status = status;
+        this._status = status;
     }
 
     /**
-     * [get] HTTP_STATUS_CODE: {INT(11), refers to
-     * ACCESS_RESULT.HTTP_STATUS_CODE} <br />
-     * 
-     * @return The value of the column 'HTTP_STATUS_CODE'. (NullAllowed even if
-     *         selected: for no constraint)
+     * [get] HTTP_STATUS_CODE: {INT(11), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br />
+     * @return The value of the column 'HTTP_STATUS_CODE'. (NullAllowed even if selected: for no constraint)
      */
     public Integer getHttpStatusCode() {
         return _httpStatusCode;
     }
 
     /**
-     * [set] HTTP_STATUS_CODE: {INT(11), refers to
-     * ACCESS_RESULT.HTTP_STATUS_CODE} <br />
-     * 
-     * @param httpStatusCode
-     *            The value of the column 'HTTP_STATUS_CODE'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * [set] HTTP_STATUS_CODE: {INT(11), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br />
+     * @param httpStatusCode The value of the column 'HTTP_STATUS_CODE'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setHttpStatusCode(final Integer httpStatusCode) {
+    public void setHttpStatusCode(Integer httpStatusCode) {
         __modifiedProperties.addPropertyName("httpStatusCode");
-        _httpStatusCode = httpStatusCode;
+        this._httpStatusCode = httpStatusCode;
     }
 
     /**
      * [get] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br />
-     * 
-     * @return The value of the column 'METHOD'. (NullAllowed even if selected:
-     *         for no constraint)
+     * @return The value of the column 'METHOD'. (NullAllowed even if selected: for no constraint)
      */
     public String getMethod() {
         return _method;
@@ -600,21 +508,16 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br />
-     * 
-     * @param method
-     *            The value of the column 'METHOD'. (NullAllowed: null update
-     *            allowed for no constraint)
+     * @param method The value of the column 'METHOD'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setMethod(final String method) {
+    public void setMethod(String method) {
         __modifiedProperties.addPropertyName("method");
-        _method = method;
+        this._method = method;
     }
 
     /**
      * [get] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br />
-     * 
-     * @return The value of the column 'MIME_TYPE'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'MIME_TYPE'. (NullAllowed even if selected: for no constraint)
      */
     public String getMimeType() {
         return _mimeType;
@@ -622,45 +525,33 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br />
-     * 
-     * @param mimeType
-     *            The value of the column 'MIME_TYPE'. (NullAllowed: null update
-     *            allowed for no constraint)
+     * @param mimeType The value of the column 'MIME_TYPE'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setMimeType(final String mimeType) {
+    public void setMimeType(String mimeType) {
         __modifiedProperties.addPropertyName("mimeType");
-        _mimeType = mimeType;
+        this._mimeType = mimeType;
     }
 
     /**
-     * [get] CONTENT_LENGTH: {BIGINT(20), refers to
-     * ACCESS_RESULT.CONTENT_LENGTH} <br />
-     * 
-     * @return The value of the column 'CONTENT_LENGTH'. (NullAllowed even if
-     *         selected: for no constraint)
+     * [get] CONTENT_LENGTH: {BIGINT(20), refers to ACCESS_RESULT.CONTENT_LENGTH} <br />
+     * @return The value of the column 'CONTENT_LENGTH'. (NullAllowed even if selected: for no constraint)
      */
     public Long getContentLength() {
         return _contentLength;
     }
 
     /**
-     * [set] CONTENT_LENGTH: {BIGINT(20), refers to
-     * ACCESS_RESULT.CONTENT_LENGTH} <br />
-     * 
-     * @param contentLength
-     *            The value of the column 'CONTENT_LENGTH'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * [set] CONTENT_LENGTH: {BIGINT(20), refers to ACCESS_RESULT.CONTENT_LENGTH} <br />
+     * @param contentLength The value of the column 'CONTENT_LENGTH'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setContentLength(final Long contentLength) {
+    public void setContentLength(Long contentLength) {
         __modifiedProperties.addPropertyName("contentLength");
-        _contentLength = contentLength;
+        this._contentLength = contentLength;
     }
 
     /**
      * [get] EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} <br />
-     * 
-     * @return The value of the column 'EXECUTION_TIME'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'EXECUTION_TIME'. (NullAllowed even if selected: for no constraint)
      */
     public Integer getExecutionTime() {
         return _executionTime;
@@ -668,21 +559,16 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} <br />
-     * 
-     * @param executionTime
-     *            The value of the column 'EXECUTION_TIME'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * @param executionTime The value of the column 'EXECUTION_TIME'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setExecutionTime(final Integer executionTime) {
+    public void setExecutionTime(Integer executionTime) {
         __modifiedProperties.addPropertyName("executionTime");
-        _executionTime = executionTime;
+        this._executionTime = executionTime;
     }
 
     /**
      * [get] CREATE_TIME: {DATETIME(19), refers to ACCESS_RESULT.CREATE_TIME} <br />
-     * 
-     * @return The value of the column 'CREATE_TIME'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'CREATE_TIME'. (NullAllowed even if selected: for no constraint)
      */
     public java.sql.Timestamp getCreateTime() {
         return _createTime;
@@ -690,13 +576,10 @@ public abstract class BsAccessResultDiff implements Entity, Serializable,
 
     /**
      * [set] CREATE_TIME: {DATETIME(19), refers to ACCESS_RESULT.CREATE_TIME} <br />
-     * 
-     * @param createTime
-     *            The value of the column 'CREATE_TIME'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * @param createTime The value of the column 'CREATE_TIME'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setCreateTime(final java.sql.Timestamp createTime) {
+    public void setCreateTime(java.sql.Timestamp createTime) {
         __modifiedProperties.addPropertyName("createTime");
-        _createTime = createTime;
+        this._createTime = createTime;
     }
 }

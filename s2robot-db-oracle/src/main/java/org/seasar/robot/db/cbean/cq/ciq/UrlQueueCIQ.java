@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,188 +16,97 @@
 package org.seasar.robot.db.cbean.cq.ciq;
 
 import java.util.Map;
-
-import org.seasar.dbflute.cbean.ConditionQuery;
-import org.seasar.dbflute.cbean.ckey.ConditionKey;
+import org.seasar.dbflute.cbean.*;
+import org.seasar.dbflute.cbean.ckey.*;
 import org.seasar.dbflute.cbean.coption.ConditionOption;
 import org.seasar.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
-import org.seasar.robot.db.cbean.UrlQueueCB;
-import org.seasar.robot.db.cbean.cq.UrlQueueCQ;
-import org.seasar.robot.db.cbean.cq.bs.AbstractBsUrlQueueCQ;
-import org.seasar.robot.db.cbean.cq.bs.BsUrlQueueCQ;
+import org.seasar.robot.db.cbean.*;
+import org.seasar.robot.db.cbean.cq.bs.*;
+import org.seasar.robot.db.cbean.cq.*;
 
 /**
  * The condition-query for in-line of URL_QUEUE.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected BsUrlQueueCQ _myCQ;
 
     // ===================================================================================
-    // Constructor
-    // ===========
-    public UrlQueueCIQ(final ConditionQuery childQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel, final BsUrlQueueCQ myCQ) {
-        super(childQuery, sqlClause, aliasName, nestLevel);
+    //                                                                         Constructor
+    //                                                                         ===========
+    public UrlQueueCIQ(ConditionQuery referrerQuery, SqlClause sqlClause
+                        , String aliasName, int nestLevel, BsUrlQueueCQ myCQ) {
+        super(referrerQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept
-                                                                // foreign
-                                                                // property name
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
         _relationPath = _myCQ.xgetRelationPath(); // accept relation path
         _inline = true;
     }
 
     // ===================================================================================
-    // Override about Register
-    // =======================
-    @Override
-    protected void reflectRelationOnUnionQuery(final ConditionQuery bq,
-            final ConditionQuery uq) {
-        final String msg =
-            "InlineView must not need UNION method: " + bq + " : " + uq;
-        throw new IllegalConditionBeanOperationException(msg);
-    }
+    //                                                             Override about Register
+    //                                                             =======================
+    protected void reflectRelationOnUnionQuery(ConditionQuery bq, ConditionQuery uq)
+    { throw new IllegalConditionBeanOperationException("InlineView cannot use Union: " + bq + " : " + uq); }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(
-            final ConditionKey k, final Object v, final ConditionValue cv,
-            final String col) {
-        regIQ(k, v, cv, col);
-    }
+    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k, Object v, ConditionValue cv, String col)
+    { regIQ(k, v, cv, col); }
 
     @Override
-    protected void setupConditionValueAndRegisterWhereClause(
-            final ConditionKey k, final Object v, final ConditionValue cv,
-            final String col, final ConditionOption op) {
-        regIQ(k, v, cv, col, op);
-    }
+    protected void setupConditionValueAndRegisterWhereClause(ConditionKey k, Object v, ConditionValue cv, String col, ConditionOption op)
+    { regIQ(k, v, cv, col, op); }
 
     @Override
-    protected void registerWhereClause(final String wc) {
-        registerInlineWhereClause(wc);
-    }
+    protected void registerWhereClause(String wc)
+    { registerInlineWhereClause(wc); }
 
     @Override
     protected boolean isInScopeRelationSuppressLocalAliasName() {
-        if (_onClause) {
-            throw new IllegalConditionBeanOperationException(
-                "InScopeRelation on OnClause is unsupported.");
-        }
+        if (_onClause) { throw new IllegalConditionBeanOperationException("InScopeRelation on OnClause is unsupported."); }
         return true;
     }
 
     // ===================================================================================
-    // Override about Query
-    // ====================
-    @Override
-    protected ConditionValue getCValueId() {
-        return _myCQ.getId();
-    }
+    //                                                                Override about Query
+    //                                                                ====================
+    protected ConditionValue getCValueId() { return _myCQ.getId(); }
+    protected ConditionValue getCValueSessionId() { return _myCQ.getSessionId(); }
+    protected ConditionValue getCValueMethod() { return _myCQ.getMethod(); }
+    protected ConditionValue getCValueUrl() { return _myCQ.getUrl(); }
+    protected ConditionValue getCValueMetaData() { return _myCQ.getMetaData(); }
+    protected ConditionValue getCValueEncoding() { return _myCQ.getEncoding(); }
+    protected ConditionValue getCValueParentUrl() { return _myCQ.getParentUrl(); }
+    protected ConditionValue getCValueDepth() { return _myCQ.getDepth(); }
+    protected ConditionValue getCValueLastModified() { return _myCQ.getLastModified(); }
+    protected ConditionValue getCValueCreateTime() { return _myCQ.getCreateTime(); }
+    protected Map<String, Object> xfindFixedConditionDynamicParameterMap(String pp) { return null; }
+    public String keepScalarCondition(UrlQueueCQ sq)
+    { throwIICBOE("ScalarCondition"); return null; }
+    public String keepSpecifyMyselfDerived(UrlQueueCQ sq)
+    { throwIICBOE("(Specify)MyselfDerived"); return null;}
+    public String keepQueryMyselfDerived(UrlQueueCQ sq)
+    { throwIICBOE("(Query)MyselfDerived"); return null;}
+    public String keepQueryMyselfDerivedParameter(Object vl)
+    { throwIICBOE("(Query)MyselfDerived"); return null;}
+    public String keepMyselfExists(UrlQueueCQ sq)
+    { throwIICBOE("MyselfExists"); return null;}
+    public String keepMyselfInScope(UrlQueueCQ sq)
+    { throwIICBOE("MyselfInScope"); return null;}
 
-    @Override
-    protected ConditionValue getCValueSessionId() {
-        return _myCQ.getSessionId();
-    }
-
-    @Override
-    protected ConditionValue getCValueMethod() {
-        return _myCQ.getMethod();
-    }
-
-    @Override
-    protected ConditionValue getCValueUrl() {
-        return _myCQ.getUrl();
-    }
-
-    @Override
-    protected ConditionValue getCValueEncoding() {
-        return _myCQ.getEncoding();
-    }
-
-    @Override
-    protected ConditionValue getCValueParentUrl() {
-        return _myCQ.getParentUrl();
-    }
-
-    @Override
-    protected ConditionValue getCValueDepth() {
-        return _myCQ.getDepth();
-    }
-
-    @Override
-    protected ConditionValue getCValueLastModified() {
-        return _myCQ.getLastModified();
-    }
-
-    @Override
-    protected ConditionValue getCValueCreateTime() {
-        return _myCQ.getCreateTime();
-    }
-
-    @Override
-    protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
-            final String property) {
-        return null;
-    }
-
-    @Override
-    public String keepScalarCondition(final UrlQueueCQ subQuery) {
-        throwIICBOE("ScalarCondition");
-        return null;
-    }
-
-    @Override
-    public String keepSpecifyMyselfDerived(final UrlQueueCQ subQuery) {
-        throwIICBOE("(Specify)MyselfDerived");
-        return null;
-    }
-
-    @Override
-    public String keepQueryMyselfDerived(final UrlQueueCQ subQuery) {
-        throwIICBOE("(Query)MyselfDerived");
-        return null;
-    }
-
-    @Override
-    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
-        throwIICBOE("(Query)MyselfDerived");
-        return null;
-    }
-
-    @Override
-    public String keepMyselfExists(final UrlQueueCQ subQuery) {
-        throwIICBOE("MyselfExists");
-        return null;
-    }
-
-    @Override
-    public String keepMyselfInScope(final UrlQueueCQ subQuery) {
-        throwIICBOE("MyselfInScope");
-        return null;
-    }
-
-    protected void throwIICBOE(final String name) { // throwInlineIllegalConditionBeanOperationException()
-        throw new IllegalConditionBeanOperationException(name
-            + " at InlineView is unsupported.");
-    }
+    protected void throwIICBOE(String name)
+    { throw new IllegalConditionBeanOperationException(name + " at InlineView is unsupported."); }
 
     // ===================================================================================
-    // Very Internal
-    // =============
+    //                                                                       Very Internal
+    //                                                                       =============
     // very internal (for suppressing warn about 'Not Use Import')
-    protected String xinCB() {
-        return UrlQueueCB.class.getName();
-    }
-
-    protected String xinCQ() {
-        return UrlQueueCQ.class.getName();
-    }
+    protected String xinCB() { return UrlQueueCB.class.getName(); }
+    protected String xinCQ() { return UrlQueueCQ.class.getName(); }
 }

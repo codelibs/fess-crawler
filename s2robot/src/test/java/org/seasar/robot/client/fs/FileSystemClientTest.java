@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 
 /**
@@ -48,8 +49,10 @@ public class FileSystemClientTest extends S2TestCase {
             fsClient.doGet("file://" + path);
             fail();
         } catch (final ChildUrlsException e) {
-            final Set<String> urlSet = e.getChildUrlList();
-            for (final String url : urlSet.toArray(new String[urlSet.size()])) {
+            final Set<RequestData> urlSet = e.getChildUrlList();
+            for (final RequestData requestData : urlSet
+                .toArray(new RequestData[urlSet.size()])) {
+                String url = requestData.getUrl();
                 if (url.indexOf(".svn") < 0) {
                     assertTrue(url.contains("test/dir1")
                         || url.contains("test/dir2")

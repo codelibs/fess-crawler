@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class DBDataServiceImpl implements DataService {
     private static final Logger logger = LoggerFactory
@@ -55,7 +55,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.service.DataService#store(org.seasar.robot.entity.
      * AccessResult)
      */
@@ -81,7 +81,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.service.DataService#getCount(java.lang.String)
      */
     @Override
@@ -93,7 +93,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.service.DataService#delete(java.lang.String)
      */
     @Override
@@ -113,7 +113,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.service.DataService#deleteAll()
      */
     @Override
@@ -133,7 +133,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.seasar.robot.service.DataService#getAccessResult(java.lang.String,
      * java.lang.String)
@@ -149,7 +149,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.seasar.robot.service.DataService#getAccessResultList(java.lang.String
      * , boolean)
@@ -166,15 +166,14 @@ public class DBDataServiceImpl implements DataService {
         final List<org.seasar.robot.db.exentity.AccessResult> list =
             accessResultBhv.selectList(cb);
 
-        final List<AccessResult> accessResultList =
-            new ArrayList<AccessResult>();
+        final List<AccessResult> accessResultList = new ArrayList<>();
         accessResultList.addAll(list);
         return accessResultList;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.service.DataService#iterate(java.lang.String,
      * org.seasar.robot.util.AccessResultCallback)
      */
@@ -198,7 +197,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.seasar.robot.service.DataService#iterateUrlDiff(java.lang.String,
      * java.lang.String, org.seasar.robot.util.AccessResultCallback)
@@ -237,7 +236,7 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.service.DataService#update(org.seasar.robot.entity.
      * AccessResult)
      */
@@ -255,15 +254,15 @@ public class DBDataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.service.DataService#update(java.util.List)
      */
     @Override
     public void update(final List<AccessResult> accessResultList) {
         final List<org.seasar.robot.db.exentity.AccessResult> arList =
-            new ArrayList<org.seasar.robot.db.exentity.AccessResult>();
+            new ArrayList<>();
         final List<org.seasar.robot.db.exentity.AccessResultData> ardList =
-            new ArrayList<org.seasar.robot.db.exentity.AccessResultData>();
+            new ArrayList<>();
 
         for (final AccessResult accessResult : accessResultList) {
             arList

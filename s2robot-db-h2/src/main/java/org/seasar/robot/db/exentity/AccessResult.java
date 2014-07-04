@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.seasar.robot.entity.ResultData;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResult extends BsAccessResult implements
@@ -43,7 +43,7 @@ public class AccessResult extends BsAccessResult implements
             final ResultData resultData) {
 
         setCreateTime(new Timestamp(new Date().getTime())); // TODO response
-                                                            // time
+        // time
         Beans.copy(responseData, this).execute();
 
         final AccessResultData accessResultData = new AccessResultData();
@@ -53,7 +53,7 @@ public class AccessResult extends BsAccessResult implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.robot.entity.AccessResult#getAccessResultData()
      */
     @Override
@@ -63,7 +63,7 @@ public class AccessResult extends BsAccessResult implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.seasar.robot.entity.AccessResult#setAccessResultData(org.seasar.robot
      * .db.exentity.AccessResultData)

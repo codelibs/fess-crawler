@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.Constants;
 import org.seasar.robot.RobotSystemException;
+import org.seasar.robot.builder.RequestDataBuilder;
 import org.seasar.robot.entity.AccessResultDataImpl;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.ResultData;
@@ -89,10 +90,20 @@ public class HtmlTransformerTest extends S2TestCase {
         String url;
 
         url = "http://hoge/index.html";
-        assertEquals(url + "/", htmlTransformer.getDuplicateUrl(url));
+        assertEquals(
+            RequestDataBuilder.newRequestData().url(url + "/").build(),
+            htmlTransformer.getDuplicateUrl(RequestDataBuilder
+                .newRequestData()
+                .url(url)
+                .build()));
 
         url = "http://hoge/";
-        assertEquals("http://hoge", htmlTransformer.getDuplicateUrl(url));
+        assertEquals(
+            RequestDataBuilder.newRequestData().url("http://hoge").build(),
+            htmlTransformer.getDuplicateUrl(RequestDataBuilder
+                .newRequestData()
+                .url(url)
+                .build()));
 
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.seasar.robot.helper.impl;
 import java.util.Set;
 
 import org.seasar.robot.RobotCrawlAccessException;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.helper.LogHelper;
@@ -120,11 +121,11 @@ public class LogHelperImpl implements LogHelper {
             // S2RobotContext robotContext = (S2RobotContext) objs[0];
             final UrlQueue urlQueue = (UrlQueue) objs[1];
             @SuppressWarnings("unchecked")
-            final Set<String> childUrlSet = (Set<String>) objs[2];
+            final Set<RequestData> requestDataSet = (Set<RequestData>) objs[2];
             if (logger.isDebugEnabled()) {
-                for (final String url : childUrlSet) {
-                    logger.debug("Child URL: " + url + " from "
-                        + urlQueue.getUrl());
+                for (final RequestData requestData : requestDataSet) {
+                    logger.debug("Child URL: " + requestData.getUrl()
+                        + " from " + urlQueue.getUrl());
                 }
             }
             break;

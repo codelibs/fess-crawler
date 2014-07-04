@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.seasar.robot.db.cbean.cq.bs;
 import java.util.Map;
 
 import org.seasar.dbflute.cbean.ConditionQuery;
+import org.seasar.dbflute.cbean.chelper.HpCalculator;
+import org.seasar.dbflute.cbean.coption.ConditionOption;
 import org.seasar.dbflute.cbean.cvalue.ConditionValue;
 import org.seasar.dbflute.cbean.sqlclause.SqlClause;
 import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
@@ -27,37 +29,33 @@ import org.seasar.robot.db.cbean.cq.ciq.UrlQueueCIQ;
 
 /**
  * The base condition-query of URL_QUEUE.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected UrlQueueCIQ _inlineQuery;
 
     // ===================================================================================
-    // Constructor
-    // ===========
-    public BsUrlQueueCQ(final ConditionQuery childQuery,
+    //                                                                         Constructor
+    //                                                                         ===========
+    public BsUrlQueueCQ(final ConditionQuery referrerQuery,
             final SqlClause sqlClause, final String aliasName,
             final int nestLevel) {
-        super(childQuery, sqlClause, aliasName, nestLevel);
+        super(referrerQuery, sqlClause, aliasName, nestLevel);
     }
 
     // ===================================================================================
-    // InlineView/OrClause
-    // ===================
+    //                                                                 InlineView/OrClause
+    //                                                                 ===================
     /**
      * Prepare InlineView query. <br />
-     * {select ... from ... left outer join (select * from URL_QUEUE) where FOO
-     * = [value] ...}
-     * 
+     * {select ... from ... left outer join (select * from URL_QUEUE) where FOO = [value] ...}
      * <pre>
-     * cb.query().queryMemberStatus().<span style="color: #FD4747">inline()</span>.setFoo...;
+     * cb.query().queryMemberStatus().<span style="color: #DD4747">inline()</span>.setFoo...;
      * </pre>
-     * 
      * @return The condition-query for InlineView query. (NotNull)
      */
     public UrlQueueCIQ inline() {
@@ -85,16 +83,12 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Prepare OnClause query. <br />
-     * {select ... from ... left outer join URL_QUEUE on ... and FOO = [value]
-     * ...}
-     * 
+     * {select ... from ... left outer join URL_QUEUE on ... and FOO = [value] ...}
      * <pre>
-     * cb.query().queryMemberStatus().<span style="color: #FD4747">on()</span>.setFoo...;
+     * cb.query().queryMemberStatus().<span style="color: #DD4747">on()</span>.setFoo...;
      * </pre>
-     * 
      * @return The condition-query for OnClause query. (NotNull)
-     * @throws IllegalConditionBeanOperationException
-     *             When this condition-query is base query.
+     * @throws IllegalConditionBeanOperationException When this condition-query is base query.
      */
     public UrlQueueCIQ on() {
         if (isBaseQuery()) {
@@ -107,9 +101,8 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     // ===================================================================================
-    // Query
-    // =====
-
+    //                                                                               Query
+    //                                                                               =====
     protected ConditionValue _id;
 
     public ConditionValue getId() {
@@ -127,7 +120,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as ascend. <br />
      * ID: {PK, ID, NotNull, BIGINT(19)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Id_Asc() {
@@ -138,7 +130,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as descend. <br />
      * ID: {PK, ID, NotNull, BIGINT(19)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Id_Desc() {
@@ -162,8 +153,7 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Add order-by as ascend. <br />
-     * SESSION_ID: {IX, NotNull, VARCHAR(20)}
-     * 
+     * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_SessionId_Asc() {
@@ -173,8 +163,7 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Add order-by as descend. <br />
-     * SESSION_ID: {IX, NotNull, VARCHAR(20)}
-     * 
+     * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_SessionId_Desc() {
@@ -199,7 +188,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as ascend. <br />
      * METHOD: {NotNull, VARCHAR(10)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Method_Asc() {
@@ -210,7 +198,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as descend. <br />
      * METHOD: {NotNull, VARCHAR(10)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Method_Desc() {
@@ -234,8 +221,7 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Add order-by as ascend. <br />
-     * URL: {IX+, NotNull, VARCHAR(65536)}
-     * 
+     * URL: {NotNull, VARCHAR(65536)}
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Url_Asc() {
@@ -245,12 +231,45 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Add order-by as descend. <br />
-     * URL: {IX+, NotNull, VARCHAR(65536)}
-     * 
+     * URL: {NotNull, VARCHAR(65536)}
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Url_Desc() {
         regOBD("URL");
+        return this;
+    }
+
+    protected ConditionValue _metaData;
+
+    public ConditionValue getMetaData() {
+        if (_metaData == null) {
+            _metaData = nCV();
+        }
+        return _metaData;
+    }
+
+    @Override
+    protected ConditionValue getCValueMetaData() {
+        return getMetaData();
+    }
+
+    /**
+     * Add order-by as ascend. <br />
+     * META_DATA: {VARCHAR(65536)}
+     * @return this. (NotNull)
+     */
+    public BsUrlQueueCQ addOrderBy_MetaData_Asc() {
+        regOBA("META_DATA");
+        return this;
+    }
+
+    /**
+     * Add order-by as descend. <br />
+     * META_DATA: {VARCHAR(65536)}
+     * @return this. (NotNull)
+     */
+    public BsUrlQueueCQ addOrderBy_MetaData_Desc() {
+        regOBD("META_DATA");
         return this;
     }
 
@@ -271,7 +290,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as ascend. <br />
      * ENCODING: {VARCHAR(20)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Encoding_Asc() {
@@ -282,7 +300,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as descend. <br />
      * ENCODING: {VARCHAR(20)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Encoding_Desc() {
@@ -307,7 +324,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as ascend. <br />
      * PARENT_URL: {VARCHAR(65536)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_ParentUrl_Asc() {
@@ -318,7 +334,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as descend. <br />
      * PARENT_URL: {VARCHAR(65536)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_ParentUrl_Desc() {
@@ -343,7 +358,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as ascend. <br />
      * DEPTH: {NotNull, INTEGER(10)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Depth_Asc() {
@@ -354,7 +368,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as descend. <br />
      * DEPTH: {NotNull, INTEGER(10)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_Depth_Desc() {
@@ -379,7 +392,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as ascend. <br />
      * LAST_MODIFIED: {TIMESTAMP(23, 10)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_LastModified_Asc() {
@@ -390,7 +402,6 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     /**
      * Add order-by as descend. <br />
      * LAST_MODIFIED: {TIMESTAMP(23, 10)}
-     * 
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_LastModified_Desc() {
@@ -414,8 +425,7 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Add order-by as ascend. <br />
-     * CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)}
-     * 
+     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_CreateTime_Asc() {
@@ -425,8 +435,7 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Add order-by as descend. <br />
-     * CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)}
-     * 
+     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addOrderBy_CreateTime_Desc() {
@@ -435,24 +444,20 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     // ===================================================================================
-    // SpecifiedDerivedOrderBy
-    // =======================
+    //                                                             SpecifiedDerivedOrderBy
+    //                                                             =======================
     /**
      * Add order-by for specified derived column as ascend.
-     * 
      * <pre>
      * cb.specify().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
      *     public void query(PurchaseCB subCB) {
      *         subCB.specify().columnPurchaseDatetime();
      *     }
-     * }, <span style="color: #FD4747">aliasName</span>);
+     * }, <span style="color: #DD4747">aliasName</span>);
      * <span style="color: #3F7E5E">// order by [alias-name] asc</span>
-     * cb.<span style="color: #FD4747">addSpecifiedDerivedOrderBy_Asc</span>(<span style="color: #FD4747">aliasName</span>);
+     * cb.<span style="color: #DD4747">addSpecifiedDerivedOrderBy_Asc</span>(<span style="color: #DD4747">aliasName</span>);
      * </pre>
-     * 
-     * @param aliasName
-     *            The alias name specified at (Specify)DerivedReferrer.
-     *            (NotNull)
+     * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addSpecifiedDerivedOrderBy_Asc(final String aliasName) {
@@ -462,20 +467,16 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     /**
      * Add order-by for specified derived column as descend.
-     * 
      * <pre>
      * cb.specify().derivedPurchaseList().max(new SubQuery&lt;PurchaseCB&gt;() {
      *     public void query(PurchaseCB subCB) {
      *         subCB.specify().columnPurchaseDatetime();
      *     }
-     * }, <span style="color: #FD4747">aliasName</span>);
+     * }, <span style="color: #DD4747">aliasName</span>);
      * <span style="color: #3F7E5E">// order by [alias-name] desc</span>
-     * cb.<span style="color: #FD4747">addSpecifiedDerivedOrderBy_Desc</span>(<span style="color: #FD4747">aliasName</span>);
+     * cb.<span style="color: #DD4747">addSpecifiedDerivedOrderBy_Desc</span>(<span style="color: #DD4747">aliasName</span>);
      * </pre>
-     * 
-     * @param aliasName
-     *            The alias name specified at (Specify)DerivedReferrer.
-     *            (NotNull)
+     * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
      * @return this. (NotNull)
      */
     public BsUrlQueueCQ addSpecifiedDerivedOrderBy_Desc(final String aliasName) {
@@ -484,17 +485,16 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     // ===================================================================================
-    // Union Query
-    // ===========
+    //                                                                         Union Query
+    //                                                                         ===========
     @Override
-    protected void reflectRelationOnUnionQuery(
-            final ConditionQuery baseQueryAsSuper,
-            final ConditionQuery unionQueryAsSuper) {
+    public void reflectRelationOnUnionQuery(final ConditionQuery bqs,
+            final ConditionQuery uqs) {
     }
 
     // ===================================================================================
-    // Foreign Query
-    // =============
+    //                                                                       Foreign Query
+    //                                                                       =============
     @Override
     protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
             final String property) {
@@ -502,8 +502,8 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     // ===================================================================================
-    // ScalarCondition
-    // ===============
+    //                                                                     ScalarCondition
+    //                                                                     ===============
     protected Map<String, UrlQueueCQ> _scalarConditionMap;
 
     public Map<String, UrlQueueCQ> getScalarCondition() {
@@ -511,18 +511,18 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    public String keepScalarCondition(final UrlQueueCQ subQuery) {
+    public String keepScalarCondition(final UrlQueueCQ sq) {
         if (_scalarConditionMap == null) {
             _scalarConditionMap = newLinkedHashMapSized(4);
         }
-        final String key = "subQueryMapKey" + (_scalarConditionMap.size() + 1);
-        _scalarConditionMap.put(key, subQuery);
-        return "scalarCondition." + key;
+        final String ky = "subQueryMapKey" + (_scalarConditionMap.size() + 1);
+        _scalarConditionMap.put(ky, sq);
+        return "scalarCondition." + ky;
     }
 
     // ===================================================================================
-    // MyselfDerived
-    // =============
+    //                                                                       MyselfDerived
+    //                                                                       =============
     protected Map<String, UrlQueueCQ> _specifyMyselfDerivedMap;
 
     public Map<String, UrlQueueCQ> getSpecifyMyselfDerived() {
@@ -530,14 +530,14 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    public String keepSpecifyMyselfDerived(final UrlQueueCQ subQuery) {
+    public String keepSpecifyMyselfDerived(final UrlQueueCQ sq) {
         if (_specifyMyselfDerivedMap == null) {
             _specifyMyselfDerivedMap = newLinkedHashMapSized(4);
         }
-        final String key =
+        final String ky =
             "subQueryMapKey" + (_specifyMyselfDerivedMap.size() + 1);
-        _specifyMyselfDerivedMap.put(key, subQuery);
-        return "specifyMyselfDerived." + key;
+        _specifyMyselfDerivedMap.put(ky, sq);
+        return "specifyMyselfDerived." + ky;
     }
 
     protected Map<String, UrlQueueCQ> _queryMyselfDerivedMap;
@@ -547,14 +547,14 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    public String keepQueryMyselfDerived(final UrlQueueCQ subQuery) {
+    public String keepQueryMyselfDerived(final UrlQueueCQ sq) {
         if (_queryMyselfDerivedMap == null) {
             _queryMyselfDerivedMap = newLinkedHashMapSized(4);
         }
-        final String key =
+        final String ky =
             "subQueryMapKey" + (_queryMyselfDerivedMap.size() + 1);
-        _queryMyselfDerivedMap.put(key, subQuery);
-        return "queryMyselfDerived." + key;
+        _queryMyselfDerivedMap.put(ky, sq);
+        return "queryMyselfDerived." + ky;
     }
 
     protected Map<String, Object> _qyeryMyselfDerivedParameterMap;
@@ -564,20 +564,20 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
+    public String keepQueryMyselfDerivedParameter(final Object vl) {
         if (_qyeryMyselfDerivedParameterMap == null) {
             _qyeryMyselfDerivedParameterMap = newLinkedHashMapSized(4);
         }
-        final String key =
+        final String ky =
             "subQueryParameterKey"
                 + (_qyeryMyselfDerivedParameterMap.size() + 1);
-        _qyeryMyselfDerivedParameterMap.put(key, parameterValue);
-        return "queryMyselfDerivedParameter." + key;
+        _qyeryMyselfDerivedParameterMap.put(ky, vl);
+        return "queryMyselfDerivedParameter." + ky;
     }
 
     // ===================================================================================
-    // MyselfExists
-    // ============
+    //                                                                        MyselfExists
+    //                                                                        ============
     protected Map<String, UrlQueueCQ> _myselfExistsMap;
 
     public Map<String, UrlQueueCQ> getMyselfExists() {
@@ -585,18 +585,18 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    public String keepMyselfExists(final UrlQueueCQ subQuery) {
+    public String keepMyselfExists(final UrlQueueCQ sq) {
         if (_myselfExistsMap == null) {
             _myselfExistsMap = newLinkedHashMapSized(4);
         }
-        final String key = "subQueryMapKey" + (_myselfExistsMap.size() + 1);
-        _myselfExistsMap.put(key, subQuery);
-        return "myselfExists." + key;
+        final String ky = "subQueryMapKey" + (_myselfExistsMap.size() + 1);
+        _myselfExistsMap.put(ky, sq);
+        return "myselfExists." + ky;
     }
 
     // ===================================================================================
-    // MyselfInScope
-    // =============
+    //                                                                       MyselfInScope
+    //                                                                       =============
     protected Map<String, UrlQueueCQ> _myselfInScopeMap;
 
     public Map<String, UrlQueueCQ> getMyselfInScope() {
@@ -604,18 +604,18 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
     }
 
     @Override
-    public String keepMyselfInScope(final UrlQueueCQ subQuery) {
+    public String keepMyselfInScope(final UrlQueueCQ sq) {
         if (_myselfInScopeMap == null) {
             _myselfInScopeMap = newLinkedHashMapSized(4);
         }
-        final String key = "subQueryMapKey" + (_myselfInScopeMap.size() + 1);
-        _myselfInScopeMap.put(key, subQuery);
-        return "myselfInScope." + key;
+        final String ky = "subQueryMapKey" + (_myselfInScopeMap.size() + 1);
+        _myselfInScopeMap.put(ky, sq);
+        return "myselfInScope." + ky;
     }
 
     // ===================================================================================
-    // Very Internal
-    // =============
+    //                                                                       Very Internal
+    //                                                                       =============
     // very internal (for suppressing warn about 'Not Use Import')
     protected String xCB() {
         return UrlQueueCB.class.getName();
@@ -623,6 +623,14 @@ public class BsUrlQueueCQ extends AbstractBsUrlQueueCQ {
 
     protected String xCQ() {
         return UrlQueueCQ.class.getName();
+    }
+
+    protected String xCHp() {
+        return HpCalculator.class.getName();
+    }
+
+    protected String xCOp() {
+        return ConditionOption.class.getName();
     }
 
     protected String xMap() {

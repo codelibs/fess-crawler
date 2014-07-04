@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,41 +27,41 @@ import org.seasar.robot.db.exentity.UrlQueue;
 
 /**
  * The entity of URL_QUEUE as TABLE. <br />
- * 
  * <pre>
  * [primary-key]
  *     ID
- * 
+ *
  * [column]
- *     ID, SESSION_ID, METHOD, URL, ENCODING, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
- * 
+ *     ID, SESSION_ID, METHOD, URL, META_DATA, ENCODING, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
+ *
  * [sequence]
- *     
- * 
+ *
+ *
  * [identity]
  *     ID
- * 
+ *
  * [version-no]
- *     
- * 
+ *
+ *
  * [foreign table]
- *     
- * 
+ *
+ *
  * [referrer table]
- *     
- * 
+ *
+ *
  * [foreign property]
- *     
- * 
+ *
+ *
  * [referrer property]
- *     
- * 
+ *
+ *
  * [get/set template]
  * /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  * Long id = entity.getId();
  * String sessionId = entity.getSessionId();
  * String method = entity.getMethod();
  * String url = entity.getUrl();
+ * String metaData = entity.getMetaData();
  * String encoding = entity.getEncoding();
  * String parentUrl = entity.getParentUrl();
  * Integer depth = entity.getDepth();
@@ -71,6 +71,7 @@ import org.seasar.robot.db.exentity.UrlQueue;
  * entity.setSessionId(sessionId);
  * entity.setMethod(method);
  * entity.setUrl(url);
+ * entity.setMetaData(metaData);
  * entity.setEncoding(encoding);
  * entity.setParentUrl(parentUrl);
  * entity.setDepth(depth);
@@ -78,34 +79,36 @@ import org.seasar.robot.db.exentity.UrlQueue;
  * entity.setCreateTime(createTime);
  * = = = = = = = = = =/
  * </pre>
- * 
  * @author DBFlute(AutoGenerator)
  */
 public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     // ===================================================================================
-    // Definition
-    // ==========
+    //                                                                          Definition
+    //                                                                          ==========
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     // -----------------------------------------------------
-    // Column
-    // ------
+    //                                                Column
+    //                                                ------
     /** ID: {PK, ID, NotNull, BIGINT(19)} */
     protected Long _id;
 
-    /** SESSION_ID: {IX, NotNull, VARCHAR(20)} */
+    /** SESSION_ID: {IX+, NotNull, VARCHAR(20)} */
     protected String _sessionId;
 
     /** METHOD: {NotNull, VARCHAR(10)} */
     protected String _method;
 
-    /** URL: {IX+, NotNull, VARCHAR(65536)} */
+    /** URL: {NotNull, VARCHAR(65536)} */
     protected String _url;
+
+    /** META_DATA: {VARCHAR(65536)} */
+    protected String _metaData;
 
     /** ENCODING: {VARCHAR(20)} */
     protected String _encoding;
@@ -119,12 +122,16 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     /** LAST_MODIFIED: {TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _lastModified;
 
-    /** CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} */
+    /** CREATE_TIME: {NotNull, TIMESTAMP(23, 10)} */
     protected java.sql.Timestamp _createTime;
 
     // -----------------------------------------------------
-    // Internal
-    // --------
+    //                                              Internal
+    //                                              --------
+    /** The unique-driven properties for this entity. (NotNull) */
+    protected final EntityUniqueDrivenProperties __uniqueDrivenProperties =
+        newUniqueDrivenProperties();
+
     /** The modified properties for this entity. (NotNull) */
     protected final EntityModifiedProperties __modifiedProperties =
         newModifiedProperties();
@@ -133,8 +140,8 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     protected boolean __createdBySelect;
 
     // ===================================================================================
-    // Table Name
-    // ==========
+    //                                                                          Table Name
+    //                                                                          ==========
     /**
      * {@inheritDoc}
      */
@@ -152,8 +159,8 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     // ===================================================================================
-    // DBMeta
-    // ======
+    //                                                                              DBMeta
+    //                                                                              ======
     /**
      * {@inheritDoc}
      */
@@ -163,8 +170,8 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     // ===================================================================================
-    // Primary Key
-    // ===========
+    //                                                                         Primary Key
+    //                                                                         ===========
     /**
      * {@inheritDoc}
      */
@@ -176,19 +183,31 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Set<String> myuniqueDrivenProperties() {
+        return __uniqueDrivenProperties.getPropertyNames();
+    }
+
+    protected EntityUniqueDrivenProperties newUniqueDrivenProperties() {
+        return new EntityUniqueDrivenProperties();
+    }
+
     // ===================================================================================
-    // Foreign Property
-    // ================
+    //                                                                    Foreign Property
+    //                                                                    ================
     // ===================================================================================
-    // Referrer Property
-    // =================
+    //                                                                   Referrer Property
+    //                                                                   =================
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
 
     // ===================================================================================
-    // Modified Properties
-    // ===================
+    //                                                                 Modified Properties
+    //                                                                 ===================
     /**
      * {@inheritDoc}
      */
@@ -218,8 +237,8 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     // ===================================================================================
-    // Birthplace Mark
-    // ===============
+    //                                                                     Birthplace Mark
+    //                                                                     ===============
     /**
      * {@inheritDoc}
      */
@@ -237,49 +256,44 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     // ===================================================================================
-    // Basic Override
-    // ==============
+    //                                                                      Basic Override
+    //                                                                      ==============
     /**
      * Determine the object is equal with this. <br />
-     * If primary-keys or columns of the other are same as this one, returns
-     * true.
-     * 
-     * @param other
-     *            The other entity. (NullAllowed: if null, returns false
-     *            fixedly)
+     * If primary-keys or columns of the other are same as this one, returns true.
+     * @param obj The object as other entity. (NullAllowed: if null, returns false fixedly)
      * @return Comparing result.
      */
     @Override
-    public boolean equals(final Object other) {
-        if (other == null || !(other instanceof BsUrlQueue)) {
+    public boolean equals(final Object obj) {
+        if (obj == null || !(obj instanceof BsUrlQueue)) {
             return false;
         }
-        final BsUrlQueue otherEntity = (BsUrlQueue) other;
-        if (!xSV(getId(), otherEntity.getId())) {
+        final BsUrlQueue other = (BsUrlQueue) obj;
+        if (!xSV(getId(), other.getId())) {
             return false;
         }
         return true;
     }
 
-    protected boolean xSV(final Object value1, final Object value2) { // isSameValue()
-        return InternalUtil.isSameValue(value1, value2);
+    protected boolean xSV(final Object v1, final Object v2) {
+        return FunCustodial.isSameValue(v1, v2);
     }
 
     /**
      * Calculate the hash-code from primary-keys or columns.
-     * 
      * @return The hash-code from primary-key or columns.
      */
     @Override
     public int hashCode() {
-        int result = 17;
-        result = xCH(result, getTableDbName());
-        result = xCH(result, getId());
-        return result;
+        int hs = 17;
+        hs = xCH(hs, getTableDbName());
+        hs = xCH(hs, getId());
+        return hs;
     }
 
-    protected int xCH(final int result, final Object value) { // calculateHashcode()
-        return InternalUtil.calculateHashcode(result, value);
+    protected int xCH(final int hs, final Object vl) {
+        return FunCustodial.calculateHashcode(hs, vl);
     }
 
     /**
@@ -292,13 +306,11 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * Convert to display string of entity's data. (no relation data)
-     * 
-     * @return The display string of all columns and relation existences.
-     *         (NotNull)
+     * @return The display string of all columns and relation existences. (NotNull)
      */
     @Override
     public String toString() {
-        return buildDisplayString(InternalUtil.toClassTitle(this), true, true);
+        return buildDisplayString(FunCustodial.toClassTitle(this), true, true);
     }
 
     /**
@@ -333,18 +345,19 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     protected String buildColumnString() {
         final StringBuilder sb = new StringBuilder();
-        final String delimiter = ", ";
-        sb.append(delimiter).append(getId());
-        sb.append(delimiter).append(getSessionId());
-        sb.append(delimiter).append(getMethod());
-        sb.append(delimiter).append(getUrl());
-        sb.append(delimiter).append(getEncoding());
-        sb.append(delimiter).append(getParentUrl());
-        sb.append(delimiter).append(getDepth());
-        sb.append(delimiter).append(getLastModified());
-        sb.append(delimiter).append(getCreateTime());
-        if (sb.length() > delimiter.length()) {
-            sb.delete(0, delimiter.length());
+        final String dm = ", ";
+        sb.append(dm).append(getId());
+        sb.append(dm).append(getSessionId());
+        sb.append(dm).append(getMethod());
+        sb.append(dm).append(getUrl());
+        sb.append(dm).append(getMetaData());
+        sb.append(dm).append(getEncoding());
+        sb.append(dm).append(getParentUrl());
+        sb.append(dm).append(getDepth());
+        sb.append(dm).append(getLastModified());
+        sb.append(dm).append(getCreateTime());
+        if (sb.length() > dm.length()) {
+            sb.delete(0, dm.length());
         }
         sb.insert(0, "{").append("}");
         return sb.toString();
@@ -356,7 +369,6 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * Clone entity instance using super.clone(). (shallow copy)
-     * 
      * @return The cloned instance of this entity. (NotNull)
      */
     @Override
@@ -370,13 +382,11 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     // ===================================================================================
-    // Accessor
-    // ========
+    //                                                                            Accessor
+    //                                                                            ========
     /**
      * [get] ID: {PK, ID, NotNull, BIGINT(19)} <br />
-     * 
-     * @return The value of the column 'ID'. (basically NotNull if selected: for
-     *         the constraint)
+     * @return The value of the column 'ID'. (basically NotNull if selected: for the constraint)
      */
     public Long getId() {
         return _id;
@@ -384,10 +394,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br />
-     * 
-     * @param id
-     *            The value of the column 'ID'. (basically NotNull if update:
-     *            for the constraint)
+     * @param id The value of the column 'ID'. (basically NotNull if update: for the constraint)
      */
     public void setId(final Long id) {
         __modifiedProperties.addPropertyName("id");
@@ -395,21 +402,16 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     /**
-     * [get] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
-     * 
-     * @return The value of the column 'SESSION_ID'. (basically NotNull if
-     *         selected: for the constraint)
+     * [get] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br />
+     * @return The value of the column 'SESSION_ID'. (basically NotNull if selected: for the constraint)
      */
     public String getSessionId() {
         return _sessionId;
     }
 
     /**
-     * [set] SESSION_ID: {IX, NotNull, VARCHAR(20)} <br />
-     * 
-     * @param sessionId
-     *            The value of the column 'SESSION_ID'. (basically NotNull if
-     *            update: for the constraint)
+     * [set] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br />
+     * @param sessionId The value of the column 'SESSION_ID'. (basically NotNull if update: for the constraint)
      */
     public void setSessionId(final String sessionId) {
         __modifiedProperties.addPropertyName("sessionId");
@@ -418,9 +420,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [get] METHOD: {NotNull, VARCHAR(10)} <br />
-     * 
-     * @return The value of the column 'METHOD'. (basically NotNull if selected:
-     *         for the constraint)
+     * @return The value of the column 'METHOD'. (basically NotNull if selected: for the constraint)
      */
     public String getMethod() {
         return _method;
@@ -428,10 +428,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [set] METHOD: {NotNull, VARCHAR(10)} <br />
-     * 
-     * @param method
-     *            The value of the column 'METHOD'. (basically NotNull if
-     *            update: for the constraint)
+     * @param method The value of the column 'METHOD'. (basically NotNull if update: for the constraint)
      */
     public void setMethod(final String method) {
         __modifiedProperties.addPropertyName("method");
@@ -439,21 +436,16 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     /**
-     * [get] URL: {IX+, NotNull, VARCHAR(65536)} <br />
-     * 
-     * @return The value of the column 'URL'. (basically NotNull if selected:
-     *         for the constraint)
+     * [get] URL: {NotNull, VARCHAR(65536)} <br />
+     * @return The value of the column 'URL'. (basically NotNull if selected: for the constraint)
      */
     public String getUrl() {
         return _url;
     }
 
     /**
-     * [set] URL: {IX+, NotNull, VARCHAR(65536)} <br />
-     * 
-     * @param url
-     *            The value of the column 'URL'. (basically NotNull if update:
-     *            for the constraint)
+     * [set] URL: {NotNull, VARCHAR(65536)} <br />
+     * @param url The value of the column 'URL'. (basically NotNull if update: for the constraint)
      */
     public void setUrl(final String url) {
         __modifiedProperties.addPropertyName("url");
@@ -461,10 +453,25 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     /**
+     * [get] META_DATA: {VARCHAR(65536)} <br />
+     * @return The value of the column 'META_DATA'. (NullAllowed even if selected: for no constraint)
+     */
+    public String getMetaData() {
+        return _metaData;
+    }
+
+    /**
+     * [set] META_DATA: {VARCHAR(65536)} <br />
+     * @param metaData The value of the column 'META_DATA'. (NullAllowed: null update allowed for no constraint)
+     */
+    public void setMetaData(final String metaData) {
+        __modifiedProperties.addPropertyName("metaData");
+        _metaData = metaData;
+    }
+
+    /**
      * [get] ENCODING: {VARCHAR(20)} <br />
-     * 
-     * @return The value of the column 'ENCODING'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'ENCODING'. (NullAllowed even if selected: for no constraint)
      */
     public String getEncoding() {
         return _encoding;
@@ -472,10 +479,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [set] ENCODING: {VARCHAR(20)} <br />
-     * 
-     * @param encoding
-     *            The value of the column 'ENCODING'. (NullAllowed: null update
-     *            allowed for no constraint)
+     * @param encoding The value of the column 'ENCODING'. (NullAllowed: null update allowed for no constraint)
      */
     public void setEncoding(final String encoding) {
         __modifiedProperties.addPropertyName("encoding");
@@ -484,9 +488,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [get] PARENT_URL: {VARCHAR(65536)} <br />
-     * 
-     * @return The value of the column 'PARENT_URL'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'PARENT_URL'. (NullAllowed even if selected: for no constraint)
      */
     public String getParentUrl() {
         return _parentUrl;
@@ -494,10 +496,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [set] PARENT_URL: {VARCHAR(65536)} <br />
-     * 
-     * @param parentUrl
-     *            The value of the column 'PARENT_URL'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed: null update allowed for no constraint)
      */
     public void setParentUrl(final String parentUrl) {
         __modifiedProperties.addPropertyName("parentUrl");
@@ -506,9 +505,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [get] DEPTH: {NotNull, INTEGER(10)} <br />
-     * 
-     * @return The value of the column 'DEPTH'. (basically NotNull if selected:
-     *         for the constraint)
+     * @return The value of the column 'DEPTH'. (basically NotNull if selected: for the constraint)
      */
     public Integer getDepth() {
         return _depth;
@@ -516,10 +513,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [set] DEPTH: {NotNull, INTEGER(10)} <br />
-     * 
-     * @param depth
-     *            The value of the column 'DEPTH'. (basically NotNull if update:
-     *            for the constraint)
+     * @param depth The value of the column 'DEPTH'. (basically NotNull if update: for the constraint)
      */
     public void setDepth(final Integer depth) {
         __modifiedProperties.addPropertyName("depth");
@@ -528,9 +522,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [get] LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
-     * 
-     * @return The value of the column 'LAST_MODIFIED'. (NullAllowed even if
-     *         selected: for no constraint)
+     * @return The value of the column 'LAST_MODIFIED'. (NullAllowed even if selected: for no constraint)
      */
     public java.sql.Timestamp getLastModified() {
         return _lastModified;
@@ -538,10 +530,7 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
 
     /**
      * [set] LAST_MODIFIED: {TIMESTAMP(23, 10)} <br />
-     * 
-     * @param lastModified
-     *            The value of the column 'LAST_MODIFIED'. (NullAllowed: null
-     *            update allowed for no constraint)
+     * @param lastModified The value of the column 'LAST_MODIFIED'. (NullAllowed: null update allowed for no constraint)
      */
     public void setLastModified(final java.sql.Timestamp lastModified) {
         __modifiedProperties.addPropertyName("lastModified");
@@ -549,21 +538,16 @@ public abstract class BsUrlQueue implements Entity, Serializable, Cloneable {
     }
 
     /**
-     * [get] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
-     * 
-     * @return The value of the column 'CREATE_TIME'. (basically NotNull if
-     *         selected: for the constraint)
+     * [get] CREATE_TIME: {NotNull, TIMESTAMP(23, 10)} <br />
+     * @return The value of the column 'CREATE_TIME'. (basically NotNull if selected: for the constraint)
      */
     public java.sql.Timestamp getCreateTime() {
         return _createTime;
     }
 
     /**
-     * [set] CREATE_TIME: {IX+, NotNull, TIMESTAMP(23, 10)} <br />
-     * 
-     * @param createTime
-     *            The value of the column 'CREATE_TIME'. (basically NotNull if
-     *            update: for the constraint)
+     * [set] CREATE_TIME: {NotNull, TIMESTAMP(23, 10)} <br />
+     * @param createTime The value of the column 'CREATE_TIME'. (basically NotNull if update: for the constraint)
      */
     public void setCreateTime(final java.sql.Timestamp createTime) {
         __modifiedProperties.addPropertyName("createTime");

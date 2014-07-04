@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,16 @@ import org.seasar.dbflute.s2dao.valuetype.TnValueTypes;
 
 /**
  * The cursor of AccessResultDiff. <br />
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class BsAccessResultDiffCursor {
 
     // ===================================================================================
-    // Definition
-    // ==========
+    //                                                                          Definition
+    //                                                                          ==========
     // -----------------------------------------------------
-    // Column DB Name
-    // --------------
+    //                                        Column DB Name
+    //                                        --------------
     /** DB name of ID. */
     public static final String DB_NAME_ID = "ID";
 
@@ -71,8 +70,8 @@ public class BsAccessResultDiffCursor {
     public static final String DB_NAME_CREATE_TIME = "CREATE_TIME";
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     /** Wrapped result set. */
     protected ResultSet _rs;
 
@@ -110,31 +109,27 @@ public class BsAccessResultDiffCursor {
     }
 
     // ===================================================================================
-    // Constructor
-    // ===========
+    //                                                                         Constructor
+    //                                                                         ===========
     public BsAccessResultDiffCursor() {
     }
 
     // ===================================================================================
-    // Prepare
-    // =======
+    //                                                                             Prepare
+    //                                                                             =======
     /**
      * Accept the result set.
-     * 
-     * @param rs
-     *            The cursor (result set) for the query, which has first
-     *            pointer. (NotNull)
+     * @param rs The cursor (result set) for the query, which has first pointer. (NotNull)
      */
     public void accept(final ResultSet rs) {
         _rs = rs;
     }
 
     // ===================================================================================
-    // Direct
-    // ======
+    //                                                                              Direct
+    //                                                                              ======
     /**
      * Get the wrapped cursor (result set).
-     * 
      * @return The instance of result set. (NotNull)
      */
     public ResultSet cursor() {
@@ -142,11 +137,10 @@ public class BsAccessResultDiffCursor {
     }
 
     // ===================================================================================
-    // Delegate
-    // ========
+    //                                                                            Delegate
+    //                                                                            ========
     /**
      * Move to next result.
-     * 
      * @return Is exist next result.
      * @throws SQLException
      */
@@ -155,11 +149,10 @@ public class BsAccessResultDiffCursor {
     }
 
     // ===================================================================================
-    // Type Safe Accessor
-    // ==================
+    //                                                                  Type Safe Accessor
+    //                                                                  ==================
     /**
      * [get] ID: {BIGINT(19), refers to ACCESS_RESULT.ID} <br />
-     * 
      * @return The value of id. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -169,7 +162,6 @@ public class BsAccessResultDiffCursor {
 
     /**
      * [get] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br />
-     * 
      * @return The value of sessionId. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -179,7 +171,6 @@ public class BsAccessResultDiffCursor {
 
     /**
      * [get] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br />
-     * 
      * @return The value of ruleId. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -189,7 +180,6 @@ public class BsAccessResultDiffCursor {
 
     /**
      * [get] URL: {VARCHAR(65536), refers to ACCESS_RESULT.URL} <br />
-     * 
      * @return The value of url. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -199,7 +189,6 @@ public class BsAccessResultDiffCursor {
 
     /**
      * [get] PARENT_URL: {VARCHAR(65536), refers to ACCESS_RESULT.PARENT_URL} <br />
-     * 
      * @return The value of parentUrl. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -209,7 +198,6 @@ public class BsAccessResultDiffCursor {
 
     /**
      * [get] STATUS: {INTEGER(10), refers to ACCESS_RESULT.STATUS} <br />
-     * 
      * @return The value of status. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -218,9 +206,7 @@ public class BsAccessResultDiffCursor {
     }
 
     /**
-     * [get] HTTP_STATUS_CODE: {INTEGER(10), refers to
-     * ACCESS_RESULT.HTTP_STATUS_CODE} <br />
-     * 
+     * [get] HTTP_STATUS_CODE: {INTEGER(10), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br />
      * @return The value of httpStatusCode. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -232,7 +218,6 @@ public class BsAccessResultDiffCursor {
 
     /**
      * [get] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br />
-     * 
      * @return The value of method. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -242,7 +227,6 @@ public class BsAccessResultDiffCursor {
 
     /**
      * [get] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br />
-     * 
      * @return The value of mimeType. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -251,9 +235,7 @@ public class BsAccessResultDiffCursor {
     }
 
     /**
-     * [get] CONTENT_LENGTH: {BIGINT(19), refers to
-     * ACCESS_RESULT.CONTENT_LENGTH} <br />
-     * 
+     * [get] CONTENT_LENGTH: {BIGINT(19), refers to ACCESS_RESULT.CONTENT_LENGTH} <br />
      * @return The value of contentLength. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -262,9 +244,7 @@ public class BsAccessResultDiffCursor {
     }
 
     /**
-     * [get] EXECUTION_TIME: {INTEGER(10), refers to
-     * ACCESS_RESULT.EXECUTION_TIME} <br />
-     * 
+     * [get] EXECUTION_TIME: {INTEGER(10), refers to ACCESS_RESULT.EXECUTION_TIME} <br />
      * @return The value of executionTime. (NullAllowed)
      * @throws java.sql.SQLException
      */
@@ -273,9 +253,7 @@ public class BsAccessResultDiffCursor {
     }
 
     /**
-     * [get] CREATE_TIME: {TIMESTAMP(23, 10), refers to
-     * ACCESS_RESULT.CREATE_TIME} <br />
-     * 
+     * [get] CREATE_TIME: {TIMESTAMP(23, 10), refers to ACCESS_RESULT.CREATE_TIME} <br />
      * @return The value of createTime. (NullAllowed)
      * @throws java.sql.SQLException
      */

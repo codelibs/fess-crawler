@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ public class UrlQueueImpl implements UrlQueue {
     protected String method;
 
     protected String url;
+
+    protected String metaData;
 
     protected String encoding;
 
@@ -118,6 +120,16 @@ public class UrlQueueImpl implements UrlQueue {
     @Override
     public void setUrl(final String url) {
         this.url = url;
+    }
+
+    @Override
+    public String getMetaData() {
+        return metaData;
+    }
+
+    @Override
+    public void setMetaData(String metaData) {
+        this.metaData = metaData;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,7 @@ public class UrlQueueServiceImpl implements UrlQueueService {
             final UrlQueue urlQueue = new UrlQueueImpl();
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
+            urlQueue.setUrl(url);
             urlQueue.setUrl(url);
             urlQueue.setDepth(0);
             urlQueue.setCreateTime(new Timestamp(new Date().getTime()));

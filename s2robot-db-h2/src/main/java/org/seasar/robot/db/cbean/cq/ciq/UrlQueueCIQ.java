@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,40 +30,36 @@ import org.seasar.robot.db.cbean.cq.bs.BsUrlQueueCQ;
 
 /**
  * The condition-query for in-line of URL_QUEUE.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected BsUrlQueueCQ _myCQ;
 
     // ===================================================================================
-    // Constructor
-    // ===========
-    public UrlQueueCIQ(final ConditionQuery childQuery,
+    //                                                                         Constructor
+    //                                                                         ===========
+    public UrlQueueCIQ(final ConditionQuery referrerQuery,
             final SqlClause sqlClause, final String aliasName,
             final int nestLevel, final BsUrlQueueCQ myCQ) {
-        super(childQuery, sqlClause, aliasName, nestLevel);
+        super(referrerQuery, sqlClause, aliasName, nestLevel);
         _myCQ = myCQ;
-        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept
-                                                                // foreign
-                                                                // property name
+        _foreignPropertyName = _myCQ.xgetForeignPropertyName(); // accept foreign property name
         _relationPath = _myCQ.xgetRelationPath(); // accept relation path
         _inline = true;
     }
 
     // ===================================================================================
-    // Override about Register
-    // =======================
+    //                                                             Override about Register
+    //                                                             =======================
     @Override
     protected void reflectRelationOnUnionQuery(final ConditionQuery bq,
             final ConditionQuery uq) {
-        final String msg =
-            "InlineView must not need UNION method: " + bq + " : " + uq;
-        throw new IllegalConditionBeanOperationException(msg);
+        throw new IllegalConditionBeanOperationException(
+            "InlineView cannot use Union: " + bq + " : " + uq);
     }
 
     @Override
@@ -95,8 +91,8 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     }
 
     // ===================================================================================
-    // Override about Query
-    // ====================
+    //                                                                Override about Query
+    //                                                                ====================
     @Override
     protected ConditionValue getCValueId() {
         return _myCQ.getId();
@@ -115,6 +111,11 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     @Override
     protected ConditionValue getCValueUrl() {
         return _myCQ.getUrl();
+    }
+
+    @Override
+    protected ConditionValue getCValueMetaData() {
+        return _myCQ.getMetaData();
     }
 
     @Override
@@ -144,54 +145,54 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
 
     @Override
     protected Map<String, Object> xfindFixedConditionDynamicParameterMap(
-            final String property) {
+            final String pp) {
         return null;
     }
 
     @Override
-    public String keepScalarCondition(final UrlQueueCQ subQuery) {
+    public String keepScalarCondition(final UrlQueueCQ sq) {
         throwIICBOE("ScalarCondition");
         return null;
     }
 
     @Override
-    public String keepSpecifyMyselfDerived(final UrlQueueCQ subQuery) {
+    public String keepSpecifyMyselfDerived(final UrlQueueCQ sq) {
         throwIICBOE("(Specify)MyselfDerived");
         return null;
     }
 
     @Override
-    public String keepQueryMyselfDerived(final UrlQueueCQ subQuery) {
+    public String keepQueryMyselfDerived(final UrlQueueCQ sq) {
         throwIICBOE("(Query)MyselfDerived");
         return null;
     }
 
     @Override
-    public String keepQueryMyselfDerivedParameter(final Object parameterValue) {
+    public String keepQueryMyselfDerivedParameter(final Object vl) {
         throwIICBOE("(Query)MyselfDerived");
         return null;
     }
 
     @Override
-    public String keepMyselfExists(final UrlQueueCQ subQuery) {
+    public String keepMyselfExists(final UrlQueueCQ sq) {
         throwIICBOE("MyselfExists");
         return null;
     }
 
     @Override
-    public String keepMyselfInScope(final UrlQueueCQ subQuery) {
+    public String keepMyselfInScope(final UrlQueueCQ sq) {
         throwIICBOE("MyselfInScope");
         return null;
     }
 
-    protected void throwIICBOE(final String name) { // throwInlineIllegalConditionBeanOperationException()
+    protected void throwIICBOE(final String name) {
         throw new IllegalConditionBeanOperationException(name
             + " at InlineView is unsupported.");
     }
 
     // ===================================================================================
-    // Very Internal
-    // =============
+    //                                                                       Very Internal
+    //                                                                       =============
     // very internal (for suppressing warn about 'Not Use Import')
     protected String xinCB() {
         return UrlQueueCB.class.getName();

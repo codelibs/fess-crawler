@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2010 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,11 @@ public final class RequestDataBuilder {
 
         public RequestDataContext url(final String url) {
             data.setUrl(url);
+            return this;
+        }
+
+        public RequestDataContext metaData(final String metaData) {
+            data.setMetaData(metaData);
             return this;
         }
 

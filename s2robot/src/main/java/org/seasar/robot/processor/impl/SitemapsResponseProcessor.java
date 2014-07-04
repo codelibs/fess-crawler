@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.seasar.framework.container.SingletonS2Container;
+import org.seasar.robot.builder.RequestDataBuilder;
 import org.seasar.robot.client.fs.ChildUrlsException;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.Sitemap;
 import org.seasar.robot.entity.SitemapSet;
@@ -46,11 +48,15 @@ public class SitemapsResponseProcessor implements ResponseProcessor {
             SingletonS2Container.getComponent(SitemapsHelper.class);
         final InputStream responseBody = responseData.getResponseBody();
         final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
-        final Set<String> urlSet = new LinkedHashSet<String>();
+        final Set<RequestData> requestDataSet = new LinkedHashSet<>();
         for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
-            urlSet.add(sitemap.getLoc());
+            requestDataSet.add(RequestDataBuilder
+                .newRequestData()
+                .get()
+                .url(sitemap.getLoc())
+                .build());
         }
-        throw new ChildUrlsException(urlSet);
+        throw new ChildUrlsException(requestDataSet);
     }
 
 }

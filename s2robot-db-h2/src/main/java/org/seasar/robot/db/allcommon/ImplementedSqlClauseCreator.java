@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +37,16 @@ import org.seasar.dbflute.dbmeta.DBMetaProvider;
 
 /**
  * The creator of SQL clause.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class ImplementedSqlClauseCreator implements SqlClauseCreator {
 
     // ===================================================================================
-    // Implementation
-    // ==============
+    //                                                                      Implementation
+    //                                                                      ==============
     /**
      * Create SQL clause. {for condition-bean}
-     * 
-     * @param cb
-     *            Condition-bean. (NotNull)
+     * @param cb Condition-bean. (NotNull)
      * @return SQL clause. (NotNull)
      */
     @Override
@@ -61,9 +58,7 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
 
     /**
      * Create SQL clause.
-     * 
-     * @param tableDbName
-     *            The DB name of table. (NotNull)
+     * @param tableDbName The DB name of table. (NotNull)
      * @return SQL clause. (NotNull)
      */
     @Override
@@ -74,11 +69,10 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
     }
 
     // ===================================================================================
-    // Creation
-    // ========
+    //                                                                            Creation
+    //                                                                            ========
     protected SqlClause doCreateSqlClause(final String tableDbName) {
-        AbstractSqlClause sqlClause; // dynamic resolution but no perfect
-                                     // (almost static)
+        AbstractSqlClause sqlClause; // dynamic resolution but no perfect (almost static)
         if (isCurrentDBDef(DBDef.MySQL)) {
             sqlClause = createSqlClauseMySql(tableDbName);
         } else if (isCurrentDBDef(DBDef.PostgreSQL)) {
@@ -97,7 +91,7 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
             sqlClause = createSqlClauseSqlite(tableDbName);
         } else if (isCurrentDBDef(DBDef.MSAccess)) {
             sqlClause = createSqlClauseMsAccess(tableDbName);
-        } else if (isCurrentDBDef(DBDef.FireBird)) {
+        } else if (isCurrentDBDef(DBDef.Firebird)) {
             sqlClause = createSqlClauseFirebird(tableDbName);
         } else if (isCurrentDBDef(DBDef.Sybase)) {
             sqlClause = createSqlClauseSybase(tableDbName);
@@ -165,8 +159,8 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
     }
 
     // ===================================================================================
-    // Supporter
-    // =========
+    //                                                                           Supporter
+    //                                                                           =========
     protected DBMetaProvider getDBMetaProvider() {
         return DBMetaInstanceHandler.getProvider();
     }
@@ -176,11 +170,14 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
     }
 
     // ===================================================================================
-    // Option
-    // ======
+    //                                                                              Option
+    //                                                                              ======
     protected void setupSqlClauseOption(final SqlClause sqlClause) {
         if (isInnerJoinAutoDetect()) {
             sqlClause.allowInnerJoinAutoDetect();
+        }
+        if (isThatsBadTimingDetect()) {
+            sqlClause.allowThatsBadTimingDetect();
         }
         if (isEmptyStringQueryAllowed()) {
             sqlClause.allowEmptyStringQuery();
@@ -194,14 +191,18 @@ public class ImplementedSqlClauseCreator implements SqlClauseCreator {
     }
 
     // ===================================================================================
-    // Determination
-    // =============
+    //                                                                       Determination
+    //                                                                       =============
     protected boolean isCurrentDBDef(final DBDef currentDBDef) {
         return DBCurrent.getInstance().isCurrentDBDef(currentDBDef);
     }
 
     protected boolean isInnerJoinAutoDetect() {
         return DBFluteConfig.getInstance().isInnerJoinAutoDetect();
+    }
+
+    protected boolean isThatsBadTimingDetect() {
+        return DBFluteConfig.getInstance().isThatsBadTimingDetect();
     }
 
     protected boolean isEmptyStringQueryAllowed() {

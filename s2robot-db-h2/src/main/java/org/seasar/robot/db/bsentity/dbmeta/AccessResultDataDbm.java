@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,18 +28,18 @@ import org.seasar.dbflute.dbmeta.info.UniqueInfo;
 import org.seasar.dbflute.dbmeta.name.TableSqlName;
 import org.seasar.robot.db.allcommon.DBCurrent;
 import org.seasar.robot.db.allcommon.DBFluteConfig;
+import org.seasar.robot.db.exentity.AccessResult;
 import org.seasar.robot.db.exentity.AccessResultData;
 
 /**
  * The DB meta of ACCESS_RESULT_DATA. (Singleton)
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    // Singleton
-    // =========
+    //                                                                           Singleton
+    //                                                                           =========
     private static final AccessResultDataDbm _instance =
         new AccessResultDataDbm();
 
@@ -51,16 +51,19 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Current DBDef
-    // =============
+    //                                                                       Current DBDef
+    //                                                                       =============
     @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // ===================================================================================
-    // Property Gateway
-    // ================
+    //                                                                    Property Gateway
+    //                                                                    ================
+    // -----------------------------------------------------
+    //                                       Column Property
+    //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
         setupEpg(_epgMap, new EpgId(), "id");
@@ -69,62 +72,87 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         setupEpg(_epgMap, new EpgEncoding(), "encoding");
     }
 
-    @Override
-    public PropertyGateway findPropertyGateway(final String propertyName) {
-        return doFindEpg(_epgMap, propertyName);
-    }
-
     public static class EpgId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getId();
+        public Object read(final Entity et) {
+            return ((AccessResultData) et).getId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setId(ctl(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultData) et).setId(ctl(vl));
         }
     }
 
     public static class EpgTransformerName implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getTransformerName();
+        public Object read(final Entity et) {
+            return ((AccessResultData) et).getTransformerName();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setTransformerName((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultData) et).setTransformerName((String) vl);
         }
     }
 
     public static class EpgData implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getData();
+        public Object read(final Entity et) {
+            return ((AccessResultData) et).getData();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setData((byte[]) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultData) et).setData((byte[]) vl);
         }
     }
 
     public static class EpgEncoding implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultData) e).getEncoding();
+        public Object read(final Entity et) {
+            return ((AccessResultData) et).getEncoding();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultData) e).setEncoding((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultData) et).setEncoding((String) vl);
         }
     }
 
+    @Override
+    public PropertyGateway findPropertyGateway(final String prop) {
+        return doFindEpg(_epgMap, prop);
+    }
+
+    // -----------------------------------------------------
+    //                                      Foreign Property
+    //                                      ----------------
+    protected final Map<String, PropertyGateway> _efpgMap = newHashMap();
+    {
+        setupEfpg(_efpgMap, new EfpgAccessResult(), "accessResult");
+    }
+
+    public class EfpgAccessResult implements PropertyGateway {
+        @Override
+        public Object read(final Entity et) {
+            return ((AccessResultData) et).getAccessResult();
+        }
+
+        @Override
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultData) et).setAccessResult((AccessResult) vl);
+        }
+    }
+
+    @Override
+    public PropertyGateway findForeignPropertyGateway(final String prop) {
+        return doFindEfpg(_efpgMap, prop);
+    }
+
     // ===================================================================================
-    // Table Info
-    // ==========
+    //                                                                          Table Info
+    //                                                                          ==========
     protected final String _tableDbName = "ACCESS_RESULT_DATA";
 
     protected final String _tablePropertyName = "accessResultData";
@@ -154,18 +182,19 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Column Info
-    // ===========
+    //                                                                         Column Info
+    //                                                                         ===========
     protected final ColumnInfo _columnId = cci(
         "ID",
         "ID",
         null,
         null,
-        true,
-        "id",
         Long.class,
+        "id",
+        null,
         true,
         false,
+        true,
         "BIGINT",
         19,
         0,
@@ -182,11 +211,12 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         "TRANSFORMER_NAME",
         null,
         null,
-        true,
-        "transformerName",
         String.class,
+        "transformerName",
+        null,
         false,
         false,
+        true,
         "VARCHAR",
         255,
         0,
@@ -203,9 +233,10 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         "DATA",
         null,
         null,
-        false,
-        "data",
         byte[].class,
+        "data",
+        null,
+        false,
         false,
         false,
         "BLOB",
@@ -224,9 +255,10 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         "ENCODING",
         null,
         null,
-        false,
-        "encoding",
         String.class,
+        "encoding",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -240,18 +272,34 @@ public class AccessResultDataDbm extends AbstractDBMeta {
         null,
         null);
 
+    /**
+     * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnId() {
         return _columnId;
     }
 
+    /**
+     * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnTransformerName() {
         return _columnTransformerName;
     }
 
+    /**
+     * DATA: {BLOB(2147483647)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnData() {
         return _columnData;
     }
 
+    /**
+     * ENCODING: {VARCHAR(20)}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnEncoding() {
         return _columnEncoding;
     }
@@ -271,11 +319,11 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Unique Info
-    // ===========
+    //                                                                         Unique Info
+    //                                                                         ===========
     // -----------------------------------------------------
-    // Primary Element
-    // ---------------
+    //                                       Primary Element
+    //                                       ---------------
     @Override
     protected UniqueInfo cpui() {
         return hpcpui(columnId());
@@ -292,13 +340,19 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Relation Info
-    // =============
+    //                                                                       Relation Info
+    //                                                                       =============
+    // cannot cache because it uses related DB meta instance while booting
+    // (instead, cached by super's collection)
     // -----------------------------------------------------
-    // Foreign Property
-    // ----------------
+    //                                      Foreign Property
+    //                                      ----------------
+    /**
+     * ACCESS_RESULT by my ID, named 'accessResult'.
+     * @return The information object of foreign property. (NotNull)
+     */
     public ForeignInfo foreignAccessResult() {
-        final Map<ColumnInfo, ColumnInfo> map =
+        final Map<ColumnInfo, ColumnInfo> mp =
             newLinkedHashMap(columnId(), AccessResultDbm
                 .getInstance()
                 .columnId());
@@ -307,8 +361,9 @@ public class AccessResultDataDbm extends AbstractDBMeta {
             "accessResult",
             this,
             AccessResultDbm.getInstance(),
-            map,
+            mp,
             0,
+            null,
             true,
             false,
             false,
@@ -320,16 +375,16 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // -----------------------------------------------------
-    // Referrer Property
-    // -----------------
+    //                                     Referrer Property
+    //                                     -----------------
 
     // ===================================================================================
-    // Various Info
-    // ============
+    //                                                                        Various Info
+    //                                                                        ============
 
     // ===================================================================================
-    // Type Name
-    // =========
+    //                                                                           Type Name
+    //                                                                           =========
     @Override
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.AccessResultData";
@@ -346,16 +401,16 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Object Type
-    // ===========
+    //                                                                         Object Type
+    //                                                                         ===========
     @Override
     public Class<AccessResultData> getEntityType() {
         return AccessResultData.class;
     }
 
     // ===================================================================================
-    // Object Instance
-    // ===============
+    //                                                                     Object Instance
+    //                                                                     ===============
     @Override
     public Entity newEntity() {
         return newMyEntity();
@@ -366,27 +421,27 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Map Communication
-    // =================
+    //                                                                   Map Communication
+    //                                                                   =================
     @Override
-    public void acceptPrimaryKeyMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((AccessResultData) e, m);
+    public void acceptPrimaryKeyMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptPrimaryKeyMap((AccessResultData) et, mp);
     }
 
     @Override
-    public void acceptAllColumnMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptAllColumnMap((AccessResultData) e, m);
+    public void acceptAllColumnMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptAllColumnMap((AccessResultData) et, mp);
     }
 
     @Override
-    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
-        return doExtractPrimaryKeyMap(e);
+    public Map<String, Object> extractPrimaryKeyMap(final Entity et) {
+        return doExtractPrimaryKeyMap(et);
     }
 
     @Override
-    public Map<String, Object> extractAllColumnMap(final Entity e) {
-        return doExtractAllColumnMap(e);
+    public Map<String, Object> extractAllColumnMap(final Entity et) {
+        return doExtractAllColumnMap(et);
     }
 }

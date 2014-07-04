@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,15 @@ import org.seasar.robot.db.exbhv.AccessResultBhv;
 
 /**
  * The base class for typed parameter-bean of AccessResult. <br />
- * This is related to "<span style="color: #AD4747">selectListByUrlDiff</span>"
- * on AccessResultBhv.
- * 
+ * This is related to "<span style="color: #AD4747">selectListByUrlDiff</span>" on AccessResultBhv.
  * @author DBFlute(AutoGenerator)
  */
 public class BsAccessResultPmb implements
         CursorHandlingPmb<AccessResultBhv, Void>, FetchBean {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     /** The parameter of newSessionId. */
     protected String _newSessionId;
 
@@ -50,19 +48,18 @@ public class BsAccessResultPmb implements
     protected int _safetyMaxResultSize;
 
     // ===================================================================================
-    // Constructor
-    // ===========
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor for the typed parameter-bean of AccessResult. <br />
-     * This is related to "<span style="color:
-     * #AD4747">selectListByUrlDiff</span>" on AccessResultBhv.
+     * This is related to "<span style="color: #AD4747">selectListByUrlDiff</span>" on AccessResultBhv.
      */
     public BsAccessResultPmb() {
     }
 
     // ===================================================================================
-    // Typed Implementation
-    // ====================
+    //                                                                Typed Implementation
+    //                                                                ====================
     /**
      * {@inheritDoc}
      */
@@ -73,7 +70,6 @@ public class BsAccessResultPmb implements
 
     /**
      * Get the type of an entity for result. (implementation)
-     * 
      * @return The type instance of an entity, cursor handling. (NotNull)
      */
     @Override
@@ -82,8 +78,8 @@ public class BsAccessResultPmb implements
     }
 
     // ===================================================================================
-    // Safety Result
-    // =============
+    //                                                                       Safety Result
+    //                                                                       =============
     /**
      * {@inheritDoc}
      */
@@ -101,8 +97,8 @@ public class BsAccessResultPmb implements
     }
 
     // ===================================================================================
-    // Assist Helper
-    // =============
+    //                                                                       Assist Helper
+    //                                                                       =============
     protected String filterStringParameter(final String value) {
         if (isEmptyStringParameterAllowed()) {
             return value;
@@ -134,8 +130,7 @@ public class BsAccessResultPmb implements
     protected <ELEMENT> ArrayList<ELEMENT> newArrayList(
             final ELEMENT... elements) {
         final Object obj = DfCollectionUtil.newArrayList(elements);
-        return (ArrayList<ELEMENT>) obj; // to avoid the warning between JDK6
-                                         // and JDK7
+        return (ArrayList<ELEMENT>) obj; // to avoid the warning between JDK6 and JDK7
     }
 
     @SuppressWarnings("unchecked")
@@ -163,8 +158,8 @@ public class BsAccessResultPmb implements
     }
 
     // ===================================================================================
-    // Basic Override
-    // ==============
+    //                                                                      Basic Override
+    //                                                                      ==============
     /**
      * @return The display string of all parameters. (NotNull)
      */
@@ -189,13 +184,11 @@ public class BsAccessResultPmb implements
     }
 
     // ===================================================================================
-    // Accessor
-    // ========
+    //                                                                            Accessor
+    //                                                                            ========
     /**
      * [get] newSessionId <br />
-     * 
-     * @return The value of newSessionId. (Nullable, NotEmptyString(when
-     *         String): if empty string, returns null)
+     * @return The value of newSessionId. (Nullable, NotEmptyString(when String): if empty string, returns null)
      */
     public String getNewSessionId() {
         return filterStringParameter(_newSessionId);
@@ -203,9 +196,7 @@ public class BsAccessResultPmb implements
 
     /**
      * [set] newSessionId <br />
-     * 
-     * @param newSessionId
-     *            The value of newSessionId. (NullAllowed)
+     * @param newSessionId The value of newSessionId. (NullAllowed)
      */
     public void setNewSessionId(final String newSessionId) {
         _newSessionId = newSessionId;
@@ -213,9 +204,7 @@ public class BsAccessResultPmb implements
 
     /**
      * [get] oldSessionId <br />
-     * 
-     * @return The value of oldSessionId. (Nullable, NotEmptyString(when
-     *         String): if empty string, returns null)
+     * @return The value of oldSessionId. (Nullable, NotEmptyString(when String): if empty string, returns null)
      */
     public String getOldSessionId() {
         return filterStringParameter(_oldSessionId);
@@ -223,9 +212,7 @@ public class BsAccessResultPmb implements
 
     /**
      * [set] oldSessionId <br />
-     * 
-     * @param oldSessionId
-     *            The value of oldSessionId. (NullAllowed)
+     * @param oldSessionId The value of oldSessionId. (NullAllowed)
      */
     public void setOldSessionId(final String oldSessionId) {
         _oldSessionId = oldSessionId;

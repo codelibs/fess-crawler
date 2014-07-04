@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,13 @@ import org.seasar.robot.db.exentity.customize.AccessResultDiff;
 
 /**
  * The DB meta of AccessResultDiff. (Singleton)
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDiffDbm extends AbstractDBMeta {
 
     // ===================================================================================
-    // Singleton
-    // =========
+    //                                                                           Singleton
+    //                                                                           =========
     private static final AccessResultDiffDbm _instance =
         new AccessResultDiffDbm();
 
@@ -50,16 +49,19 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Current DBDef
-    // =============
+    //                                                                       Current DBDef
+    //                                                                       =============
     @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // ===================================================================================
-    // Property Gateway
-    // ================
+    //                                                                    Property Gateway
+    //                                                                    ================
+    // -----------------------------------------------------
+    //                                       Column Property
+    //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
         setupEpg(_epgMap, new EpgId(), "id");
@@ -76,158 +78,158 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         setupEpg(_epgMap, new EpgCreateTime(), "createTime");
     }
 
-    @Override
-    public PropertyGateway findPropertyGateway(final String propertyName) {
-        return doFindEpg(_epgMap, propertyName);
-    }
-
     public static class EpgId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getId();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setId(ctl(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setId(ctl(vl));
         }
     }
 
     public static class EpgSessionId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getSessionId();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getSessionId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setSessionId((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setSessionId((String) vl);
         }
     }
 
     public static class EpgRuleId implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getRuleId();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getRuleId();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setRuleId((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setRuleId((String) vl);
         }
     }
 
     public static class EpgUrl implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getUrl();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getUrl();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setUrl((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setUrl((String) vl);
         }
     }
 
     public static class EpgParentUrl implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getParentUrl();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getParentUrl();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setParentUrl((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setParentUrl((String) vl);
         }
     }
 
     public static class EpgStatus implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getStatus();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getStatus();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setStatus(cti(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setStatus(cti(vl));
         }
     }
 
     public static class EpgHttpStatusCode implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getHttpStatusCode();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getHttpStatusCode();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setHttpStatusCode(cti(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setHttpStatusCode(cti(vl));
         }
     }
 
     public static class EpgMethod implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getMethod();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getMethod();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setMethod((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setMethod((String) vl);
         }
     }
 
     public static class EpgMimeType implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getMimeType();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getMimeType();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setMimeType((String) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setMimeType((String) vl);
         }
     }
 
     public static class EpgContentLength implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getContentLength();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getContentLength();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setContentLength(ctl(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setContentLength(ctl(vl));
         }
     }
 
     public static class EpgExecutionTime implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getExecutionTime();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getExecutionTime();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setExecutionTime(cti(v));
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setExecutionTime(cti(vl));
         }
     }
 
     public static class EpgCreateTime implements PropertyGateway {
         @Override
-        public Object read(final Entity e) {
-            return ((AccessResultDiff) e).getCreateTime();
+        public Object read(final Entity et) {
+            return ((AccessResultDiff) et).getCreateTime();
         }
 
         @Override
-        public void write(final Entity e, final Object v) {
-            ((AccessResultDiff) e).setCreateTime((java.sql.Timestamp) v);
+        public void write(final Entity et, final Object vl) {
+            ((AccessResultDiff) et).setCreateTime((java.sql.Timestamp) vl);
         }
     }
 
+    @Override
+    public PropertyGateway findPropertyGateway(final String prop) {
+        return doFindEpg(_epgMap, prop);
+    }
+
     // ===================================================================================
-    // Table Info
-    // ==========
+    //                                                                          Table Info
+    //                                                                          ==========
     protected final String _tableDbName = "AccessResultDiff";
 
     protected final String _tablePropertyName = "accessResultDiff";
@@ -257,16 +259,17 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Column Info
-    // ===========
+    //                                                                         Column Info
+    //                                                                         ===========
     protected final ColumnInfo _columnId = cci(
         "ID",
         "ID",
         null,
         null,
-        false,
-        "id",
         Long.class,
+        "id",
+        null,
+        false,
         false,
         false,
         "BIGINT",
@@ -285,9 +288,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "SESSION_ID",
         null,
         null,
-        false,
-        "sessionId",
         String.class,
+        "sessionId",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -306,9 +310,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "RULE_ID",
         null,
         null,
-        false,
-        "ruleId",
         String.class,
+        "ruleId",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -327,9 +332,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "URL",
         null,
         null,
-        false,
-        "url",
         String.class,
+        "url",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -348,9 +354,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "PARENT_URL",
         null,
         null,
-        false,
-        "parentUrl",
         String.class,
+        "parentUrl",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -369,9 +376,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "STATUS",
         null,
         null,
-        false,
-        "status",
         Integer.class,
+        "status",
+        null,
+        false,
         false,
         false,
         "INTEGER",
@@ -390,9 +398,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "HTTP_STATUS_CODE",
         null,
         null,
-        false,
-        "httpStatusCode",
         Integer.class,
+        "httpStatusCode",
+        null,
+        false,
         false,
         false,
         "INTEGER",
@@ -411,9 +420,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "METHOD",
         null,
         null,
-        false,
-        "method",
         String.class,
+        "method",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -432,9 +442,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "MIME_TYPE",
         null,
         null,
-        false,
-        "mimeType",
         String.class,
+        "mimeType",
+        null,
+        false,
         false,
         false,
         "VARCHAR",
@@ -453,9 +464,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "CONTENT_LENGTH",
         null,
         null,
-        false,
-        "contentLength",
         Long.class,
+        "contentLength",
+        null,
+        false,
         false,
         false,
         "BIGINT",
@@ -474,9 +486,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "EXECUTION_TIME",
         null,
         null,
-        false,
-        "executionTime",
         Integer.class,
+        "executionTime",
+        null,
+        false,
         false,
         false,
         "INTEGER",
@@ -495,9 +508,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         "CREATE_TIME",
         null,
         null,
-        false,
-        "createTime",
         java.sql.Timestamp.class,
+        "createTime",
+        null,
+        false,
         false,
         false,
         "TIMESTAMP",
@@ -511,50 +525,98 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
         null,
         null);
 
+    /**
+     * ID: {BIGINT(19), refers to ACCESS_RESULT.ID}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnId() {
         return _columnId;
     }
 
+    /**
+     * SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnSessionId() {
         return _columnSessionId;
     }
 
+    /**
+     * RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnRuleId() {
         return _columnRuleId;
     }
 
+    /**
+     * URL: {VARCHAR(65536), refers to ACCESS_RESULT.URL}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnUrl() {
         return _columnUrl;
     }
 
+    /**
+     * PARENT_URL: {VARCHAR(65536), refers to ACCESS_RESULT.PARENT_URL}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnParentUrl() {
         return _columnParentUrl;
     }
 
+    /**
+     * STATUS: {INTEGER(10), refers to ACCESS_RESULT.STATUS}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnStatus() {
         return _columnStatus;
     }
 
+    /**
+     * HTTP_STATUS_CODE: {INTEGER(10), refers to ACCESS_RESULT.HTTP_STATUS_CODE}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnHttpStatusCode() {
         return _columnHttpStatusCode;
     }
 
+    /**
+     * METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnMethod() {
         return _columnMethod;
     }
 
+    /**
+     * MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnMimeType() {
         return _columnMimeType;
     }
 
+    /**
+     * CONTENT_LENGTH: {BIGINT(19), refers to ACCESS_RESULT.CONTENT_LENGTH}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnContentLength() {
         return _columnContentLength;
     }
 
+    /**
+     * EXECUTION_TIME: {INTEGER(10), refers to ACCESS_RESULT.EXECUTION_TIME}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnExecutionTime() {
         return _columnExecutionTime;
     }
 
+    /**
+     * CREATE_TIME: {TIMESTAMP(23, 10), refers to ACCESS_RESULT.CREATE_TIME}
+     * @return The information object of specified column. (NotNull)
+     */
     public ColumnInfo columnCreateTime() {
         return _columnCreateTime;
     }
@@ -582,11 +644,11 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Unique Info
-    // ===========
+    //                                                                         Unique Info
+    //                                                                         ===========
     // -----------------------------------------------------
-    // Primary Element
-    // ---------------
+    //                                       Primary Element
+    //                                       ---------------
     @Override
     protected UniqueInfo cpui() {
         throw new UnsupportedOperationException(
@@ -604,23 +666,25 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Relation Info
-    // =============
+    //                                                                       Relation Info
+    //                                                                       =============
+    // cannot cache because it uses related DB meta instance while booting
+    // (instead, cached by super's collection)
     // -----------------------------------------------------
-    // Foreign Property
-    // ----------------
+    //                                      Foreign Property
+    //                                      ----------------
 
     // -----------------------------------------------------
-    // Referrer Property
-    // -----------------
+    //                                     Referrer Property
+    //                                     -----------------
 
     // ===================================================================================
-    // Various Info
-    // ============
+    //                                                                        Various Info
+    //                                                                        ============
 
     // ===================================================================================
-    // Type Name
-    // =========
+    //                                                                           Type Name
+    //                                                                           =========
     @Override
     public String getEntityTypeName() {
         return "org.seasar.robot.db.exentity.customize.AccessResultDiff";
@@ -637,16 +701,16 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Object Type
-    // ===========
+    //                                                                         Object Type
+    //                                                                         ===========
     @Override
     public Class<AccessResultDiff> getEntityType() {
         return AccessResultDiff.class;
     }
 
     // ===================================================================================
-    // Object Instance
-    // ===============
+    //                                                                     Object Instance
+    //                                                                     ===============
     @Override
     public Entity newEntity() {
         return newMyEntity();
@@ -657,27 +721,27 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     }
 
     // ===================================================================================
-    // Map Communication
-    // =================
+    //                                                                   Map Communication
+    //                                                                   =================
     @Override
-    public void acceptPrimaryKeyMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptPrimaryKeyMap((AccessResultDiff) e, m);
+    public void acceptPrimaryKeyMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptPrimaryKeyMap((AccessResultDiff) et, mp);
     }
 
     @Override
-    public void acceptAllColumnMap(final Entity e,
-            final Map<String, ? extends Object> m) {
-        doAcceptAllColumnMap((AccessResultDiff) e, m);
+    public void acceptAllColumnMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptAllColumnMap((AccessResultDiff) et, mp);
     }
 
     @Override
-    public Map<String, Object> extractPrimaryKeyMap(final Entity e) {
-        return doExtractPrimaryKeyMap(e);
+    public Map<String, Object> extractPrimaryKeyMap(final Entity et) {
+        return doExtractPrimaryKeyMap(et);
     }
 
     @Override
-    public Map<String, Object> extractAllColumnMap(final Entity e) {
-        return doExtractAllColumnMap(e);
+    public Map<String, Object> extractAllColumnMap(final Entity et) {
+        return doExtractAllColumnMap(et);
     }
 }

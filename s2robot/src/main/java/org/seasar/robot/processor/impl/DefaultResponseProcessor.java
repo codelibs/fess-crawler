@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,7 +177,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         }
 
         // add url and filter
-        final List<UrlQueue> childList = new ArrayList<UrlQueue>();
+        final List<UrlQueue> childList = new ArrayList<>();
         for (final RequestData childUrl : childUrlList) {
             if (robotContext.getUrlFilter().match(childUrl.getUrl())) {
                 final UrlQueue uq =
@@ -189,6 +189,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 uq.setParentUrl(url);
                 uq.setSessionId(robotContext.getSessionId());
                 uq.setUrl(childUrl.getUrl());
+                uq.setMetaData(childUrl.getMetaData());
                 childList.add(uq);
             }
         }

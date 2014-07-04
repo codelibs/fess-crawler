@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.seasar.robot.builder.RequestDataBuilder;
 import org.seasar.robot.client.S2RobotClient;
 import org.seasar.robot.client.S2RobotClientFactory;
 import org.seasar.robot.client.fs.ChildUrlsException;
+import org.seasar.robot.entity.RequestData;
 import org.seasar.robot.entity.ResponseData;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.helper.LogHelper;
@@ -200,6 +201,7 @@ public class S2RobotThread implements Runnable {
                                     storeChildUrl(
                                         responseData.getRedirectLocation(),
                                         urlQueue.getUrl(),
+                                        null,
                                         urlQueue.getDepth() == null ? 1
                                             : urlQueue.getDepth() + 1);
                                 }
@@ -213,7 +215,8 @@ public class S2RobotThread implements Runnable {
                             urlQueue);
                     } catch (final ChildUrlsException e) {
                         try {
-                            final Set<String> childUrlSet = e.getChildUrlList();
+                            final Set<RequestData> childUrlSet =
+                                e.getChildUrlList();
                             log(
                                 logHelper,
                                 LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
@@ -310,6 +313,7 @@ public class S2RobotThread implements Runnable {
                     storeChildUrl(
                         childUrl,
                         urlQueue.getUrl(),
+                        null,
                         urlQueue.getDepth() == null ? 1
                             : urlQueue.getDepth() + 1);
                 } catch (final Exception e) {
@@ -400,7 +404,7 @@ public class S2RobotThread implements Runnable {
 
     }
 
-    protected void storeChildUrls(final Set<String> childUrlList,
+    protected void storeChildUrls(final Set<RequestData> childUrlList,
             final String url, final int depth) {
         if (robotContext.getMaxDepth() >= 0
             && depth > robotContext.getMaxDepth()) {
@@ -409,8 +413,8 @@ public class S2RobotThread implements Runnable {
 
         // add url and filter
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
-        for (final String childUrl : childUrlList) {
-            if (robotContext.urlFilter.match(childUrl)) {
+        for (final RequestData requestData : childUrlList) {
+            if (robotContext.urlFilter.match(requestData.getUrl())) {
                 final UrlQueue uq =
                     (UrlQueue) container.getComponent(UrlQueue.class);
                 uq.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -418,15 +422,16 @@ public class S2RobotThread implements Runnable {
                 uq.setMethod(Constants.GET_METHOD);
                 uq.setParentUrl(url);
                 uq.setSessionId(robotContext.sessionId);
-                uq.setUrl(childUrl);
+                uq.setUrl(requestData.getUrl());
+                uq.setMetaData(requestData.getMetaData());
                 childList.add(uq);
             }
         }
         urlQueueService.offerAll(robotContext.sessionId, childList);
     }
 
-    protected void storeChildUrl(final String childUrl, final String url,
-            final int depth) {
+    protected void storeChildUrl(final String childUrl, final String parentUrl,
+            String metaData, final int depth) {
         if (robotContext.getMaxDepth() >= 0
             && depth > robotContext.getMaxDepth()) {
             return;
@@ -440,9 +445,10 @@ public class S2RobotThread implements Runnable {
             uq.setCreateTime(new Timestamp(new Date().getTime()));
             uq.setDepth(depth);
             uq.setMethod(Constants.GET_METHOD);
-            uq.setParentUrl(url);
+            uq.setParentUrl(parentUrl);
             uq.setSessionId(robotContext.sessionId);
             uq.setUrl(childUrl);
+            uq.setMetaData(metaData);
             childList.add(uq);
             urlQueueService.offerAll(robotContext.sessionId, childList);
         }

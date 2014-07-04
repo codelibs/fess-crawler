@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * governing permissions and limitations under the License.
  */
 package org.seasar.robot.db.bsbhv.cursor;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -23,36 +22,27 @@ import org.seasar.robot.db.exbhv.cursor.AccessResultDiffCursor;
 
 /**
  * The cursor handler of AccessResultDiff.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
 
     /**
      * Handle the cursor.
-     * 
-     * @param rs
-     *            The cursor (result set) for the query, which has first
-     *            pointer. (NotNull)
+     * @param rs The cursor (result set) for the query, which has first pointer. (NotNull)
      * @return The result object of handling process. (NullAllowed)
      * @throws SQLException
      */
-    @Override
-    public Object handle(final ResultSet rs) throws SQLException {
+    public Object handle(ResultSet rs) throws SQLException {
         return fetchCursor(createTypeSafeCursor(rs));
     }
 
     /**
      * Create the type-safe cursor.
-     * 
-     * @param rs
-     *            The cursor (result set) for the query, which has first
-     *            pointer. (NotNull)
+     * @param rs The cursor (result set) for the query, which has first pointer. (NotNull)
      * @return The created type-safe cursor. (NotNull)
      * @throws SQLException
      */
-    protected AccessResultDiffCursor createTypeSafeCursor(final ResultSet rs)
-            throws SQLException {
+    protected AccessResultDiffCursor createTypeSafeCursor(ResultSet rs) throws SQLException {
         final AccessResultDiffCursor cursor = new AccessResultDiffCursor();
         cursor.accept(rs);
         return cursor;
@@ -60,13 +50,9 @@ public abstract class BsAccessResultDiffCursorHandler implements CursorHandler {
 
     /**
      * Fetch the cursor.
-     * 
-     * @param cursor
-     *            The type-safe cursor for the query, which has first pointer.
-     *            (NotNull)
+     * @param cursor The type-safe cursor for the query, which has first pointer. (NotNull)
      * @return The result object of handling process. (NullAllowed)
      * @throws SQLException
      */
-    protected abstract Object fetchCursor(AccessResultDiffCursor cursor)
-            throws SQLException;
+    protected abstract Object fetchCursor(AccessResultDiffCursor cursor) throws SQLException;
 }

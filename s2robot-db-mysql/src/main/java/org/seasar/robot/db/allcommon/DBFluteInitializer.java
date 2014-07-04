@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  */
 package org.seasar.robot.db.allcommon;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.seasar.dbflute.DBDef;
 import org.seasar.dbflute.cbean.ConditionBeanContext;
 import org.seasar.dbflute.jdbc.DataSourceHandler;
 import org.seasar.dbflute.resource.DBFluteSystem;
 import org.seasar.dbflute.s2dao.extension.TnSqlLogRegistry;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @author DBFlute(AutoGenerator)
@@ -29,18 +30,18 @@ import org.seasar.dbflute.s2dao.extension.TnSqlLogRegistry;
 public class DBFluteInitializer {
 
     // ===================================================================================
-    // Definition
-    // ==========
+    //                                                                          Definition
+    //                                                                          ==========
     /** Log instance. */
     private static final Log _log = LogFactory.getLog(DBFluteInitializer.class);
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
 
     // ===================================================================================
-    // Constructor
-    // ===========
+    //                                                                         Constructor
+    //                                                                         ===========
     /**
      * Constructor, which initializes various components.
      */
@@ -51,8 +52,8 @@ public class DBFluteInitializer {
     }
 
     // ===================================================================================
-    // Curtain
-    // =======
+    //                                                                             Curtain
+    //                                                                             =======
     /**
      * DBFlute will begin in just a few second.
      */
@@ -62,8 +63,8 @@ public class DBFluteInitializer {
 
     /**
      * This is the story for ... <br />
-     * You can override this to set your DBFluteConfig settings with calling
-     * super.prologue() in it.
+     * You can override this to set your DBFluteConfig settings
+     * with calling super.prologue() in it.
      */
     protected void prologue() {
         handleSqlLogRegistry();
@@ -80,80 +81,66 @@ public class DBFluteInitializer {
     }
 
     // ===================================================================================
-    // Contents
-    // ========
+    //                                                                            Contents
+    //                                                                            ========
     protected void handleSqlLogRegistry() { // for S2Container
         if (DBFluteConfig.getInstance().isUseSqlLogRegistry()) {
             final StringBuilder sb = new StringBuilder();
             sb.append("{SqlLog Information}").append(ln());
             sb.append("  [SqlLogRegistry]").append(ln());
             if (TnSqlLogRegistry.setupSqlLogRegistry()) {
-                sb
-                    .append(
-                        "    ...Setting up sqlLogRegistry(org.seasar.extension.jdbc)")
-                    .append(ln());
-                sb
-                    .append("    because the property 'useSqlLogRegistry' of the config of DBFlute is true");
+                sb.append("    ...Setting up sqlLogRegistry(org.seasar.extension.jdbc)").append(ln());
+                sb.append("    because the property 'useSqlLogRegistry' of the config of DBFlute is true");
             } else {
-                sb
-                    .append("    The sqlLogRegistry(org.seasar.extension.jdbc) is not supported at the version");
+                sb.append("    The sqlLogRegistry(org.seasar.extension.jdbc) is not supported at the version");
             }
-            _log.info(sb);
+           _log.info(sb);
         } else {
-            final Object sqlLogRegistry =
-                TnSqlLogRegistry.findContainerSqlLogRegistry();
+            final Object sqlLogRegistry = TnSqlLogRegistry.findContainerSqlLogRegistry();
             if (sqlLogRegistry != null) {
                 TnSqlLogRegistry.closeRegistration();
             }
         }
     }
 
-    protected void loadCoolClasses() { // for S2Container
-        ConditionBeanContext.loadCoolClasses(); // against the ClassLoader
-                                                // Headache!
+    protected void loadCoolClasses() { // for S2Container 
+        ConditionBeanContext.loadCoolClasses(); // against the ClassLoader Headache!
     }
 
     /**
      * Set up the handler of data source to the configuration of DBFlute. <br />
      * If it uses commons-DBCP, it needs to arrange some for transaction.
      * <ul>
-     * <li>A. To use DataSourceUtils which is Spring Framework class.</li>
-     * <li>B. To use TransactionConnection that is original class and doesn't
-     * close really.</li>
+     *     <li>A. To use DataSourceUtils which is Spring Framework class.</li>
+     *     <li>B. To use TransactionConnection that is original class and doesn't close really.</li>
      * </ul>
-     * If you use a transaction library which has a data source which supports
-     * transaction, It doesn't need these arrangement. (For example, the
-     * framework 'Atomikos') <br />
+     * If you use a transaction library which has a data source which supports transaction,
+     * It doesn't need these arrangement. (For example, the framework 'Atomikos') <br />
      * This method should be executed when application is initialized.
-     * 
-     * @param dataSourceFqcn
-     *            The FQCN of data source. (NotNull)
+     * @param dataSourceFqcn The FQCN of data source. (NotNull)
      */
-    protected void setupDataSourceHandler(final String dataSourceFqcn) { // for
-                                                                         // Spring
+    protected void setupDataSourceHandler(String dataSourceFqcn) { // for Spring
         final DBFluteConfig config = DBFluteConfig.getInstance();
-        final DataSourceHandler dataSourceHandler =
-            config.getDataSourceHandler();
+        final DataSourceHandler dataSourceHandler = config.getDataSourceHandler();
         if (dataSourceHandler != null) {
             return;
         }
         if (dataSourceFqcn.startsWith("org.apache.commons.dbcp.")) {
             config.unlock();
-            config
-                .setDataSourceHandler(new DBFluteConfig.SpringTransactionalDataSourceHandler());
+            config.setDataSourceHandler(new DBFluteConfig.SpringTransactionalDataSourceHandler());
         }
     }
 
     // ===================================================================================
-    // Assist Helper
-    // =============
-    protected boolean isCurrentDBDef(final DBDef currentDBDef) {
+    //                                                                       Assist Helper
+    //                                                                       =============
+    protected boolean isCurrentDBDef(DBDef currentDBDef) {
         return DBCurrent.getInstance().isCurrentDBDef(currentDBDef);
     }
 
     // ===================================================================================
-    // General Helper
-    // ==============
+    //                                                                      General Helper
+    //                                                                      ==============
     protected String ln() {
         return DBFluteSystem.getBasicLn();
     }

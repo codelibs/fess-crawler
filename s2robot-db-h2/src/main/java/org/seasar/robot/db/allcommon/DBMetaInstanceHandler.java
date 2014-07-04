@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.seasar.dbflute.Entity;
 import org.seasar.dbflute.dbmeta.DBMeta;
@@ -30,23 +29,22 @@ import org.seasar.dbflute.util.DfAssertUtil;
 
 /**
  * The handler of the instance of DB meta.
- * 
  * @author DBFlute(AutoGenerator)
  */
 public class DBMetaInstanceHandler implements DBMetaProvider {
 
     // ===================================================================================
-    // Resource Map
-    // ============
-    /** The map of DB meta instance by key: table DB-name. */
+    //                                                                        Resource Map
+    //                                                                        ============
+    /** The map of DB meta instance by key 'table DB-name'. (NotNull, LazyLoaded) */
     protected static final Map<String, DBMeta> _tableDbNameInstanceMap =
         newHashMap();
 
-    /** The map of DB meta instance by key: entity type. */
+    /** The map of DB meta instance by key 'entity type'. (NotNull, LazyLoaded) */
     protected static final Map<Class<?>, DBMeta> _entityTypeInstanceMap =
         newHashMap();
 
-    /** The map of table DB name and DB meta class name. */
+    /** The map of table DB name and DB meta class name. (NotNull) */
     protected static final Map<String, String> _tableDbNameClassNameMap;
     static {
         final Map<String, String> tmpMap = newHashMap();
@@ -65,21 +63,18 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
         _tableDbNameClassNameMap = Collections.unmodifiableMap(tmpMap);
     }
 
-    /** The flexible map of table DB name. This is for conversion at finding. */
+    /** The flexible map of table DB name for conversion in finding process. (NotNull) */
     protected static final Map<String, String> _tableDbNameFlexibleMap =
         StringKeyMap.createAsFlexible();
     static {
-        final Set<String> tableDbNameSet = _tableDbNameClassNameMap.keySet();
-        for (final String tableDbName : tableDbNameSet) {
+        for (final String tableDbName : _tableDbNameClassNameMap.keySet()) {
             _tableDbNameFlexibleMap.put(tableDbName, tableDbName);
         }
     }
 
     /**
      * Get the unmodifiable map of DB meta.
-     * 
-     * @return The unmodifiable map that contains all instances of DB meta.
-     *         (NotNull & NotEmpty)
+     * @return The unmodifiable map that contains all instances of DB meta. (NotNull, NotEmpty)
      */
     public static Map<String, DBMeta> getUnmodifiableDBMetaMap() {
         initializeDBMetaMap();
@@ -100,9 +95,9 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
                 findDBMeta(tableDbName); // initialize
             }
             if (!isInitialized()) {
-                String msg = "Failed to initialize tableDbNameInstanceMap:";
-                msg =
-                    msg + " tableDbNameInstanceMap=" + _tableDbNameInstanceMap;
+                final String msg =
+                    "Failed to initialize tableDbNameInstanceMap: "
+                        + _tableDbNameInstanceMap;
                 throw new IllegalStateException(msg);
             }
         }
@@ -114,8 +109,8 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     // ===================================================================================
-    // Provider Singleton
-    // ==================
+    //                                                                  Provider Singleton
+    //                                                                  ==================
     protected static final DBMetaProvider _provider =
         new DBMetaInstanceHandler();
 
@@ -144,17 +139,13 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     // ===================================================================================
-    // Find DBMeta
-    // ===========
+    //                                                                         Find DBMeta
+    //                                                                         ===========
     /**
-     * Find DB meta by table flexible name. (accept quoted name and schema
-     * prefix)
-     * 
-     * @param tableFlexibleName
-     *            The flexible name of table. (NotNull)
+     * Find DB meta by table flexible name. (accept quoted name and schema prefix)
+     * @param tableFlexibleName The flexible name of table. (NotNull)
      * @return The instance of DB meta. (NotNull)
-     * @exception org.seasar.dbflute.exception.DBMetaNotFoundException
-     *                When the DB meta is not found.
+     * @exception org.seasar.dbflute.exception.DBMetaNotFoundException When the DB meta is not found.
      */
     public static DBMeta findDBMeta(final String tableFlexibleName) {
         final DBMeta dbmeta = byTableFlexibleName(tableFlexibleName);
@@ -169,13 +160,9 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
 
     /**
      * Find DB meta by entity type.
-     * 
-     * @param entityType
-     *            The entity type of table, which should implement the
-     *            {@link Entity} interface. (NotNull)
+     * @param entityType The entity type of table, which should implement the {@link Entity} interface. (NotNull)
      * @return The instance of DB meta. (NotNull)
-     * @exception org.seasar.dbflute.exception.DBMetaNotFoundException
-     *                When the DB meta is not found.
+     * @exception org.seasar.dbflute.exception.DBMetaNotFoundException When the DB meta is not found.
      */
     public static DBMeta findDBMeta(final Class<?> entityType) {
         final DBMeta dbmeta = byEntityType(entityType);
@@ -189,13 +176,11 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     // ===================================================================================
-    // By Table Name
-    // =============
+    //                                                                       by Table Name
+    //                                                                       =============
     /**
-     * @param tableFlexibleName
-     *            The flexible name of table. (NotNull)
-     * @return The instance of DB meta. (NullAllowed: If the DB meta is not
-     *         found, it returns null)
+     * @param tableFlexibleName The flexible name of table. (NotNull)
+     * @return The instance of DB meta. (NullAllowed: If the DB meta is not found, it returns null)
      */
     protected static DBMeta byTableFlexibleName(final String tableFlexibleName) {
         assertStringNotNullAndNotTrimmedEmpty(
@@ -251,10 +236,8 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     /**
-     * @param tableDbName
-     *            The DB name of table. (NotNull)
-     * @return The instance of DB meta. (NullAllowed: If the DB meta is not
-     *         found, it returns null)
+     * @param tableDbName The DB name of table. (NotNull)
+     * @return The instance of DB meta. (NullAllowed: If the DB meta is not found, it returns null)
      */
     protected static DBMeta byTableDbName(final String tableDbName) {
         assertStringNotNullAndNotTrimmedEmpty("tableDbName", tableDbName);
@@ -262,14 +245,11 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     // ===================================================================================
-    // By Entity Type
-    // ==============
+    //                                                                      by Entity Type
+    //                                                                      ==============
     /**
-     * @param entityType
-     *            The entity type of table, which should implement the entity
-     *            interface. (NotNull)
-     * @return The instance of DB meta. (NullAllowed: If the DB meta is not
-     *         found, it returns null)
+     * @param entityType The entity type of table, which should implement the entity interface. (NotNull)
+     * @return The instance of DB meta. (NullAllowed: If the DB meta is not found, it returns null)
      */
     protected static DBMeta byEntityType(final Class<?> entityType) {
         assertObjectNotNull("entityType", entityType);
@@ -277,12 +257,9 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
     }
 
     // ===================================================================================
-    // Cached DBMeta
-    // =============
-    protected static DBMeta getCachedDBMeta(final String tableDbName) { // lazy-load
-                                                                        // (thank
-                                                                        // you
-                                                                        // koyak!)
+    //                                                                       Cached DBMeta
+    //                                                                       =============
+    protected static DBMeta getCachedDBMeta(final String tableDbName) { // lazy-load (thank you koyak!)
         DBMeta dbmeta = _tableDbNameInstanceMap.get(tableDbName);
         if (dbmeta != null) {
             return dbmeta;
@@ -298,28 +275,27 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
             if (dbmetaName == null) {
                 return null;
             }
-            _tableDbNameInstanceMap.put(tableDbName, getDBMeta(dbmetaName));
+            _tableDbNameInstanceMap.put(
+                tableDbName,
+                toDBMetaInstance(dbmetaName));
             return _tableDbNameInstanceMap.get(tableDbName);
         }
     }
 
-    protected static DBMeta getDBMeta(final String className) {
+    protected static DBMeta toDBMetaInstance(final String dbmetaName) {
         try {
-            final Class<?> clazz = Class.forName(className);
-            final Method methoz =
-                clazz.getMethod("getInstance", (Class[]) null);
-            final Object result = methoz.invoke(null, (Object[]) null);
+            final Class<?> dbmetaType = Class.forName(dbmetaName);
+            final Method method =
+                dbmetaType.getMethod("getInstance", (Class[]) null);
+            final Object result = method.invoke(null, (Object[]) null);
             return (DBMeta) result;
         } catch (final Exception e) {
-            throw new RuntimeException("Failed to get the instance: "
-                + className, e);
+            final String msg = "Failed to get the instance: " + dbmetaName;
+            throw new IllegalStateException(msg, e);
         }
     }
 
-    protected static DBMeta getCachedDBMeta(final Class<?> entityType) { // lazy-load
-                                                                         // same
-                                                                         // as
-                                                                         // by-name
+    protected static DBMeta getCachedDBMeta(final Class<?> entityType) { // lazy-load same as by-name
         DBMeta dbmeta = _entityTypeInstanceMap.get(entityType);
         if (dbmeta != null) {
             return dbmeta;
@@ -347,29 +323,29 @@ public class DBMetaInstanceHandler implements DBMetaProvider {
         try {
             return (Entity) entityType.newInstance();
         } catch (final Exception e) {
-            throw new RuntimeException("Failed to new the instance: "
-                + entityType, e);
+            final String msg = "Failed to new the instance: " + entityType;
+            throw new IllegalStateException(msg, e);
         }
     }
 
     // ===================================================================================
-    // General Helper
-    // ==============
+    //                                                                      General Helper
+    //                                                                      ==============
     protected static <KEY, VALUE> HashMap<KEY, VALUE> newHashMap() {
         return new HashMap<KEY, VALUE>();
     }
 
     // -----------------------------------------------------
-    // Assert Object
-    // -------------
+    //                                         Assert Object
+    //                                         -------------
     protected static void assertObjectNotNull(final String variableName,
             final Object value) {
         DfAssertUtil.assertObjectNotNull(variableName, value);
     }
 
     // -----------------------------------------------------
-    // Assert String
-    // -------------
+    //                                         Assert String
+    //                                         -------------
     protected static void assertStringNotNullAndNotTrimmedEmpty(
             final String variableName, final String value) {
         DfAssertUtil.assertStringNotNullAndNotTrimmedEmpty(variableName, value);

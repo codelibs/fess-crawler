@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.seasar.robot.db.cbean.bs.BsAccessResultCB;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultCB extends BsAccessResultCB {

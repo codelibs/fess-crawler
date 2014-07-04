@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2013 the Seasar Foundation and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,8 @@ import org.seasar.framework.util.DisposableUtil;
 public class ImplementedInvokerAssistant implements InvokerAssistant {
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     protected static final String[] DEFAULT_CLIENT_INVOKE_NAMES = new String[] {
         "Page", "Action", "Controller", "ControllerImpl", "Task", "Test" };
 
@@ -62,18 +62,18 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
             "Logic", "LogicImpl" };
 
     // ===================================================================================
-    // Attribute
-    // =========
+    //                                                                           Attribute
+    //                                                                           =========
     // -----------------------------------------------------
-    // DI Component
-    // ------------
+    //                                          DI Component
+    //                                          ------------
     protected DataSource _dataSource;
 
     protected DBFluteInitializer _introduction;
 
     // -----------------------------------------------------
-    // Lazy Component
-    // --------------
+    //                                        Lazy Component
+    //                                        --------------
     protected volatile DBMetaProvider _dbmetaProvider;
 
     protected volatile SqlClauseCreator _sqlClauseCreator;
@@ -91,24 +91,24 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     protected volatile SequenceCacheHandler _sequenceCacheHandler;
 
     // -----------------------------------------------------
-    // Disposable Flag
-    // ---------------
+    //                                       Disposable Flag
+    //                                       ---------------
     protected volatile boolean _disposable;
 
     // ===================================================================================
-    // Assistant Main Work
-    // ===================
+    //                                                                 Assistant Main Work
+    //                                                                 ===================
     // -----------------------------------------------------
-    // Current DBDef
-    // -------------
+    //                                         Current DBDef
+    //                                         -------------
     @Override
     public DBDef assistCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
 
     // -----------------------------------------------------
-    // Data Source
-    // -----------
+    //                                           Data Source
+    //                                           -----------
     @Override
     public DataSource assistDataSource() { // DI component
         // this instance will be cached in SQL executions
@@ -122,8 +122,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // DBMeta Provider
-    // ---------------
+    //                                       DBMeta Provider
+    //                                       ---------------
     @Override
     public DBMetaProvider assistDBMetaProvider() { // lazy component
         if (_dbmetaProvider != null) {
@@ -143,8 +143,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // SQL Clause Creator
-    // ------------------
+    //                                    SQL Clause Creator
+    //                                    ------------------
     @Override
     public SqlClauseCreator assistSqlClauseCreator() { // lazy component
         if (_sqlClauseCreator != null) {
@@ -169,8 +169,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // Statement Factory
-    // -----------------
+    //                                     Statement Factory
+    //                                     -----------------
     @Override
     public StatementFactory assistStatementFactory() { // lazy component
         if (_statementFactory != null) {
@@ -196,8 +196,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // Bean Meta Data Factory
-    // ----------------------
+    //                                Bean Meta Data Factory
+    //                                ----------------------
     @Override
     public TnBeanMetaDataFactory assistBeanMetaDataFactory() { // lazy component
         if (_beanMetaDataFactory != null) {
@@ -221,8 +221,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // SQL Analyzer Factory
-    // --------------------
+    //                                  SQL Analyzer Factory
+    //                                  --------------------
     /**
      * {@inheritDoc}
      */
@@ -245,8 +245,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // OutsideSql Executor Factory
-    // ---------------------------
+    //                           OutsideSql Executor Factory
+    //                           ---------------------------
     /**
      * {@inheritDoc}
      */
@@ -274,8 +274,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // SQLException Digger
-    // -------------------
+    //                                   SQLException Digger
+    //                                   -------------------
     /**
      * {@inheritDoc}
      */
@@ -285,14 +285,13 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // SQLException Handler Factory
-    // ----------------------------
+    //                          SQLException Handler Factory
+    //                          ----------------------------
     /**
      * {@inheritDoc}
      */
     @Override
-    public SQLExceptionHandlerFactory assistSQLExceptionHandlerFactory() { // lazy
-                                                                           // component
+    public SQLExceptionHandlerFactory assistSQLExceptionHandlerFactory() { // lazy component
         if (_sqlExceptionHandlerFactory != null) {
             return _sqlExceptionHandlerFactory;
         }
@@ -310,8 +309,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // Sequence Cache Handler
-    // ----------------------
+    //                                Sequence Cache Handler
+    //                                ----------------------
     /**
      * {@inheritDoc}
      */
@@ -341,40 +340,40 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // SQL File Encoding
-    // -----------------
+    //                                     SQL File Encoding
+    //                                     -----------------
     @Override
     public String assistSqlFileEncoding() {
         return "UTF-8";
     }
 
     // -----------------------------------------------------
-    // Statement Configuration
-    // -----------------------
+    //                               Statement Configuration
+    //                               -----------------------
     @Override
     public StatementConfig assistDefaultStatementConfig() {
         return DBFluteConfig.getInstance().getDefaultStatementConfig();
     }
 
     // -----------------------------------------------------
-    // Behavior Exception Thrower
-    // --------------------------
+    //                            Behavior Exception Thrower
+    //                            --------------------------
     @Override
     public BehaviorExceptionThrower assistBehaviorExceptionThrower() {
         return new BehaviorExceptionThrower();
     }
 
     // -----------------------------------------------------
-    // Geared Cipher Manager
-    // ---------------------
+    //                                 Geared Cipher Manager
+    //                                 ---------------------
     @Override
     public GearedCipherManager assistGearedCipherManager() {
         return DBFluteConfig.getInstance().getGearedCipherManager();
     }
 
     // -----------------------------------------------------
-    // Resource Parameter
-    // ------------------
+    //                                    Resource Parameter
+    //                                    ------------------
     @Override
     public ResourceParameter assistResourceParameter() {
         final ResourceParameter resourceParameter = new ResourceParameter();
@@ -394,8 +393,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // -----------------------------------------------------
-    // Invoke Names
-    // ------------
+    //                                          Invoke Names
+    //                                          ------------
     @Override
     public String[] assistClientInvokeNames() {
         return DEFAULT_CLIENT_INVOKE_NAMES;
@@ -407,11 +406,10 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // ===================================================================================
-    // Dispose
-    // =======
+    //                                                                             Dispose
+    //                                                                             =======
     @Override
-    public void toBeDisposable(final DisposableProcess callerProcess) { // for
-                                                                        // HotDeploy
+    public void toBeDisposable(final DisposableProcess callerProcess) { // for HotDeploy
         if (_disposable) {
             return;
         }
@@ -441,8 +439,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     }
 
     // ===================================================================================
-    // Accessor
-    // ========
+    //                                                                            Accessor
+    //                                                                            ========
     public void setDataSource(final DataSource dataSource) {
         _dataSource = dataSource;
     }

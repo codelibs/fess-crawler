@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.framework.util.ResourceUtil;
 import org.seasar.robot.Constants;
@@ -48,7 +48,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_text() {
-        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+        final InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test.txt");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -57,7 +58,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_pdf() {
-        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        final InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test.pdf");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -554,7 +556,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_sh() {
-        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.sh");
+        final InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test.sh");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -563,7 +566,8 @@ public class TikaExtractorTest extends S2TestCase {
     }
 
     public void test_getTika_rtf() {
-        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.rtf");
+        final InputStream in =
+            ResourceUtil.getResourceAsStream("extractor/test.rtf");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
         IOUtils.closeQuietly(in);

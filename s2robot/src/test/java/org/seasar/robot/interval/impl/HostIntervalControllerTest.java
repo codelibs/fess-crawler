@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.apache.commons.lang.time.StopWatch;
+import org.apache.commons.lang3.time.StopWatch;
 import org.seasar.extension.unit.S2TestCase;
 import org.seasar.robot.entity.UrlQueue;
 import org.seasar.robot.entity.UrlQueueImpl;
@@ -69,7 +69,8 @@ public class HostIntervalControllerTest extends S2TestCase {
         };
 
         // Callableタスクを複数生成
-        final List<Callable<Integer>> tasks = new ArrayList<Callable<Integer>>();
+        final List<Callable<Integer>> tasks =
+            new ArrayList<Callable<Integer>>();
         for (int i = 0; i < numTasks; i++) {
             tasks.add(testCallable);
         }

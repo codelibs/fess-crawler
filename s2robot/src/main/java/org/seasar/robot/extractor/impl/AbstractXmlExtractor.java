@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.seasar.framework.util.InputStreamUtil;
 import org.seasar.framework.util.StringUtil;
 import org.seasar.robot.Constants;
@@ -61,7 +61,7 @@ public abstract class AbstractXmlExtractor {
             final BufferedInputStream bis = new BufferedInputStream(in);
             final String enc = getEncoding(bis);
             final String content =
-                StringEscapeUtils.unescapeHtml(new String(InputStreamUtil
+                StringEscapeUtils.unescapeHtml4(new String(InputStreamUtil
                     .getBytes(bis), enc));
             return new ExtractData(extractString(content));
         } catch (final Exception e) {

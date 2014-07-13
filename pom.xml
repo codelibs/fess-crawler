@@ -74,6 +74,7 @@
     <mysql.version>5.1.31</mysql.version>
     <oracle.version>11.2.0.3</oracle.version>
     <dbflute.version>1.0.5H</dbflute.version>
+    <slf4j.version>1.7.7</slf4j.version>
   </properties>
   <build>
     <pluginManagement>

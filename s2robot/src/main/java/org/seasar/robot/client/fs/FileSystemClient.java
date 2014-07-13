@@ -29,7 +29,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.seasar.framework.container.SingletonS2Container;
 import org.seasar.framework.container.annotation.tiger.Binding;
 import org.seasar.framework.container.annotation.tiger.BindingType;

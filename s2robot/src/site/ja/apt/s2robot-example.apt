@@ -70,7 +70,7 @@ Index: pom.xml
 @@ -96,7 +96,7 @@
      </dependency>
      <dependency>
-       <groupId>org.seasar.robot</groupId>
+       <groupId>org.codelibs.robot</groupId>
 -      <artifactId>s2-robot-db</artifactId>
 +      <artifactId>s2-robot</artifactId>
        <version>0.1.0-SNAPSHOT</version>

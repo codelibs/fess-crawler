@@ -21,16 +21,16 @@
 <components>
     <include path="s2robot_transformer.dicon"/>
 
-    <component name="ruleManager" class="org.seasar.robot.rule.impl.RuleManagerImpl" instance="prototype">
+    <component name="ruleManager" class="org.codelibs.robot.rule.impl.RuleManagerImpl" instance="prototype">
         <initMethod name="addRule">
             <arg>fileRule</arg>
         </initMethod>
     </component>
 
-    <component name="fileRule" class="org.seasar.robot.rule.impl.RegexRule">
+    <component name="fileRule" class="org.codelibs.robot.rule.impl.RegexRule">
         <property name="defaultRule">true</property>
         <property name="responseProcessor">
-            <component class="org.seasar.robot.processor.impl.DefaultResponseProcessor">
+            <component class="org.codelibs.robot.processor.impl.DefaultResponseProcessor">
                 <property name="transformer">fileTransformer</property>
             </component>
         </property>
@@ -49,7 +49,7 @@
     例えば、コンテンツタイプ(MIMEタイプ部分)が text/html で、URL が http://www.example.com/ で始まり html で終わるようなものだけを対象にする場合は以下のようになります。
 
 +--------------------------------------------------+
-    <component name="htmlRule" class="org.seasar.robot.rule.impl.RegexRule" >
+    <component name="htmlRule" class="org.codelibs.robot.rule.impl.RegexRule" >
         <property name="ruleId">"htmlRule"</property>
         <property name="allRequired">true</property>
         <initMethod name="addRule">
@@ -61,7 +61,7 @@
             <arg>"text/html"</arg>
         </initMethod>
         <property name="responseProcessor">
-            <component class="org.seasar.robot.processor.impl.DefaultResponseProcessor">
+            <component class="org.codelibs.robot.processor.impl.DefaultResponseProcessor">
                 <property name="transformer">fileTransformer</property>
             </component>
         </property>

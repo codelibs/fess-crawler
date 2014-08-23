@@ -6,15 +6,15 @@
     <include path="s2robot_j2ee.dicon"/>
 
     <!-- The components of DBFlute Runtime. -->
-    <component name="introduction" class="org.seasar.robot.db.allcommon.DBFluteInitializer"/>
-    <component name="invokerAssistant" class="org.seasar.robot.db.allcommon.ImplementedInvokerAssistant"/>
-    <component name="commonColumnAutoSetupper" class="org.seasar.robot.db.allcommon.ImplementedCommonColumnAutoSetupper"/>
-    <component name="behaviorSelector" class="org.seasar.robot.db.allcommon.ImplementedBehaviorSelector"/>
+    <component name="introduction" class="org.codelibs.robot.db.allcommon.DBFluteInitializer"/>
+    <component name="invokerAssistant" class="org.codelibs.robot.db.allcommon.ImplementedInvokerAssistant"/>
+    <component name="commonColumnAutoSetupper" class="org.codelibs.robot.db.allcommon.ImplementedCommonColumnAutoSetupper"/>
+    <component name="behaviorSelector" class="org.codelibs.robot.db.allcommon.ImplementedBehaviorSelector"/>
     <component name="behaviorCommandInvoker" class="org.seasar.dbflute.bhv.core.BehaviorCommandInvoker"/>
 
     <!-- The components of Behavior. -->
-    <component name="accessResultBhv" class="org.seasar.robot.db.exbhv.AccessResultBhv"/>
-    <component name="accessResultDataBhv" class="org.seasar.robot.db.exbhv.AccessResultDataBhv"/>
-    <component name="urlFilterBhv" class="org.seasar.robot.db.exbhv.UrlFilterBhv"/>
-    <component name="urlQueueBhv" class="org.seasar.robot.db.exbhv.UrlQueueBhv"/>
+    <component name="accessResultBhv" class="org.codelibs.robot.db.exbhv.AccessResultBhv"/>
+    <component name="accessResultDataBhv" class="org.codelibs.robot.db.exbhv.AccessResultDataBhv"/>
+    <component name="urlFilterBhv" class="org.codelibs.robot.db.exbhv.UrlFilterBhv"/>
+    <component name="urlQueueBhv" class="org.codelibs.robot.db.exbhv.UrlQueueBhv"/>
 </components>

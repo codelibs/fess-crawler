@@ -2,7 +2,7 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
-	<component name="binaryTransformer" class="org.seasar.robot.transformer.impl.BinaryTransformer" instance="singleton">
+	<component name="binaryTransformer" class="org.codelibs.robot.transformer.impl.BinaryTransformer" instance="singleton">
 		<property name="name">"binaryTransformer"</property>
 	</component>
 
@@ -66,28 +66,28 @@
 		</initMethod>
 	</component>
 	
-	<component name="fileTransformer" class="org.seasar.robot.transformer.impl.FileTransformer" instance="singleton">
+	<component name="fileTransformer" class="org.codelibs.robot.transformer.impl.FileTransformer" instance="singleton">
 		<property name="name">"fileTransformer"</property>
 		<property name="featureMap">defaultFeatureMap</property>
 		<property name="propertyMap">defaultPropertyMap</property>
 		<property name="childUrlRuleMap">allChildUrlRuleMap</property>
 	</component>
 
-	<component name="htmlTransformer" class="org.seasar.robot.transformer.impl.HtmlTransformer" instance="singleton">
+	<component name="htmlTransformer" class="org.codelibs.robot.transformer.impl.HtmlTransformer" instance="singleton">
 		<property name="name">"htmlTransformer"</property>
 		<property name="featureMap">defaultFeatureMap</property>
 		<property name="propertyMap">defaultPropertyMap</property>
 		<property name="childUrlRuleMap">allChildUrlRuleMap</property>
 	</component>
 
-	<component name="htmlOnlyTransformer" class="org.seasar.robot.transformer.impl.HtmlTransformer" instance="singleton">
+	<component name="htmlOnlyTransformer" class="org.codelibs.robot.transformer.impl.HtmlTransformer" instance="singleton">
 		<property name="name">"htmlTransformer"</property>
 		<property name="featureMap">defaultFeatureMap</property>
 		<property name="propertyMap">defaultPropertyMap</property>
 		<property name="childUrlRuleMap">htmlUrlRuleMap</property>
 	</component>
 
-	<component name="textTransformer" class="org.seasar.robot.transformer.impl.TextTransformer" instance="singleton">
+	<component name="textTransformer" class="org.codelibs.robot.transformer.impl.TextTransformer" instance="singleton">
 		<property name="name">"textTransformer"</property>
 	</component>
 </components>

@@ -3,6 +3,7 @@
 /s2robot*/target/
 /s2robot*/bin/
 /s2robot*/mydbflute/
+/s2robot*/.project/
 /s2robot*/.classpath/
 /s2robot*/dependency-reduced-pom.xml
 .project

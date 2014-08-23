@@ -5,11 +5,11 @@
 	<include path="s2robot_robotstxt.dicon"/>
 	<include path="s2robot_contentlength.dicon"/>
 
-	<component name="internalHttpClient" class="org.seasar.robot.client.http.HcHttpClient" instance="prototype">
+	<component name="internalHttpClient" class="org.codelibs.robot.client.http.HcHttpClient" instance="prototype">
 		<property name="cookieSpec">@org.apache.http.client.params.CookiePolicy@BEST_MATCH</property>
 		<property name="clientConnectionManager">clientConnectionManager</property>
 	</component>
-	<component name="httpClient" class="org.seasar.robot.client.FaultTolerantClient" instance="prototype">
+	<component name="httpClient" class="org.codelibs.robot.client.FaultTolerantClient" instance="prototype">
 		<property name="robotClient">internalHttpClient</property>
 		<property name="maxRetryCount">5</property>
 		<property name="retryInterval">500</property>
@@ -25,16 +25,16 @@
 		<destroyMethod name="shutdown"></destroyMethod>
 	</component>
 
-	<component name="fsClient" class="org.seasar.robot.client.fs.FileSystemClient" instance="prototype">
+	<component name="fsClient" class="org.codelibs.robot.client.fs.FileSystemClient" instance="prototype">
 		<property name="charset">"UTF-8"</property>
 	</component>
 
-	<component name="smbClient" class="org.seasar.robot.client.smb.SmbClient" instance="prototype">
+	<component name="smbClient" class="org.codelibs.robot.client.smb.SmbClient" instance="prototype">
 		<property name="charset">"UTF-8"</property>
 		<!-- ntlmPasswordAuthentication -->
 	</component>
 
-	<component name="clientFactory" class="org.seasar.robot.client.S2RobotClientFactory" instance="prototype">
+	<component name="clientFactory" class="org.codelibs.robot.client.S2RobotClientFactory" instance="prototype">
 		<initMethod name="addClient">
 			<arg>{"http:.*", "https:.*"}</arg>
 			<arg>httpClient</arg>

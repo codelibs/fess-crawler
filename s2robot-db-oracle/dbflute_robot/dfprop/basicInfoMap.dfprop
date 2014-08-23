@@ -75,7 +75,7 @@ map:{
     #      --> com.example.dbflute.basic.dbflute.exbhv
     #      --> com.example.dbflute.basic.dbflute.exentity
     #
-    ; packageBase = org.seasar.robot.db
+    ; packageBase = org.codelibs.robot.db
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

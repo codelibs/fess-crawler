@@ -9,11 +9,11 @@
 
 * Maven リポジトリ
 
-    {{{http://maven.seasar.org/maven2/org/seasar/robot/}http://maven.seasar.org/maven2/org/seasar/robot/}}
+    {{{http://maven.seasar.org/maven2/org/codelibs/robot/}http://maven.seasar.org/maven2/org/codelibs/robot/}}
 
 * Maven スナップショットリポジトリ
 
-    {{{http://maven.seasar.org/maven2-snapshot/org/seasar/robot/}http://maven.seasar.org/maven2-snapshot/org/seasar/robot/}}
+    {{{http://maven.seasar.org/maven2-snapshot/org/codelibs/robot/}http://maven.seasar.org/maven2-snapshot/org/codelibs/robot/}}
 
 * SVN リポジトリ
 

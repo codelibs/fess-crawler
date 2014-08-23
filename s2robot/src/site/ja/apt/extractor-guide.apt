@@ -24,9 +24,9 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
-    <component name="tikaExtractor" class="org.seasar.robot.extractor.impl.TikaExtractor"/>
+    <component name="tikaExtractor" class="org.codelibs.robot.extractor.impl.TikaExtractor"/>
 
-    <component name="extractorFactory" class="org.seasar.robot.extractor.ExtractorFactory">
+    <component name="extractorFactory" class="org.codelibs.robot.extractor.ExtractorFactory">
         <initMethod name="addExtractor">
             <arg>{
 "application/xml",
@@ -154,7 +154,7 @@
     テキストファイルからテキストを抽出します。
 
 +--------------------------------------------------+
-<component name="textExtractor" class="org.seasar.robot.extractor.impl.TextExtractor"/>
+<component name="textExtractor" class="org.codelibs.robot.extractor.impl.TextExtractor"/>
 +--------------------------------------------------+
 
 ** XmlExtractor
@@ -162,7 +162,7 @@
     XML ファイルからテキストを抽出します。
 
 +--------------------------------------------------+
-<component name="xmlExtractor" class="org.seasar.robot.extractor.impl.XmlExtractor"/>
+<component name="xmlExtractor" class="org.codelibs.robot.extractor.impl.XmlExtractor"/>
 +--------------------------------------------------+
 
 ** HtmlExtractor
@@ -170,7 +170,7 @@
     HTML ファイルからテキストを抽出します。
 
 +--------------------------------------------------+
-<component name="htmlExtractor" class="org.seasar.robot.extractor.impl.HtmlExtractor"/>
+<component name="htmlExtractor" class="org.codelibs.robot.extractor.impl.HtmlExtractor"/>
 +--------------------------------------------------+
 
 ** HtmlXpathExtractor
@@ -178,7 +178,7 @@
     HTML ファイルから XPath で指定してテキストを抽出します。
 
 +--------------------------------------------------+
-<component name="htmlXpathExtractor" class="org.seasar.robot.extractor.impl.HtmlXpathExtractor">
+<component name="htmlXpathExtractor" class="org.codelibs.robot.extractor.impl.HtmlXpathExtractor">
     <property name="targetNodePath">"//HTML/BODY | //@alt | //@title"</property>
     <initMethod name="addFeature">
         <arg>"http://xml.org/sax/features/namespaces"</arg>
@@ -193,7 +193,7 @@
     ファイルの種類は自動的に判定されます。
 
 +--------------------------------------------------+
-<component name="tikaExtractor" class="org.seasar.robot.extractor.impl.TikaExtractor"/>
+<component name="tikaExtractor" class="org.codelibs.robot.extractor.impl.TikaExtractor"/>
 +--------------------------------------------------+
 
 ** CommandExtractor
@@ -202,7 +202,7 @@
     たとえば、以下のように設定することで pdftotext コマンドを利用してテキスト抽出ができます。
 
 +--------------------------------------------------+
-<component name="pdfCmdExtractor" class="org.seasar.robot.extractor.impl.CommandExtractor">
+<component name="pdfCmdExtractor" class="org.codelibs.robot.extractor.impl.CommandExtractor">
     <property name="command">"pdftotext $INPUT_FILE $OUTPUT_FILE"</property>
     <property name="outputEncoding">"UTF-8"</property>
 </component>

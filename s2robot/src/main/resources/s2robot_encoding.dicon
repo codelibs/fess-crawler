@@ -2,6 +2,6 @@
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
 	"http://www.seasar.org/dtd/components24.dtd">
 <components>
-	<component name="encodingHelper" class="org.seasar.robot.helper.EncodingHelper">
+	<component name="encodingHelper" class="org.codelibs.robot.helper.EncodingHelper">
 	</component>
 </components>

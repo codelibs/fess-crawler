@@ -48,7 +48,7 @@
     "http://www.seasar.org/dtd/components24.dtd">
 <components>
   :
-  <component name="s2Robot" class="org.seasar.robot.S2Robot" instance="prototype" >
+  <component name="s2Robot" class="org.codelibs.robot.S2Robot" instance="prototype" >
     <property name="numOfThread">10</property>
     <property name="maxThreadCheckCount">20</property>
     <property name="maxDepth">-1</property>

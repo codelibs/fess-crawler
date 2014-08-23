@@ -5,7 +5,7 @@
   <packaging>jar</packaging>
   <name>S2Robot DB for MySQL</name>
   <parent>
-    <groupId>org.seasar.robot</groupId>
+    <groupId>org.codelibs.robot</groupId>
     <artifactId>s2-robot-parent</artifactId>
     <version>0.8.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -52,8 +52,8 @@
         <artifactId>dbflute-maven-plugin</artifactId>
         <configuration>
           <dbfluteVersion>${dbflute.version}</dbfluteVersion>
-          <rootPackage>org.seasar.robot</rootPackage>
-          <dbPackage>org.seasar.robot.db</dbPackage>
+          <rootPackage>org.codelibs.robot</rootPackage>
+          <dbPackage>org.codelibs.robot.db</dbPackage>
           <clientProject>robot</clientProject>
           <dbfluteClientDir>${basedir}/dbflute_robot</dbfluteClientDir>
           <schemaFile>${basedir}/dbflute_robot/schema/project-schema-robot.xml</schemaFile>
@@ -95,17 +95,10 @@
         </executions>
       </plugin>
     </plugins>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-webdav</artifactId>
-        <version>1.0-beta-2</version>
-      </extension>
-    </extensions>
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.seasar.robot</groupId>
+      <groupId>org.codelibs.robot</groupId>
       <artifactId>s2-robot</artifactId>
       <version>${project.parent.version}</version>
     </dependency>

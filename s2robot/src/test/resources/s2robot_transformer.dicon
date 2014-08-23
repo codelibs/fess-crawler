@@ -4,7 +4,7 @@
 <components>
 	<include path="s2robot_transformer_basic.dicon"/>
 
-	<component name="xpathTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">
+	<component name="xpathTransformer" class="org.codelibs.robot.transformer.impl.XpathTransformer" instance="singleton">
 		<property name="name">"xpathTransformer"</property>
 		<property name="featureMap">defaultFeatureMap</property>
 		<property name="propertyMap">defaultPropertyMap</property>
@@ -31,7 +31,7 @@
 		</initMethod>
 	</component>
 
-	<component name="xpathMapTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">
+	<component name="xpathMapTransformer" class="org.codelibs.robot.transformer.impl.XpathTransformer" instance="singleton">
 		<property name="name">"xpathMapTransformer"</property>
 		<property name="featureMap">defaultFeatureMap</property>
 		<property name="propertyMap">defaultPropertyMap</property>
@@ -47,12 +47,12 @@
 		</initMethod>
 	</component>
 
-	<component name="xpathEntityTransformer" class="org.seasar.robot.transformer.impl.XpathTransformer" instance="singleton">
+	<component name="xpathEntityTransformer" class="org.codelibs.robot.transformer.impl.XpathTransformer" instance="singleton">
 		<property name="name">"xpathEntityTransformer"</property>
 		<property name="featureMap">defaultFeatureMap</property>
 		<property name="propertyMap">defaultPropertyMap</property>
 		<property name="childUrlRuleMap">htmlUrlRuleMap</property>
-		<property name="dataClass">@org.seasar.robot.entity.TestEntity@class</property>
+		<property name="dataClass">@org.codelibs.robot.entity.TestEntity@class</property>
 		<initMethod name="addFieldRule">
 			<arg>"title"</arg>
 			<arg>"//TITLE"</arg>
@@ -63,7 +63,7 @@
 		</initMethod>
 	</component>
 
-	<component name="xmlTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+	<component name="xmlTransformer" class="org.codelibs.robot.transformer.impl.XmlTransformer" instance="singleton">
 		<property name="name">"xmlTransformer"</property>
 		<initMethod name="addFieldRule">
 			<arg>"name"</arg>
@@ -91,7 +91,7 @@
 		</initMethod>
 	</component>
 
-	<component name="xmlNsTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+	<component name="xmlNsTransformer" class="org.codelibs.robot.transformer.impl.XmlTransformer" instance="singleton">
 		<property name="name">"xmlNsTransformer"</property>
 		<property name="namespaceAware">true</property>
 		<initMethod name="addFieldRule">
@@ -120,7 +120,7 @@
 		</initMethod>
 	</component>
 
-	<component name="xmlMapTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+	<component name="xmlMapTransformer" class="org.codelibs.robot.transformer.impl.XmlTransformer" instance="singleton">
 		<property name="name">"xmlMapTransformer"</property>
 		<property name="dataClass">@java.util.Map@class</property>
 		<initMethod name="addFieldRule">
@@ -150,9 +150,9 @@
 	</component>
 
 
-	<component name="xmlEntityTransformer" class="org.seasar.robot.transformer.impl.XmlTransformer" instance="singleton">
+	<component name="xmlEntityTransformer" class="org.codelibs.robot.transformer.impl.XmlTransformer" instance="singleton">
 		<property name="name">"xmlEntityTransformer"</property>
-		<property name="dataClass">@org.seasar.robot.entity.TestEntity@class</property>
+		<property name="dataClass">@org.codelibs.robot.entity.TestEntity@class</property>
 		<initMethod name="addFieldRule">
 			<arg>"name"</arg>
 			<arg>"//hoge:address/hoge:item/hoge:name"</arg>

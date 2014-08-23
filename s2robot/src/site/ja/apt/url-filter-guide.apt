@@ -19,7 +19,7 @@ URL フィルタの設定方法
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
     "http://www.seasar.org/dtd/components24.dtd">
 <components>
-    <component name="urlFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
+    <component name="urlFilter" class="org.codelibs.robot.filter.impl.UrlFilterImpl" instance="prototype">
     </component>
 </components>
 +--------------------------------------------------+
@@ -50,7 +50,7 @@ URL フィルタの設定方法
 <!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
     "http://www.seasar.org/dtd/components24.dtd">
 <components>
-    <component name="urlFilter" class="org.seasar.robot.filter.impl.UrlFilterImpl" instance="prototype">
+    <component name="urlFilter" class="org.codelibs.robot.filter.impl.UrlFilterImpl" instance="prototype">
         <property name="includeFilteringPattern">"$1$2$3.*"</property>
     </component>
 </components>

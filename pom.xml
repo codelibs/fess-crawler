@@ -75,8 +75,8 @@
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <h2.version>1.4.179</h2.version>
-    <mysql.version>5.1.31</mysql.version>
+    <h2.version>1.4.181</h2.version>
+    <mysql.version>5.1.32</mysql.version>
     <oracle.version>11.2.0.3</oracle.version>
     <dbflute.version>1.0.5H</dbflute.version>
     <slf4j.version>1.7.7</slf4j.version>
@@ -137,9 +137,6 @@
               <link>http://docs.oracle.com/javase/7/docs/api/</link>
               <link>http://aopalliance.sourceforge.net/doc/</link>
               <link>http://www.csg.is.titech.ac.jp/~chiba/javassist/html/</link>
-              <link>http://www.ognl.org/2.6.9/Documentation/javadoc/</link>
-              <link>http://www.junit.org/junit/javadoc/4.3/</link>
-              <link>http://www.junit.org/junit/javadoc/3.8.1/</link>
               <link>http://s2container.seasar.org/2.4/s2-framework/ja/apidocs/</link>
               <link>http://s2container.seasar.org/2.4/s2-extension/ja/apidocs/</link>
               <link>http://s2container.seasar.org/2.4/s2-tiger/ja/apidocs/</link>

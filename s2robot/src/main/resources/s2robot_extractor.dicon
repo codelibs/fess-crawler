@@ -44,7 +44,7 @@
 "application/xhtml+xml",
 "application/rdf+xml",
 "application/x-freemind",
-"text/xml",
+"text/xml"
 			}</arg>
 			<arg>xmlExtractor</arg>
 		</initMethod>

@@ -444,7 +444,10 @@ public class HtmlTransformer extends AbstractTransformer {
     protected void addChildUrlFromTagAttribute(final List<String> urlList,
             final URL url, final String attrValue, final String encoding) {
         try {
-            final URL childUrl = new URL(url, attrValue.trim());
+            String childUrlValue = attrValue.trim();
+            final URL childUrl =
+                childUrlValue.startsWith("?") ? new URL(url.toExternalForm()
+                    + childUrlValue) : new URL(url, childUrlValue);
             final String u =
                 encodeUrl(normalizeUrl(childUrl.toExternalForm()), encoding);
             if (logger.isDebugEnabled()) {

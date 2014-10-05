@@ -128,7 +128,7 @@ public class MimeTypeHelperImplTest extends S2TestCase {
             mimeTypeHelper.getContentType(pdfStream, "hoge.pdf"));
 
         assertEquals(
-            "application/x-gzip",
+            "application/gzip",
             mimeTypeHelper.getContentType(gzStream, "hoge.tar.gz"));
         assertEquals(
             "application/zip",

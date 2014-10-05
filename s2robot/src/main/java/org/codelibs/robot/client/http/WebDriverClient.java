@@ -166,7 +166,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
                 }
             }
         }
-        return new Date();
+        return null;
     }
 
     /**

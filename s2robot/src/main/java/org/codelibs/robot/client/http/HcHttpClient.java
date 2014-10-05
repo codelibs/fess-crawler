@@ -773,9 +773,6 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     }
                 }
             }
-            if (responseData.getLastModified() == null) {
-                responseData.setLastModified(new Date()); // set current time
-            }
 
             return responseData;
         } catch (final UnknownHostException e) {

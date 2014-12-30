@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>s2-robot-db-h2</artifactId>
+  <artifactId>s2robot-db-h2</artifactId>
   <packaging>jar</packaging>
   <name>S2Robot DB for H2Database</name>
   <parent>
     <groupId>org.codelibs.robot</groupId>
-    <artifactId>s2-robot-parent</artifactId>
+    <artifactId>s2robot-parent</artifactId>
     <version>0.8.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
@@ -95,7 +95,7 @@
   <dependencies>
     <dependency>
       <groupId>org.codelibs.robot</groupId>
-      <artifactId>s2-robot</artifactId>
+      <artifactId>s2robot</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

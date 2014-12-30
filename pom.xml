@@ -52,7 +52,7 @@
     <slf4j.version>1.7.7</slf4j.version>
     <httpcomponents.version>4.3.6</httpcomponents.version>
     <tika.version>1.6</tika.version>
-    <poi.version>3.11-beta3</poi.version>
+    <poi.version>3.11-beta2</poi.version>
     <pdfbox.version>1.8.8</pdfbox.version>
     <bouncycastle.version>1.51</bouncycastle.version>
     <nekohtml.version>1.9.21</nekohtml.version>

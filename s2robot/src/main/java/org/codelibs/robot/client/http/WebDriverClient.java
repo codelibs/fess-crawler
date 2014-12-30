@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.pool2.ObjectPool;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
@@ -43,6 +45,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
     private static final Logger logger = LoggerFactory
             .getLogger(WebDriverClient.class); // NOPMD
 
+    @Resource
     protected ObjectPool<WebDriver> webDriverPool;
 
     protected Map<String, UrlAction> urlActionMap = new LinkedHashMap<>();

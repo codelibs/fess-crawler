@@ -17,10 +17,14 @@ package org.codelibs.robot.extractor.impl;
 
 import java.io.InputStream;
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.extractor.ExtractorFactory;
+import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +42,30 @@ public class ZipExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
-                .singleton("zipExtractor", ZipExtractor.class);
+        SimpleComponentContainer container = new SimpleComponentContainer();
+        container
+                .singleton("archiveStreamFactory", ArchiveStreamFactory.class)
+                .singleton("compressorStreamFactory",
+                        CompressorStreamFactory.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
+                .singleton("zipExtractor", ZipExtractor.class)
+                .<ExtractorFactory> singleton(
+                        "extractorFactory",
+                        ExtractorFactory.class,
+                        factory -> {
+                            TikaExtractor tikaExtractor = container
+                                    .getComponent("tikaExtractor");
+                            ZipExtractor zipExtractor = container
+                                    .getComponent("zipExtractor");
+                            factory.addExtractor("text/plain", tikaExtractor);
+                            factory.addExtractor("text/html", tikaExtractor);
+                            factory.addExtractor("application/zip",
+                                    zipExtractor);
+
+                        })//
+        ;
+
         zipExtractor = container.getComponent("zipExtractor");
     }
 

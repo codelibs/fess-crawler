@@ -40,18 +40,29 @@ public class LhaExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
-                .singleton("extractorFactory", ExtractorFactory.class)//
-                .singleton("tikaExtractor", TikaExtractor.class)//
-                .singleton("lhaExtractor", LhaExtractor.class);
-        ExtractorFactory extractorFactory = container
-                .getComponent("extractorFactory");
-        TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+        SimpleComponentContainer container = new SimpleComponentContainer();
+        container
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
+                .singleton("lhaExtractor", LhaExtractor.class)
+                .<ExtractorFactory> singleton(
+                        "extractorFactory",
+                        ExtractorFactory.class,
+                        factory -> {
+                            TikaExtractor tikaExtractor = container
+                                    .getComponent("tikaExtractor");
+                            LhaExtractor lhaExtractor = container
+                                    .getComponent("lhaExtractor");
+                            factory.addExtractor("text/plain", tikaExtractor);
+                            factory.addExtractor("text/html", tikaExtractor);
+                            factory.addExtractor("application/x-lha",
+                                    lhaExtractor);
+
+                        })//
+        ;
+
         lhaExtractor = container.getComponent("lhaExtractor");
-        extractorFactory.addExtractor("text/plain", tikaExtractor);
-        extractorFactory.addExtractor("text/html", tikaExtractor);
-        extractorFactory.addExtractor("application/x-lha", lhaExtractor);
+
     }
 
     public void test_getText() {

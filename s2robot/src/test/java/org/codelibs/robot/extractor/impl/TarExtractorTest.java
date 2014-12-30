@@ -17,6 +17,8 @@ package org.codelibs.robot.extractor.impl;
 
 import java.io.InputStream;
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
@@ -40,16 +42,29 @@ public class TarExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
-                .singleton("extractorFactory", ExtractorFactory.class)//
-                .singleton("tikaExtractor", TikaExtractor.class)//
-                .singleton("tarExtractor", TarExtractor.class);
-        ExtractorFactory extractorFactory = container
-                .getComponent("extractorFactory");
-        TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
-        extractorFactory.addExtractor("text/plain", tikaExtractor);
-        extractorFactory.addExtractor("text/html", tikaExtractor);
+        SimpleComponentContainer container = new SimpleComponentContainer();
+        container
+                .singleton("archiveStreamFactory", ArchiveStreamFactory.class)
+                .singleton("compressorStreamFactory",
+                        CompressorStreamFactory.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
+                .singleton("tarExtractor", TarExtractor.class)
+                .<ExtractorFactory> singleton(
+                        "extractorFactory",
+                        ExtractorFactory.class,
+                        factory -> {
+                            TikaExtractor tikaExtractor = container
+                                    .getComponent("tikaExtractor");
+                            TarExtractor tarExtractor = container
+                                    .getComponent("tarExtractor");
+                            factory.addExtractor("text/plain", tikaExtractor);
+                            factory.addExtractor("text/html", tikaExtractor);
+                            factory.addExtractor("application/tar",
+                                    tarExtractor);
+                        })//
+        ;
+
         tarExtractor = container.getComponent("tarExtractor");
     }
 

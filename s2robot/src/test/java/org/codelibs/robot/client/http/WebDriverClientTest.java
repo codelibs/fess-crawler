@@ -46,27 +46,43 @@ public class WebDriverClientTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+
         S2PooledObjectFactory<S2WebDriver> pooledObjectFactory = new S2PooledObjectFactory<>();
         pooledObjectFactory.setComponentName("webDriver");
         pooledObjectFactory.setOnDestroyListener(p -> {
             final S2WebDriver driver = p.getObject();
             driver.quit();
         });
-        SimpleComponentContainer container = new SimpleComponentContainer()
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
-                .singleton("webDriver", S2WebDriver.class)//
+
+        final SimpleComponentContainer container = new SimpleComponentContainer();
+        container
+                .prototype("webDriver", S2WebDriver.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("pooledObjectFactory", pooledObjectFactory)
                 .singleton("webDriverPool",
-                        new GenericObjectPool(pooledObjectFactory))//
-                .singleton("webDriverClient", WebDriverClient.class);
+                        new GenericObjectPool<>(pooledObjectFactory), null,
+                        pool -> {
+                            pool.close();
+                        })
+                .<AOnClickAction> singleton("aOnClickAction",
+                        AOnClickAction.class)
+                .<FormAction> singleton("formAction", FormAction.class)
+                .<WebDriverClient> singleton(
+                        "webDriverClient",
+                        WebDriverClient.class,
+                        client -> {
+                            AOnClickAction aOnClick = container
+                                    .getComponent("aOnClickAction");
+                            aOnClick.setName("aOnClick");
+                            aOnClick.setCssQuery("a");
+                            client.addUrlAction(aOnClick);
+                            FormAction formAction = container
+                                    .getComponent("formAction");
+                            formAction.setName("form");
+                            formAction.setCssQuery("form");
+                            client.addUrlAction(formAction);
+                        });
         webDriverClient = container.getComponent("webDriverClient");
-        AOnClickAction aOnClick = new AOnClickAction();
-        aOnClick.setName("aOnClick");
-        aOnClick.setCssQuery("a");
-        webDriverClient.addUrlAction(aOnClick);
-        FormAction formAction = new FormAction();
-        aOnClick.setName("form");
-        aOnClick.setCssQuery("form");
-        webDriverClient.addUrlAction(formAction);
     }
 
     public void test_doGet() {

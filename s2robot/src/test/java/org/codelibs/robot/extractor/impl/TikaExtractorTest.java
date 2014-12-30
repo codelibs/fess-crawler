@@ -29,6 +29,8 @@ import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
+import org.codelibs.robot.extractor.ExtractorFactory;
+import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +48,22 @@ public class TikaExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
-                .singleton("tikaExtractor", TikaExtractor.class);
+
+        SimpleComponentContainer container = new SimpleComponentContainer();
+        container
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
+                .<ExtractorFactory> singleton(
+                        "extractorFactory",
+                        ExtractorFactory.class,
+                        factory -> {
+                            TikaExtractor tikaExtractor = container
+                                    .getComponent("tikaExtractor");
+                            factory.addExtractor("text/plain", tikaExtractor);
+                            factory.addExtractor("text/html", tikaExtractor);
+                        })//
+        ;
+
         tikaExtractor = container.getComponent("tikaExtractor");
     }
 

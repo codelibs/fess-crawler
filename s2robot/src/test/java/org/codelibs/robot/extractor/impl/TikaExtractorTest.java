@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.ExtractorFactory;
@@ -49,7 +49,7 @@ public class TikaExtractorTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
 
-        SimpleComponentContainer container = new SimpleComponentContainer();
+        StandardRobotContainer container = new StandardRobotContainer();
         container
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
                 .singleton("tikaExtractor", TikaExtractor.class)

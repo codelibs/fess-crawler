@@ -15,7 +15,7 @@
  */
 package org.codelibs.robot.service.impl;
 
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.AccessResultImpl;
 import org.codelibs.robot.helper.MemoryDataHelper;
@@ -33,7 +33,7 @@ public class DataServiceImplTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("dataService", DataServiceImpl.class);
         dataService = container.getComponent("dataService");

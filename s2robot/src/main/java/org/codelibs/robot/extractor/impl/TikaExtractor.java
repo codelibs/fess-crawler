@@ -52,7 +52,7 @@ import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
@@ -70,7 +70,7 @@ public class TikaExtractor implements Extractor {
             .getLogger(TikaExtractor.class);
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     public String outputEncoding = Constants.UTF_8;
 
@@ -237,7 +237,7 @@ public class TikaExtractor implements Extractor {
                 }
                 final Throwable cause = e.getCause();
                 if (cause instanceof SAXException) {
-                    final Extractor xmlExtractor = componentContainer
+                    final Extractor xmlExtractor = robotContainer
                             .getComponent("xmlExtractor");
                     if (xmlExtractor != null) {
                         IOUtils.closeQuietly(in);

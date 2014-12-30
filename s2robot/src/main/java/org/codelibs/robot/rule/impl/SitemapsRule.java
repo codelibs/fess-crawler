@@ -24,7 +24,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.util.ResponseDataUtil;
@@ -46,7 +46,7 @@ public class SitemapsRule extends RegexRule {
             .getLogger(SitemapsRule.class);
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     @Override
     public boolean match(final ResponseData responseData) {
@@ -63,7 +63,7 @@ public class SitemapsRule extends RegexRule {
 
             InputStream is = null;
             try {
-                final SitemapsHelper sitemapsHelper = componentContainer
+                final SitemapsHelper sitemapsHelper = robotContainer
                         .getComponent("sitemapsHelper");
                 is = new FileInputStream(tempFile);
                 return sitemapsHelper.isValid(is);

@@ -19,10 +19,10 @@ import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SimpleComponentContainer implements ComponentContainer {
+public class StandardRobotContainer implements RobotContainer {
 
     private final Logger logger = LoggerFactory
-            .getLogger(SimpleComponentContainer.class);
+            .getLogger(StandardRobotContainer.class);
 
     private final Map<String, ComponentHolder<?>> singletonMap = new ConcurrentHashMap<>();
 
@@ -32,7 +32,7 @@ public class SimpleComponentContainer implements ComponentContainer {
 
     @Override
     public <T> T getComponent(final String name) {
-        if ("componentContainer".equals(name)) {
+        if ("robotContainer".equals(name)) {
             @SuppressWarnings("unchecked")
             final T t = (T) this;
             return t;
@@ -69,18 +69,18 @@ public class SimpleComponentContainer implements ComponentContainer {
         }
     }
 
-    public <T> SimpleComponentContainer prototype(final String name,
+    public <T> StandardRobotContainer prototype(final String name,
             final Class<T> cls, final Consumer<T> component) {
         prototypeMap.put(name, new ComponentDef<>(cls, component, this));
         return this;
     }
 
-    public <T> SimpleComponentContainer prototype(final String name,
+    public <T> StandardRobotContainer prototype(final String name,
             final Class<T> cls) {
         return prototype(name, cls, null);
     }
 
-    public <T> SimpleComponentContainer singleton(final String name,
+    public <T> StandardRobotContainer singleton(final String name,
             final Class<T> cls, final Consumer<T> initializer,
             final Consumer<T> destroyer) {
         final ComponentDef<T> componentDef = new ComponentDef<>(cls,
@@ -90,17 +90,17 @@ public class SimpleComponentContainer implements ComponentContainer {
         return this;
     }
 
-    public <T> SimpleComponentContainer singleton(final String name,
+    public <T> StandardRobotContainer singleton(final String name,
             final Class<T> cls, final Consumer<T> initializer) {
         return singleton(name, cls, initializer, (Consumer<T>) null);
     }
 
-    public <T> SimpleComponentContainer singleton(final String name,
+    public <T> StandardRobotContainer singleton(final String name,
             final Class<T> cls) {
         return singleton(name, cls, (Consumer<T>) null, (Consumer<T>) null);
     }
 
-    public <T> SimpleComponentContainer singleton(final String name,
+    public <T> StandardRobotContainer singleton(final String name,
             final T instance, final Consumer<T> initializer,
             final Consumer<T> destroyer) {
         final ComponentDef<T> componentDef = new ComponentDef<>(instance,
@@ -110,12 +110,12 @@ public class SimpleComponentContainer implements ComponentContainer {
         return this;
     }
 
-    public <T> SimpleComponentContainer singleton(final String name,
+    public <T> StandardRobotContainer singleton(final String name,
             final T instance, final Consumer<T> initializer) {
         return singleton(name, instance, initializer, null);
     }
 
-    public <T> SimpleComponentContainer singleton(final String name,
+    public <T> StandardRobotContainer singleton(final String name,
             final T instance) {
         return singleton(name, instance, null, null);
     }
@@ -161,20 +161,20 @@ public class SimpleComponentContainer implements ComponentContainer {
 
         protected Consumer<T> initializer;
 
-        protected SimpleComponentContainer container;
+        protected StandardRobotContainer container;
 
         private T instance;
 
         protected ComponentDef(final Class<T> cls,
                 final Consumer<T> initializer,
-                final SimpleComponentContainer container) {
+                final StandardRobotContainer container) {
             this.cls = cls;
             this.initializer = initializer;
             this.container = container;
         }
 
         protected ComponentDef(final T instance, final Consumer<T> initializer,
-                final SimpleComponentContainer container) {
+                final StandardRobotContainer container) {
             this.instance = instance;
             this.initializer = initializer;
             this.container = container;

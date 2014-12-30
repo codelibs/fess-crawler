@@ -28,7 +28,7 @@ import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.http.action.AOnClickAction;
 import org.codelibs.robot.client.http.action.FormAction;
 import org.codelibs.robot.client.http.webdriver.S2WebDriver;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
@@ -54,7 +54,7 @@ public class WebDriverClientTest extends PlainTestCase {
             driver.quit();
         });
 
-        final SimpleComponentContainer container = new SimpleComponentContainer();
+        final StandardRobotContainer container = new StandardRobotContainer();
         container
                 .prototype("webDriver", S2WebDriver.class)
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)

@@ -28,7 +28,7 @@ import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.S2RobotClient;
 import org.codelibs.robot.client.S2RobotClientFactory;
 import org.codelibs.robot.client.fs.ChildUrlsException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.UrlQueue;
@@ -54,7 +54,7 @@ public class S2RobotThread implements Runnable {
     protected DataService dataService;
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     @Resource
     protected LogHelper logHelper;
@@ -78,7 +78,7 @@ public class S2RobotThread implements Runnable {
     }
 
     protected boolean isContinue(final int tcCount) {
-        if (!componentContainer.available()) {
+        if (!robotContainer.available()) {
             // system shutdown
             return false;
         }
@@ -350,7 +350,7 @@ public class S2RobotThread implements Runnable {
         final List<UrlQueue> childList = new ArrayList<UrlQueue>();
         for (final RequestData requestData : childUrlList) {
             if (robotContext.urlFilter.match(requestData.getUrl())) {
-                final UrlQueue uq = componentContainer.getComponent("urlQueue");
+                final UrlQueue uq = robotContainer.getComponent("urlQueue");
                 uq.setCreateTime(SystemUtil.currentTimeMillis());
                 uq.setDepth(depth);
                 uq.setMethod(Constants.GET_METHOD);
@@ -374,7 +374,7 @@ public class S2RobotThread implements Runnable {
         // add url and filter
         if (robotContext.urlFilter.match(childUrl)) {
             final List<UrlQueue> childList = new ArrayList<UrlQueue>(1);
-            final UrlQueue uq = componentContainer.getComponent("urlQueue");
+            final UrlQueue uq = robotContainer.getComponent("urlQueue");
             uq.setCreateTime(SystemUtil.currentTimeMillis());
             uq.setDepth(depth);
             uq.setMethod(Constants.GET_METHOD);

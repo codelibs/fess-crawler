@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.client.S2RobotClientFactory;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.interval.IntervalController;
 import org.codelibs.robot.rule.RuleManager;
@@ -55,7 +55,7 @@ public class S2Robot implements Runnable {
     protected RuleManager ruleManager;
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     @Resource
     protected IntervalController intervalController;
@@ -215,7 +215,7 @@ public class S2Robot implements Runnable {
         robotThreadGroup = new ThreadGroup("Robot-" + robotContext.sessionId);
         final Thread[] threads = new Thread[robotContext.getNumOfThread()];
         for (int i = 0; i < robotContext.getNumOfThread(); i++) {
-            final S2RobotThread robotThread = componentContainer
+            final S2RobotThread robotThread = robotContainer
                     .getComponent("robotThread");
             robotThread.robotContext = robotContext;
             robotThread.clientFactory = clientFactory;

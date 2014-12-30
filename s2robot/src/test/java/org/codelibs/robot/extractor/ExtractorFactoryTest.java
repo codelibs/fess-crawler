@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.impl.LhaExtractor;
 import org.codelibs.robot.extractor.impl.PdfExtractor;
@@ -37,7 +37,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("tikaExtractor", TikaExtractor.class)//
                 .singleton("pdfExtractor", PdfExtractor.class)//
                 .singleton("lhaExtractor", LhaExtractor.class)//

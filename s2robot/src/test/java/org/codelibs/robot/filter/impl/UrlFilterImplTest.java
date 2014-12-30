@@ -15,7 +15,7 @@
  */
 package org.codelibs.robot.filter.impl;
 
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.helper.MemoryDataHelper;
 import org.codelibs.robot.service.impl.DataServiceImpl;
 import org.codelibs.robot.service.impl.UrlFilterServiceImpl;
@@ -33,7 +33,7 @@ public class UrlFilterImplTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//
                 .singleton("urlFilter", UrlFilterImpl.class)//

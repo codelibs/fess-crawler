@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 
 /**
  *
@@ -31,7 +31,7 @@ import org.codelibs.robot.container.ComponentContainer;
  */
 public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     protected String componentName;
 
@@ -45,7 +45,7 @@ public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     @Override
     public T create() throws Exception {
         @SuppressWarnings("unchecked")
-        final T component = (T) componentContainer.getComponent(componentName);
+        final T component = (T) robotContainer.getComponent(componentName);
         return component;
     }
 

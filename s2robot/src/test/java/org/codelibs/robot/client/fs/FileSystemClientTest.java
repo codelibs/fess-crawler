@@ -23,7 +23,7 @@ import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
@@ -39,7 +39,7 @@ public class FileSystemClientTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("fsClient", FileSystemClient.class);
         fsClient = container.getComponent("fsClient");

@@ -19,7 +19,7 @@ package org.codelibs.robot.container;
  * @author shinsuke
  *
  */
-public interface ComponentContainer {
+public interface RobotContainer {
 
     <T> T getComponent(String name);
 

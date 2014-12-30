@@ -22,7 +22,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ public class PdfExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("pdfExtractor", PdfExtractor.class)//
                 .singleton("pdfExtractorForPdfPassword", PdfExtractor.class);
         pdfExtractor = container.getComponent("pdfExtractor");

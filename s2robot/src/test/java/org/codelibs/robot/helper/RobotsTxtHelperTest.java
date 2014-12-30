@@ -18,7 +18,7 @@ package org.codelibs.robot.helper;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.RobotsTxt;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -28,7 +28,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("robotsTxtHelper", RobotsTxtHelper.class);
         robotsTxtHelper = container.getComponent("robotsTxtHelper");
     }

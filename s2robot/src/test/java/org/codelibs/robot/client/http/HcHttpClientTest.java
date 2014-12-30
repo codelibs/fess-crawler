@@ -18,7 +18,7 @@ package org.codelibs.robot.client.http;
 import java.util.Date;
 
 import org.codelibs.robot.S2RobotContext;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.filter.impl.UrlFilterImpl;
@@ -42,7 +42,7 @@ public class HcHttpClientTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//

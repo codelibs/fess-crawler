@@ -21,7 +21,7 @@ import java.util.Map;
 import org.codelibs.robot.client.fs.FileSystemClient;
 import org.codelibs.robot.client.http.HcHttpClient;
 import org.codelibs.robot.client.smb.SmbClient;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
@@ -37,7 +37,7 @@ public class S2RobotClientFactoryTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("httpClient", FaultTolerantClient.class)//
                 .singleton("fsClient", FileSystemClient.class)//

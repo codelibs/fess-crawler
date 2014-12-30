@@ -19,7 +19,7 @@ import java.io.ByteArrayInputStream;
 
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.AccessResultDataImpl;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
@@ -37,7 +37,7 @@ public class TextTransformerTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("extractorFactory", ExtractorFactory.class)
                 .singleton("textTransformer", TextTransformer.class)
                 .singleton("tikaExtractor", TikaExtractor.class);

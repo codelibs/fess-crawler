@@ -24,7 +24,7 @@ import javax.annotation.Resource;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.S2RobotContext;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
@@ -46,7 +46,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
             .getLogger(DefaultResponseProcessor.class);
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     protected Transformer transformer;
 
@@ -115,7 +115,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
 
     protected void processResult(final UrlQueue urlQueue,
             final ResponseData responseData, final ResultData resultData) {
-        final AccessResult accessResult = componentContainer
+        final AccessResult accessResult = robotContainer
                 .getComponent("accessResult");
         accessResult.init(responseData, resultData);
 
@@ -173,7 +173,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         final List<UrlQueue> childList = new ArrayList<>();
         for (final RequestData childUrl : childUrlList) {
             if (robotContext.getUrlFilter().match(childUrl.getUrl())) {
-                final UrlQueue uq = componentContainer.getComponent("urlQueue");
+                final UrlQueue uq = robotContainer.getComponent("urlQueue");
                 uq.setCreateTime(SystemUtil.currentTimeMillis());
                 uq.setDepth(depth);
                 uq.setMethod(childUrl.getMethod().name());

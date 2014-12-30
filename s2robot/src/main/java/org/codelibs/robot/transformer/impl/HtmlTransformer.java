@@ -44,7 +44,7 @@ import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
@@ -75,7 +75,7 @@ public class HtmlTransformer extends AbstractTransformer {
     protected static final String LOCATION_HEADER = "Location";
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     protected Map<String, String> featureMap = new HashMap<String, String>();
 
@@ -185,7 +185,7 @@ public class HtmlTransformer extends AbstractTransformer {
         final Object redirectUrlObj = responseData.getMetaDataMap().get(
                 LOCATION_HEADER);
         if (redirectUrlObj instanceof String) {
-            final UrlConvertHelper urlConvertHelper = componentContainer
+            final UrlConvertHelper urlConvertHelper = robotContainer
                     .getComponent("urlConvertHelper");
             resultData.addUrl(RequestDataBuilder.newRequestData().get()
                     .url(urlConvertHelper.convert(redirectUrlObj.toString()))
@@ -262,7 +262,7 @@ public class HtmlTransformer extends AbstractTransformer {
     protected List<RequestData> convertChildUrlList(
             final List<RequestData> requestDataList) {
         try {
-            final UrlConvertHelper urlConvertHelper = componentContainer
+            final UrlConvertHelper urlConvertHelper = robotContainer
                     .getComponent("urlConvertHelper");
             for (final RequestData requestData : requestDataList) {
                 requestData.setUrl(urlConvertHelper.convert(requestData
@@ -328,7 +328,7 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         try {
-            final EncodingHelper encodingHelper = componentContainer
+            final EncodingHelper encodingHelper = robotContainer
                     .getComponent("encodingHelper");
             encoding = encodingHelper.normalize(encoding);
         } catch (final Exception e) {

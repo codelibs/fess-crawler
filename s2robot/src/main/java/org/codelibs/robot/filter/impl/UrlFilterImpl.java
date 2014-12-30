@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.service.UrlFilterService;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public class UrlFilterImpl implements UrlFilter {
             .getLogger(UrlFilterImpl.class);
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
@@ -215,8 +215,7 @@ public class UrlFilterImpl implements UrlFilter {
 
     public UrlFilterService getUrlFilterService() {
         if (urlFilterService == null) {
-            urlFilterService = componentContainer
-                    .getComponent("urlFilterService");
+            urlFilterService = robotContainer.getComponent("urlFilterService");
             if (urlFilterService == null) {
                 throw new RobotSystemException("urlFilterService is not found.");
             }

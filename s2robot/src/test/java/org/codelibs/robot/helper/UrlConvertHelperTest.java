@@ -15,7 +15,7 @@
  */
 package org.codelibs.robot.helper;
 
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -29,7 +29,7 @@ public class UrlConvertHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("urlConvertHelper", UrlConvertHelper.class);
         urlConvertHelper = container.getComponent("urlConvertHelper");
     }

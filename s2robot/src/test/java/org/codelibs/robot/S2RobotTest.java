@@ -26,7 +26,7 @@ import org.codelibs.robot.client.FaultTolerantClient;
 import org.codelibs.robot.client.S2RobotClientFactory;
 import org.codelibs.robot.client.fs.FileSystemClient;
 import org.codelibs.robot.client.http.HcHttpClient;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.AccessResultImpl;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.entity.UrlQueueImpl;
@@ -66,7 +66,7 @@ public class S2RobotTest extends PlainTestCase {
 
     public FileTransformer fileTransformer;
 
-    private SimpleComponentContainer container;
+    private StandardRobotContainer container;
 
     @Override
     protected void setUp() throws Exception {
@@ -84,7 +84,7 @@ public class S2RobotTest extends PlainTestCase {
         childUrlRuleMap.put("//LINK", "href");
         childUrlRuleMap.put("//SCRIPT", "src");
 
-        container = new SimpleComponentContainer();
+        container = new StandardRobotContainer();
         container
                 .<HcHttpClient> prototype(
                         "internalHttpClient",

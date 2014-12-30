@@ -46,7 +46,7 @@ import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.AbstractS2RobotClient;
 import org.codelibs.robot.client.fs.ChildUrlsException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.ContentLengthHelper;
@@ -68,7 +68,7 @@ public class SmbClient extends AbstractS2RobotClient {
     public static final String SMB_ACCESS_CONTROL_ENTRIES = "smbAccessControlEntries";
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     protected String charset = Constants.UTF_8;
 
@@ -142,7 +142,7 @@ public class SmbClient extends AbstractS2RobotClient {
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
             } else if (file.isFile()) {
-                final MimeTypeHelper mimeTypeHelper = componentContainer
+                final MimeTypeHelper mimeTypeHelper = robotContainer
                         .getComponent("mimeTypeHelper");
                 InputStream is = null;
                 try {

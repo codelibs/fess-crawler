@@ -27,7 +27,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
@@ -46,7 +46,7 @@ public class TarExtractor implements Extractor {
             .getLogger(TarExtractor.class);
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;
@@ -58,13 +58,13 @@ public class TarExtractor implements Extractor {
             throw new RobotSystemException("The inputstream is null.");
         }
 
-        final MimeTypeHelper mimeTypeHelper = componentContainer
+        final MimeTypeHelper mimeTypeHelper = robotContainer
                 .getComponent("mimeTypeHelper");
         if (mimeTypeHelper == null) {
             throw new RobotSystemException("MimeTypeHelper is unavailable.");
         }
 
-        final ExtractorFactory extractorFactory = componentContainer
+        final ExtractorFactory extractorFactory = robotContainer
                 .getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new RobotSystemException("ExtractorFactory is unavailable.");

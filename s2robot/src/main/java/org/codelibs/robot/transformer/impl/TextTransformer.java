@@ -29,7 +29,7 @@ import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
@@ -47,7 +47,7 @@ public class TextTransformer extends AbstractTransformer {
             .getLogger(TextTransformer.class);
 
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     protected String charsetName = Constants.UTF_8;
 
@@ -64,7 +64,7 @@ public class TextTransformer extends AbstractTransformer {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        final ExtractorFactory extractorFactory = componentContainer
+        final ExtractorFactory extractorFactory = robotContainer
                 .getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new RobotSystemException("Could not find extractorFactory.");

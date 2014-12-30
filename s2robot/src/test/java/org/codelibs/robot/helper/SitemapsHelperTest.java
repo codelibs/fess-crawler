@@ -20,7 +20,7 @@ import java.io.InputStream;
 
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSitemapsException;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.Sitemap;
 import org.codelibs.robot.entity.SitemapSet;
 import org.codelibs.robot.entity.SitemapUrl;
@@ -36,7 +36,7 @@ public class SitemapsHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("sitemapsHelper", SitemapsHelper.class);
         sitemapsHelper = container.getComponent("sitemapsHelper");
     }

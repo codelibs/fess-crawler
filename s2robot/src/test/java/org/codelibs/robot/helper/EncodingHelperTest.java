@@ -15,7 +15,7 @@
  */
 package org.codelibs.robot.helper;
 
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -28,7 +28,7 @@ public class EncodingHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("encodingHelper", EncodingHelper.class);
         encodingHelper = container.getComponent("encodingHelper");
     }

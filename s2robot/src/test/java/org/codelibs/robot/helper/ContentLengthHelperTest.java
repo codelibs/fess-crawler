@@ -15,7 +15,7 @@
  */
 package org.codelibs.robot.helper;
 
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -30,7 +30,7 @@ public class ContentLengthHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer()
+        StandardRobotContainer container = new StandardRobotContainer()
                 .singleton("contentLengthHelper", ContentLengthHelper.class);
         contentLengthHelper = container.getComponent("contentLengthHelper");
     }

@@ -22,7 +22,7 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.extractor.ExtractorFactory;
 import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -42,7 +42,7 @@ public class TarExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SimpleComponentContainer container = new SimpleComponentContainer();
+        StandardRobotContainer container = new StandardRobotContainer();
         container
                 .singleton("archiveStreamFactory", ArchiveStreamFactory.class)
                 .singleton("compressorStreamFactory",

@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.fs.ChildUrlsException;
-import org.codelibs.robot.container.ComponentContainer;
+import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.Sitemap;
@@ -37,11 +37,11 @@ import org.codelibs.robot.processor.ResponseProcessor;
  */
 public class SitemapsResponseProcessor implements ResponseProcessor {
     @Resource
-    protected ComponentContainer componentContainer;
+    protected RobotContainer robotContainer;
 
     @Override
     public void process(final ResponseData responseData) {
-        final SitemapsHelper sitemapsHelper = componentContainer
+        final SitemapsHelper sitemapsHelper = robotContainer
                 .getComponent("sitemapsHelper");
         final InputStream responseBody = responseData.getResponseBody();
         final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);

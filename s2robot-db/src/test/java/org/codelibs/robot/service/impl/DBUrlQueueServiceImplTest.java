@@ -20,13 +20,13 @@ import java.util.Date;
 
 import org.codelibs.robot.db.cbean.UrlQueueCB;
 import org.codelibs.robot.db.exentity.UrlQueue;
-import org.seasar.extension.unit.S2TestCase;
+import org.seasar.extension.unit.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class DBUrlQueueServiceImplTest extends S2TestCase {
+public class DBUrlQueueServiceImplTest extends PlainTestCase {
     public DBUrlQueueServiceImpl urlQueueService;
 
     @Override

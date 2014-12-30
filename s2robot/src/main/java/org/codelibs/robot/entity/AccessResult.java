@@ -15,11 +15,9 @@
  */
 package org.codelibs.robot.entity;
 
-import java.sql.Timestamp;
-
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface AccessResult {
     void init(ResponseData responseData, ResultData resultData);
@@ -60,9 +58,9 @@ public interface AccessResult {
 
     void setMimeType(String mimeType);
 
-    Timestamp getCreateTime();
+    Long getCreateTime();
 
-    void setCreateTime(Timestamp createTime);
+    void setCreateTime(Long createTime);
 
     Integer getExecutionTime();
 
@@ -76,7 +74,7 @@ public interface AccessResult {
 
     void setContentLength(Long contentLength);
 
-    Timestamp getLastModified();
+    Long getLastModified();
 
-    void setLastModified(Timestamp lastModified);
+    void setLastModified(Long lastModified);
 }

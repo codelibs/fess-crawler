@@ -28,27 +28,27 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExecutionTimeoutException;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
-import org.codelibs.robot.util.StreamUtil;
-import org.seasar.framework.util.FileUtil;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Exctract a text by running a command.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class CommandExtractor implements Extractor {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(CommandExtractor.class);
+            .getLogger(CommandExtractor.class);
 
     public String outputEncoding = Constants.UTF_8;
 
@@ -68,15 +68,14 @@ public class CommandExtractor implements Extractor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
     @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
-        final String resourceName =
-            params == null ? null : params
+        final String resourceName = params == null ? null : params
                 .get(TikaMetadataKeys.RESOURCE_NAME_KEY);
 
         String extention;
@@ -105,12 +104,9 @@ public class CommandExtractor implements Extractor {
         File inputFile = null;
         File outputFile = null;
         try {
-            inputFile =
-                File.createTempFile(
-                    "cmdextin_" + filePrefix + "_",
+            inputFile = File.createTempFile("cmdextin_" + filePrefix + "_",
                     StringUtil.isNotBlank(extention) ? "." + extention
-                        : extention,
-                    tempDir);
+                            : extention, tempDir);
             String ext;
             if (outputExtension == null) {
                 if (StringUtil.isNotBlank(extention)) {
@@ -121,25 +117,19 @@ public class CommandExtractor implements Extractor {
             } else {
                 ext = outputExtension;
             }
-            outputFile =
-                File.createTempFile(
-                    "cmdextout_" + filePrefix + "_",
-                    ext,
-                    tempDir);
+            outputFile = File.createTempFile("cmdextout_" + filePrefix + "_",
+                    ext, tempDir);
 
             // store to a file
-            StreamUtil.drain(in, inputFile);
+            CopyUtil.copy(in, inputFile);
 
             executeCommand(inputFile, outputFile);
 
-            final ExtractData extractData =
-                new ExtractData(new String(
-                    FileUtil.getBytes(outputFile),
-                    outputEncoding));
+            final ExtractData extractData = new ExtractData(new String(
+                    FileUtil.readBytes(outputFile), outputEncoding));
             if (StringUtil.isNotBlank(resourceName)) {
-                extractData.putValues(
-                    "resourceName",
-                    new String[] { resourceName });
+                extractData.putValues("resourceName",
+                        new String[] { resourceName });
             }
 
             return extractData;
@@ -194,10 +184,8 @@ public class CommandExtractor implements Extractor {
             mt = new MonitorThread(currentProcess, executionTimeout);
             mt.start();
 
-            final InputStreamThread it =
-                new InputStreamThread(
-                    currentProcess.getInputStream(),
-                    commandOutputEncoding,
+            final InputStreamThread it = new InputStreamThread(
+                    currentProcess.getInputStream(), commandOutputEncoding,
                     maxOutputLine);
             it.start();
 
@@ -206,22 +194,21 @@ public class CommandExtractor implements Extractor {
 
             if (mt.isTeminated()) {
                 throw new ExecutionTimeoutException(
-                    "The command execution is timeout: " + cmdList);
+                        "The command execution is timeout: " + cmdList);
             }
 
             final int exitValue = currentProcess.exitValue();
 
             if (logger.isInfoEnabled()) {
                 logger.info("Exit Code: " + exitValue + " - Process Output:\n"
-                    + it.getOutput());
+                        + it.getOutput());
             }
         } catch (final RobotSystemException e) {
             throw e;
         } catch (final InterruptedException e) {
             if (mt != null && mt.isTeminated()) {
                 throw new ExecutionTimeoutException(
-                    "The command execution is timeout: " + cmdList,
-                    e);
+                        "The command execution is timeout: " + cmdList, e);
             }
             throw new RobotSystemException("Process terminated.", e);
         } catch (final Exception e) {
@@ -369,9 +356,7 @@ public class CommandExtractor implements Extractor {
             try {
                 br = new BufferedReader(new InputStreamReader(is, charset));
             } catch (final UnsupportedEncodingException e) {
-                br =
-                    new BufferedReader(new InputStreamReader(
-                        is,
+                br = new BufferedReader(new InputStreamReader(is,
                         Constants.UTF_8_CHARSET));
             }
             maxLineBuffer = maxOutputLineBuffer;

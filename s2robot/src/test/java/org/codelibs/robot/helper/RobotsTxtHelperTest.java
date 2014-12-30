@@ -18,21 +18,25 @@ package org.codelibs.robot.helper;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.RobotsTxt;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
-public class RobotsTxtHelperTest extends S2TestCase {
+public class RobotsTxtHelperTest extends PlainTestCase {
     public RobotsTxtHelper robotsTxtHelper;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("robotsTxtHelper", RobotsTxtHelper.class);
+        robotsTxtHelper = container.getComponent("robotsTxtHelper");
     }
 
     public void testParse() {
         RobotsTxt robotsTxt;
-        final InputStream in =
-            RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
+        final InputStream in = RobotsTxtHelperTest.class
+                .getResourceAsStream("robots.txt");
         try {
             robotsTxt = robotsTxtHelper.parse(in);
         } finally {
@@ -40,7 +44,7 @@ public class RobotsTxtHelperTest extends S2TestCase {
         }
 
         for (String userAgent : new String[] { "S2Robot", "S2Robot/1.0",
-            "Mozilla S2Robot" }) {
+                "Mozilla S2Robot" }) {
             assertTrue(robotsTxt.allows("/aaa", userAgent));
             assertTrue(robotsTxt.allows("/private/", userAgent));
             assertTrue(robotsTxt.allows("/private/index.html", userAgent));
@@ -65,7 +69,7 @@ public class RobotsTxtHelperTest extends S2TestCase {
         }
 
         for (String userAgent : new String[] { "GOOGLEBOT", "GoogleBot",
-            "googlebot" }) {
+                "googlebot" }) {
             assertTrue(robotsTxt.allows("/aaa", userAgent));
             assertTrue(robotsTxt.allows("/private/", userAgent));
             assertTrue(robotsTxt.allows("/private/index.html", userAgent));
@@ -114,8 +118,8 @@ public class RobotsTxtHelperTest extends S2TestCase {
     }
 
     public void testParse_disable() {
-        final InputStream in =
-            RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
+        final InputStream in = RobotsTxtHelperTest.class
+                .getResourceAsStream("robots.txt");
         robotsTxtHelper.setEnabled(false);
         try {
             assertNull(robotsTxtHelper.parse(in));

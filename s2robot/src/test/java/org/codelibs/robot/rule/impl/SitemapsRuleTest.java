@@ -21,21 +21,27 @@ import java.io.InputStream;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.ResourceUtil;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.util.TemporaryFileInputStream;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class SitemapsRuleTest extends S2TestCase {
+public class SitemapsRuleTest extends PlainTestCase {
     public SitemapsRule sitemapsRule;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("sitemapsHelper", SitemapsHelper.class)//
+                .singleton("sitemapsRule", SitemapsRule.class);
+        sitemapsRule = container.getComponent("sitemapsRule");
     }
 
     public void test_match() {
@@ -52,8 +58,7 @@ public class SitemapsRuleTest extends S2TestCase {
         assertTrue(sitemapsRule.match(responseData));
         InputStream is = responseData.getResponseBody();
         assertTrue(is instanceof TemporaryFileInputStream);
-        File temporaryFile =
-            ((TemporaryFileInputStream) is).getTemporaryFile();
+        File temporaryFile = ((TemporaryFileInputStream) is).getTemporaryFile();
         assertTrue(temporaryFile.exists());
         IOUtils.closeQuietly(is);
         assertFalse(temporaryFile.exists());
@@ -64,8 +69,8 @@ public class SitemapsRuleTest extends S2TestCase {
         assertFalse(sitemapsRule.match(responseData));
         InputStream is = responseData.getResponseBody();
         if (is instanceof TemporaryFileInputStream) {
-            File temporaryFile =
-                ((TemporaryFileInputStream) is).getTemporaryFile();
+            File temporaryFile = ((TemporaryFileInputStream) is)
+                    .getTemporaryFile();
             assertTrue(temporaryFile.exists());
             IOUtils.closeQuietly(is);
             assertFalse(temporaryFile.exists());
@@ -77,8 +82,8 @@ public class SitemapsRuleTest extends S2TestCase {
     private ResponseData getTestData1_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.xml");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml");
         responseData.setResponseBody(is);
         return responseData;
     }
@@ -86,8 +91,8 @@ public class SitemapsRuleTest extends S2TestCase {
     private ResponseData getTestData2_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.xml.gz");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml.gz");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml.gz");
         responseData.setResponseBody(is);
         return responseData;
     }
@@ -95,8 +100,8 @@ public class SitemapsRuleTest extends S2TestCase {
     private ResponseData getTestData3_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.txt");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.txt");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.txt");
         responseData.setResponseBody(is);
         return responseData;
     }
@@ -104,8 +109,8 @@ public class SitemapsRuleTest extends S2TestCase {
     private ResponseData getTestData4_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap/");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml");
         responseData.setResponseBody(is);
         return responseData;
     }
@@ -113,8 +118,8 @@ public class SitemapsRuleTest extends S2TestCase {
     private ResponseData getTestData1_FAIL() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/test.xml");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml");
         responseData.setResponseBody(is);
         return responseData;
     }

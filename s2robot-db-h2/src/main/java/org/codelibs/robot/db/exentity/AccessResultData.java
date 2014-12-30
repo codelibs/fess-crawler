@@ -19,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.db.bsentity.BsAccessResultData;
-import org.seasar.framework.util.StringUtil;
+import org.codelibs.core.lang.StringUtil;
 
 /**
  * The entity of ACCESS_RESULT_DATA.

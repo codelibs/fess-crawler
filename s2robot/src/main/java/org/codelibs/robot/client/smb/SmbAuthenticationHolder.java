@@ -20,11 +20,10 @@ import java.util.Map;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SmbAuthenticationHolder {
-    private final Map<String, SmbAuthentication> authMap =
-        new HashMap<String, SmbAuthentication>();
+    private final Map<String, SmbAuthentication> authMap = new HashMap<String, SmbAuthentication>();
 
     public void add(final SmbAuthentication auth) {
         authMap.put(auth.getPathPrefix(), auth);
@@ -36,7 +35,7 @@ public class SmbAuthenticationHolder {
         }
 
         for (final Map.Entry<String, SmbAuthentication> entry : authMap
-            .entrySet()) {
+                .entrySet()) {
             if (path.startsWith(entry.getKey())) {
                 return entry.getValue();
             }

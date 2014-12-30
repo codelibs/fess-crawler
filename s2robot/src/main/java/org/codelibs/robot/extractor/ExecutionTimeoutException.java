@@ -17,7 +17,7 @@ package org.codelibs.robot.extractor;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ExecutionTimeoutException extends ExtractException {
 

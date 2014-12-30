@@ -22,25 +22,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CopyUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
-import org.codelibs.robot.util.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * FileTransformer stores WEB data as a file path.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class FileTransformer extends HtmlTransformer {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(FileTransformer.class);
+            .getLogger(FileTransformer.class);
 
     /**
      * A path to store downloaded files. The default path is a current
@@ -93,8 +92,8 @@ public class FileTransformer extends HtmlTransformer {
                         } else {
                             if (!file.mkdirs()) {
                                 throw new RobotSystemException(
-                                    "Could not create "
-                                        + file.getAbsolutePath());
+                                        "Could not create "
+                                                + file.getAbsolutePath());
                             }
                             break;
                         }
@@ -103,7 +102,7 @@ public class FileTransformer extends HtmlTransformer {
             } else {
                 if (!file.mkdirs()) {
                     throw new RobotSystemException("Could not create "
-                        + file.getAbsolutePath());
+                            + file.getAbsolutePath());
                 }
             }
             targetFile = file;
@@ -138,17 +137,12 @@ public class FileTransformer extends HtmlTransformer {
 
             final File file = createFile(path);
 
-            final InputStream is = responseData.getResponseBody();
-            OutputStream os = null;
-            try {
-                os = new FileOutputStream(file);
-                StreamUtil.drain(is, os);
+            try (InputStream is = responseData.getResponseBody();
+                    OutputStream os = new FileOutputStream(file);) {
+                CopyUtil.copy(is, os);
             } catch (final IOException e) {
                 throw new RobotSystemException("Could not store "
-                    + file.getAbsolutePath(), e);
-            } finally {
-                IOUtils.closeQuietly(is);
-                IOUtils.closeQuietly(os);
+                        + file.getAbsolutePath(), e);
             }
         }
         try {
@@ -156,7 +150,7 @@ public class FileTransformer extends HtmlTransformer {
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName
-                    + ". Changed to " + Constants.UTF_8, e);
+                        + ". Changed to " + Constants.UTF_8, e);
             }
             charsetName = Constants.UTF_8_CHARSET.name();
             resultData.setData(path.getBytes(Constants.UTF_8_CHARSET));
@@ -173,7 +167,7 @@ public class FileTransformer extends HtmlTransformer {
                 baseDir = new File(path);
                 if (!baseDir.isDirectory() && !baseDir.mkdirs()) {
                     throw new RobotSystemException("Could not create "
-                        + baseDir.getAbsolutePath());
+                            + baseDir.getAbsolutePath());
                 }
             }
         }
@@ -181,39 +175,39 @@ public class FileTransformer extends HtmlTransformer {
 
     /**
      * Generate a path from a url.
-     * 
+     *
      * @param url
      * @return path
      */
     protected String getFilePath(final String url) {
         return url.replaceAll("/+", "/")//
-            .replaceAll("\\./", "")
-            //
-            .replaceAll("\\.\\./", "")
-            //
-            .replaceAll("/$", "/index.html")
-            //
-            .replaceAll("\\?", questionStr)
-            //
-            .replaceAll(":", colonStr)
-            //
-            .replaceAll(";", semicolonStr)
-            //
-            .replaceAll("&", ampersandStr)//
+                .replaceAll("\\./", "")
+                //
+                .replaceAll("\\.\\./", "")
+                //
+                .replaceAll("/$", "/index.html")
+                //
+                .replaceAll("\\?", questionStr)
+                //
+                .replaceAll(":", colonStr)
+                //
+                .replaceAll(";", semicolonStr)
+                //
+                .replaceAll("&", ampersandStr)//
         ;
     }
 
     /**
      * Returns data as a file path of String.
-     * 
+     *
      */
     @Override
     public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                + accessResultData.getTransformerName()
-                + ". This transformer is " + getName() + ".");
+                    + accessResultData.getTransformerName()
+                    + ". This transformer is " + getName() + ".");
         }
 
         final byte[] data = accessResultData.getData();
@@ -223,8 +217,8 @@ public class FileTransformer extends HtmlTransformer {
         final String encoding = accessResultData.getEncoding();
         String filePath;
         try {
-            filePath =
-                new String(data, encoding == null ? Constants.UTF_8 : encoding);
+            filePath = new String(data, encoding == null ? Constants.UTF_8
+                    : encoding);
         } catch (final UnsupportedEncodingException e) {
             filePath = new String(data, Constants.UTF_8_CHARSET);
         }

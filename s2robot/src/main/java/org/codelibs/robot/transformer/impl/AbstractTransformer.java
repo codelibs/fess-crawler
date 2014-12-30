@@ -21,7 +21,7 @@ import org.codelibs.robot.transformer.Transformer;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public abstract class AbstractTransformer implements Transformer {
 

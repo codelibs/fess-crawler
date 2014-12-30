@@ -24,7 +24,7 @@ import org.codelibs.robot.rule.RuleManager;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class RuleManagerImpl implements RuleManager {
 
@@ -36,7 +36,7 @@ public class RuleManagerImpl implements RuleManager {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @seeorg.codelibs.robot.rule.RuleManager#getRule(org.codelibs.robot.entity.
      * ResponseData)
      */
@@ -52,7 +52,7 @@ public class RuleManagerImpl implements RuleManager {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.rule.RuleManager#addRule(org.codelibs.robot.rule.Rule)
      */
@@ -63,7 +63,7 @@ public class RuleManagerImpl implements RuleManager {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.rule.RuleManager#hasRule(org.codelibs.robot.rule.Rule)
      */
@@ -74,7 +74,7 @@ public class RuleManagerImpl implements RuleManager {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.rule.RuleManager#removeRule(org.codelibs.robot.rule.Rule)
      */

@@ -15,11 +15,9 @@
  */
 package org.codelibs.robot.entity;
 
-import java.sql.Timestamp;
-
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface UrlQueue {
 
@@ -55,12 +53,12 @@ public interface UrlQueue {
 
     void setDepth(Integer depth);
 
-    Timestamp getLastModified();
+    Long getLastModified();
 
-    void setLastModified(Timestamp lastModified);
+    void setLastModified(Long lastModified);
 
-    Timestamp getCreateTime();
+    Long getCreateTime();
 
-    void setCreateTime(Timestamp createTime);
+    void setCreateTime(Long createTime);
 
 }

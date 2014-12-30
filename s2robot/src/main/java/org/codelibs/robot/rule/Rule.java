@@ -22,7 +22,7 @@ import org.codelibs.robot.processor.ResponseProcessor;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface Rule extends Serializable {
 

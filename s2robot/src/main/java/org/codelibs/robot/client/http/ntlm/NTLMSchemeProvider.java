@@ -22,9 +22,9 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * This class is AuthSchemeFactory implementation for NTLM.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class NTLMSchemeProvider implements AuthSchemeProvider {
 

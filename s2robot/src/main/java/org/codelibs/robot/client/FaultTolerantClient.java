@@ -23,19 +23,17 @@ import org.codelibs.robot.MaxLengthExceededException;
 import org.codelibs.robot.RobotMultipleCrawlAccessException;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class FaultTolerantClient implements S2RobotClient {
 
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(FaultTolerantClient.class);
+            .getLogger(FaultTolerantClient.class);
 
     protected S2RobotClient client;
 
@@ -43,15 +41,8 @@ public class FaultTolerantClient implements S2RobotClient {
 
     protected long retryInterval = 500;
 
-    @Binding(bindingType = BindingType.MAY)
     protected RequestListener listener;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.codelibs.robot.client.S2RobotClient#setInitParameterMap(java.util.Map)
-     */
     @Override
     public void setInitParameterMap(final Map<String, Object> params) {
         client.setInitParameterMap(params);
@@ -77,9 +68,8 @@ public class FaultTolerantClient implements S2RobotClient {
                     throw e;
                 } catch (final Exception e) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug(
-                            "Failed to access to " + request.getUrl(),
-                            e);
+                        logger.debug("Failed to access to " + request.getUrl(),
+                                e);
                     }
 
                     if (listener != null) {
@@ -99,9 +89,9 @@ public class FaultTolerantClient implements S2RobotClient {
                 }
                 count++;
             }
-            throw new RobotMultipleCrawlAccessException(
-                "Failed to access to " + request.getUrl(),
-                exceptionList.toArray(new Throwable[exceptionList.size()]));
+            throw new RobotMultipleCrawlAccessException("Failed to access to "
+                    + request.getUrl(),
+                    exceptionList.toArray(new Throwable[exceptionList.size()]));
         } finally {
             if (listener != null) {
                 listener.onRequestEnd(this, request, exceptionList);

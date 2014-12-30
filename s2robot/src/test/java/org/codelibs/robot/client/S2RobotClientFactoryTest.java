@@ -20,20 +20,36 @@ import java.util.Map;
 
 import org.codelibs.robot.client.fs.FileSystemClient;
 import org.codelibs.robot.client.http.HcHttpClient;
+import org.codelibs.robot.client.smb.SmbClient;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
-import org.seasar.extension.unit.S2TestCase;
+import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class S2RobotClientFactoryTest extends S2TestCase {
+public class S2RobotClientFactoryTest extends PlainTestCase {
     public S2RobotClientFactory clientFactory;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+                .singleton("httpClient", FaultTolerantClient.class)//
+                .singleton("fsClient", FileSystemClient.class)//
+                .singleton("smbClient", SmbClient.class)//
+                .singleton("clientFactory", S2RobotClientFactory.class);
+        clientFactory = container.getComponent("clientFactory");
+        FaultTolerantClient httpClient = container.getComponent("httpClient");
+        httpClient.setRobotClient(new HcHttpClient());
+        clientFactory.addClient("http:.*", httpClient);
+        clientFactory.addClient("https:.*", httpClient);
+        clientFactory.addClient("file:.*", container.getComponent("fsClient"));
+        clientFactory.addClient("smb:.*", container.getComponent("smbClient"));
     }
 
     public void test_getClient() {

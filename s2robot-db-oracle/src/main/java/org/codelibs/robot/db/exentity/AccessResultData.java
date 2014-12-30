@@ -18,7 +18,7 @@ package org.codelibs.robot.db.exentity;
 import java.io.UnsupportedEncodingException;
 
 import org.codelibs.robot.db.bsentity.BsAccessResultData;
-import org.seasar.framework.util.StringUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 
 /**

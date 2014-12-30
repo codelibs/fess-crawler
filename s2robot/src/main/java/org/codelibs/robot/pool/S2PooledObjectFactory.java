@@ -15,39 +15,43 @@
  */
 package org.codelibs.robot.pool;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import org.seasar.framework.container.SingletonS2Container;
+import org.codelibs.robot.container.ComponentContainer;
 
 /**
- * 
+ *
  * @param <T>
- * 
+ *
  * @author shinsuke
  *
  */
 public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
+    @Resource
+    protected ComponentContainer componentContainer;
 
-    public String componentName;
+    protected String componentName;
 
-    public OnDestroyListener<T> onDestroyListener;
+    protected OnDestroyListener<T> onDestroyListener;
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.apache.commons.pool2.BasePooledObjectFactory#create()
      */
     @Override
     public T create() throws Exception {
         @SuppressWarnings("unchecked")
-        T component = (T) SingletonS2Container.getComponent(componentName);
+        final T component = (T) componentContainer.getComponent(componentName);
         return component;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.apache.commons.pool2.BasePooledObjectFactory#wrap(java.lang.Object)
      */
@@ -57,7 +61,7 @@ public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     }
 
     @Override
-    public void destroyObject(PooledObject<T> p) throws Exception {
+    public void destroyObject(final PooledObject<T> p) throws Exception {
         if (onDestroyListener != null) {
             onDestroyListener.onDestroy(p);
         }
@@ -65,5 +69,22 @@ public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
 
     public interface OnDestroyListener<T> {
         public void onDestroy(PooledObject<T> p);
+    }
+
+    public String getComponentName() {
+        return componentName;
+    }
+
+    public void setComponentName(final String componentName) {
+        this.componentName = componentName;
+    }
+
+    public OnDestroyListener<T> getOnDestroyListener() {
+        return onDestroyListener;
+    }
+
+    public void setOnDestroyListener(
+            final OnDestroyListener<T> onDestroyListener) {
+        this.onDestroyListener = onDestroyListener;
     }
 }

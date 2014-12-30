@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CopyUtil;
 import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.entity.ResponseData;
 import org.slf4j.Logger;
@@ -31,19 +32,18 @@ import org.slf4j.LoggerFactory;
  */
 public final class ResponseDataUtil {
     private static final Logger logger = LoggerFactory
-        .getLogger(ResponseDataUtil.class);
+            .getLogger(ResponseDataUtil.class);
 
     private ResponseDataUtil() {
     }
 
     public static File createResponseBodyFile(final ResponseData responseData) {
         File tempFile = null;
-        final InputStream is = responseData.getResponseBody();
         FileOutputStream fos = null;
-        try {
+        try (final InputStream is = responseData.getResponseBody()) {
             tempFile = File.createTempFile("s2robot-", ".tmp");
             fos = new FileOutputStream(tempFile);
-            StreamUtil.drain(is, fos);
+            CopyUtil.copy(is, fos);
         } catch (final Exception e) {
             IOUtils.closeQuietly(fos); // for deleting file
             // clean up
@@ -51,10 +51,9 @@ public final class ResponseDataUtil {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw new RobotCrawlAccessException(
-                "Could not read a response body: " + responseData.getUrl(),
-                e);
+                    "Could not read a response body: " + responseData.getUrl(),
+                    e);
         } finally {
-            IOUtils.closeQuietly(is);
             IOUtils.closeQuietly(fos);
         }
         return tempFile;

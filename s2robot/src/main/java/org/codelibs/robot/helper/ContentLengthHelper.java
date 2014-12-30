@@ -18,18 +18,15 @@ package org.codelibs.robot.helper;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ContentLengthHelper {
 
-    @Binding(bindingType = BindingType.MAY)
     protected long defaultMaxLength = 10L * 1024L * 1024L;// 10M
 
     protected Map<String, Long> maxLengthMap = new HashMap<String, Long>();

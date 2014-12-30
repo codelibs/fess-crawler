@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * @param <E>
- * 
+ *
  */
 public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
         java.io.Serializable {
@@ -40,7 +40,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
     /**
      * Returns an iterator over the elements in this set. The elements are
      * returned in no particular order.
-     * 
+     *
      * @return an Iterator over the elements in this set.
      * @see ConcurrentModificationException
      */
@@ -51,7 +51,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Returns the number of elements in this set (its cardinality).
-     * 
+     *
      * @return the number of elements in this set (its cardinality).
      */
     @Override
@@ -61,7 +61,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Returns <tt>true</tt> if this set contains no elements.
-     * 
+     *
      * @return <tt>true</tt> if this set contains no elements.
      */
     @Override
@@ -71,7 +71,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Returns <tt>true</tt> if this set contains the specified element.
-     * 
+     *
      * @param o
      *            element whose presence in this set is to be tested.
      * @return <tt>true</tt> if this set contains the specified element.
@@ -83,7 +83,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Adds the specified element to this set if it is not already present.
-     * 
+     *
      * @param o
      *            element to be added to this set.
      * @return <tt>true</tt> if the set did not already contain the specified
@@ -96,7 +96,7 @@ public class LruHashSet<E> extends AbstractSet<E> implements Set<E>,
 
     /**
      * Removes the specified element from this set if it is present.
-     * 
+     *
      * @param o
      *            object to be removed from this set, if present.
      * @return <tt>true</tt> if the set contained the specified element.

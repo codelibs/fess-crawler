@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
@@ -67,6 +68,14 @@ import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
+import org.codelibs.core.beans.BeanDesc;
+import org.codelibs.core.beans.PropertyDesc;
+import org.codelibs.core.beans.factory.BeanDescFactory;
+import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.timer.TimeoutManager;
+import org.codelibs.core.timer.TimeoutTarget;
+import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.MaxLengthExceededException;
 import org.codelibs.robot.RobotCrawlAccessException;
@@ -78,34 +87,21 @@ import org.codelibs.robot.entity.RobotsTxt;
 import org.codelibs.robot.helper.ContentLengthHelper;
 import org.codelibs.robot.helper.RobotsTxtHelper;
 import org.codelibs.robot.util.CrawlingParameterUtil;
-import org.codelibs.robot.util.StreamUtil;
 import org.codelibs.robot.util.TemporaryFileInputStream;
-import org.seasar.extension.timer.TimeoutManager;
-import org.seasar.extension.timer.TimeoutTarget;
-import org.seasar.extension.timer.TimeoutTask;
-import org.seasar.framework.beans.BeanDesc;
-import org.seasar.framework.beans.PropertyDesc;
-import org.seasar.framework.beans.factory.BeanDescFactory;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
-import org.seasar.framework.container.annotation.tiger.DestroyMethod;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String ACCESS_TIMEOUT_PROPERTY = "accessTimeout";
 
-    public static final String CONNECTION_TIMEOUT_PROPERTY =
-        "connectionTimeout";
+    public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
-    public static final String STALE_CHECKING_ENABLED_PROPERTY =
-        "staleCheckingEnabled";
+    public static final String STALE_CHECKING_ENABLED_PROPERTY = "staleCheckingEnabled";
 
     public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
 
@@ -121,24 +117,20 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public static final String ROBOTS_TXT_ENABLED_PROPERTY = "robotsTxtEnabled";
 
-    public static final String BASIC_AUTHENTICATIONS_PROPERTY =
-        "basicAuthentications";
+    public static final String BASIC_AUTHENTICATIONS_PROPERTY = "basicAuthentications";
 
     public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
 
     public static final String COOKIES_PROPERTY = "cookies";
 
-    public static final String AUTH_SCHEME_PROVIDERS_PROPERTY =
-        "authSchemeProviders";
+    public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
 
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(HcHttpClient.class);
+            .getLogger(HcHttpClient.class);
 
-    @Binding(bindingType = BindingType.MAY)
     @Resource
     protected RobotsTxtHelper robotsTxtHelper;
 
-    @Binding(bindingType = BindingType.MAY)
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
@@ -146,8 +138,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     private final List<Header> requestHeaderList = new ArrayList<Header>();
 
-    private final Map<String, Object> httpClientPropertyMap =
-        new HashMap<String, Object>();
+    private final Map<String, Object> httpClientPropertyMap = new HashMap<String, Object>();
 
     private TimeoutTask connectionMonitorTask;
 
@@ -167,24 +158,20 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public String userAgent = "S2Robot";
 
-    @Binding(bindingType = BindingType.MAY)
     public HttpClientContext httpClientContext = HttpClientContext.create();
 
     public String proxyHost;
 
     public Integer proxyPort;
 
-    @Binding(bindingType = BindingType.MAY)
     public AuthScheme proxyAuthScheme = new BasicScheme();
 
-    @Binding(bindingType = BindingType.MAY)
     public Credentials proxyCredentials;
 
     public int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
     public String defaultMimeType = "application/octet-stream";
 
-    @Binding(bindingType = BindingType.MAY)
     public CookieStore cookieStore = new BasicCookieStore();
 
     public HttpClientConnectionManager clientConnectionManager;
@@ -211,57 +198,52 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // access timeout
-        final Integer accessTimeoutParam =
-            getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout);
+        final Integer accessTimeoutParam = getInitParameter(
+                ACCESS_TIMEOUT_PROPERTY, accessTimeout);
         if (accessTimeoutParam != null) {
             accessTimeout = accessTimeoutParam;
         }
 
         // robots.txt parser
-        final Boolean robotsTxtEnabled =
-            getInitParameter(ROBOTS_TXT_ENABLED_PROPERTY, Boolean.TRUE);
+        final Boolean robotsTxtEnabled = getInitParameter(
+                ROBOTS_TXT_ENABLED_PROPERTY, Boolean.TRUE);
         if (robotsTxtHelper != null) {
             robotsTxtHelper.setEnabled(robotsTxtEnabled.booleanValue());
         }
 
         // httpclient
-        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder =
-            RequestConfig.custom();
+        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder = RequestConfig
+                .custom();
         final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
-        final Integer connectionTimeoutParam =
-            getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout);
+        final Integer connectionTimeoutParam = getInitParameter(
+                CONNECTION_TIMEOUT_PROPERTY, connectionTimeout);
         if (connectionTimeoutParam != null) {
             requestConfigBuilder.setConnectTimeout(connectionTimeoutParam);
 
         }
-        final Boolean staleCheckingEnabledParam =
-            getInitParameter(
-                STALE_CHECKING_ENABLED_PROPERTY,
-                staleCheckingEnabled);
+        final Boolean staleCheckingEnabledParam = getInitParameter(
+                STALE_CHECKING_ENABLED_PROPERTY, staleCheckingEnabled);
         if (staleCheckingEnabledParam != null) {
             requestConfigBuilder
-                .setStaleConnectionCheckEnabled(staleCheckingEnabledParam);
+                    .setStaleConnectionCheckEnabled(staleCheckingEnabledParam);
         }
-        final Integer soTimeoutParam =
-            getInitParameter(SO_TIMEOUT_PROPERTY, soTimeout);
+        final Integer soTimeoutParam = getInitParameter(SO_TIMEOUT_PROPERTY,
+                soTimeout);
         if (soTimeoutParam != null) {
             requestConfigBuilder.setSocketTimeout(soTimeoutParam);
         }
 
         // AuthSchemeFactory
-        final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder =
-            RegistryBuilder.create();
-        final Map<String, AuthSchemeProvider> factoryMap =
-            getInitParameter(
-                AUTH_SCHEME_PROVIDERS_PROPERTY,
-                authSchemeProviderMap);
+        final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder = RegistryBuilder
+                .create();
+        final Map<String, AuthSchemeProvider> factoryMap = getInitParameter(
+                AUTH_SCHEME_PROVIDERS_PROPERTY, authSchemeProviderMap);
         if (factoryMap != null) {
             for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap
-                .entrySet()) {
-                authSchemeProviderBuilder.register(
-                    entry.getKey(),
-                    entry.getValue());
+                    .entrySet()) {
+                authSchemeProviderBuilder.register(entry.getKey(),
+                        entry.getValue());
             }
         }
 
@@ -275,29 +257,26 @@ public class HcHttpClient extends AbstractS2RobotClient {
         AuthCache authCache = null;
 
         // proxy
-        final String proxyHost =
-            getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
-        final Integer proxyPort =
-            getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort);
+        final String proxyHost = getInitParameter(PROXY_HOST_PROPERTY,
+                this.proxyHost);
+        final Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY,
+                this.proxyPort);
         if (proxyHost != null && proxyPort != null) {
             final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-            final DefaultProxyRoutePlanner routePlanner =
-                new DefaultProxyRoutePlanner(proxy);
+            final DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(
+                    proxy);
             httpClientBuilder.setRoutePlanner(routePlanner);
 
-            final Credentials credentials =
-                getInitParameter(PROXY_CREDENTIALS_PROPERTY, proxyCredentials);
+            final Credentials credentials = getInitParameter(
+                    PROXY_CREDENTIALS_PROPERTY, proxyCredentials);
             if (credentials != null) {
                 authCache = new BasicAuthCache();
                 credsProvider = new BasicCredentialsProvider();
 
                 credsProvider.setCredentials(
-                    new AuthScope(proxyHost, proxyPort),
-                    credentials);
-                final AuthScheme authScheme =
-                    getInitParameter(
-                        PROXY_AUTH_SCHEME_PROPERTY,
-                        proxyAuthScheme);
+                        new AuthScope(proxyHost, proxyPort), credentials);
+                final AuthScheme authScheme = getInitParameter(
+                        PROXY_AUTH_SCHEME_PROPERTY, proxyAuthScheme);
                 if (authScheme != null) {
                     authCache.put(proxy, authScheme);
                 }
@@ -305,24 +284,21 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // Authentication
-        final Authentication[] siteCredentialList =
-            getInitParameter(
-                BASIC_AUTHENTICATIONS_PROPERTY,
-                new Authentication[0]);
+        final Authentication[] siteCredentialList = getInitParameter(
+                BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0]);
         if (siteCredentialList != null && siteCredentialList.length > 0
-            && authCache == null) {
+                && authCache == null) {
             authCache = new BasicAuthCache();
             credsProvider = new BasicCredentialsProvider();
         }
         for (final Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
-            credsProvider.setCredentials(
-                authScope,
-                authentication.getCredentials());
+            credsProvider.setCredentials(authScope,
+                    authentication.getCredentials());
             final AuthScheme authScheme = authentication.getAuthScheme();
             if (authScope.getHost() != null && authScheme != null) {
-                final HttpHost targetHost =
-                    new HttpHost(authScope.getHost(), authScope.getPort());
+                final HttpHost targetHost = new HttpHost(authScope.getHost(),
+                        authScope.getPort());
                 authCache.put(targetHost, authScheme);
             }
         }
@@ -332,13 +308,12 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // Request Header
-        final RequestHeader[] requestHeaders =
-            getInitParameter(REQUERT_HEADERS_PROPERTY, new RequestHeader[0]);
+        final RequestHeader[] requestHeaders = getInitParameter(
+                REQUERT_HEADERS_PROPERTY, new RequestHeader[0]);
         for (final RequestHeader requestHeader : requestHeaders) {
             if (requestHeader.isValid()) {
-                requestHeaderList.add(new BasicHeader(
-                    requestHeader.getName(),
-                    requestHeader.getValue()));
+                requestHeaderList.add(new BasicHeader(requestHeader.getName(),
+                        requestHeader.getValue()));
             }
         }
 
@@ -353,40 +328,34 @@ public class HcHttpClient extends AbstractS2RobotClient {
         // cookie store
         httpClientBuilder.setDefaultCookieStore(cookieStore);
         if (cookieStore != null) {
-            final Cookie[] cookies =
-                getInitParameter(COOKIES_PROPERTY, new Cookie[0]);
+            final Cookie[] cookies = getInitParameter(COOKIES_PROPERTY,
+                    new Cookie[0]);
             for (final Cookie cookie : cookies) {
                 cookieStore.addCookie(cookie);
             }
         }
 
-        connectionMonitorTask =
-            TimeoutManager.getInstance().addTimeoutTarget(
-                new HcConnectionMonitorTarget(
-                    clientConnectionManager,
-                    idleConnectionTimeout),
-                connectionCheckInterval,
-                true);
+        connectionMonitorTask = TimeoutManager.getInstance().addTimeoutTarget(
+                new HcConnectionMonitorTarget(clientConnectionManager,
+                        idleConnectionTimeout), connectionCheckInterval, true);
 
-        final CloseableHttpClient closeableHttpClient =
-            httpClientBuilder
+        final CloseableHttpClient closeableHttpClient = httpClientBuilder
                 .setConnectionManager(clientConnectionManager)
-                .setDefaultRequestConfig(requestConfigBuilder.build())
-                .build();
+                .setDefaultRequestConfig(requestConfigBuilder.build()).build();
         if (!httpClientPropertyMap.isEmpty()) {
-            final BeanDesc beanDesc =
-                BeanDescFactory.getBeanDesc(closeableHttpClient.getClass());
+            final BeanDesc beanDesc = BeanDescFactory
+                    .getBeanDesc(closeableHttpClient.getClass());
             for (final Map.Entry<String, Object> entry : httpClientPropertyMap
-                .entrySet()) {
+                    .entrySet()) {
                 final String propertyName = entry.getKey();
                 if (beanDesc.hasPropertyDesc(propertyName)) {
-                    final PropertyDesc propertyDesc =
-                        beanDesc.getPropertyDesc(propertyName);
+                    final PropertyDesc propertyDesc = beanDesc
+                            .getPropertyDesc(propertyName);
                     propertyDesc
-                        .setValue(closeableHttpClient, entry.getValue());
+                            .setValue(closeableHttpClient, entry.getValue());
                 } else {
                     logger.warn("DefaultHttpClient does not have "
-                        + propertyName + ".");
+                            + propertyName + ".");
                 }
             }
         }
@@ -394,7 +363,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
         httpClient = closeableHttpClient;
     }
 
-    @DestroyMethod
+    @PreDestroy
     public void destroy() {
         if (connectionMonitorTask != null) {
             connectionMonitorTask.cancel();
@@ -425,8 +394,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
 
         // robot context
-        final S2RobotContext robotContext =
-            CrawlingParameterUtil.getRobotContext();
+        final S2RobotContext robotContext = CrawlingParameterUtil
+                .getRobotContext();
         if (robotContext == null) {
             // wrong state
             return;
@@ -472,53 +441,52 @@ public class HcHttpClient extends AbstractS2RobotClient {
             if (httpStatusCode == 200) {
 
                 // check file size
-                final Header contentLengthHeader =
-                    response.getFirstHeader("Content-Length");
+                final Header contentLengthHeader = response
+                        .getFirstHeader("Content-Length");
                 if (contentLengthHeader != null) {
                     final String value = contentLengthHeader.getValue();
                     final long contentLength = Long.parseLong(value);
                     if (contentLengthHelper != null) {
-                        final long maxLength =
-                            contentLengthHelper.getMaxLength("text/plain");
+                        final long maxLength = contentLengthHelper
+                                .getMaxLength("text/plain");
                         if (contentLength > maxLength) {
                             throw new MaxLengthExceededException(
-                                "The content length (" + contentLength
-                                    + " byte) is over " + maxLength
-                                    + " byte. The url is " + robotTxtUrl);
+                                    "The content length (" + contentLength
+                                            + " byte) is over " + maxLength
+                                            + " byte. The url is "
+                                            + robotTxtUrl);
                         }
                     }
                 }
 
                 if (httpEntity != null) {
-                    final RobotsTxt robotsTxt =
-                        robotsTxtHelper.parse(httpEntity.getContent());
+                    final RobotsTxt robotsTxt = robotsTxtHelper
+                            .parse(httpEntity.getContent());
                     if (robotsTxt != null) {
                         final String[] sitemaps = robotsTxt.getSitemaps();
                         if (sitemaps.length > 0) {
                             robotContext.addSitemaps(sitemaps);
                         }
 
-                        final RobotsTxt.Directive directive =
-                            robotsTxt.getMatchedDirective(userAgent);
+                        final RobotsTxt.Directive directive = robotsTxt
+                                .getMatchedDirective(userAgent);
                         if (directive != null) {
                             if (useRobotsTxtDisallows) {
                                 for (String urlPattern : directive
-                                    .getDisallows()) {
+                                        .getDisallows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
-                                        urlPattern =
-                                            convertRobotsTxtPathPattern(urlPattern);
+                                        urlPattern = convertRobotsTxtPathPattern(urlPattern);
                                         robotContext.getUrlFilter().addExclude(
-                                            hostUrl + urlPattern);
+                                                hostUrl + urlPattern);
                                     }
                                 }
                             }
                             if (useRobotsTxtAllows) {
                                 for (String urlPattern : directive.getAllows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
-                                        urlPattern =
-                                            convertRobotsTxtPathPattern(urlPattern);
+                                        urlPattern = convertRobotsTxtPathPattern(urlPattern);
                                         robotContext.getUrlFilter().addInclude(
-                                            hostUrl + urlPattern);
+                                                hostUrl + urlPattern);
                                     }
                                 }
                             }
@@ -532,15 +500,15 @@ public class HcHttpClient extends AbstractS2RobotClient {
         } catch (final Exception e) {
             httpGet.abort();
             throw new RobotCrawlAccessException("Could not process "
-                + robotTxtUrl + ". ", e);
+                    + robotTxtUrl + ". ", e);
         } finally {
             EntityUtils.consumeQuietly(httpEntity);
         }
     }
 
     protected String convertRobotsTxtPathPattern(final String path) {
-        String newPath =
-            path.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".*");
+        String newPath = path.replaceAll("\\.", "\\\\.")
+                .replaceAll("\\*", ".*");
         if (newPath.charAt(0) != '/') {
             newPath = ".*" + newPath;
         }
@@ -552,7 +520,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.http.HttpClient#doGet(java.lang.String)
      */
     @Override
@@ -562,14 +530,14 @@ public class HcHttpClient extends AbstractS2RobotClient {
             httpGet = new HttpGet(url);
         } catch (final IllegalArgumentException e) {
             throw new RobotCrawlAccessException("The url may not be valid: "
-                + url, e);
+                    + url, e);
         }
         return doHttpMethod(url, httpGet);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.http.HttpClient#doHead(java.lang.String)
      */
     @Override
@@ -579,7 +547,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             httpHead = new HttpHead(url);
         } catch (final IllegalArgumentException e) {
             throw new RobotCrawlAccessException("The url may not be valid: "
-                + url, e);
+                    + url, e);
         }
         return doHttpMethod(url, httpHead);
     }
@@ -598,13 +566,10 @@ public class HcHttpClient extends AbstractS2RobotClient {
         AccessTimeoutTarget accessTimeoutTarget = null;
         TimeoutTask accessTimeoutTask = null;
         if (accessTimeout != null) {
-            accessTimeoutTarget =
-                new AccessTimeoutTarget(Thread.currentThread());
-            accessTimeoutTask =
-                TimeoutManager.getInstance().addTimeoutTarget(
-                    accessTimeoutTarget,
-                    accessTimeout.intValue(),
-                    false);
+            accessTimeoutTarget = new AccessTimeoutTarget(
+                    Thread.currentThread());
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(
+                    accessTimeoutTarget, accessTimeout.intValue(), false);
         }
 
         try {
@@ -652,8 +617,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
             final int httpStatusCode = response.getStatusLine().getStatusCode();
             // redirect
             if (isRedirectHttpStatus(httpStatusCode)) {
-                final Header locationHeader =
-                    response.getFirstHeader("location");
+                final Header locationHeader = response
+                        .getFirstHeader("location");
                 if (locationHeader == null) {
                     logger.warn("Invalid redirect location at " + url);
                 } else {
@@ -669,16 +634,14 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 inputStream = new ByteArrayInputStream(new byte[0]);
             } else {
                 final InputStream responseBodyStream = httpEntity.getContent();
-                final File outputFile =
-                    File.createTempFile("s2robot-HcHttpClient-", ".out");
+                final File outputFile = File.createTempFile(
+                        "s2robot-HcHttpClient-", ".out");
                 DeferredFileOutputStream dfos = null;
                 try {
                     try {
-                        dfos =
-                            new DeferredFileOutputStream(
-                                responseBodyInMemoryThresholdSize,
-                                outputFile);
-                        StreamUtil.drain(responseBodyStream, dfos);
+                        dfos = new DeferredFileOutputStream(
+                                responseBodyInMemoryThresholdSize, outputFile);
+                        CopyUtil.copy(responseBodyStream, dfos);
                         dfos.flush();
                     } finally {
                         IOUtils.closeQuietly(dfos);
@@ -686,7 +649,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 } catch (final Exception e) {
                     if (!outputFile.delete()) {
                         logger.warn("Could not delete "
-                            + outputFile.getAbsolutePath());
+                                + outputFile.getAbsolutePath());
                     }
                     throw e;
                 }
@@ -696,23 +659,23 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     contentLength = dfos.getData().length;
                     if (!outputFile.delete()) {
                         logger.warn("Could not delete "
-                            + outputFile.getAbsolutePath());
+                                + outputFile.getAbsolutePath());
                     }
                 } else {
                     inputStream = new TemporaryFileInputStream(outputFile);
                     contentLength = outputFile.length();
                 }
 
-                final Header contentEncodingHeader =
-                    httpEntity.getContentEncoding();
+                final Header contentEncodingHeader = httpEntity
+                        .getContentEncoding();
                 if (contentEncodingHeader != null) {
                     contentEncoding = contentEncodingHeader.getValue();
                 }
             }
 
             String contentType = null;
-            final Header contentTypeHeader =
-                response.getFirstHeader("Content-Type");
+            final Header contentTypeHeader = response
+                    .getFirstHeader("Content-Type");
             if (contentTypeHeader != null) {
                 contentType = contentTypeHeader.getValue();
                 final int idx = contentType.indexOf(';');
@@ -723,12 +686,12 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
             // check file size
             if (contentLengthHelper != null) {
-                final long maxLength =
-                    contentLengthHelper.getMaxLength(contentType);
+                final long maxLength = contentLengthHelper
+                        .getMaxLength(contentType);
                 if (contentLength > maxLength) {
                     throw new MaxLengthExceededException("The content length ("
-                        + contentLength + " byte) is over " + maxLength
-                        + " byte. The url is " + url);
+                            + contentLength + " byte) is over " + maxLength
+                            + " byte. The url is " + url);
                 }
             }
 
@@ -750,8 +713,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
             } else {
                 responseData.setMimeType(contentType);
             }
-            final Header contentLengthHeader =
-                response.getFirstHeader("Content-Length");
+            final Header contentLengthHeader = response
+                    .getFirstHeader("Content-Length");
             if (contentLengthHeader == null) {
                 responseData.setContentLength(contentLength);
             } else {
@@ -762,8 +725,8 @@ public class HcHttpClient extends AbstractS2RobotClient {
                     responseData.setContentLength(contentLength);
                 }
             }
-            final Header lastModifiedHeader =
-                response.getFirstHeader("Last-Modified");
+            final Header lastModifiedHeader = response
+                    .getFirstHeader("Last-Modified");
             if (lastModifiedHeader != null) {
                 final String value = lastModifiedHeader.getValue();
                 if (StringUtil.isNotBlank(value)) {
@@ -779,27 +742,27 @@ public class HcHttpClient extends AbstractS2RobotClient {
             httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Unknown host("
-                + e.getMessage() + "): " + url, e);
+                    + e.getMessage() + "): " + url, e);
         } catch (final NoRouteToHostException e) {
             httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("No route to host("
-                + e.getMessage() + "): " + url, e);
+                    + e.getMessage() + "): " + url, e);
         } catch (final ConnectException e) {
             httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Connection time out("
-                + e.getMessage() + "): " + url, e);
+                    + e.getMessage() + "): " + url, e);
         } catch (final SocketException e) {
             httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("Socket exception("
-                + e.getMessage() + "): " + url, e);
+                    + e.getMessage() + "): " + url, e);
         } catch (final IOException e) {
             httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
             throw new RobotCrawlAccessException("I/O exception("
-                + e.getMessage() + "): " + url, e);
+                    + e.getMessage() + "): " + url, e);
         } catch (final RobotSystemException e) {
             httpRequest.abort();
             IOUtils.closeQuietly(inputStream);
@@ -815,18 +778,18 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     protected boolean isRedirectHttpStatus(final int httpStatusCode) {
         return redirectHttpStatusPattern.matcher(
-            Integer.toString(httpStatusCode)).matches();
+                Integer.toString(httpStatusCode)).matches();
     }
 
     protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest)
             throws IOException {
         return httpClient.execute(httpRequest, new BasicHttpContext(
-            httpClientContext));
+                httpClientContext));
     }
 
     protected Date parseLastModified(final String value) {
-        final SimpleDateFormat sdf =
-            new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+        final SimpleDateFormat sdf = new SimpleDateFormat(
+                "EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
         try {
             return sdf.parse(value);
         } catch (final ParseException e) {
@@ -849,7 +812,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see org.seasar.extension.timer.TimeoutTarget#expired()
          */
         @Override

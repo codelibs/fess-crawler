@@ -33,14 +33,18 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Resource;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.xpath.CachedXPathAPI;
+import org.codelibs.core.io.InputStreamUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
@@ -50,11 +54,6 @@ import org.codelibs.robot.helper.UrlConvertHelper;
 import org.codelibs.robot.util.CharUtil;
 import org.codelibs.robot.util.ResponseDataUtil;
 import org.cyberneko.html.parsers.DOMParser;
-import org.seasar.framework.container.SingletonS2Container;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
-import org.seasar.framework.util.InputStreamUtil;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -64,41 +63,38 @@ import org.xml.sax.InputSource;
 
 /**
  * HtmlTransformer stores WEB data as HTML content.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class HtmlTransformer extends AbstractTransformer {
 
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(HtmlTransformer.class);
+            .getLogger(HtmlTransformer.class);
 
     protected static final String LOCATION_HEADER = "Location";
+
+    @Resource
+    protected ComponentContainer componentContainer;
 
     protected Map<String, String> featureMap = new HashMap<String, String>();
 
     protected Map<String, String> propertyMap = new HashMap<String, String>();
 
-    protected Map<String, String> childUrlRuleMap =
-        new LinkedHashMap<String, String>();
+    protected Map<String, String> childUrlRuleMap = new LinkedHashMap<String, String>();
 
-    @Binding(bindingType = BindingType.MAY)
     protected String defaultEncoding;
 
     // If you want to follow a html spec, use 512.
-    @Binding(bindingType = BindingType.MAY)
     protected int preloadSizeForCharset = 2048;
 
-    @Binding(bindingType = BindingType.MAY)
-    protected Pattern invalidUrlPattern = Pattern.compile(
-        "^\\s*javascript:|" + "^\\s*mailto:|" + "^\\s*irc:|" + "^\\s*skype:|"
-            + "^\\s*about:|" + "^\\s*fscommand:|" + "^\\s*aim:|"
-            + "^\\s*msnim:|" + "^\\s*news:|" + "^\\s*tel:|" + "^\\s*unsaved:|"
-            + "^\\s*callto:",
-        Pattern.CASE_INSENSITIVE);
+    protected Pattern invalidUrlPattern = Pattern.compile("^\\s*javascript:|"
+            + "^\\s*mailto:|" + "^\\s*irc:|" + "^\\s*skype:|" + "^\\s*about:|"
+            + "^\\s*fscommand:|" + "^\\s*aim:|" + "^\\s*msnim:|"
+            + "^\\s*news:|" + "^\\s*tel:|" + "^\\s*unsaved:|" + "^\\s*callto:",
+            Pattern.CASE_INSENSITIVE);
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI =
-        new ThreadLocal<CachedXPathAPI>();
+    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
 
     @Override
     public ResultData transform(final ResponseData responseData) {
@@ -106,8 +102,8 @@ public class HtmlTransformer extends AbstractTransformer {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        final File tempFile =
-            ResponseDataUtil.createResponseBodyFile(responseData);
+        final File tempFile = ResponseDataUtil
+                .createResponseBodyFile(responseData);
 
         FileInputStream fis = null;
 
@@ -130,7 +126,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
             throw new RobotSystemException("Could not load response data: "
-                + responseData.getUrl(), e);
+                    + responseData.getUrl(), e);
         } finally {
             IOUtils.closeQuietly(fis);
         }
@@ -186,16 +182,14 @@ public class HtmlTransformer extends AbstractTransformer {
             }
         }
 
-        final Object redirectUrlObj =
-            responseData.getMetaDataMap().get(LOCATION_HEADER);
+        final Object redirectUrlObj = responseData.getMetaDataMap().get(
+                LOCATION_HEADER);
         if (redirectUrlObj instanceof String) {
-            final UrlConvertHelper urlConvertHelper =
-                SingletonS2Container.getComponent(UrlConvertHelper.class);
-            resultData.addUrl(RequestDataBuilder
-                .newRequestData()
-                .get()
-                .url(urlConvertHelper.convert(redirectUrlObj.toString()))
-                .build());
+            final UrlConvertHelper urlConvertHelper = componentContainer
+                    .getComponent("urlConvertHelper");
+            resultData.addUrl(RequestDataBuilder.newRequestData().get()
+                    .url(urlConvertHelper.convert(redirectUrlObj.toString()))
+                    .build());
         }
 
         // clean up
@@ -209,7 +203,7 @@ public class HtmlTransformer extends AbstractTransformer {
     protected boolean isHtml(final ResponseData responseData) {
         final String mimeType = responseData.getMimeType();
         if ("text/html".equals(mimeType)
-            || "application/xhtml+xml".equals(mimeType)) {
+                || "application/xhtml+xml".equals(mimeType)) {
             return true;
         }
         return false;
@@ -239,21 +233,15 @@ public class HtmlTransformer extends AbstractTransformer {
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            final URL url =
-                new URL(baseHref == null ? responseData.getUrl() : baseHref);
+            final URL url = new URL(baseHref == null ? responseData.getUrl()
+                    : baseHref);
             for (final Map.Entry<String, String> entry : childUrlRuleMap
-                .entrySet()) {
-                for (final String childUrl : getUrlFromTagAttribute(
-                    url,
-                    document,
-                    entry.getKey(),
-                    entry.getValue(),
-                    responseData.getCharSet())) {
-                    requestDataList.add(RequestDataBuilder
-                        .newRequestData()
-                        .get()
-                        .url(childUrl)
-                        .build());
+                    .entrySet()) {
+                for (final String childUrl : getUrlFromTagAttribute(url,
+                        document, entry.getKey(), entry.getValue(),
+                        responseData.getCharSet())) {
+                    requestDataList.add(RequestDataBuilder.newRequestData()
+                            .get().url(childUrl).build());
                 }
             }
             requestDataList = convertChildUrlList(requestDataList);
@@ -274,11 +262,11 @@ public class HtmlTransformer extends AbstractTransformer {
     protected List<RequestData> convertChildUrlList(
             final List<RequestData> requestDataList) {
         try {
-            final UrlConvertHelper urlConvertHelper =
-                SingletonS2Container.getComponent(UrlConvertHelper.class);
+            final UrlConvertHelper urlConvertHelper = componentContainer
+                    .getComponent("urlConvertHelper");
             for (final RequestData requestData : requestDataList) {
                 requestData.setUrl(urlConvertHelper.convert(requestData
-                    .getUrl()));
+                        .getUrl()));
             }
             return requestDataList;
         } catch (final Exception e) {
@@ -289,8 +277,8 @@ public class HtmlTransformer extends AbstractTransformer {
 
     protected void storeData(final ResponseData responseData,
             final ResultData resultData) {
-        final byte[] data =
-            InputStreamUtil.getBytes(responseData.getResponseBody());
+        final byte[] data = InputStreamUtil.getBytes(responseData
+                .getResponseBody());
         resultData.setData(data);
         resultData.setEncoding(responseData.getCharSet());
     }
@@ -340,8 +328,8 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         try {
-            final EncodingHelper encodingHelper =
-                SingletonS2Container.getComponent(EncodingHelper.class);
+            final EncodingHelper encodingHelper = componentContainer
+                    .getComponent("encodingHelper");
             encoding = encodingHelper.normalize(encoding);
         } catch (final Exception e) {
             // NOP
@@ -351,10 +339,8 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected String parseCharset(final String content) {
-        final Pattern pattern =
-            Pattern.compile(
-                "; *charset *= *([a-zA-Z0-9\\-_]+)",
-                Pattern.CASE_INSENSITIVE);
+        final Pattern pattern = Pattern.compile(
+                "; *charset *= *([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
         final Matcher matcher = pattern.matcher(content);
         if (matcher.find()) {
             return matcher.group(1);
@@ -363,7 +349,7 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected RequestData getDuplicateUrl(final RequestData requestData) {
-        String url = requestData.getUrl();
+        final String url = requestData.getUrl();
         if (url.endsWith("/")) {
             requestData.setUrl(url.substring(0, url.length() - 1));
         } else {
@@ -377,9 +363,8 @@ public class HtmlTransformer extends AbstractTransformer {
         try {
             // feature
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(
-                    entry.getKey(),
-                    "true".equalsIgnoreCase(entry.getValue()) ? true : false);
+                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry
+                        .getValue()) ? true : false);
             }
 
             // property
@@ -428,11 +413,8 @@ public class HtmlTransformer extends AbstractTransformer {
                 final Element element = (Element) list.item(i);
                 final String attrValue = element.getAttribute(attr);
                 if (isValidPath(attrValue)) {
-                    addChildUrlFromTagAttribute(
-                        urlList,
-                        url,
-                        attrValue,
-                        encoding);
+                    addChildUrlFromTagAttribute(urlList, url, attrValue,
+                            encoding);
                 }
             }
         } catch (final TransformerException e) {
@@ -444,12 +426,12 @@ public class HtmlTransformer extends AbstractTransformer {
     protected void addChildUrlFromTagAttribute(final List<String> urlList,
             final URL url, final String attrValue, final String encoding) {
         try {
-            String childUrlValue = attrValue.trim();
-            final URL childUrl =
-                childUrlValue.startsWith("?") ? new URL(url.toExternalForm()
-                    + childUrlValue) : new URL(url, childUrlValue);
-            final String u =
-                encodeUrl(normalizeUrl(childUrl.toExternalForm()), encoding);
+            final String childUrlValue = attrValue.trim();
+            final URL childUrl = childUrlValue.startsWith("?") ? new URL(
+                    url.toExternalForm() + childUrlValue) : new URL(url,
+                    childUrlValue);
+            final String u = encodeUrl(normalizeUrl(childUrl.toExternalForm()),
+                    encoding);
             if (logger.isDebugEnabled()) {
                 logger.debug(attrValue + " -> " + u);
             }
@@ -558,15 +540,15 @@ public class HtmlTransformer extends AbstractTransformer {
 
     /**
      * Returns data as HTML content of String.
-     * 
+     *
      */
     @Override
     public Object getData(final AccessResultData accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                + accessResultData.getTransformerName()
-                + ". This transformer is " + getName() + ".");
+                    + accessResultData.getTransformerName()
+                    + ". This transformer is " + getName() + ".");
         }
 
         final byte[] data = accessResultData.getData();
@@ -576,11 +558,11 @@ public class HtmlTransformer extends AbstractTransformer {
         final String encoding = accessResultData.getEncoding();
         try {
             return new String(data, encoding == null ? Constants.UTF_8
-                : encoding);
+                    : encoding);
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + encoding
-                    + ". Changed to " + Constants.UTF_8, e);
+                        + ". Changed to " + Constants.UTF_8, e);
             }
             return new String(data, Constants.UTF_8_CHARSET);
         }

@@ -23,14 +23,14 @@ import java.util.List;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.util.AccessResultCallback;
-import org.seasar.extension.unit.S2TestCase;
+import org.seasar.extension.unit.PlainTestCase;
 import org.seasar.framework.beans.util.Beans;
 
 /**
  * @author shinsuke
  * 
  */
-public class DBDataServiceImplTest extends S2TestCase {
+public class DBDataServiceImplTest extends PlainTestCase {
     public DBDataServiceImpl dataService;
 
     @Override

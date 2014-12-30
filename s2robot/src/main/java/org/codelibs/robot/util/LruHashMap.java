@@ -20,10 +20,10 @@ import java.util.Map;
 
 /**
  * From {@link org.seasar.framework.util.LruHashMap}
- * 
+ *
  * @param <K>
  * @param <V>
- * 
+ *
  */
 public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
@@ -46,7 +46,7 @@ public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
     /**
      * {@link LruHashMap}を作成します。
-     * 
+     *
      * @param limitSize
      */
     public LruHashMap(final int limitSize) {
@@ -55,7 +55,7 @@ public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
     /**
      * {@link LruHashMap}を作成します。
-     * 
+     *
      * @param limitSize
      * @param initialCapacity
      * @param loadFactor
@@ -68,7 +68,7 @@ public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
     /**
      * 上限サイズを返します。
-     * 
+     *
      * @return 上限サイズ
      */
     public int getLimitSize() {

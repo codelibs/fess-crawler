@@ -15,41 +15,45 @@
  */
 package org.codelibs.robot.helper;
 
-import org.seasar.extension.unit.S2TestCase;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class UrlConvertHelperTest extends S2TestCase {
+public class UrlConvertHelperTest extends PlainTestCase {
 
     public UrlConvertHelper urlConvertHelper;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "s2robot_urlconverter.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("urlConvertHelper", UrlConvertHelper.class);
+        urlConvertHelper = container.getComponent("urlConvertHelper");
     }
 
     public void test_convert() {
         String url;
 
         url = "http://hoge.com/http/fuga.html";
-        assertEquals("http://hoge.com/http/fuga.html", urlConvertHelper
-                .convert(url));
+        assertEquals("http://hoge.com/http/fuga.html",
+                urlConvertHelper.convert(url));
 
         url = "tp://hoge.com/http/fuga.html";
-        assertEquals("tp://hoge.com/http/fuga.html", urlConvertHelper
-                .convert(url));
+        assertEquals("tp://hoge.com/http/fuga.html",
+                urlConvertHelper.convert(url));
 
         urlConvertHelper.add("^tp:", "http:");
 
         url = "http://hoge.com/http/fuga.html";
-        assertEquals("http://hoge.com/http/fuga.html", urlConvertHelper
-                .convert(url));
+        assertEquals("http://hoge.com/http/fuga.html",
+                urlConvertHelper.convert(url));
 
         url = "tp://hoge.com/http/fuga.html";
-        assertEquals("http://hoge.com/http/fuga.html", urlConvertHelper
-                .convert(url));
+        assertEquals("http://hoge.com/http/fuga.html",
+                urlConvertHelper.convert(url));
 
         urlConvertHelper.add("fuga", "hoge");
         urlConvertHelper.add("http/hoge", "peke");

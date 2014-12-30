@@ -21,16 +21,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class S2RobotClientFactory {
-    protected Map<Pattern, S2RobotClient> clientMap =
-        new HashMap<Pattern, S2RobotClient>();
+    protected Map<Pattern, S2RobotClient> clientMap = new HashMap<Pattern, S2RobotClient>();
 
     public void addClient(final String regex, final S2RobotClient client) {
         if (StringUtil.isBlank(regex)) {
@@ -46,7 +45,7 @@ public class S2RobotClientFactory {
             final S2RobotClient client) {
         if (regexList == null || regexList.isEmpty()) {
             throw new RobotSystemException(
-                "A regular expression list is null or empty.");
+                    "A regular expression list is null or empty.");
         }
         if (client == null) {
             throw new RobotSystemException("S2RobotClient is null.");
@@ -64,7 +63,7 @@ public class S2RobotClientFactory {
         }
 
         for (final Map.Entry<Pattern, S2RobotClient> entry : clientMap
-            .entrySet()) {
+                .entrySet()) {
             final Matcher matcher = entry.getKey().matcher(url);
             if (matcher.matches()) {
                 return entry.getValue();

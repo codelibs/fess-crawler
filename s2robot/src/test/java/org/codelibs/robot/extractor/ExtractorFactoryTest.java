@@ -20,22 +20,42 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.impl.LhaExtractor;
 import org.codelibs.robot.extractor.impl.PdfExtractor;
 import org.codelibs.robot.extractor.impl.TikaExtractor;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class ExtractorFactoryTest extends S2TestCase {
+public class ExtractorFactoryTest extends PlainTestCase {
     public ExtractorFactory extractorFactory;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("tikaExtractor", TikaExtractor.class)//
+                .singleton("pdfExtractor", PdfExtractor.class)//
+                .singleton("lhaExtractor", LhaExtractor.class)//
+                .singleton("extractorFactory", ExtractorFactory.class);
+        extractorFactory = container.getComponent("extractorFactory");
+        TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+        LhaExtractor lhaExtractor = container.getComponent("lhaExtractor");
+        PdfExtractor pdfExtractor = container.getComponent("pdfExtractor");
+        extractorFactory.addExtractor("application/msword", tikaExtractor);
+        extractorFactory
+                .addExtractor("application/vnd.ms-excel", tikaExtractor);
+        extractorFactory.addExtractor("application/vnd.ms-powerpoint",
+                tikaExtractor);
+        extractorFactory.addExtractor("application/vnd.visio", tikaExtractor);
+        extractorFactory.addExtractor("application/pdf", pdfExtractor);
+        extractorFactory.addExtractor("application/x-lha", lhaExtractor);
+        extractorFactory.addExtractor("application/x-lharc", lhaExtractor);
+
     }
 
     public void test_addExtractor() {

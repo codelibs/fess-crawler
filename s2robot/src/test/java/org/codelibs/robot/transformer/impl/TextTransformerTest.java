@@ -19,21 +19,35 @@ import java.io.ByteArrayInputStream;
 
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.AccessResultDataImpl;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
-import org.seasar.extension.unit.S2TestCase;
+import org.codelibs.robot.extractor.ExtractorFactory;
+import org.codelibs.robot.extractor.impl.TikaExtractor;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class TextTransformerTest extends S2TestCase {
+public class TextTransformerTest extends PlainTestCase {
     public TextTransformer textTransformer;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("extractorFactory", ExtractorFactory.class)
+                .singleton("textTransformer", TextTransformer.class)
+                .singleton("tikaExtractor", TikaExtractor.class);
+        textTransformer = container.getComponent("textTransformer");
+        textTransformer.setName("textTransformer");
+        ExtractorFactory extractorFactory = container
+                .getComponent("extractorFactory");
+        TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+        extractorFactory.addExtractor("text/plain", tikaExtractor);
+        extractorFactory.addExtractor("text/html", tikaExtractor);
     }
 
     public void test_name() {
@@ -49,14 +63,13 @@ public class TextTransformerTest extends S2TestCase {
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/plain");
         final ResultData resultData = textTransformer.transform(responseData);
-        assertEquals(
-            "xyz",
-            new String(resultData.getData(), resultData.getEncoding()));
+        assertEquals("xyz",
+                new String(resultData.getData(), resultData.getEncoding()));
     }
 
     public void test_transform_html() throws Exception {
-        final byte[] data =
-            new String("<html><body>xyz</body></html>").getBytes();
+        final byte[] data = new String("<html><body>xyz</body></html>")
+                .getBytes();
         final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("file:/test.html");
@@ -64,9 +77,8 @@ public class TextTransformerTest extends S2TestCase {
         responseData.setResponseBody(bais);
         responseData.setMimeType("text/html");
         final ResultData resultData = textTransformer.transform(responseData);
-        assertEquals(
-            "xyz",
-            new String(resultData.getData(), resultData.getEncoding()));
+        assertEquals("xyz",
+                new String(resultData.getData(), resultData.getEncoding()));
     }
 
     public void test_transform_null() {
@@ -79,8 +91,7 @@ public class TextTransformerTest extends S2TestCase {
     }
 
     public void test_getData() throws Exception {
-        final AccessResultDataImpl accessResultData =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");
         accessResultData.setData("xyz".getBytes());
 
@@ -91,8 +102,7 @@ public class TextTransformerTest extends S2TestCase {
     }
 
     public void test_getData_wrongName() throws Exception {
-        final AccessResultDataImpl accessResultData =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("transformer");
         accessResultData.setData("xyz".getBytes());
 
@@ -104,8 +114,7 @@ public class TextTransformerTest extends S2TestCase {
     }
 
     public void test_getData_nullData() throws Exception {
-        final AccessResultDataImpl accessResultData =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");
         accessResultData.setData(null);
 

@@ -22,12 +22,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.xpath.CachedXPathAPI;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
 import org.cyberneko.html.parsers.DOMParser;
-import org.seasar.framework.util.StringUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -35,15 +35,14 @@ import org.xml.sax.InputSource;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         Extractor {
-    protected Pattern metaCharsetPattern =
-        Pattern
+    protected Pattern metaCharsetPattern = Pattern
             .compile(
-                "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-                Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                    "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
+                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Map<String, String> featureMap = new HashMap<String, String>();
 
@@ -51,12 +50,11 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
 
     protected String targetNodePath = "//HTML/BODY | //@alt | //@title";
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI =
-        new ThreadLocal<CachedXPathAPI>();
+    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
@@ -77,16 +75,14 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
             final Document document = parser.getDocument();
 
             final StringBuilder buf = new StringBuilder(255);
-            final NodeList nodeList =
-                getXPathAPI().selectNodeList(document, targetNodePath);
+            final NodeList nodeList = getXPathAPI().selectNodeList(document,
+                    targetNodePath);
             for (int i = 0; i < nodeList.getLength(); i++) {
                 final Node node = nodeList.item(i);
                 buf.append(node.getTextContent()).append(' ');
             }
-            return new ExtractData(buf
-                .toString()
-                .replaceAll("\\s+", " ")
-                .trim());
+            return new ExtractData(buf.toString().replaceAll("\\s+", " ")
+                    .trim());
         } catch (final Exception e) {
             throw new ExtractException(e);
         }
@@ -106,9 +102,8 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
         try {
             // feature
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(
-                    entry.getKey(),
-                    "true".equalsIgnoreCase(entry.getValue()) ? true : false);
+                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry
+                        .getValue()) ? true : false);
             }
 
             // property
@@ -124,7 +119,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.extractor.impl.AbstractXmlExtractor#getEncodingPattern()
      */
@@ -135,7 +130,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.impl.AbstractXmlExtractor#getTagPattern()
      */
     @Override

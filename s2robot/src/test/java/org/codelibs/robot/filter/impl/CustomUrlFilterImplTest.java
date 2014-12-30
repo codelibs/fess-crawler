@@ -15,13 +15,16 @@
  */
 package org.codelibs.robot.filter.impl;
 
-import org.seasar.extension.unit.S2TestCase;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.helper.MemoryDataHelper;
+import org.codelibs.robot.service.impl.UrlFilterServiceImpl;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class CustomUrlFilterImplTest extends S2TestCase {
+public class CustomUrlFilterImplTest extends PlainTestCase {
     public UrlFilterImpl includeFilter;
 
     public UrlFilterImpl excludeFilter;
@@ -29,8 +32,22 @@ public class CustomUrlFilterImplTest extends S2TestCase {
     public UrlFilterImpl domainFilter;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "org/codelibs/robot/filter/impl/custom_url_filter.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("dataHelper", MemoryDataHelper.class)//
+                .singleton("urlFilterService", UrlFilterServiceImpl.class)//
+                .singleton("includeFilter", UrlFilterImpl.class)//
+                .singleton("excludeFilter", UrlFilterImpl.class)//
+                .singleton("domainFilter", UrlFilterImpl.class)//
+        ;
+        includeFilter = container.getComponent("includeFilter");
+        includeFilter.setIncludeFilteringPattern("$1$2$3.*");
+        excludeFilter = container.getComponent("excludeFilter");
+        excludeFilter.setExcludeFilteringPattern("$1$2$3.*");
+        domainFilter = container.getComponent("domainFilter");
+        domainFilter.setIncludeFilteringPattern("http://$2/.*");
+        domainFilter.setExcludeFilteringPattern("http://$2/.*");
     }
 
     public void test_include_processUrl() {
@@ -41,15 +58,15 @@ public class CustomUrlFilterImplTest extends S2TestCase {
 
         assertEquals(1, includeFilter.cachedIncludeList.size());
         assertEquals(0, includeFilter.cachedExcludeList.size());
-        assertEquals("http://example.com/.*", includeFilter.cachedIncludeList
-                .get(0));
+        assertEquals("http://example.com/.*",
+                includeFilter.cachedIncludeList.get(0));
 
         includeFilter.processUrl("https://test.com");
 
         assertEquals(2, includeFilter.cachedIncludeList.size());
         assertEquals(0, includeFilter.cachedExcludeList.size());
-        assertEquals("https://test.com.*", includeFilter.cachedIncludeList
-                .get(1));
+        assertEquals("https://test.com.*",
+                includeFilter.cachedIncludeList.get(1));
     }
 
     public void test_exclude_processUrl() {
@@ -60,15 +77,15 @@ public class CustomUrlFilterImplTest extends S2TestCase {
 
         assertEquals(0, excludeFilter.cachedIncludeList.size());
         assertEquals(1, excludeFilter.cachedExcludeList.size());
-        assertEquals("http://example.com/.*", excludeFilter.cachedExcludeList
-                .get(0));
+        assertEquals("http://example.com/.*",
+                excludeFilter.cachedExcludeList.get(0));
 
         excludeFilter.processUrl("https://test.com");
 
         assertEquals(0, excludeFilter.cachedIncludeList.size());
         assertEquals(2, excludeFilter.cachedExcludeList.size());
-        assertEquals("https://test.com.*", excludeFilter.cachedExcludeList
-                .get(1));
+        assertEquals("https://test.com.*",
+                excludeFilter.cachedExcludeList.get(1));
     }
 
     public void test_domain_processUrl() {
@@ -79,18 +96,18 @@ public class CustomUrlFilterImplTest extends S2TestCase {
 
         assertEquals(1, domainFilter.cachedIncludeList.size());
         assertEquals(1, domainFilter.cachedExcludeList.size());
-        assertEquals("http://example.com/.*", domainFilter.cachedIncludeList
-                .get(0));
-        assertEquals("http://example.com/.*", domainFilter.cachedExcludeList
-                .get(0));
+        assertEquals("http://example.com/.*",
+                domainFilter.cachedIncludeList.get(0));
+        assertEquals("http://example.com/.*",
+                domainFilter.cachedExcludeList.get(0));
 
         domainFilter.processUrl("https://test.com");
 
         assertEquals(2, domainFilter.cachedIncludeList.size());
         assertEquals(2, domainFilter.cachedExcludeList.size());
-        assertEquals("http://test.com/.*", domainFilter.cachedIncludeList
-                .get(1));
-        assertEquals("http://test.com/.*", domainFilter.cachedExcludeList
-                .get(1));
+        assertEquals("http://test.com/.*",
+                domainFilter.cachedIncludeList.get(1));
+        assertEquals("http://test.com/.*",
+                domainFilter.cachedExcludeList.get(1));
     }
 }

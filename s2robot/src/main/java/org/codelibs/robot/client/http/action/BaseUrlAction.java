@@ -25,7 +25,7 @@ public abstract class BaseUrlAction implements UrlAction {
 
     protected static final String CSS_QUERY = "cssQuery";
 
-    public String cssQuery;
+    protected String cssQuery;
 
     protected String name;
 
@@ -36,5 +36,13 @@ public abstract class BaseUrlAction implements UrlAction {
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    public String getCssQuery() {
+        return cssQuery;
+    }
+
+    public void setCssQuery(final String cssQuery) {
+        this.cssQuery = cssQuery;
     }
 }

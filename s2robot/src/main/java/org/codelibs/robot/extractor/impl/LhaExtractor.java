@@ -15,7 +15,6 @@
  */
 package org.codelibs.robot.extractor.impl;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,39 +23,38 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import jp.gr.java_conf.dangan.util.lha.LhaFile;
 import jp.gr.java_conf.dangan.util.lha.LhaHeader;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.io.CopyUtil;
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
 import org.codelibs.robot.extractor.ExtractorFactory;
 import org.codelibs.robot.helper.MimeTypeHelper;
 import org.codelibs.robot.util.IgnoreCloseInputStream;
-import org.codelibs.robot.util.StreamUtil;
-import org.seasar.framework.container.SingletonS2Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Extractor implementation for LHA.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class LhaExtractor implements Extractor {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(LhaExtractor.class);
+            .getLogger(LhaExtractor.class);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
-     * java.util.Map)
-     */
+    @Resource
+    protected ComponentContainer componentContainer;
+
     @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
@@ -64,14 +62,14 @@ public class LhaExtractor implements Extractor {
             throw new RobotSystemException("The inputstream is null.");
         }
 
-        final MimeTypeHelper mimeTypeHelper =
-            SingletonS2Container.getComponent("mimeTypeHelper");
+        final MimeTypeHelper mimeTypeHelper = componentContainer
+                .getComponent("mimeTypeHelper");
         if (mimeTypeHelper == null) {
             throw new RobotSystemException("MimeTypeHelper is unavailable.");
         }
 
-        final ExtractorFactory extractorFactory =
-            SingletonS2Container.getComponent("extractorFactory");
+        final ExtractorFactory extractorFactory = componentContainer
+                .getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new RobotSystemException("ExtractorFactory is unavailable.");
         }
@@ -82,13 +80,8 @@ public class LhaExtractor implements Extractor {
         LhaFile lhaFile = null;
         try {
             tempFile = File.createTempFile("s2robot-", ".lzh");
-            BufferedOutputStream bos = null;
-            try {
-                bos = new BufferedOutputStream(new FileOutputStream(tempFile));
-                StreamUtil.drain(in, bos);
-                bos.flush();
-            } finally {
-                IOUtils.closeQuietly(bos);
+            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                CopyUtil.copy(in, fos);
             }
 
             lhaFile = new LhaFile(tempFile);
@@ -97,29 +90,27 @@ public class LhaExtractor implements Extractor {
             while (entries.hasMoreElements()) {
                 final LhaHeader head = entries.nextElement();
                 final String filename = head.getPath();
-                final String mimeType =
-                    mimeTypeHelper.getContentType(null, filename);
+                final String mimeType = mimeTypeHelper.getContentType(null,
+                        filename);
                 if (mimeType != null) {
-                    final Extractor extractor =
-                        extractorFactory.getExtractor(mimeType);
+                    final Extractor extractor = extractorFactory
+                            .getExtractor(mimeType);
                     if (extractor != null) {
                         InputStream is = null;
                         try {
                             is = lhaFile.getInputStream(head);
-                            final Map<String, String> map =
-                                new HashMap<String, String>();
-                            map.put(
-                                TikaMetadataKeys.RESOURCE_NAME_KEY,
-                                filename);
+                            final Map<String, String> map = new HashMap<String, String>();
+                            map.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
+                                    filename);
                             buf.append(extractor.getText(
-                                new IgnoreCloseInputStream(is),
-                                map).getContent());
+                                    new IgnoreCloseInputStream(is), map)
+                                    .getContent());
                             buf.append('\n');
                         } catch (final Exception e) {
                             if (logger.isDebugEnabled()) {
                                 logger.debug(
-                                    "Exception in an internal extractor.",
-                                    e);
+                                        "Exception in an internal extractor.",
+                                        e);
                             }
                         } finally {
                             IOUtils.closeQuietly(is);

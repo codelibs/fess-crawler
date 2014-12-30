@@ -15,25 +15,24 @@
  */
 package org.codelibs.robot.filter;
 
-
 /**
  * UrlFilter checks if a given url is a target one.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public interface UrlFilter {
 
     /**
      * Initialize a url filter by sessionId.
-     * 
+     *
      * @param sessionId
      */
     void init(String sessionId);
 
     /**
      * Check if a given url is a target.
-     * 
+     *
      * @param url
      * @return true if url is matched
      */
@@ -41,21 +40,21 @@ public interface UrlFilter {
 
     /**
      * Add an url pattern as a target.
-     * 
+     *
      * @param urlPattern
      */
     void addInclude(String urlPattern);
 
     /**
      * Add an url pattern as a non-target.
-     * 
+     *
      * @param urlPattern
      */
     void addExclude(String urlPattern);
 
     /**
      * Process an url when it's added as a seed url.
-     * 
+     *
      * @param url
      */
     void processUrl(String url);

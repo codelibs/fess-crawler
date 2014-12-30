@@ -27,15 +27,15 @@ import org.codelibs.robot.extractor.Extractor;
 
 /**
  * Gets a text from . file.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class MsVisioExtractor implements Extractor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */

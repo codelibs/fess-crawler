@@ -20,17 +20,10 @@ import org.codelibs.robot.processor.ResponseProcessor;
 
 /**
  * @author kuma
- * 
+ *
  */
 public class NullResponseProcessor implements ResponseProcessor {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.codelibs.robot.processor.ResponseProcessor#process(org.codelibs.robot
-     * .entity.ResponseData)
-     */
     @Override
     public void process(final ResponseData responseData) {
         // do nothing

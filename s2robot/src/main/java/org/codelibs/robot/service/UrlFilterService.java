@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface UrlFilterService {
 

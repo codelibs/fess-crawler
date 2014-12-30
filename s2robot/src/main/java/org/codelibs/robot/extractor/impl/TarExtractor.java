@@ -27,33 +27,30 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
 import org.codelibs.robot.extractor.ExtractorFactory;
 import org.codelibs.robot.helper.MimeTypeHelper;
 import org.codelibs.robot.util.IgnoreCloseInputStream;
-import org.seasar.framework.container.SingletonS2Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class TarExtractor implements Extractor {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(TarExtractor.class);
+            .getLogger(TarExtractor.class);
+
+    @Resource
+    protected ComponentContainer componentContainer;
 
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
-     * java.util.Map)
-     */
     @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
@@ -61,22 +58,20 @@ public class TarExtractor implements Extractor {
             throw new RobotSystemException("The inputstream is null.");
         }
 
-        final MimeTypeHelper mimeTypeHelper =
-            SingletonS2Container.getComponent("mimeTypeHelper");
+        final MimeTypeHelper mimeTypeHelper = componentContainer
+                .getComponent("mimeTypeHelper");
         if (mimeTypeHelper == null) {
             throw new RobotSystemException("MimeTypeHelper is unavailable.");
         }
 
-        final ExtractorFactory extractorFactory =
-            SingletonS2Container.getComponent("extractorFactory");
+        final ExtractorFactory extractorFactory = componentContainer
+                .getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new RobotSystemException("ExtractorFactory is unavailable.");
         }
 
-        return new ExtractData(getTextInternal(
-            in,
-            mimeTypeHelper,
-            extractorFactory));
+        return new ExtractData(getTextInternal(in, mimeTypeHelper,
+                extractorFactory));
     }
 
     protected String getTextInternal(final InputStream in,
@@ -92,27 +87,25 @@ public class TarExtractor implements Extractor {
             TarArchiveEntry entry = null;
             while ((entry = (TarArchiveEntry) ais.getNextEntry()) != null) {
                 final String filename = entry.getName();
-                final String mimeType =
-                    mimeTypeHelper.getContentType(null, filename);
+                final String mimeType = mimeTypeHelper.getContentType(null,
+                        filename);
                 if (mimeType != null) {
-                    final Extractor extractor =
-                        extractorFactory.getExtractor(mimeType);
+                    final Extractor extractor = extractorFactory
+                            .getExtractor(mimeType);
                     if (extractor != null) {
                         try {
-                            final Map<String, String> map =
-                                new HashMap<String, String>();
-                            map.put(
-                                TikaMetadataKeys.RESOURCE_NAME_KEY,
-                                filename);
+                            final Map<String, String> map = new HashMap<String, String>();
+                            map.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
+                                    filename);
                             buf.append(extractor.getText(
-                                new IgnoreCloseInputStream(ais),
-                                map).getContent());
+                                    new IgnoreCloseInputStream(ais), map)
+                                    .getContent());
                             buf.append('\n');
                         } catch (final Exception e) {
                             if (logger.isDebugEnabled()) {
                                 logger.debug(
-                                    "Exception in an internal extractor.",
-                                    e);
+                                        "Exception in an internal extractor.",
+                                        e);
                             }
                         }
                     }

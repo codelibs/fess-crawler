@@ -22,7 +22,7 @@ import org.codelibs.robot.util.AccessResultCallback;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface DataService {
 

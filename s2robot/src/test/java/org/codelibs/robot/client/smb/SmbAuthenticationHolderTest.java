@@ -15,17 +15,16 @@
  */
 package org.codelibs.robot.client.smb;
 
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class SmbAuthenticationHolderTest extends S2TestCase {
+public class SmbAuthenticationHolderTest extends PlainTestCase {
 
     public void test_get() {
-        final SmbAuthenticationHolder smbAuthenticationHolder =
-            new SmbAuthenticationHolder();
+        final SmbAuthenticationHolder smbAuthenticationHolder = new SmbAuthenticationHolder();
         final SmbAuthentication hogeAuth = new SmbAuthentication();
         hogeAuth.setServer("hoge");
         smbAuthenticationHolder.add(hogeAuth);
@@ -40,15 +39,12 @@ public class SmbAuthenticationHolderTest extends S2TestCase {
         assertEquals(hogeAuth, smbAuthenticationHolder.get("smb://hoge/"));
         assertEquals(fugaAuth, smbAuthenticationHolder.get("smb://fuga/"));
         assertEquals(fooAuth, smbAuthenticationHolder.get("smb://foo:1000/"));
-        assertEquals(
-            hogeAuth,
-            smbAuthenticationHolder.get("smb://hoge/text.txt"));
-        assertEquals(
-            fugaAuth,
-            smbAuthenticationHolder.get("smb://fuga/text.txt"));
-        assertEquals(
-            fooAuth,
-            smbAuthenticationHolder.get("smb://foo:1000/text.txt"));
+        assertEquals(hogeAuth,
+                smbAuthenticationHolder.get("smb://hoge/text.txt"));
+        assertEquals(fugaAuth,
+                smbAuthenticationHolder.get("smb://fuga/text.txt"));
+        assertEquals(fooAuth,
+                smbAuthenticationHolder.get("smb://foo:1000/text.txt"));
 
         assertNull(smbAuthenticationHolder.get(null));
         assertNull(smbAuthenticationHolder.get(""));

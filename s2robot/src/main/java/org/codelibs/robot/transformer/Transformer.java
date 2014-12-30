@@ -21,7 +21,7 @@ import org.codelibs.robot.entity.ResultData;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface Transformer {
 

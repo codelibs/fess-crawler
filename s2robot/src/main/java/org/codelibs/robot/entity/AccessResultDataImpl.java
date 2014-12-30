@@ -17,12 +17,12 @@ package org.codelibs.robot.entity;
 
 import java.io.UnsupportedEncodingException;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class AccessResultDataImpl implements AccessResultData {
     protected Long id;
@@ -35,7 +35,7 @@ public class AccessResultDataImpl implements AccessResultData {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResultData#getId()
      */
     @Override
@@ -45,7 +45,7 @@ public class AccessResultDataImpl implements AccessResultData {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResultData#setId(java.lang.Long)
      */
     @Override
@@ -55,7 +55,7 @@ public class AccessResultDataImpl implements AccessResultData {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResultData#getTransformerName()
      */
     @Override
@@ -65,7 +65,7 @@ public class AccessResultDataImpl implements AccessResultData {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.entity.AccessResultData#setTransformerName(java.lang
      * .String)
@@ -77,7 +77,7 @@ public class AccessResultDataImpl implements AccessResultData {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResultData#getData()
      */
     @Override
@@ -87,7 +87,7 @@ public class AccessResultDataImpl implements AccessResultData {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResultData#setData(java.lang.String)
      */
     @Override
@@ -107,7 +107,7 @@ public class AccessResultDataImpl implements AccessResultData {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResultData#getDataAsString()
      */
     @Override
@@ -117,7 +117,7 @@ public class AccessResultDataImpl implements AccessResultData {
         }
         try {
             return new String(data, StringUtil.isNotBlank(encoding) ? encoding
-                : Constants.UTF_8);
+                    : Constants.UTF_8);
         } catch (final UnsupportedEncodingException e) {
             return new String(data, Constants.UTF_8_CHARSET);
         }
@@ -126,7 +126,7 @@ public class AccessResultDataImpl implements AccessResultData {
     @Override
     public String toString() {
         return "AccessResultDataImpl [id=" + id + ", transformerName="
-            + transformerName + ", encoding=" + encoding + "]";
+                + transformerName + ", encoding=" + encoding + "]";
     }
 
 }

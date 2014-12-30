@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SitemapFile implements Sitemap {
 
@@ -36,7 +36,7 @@ public class SitemapFile implements Sitemap {
      * does not correspond to the time that any of the pages listed in that
      * Sitemap were changed. The value for the lastmod tag should be in W3C
      * Datetime format.
-     * 
+     *
      * By providing the last modification timestamp, you enable search engine
      * crawlers to retrieve only a subset of the Sitemaps in the index i.e. a
      * crawler may only retrieve Sitemaps that were modified since a certain
@@ -47,7 +47,7 @@ public class SitemapFile implements Sitemap {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.Sitemap#getLoc()
      */
     @Override
@@ -61,7 +61,7 @@ public class SitemapFile implements Sitemap {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.Sitemap#getLastmod()
      */
     @Override
@@ -80,7 +80,7 @@ public class SitemapFile implements Sitemap {
         }
         final SitemapFile sitemapUrl = (SitemapFile) obj;
         if (StringUtils.equals(loc, sitemapUrl.loc)
-            && StringUtils.equals(lastmod, sitemapUrl.lastmod)) {
+                && StringUtils.equals(lastmod, sitemapUrl.lastmod)) {
             return true;
         }
         return false;

@@ -15,40 +15,39 @@
  */
 package org.codelibs.robot.service.impl;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Resource;
 
+import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.entity.UrlQueueImpl;
 import org.codelibs.robot.helper.MemoryDataHelper;
 import org.codelibs.robot.service.UrlQueueService;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class UrlQueueServiceImpl implements UrlQueueService {
 
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(UrlQueueServiceImpl.class);
+            .getLogger(UrlQueueServiceImpl.class);
 
     @Resource
     protected MemoryDataHelper dataHelper;
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.UrlQueueService#updateSessionId(java.lang.String
      * , java.lang.String)
@@ -57,8 +56,8 @@ public class UrlQueueServiceImpl implements UrlQueueService {
     public void updateSessionId(final String oldSessionId,
             final String newSessionId) {
         // not MT-safe
-        final Queue<UrlQueue> urlQueueList =
-            dataHelper.getUrlQueueList(oldSessionId);
+        final Queue<UrlQueue> urlQueueList = dataHelper
+                .getUrlQueueList(oldSessionId);
         // overwrite
         dataHelper.addUrlQueueList(newSessionId, urlQueueList);
         dataHelper.removeUrlQueueList(oldSessionId);
@@ -66,14 +65,14 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.UrlQueueService#add(java.lang.String,
      * java.lang.String)
      */
     @Override
     public void add(final String sessionId, final String url) {
-        final Queue<UrlQueue> urlQueueList =
-            dataHelper.getUrlQueueList(sessionId);
+        final Queue<UrlQueue> urlQueueList = dataHelper
+                .getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             final UrlQueue urlQueue = new UrlQueueImpl();
             urlQueue.setSessionId(sessionId);
@@ -81,22 +80,22 @@ public class UrlQueueServiceImpl implements UrlQueueService {
             urlQueue.setUrl(url);
             urlQueue.setUrl(url);
             urlQueue.setDepth(0);
-            urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
+            urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
             urlQueueList.add(urlQueue);
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.UrlQueueService#insert(org.codelibs.robot.entity
      * .UrlQueue)
      */
     @Override
     public void insert(final UrlQueue urlQueue) {
-        final Queue<UrlQueue> urlQueueList =
-            dataHelper.getUrlQueueList(urlQueue.getSessionId());
+        final Queue<UrlQueue> urlQueueList = dataHelper
+                .getUrlQueueList(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             urlQueueList.add(urlQueue);
         }
@@ -104,7 +103,7 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.UrlQueueService#delete(java.lang.String)
      */
     @Override
@@ -114,7 +113,7 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.UrlQueueService#deleteAll()
      */
     @Override
@@ -124,15 +123,15 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.UrlQueueService#offerAll(java.lang.String,
      * java.util.List)
      */
     @Override
     public void offerAll(final String sessionId,
             final List<UrlQueue> newUrlQueueList) {
-        final Queue<UrlQueue> urlQueueList =
-            dataHelper.getUrlQueueList(sessionId);
+        final Queue<UrlQueue> urlQueueList = dataHelper
+                .getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             final List<UrlQueueImpl> targetList = new ArrayList<UrlQueueImpl>();
             for (final UrlQueue urlQueue : newUrlQueueList) {
@@ -167,8 +166,8 @@ public class UrlQueueServiceImpl implements UrlQueueService {
         }
 
         // check it in result
-        final AccessResult accessResult =
-            dataHelper.getAccessResultMap(urlQueue.getSessionId()).get(url);
+        final AccessResult accessResult = dataHelper.getAccessResultMap(
+                urlQueue.getSessionId()).get(url);
         if (accessResult != null) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL exists in a result: " + url);
@@ -182,13 +181,13 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.UrlQueueService#poll(java.lang.String)
      */
     @Override
     public UrlQueue poll(final String sessionId) {
-        final Queue<UrlQueue> urlQueueList =
-            dataHelper.getUrlQueueList(sessionId);
+        final Queue<UrlQueue> urlQueueList = dataHelper
+                .getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             return urlQueueList.poll();
         }
@@ -196,7 +195,7 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.UrlQueueService#saveSession(java.lang.String)
      */
@@ -207,13 +206,13 @@ public class UrlQueueServiceImpl implements UrlQueueService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.UrlQueueService#visited(UrlQueue)
      */
     @Override
     public boolean visited(final UrlQueue urlQueue) {
-        final Queue<UrlQueue> urlQueueList =
-            dataHelper.getUrlQueueList(urlQueue.getSessionId());
+        final Queue<UrlQueue> urlQueueList = dataHelper
+                .getUrlQueueList(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             return !isNewUrl(urlQueue, urlQueueList);
         }
@@ -222,10 +221,10 @@ public class UrlQueueServiceImpl implements UrlQueueService {
     @Override
     public void generateUrlQueues(final String previousSessionId,
             final String sessionId) {
-        final Queue<UrlQueue> urlQueueList =
-            dataHelper.getUrlQueueList(sessionId);
-        final Map<String, AccessResult> arMap =
-            dataHelper.getAccessResultMap(previousSessionId);
+        final Queue<UrlQueue> urlQueueList = dataHelper
+                .getUrlQueueList(sessionId);
+        final Map<String, AccessResult> arMap = dataHelper
+                .getAccessResultMap(previousSessionId);
         for (final Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
             synchronized (urlQueueList) {
                 final UrlQueue urlQueue = new UrlQueueImpl();
@@ -235,7 +234,7 @@ public class UrlQueueServiceImpl implements UrlQueueService {
                 urlQueue.setParentUrl(entry.getValue().getParentUrl());
                 urlQueue.setDepth(0);
                 urlQueue.setLastModified(entry.getValue().getLastModified());
-                urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
+                urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
                 urlQueueList.add(urlQueue);
             }
         }

@@ -15,13 +15,13 @@
  */
 package org.codelibs.robot.client.smb;
 
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class SmbAuthenticationTest extends S2TestCase {
+public class SmbAuthenticationTest extends PlainTestCase {
     public void test_getPathPrefix() {
         SmbAuthentication smbAuthentication;
 

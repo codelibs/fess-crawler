@@ -18,23 +18,27 @@ package org.codelibs.robot.helper;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSitemapsException;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.Sitemap;
 import org.codelibs.robot.entity.SitemapSet;
 import org.codelibs.robot.entity.SitemapUrl;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class SitemapsHelperTest extends S2TestCase {
+public class SitemapsHelperTest extends PlainTestCase {
     public SitemapsHelper sitemapsHelper;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "s2robot_sitemaps.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("sitemapsHelper", SitemapsHelper.class);
+        sitemapsHelper = container.getComponent("sitemapsHelper");
     }
 
     public void test_parseXmlSitemaps() {
@@ -176,12 +180,12 @@ public class SitemapsHelperTest extends S2TestCase {
         assertTrue(sitemapSet.isIndex());
 
         assertEquals("2004-10-01T18:23:17+00:00", sitemaps[0].getLastmod());
-        assertEquals("http://www.example.com/sitemap1.xml.gz", sitemaps[0]
-                .getLoc());
+        assertEquals("http://www.example.com/sitemap1.xml.gz",
+                sitemaps[0].getLoc());
 
         assertEquals("2005-01-01", sitemaps[1].getLastmod());
-        assertEquals("http://www.example.com/sitemap2.xml.gz", sitemaps[1]
-                .getLoc());
+        assertEquals("http://www.example.com/sitemap2.xml.gz",
+                sitemaps[1].getLoc());
 
     }
 
@@ -195,12 +199,12 @@ public class SitemapsHelperTest extends S2TestCase {
         assertTrue(sitemapSet.isIndex());
 
         assertEquals("2004-10-01T18:23:17+00:00", sitemaps[0].getLastmod());
-        assertEquals("http://www.example.com/sitemap1.xml.gz", sitemaps[0]
-                .getLoc());
+        assertEquals("http://www.example.com/sitemap1.xml.gz",
+                sitemaps[0].getLoc());
 
         assertEquals("2005-01-01", sitemaps[1].getLastmod());
-        assertEquals("http://www.example.com/sitemap2.xml.gz", sitemaps[1]
-                .getLoc());
+        assertEquals("http://www.example.com/sitemap2.xml.gz",
+                sitemaps[1].getLoc());
 
     }
 

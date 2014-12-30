@@ -18,17 +18,13 @@ package org.codelibs.robot.rule.impl;
 import java.util.regex.Pattern;
 
 import org.codelibs.robot.entity.ResponseData;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class RegexRuleTest extends S2TestCase {
-    @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
-    }
+public class RegexRuleTest extends PlainTestCase {
 
     public void test_match_default() {
         final RegexRule regexRule = new RegexRule();

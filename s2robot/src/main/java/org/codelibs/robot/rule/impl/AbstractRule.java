@@ -21,7 +21,7 @@ import org.codelibs.robot.rule.Rule;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public abstract class AbstractRule implements Rule {
 

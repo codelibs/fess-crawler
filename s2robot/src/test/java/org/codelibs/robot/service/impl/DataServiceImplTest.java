@@ -15,22 +15,28 @@
  */
 package org.codelibs.robot.service.impl;
 
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.AccessResultImpl;
+import org.codelibs.robot.helper.MemoryDataHelper;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class DataServiceImplTest extends S2TestCase {
+public class DataServiceImplTest extends PlainTestCase {
     public DataService dataService;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("dataHelper", MemoryDataHelper.class)//
+                .singleton("dataService", DataServiceImpl.class);
+        dataService = container.getComponent("dataService");
     }
 
     public void test_iterateUrlDiff() {

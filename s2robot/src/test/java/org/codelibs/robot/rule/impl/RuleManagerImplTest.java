@@ -18,23 +18,43 @@ package org.codelibs.robot.rule.impl;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotCrawlAccessException;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.rule.Rule;
 import org.codelibs.robot.rule.RuleManager;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class RuleManagerImplTest extends S2TestCase {
+public class RuleManagerImplTest extends PlainTestCase {
     public RuleManager ruleManager;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("sitemapsHelper", SitemapsHelper.class)//
+                .singleton("sitemapsRule", SitemapsRule.class)//
+                .singleton("fileRule", RegexRule.class)//
+                .singleton("ruleManager", RuleManagerImpl.class);
+
+        ruleManager = container.getComponent("ruleManager");
+
+        SitemapsRule sitemapsRule = container.getComponent("sitemapsRule");
+        sitemapsRule.setRuleId("sitemapsRule");
+        sitemapsRule.addRule("url", ".*sitemap.*");
+        ruleManager.addRule(sitemapsRule);
+
+        RegexRule fileRule = container.getComponent("fileRule");
+        fileRule.setRuleId("fileRule");
+        fileRule.setDefaultRule(true);
+        ruleManager.addRule(fileRule);
     }
 
     public void test_getRule() {
@@ -46,8 +66,8 @@ public class RuleManagerImplTest extends S2TestCase {
     public void test_getRule_sitemaps1() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml");
         responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -59,8 +79,8 @@ public class RuleManagerImplTest extends S2TestCase {
     public void test_getRule_sitemaps2() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml.gz");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml.gz");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml.gz");
         responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -72,8 +92,8 @@ public class RuleManagerImplTest extends S2TestCase {
     public void test_getRule_sitemaps3() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.txt");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.txt");
         responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -85,8 +105,8 @@ public class RuleManagerImplTest extends S2TestCase {
     public void test_getRule_sitemaps4() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt.gz");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml.gz");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml.gz");
         responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -98,8 +118,8 @@ public class RuleManagerImplTest extends S2TestCase {
     public void test_getRule_sitemaps5() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap/");
-        InputStream is =
-            ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
+        InputStream is = ResourceUtil
+                .getResourceAsStream("sitemaps/sitemap1.xml");
         responseData.setResponseBody(is);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);

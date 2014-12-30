@@ -23,17 +23,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.exception.IORuntimeException;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExecutionTimeoutException;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.exception.IORuntimeException;
-import org.seasar.framework.util.FileUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class CommandExtractorTest extends S2TestCase {
+public class CommandExtractorTest extends PlainTestCase {
 
     private File createScriptTempFile(final int sleep) {
         String extention;
@@ -51,7 +51,7 @@ public class CommandExtractorTest extends S2TestCase {
         try {
             file = File.createTempFile("script", extention);
             file.deleteOnExit();
-            FileUtil.write(file.getAbsolutePath(), content.getBytes());
+            FileUtil.writeBytes(file.getAbsolutePath(), content.getBytes());
             return file;
         } catch (final IOException e) {
             throw new IORuntimeException(e);
@@ -62,7 +62,7 @@ public class CommandExtractorTest extends S2TestCase {
         try {
             final File file = File.createTempFile("content", extention);
             file.deleteOnExit();
-            FileUtil.write(file.getAbsolutePath(), data);
+            FileUtil.writeBytes(file.getAbsolutePath(), data);
             return file;
         } catch (final IOException e) {
             throw new IORuntimeException(e);
@@ -73,7 +73,7 @@ public class CommandExtractorTest extends S2TestCase {
         if (File.separator.equals("/")) {
             // Unix
             return "sh " + scriptFile.getAbsolutePath()
-                + " $INPUT_FILE $OUTPUT_FILE";
+                    + " $INPUT_FILE $OUTPUT_FILE";
         } else {
             // Windows
             return scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
@@ -88,8 +88,8 @@ public class CommandExtractorTest extends S2TestCase {
         final CommandExtractor extractor = new CommandExtractor();
         extractor.command = getCommand(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
-        final ExtractData text =
-            extractor.getText(new FileInputStream(contentFile), params);
+        final ExtractData text = extractor.getText(new FileInputStream(
+                contentFile), params);
         assertEquals(content, text.getContent());
     }
 
@@ -102,8 +102,8 @@ public class CommandExtractorTest extends S2TestCase {
         extractor.command = getCommand(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, "hoge/fuga.txt");
-        final ExtractData text =
-            extractor.getText(new FileInputStream(contentFile), params);
+        final ExtractData text = extractor.getText(new FileInputStream(
+                contentFile), params);
         assertEquals(content, text.getContent());
     }
 

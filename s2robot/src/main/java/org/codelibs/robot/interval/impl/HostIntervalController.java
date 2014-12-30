@@ -21,15 +21,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.util.CrawlingParameterUtil;
-import org.seasar.framework.util.StringUtil;
 
 public class HostIntervalController extends DefaultIntervalController {
 
-    private final ConcurrentMap<String, AtomicLong> lastTimes =
-        new ConcurrentHashMap<String, AtomicLong>();
+    private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<String, AtomicLong>();
 
     public HostIntervalController() {
         super();
@@ -41,7 +41,7 @@ public class HostIntervalController extends DefaultIntervalController {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.interval.impl.AbstractIntervalController#
      * delayBeforeProcessing()
      */
@@ -64,19 +64,16 @@ public class HostIntervalController extends DefaultIntervalController {
             if (host == null) {
                 return;
             }
-            final AtomicLong lastTime =
-                lastTimes.putIfAbsent(
-                    host,
-                    new AtomicLong(System.currentTimeMillis()));
+            final AtomicLong lastTime = lastTimes.putIfAbsent(host,
+                    new AtomicLong(SystemUtil.currentTimeMillis()));
             if (lastTime == null) {
                 return;
             }
             synchronized (lastTime) {
                 while (true) {
-                    final long currentTime = System.currentTimeMillis();
-                    final long delayTime =
-                        lastTime.get() + delayMillisBeforeProcessing
-                            - currentTime;
+                    final long currentTime = SystemUtil.currentTimeMillis();
+                    final long delayTime = lastTime.get()
+                            + delayMillisBeforeProcessing - currentTime;
                     if (delayTime <= 0) {
                         lastTime.set(currentTime);
                         break;

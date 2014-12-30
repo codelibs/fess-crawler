@@ -19,7 +19,7 @@ import java.nio.charset.Charset;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public final class Constants {
     public static final String GET_METHOD = "GET";

@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public abstract class AbstractS2RobotClient implements S2RobotClient {
 
     private static final Logger logger = LoggerFactory
-        .getLogger(AbstractS2RobotClient.class); // NOPMD
+            .getLogger(AbstractS2RobotClient.class); // NOPMD
 
     private Map<String, Object> initParamMap;
 
@@ -44,7 +44,7 @@ public abstract class AbstractS2RobotClient implements S2RobotClient {
                 }
             } catch (final Exception e) {
                 logger.warn("Could not load init parameters: " + key + " from "
-                    + initParamMap, e);
+                        + initParamMap, e);
             }
         }
         return defaultValue;
@@ -58,15 +58,15 @@ public abstract class AbstractS2RobotClient implements S2RobotClient {
     @Override
     public ResponseData execute(final RequestData request) {
         switch (request.getMethod()) {
-        case GET:
-            return doGet(request.getUrl());
-        case HEAD:
-            return doHead(request.getUrl());
-        case POST:
-            return doPost(request.getUrl());
-        default:
-            throw new RobotSystemException(request.getMethod()
-                + " method is not supported.");
+            case GET:
+                return doGet(request.getUrl());
+            case HEAD:
+                return doHead(request.getUrl());
+            case POST:
+                return doPost(request.getUrl());
+            default:
+                throw new RobotSystemException(request.getMethod()
+                        + " method is not supported.");
         }
     }
 

@@ -26,7 +26,7 @@ import org.codelibs.robot.Constants;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ResponseData {
 
@@ -58,11 +58,9 @@ public class ResponseData {
 
     private int status = Constants.OK_STATUS;
 
-    private final Map<String, Object> metaDataMap =
-        new LinkedHashMap<String, Object>();
+    private final Map<String, Object> metaDataMap = new LinkedHashMap<String, Object>();
 
-    private final Set<RequestData> childUrlSet =
-        new LinkedHashSet<RequestData>();
+    private final Set<RequestData> childUrlSet = new LinkedHashSet<RequestData>();
 
     public int getHttpStatusCode() {
         return httpStatusCode;
@@ -197,7 +195,7 @@ public class ResponseData {
     }
 
     public RequestData getRequestData() {
-        RequestData requestData = new RequestData();
+        final RequestData requestData = new RequestData();
         requestData.setMethod(method);
         requestData.setUrl(url);
         return requestData;
@@ -206,13 +204,14 @@ public class ResponseData {
     @Override
     public String toString() {
         return "ResponseData [url=" + url + ", httpStatusCode="
-            + httpStatusCode + ", responseBody=" + responseBody + ", charSet="
-            + charSet + ", contentLength=" + contentLength + ", mimeType="
-            + mimeType + ", method=" + method + ", parentUrl=" + parentUrl
-            + ", ruleId=" + ruleId + ", sessionId=" + sessionId
-            + ", executionTime=" + executionTime + ", lastModified="
-            + lastModified + ", redirectLocation=" + redirectLocation
-            + ", status=" + status + ", metaDataMap=" + metaDataMap
-            + ", childUrlSet=" + childUrlSet + "]";
+                + httpStatusCode + ", responseBody=" + responseBody
+                + ", charSet=" + charSet + ", contentLength=" + contentLength
+                + ", mimeType=" + mimeType + ", method=" + method
+                + ", parentUrl=" + parentUrl + ", ruleId=" + ruleId
+                + ", sessionId=" + sessionId + ", executionTime="
+                + executionTime + ", lastModified=" + lastModified
+                + ", redirectLocation=" + redirectLocation + ", status="
+                + status + ", metaDataMap=" + metaDataMap + ", childUrlSet="
+                + childUrlSet + "]";
     }
 }

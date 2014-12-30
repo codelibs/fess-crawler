@@ -26,13 +26,13 @@ import org.codelibs.robot.extractor.Extractor;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class MsPowerPointExtractor implements Extractor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
@@ -44,8 +44,8 @@ public class MsPowerPointExtractor implements Extractor {
         }
         try {
             return new ExtractData(
-                new org.apache.poi.hslf.extractor.PowerPointExtractor(in)
-                    .getText());
+                    new org.apache.poi.hslf.extractor.PowerPointExtractor(in)
+                            .getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

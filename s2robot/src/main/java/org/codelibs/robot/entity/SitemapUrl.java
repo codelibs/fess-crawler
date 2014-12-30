@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SitemapUrl implements Sitemap {
 
@@ -36,7 +36,7 @@ public class SitemapUrl implements Sitemap {
      * The date of last modification of the file. This date should be in W3C
      * Datetime format. This format allows you to omit the time portion, if
      * desired, and use YYYY-MM-DD.
-     * 
+     *
      * Note that this tag is separate from the If-Modified-Since (304) header
      * the server can return, and search engines may use the information from
      * both sources differently.
@@ -59,7 +59,7 @@ public class SitemapUrl implements Sitemap {
      * The value "always" should be used to describe documents that change each
      * time they are accessed. The value "never" should be used to describe
      * archived URLs.
-     * 
+     *
      * Please note that the value of this tag is considered a hint and not a
      * command. Even though search engine crawlers may consider this information
      * when making decisions, they may crawl pages marked "hourly" less
@@ -74,15 +74,15 @@ public class SitemapUrl implements Sitemap {
      * values range from 0.0 to 1.0. This value does not affect how your pages
      * are compared to pages on other sites—it only lets the search engines know
      * which pages you deem most important for the crawlers.
-     * 
+     *
      * The default priority of a page is 0.5.
-     * 
+     *
      * Please note that the priority you assign to a page is not likely to
      * influence the position of your URLs in a search engine's result pages.
      * Search engines may use this information when selecting between URLs on
      * the same site, so you can use this tag to increase the likelihood that
      * your most important pages are present in a search index.
-     * 
+     *
      * Also, please note that assigning a high priority to all of the URLs on
      * your site is not likely to help you. Since the priority is relative, it
      * is only used to select between URLs on your site.
@@ -130,9 +130,9 @@ public class SitemapUrl implements Sitemap {
         }
         final SitemapUrl sitemapUrl = (SitemapUrl) obj;
         if (StringUtils.equals(loc, sitemapUrl.loc)
-            && StringUtils.equals(changefreq, sitemapUrl.changefreq)
-            && StringUtils.equals(lastmod, sitemapUrl.lastmod)
-            && StringUtils.equals(priority, sitemapUrl.priority)) {
+                && StringUtils.equals(changefreq, sitemapUrl.changefreq)
+                && StringUtils.equals(lastmod, sitemapUrl.lastmod)
+                && StringUtils.equals(priority, sitemapUrl.priority)) {
             return true;
         }
         return false;
@@ -141,13 +141,13 @@ public class SitemapUrl implements Sitemap {
     @Override
     public int hashCode() {
         return loc.hashCode() + changefreq.hashCode() + lastmod.hashCode()
-            + priority.hashCode();
+                + priority.hashCode();
     }
 
     @Override
     public String toString() {
         return "SitemapUrl [loc=" + loc + ", lastmod=" + lastmod
-            + ", changefreq=" + changefreq + ", priority=" + priority + "]";
+                + ", changefreq=" + changefreq + ", priority=" + priority + "]";
     }
 
 }

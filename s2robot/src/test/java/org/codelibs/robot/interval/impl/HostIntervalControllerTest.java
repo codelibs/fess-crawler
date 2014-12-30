@@ -27,17 +27,13 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.entity.UrlQueueImpl;
 import org.codelibs.robot.util.CrawlingParameterUtil;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author hayato
  * 
  */
-public class HostIntervalControllerTest extends S2TestCase {
-    @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
-    }
+public class HostIntervalControllerTest extends PlainTestCase {
 
     /**
      * 同一ホストに対するクローリングのインターバルが正しく動作すること
@@ -69,8 +65,7 @@ public class HostIntervalControllerTest extends S2TestCase {
         };
 
         // Callableタスクを複数生成
-        final List<Callable<Integer>> tasks =
-            new ArrayList<Callable<Integer>>();
+        final List<Callable<Integer>> tasks = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < numTasks; i++) {
             tasks.add(testCallable);
         }

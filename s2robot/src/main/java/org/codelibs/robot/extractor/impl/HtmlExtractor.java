@@ -21,21 +21,20 @@ import org.codelibs.robot.extractor.Extractor;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class HtmlExtractor extends AbstractXmlExtractor implements Extractor {
 
-    protected Pattern metaCharsetPattern =
-        Pattern
+    protected Pattern metaCharsetPattern = Pattern
             .compile(
-                "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-                Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                    "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
+                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.extractor.impl.AbstractXmlExtractor#getEncodingPattern()
      */
@@ -46,7 +45,7 @@ public class HtmlExtractor extends AbstractXmlExtractor implements Extractor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.impl.AbstractXmlExtractor#getTagPattern()
      */
     @Override

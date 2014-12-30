@@ -19,20 +19,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultDataImpl;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
 import org.codelibs.robot.entity.TestEntity;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class XpathTransformerTest extends S2TestCase {
+public class XpathTransformerTest extends PlainTestCase {
     public XpathTransformer xpathTransformer;
 
     public XpathTransformer xpathMapTransformer;
@@ -40,13 +40,83 @@ public class XpathTransformerTest extends S2TestCase {
     public XpathTransformer xpathEntityTransformer;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        {
+            xpathTransformer = new XpathTransformer();
+            xpathTransformer.setName("xpathTransformer");
+            Map<String, String> featureMap = newHashMap();
+            featureMap.put("http://xml.org/sax/features/namespaces", "false");
+            xpathTransformer.setFeatureMap(featureMap);
+            Map<String, String> propertyMap = newHashMap();
+            xpathTransformer.setPropertyMap(propertyMap);
+            Map<String, String> childUrlRuleMap = newHashMap();
+            childUrlRuleMap.put("//A", "href");
+            childUrlRuleMap.put("//AREA", "href");
+            childUrlRuleMap.put("//FRAME", "src");
+            childUrlRuleMap.put("//IFRAME", "src");
+            childUrlRuleMap.put("//IMG", "src");
+            childUrlRuleMap.put("//LINK", "href");
+            childUrlRuleMap.put("//SCRIPT", "src");
+            xpathTransformer.setChildUrlRuleMap(childUrlRuleMap);
+            Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("title", "//TITLE");
+            fieldRuleMap.put("body", "//BODY");
+            fieldRuleMap.put("pcount", "count(//P)");
+            fieldRuleMap.put("true", "true()");
+            fieldRuleMap.put("false", "false()");
+            xpathTransformer.setFieldRuleMap(fieldRuleMap);
+        }
+        {
+            xpathMapTransformer = new XpathTransformer();
+            xpathMapTransformer.setName("xpathMapTransformer");
+            Map<String, String> featureMap = newHashMap();
+            featureMap.put("http://xml.org/sax/features/namespaces", "false");
+            xpathMapTransformer.setFeatureMap(featureMap);
+            Map<String, String> propertyMap = newHashMap();
+            xpathMapTransformer.setPropertyMap(propertyMap);
+            Map<String, String> childUrlRuleMap = newHashMap();
+            childUrlRuleMap.put("//A", "href");
+            childUrlRuleMap.put("//AREA", "href");
+            childUrlRuleMap.put("//FRAME", "src");
+            childUrlRuleMap.put("//IFRAME", "src");
+            childUrlRuleMap.put("//IMG", "src");
+            childUrlRuleMap.put("//LINK", "href");
+            childUrlRuleMap.put("//SCRIPT", "src");
+            xpathMapTransformer.setChildUrlRuleMap(childUrlRuleMap);
+            Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("title", "//TITLE");
+            fieldRuleMap.put("body", "//BODY");
+            xpathMapTransformer.setFieldRuleMap(fieldRuleMap);
+            xpathMapTransformer.setDataClass(Map.class);
+        }
+        {
+            xpathEntityTransformer = new XpathTransformer();
+            xpathEntityTransformer.setName("xpathMapTransformer");
+            Map<String, String> featureMap = newHashMap();
+            featureMap.put("http://xml.org/sax/features/namespaces", "false");
+            xpathEntityTransformer.setFeatureMap(featureMap);
+            Map<String, String> propertyMap = newHashMap();
+            xpathEntityTransformer.setPropertyMap(propertyMap);
+            Map<String, String> childUrlRuleMap = newHashMap();
+            childUrlRuleMap.put("//A", "href");
+            childUrlRuleMap.put("//AREA", "href");
+            childUrlRuleMap.put("//FRAME", "src");
+            childUrlRuleMap.put("//IFRAME", "src");
+            childUrlRuleMap.put("//IMG", "src");
+            childUrlRuleMap.put("//LINK", "href");
+            childUrlRuleMap.put("//SCRIPT", "src");
+            xpathEntityTransformer.setChildUrlRuleMap(childUrlRuleMap);
+            Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("title", "//TITLE");
+            fieldRuleMap.put("body", "//BODY");
+            xpathEntityTransformer.setFieldRuleMap(fieldRuleMap);
+            xpathEntityTransformer.setDataClass(TestEntity.class);
+        }
     }
 
     public void test_storeData() throws Exception {
-        final String result =
-            "<?xml version=\"1.0\"?>\n"//
+        final String result = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\"><list><item>タイトル</item></list></field>\n"//
                 + "<field name=\"body\"><list><item>第一章 第一節 ほげほげふがふが LINK 第2章 第2節</item></list></field>\n"//
@@ -57,7 +127,7 @@ public class XpathTransformerTest extends S2TestCase {
 
         final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
-            .getResourceAsStream("html/test1.html"));
+                .getResourceAsStream("html/test1.html"));
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = new ResultData();
         xpathTransformer.storeData(responseData, resultData);
@@ -65,16 +135,14 @@ public class XpathTransformerTest extends S2TestCase {
     }
 
     public void test_getData() throws Exception {
-        final String value =
-            "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathTransformer");
@@ -85,13 +153,12 @@ public class XpathTransformerTest extends S2TestCase {
 
     public void test_getData_wrongName() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
-            + "<doc>\n"//
-            + "<field name=\"title\">タイトル</field>\n"//
-            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-            + "</doc>";
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
@@ -105,13 +172,12 @@ public class XpathTransformerTest extends S2TestCase {
 
     public void test_getData_nullData() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
-            + "<doc>\n"//
-            + "<field name=\"title\">タイトル</field>\n"//
-            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-            + "</doc>";
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathTransformer");
@@ -126,16 +192,14 @@ public class XpathTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap() throws Exception {
-        final String value =
-            "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathMapTransformer");
@@ -153,16 +217,14 @@ public class XpathTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap_entity() throws Exception {
-        final String value =
-            "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathEntityTransformer");
@@ -181,14 +243,13 @@ public class XpathTransformerTest extends S2TestCase {
 
     public void test_getData_dataMap_entity_emptyList() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
-            + "<doc>\n"//
-            + "<field name=\"title\">タイトル</field>\n"//
-            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-            + "<field name=\"list\"><list></list></field>\n"//
-            + "</doc>";
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "<field name=\"list\"><list></list></field>\n"//
+                + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xpathEntityTransformer");

@@ -18,6 +18,7 @@ package org.codelibs.robot.client.http.action;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
@@ -25,7 +26,6 @@ import org.codelibs.robot.entity.ResponseData;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
@@ -35,7 +35,7 @@ public class FormAction extends BaseUrlAction {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.client.http.action.UrlAction#navigate(org.openqa.selenium
      * .WebDriver, java.util.Map)
@@ -46,20 +46,20 @@ public class FormAction extends BaseUrlAction {
         final String cssQuery = paramMap.get(CSS_QUERY);
         final int index = Integer.parseInt(paramMap.get(INDEX));
         if (StringUtil.isNotBlank(cssQuery) && index >= 0) {
-            final List<WebElement> elementList =
-                webDriver.findElements(By.cssSelector(cssQuery));
+            final List<WebElement> elementList = webDriver.findElements(By
+                    .cssSelector(cssQuery));
             if (index < elementList.size()) {
                 elementList.get(index).submit();
                 return;
             }
         }
         throw new RobotSystemException("Invalid position. css query: "
-            + cssQuery + ", index: " + index);
+                + cssQuery + ", index: " + index);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.http.action.UrlAction#collect(java.lang
      * .String, org.openqa.selenium.WebDriver,
      * org.codelibs.robot.entity.ResponseData)
@@ -67,8 +67,8 @@ public class FormAction extends BaseUrlAction {
     @Override
     public void collect(final String url, final WebDriver webDriver,
             final ResponseData responseData) {
-        final List<WebElement> formElementList =
-            webDriver.findElements(By.cssSelector(cssQuery));
+        final List<WebElement> formElementList = webDriver.findElements(By
+                .cssSelector(cssQuery));
         for (int i = 0; i < formElementList.size(); i++) {
             final WebElement formElement = formElementList.get(i);
             final String methodAttr = formElement.getAttribute("method");
@@ -81,24 +81,11 @@ public class FormAction extends BaseUrlAction {
                 method = Constants.GET_METHOD;
             }
             final StringBuilder buf = new StringBuilder(url.length() + 30);
-            buf
-                .append(URL_ACTION)
-                .append("=")
-                .append(name)
-                .append("&")
-                .append(CSS_QUERY)
-                .append("=")
-                .append(cssQuery)
-                .append("&")
-                .append(INDEX)
-                .append("=")
-                .append(i);
-            responseData.addChildUrl(RequestDataBuilder
-                .newRequestData()
-                .method(method)
-                .url(url)
-                .metaData(buf.toString())
-                .build());
+            buf.append(URL_ACTION).append("=").append(name).append("&")
+                    .append(CSS_QUERY).append("=").append(cssQuery).append("&")
+                    .append(INDEX).append("=").append(i);
+            responseData.addChildUrl(RequestDataBuilder.newRequestData()
+                    .method(method).url(url).metaData(buf.toString()).build());
         }
     }
 

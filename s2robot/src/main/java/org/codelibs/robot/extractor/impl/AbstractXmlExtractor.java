@@ -24,23 +24,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.codelibs.core.io.InputStreamUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
-import org.seasar.framework.util.InputStreamUtil;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public abstract class AbstractXmlExtractor {
 
     protected static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(AbstractXmlExtractor.class);
+            .getLogger(AbstractXmlExtractor.class);
 
     protected String encoding = Constants.UTF_8;
 
@@ -60,9 +60,8 @@ public abstract class AbstractXmlExtractor {
         try {
             final BufferedInputStream bis = new BufferedInputStream(in);
             final String enc = getEncoding(bis);
-            final String content =
-                StringEscapeUtils.unescapeHtml4(new String(InputStreamUtil
-                    .getBytes(bis), enc));
+            final String content = StringEscapeUtils.unescapeHtml4(new String(
+                    InputStreamUtil.getBytes(bis), enc));
             return new ExtractData(extractString(content));
         } catch (final Exception e) {
             throw new ExtractException(e);
@@ -122,10 +121,8 @@ public abstract class AbstractXmlExtractor {
             while (attrMatcher.find()) {
                 buf.append(attrMatcher.group(1)).append(' ');
             }
-            matcher.appendReplacement(sb, buf
-                .toString()
-                .replace("\\", "\\\\")
-                .replace("$", "\\$"));
+            matcher.appendReplacement(sb, buf.toString().replace("\\", "\\\\")
+                    .replace("$", "\\$"));
         }
         matcher.appendTail(sb);
         return sb.toString().replaceAll("\\s+", " ").trim();

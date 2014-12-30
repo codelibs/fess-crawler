@@ -21,34 +21,39 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.HttpHeaders;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
 import org.codelibs.robot.extractor.Extractor;
 import org.codelibs.robot.extractor.ExtractorFactory;
-import org.seasar.framework.container.SingletonS2Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class TextTransformer extends AbstractTransformer {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(TextTransformer.class);
+            .getLogger(TextTransformer.class);
+
+    @Resource
+    protected ComponentContainer componentContainer;
 
     protected String charsetName = Constants.UTF_8;
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.transformer.impl.AbstractTransformer#transform(org.seasar
      * .robot.entity.ResponseData)
@@ -59,18 +64,17 @@ public class TextTransformer extends AbstractTransformer {
             throw new RobotCrawlAccessException("No response body.");
         }
 
-        final ExtractorFactory extractorFactory =
-            SingletonS2Container.getComponent("extractorFactory");
+        final ExtractorFactory extractorFactory = componentContainer
+                .getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new RobotSystemException("Could not find extractorFactory.");
         }
-        final Extractor extractor =
-            extractorFactory.getExtractor(responseData.getMimeType());
+        final Extractor extractor = extractorFactory.getExtractor(responseData
+                .getMimeType());
         final InputStream in = responseData.getResponseBody();
         final Map<String, String> params = new HashMap<String, String>();
-        params.put(
-            TikaMetadataKeys.RESOURCE_NAME_KEY,
-            getResourceName(responseData));
+        params.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
+                getResourceName(responseData));
         params.put(HttpHeaders.CONTENT_TYPE, responseData.getMimeType());
         String content = null;
         try {
@@ -88,7 +92,7 @@ public class TextTransformer extends AbstractTransformer {
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName
-                    + ". Changed to " + Constants.UTF_8, e);
+                        + ". Changed to " + Constants.UTF_8, e);
             }
             charsetName = Constants.UTF_8_CHARSET.name();
             resultData.setData(content.getBytes(Constants.UTF_8_CHARSET));
@@ -99,7 +103,7 @@ public class TextTransformer extends AbstractTransformer {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.transformer.Transformer#getData(org.codelibs.robot.entity
      * .AccessResultData)
@@ -109,8 +113,8 @@ public class TextTransformer extends AbstractTransformer {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                + accessResultData.getTransformerName()
-                + ". This transformer is " + getName() + ".");
+                    + accessResultData.getTransformerName()
+                    + ". This transformer is " + getName() + ".");
         }
         final byte[] data = accessResultData.getData();
         if (data == null) {
@@ -120,7 +124,7 @@ public class TextTransformer extends AbstractTransformer {
             return new String(data, charsetName);
         } catch (final UnsupportedEncodingException e) {
             throw new RobotCrawlAccessException("Unsupported encoding: "
-                + charsetName, e);
+                    + charsetName, e);
         }
     }
 

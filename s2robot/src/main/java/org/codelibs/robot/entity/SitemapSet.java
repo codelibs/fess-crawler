@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SitemapSet implements Serializable {
 
@@ -62,6 +62,6 @@ public class SitemapSet implements Serializable {
     @Override
     public String toString() {
         return "SitemapSet [sitemapList=" + sitemapList + ", type=" + type
-            + "]";
+                + "]";
     }
 }

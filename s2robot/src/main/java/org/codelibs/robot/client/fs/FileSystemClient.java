@@ -30,44 +30,44 @@ import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.MaxLengthExceededException;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.AbstractS2RobotClient;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.ContentLengthHelper;
 import org.codelibs.robot.helper.MimeTypeHelper;
 import org.codelibs.robot.util.TemporaryFileInputStream;
-import org.seasar.framework.container.SingletonS2Container;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
-import org.seasar.framework.util.FileUtil;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * FileSystemClient is S2RobotClient implementation to crawl files on a file
  * system.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class FileSystemClient extends AbstractS2RobotClient {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(FileSystemClient.class);
+            .getLogger(FileSystemClient.class);
 
     protected String charset = Constants.UTF_8;
 
-    @Binding(bindingType = BindingType.MAY)
+    @Resource
+    protected ComponentContainer componentContainer;
+
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.S2RobotClient#doGet(java.lang.String)
      */
     @Override
@@ -94,18 +94,16 @@ public class FileSystemClient extends AbstractS2RobotClient {
             responseData.setCharSet(charset);
             responseData.setContentLength(0);
         } else if (file.isFile()) {
-            final MimeTypeHelper mimeTypeHelper =
-                SingletonS2Container.getComponent("mimeTypeHelper");
+            final MimeTypeHelper mimeTypeHelper = componentContainer
+                    .getComponent("mimeTypeHelper");
             InputStream is = null;
             try {
                 is = new FileInputStream(file);
-                responseData.setMimeType(mimeTypeHelper.getContentType(
-                    is,
-                    file.getName()));
+                responseData.setMimeType(mimeTypeHelper.getContentType(is,
+                        file.getName()));
             } catch (final Exception e) {
-                responseData.setMimeType(mimeTypeHelper.getContentType(
-                    null,
-                    file.getName()));
+                responseData.setMimeType(mimeTypeHelper.getContentType(null,
+                        file.getName()));
             } finally {
                 IOUtils.closeQuietly(is);
             }
@@ -113,13 +111,13 @@ public class FileSystemClient extends AbstractS2RobotClient {
             // check file size
             responseData.setContentLength(file.length());
             if (contentLengthHelper != null) {
-                final long maxLength =
-                    contentLengthHelper
+                final long maxLength = contentLengthHelper
                         .getMaxLength(responseData.getMimeType());
                 if (responseData.getContentLength() > maxLength) {
                     throw new MaxLengthExceededException("The content length ("
-                        + responseData.getContentLength() + " byte) is over "
-                        + maxLength + " byte. The url is " + filePath);
+                            + responseData.getContentLength()
+                            + " byte) is over " + maxLength
+                            + " byte. The url is " + filePath);
                 }
             }
 
@@ -130,21 +128,19 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 if (includeContent) {
                     File outputFile = null;
                     try {
-                        outputFile =
-                            File.createTempFile(
-                                "s2robot-FileSystemClient-",
-                                ".out");
-                        FileUtil.copy(file, outputFile);
+                        outputFile = File.createTempFile(
+                                "s2robot-FileSystemClient-", ".out");
+                        CopyUtil.copy(file, outputFile);
                         responseData
-                            .setResponseBody(new TemporaryFileInputStream(
-                                outputFile));
+                                .setResponseBody(new TemporaryFileInputStream(
+                                        outputFile));
                     } catch (final Exception e) {
                         logger.warn("I/O Exception.", e);
                         responseData
-                            .setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                                .setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                         if (outputFile != null && !outputFile.delete()) {
                             logger.warn("Could not delete "
-                                + outputFile.getAbsolutePath());
+                                    + outputFile.getAbsolutePath());
                         }
                     }
                 }
@@ -159,11 +155,8 @@ public class FileSystemClient extends AbstractS2RobotClient {
                 if (files != null) {
                     for (final File f : files) {
                         final String chileUri = f.toURI().toASCIIString();
-                        requestDataSet.add(RequestDataBuilder
-                            .newRequestData()
-                            .get()
-                            .url(chileUri)
-                            .build());
+                        requestDataSet.add(RequestDataBuilder.newRequestData()
+                                .get().url(chileUri).build());
                     }
                 }
             }
@@ -221,7 +214,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.S2RobotClient#doHead(java.lang.String)
      */
     @Override

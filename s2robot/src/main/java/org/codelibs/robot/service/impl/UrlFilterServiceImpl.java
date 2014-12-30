@@ -25,7 +25,7 @@ import org.codelibs.robot.service.UrlFilterService;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class UrlFilterServiceImpl implements UrlFilterService {
 
@@ -34,7 +34,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java
      * .lang.String, java.lang.String)
@@ -46,7 +46,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java
      * .lang.String, java.util.List)
@@ -61,7 +61,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java
      * .lang.String, java.lang.String)
@@ -73,7 +73,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java
      * .lang.String, java.util.List)
@@ -88,7 +88,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.impl.UrlFilterService#delete(java.lang.String)
      */
@@ -99,7 +99,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.impl.UrlFilterService#deleteAll()
      */
     @Override
@@ -109,7 +109,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.impl.UrlFilterService#getIncludeUrlPatternList
      * (java.lang.String)
@@ -121,7 +121,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.impl.UrlFilterService#getExcludeUrlPatternList
      * (java.lang.String)

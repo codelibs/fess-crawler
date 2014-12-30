@@ -18,6 +18,7 @@ package org.codelibs.robot.client;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotMultipleCrawlAccessException;
 import org.codelibs.robot.RobotSystemException;
@@ -25,18 +26,13 @@ import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.FaultTolerantClient.RequestListener;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class FaultTolerantClientTest extends S2TestCase {
-
-    @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
-    }
+public class FaultTolerantClientTest extends PlainTestCase {
 
     public void test_doGet() {
         final FaultTolerantClient client = new FaultTolerantClient();
@@ -45,12 +41,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response =
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .get()
-                .url(url)
-                .build());
+        final ResponseData response = client.execute(RequestDataBuilder
+                .newRequestData().get().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(1, testListener.requestCount);
         assertEquals(0, testListener.exceptionCount);
@@ -71,12 +63,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response =
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .get()
-                .url(url)
-                .build());
+        final ResponseData response = client.execute(RequestDataBuilder
+                .newRequestData().get().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -98,11 +86,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .get()
-                .url(url)
-                .build());
+            client.execute(RequestDataBuilder.newRequestData().get().url(url)
+                    .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -129,11 +114,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .get()
-                .url(url)
-                .build());
+            client.execute(RequestDataBuilder.newRequestData().get().url(url)
+                    .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -160,12 +142,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response =
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .get()
-                .url(url)
-                .build());
+        final ResponseData response = client.execute(RequestDataBuilder
+                .newRequestData().get().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -185,12 +163,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response =
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .head()
-                .url(url)
-                .build());
+        final ResponseData response = client.execute(RequestDataBuilder
+                .newRequestData().head().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(1, testListener.requestCount);
         assertEquals(0, testListener.exceptionCount);
@@ -211,12 +185,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response =
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .head()
-                .url(url)
-                .build());
+        final ResponseData response = client.execute(RequestDataBuilder
+                .newRequestData().head().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -238,11 +208,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .head()
-                .url(url)
-                .build());
+            client.execute(RequestDataBuilder.newRequestData().head().url(url)
+                    .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -269,11 +236,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .head()
-                .url(url)
-                .build());
+            client.execute(RequestDataBuilder.newRequestData().head().url(url)
+                    .build());
             fail();
         } catch (final RobotMultipleCrawlAccessException e) {
             // ok
@@ -300,12 +264,8 @@ public class FaultTolerantClientTest extends S2TestCase {
         client.setRobotClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response =
-            client.execute(RequestDataBuilder
-                .newRequestData()
-                .head()
-                .url(url)
-                .build());
+        final ResponseData response = client.execute(RequestDataBuilder
+                .newRequestData().head().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -338,7 +298,7 @@ public class FaultTolerantClientTest extends S2TestCase {
          */
         @Override
         public ResponseData execute(final RequestData request) {
-            final long now = System.currentTimeMillis();
+            final long now = SystemUtil.currentTimeMillis();
             if (now - previousTime < interval) {
                 throw new IllegalStateException();
             }
@@ -361,7 +321,7 @@ public class FaultTolerantClientTest extends S2TestCase {
          * @see org.codelibs.robot.client.S2RobotClient#doHead(java.lang.String)
          */
         public ResponseData doHead(final String url) {
-            final long now = System.currentTimeMillis();
+            final long now = SystemUtil.currentTimeMillis();
             if (now - previousTime < interval) {
                 throw new IllegalStateException();
             }

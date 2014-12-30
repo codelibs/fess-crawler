@@ -26,9 +26,9 @@ import org.codelibs.robot.service.UrlQueueService;
 import org.codelibs.robot.transformer.impl.FileTransformer;
 import org.codelibs.robot.util.AccessResultCallback;
 import org.codelibs.robot.util.S2RobotWebServer;
-import org.seasar.extension.unit.S2TestCase;
+import org.seasar.extension.unit.PlainTestCase;
 
-public class S2RobotTest extends S2TestCase {
+public class S2RobotTest extends PlainTestCase {
 
     public S2Robot s2Robot;
 

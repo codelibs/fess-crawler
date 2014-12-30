@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
+ * Copyright 2004-2010 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot.helper;
-
-import org.codelibs.robot.log.LogType;
+package org.codelibs.robot.container;
 
 /**
  * @author shinsuke
  *
  */
-public interface LogHelper {
+public interface ComponentContainer {
 
-    void log(LogType key, Object... objs);
+    <T> T getComponent(String name);
 
+    boolean available();
 }

@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.codelibs.robot</groupId>
     <artifactId>s2-robot-parent</artifactId>
-    <version>0.8.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <build>
@@ -78,6 +78,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.codelibs</groupId>
+      <artifactId>corelib</artifactId>
+      <version>0.3.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>1.9</version>
@@ -100,32 +105,27 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.3.5</version>
+      <version>${httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpmime</artifactId>
-      <version>4.3.5</version>
+      <version>${httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient-cache</artifactId>
-      <version>4.3.5</version>
+      <version>${httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.nekohtml</groupId>
       <artifactId>nekohtml</artifactId>
-      <version>1.9.21</version>
+      <version>${nekohtml.version}</version>
     </dependency>
     <dependency>
       <groupId>xalan</groupId>
       <artifactId>xalan</artifactId>
       <version>2.7.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.seasar.container</groupId>
-      <artifactId>s2-tiger</artifactId>
-      <version>2.4.46</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -138,15 +138,9 @@
       <version>${slf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-parsers</artifactId>
-      <version>1.6</version>
+      <version>${tika.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.uwyn</groupId>
@@ -162,39 +156,33 @@
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
-      <version>3.11-beta2</version>
+      <version>${poi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
-      <version>3.11-beta2</version>
+      <version>${poi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-scratchpad</artifactId>
-      <version>3.11-beta2</version>
+      <version>${poi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
-      <version>1.8.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jetty</artifactId>
-      <version>6.1.26</version>
-      <scope>test</scope>
+      <version>${pdfbox.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
-      <version>1.51</version>
+      <version>${bouncycastle.version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcmail-jdk15on</artifactId>
-      <version>1.51</version>
+      <version>${bouncycastle.version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -203,9 +191,14 @@
       <version>53.1</version>
     </dependency>
     <dependency>
-      <groupId>org.samba.jcifs</groupId>
+      <groupId>jcifs</groupId>
       <artifactId>jcifs</artifactId>
       <version>1.3.17</version>
+    </dependency>
+    <dependency>
+      <groupId>jp.gr.java_conf.dangan</groupId>
+      <artifactId>jlha</artifactId>
+      <version>0.06-05</version>
     </dependency>
     <dependency>
       <groupId>org.artofsolving.jodconverter</groupId>
@@ -214,15 +207,28 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>jp.gr.java_conf.dangan</groupId>
-      <artifactId>jlha</artifactId>
-      <version>0.06-05</version>
-    </dependency>
-    <dependency>
       <groupId>com.github.detro</groupId>
       <artifactId>phantomjsdriver</artifactId>
       <version>1.2.0</version>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.dbflute.utflute</groupId>
+      <artifactId>utflute-core</artifactId>
+      <version>${utflute.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty</artifactId>
+      <version>6.1.26</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

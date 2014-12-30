@@ -24,16 +24,16 @@ import java.util.Map;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultData;
-import org.seasar.framework.util.StringUtil;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public final class XmlUtil {
 
@@ -44,15 +44,15 @@ public final class XmlUtil {
         // return StringEscapeUtils.escapeXml(value);
         return stripInvalidXMLCharacters(//
         value//
-            .replaceAll("&", "&amp;")
-            //
-            .replaceAll("<", "&lt;")
-            //
-            .replaceAll(">", "&gt;")
-            //
-            .replaceAll("\"", "&quot;")
-            //
-            .replaceAll("\'", "&apos;")//
+        .replaceAll("&", "&amp;")
+        //
+                .replaceAll("<", "&lt;")
+                //
+                .replaceAll(">", "&gt;")
+                //
+                .replaceAll("\"", "&quot;")
+                //
+                .replaceAll("\'", "&apos;")//
         );
     }
 
@@ -66,7 +66,8 @@ public final class XmlUtil {
         for (int i = 0; i < in.length(); i++) {
             c = in.charAt(i);
             if (c == 0x9 || c == 0xA || c == 0xD || c >= 0x20 && c <= 0xD7FF
-                || c >= 0xE000 && c <= 0xFFFD || c >= 0x10000 && c <= 0x10FFFF) {
+                    || c >= 0xE000 && c <= 0xFFFD || c >= 0x10000
+                    && c <= 0x10FFFF) {
                 buf.append(c);
             }
         }
@@ -76,9 +77,8 @@ public final class XmlUtil {
     public static Map<String, Object> getDataMap(
             final AccessResultData accessResultData) {
         // create input source
-        final InputSource is =
-            new InputSource(
-                new ByteArrayInputStream(accessResultData.getData()));
+        final InputSource is = new InputSource(new ByteArrayInputStream(
+                accessResultData.getData()));
         if (StringUtil.isNotBlank(accessResultData.getEncoding())) {
             is.setEncoding(accessResultData.getEncoding());
         }
@@ -97,14 +97,12 @@ public final class XmlUtil {
             return handler.getDataMap();
         } catch (final Exception e) {
             throw new RobotSystemException(
-                "Could not create a data map from XML content.",
-                e);
+                    "Could not create a data map from XML content.", e);
         }
     }
 
     private static class DocHandler extends DefaultHandler {
-        private final Map<String, Object> dataMap =
-            new HashMap<String, Object>();
+        private final Map<String, Object> dataMap = new HashMap<String, Object>();
 
         private String fieldName;
 

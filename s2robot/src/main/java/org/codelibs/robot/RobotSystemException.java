@@ -17,7 +17,7 @@ package org.codelibs.robot;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class RobotSystemException extends RuntimeException {
 

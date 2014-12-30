@@ -31,7 +31,7 @@ import org.codelibs.robot.util.AccessResultCallback;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class DataServiceImpl implements DataService {
 
@@ -44,7 +44,7 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.DataService#store(org.codelibs.robot.entity.
      * AccessResult)
      */
@@ -57,8 +57,8 @@ public class DataServiceImpl implements DataService {
         synchronized (idCountLock) {
             idCount++;
             accessResult.setId(idCount);
-            AccessResultData accessResultData =
-                accessResult.getAccessResultData();
+            AccessResultData accessResultData = accessResult
+                    .getAccessResultData();
             if (accessResultData == null) {
                 accessResultData = new AccessResultDataImpl();
                 accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
@@ -66,11 +66,11 @@ public class DataServiceImpl implements DataService {
             }
             accessResultData.setId(accessResult.getId());
 
-            final Map<String, AccessResult> arMap =
-                dataHelper.getAccessResultMap(accessResult.getSessionId());
+            final Map<String, AccessResult> arMap = dataHelper
+                    .getAccessResultMap(accessResult.getSessionId());
             if (arMap.containsKey(accessResult.getUrl())) {
                 throw new RobotSystemException(accessResult.getUrl()
-                    + " already exists.");
+                        + " already exists.");
             }
             arMap.put(accessResult.getUrl(), accessResult);
         }
@@ -79,7 +79,7 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.DataService#getCount(java.lang.String)
      */
     @Override
@@ -89,7 +89,7 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.DataService#delete(java.lang.String)
      */
     @Override
@@ -99,7 +99,7 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.DataService#deleteAll()
      */
     @Override
@@ -109,7 +109,7 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.DataService#getAccessResult(java.lang.String,
      * java.lang.String)
@@ -121,7 +121,7 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.DataService#getAccessResultList(java.lang.String
      * , boolean)
@@ -134,15 +134,15 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.DataService#iterate(java.lang.String,
      * org.codelibs.robot.util.AccessResultCallback)
      */
     @Override
     public void iterate(final String sessionId,
             final AccessResultCallback accessResultCallback) {
-        final Map<String, AccessResult> arMap =
-            dataHelper.getAccessResultMap(sessionId);
+        final Map<String, AccessResult> arMap = dataHelper
+                .getAccessResultMap(sessionId);
         for (final Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
             accessResultCallback.iterate(entry.getValue());
         }
@@ -150,7 +150,7 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.service.DataService#iterateUrlDiff(java.lang.String,
      * java.lang.String, org.codelibs.robot.util.AccessResultCallback)
@@ -159,12 +159,12 @@ public class DataServiceImpl implements DataService {
     public void iterateUrlDiff(final String oldSessionId,
             final String newSessionId,
             final AccessResultCallback accessResultCallback) {
-        final Map<String, AccessResult> oldAccessResultMap =
-            dataHelper.getAccessResultMap(oldSessionId);
-        final Map<String, AccessResult> newAccessResultMap =
-            dataHelper.getAccessResultMap(newSessionId);
+        final Map<String, AccessResult> oldAccessResultMap = dataHelper
+                .getAccessResultMap(oldSessionId);
+        final Map<String, AccessResult> newAccessResultMap = dataHelper
+                .getAccessResultMap(newSessionId);
         for (final Map.Entry<String, AccessResult> newEntry : newAccessResultMap
-            .entrySet()) {
+                .entrySet()) {
             if (!oldAccessResultMap.keySet().contains(newEntry.getKey())) {
                 accessResultCallback.iterate(newEntry.getValue());
             }
@@ -173,24 +173,24 @@ public class DataServiceImpl implements DataService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.DataService#update(org.codelibs.robot.entity.
      * AccessResult)
      */
     @Override
     public void update(final AccessResult accessResult) {
-        final Map<String, AccessResult> arMap =
-            dataHelper.getAccessResultMap(accessResult.getSessionId());
+        final Map<String, AccessResult> arMap = dataHelper
+                .getAccessResultMap(accessResult.getSessionId());
         if (!arMap.containsKey(accessResult.getUrl())) {
             throw new RobotSystemException(accessResult.getUrl()
-                + " is not found.");
+                    + " is not found.");
         }
         arMap.put(accessResult.getUrl(), accessResult);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.service.DataService#update(java.util.List)
      */
     @Override

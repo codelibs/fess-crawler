@@ -19,97 +19,118 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.codelibs.core.io.InputStreamUtil;
+import org.codelibs.core.io.ResourceUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.builder.RequestDataBuilder;
+import org.codelibs.robot.client.http.action.AOnClickAction;
+import org.codelibs.robot.client.http.action.FormAction;
+import org.codelibs.robot.client.http.webdriver.S2WebDriver;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
+import org.codelibs.robot.pool.S2PooledObjectFactory;
 import org.codelibs.robot.util.S2RobotWebServer;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.InputStreamUtil;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class WebDriverClientTest extends S2TestCase {
+public class WebDriverClientTest extends PlainTestCase {
     public WebDriverClient webDriverClient;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "org/codelibs/robot/client/http/webdriver.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        S2PooledObjectFactory<S2WebDriver> pooledObjectFactory = new S2PooledObjectFactory<>();
+        pooledObjectFactory.setComponentName("webDriver");
+        pooledObjectFactory.setOnDestroyListener(p -> {
+            final S2WebDriver driver = p.getObject();
+            driver.quit();
+        });
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+                .singleton("webDriver", S2WebDriver.class)//
+                .singleton("webDriverPool",
+                        new GenericObjectPool(pooledObjectFactory))//
+                .singleton("webDriverClient", WebDriverClient.class);
+        webDriverClient = container.getComponent("webDriverClient");
+        AOnClickAction aOnClick = new AOnClickAction();
+        aOnClick.setName("aOnClick");
+        aOnClick.setCssQuery("a");
+        webDriverClient.addUrlAction(aOnClick);
+        FormAction formAction = new FormAction();
+        aOnClick.setName("form");
+        aOnClick.setCssQuery("form");
+        webDriverClient.addUrlAction(formAction);
     }
 
     public void test_doGet() {
-        File docRootDir =
-            new File(ResourceUtil.getBuildDir("ajax/index.html"), "ajax");
+        File docRootDir = new File(ResourceUtil.getBuildDir("ajax/index.html"),
+                "ajax");
         final S2RobotWebServer server = new S2RobotWebServer(7070, docRootDir);
 
         final String url = "http://localhost:7070/";
         try {
             server.start();
-            final ResponseData responseData =
-                webDriverClient.execute(RequestDataBuilder
-                    .newRequestData()
-                    .get()
-                    .url(url)
-                    .build());
+            final ResponseData responseData = webDriverClient
+                    .execute(RequestDataBuilder.newRequestData().get().url(url)
+                            .build());
             assertEquals(200, responseData.getHttpStatusCode());
             assertTrue(new String(InputStreamUtil.getBytes(responseData
-                .getResponseBody()), Constants.UTF_8_CHARSET)
-                .contains("Ajax Test"));
+                    .getResponseBody()), Constants.UTF_8_CHARSET)
+                    .contains("Ajax Test"));
             Set<RequestData> childUrlSet = responseData.getChildUrlSet();
             assertEquals(6, childUrlSet.size());
             Iterator<RequestData> requestDataIter = childUrlSet.iterator();
-            ResponseData responseData1 =
-                webDriverClient.execute(requestDataIter.next());
+            ResponseData responseData1 = webDriverClient
+                    .execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData1.getMethod());
-            assertEquals(
-                "http://localhost:7070/#menu-1-1.html",
-                responseData1.getUrl());
+            assertEquals("http://localhost:7070/#menu-1-1.html",
+                    responseData1.getUrl());
             assertTrue(new String(InputStreamUtil.getBytes(responseData1
-                .getResponseBody()), Constants.UTF_8_CHARSET)
-                .contains("MENU 11"));
-            ResponseData responseData2 =
-                webDriverClient.execute(requestDataIter.next());
+                    .getResponseBody()), Constants.UTF_8_CHARSET)
+                    .contains("MENU 11"));
+            ResponseData responseData2 = webDriverClient
+                    .execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData2.getMethod());
-            assertEquals(
-                "http://localhost:7070/#menu-1-2.html",
-                responseData2.getUrl());
+            assertEquals("http://localhost:7070/#menu-1-2.html",
+                    responseData2.getUrl());
             assertTrue(new String(InputStreamUtil.getBytes(responseData2
-                .getResponseBody()), Constants.UTF_8_CHARSET)
-                .contains("MENU 12"));
-            ResponseData responseData3 =
-                webDriverClient.execute(requestDataIter.next());
+                    .getResponseBody()), Constants.UTF_8_CHARSET)
+                    .contains("MENU 12"));
+            ResponseData responseData3 = webDriverClient
+                    .execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData3.getMethod());
-            assertEquals(
-                "http://localhost:7070/#menu-2-1.html",
-                responseData3.getUrl());
+            assertEquals("http://localhost:7070/#menu-2-1.html",
+                    responseData3.getUrl());
             assertTrue(new String(InputStreamUtil.getBytes(responseData3
-                .getResponseBody()), Constants.UTF_8_CHARSET)
-                .contains("MENU 21"));
-            ResponseData responseData4 =
-                webDriverClient.execute(requestDataIter.next());
+                    .getResponseBody()), Constants.UTF_8_CHARSET)
+                    .contains("MENU 21"));
+            ResponseData responseData4 = webDriverClient
+                    .execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData4.getMethod());
-            assertEquals(
-                "http://localhost:7070/#menu-2-2.html",
-                responseData4.getUrl());
+            assertEquals("http://localhost:7070/#menu-2-2.html",
+                    responseData4.getUrl());
             assertTrue(new String(InputStreamUtil.getBytes(responseData4
-                .getResponseBody()), Constants.UTF_8_CHARSET)
-                .contains("MENU 22"));
-            ResponseData responseData5 =
-                webDriverClient.execute(requestDataIter.next());
+                    .getResponseBody()), Constants.UTF_8_CHARSET)
+                    .contains("MENU 22"));
+            ResponseData responseData5 = webDriverClient
+                    .execute(requestDataIter.next());
             assertEquals(Constants.GET_METHOD, responseData5.getMethod());
             assertEquals("http://localhost:7070/#", responseData5.getUrl());
             assertTrue(new String(InputStreamUtil.getBytes(responseData5
-                .getResponseBody()), Constants.UTF_8_CHARSET)
-                .contains("Ajax Test"));
-            ResponseData responseData6 =
-                webDriverClient.execute(requestDataIter.next());
+                    .getResponseBody()), Constants.UTF_8_CHARSET)
+                    .contains("Ajax Test"));
+            ResponseData responseData6 = webDriverClient
+                    .execute(requestDataIter.next());
             assertEquals(Constants.POST_METHOD, responseData6.getMethod());
-            assertEquals(
-                "http://localhost:7070/form.html",
-                responseData6.getUrl());
+            assertEquals("http://localhost:7070/form.html",
+                    responseData6.getUrl());
 
         } finally {
             server.stop();
@@ -117,23 +138,20 @@ public class WebDriverClientTest extends S2TestCase {
     }
 
     public void test_doHead() throws Exception {
-        File docRootDir =
-            new File(ResourceUtil.getBuildDir("ajax/index.html"), "ajax");
+        File docRootDir = new File(ResourceUtil.getBuildDir("ajax/index.html"),
+                "ajax");
         final S2RobotWebServer server = new S2RobotWebServer(7070, docRootDir);
 
         final String url = "http://localhost:7070/";
         try {
             server.start();
-            final ResponseData responseData =
-                webDriverClient.execute(RequestDataBuilder
-                    .newRequestData()
-                    .head()
-                    .url(url)
-                    .build());
+            final ResponseData responseData = webDriverClient
+                    .execute(RequestDataBuilder.newRequestData().head()
+                            .url(url).build());
             Thread.sleep(100);
             assertNotNull(responseData.getLastModified());
-            assertTrue(responseData.getLastModified().getTime() < System
-                .currentTimeMillis());
+            assertTrue(responseData.getLastModified().getTime() < SystemUtil
+                    .currentTimeMillis());
         } finally {
             server.stop();
         }

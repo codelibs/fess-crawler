@@ -26,15 +26,15 @@ import org.codelibs.robot.extractor.Extractor;
 
 /**
  * Gets a text from .doc file.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class MsWordExtractor implements Extractor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
@@ -46,7 +46,8 @@ public class MsWordExtractor implements Extractor {
         }
         try {
             return new ExtractData(
-                new org.apache.poi.hwpf.extractor.WordExtractor(in).getText());
+                    new org.apache.poi.hwpf.extractor.WordExtractor(in)
+                            .getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

@@ -19,7 +19,7 @@ import java.io.Serializable;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface Sitemap extends Serializable {
 

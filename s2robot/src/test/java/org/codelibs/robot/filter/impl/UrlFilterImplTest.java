@@ -15,21 +15,31 @@
  */
 package org.codelibs.robot.filter.impl;
 
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.helper.MemoryDataHelper;
-import org.seasar.extension.unit.S2TestCase;
+import org.codelibs.robot.service.impl.DataServiceImpl;
+import org.codelibs.robot.service.impl.UrlFilterServiceImpl;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class UrlFilterImplTest extends S2TestCase {
+public class UrlFilterImplTest extends PlainTestCase {
     public UrlFilterImpl urlFilter;
 
     public MemoryDataHelper dataHelper;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("dataHelper", MemoryDataHelper.class)//
+                .singleton("urlFilterService", UrlFilterServiceImpl.class)//
+                .singleton("urlFilter", UrlFilterImpl.class)//
+                .singleton("dataService", DataServiceImpl.class);
+        urlFilter = container.getComponent("urlFilter");
+        dataHelper = container.getComponent("dataHelper");
     }
 
     public void test_addInclude1() {

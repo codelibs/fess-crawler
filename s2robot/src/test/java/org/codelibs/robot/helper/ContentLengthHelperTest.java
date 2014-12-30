@@ -15,27 +15,31 @@
  */
 package org.codelibs.robot.helper;
 
-import org.seasar.extension.unit.S2TestCase;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class ContentLengthHelperTest extends S2TestCase {
+public class ContentLengthHelperTest extends PlainTestCase {
     private static long DEFAULT_MAX_LENGTH = 10L * 1024L * 1024L;
 
     public ContentLengthHelper contentLengthHelper;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("contentLengthHelper", ContentLengthHelper.class);
+        contentLengthHelper = container.getComponent("contentLengthHelper");
     }
 
     public void test_getMaxLength() {
         final String mimeType = "text/plain";
 
-        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper
-                .getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH,
+                contentLengthHelper.getMaxLength(mimeType));
         contentLengthHelper.addMaxLength(mimeType, 1000L);
         assertEquals(1000L, contentLengthHelper.getMaxLength(mimeType));
     }
@@ -44,15 +48,15 @@ public class ContentLengthHelperTest extends S2TestCase {
         String mimeType;
 
         mimeType = null;
-        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper
-                .getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH,
+                contentLengthHelper.getMaxLength(mimeType));
 
         mimeType = "";
-        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper
-                .getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH,
+                contentLengthHelper.getMaxLength(mimeType));
 
         mimeType = " ";
-        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper
-                .getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH,
+                contentLengthHelper.getMaxLength(mimeType));
     }
 }

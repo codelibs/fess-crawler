@@ -15,11 +15,9 @@
  */
 package org.codelibs.robot.entity;
 
-import java.sql.Timestamp;
-
 /**
  * @author shinsuke
- * 
+ *
  */
 public class UrlQueueImpl implements UrlQueue {
     protected Long id;
@@ -38,13 +36,13 @@ public class UrlQueueImpl implements UrlQueue {
 
     protected Integer depth;
 
-    protected Timestamp lastModified;
+    protected Long lastModified;
 
-    protected Timestamp createTime;
+    protected Long createTime;
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getId()
      */
     @Override
@@ -54,7 +52,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#setId(java.lang.Long)
      */
     @Override
@@ -64,7 +62,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getSessionId()
      */
     @Override
@@ -74,7 +72,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#setSessionId(java.lang.String)
      */
     @Override
@@ -84,7 +82,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getMethod()
      */
     @Override
@@ -94,7 +92,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#setMethod(java.lang.String)
      */
     @Override
@@ -104,7 +102,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getUrl()
      */
     @Override
@@ -114,7 +112,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#setUrl(java.lang.String)
      */
     @Override
@@ -128,7 +126,7 @@ public class UrlQueueImpl implements UrlQueue {
     }
 
     @Override
-    public void setMetaData(String metaData) {
+    public void setMetaData(final String metaData) {
         this.metaData = metaData;
     }
 
@@ -144,7 +142,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getParentUrl()
      */
     @Override
@@ -154,7 +152,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#setParentUrl(java.lang.String)
      */
     @Override
@@ -164,7 +162,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getDepth()
      */
     @Override
@@ -174,7 +172,7 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#setDepth(java.lang.Integer)
      */
     @Override
@@ -184,50 +182,50 @@ public class UrlQueueImpl implements UrlQueue {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getCreateTime()
      */
     @Override
-    public Timestamp getCreateTime() {
+    public Long getCreateTime() {
         return createTime;
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see org.codelibs.robot.entity.UrlQueue#setCreateTime(java.sql.Timestamp)
+     *
+     * @see org.codelibs.robot.entity.UrlQueue#setCreateTime(java.sql.Long)
      */
     @Override
-    public void setCreateTime(final Timestamp createTime) {
+    public void setCreateTime(final Long createTime) {
         this.createTime = createTime;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.UrlQueue#getLastModified()
      */
     @Override
-    public Timestamp getLastModified() {
+    public Long getLastModified() {
         return lastModified;
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see org.codelibs.robot.entity.UrlQueue#setLastModified(java.sql.Timestamp)
+     *
+     * @see org.codelibs.robot.entity.UrlQueue#setLastModified(java.sql.Long)
      */
     @Override
-    public void setLastModified(final Timestamp lastModified) {
+    public void setLastModified(final Long lastModified) {
         this.lastModified = lastModified;
     }
 
     @Override
     public String toString() {
         return "UrlQueueImpl [id=" + id + ", sessionId=" + sessionId
-            + ", method=" + method + ", url=" + url + ", encoding=" + encoding
-            + ", parentUrl=" + parentUrl + ", depth=" + depth
-            + ", lastModified=" + lastModified + ", createTime=" + createTime
-            + "]";
+                + ", method=" + method + ", url=" + url + ", encoding="
+                + encoding + ", parentUrl=" + parentUrl + ", depth=" + depth
+                + ", lastModified=" + lastModified + ", createTime="
+                + createTime + "]";
     }
 }

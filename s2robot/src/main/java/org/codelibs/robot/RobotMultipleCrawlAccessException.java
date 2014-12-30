@@ -20,7 +20,7 @@ import java.io.PrintWriter;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class RobotMultipleCrawlAccessException extends
         RobotCrawlAccessException {

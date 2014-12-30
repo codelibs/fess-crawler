@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.pool2.ObjectPool;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.client.AbstractS2RobotClient;
@@ -30,7 +31,6 @@ import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public class WebDriverClient extends AbstractS2RobotClient {
 
     private static final Logger logger = LoggerFactory
-        .getLogger(WebDriverClient.class); // NOPMD
+            .getLogger(WebDriverClient.class); // NOPMD
 
     protected ObjectPool<WebDriver> webDriverPool;
 
@@ -58,8 +58,8 @@ public class WebDriverClient extends AbstractS2RobotClient {
             webDriver = webDriverPool.borrowObject();
 
             Map<String, String> paramMap = null;
-            String url = request.getUrl();
-            String metaData = request.getMetaData();
+            final String url = request.getUrl();
+            final String metaData = request.getMetaData();
             if (StringUtil.isNotBlank(metaData)) {
                 paramMap = parseParamMap(metaData);
             }
@@ -70,7 +70,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
 
             if (logger.isDebugEnabled()) {
                 logger.debug("Base URL: " + url + "\nContent: "
-                    + webDriver.getPageSource());
+                        + webDriver.getPageSource());
             }
 
             if (paramMap != null) {
@@ -78,7 +78,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
                 final UrlAction urlAction = urlActionMap.get(processorName);
                 if (urlAction == null) {
                     throw new RobotSystemException("Unknown processor: "
-                        + processorName);
+                            + processorName);
                 }
                 urlAction.navigate(webDriver, paramMap);
             }
@@ -98,7 +98,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
             responseData.setMimeType(getContentType(webDriver));
 
             responseData.setResponseBody(new ByteArrayInputStream(source
-                .getBytes(charSet)));
+                    .getBytes(charSet)));
 
             for (final UrlAction urlAction : urlActionMap.values()) {
                 urlAction.collect(url, webDriver, responseData);
@@ -107,7 +107,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
             return responseData;
         } catch (final Exception e) {
             throw new RobotSystemException("Failed to access "
-                + request.getUrl(), e);
+                    + request.getUrl(), e);
         } finally {
             if (webDriver != null) {
                 try {
@@ -139,8 +139,8 @@ public class WebDriverClient extends AbstractS2RobotClient {
         if (wd instanceof JavascriptExecutor) {
             final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
             // TODO document.contentType does not exist.
-            final Object ret =
-                jsExecutor.executeScript("return document.contentType;");
+            final Object ret = jsExecutor
+                    .executeScript("return document.contentType;");
             if (ret != null) {
                 return ret.toString();
             }
@@ -155,8 +155,7 @@ public class WebDriverClient extends AbstractS2RobotClient {
     private Date getLastModified(final WebDriver wd) {
         if (wd instanceof JavascriptExecutor) {
             final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
-            final Object ret =
-                jsExecutor
+            final Object ret = jsExecutor
                     .executeScript("return new Date(document.lastModified).getTime();");
             if (ret != null) {
                 try {
@@ -184,8 +183,8 @@ public class WebDriverClient extends AbstractS2RobotClient {
     private String getCharSet(final WebDriver wd) {
         if (wd instanceof JavascriptExecutor) {
             final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
-            final Object ret =
-                jsExecutor.executeScript("return document.characterSet;");
+            final Object ret = jsExecutor
+                    .executeScript("return document.characterSet;");
             if (ret != null) {
                 return ret.toString();
             }

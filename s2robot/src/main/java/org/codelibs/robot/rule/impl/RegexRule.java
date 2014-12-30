@@ -20,12 +20,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.entity.ResponseData;
-import org.seasar.framework.beans.util.Beans;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class RegexRule extends AbstractRule {
 
@@ -39,10 +39,8 @@ public class RegexRule extends AbstractRule {
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.codelibs.robot.rule.impl.AbstractRule#match(org.codelibs.robot.entity
-     * .ResponseData)
+     *
+     * @see org.codelibs.robot.rule.impl.AbstractRule#match(org.codelibs.robot.entity.ResponseData)
      */
     @Override
     public boolean match(final ResponseData responseData) {
@@ -51,7 +49,8 @@ public class RegexRule extends AbstractRule {
         }
 
         final Map<String, Object> map = new HashMap<String, Object>();
-        Beans.copy(responseData, map).excludesWhitespace().execute();
+        BeanUtil.copyBeanToMap(responseData, map,
+                option -> option.excludeWhitespace());
         for (final Map.Entry<String, Pattern> entry : regexMap.entrySet()) {
             String value = "";
             final Object obj = map.get(entry.getKey());
@@ -102,8 +101,8 @@ public class RegexRule extends AbstractRule {
         if (obj instanceof RegexRule) {
             final RegexRule rule = (RegexRule) obj;
             if (allRequired == rule.isAllRequired()
-                && defaultRule == rule.isDefaultRule()
-                && regexMap.equals(rule.regexMap)) {
+                    && defaultRule == rule.isDefaultRule()
+                    && regexMap.equals(rule.regexMap)) {
                 return true;
             }
         }

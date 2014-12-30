@@ -21,22 +21,22 @@ import java.util.Locale;
 
 import javax.annotation.Resource;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.client.S2RobotClientFactory;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.interval.IntervalController;
 import org.codelibs.robot.rule.RuleManager;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.service.UrlQueueService;
-import org.seasar.framework.container.S2Container;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * S2Robot manages/controls a crawling information.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class S2Robot implements Runnable {
 
@@ -55,7 +55,7 @@ public class S2Robot implements Runnable {
     protected RuleManager ruleManager;
 
     @Resource
-    protected S2Container container;
+    protected ComponentContainer componentContainer;
 
     @Resource
     protected IntervalController intervalController;
@@ -77,8 +77,8 @@ public class S2Robot implements Runnable {
 
     public S2Robot() {
         robotContext = new S2RobotContext();
-        final SimpleDateFormat sdf =
-            new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.ENGLISH);
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS",
+                Locale.ENGLISH);
         robotContext.sessionId = sdf.format(new Date());
     }
 
@@ -93,7 +93,7 @@ public class S2Robot implements Runnable {
 
     public void setSessionId(final String sessionId) {
         if (StringUtil.isNotBlank(sessionId)
-            && !sessionId.equals(robotContext.sessionId)) {
+                && !sessionId.equals(robotContext.sessionId)) {
             urlQueueService.updateSessionId(robotContext.sessionId, sessionId);
             robotContext.sessionId = sessionId;
         }
@@ -200,7 +200,7 @@ public class S2Robot implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Runnable#run()
      */
     @Override
@@ -215,12 +215,11 @@ public class S2Robot implements Runnable {
         robotThreadGroup = new ThreadGroup("Robot-" + robotContext.sessionId);
         final Thread[] threads = new Thread[robotContext.getNumOfThread()];
         for (int i = 0; i < robotContext.getNumOfThread(); i++) {
-            final S2RobotThread robotThread =
-                (S2RobotThread) container.getComponent("robotThread");
+            final S2RobotThread robotThread = componentContainer
+                    .getComponent("robotThread");
             robotThread.robotContext = robotContext;
             robotThread.clientFactory = clientFactory;
-            threads[i] =
-                new Thread(robotThreadGroup, robotThread, "Robot-"
+            threads[i] = new Thread(robotThreadGroup, robotThread, "Robot-"
                     + robotContext.sessionId + "-" + Integer.toString(i + 1));
             threads[i].setDaemon(daemon);
             threads[i].setPriority(threadPriority);

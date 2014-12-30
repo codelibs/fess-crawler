@@ -28,15 +28,15 @@ import org.codelibs.robot.entity.ResultData;
 
 /**
  * BinaryTransformer stores WEB data as binary data.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class BinaryTransformer extends AbstractTransformer {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.transformer.Transformer#getData(org.codelibs.robot.entity
      * .AccessResultData)
@@ -58,8 +58,7 @@ public class BinaryTransformer extends AbstractTransformer {
             return resultData;
         } catch (final IOException e) {
             throw new RobotSystemException(
-                "Could not convert the input stream.",
-                e);
+                    "Could not convert the input stream.", e);
         } finally {
             IOUtils.closeQuietly(bis);
         }
@@ -68,7 +67,7 @@ public class BinaryTransformer extends AbstractTransformer {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.transformer.Transformer#getData(org.codelibs.robot.entity
      * .AccessResultData)
@@ -78,8 +77,8 @@ public class BinaryTransformer extends AbstractTransformer {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "
-                + accessResultData.getTransformerName()
-                + ". This transformer is " + getName() + ".");
+                    + accessResultData.getTransformerName()
+                    + ". This transformer is " + getName() + ".");
         }
         final byte[] data = accessResultData.getData();
         if (data == null) {

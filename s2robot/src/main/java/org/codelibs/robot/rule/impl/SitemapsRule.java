@@ -20,13 +20,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.io.IOUtils;
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.util.ResponseDataUtil;
 import org.codelibs.robot.util.TemporaryFileInputStream;
-import org.seasar.framework.container.SingletonS2Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,26 +37,34 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class SitemapsRule extends RegexRule {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     private static final Logger logger = LoggerFactory
-        .getLogger(SitemapsRule.class);
+            .getLogger(SitemapsRule.class);
+
+    @Resource
+    protected ComponentContainer componentContainer;
 
     @Override
     public boolean match(final ResponseData responseData) {
         if (super.match(responseData)) {
-            final File tempFile =
-                ResponseDataUtil.createResponseBodyFile(responseData);
+            final File tempFile = ResponseDataUtil
+                    .createResponseBodyFile(responseData);
             try {
                 responseData.setResponseBody(new TemporaryFileInputStream(
-                    tempFile));
+                        tempFile));
             } catch (final FileNotFoundException e) {
                 throw new RobotSystemException("File does not exists: "
-                    + tempFile.getAbsolutePath(), e);
+                        + tempFile.getAbsolutePath(), e);
             }
 
             InputStream is = null;
             try {
-                final SitemapsHelper sitemapsHelper =
-                    SingletonS2Container.getComponent("sitemapsHelper");
+                final SitemapsHelper sitemapsHelper = componentContainer
+                        .getComponent("sitemapsHelper");
                 is = new FileInputStream(tempFile);
                 return sitemapsHelper.isValid(is);
             } catch (final Exception e) {

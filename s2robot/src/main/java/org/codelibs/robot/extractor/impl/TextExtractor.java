@@ -18,27 +18,21 @@ package org.codelibs.robot.extractor.impl;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
-import org.seasar.framework.util.InputStreamUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class TextExtractor implements Extractor {
 
     protected String encoding = Constants.UTF_8;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
-     * java.util.Map)
-     */
     @Override
     public ExtractData getText(final InputStream in,
             final Map<String, String> params) {
@@ -46,9 +40,8 @@ public class TextExtractor implements Extractor {
             throw new RobotSystemException("The inputstream is null.");
         }
         try {
-            return new ExtractData(new String(
-                InputStreamUtil.getBytes(in),
-                getEncoding()));
+            return new ExtractData(new String(InputStreamUtil.getBytes(in),
+                    getEncoding()));
         } catch (final Exception e) {
             throw new ExtractException(e);
         }

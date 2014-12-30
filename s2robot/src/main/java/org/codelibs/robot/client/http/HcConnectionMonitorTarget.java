@@ -18,17 +18,17 @@ package org.codelibs.robot.client.http;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.HttpClientConnectionManager;
-import org.seasar.extension.timer.TimeoutTarget;
+import org.codelibs.core.timer.TimeoutTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class HcConnectionMonitorTarget implements TimeoutTarget {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(HcConnectionMonitorTarget.class);
+            .getLogger(HcConnectionMonitorTarget.class);
 
     private final HttpClientConnectionManager clientConnectionManager;
 
@@ -43,18 +43,22 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.seasar.extension.timer.TimeoutTarget#expired()
      */
     @Override
     public void expired() {
+        if (clientConnectionManager == null) {
+            logger.warn("clientConnectionManager is null.");
+            return;
+        }
+
         try {
             // Close expired connections
             clientConnectionManager.closeExpiredConnections();
             // Close idle connections
-            clientConnectionManager.closeIdleConnections(
-                idleConnectionTimeout,
-                TimeUnit.MILLISECONDS);
+            clientConnectionManager.closeIdleConnections(idleConnectionTimeout,
+                    TimeUnit.MILLISECONDS);
         } catch (final Exception e) {
             logger.warn("A connection monitoring exception occurs.", e);
         }

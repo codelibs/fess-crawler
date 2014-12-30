@@ -19,42 +19,36 @@ import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.annotation.Resource;
+
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.fs.ChildUrlsException;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.Sitemap;
 import org.codelibs.robot.entity.SitemapSet;
 import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.processor.ResponseProcessor;
-import org.seasar.framework.container.SingletonS2Container;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SitemapsResponseProcessor implements ResponseProcessor {
+    @Resource
+    protected ComponentContainer componentContainer;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.codelibs.robot.processor.impl.ResponseProcessor#process(org.seasar.
-     * robot.entity.ResponseData)
-     */
     @Override
     public void process(final ResponseData responseData) {
-        final SitemapsHelper sitemapsHelper =
-            SingletonS2Container.getComponent(SitemapsHelper.class);
+        final SitemapsHelper sitemapsHelper = componentContainer
+                .getComponent("sitemapsHelper");
         final InputStream responseBody = responseData.getResponseBody();
         final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
         final Set<RequestData> requestDataSet = new LinkedHashSet<>();
         for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
-            requestDataSet.add(RequestDataBuilder
-                .newRequestData()
-                .get()
-                .url(sitemap.getLoc())
-                .build());
+            requestDataSet.add(RequestDataBuilder.newRequestData().get()
+                    .url(sitemap.getLoc()).build());
         }
         throw new ChildUrlsException(requestDataSet);
     }

@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ResultData implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -84,7 +84,7 @@ public class ResultData implements Serializable {
     @Override
     public String toString() {
         return "ResultData [transformerName=" + transformerName + ", encoding="
-            + encoding + ", childUrlSet=" + childUrlSet + "]";
+                + encoding + ", childUrlSet=" + childUrlSet + "]";
     }
 
 }

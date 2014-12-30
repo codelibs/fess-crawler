@@ -26,8 +26,7 @@ import org.codelibs.robot.Constants;
 public class RobotsTxt {
     private static final String ALL_BOTS = "*";
 
-    protected final Map<Pattern, Directive> directiveMap =
-        new LinkedHashMap<Pattern, Directive>();
+    protected final Map<Pattern, Directive> directiveMap = new LinkedHashMap<Pattern, Directive>();
 
     private final List<String> sitemapList = new ArrayList<String>();
 
@@ -58,7 +57,7 @@ public class RobotsTxt {
         int maxUaLength = -1;
         Directive matchedDirective = null;
         for (final Map.Entry<Pattern, Directive> entry : directiveMap
-            .entrySet()) {
+                .entrySet()) {
             if (entry.getKey().matcher(target).find()) {
                 final Directive directive = entry.getValue();
                 final String ua = directive.getUserAgent();
@@ -90,8 +89,8 @@ public class RobotsTxt {
 
     public void addDirective(final Directive directive) {
         directiveMap.put(Pattern.compile(
-            directive.getUserAgent().replace("*", ".*"),
-            Pattern.CASE_INSENSITIVE), directive);
+                directive.getUserAgent().replace("*", ".*"),
+                Pattern.CASE_INSENSITIVE), directive);
     }
 
     public void addSitemap(final String url) {
@@ -161,7 +160,7 @@ public class RobotsTxt {
     @Override
     public String toString() {
         return "RobotsTxt [directiveMap=" + directiveMap + ", sitemapList="
-            + sitemapList + "]";
+                + sitemapList + "]";
     }
 
 }

@@ -19,7 +19,7 @@ import org.codelibs.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ExtractException extends RobotSystemException {
 

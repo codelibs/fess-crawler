@@ -22,7 +22,7 @@ import org.codelibs.robot.entity.ExtractData;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface Extractor {
 

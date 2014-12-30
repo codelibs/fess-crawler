@@ -18,24 +18,39 @@ package org.codelibs.robot.client.http;
 import java.util.Date;
 
 import org.codelibs.robot.S2RobotContext;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.filter.UrlFilter;
+import org.codelibs.robot.filter.impl.UrlFilterImpl;
+import org.codelibs.robot.helper.MemoryDataHelper;
+import org.codelibs.robot.helper.RobotsTxtHelper;
+import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
+import org.codelibs.robot.service.impl.UrlFilterServiceImpl;
 import org.codelibs.robot.util.CrawlingParameterUtil;
 import org.codelibs.robot.util.S2RobotWebServer;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class HcHttpClientTest extends S2TestCase {
+public class HcHttpClientTest extends PlainTestCase {
     public HcHttpClient httpClient;
 
     public UrlFilter urlFilter;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+                .singleton("dataHelper", MemoryDataHelper.class)//
+                .singleton("urlFilterService", UrlFilterServiceImpl.class)//
+                .singleton("urlFilter", UrlFilterImpl.class)//
+                .singleton("robotsTxtHelper", RobotsTxtHelper.class)//
+                .singleton("httpClient", HcHttpClient.class);
+        httpClient = container.getComponent("httpClient");
+        urlFilter = container.getComponent("urlFilter");
     }
 
     public void test_doGet() {
@@ -72,7 +87,7 @@ public class HcHttpClientTest extends S2TestCase {
             httpClient.processRobotsTxt(url);
             assertEquals(1, robotContext.getRobotTxtUrlSet().size());
             assertTrue(robotContext.getRobotTxtUrlSet().contains(
-                "http://localhost:7070/robots.txt"));
+                    "http://localhost:7070/robots.txt"));
             assertFalse(urlFilter.match("http://localhost:7070/admin/"));
             assertFalse(urlFilter.match("http://localhost:7070/websvn/"));
         } finally {
@@ -82,12 +97,10 @@ public class HcHttpClientTest extends S2TestCase {
 
     public void test_convertRobotsTxtPathPattern() {
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/"));
-        assertEquals(
-            "/index\\.html$",
-            httpClient.convertRobotsTxtPathPattern("/index.html$"));
-        assertEquals(
-            ".*index\\.html$",
-            httpClient.convertRobotsTxtPathPattern("index.html$"));
+        assertEquals("/index\\.html$",
+                httpClient.convertRobotsTxtPathPattern("/index.html$"));
+        assertEquals(".*index\\.html$",
+                httpClient.convertRobotsTxtPathPattern("index.html$"));
         assertEquals("/\\..*", httpClient.convertRobotsTxtPathPattern("/."));
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/*"));
         assertEquals(".*\\..*", httpClient.convertRobotsTxtPathPattern("."));
@@ -104,7 +117,7 @@ public class HcHttpClientTest extends S2TestCase {
             Thread.sleep(100);
             assertNotNull(responseData.getLastModified());
             assertTrue(responseData.getLastModified().getTime() < new Date()
-                .getTime());
+                    .getTime());
         } finally {
             server.stop();
         }

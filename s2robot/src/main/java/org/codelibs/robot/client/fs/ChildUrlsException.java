@@ -22,9 +22,9 @@ import org.codelibs.robot.entity.RequestData;
 
 /**
  * ChildUrlsException is thrown when having child urls.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class ChildUrlsException extends RobotSystemException {
 

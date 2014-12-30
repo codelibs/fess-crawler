@@ -37,7 +37,7 @@ import org.codelibs.robot.dbflute.cbean.PagingResultBean;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.service.UrlQueueService;
 import org.codelibs.robot.util.LruHashMap;
-import org.seasar.framework.util.StringUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -42,8 +42,6 @@ import org.openqa.selenium.internal.FindsByXPath;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
 
 /**
  * @author shinsuke
@@ -54,7 +52,6 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
         FindsByTagName, FindsByXPath, HasInputDevices, HasCapabilities,
         TakesScreenshot {
 
-    @Binding(bindingType = BindingType.MAY)
     public Capabilities capabilities;
 
     protected WebDriver webDriver;
@@ -78,23 +75,20 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
         if (capabilities instanceof DesiredCapabilities) {
             if (phantomjsBinaryPath != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
-                    "phantomjs.binary.path",
-                    phantomjsBinaryPath);
+                        "phantomjs.binary.path", phantomjsBinaryPath);
             }
             if (phantomjsGhostdriverPath != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
-                    "phantomjs.ghostdriver.path",
-                    phantomjsGhostdriverPath);
+                        "phantomjs.ghostdriver.path", phantomjsGhostdriverPath);
             }
             if (phantomjsCliArgs != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
-                    "phantomjs.cli.args",
-                    phantomjsCliArgs);
+                        "phantomjs.cli.args", phantomjsCliArgs);
             }
             if (phantomjsGhostdriverCliArgs != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
-                    "phantomjs.ghostdriver.cli.args",
-                    phantomjsGhostdriverCliArgs);
+                        "phantomjs.ghostdriver.cli.args",
+                        phantomjsGhostdriverCliArgs);
             }
         }
         webDriver = new PhantomJSDriver(capabilities);
@@ -107,40 +101,39 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
         if (capabilities instanceof DesiredCapabilities) {
             if (webdriverChromeDriver != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
-                    "webdriver.chrome.driver",
-                    webdriverChromeDriver);
+                        "webdriver.chrome.driver", webdriverChromeDriver);
             }
         }
-        webDriver =
-            new RemoteWebDriver(remoteAddress, DesiredCapabilities.chrome());
+        webDriver = new RemoteWebDriver(remoteAddress,
+                DesiredCapabilities.chrome());
     }
 
     public static class OnDestroyListener
             implements
             org.codelibs.robot.pool.S2PooledObjectFactory.OnDestroyListener<S2WebDriver> {
         @Override
-        public void onDestroy(PooledObject<S2WebDriver> p) {
-            S2WebDriver driver = p.getObject();
+        public void onDestroy(final PooledObject<S2WebDriver> p) {
+            final S2WebDriver driver = p.getObject();
             driver.quit();
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.TakesScreenshot#getScreenshotAs(org.openqa.selenium
      * .OutputType)
      */
     @Override
-    public <X> X getScreenshotAs(OutputType<X> target)
+    public <X> X getScreenshotAs(final OutputType<X> target)
             throws WebDriverException {
         return ((TakesScreenshot) webDriver).getScreenshotAs(target);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.HasCapabilities#getCapabilities()
      */
     @Override
@@ -150,7 +143,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.interactions.HasInputDevices#getKeyboard()
      */
     @Override
@@ -160,7 +153,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.interactions.HasInputDevices#getMouse()
      */
     @Override
@@ -170,235 +163,235 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByXPath#findElementByXPath(java.lang
      * .String)
      */
     @Override
-    public WebElement findElementByXPath(String using) {
+    public WebElement findElementByXPath(final String using) {
         return ((FindsByXPath) webDriver).findElementByXPath(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByXPath#findElementsByXPath(java.lang
      * .String)
      */
     @Override
-    public List<WebElement> findElementsByXPath(String using) {
+    public List<WebElement> findElementsByXPath(final String using) {
         return ((FindsByXPath) webDriver).findElementsByXPath(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByTagName#findElementByTagName(java
      * .lang.String)
      */
     @Override
-    public WebElement findElementByTagName(String using) {
+    public WebElement findElementByTagName(final String using) {
         return ((FindsByTagName) webDriver).findElementByTagName(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByTagName#findElementsByTagName(java
      * .lang.String)
      */
     @Override
-    public List<WebElement> findElementsByTagName(String using) {
+    public List<WebElement> findElementsByTagName(final String using) {
         return ((FindsByTagName) webDriver).findElementsByTagName(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByCssSelector#findElementByCssSelector
      * (java.lang.String)
      */
     @Override
-    public WebElement findElementByCssSelector(String using) {
+    public WebElement findElementByCssSelector(final String using) {
         return ((FindsByCssSelector) webDriver).findElementByCssSelector(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByCssSelector#findElementsByCssSelector
      * (java.lang.String)
      */
     @Override
-    public List<WebElement> findElementsByCssSelector(String using) {
+    public List<WebElement> findElementsByCssSelector(final String using) {
         return ((FindsByCssSelector) webDriver)
-            .findElementsByCssSelector(using);
+                .findElementsByCssSelector(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByName#findElementByName(java.lang.
      * String)
      */
     @Override
-    public WebElement findElementByName(String using) {
+    public WebElement findElementByName(final String using) {
         return ((FindsByName) webDriver).findElementByName(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByName#findElementsByName(java.lang
      * .String)
      */
     @Override
-    public List<WebElement> findElementsByName(String using) {
+    public List<WebElement> findElementsByName(final String using) {
         return ((FindsByName) webDriver).findElementsByName(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByLinkText#findElementByLinkText(java
      * .lang.String)
      */
     @Override
-    public WebElement findElementByLinkText(String using) {
+    public WebElement findElementByLinkText(final String using) {
         return ((FindsByLinkText) webDriver).findElementByLinkText(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByLinkText#findElementsByLinkText(java
      * .lang.String)
      */
     @Override
-    public List<WebElement> findElementsByLinkText(String using) {
+    public List<WebElement> findElementsByLinkText(final String using) {
         return ((FindsByLinkText) webDriver).findElementsByLinkText(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByLinkText#findElementByPartialLinkText
      * (java.lang.String)
      */
     @Override
-    public WebElement findElementByPartialLinkText(String using) {
+    public WebElement findElementByPartialLinkText(final String using) {
         return ((FindsByLinkText) webDriver)
-            .findElementByPartialLinkText(using);
+                .findElementByPartialLinkText(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByLinkText#findElementsByPartialLinkText
      * (java.lang.String)
      */
     @Override
-    public List<WebElement> findElementsByPartialLinkText(String using) {
+    public List<WebElement> findElementsByPartialLinkText(final String using) {
         return ((FindsByLinkText) webDriver)
-            .findElementsByPartialLinkText(using);
+                .findElementsByPartialLinkText(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByClassName#findElementByClassName(
      * java.lang.String)
      */
     @Override
-    public WebElement findElementByClassName(String using) {
+    public WebElement findElementByClassName(final String using) {
         return ((FindsByClassName) webDriver).findElementByClassName(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsByClassName#findElementsByClassName
      * (java.lang.String)
      */
     @Override
-    public List<WebElement> findElementsByClassName(String using) {
+    public List<WebElement> findElementsByClassName(final String using) {
         return ((FindsByClassName) webDriver).findElementsByClassName(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsById#findElementById(java.lang.String)
      */
     @Override
-    public WebElement findElementById(String using) {
+    public WebElement findElementById(final String using) {
         return ((FindsById) webDriver).findElementById(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.internal.FindsById#findElementsById(java.lang.String)
      */
     @Override
-    public List<WebElement> findElementsById(String using) {
+    public List<WebElement> findElementsById(final String using) {
         return ((FindsById) webDriver).findElementsById(using);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.JavascriptExecutor#executeScript(java.lang.String,
      * java.lang.Object[])
      */
     @Override
-    public Object executeScript(String script, Object... args) {
+    public Object executeScript(final String script, final Object... args) {
         return ((JavascriptExecutor) webDriver).executeScript(script, args);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openqa.selenium.JavascriptExecutor#executeAsyncScript(java.lang.String
      * , java.lang.Object[])
      */
     @Override
-    public Object executeAsyncScript(String script, Object... args) {
+    public Object executeAsyncScript(final String script, final Object... args) {
         return ((JavascriptExecutor) webDriver)
-            .executeAsyncScript(script, args);
+                .executeAsyncScript(script, args);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#get(java.lang.String)
      */
     @Override
-    public void get(String url) {
+    public void get(final String url) {
         webDriver.get(url);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#getCurrentUrl()
      */
     @Override
@@ -408,7 +401,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#getTitle()
      */
     @Override
@@ -418,27 +411,27 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#findElements(org.openqa.selenium.By)
      */
     @Override
-    public List<WebElement> findElements(By by) {
+    public List<WebElement> findElements(final By by) {
         return webDriver.findElements(by);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#findElement(org.openqa.selenium.By)
      */
     @Override
-    public WebElement findElement(By by) {
+    public WebElement findElement(final By by) {
         return webDriver.findElement(by);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#getPageSource()
      */
     @Override
@@ -448,7 +441,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#close()
      */
     @Override
@@ -458,7 +451,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#quit()
      */
     @Override
@@ -468,7 +461,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#getWindowHandles()
      */
     @Override
@@ -478,7 +471,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#getWindowHandle()
      */
     @Override
@@ -488,7 +481,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#switchTo()
      */
     @Override
@@ -498,7 +491,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#navigate()
      */
     @Override
@@ -508,7 +501,7 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openqa.selenium.WebDriver#manage()
      */
     @Override

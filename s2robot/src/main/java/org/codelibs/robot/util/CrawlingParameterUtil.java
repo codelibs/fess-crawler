@@ -22,20 +22,16 @@ import org.codelibs.robot.service.UrlQueueService;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public final class CrawlingParameterUtil {
-    private static final ThreadLocal<UrlQueue> URL_QUEUE_THREAD_LOCAL =
-        new ThreadLocal<UrlQueue>();
+    private static final ThreadLocal<UrlQueue> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<UrlQueue>();
 
-    private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL =
-        new ThreadLocal<S2RobotContext>();
+    private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL = new ThreadLocal<S2RobotContext>();
 
-    private static final ThreadLocal<UrlQueueService> URL_QUEUE_SERVICE_THREAD_LOCAL =
-        new ThreadLocal<UrlQueueService>();
+    private static final ThreadLocal<UrlQueueService> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<UrlQueueService>();
 
-    private static final ThreadLocal<DataService> DATA_SERVICE_THREAD_LOCAL =
-        new ThreadLocal<DataService>();
+    private static final ThreadLocal<DataService> DATA_SERVICE_THREAD_LOCAL = new ThreadLocal<DataService>();
 
     private CrawlingParameterUtil() {
     }

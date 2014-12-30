@@ -19,16 +19,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ExtractorFactory {
-    protected Map<String, Extractor> extractorMap =
-        new HashMap<String, Extractor>();
+    protected Map<String, Extractor> extractorMap = new HashMap<String, Extractor>();
 
     public void addExtractor(final String key, final Extractor extractor) {
         if (StringUtil.isBlank(key)) {

@@ -18,13 +18,13 @@ package org.codelibs.robot.client.http.action;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.entity.ResponseData;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
@@ -36,7 +36,7 @@ public class AOnClickAction extends BaseUrlAction {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.client.UrlProcessor#navigate(org.openqa.selenium.WebDriver
      * , java.util.Map)
@@ -47,51 +47,38 @@ public class AOnClickAction extends BaseUrlAction {
         final String cssQuery = paramMap.get(CSS_QUERY);
         final int index = Integer.parseInt(paramMap.get(INDEX));
         if (StringUtil.isNotBlank(cssQuery) && index >= 0) {
-            final List<WebElement> elementList =
-                webDriver.findElements(By.cssSelector(cssQuery));
+            final List<WebElement> elementList = webDriver.findElements(By
+                    .cssSelector(cssQuery));
             if (index < elementList.size()) {
                 elementList.get(index).click();
                 return;
             }
         }
         throw new RobotSystemException("Invalid position. css query: "
-            + cssQuery + ", index: " + index);
+                + cssQuery + ", index: " + index);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.UrlProcessor#collect(java.lang.String,
      * org.openqa.selenium.WebDriver, org.codelibs.robot.entity.ResponseData)
      */
     @Override
     public void collect(final String url, final WebDriver webDriver,
             final ResponseData responseData) {
-        final List<WebElement> aElementList =
-            webDriver.findElements(By.cssSelector(cssQuery));
+        final List<WebElement> aElementList = webDriver.findElements(By
+                .cssSelector(cssQuery));
         for (int i = 0; i < aElementList.size(); i++) {
             final WebElement aElement = aElementList.get(i);
             final String onclickAttr = aElement.getAttribute(attrName);
             if (StringUtil.isNotBlank(onclickAttr)) {
                 final StringBuilder buf = new StringBuilder(url.length() + 30);
-                buf
-                    .append(URL_ACTION)
-                    .append("=")
-                    .append(name)
-                    .append("&")
-                    .append(CSS_QUERY)
-                    .append("=")
-                    .append(cssQuery)
-                    .append("&")
-                    .append(INDEX)
-                    .append("=")
-                    .append(i);
-                responseData.addChildUrl(RequestDataBuilder
-                    .newRequestData()
-                    .get()
-                    .url(url)
-                    .metaData(buf.toString())
-                    .build());
+                buf.append(URL_ACTION).append("=").append(name).append("&")
+                        .append(CSS_QUERY).append("=").append(cssQuery)
+                        .append("&").append(INDEX).append("=").append(i);
+                responseData.addChildUrl(RequestDataBuilder.newRequestData()
+                        .get().url(url).metaData(buf.toString()).build());
             }
         }
     }

@@ -21,7 +21,7 @@ import org.codelibs.robot.entity.UrlQueue;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface UrlQueueService {
 

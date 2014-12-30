@@ -20,10 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.ExtractData;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,19 +32,29 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  * 
  */
-public class PdfExtractorTest extends S2TestCase {
+public class PdfExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory
-        .getLogger(PdfExtractorTest.class);
+            .getLogger(PdfExtractorTest.class);
 
     public PdfExtractor pdfExtractor;
 
+    private PdfExtractor pdfExtractorForPdfPassword;
+
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "org/codelibs/robot/extractor/extractor.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("pdfExtractor", PdfExtractor.class)//
+                .singleton("pdfExtractorForPdfPassword", PdfExtractor.class);
+        pdfExtractor = container.getComponent("pdfExtractor");
+        pdfExtractorForPdfPassword = container
+                .getComponent("pdfExtractorForPdfPassword");
+        pdfExtractorForPdfPassword.addPassword(".*test_.*.pdf", "word");
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        final InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test.pdf");
         final ExtractData extractData = pdfExtractor.getText(in, null);
         final String content = extractData.getContent();
         IOUtils.closeQuietly(in);
@@ -51,17 +62,17 @@ public class PdfExtractorTest extends S2TestCase {
         assertTrue(content.contains("テスト"));
         assertEquals("Writer", extractData.getValues("Creator")[0]);
         assertEquals("OpenOffice.org 3.0", extractData.getValues("Producer")[0]);
-        assertEquals(
-            "D:20090627222631+09'00'",
-            extractData.getValues("CreationDate")[0]);
+        assertEquals("D:20090627222631+09'00'",
+                extractData.getValues("CreationDate")[0]);
     }
 
     public void test_getText_pass() {
-        final InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
+        final InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test_pass.pdf");
         final Map<String, String> params = new HashMap<String, String>();
         params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
-        final String content = pdfExtractor.getText(in, params).getContent();
+        final String content = pdfExtractorForPdfPassword.getText(in, params)
+                .getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));

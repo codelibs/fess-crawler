@@ -19,7 +19,7 @@ import org.codelibs.robot.entity.ResponseData;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface ResponseProcessor {
 

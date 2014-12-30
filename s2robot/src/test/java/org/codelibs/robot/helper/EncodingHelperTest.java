@@ -15,18 +15,22 @@
  */
 package org.codelibs.robot.helper;
 
-import org.seasar.extension.unit.S2TestCase;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  *
  */
-public class EncodingHelperTest extends S2TestCase {
+public class EncodingHelperTest extends PlainTestCase {
     public EncodingHelper encodingHelper;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "s2robot_encoding.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("encodingHelper", EncodingHelper.class);
+        encodingHelper = container.getComponent("encodingHelper");
     }
 
     public void test_normalize() {

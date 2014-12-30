@@ -23,18 +23,20 @@ import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultDataImpl;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class BinaryTransformerTest extends S2TestCase {
+public class BinaryTransformerTest extends PlainTestCase {
     public BinaryTransformer binaryTransformer;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        binaryTransformer = new BinaryTransformer();
+        binaryTransformer.setName("binaryTransformer");
     }
 
     public void test_name() {

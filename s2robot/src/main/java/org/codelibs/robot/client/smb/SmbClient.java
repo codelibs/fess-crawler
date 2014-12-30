@@ -18,6 +18,7 @@ package org.codelibs.robot.client.smb;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import jcifs.smb.ACE;
@@ -35,6 +37,8 @@ import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.exception.IORuntimeException;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.MaxLengthExceededException;
 import org.codelibs.robot.RobotCrawlAccessException;
@@ -42,42 +46,34 @@ import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.AbstractS2RobotClient;
 import org.codelibs.robot.client.fs.ChildUrlsException;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.helper.ContentLengthHelper;
 import org.codelibs.robot.helper.MimeTypeHelper;
 import org.codelibs.robot.util.TemporaryFileInputStream;
-import org.seasar.framework.container.SingletonS2Container;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
-import org.seasar.framework.container.annotation.tiger.DestroyMethod;
-import org.seasar.framework.exception.IORuntimeException;
-import org.seasar.framework.util.FileOutputStreamUtil;
-import org.seasar.framework.util.InputStreamUtil;
-import org.seasar.framework.util.OutputStreamUtil;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SmbClient extends AbstractS2RobotClient {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(SmbClient.class);
+            .getLogger(SmbClient.class);
 
-    public static final String SMB_AUTHENTICATIONS_PROPERTY =
-        "smbAuthentications";
+    public static final String SMB_AUTHENTICATIONS_PROPERTY = "smbAuthentications";
 
-    public static final String SMB_ACCESS_CONTROL_ENTRIES =
-        "smbAccessControlEntries";
+    public static final String SMB_ACCESS_CONTROL_ENTRIES = "smbAccessControlEntries";
+
+    @Resource
+    protected ComponentContainer componentContainer;
 
     protected String charset = Constants.UTF_8;
 
     protected boolean resolveSids = true;
 
-    @Binding(bindingType = BindingType.MAY)
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
@@ -89,13 +85,10 @@ public class SmbClient extends AbstractS2RobotClient {
         }
 
         // user agent
-        final SmbAuthentication[] smbAuthentications =
-            getInitParameter(
-                SMB_AUTHENTICATIONS_PROPERTY,
-                new SmbAuthentication[0]);
+        final SmbAuthentication[] smbAuthentications = getInitParameter(
+                SMB_AUTHENTICATIONS_PROPERTY, new SmbAuthentication[0]);
         if (smbAuthentications != null) {
-            final SmbAuthenticationHolder holder =
-                new SmbAuthenticationHolder();
+            final SmbAuthenticationHolder holder = new SmbAuthenticationHolder();
             for (final SmbAuthentication smbAuthentication : smbAuthentications) {
                 holder.add(smbAuthentication);
             }
@@ -103,14 +96,14 @@ public class SmbClient extends AbstractS2RobotClient {
         }
     }
 
-    @DestroyMethod
+    @PreDestroy
     public void destroy() {
         smbAuthenticationHolder = null;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.S2RobotClient#doGet(java.lang.String)
      */
     @Override
@@ -130,14 +123,14 @@ public class SmbClient extends AbstractS2RobotClient {
         responseData.setUrl(filePath);
 
         SmbFile file = null;
-        final SmbAuthentication smbAuthentication =
-            smbAuthenticationHolder.get(filePath);
+        final SmbAuthentication smbAuthentication = smbAuthenticationHolder
+                .get(filePath);
         try {
             if (smbAuthentication == null) {
                 file = new SmbFile(filePath);
             } else {
-                file =
-                    new SmbFile(filePath, smbAuthentication.getAuthentication());
+                file = new SmbFile(filePath,
+                        smbAuthentication.getAuthentication());
             }
         } catch (final MalformedURLException e) {
             logger.warn("Could not parse url: " + filePath, e);
@@ -149,18 +142,16 @@ public class SmbClient extends AbstractS2RobotClient {
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
             } else if (file.isFile()) {
-                final MimeTypeHelper mimeTypeHelper =
-                    SingletonS2Container.getComponent("mimeTypeHelper");
+                final MimeTypeHelper mimeTypeHelper = componentContainer
+                        .getComponent("mimeTypeHelper");
                 InputStream is = null;
                 try {
                     is = new SmbFileInputStream(file);
-                    responseData.setMimeType(mimeTypeHelper.getContentType(
-                        is,
-                        file.getName()));
+                    responseData.setMimeType(mimeTypeHelper.getContentType(is,
+                            file.getName()));
                 } catch (final Exception e) {
                     responseData.setMimeType(mimeTypeHelper.getContentType(
-                        null,
-                        file.getName()));
+                            null, file.getName()));
                 } finally {
                     IOUtils.closeQuietly(is);
                 }
@@ -168,15 +159,14 @@ public class SmbClient extends AbstractS2RobotClient {
                 // check file size
                 responseData.setContentLength(file.length());
                 if (contentLengthHelper != null) {
-                    final long maxLength =
-                        contentLengthHelper.getMaxLength(responseData
-                            .getMimeType());
+                    final long maxLength = contentLengthHelper
+                            .getMaxLength(responseData.getMimeType());
                     if (responseData.getContentLength() > maxLength) {
                         throw new MaxLengthExceededException(
-                            "The content length ("
-                                + responseData.getContentLength()
-                                + " byte) is over " + maxLength
-                                + " byte. The url is " + filePath);
+                                "The content length ("
+                                        + responseData.getContentLength()
+                                        + " byte) is over " + maxLength
+                                        + " byte. The url is " + filePath);
                     }
                 }
 
@@ -185,14 +175,13 @@ public class SmbClient extends AbstractS2RobotClient {
                 responseData.setLastModified(new Date(file.lastModified()));
 
                 processAccessControlEntries(responseData, file);
-                final Map<String, List<String>> headerFieldMap =
-                    file.getHeaderFields();
+                final Map<String, List<String>> headerFieldMap = file
+                        .getHeaderFields();
                 if (headerFieldMap != null) {
                     for (final Map.Entry<String, List<String>> entry : headerFieldMap
-                        .entrySet()) {
-                        responseData.addMetaData(
-                            entry.getKey(),
-                            entry.getValue());
+                            .entrySet()) {
+                        responseData.addMetaData(entry.getKey(),
+                                entry.getValue());
                     }
                 }
 
@@ -200,28 +189,26 @@ public class SmbClient extends AbstractS2RobotClient {
                     if (includeContent) {
                         File outputFile = null;
                         try {
-                            outputFile =
-                                File.createTempFile(
-                                    "s2robot-SmbClient-",
-                                    ".out");
+                            outputFile = File.createTempFile(
+                                    "s2robot-SmbClient-", ".out");
                             copy(file, outputFile);
                             responseData
-                                .setResponseBody(new TemporaryFileInputStream(
-                                    outputFile));
+                                    .setResponseBody(new TemporaryFileInputStream(
+                                            outputFile));
                         } catch (final Exception e) {
                             logger.warn("I/O Exception.", e);
                             responseData
-                                .setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                                    .setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                             if (outputFile != null && !outputFile.delete()) {
                                 logger.warn("Could not delete "
-                                    + outputFile.getAbsolutePath());
+                                        + outputFile.getAbsolutePath());
                             }
                         }
                     }
                 } else {
                     // Forbidden
                     responseData
-                        .setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
+                            .setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
                 }
             } else if (file.isDirectory()) {
                 final Set<RequestData> requestDataSet = new HashSet<>();
@@ -231,10 +218,8 @@ public class SmbClient extends AbstractS2RobotClient {
                         for (final SmbFile f : files) {
                             final String chileUri = f.toString();
                             requestDataSet.add(RequestDataBuilder
-                                .newRequestData()
-                                .get()
-                                .url(chileUri)
-                                .build());
+                                    .newRequestData().get().url(chileUri)
+                                    .build());
                         }
                     }
                 }
@@ -260,7 +245,7 @@ public class SmbClient extends AbstractS2RobotClient {
             }
         } catch (final IOException e) {
             throw new RobotCrawlAccessException("Could not access "
-                + file.getPath(), e);
+                    + file.getPath(), e);
         }
     }
 
@@ -278,7 +263,7 @@ public class SmbClient extends AbstractS2RobotClient {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.S2RobotClient#doHead(java.lang.String)
      */
     @Override
@@ -296,11 +281,10 @@ public class SmbClient extends AbstractS2RobotClient {
         if (dest.exists() && !dest.canWrite()) {
             return;
         }
-        BufferedInputStream in = null;
-        BufferedOutputStream out = null;
-        try {
-            in = new BufferedInputStream(new SmbFileInputStream(src));
-            out = new BufferedOutputStream(FileOutputStreamUtil.create(dest));
+        try (BufferedInputStream in = new BufferedInputStream(
+                new SmbFileInputStream(src));
+                BufferedOutputStream out = new BufferedOutputStream(
+                        new FileOutputStream(dest))) {
             final byte[] buf = new byte[1024];
             int length;
             while (-1 < (length = in.read(buf))) {
@@ -309,9 +293,6 @@ public class SmbClient extends AbstractS2RobotClient {
             }
         } catch (final IOException e) {
             throw new IORuntimeException(e);
-        } finally {
-            InputStreamUtil.close(in);
-            OutputStreamUtil.close(out);
         }
     }
 

@@ -16,13 +16,13 @@
 package org.codelibs.robot.processor.impl;
 
 import org.codelibs.robot.entity.ResponseData;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class DefaultResponseProcessorTest extends S2TestCase {
+public class DefaultResponseProcessorTest extends PlainTestCase {
 
     public void test_isSuccessful() {
         DefaultResponseProcessor processor = new DefaultResponseProcessor();

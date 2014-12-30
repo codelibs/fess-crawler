@@ -22,7 +22,7 @@ import org.codelibs.robot.client.http.Authentication;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class AuthenticationImpl implements Authentication {
     private AuthScope authScope;
@@ -45,7 +45,7 @@ public class AuthenticationImpl implements Authentication {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.http.Authentication#getAuthScope()
      */
     @Override
@@ -55,7 +55,7 @@ public class AuthenticationImpl implements Authentication {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.http.Authentication#getCredentials()
      */
     @Override
@@ -73,7 +73,7 @@ public class AuthenticationImpl implements Authentication {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.client.http.Authentication#getAuthScheme()
      */
     @Override

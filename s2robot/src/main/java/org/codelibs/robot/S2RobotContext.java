@@ -24,7 +24,7 @@ import org.codelibs.robot.util.LruHashSet;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class S2RobotContext {
     protected String sessionId;

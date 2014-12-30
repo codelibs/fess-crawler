@@ -20,21 +20,26 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Resource;
+
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.ComponentContainer;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.service.UrlFilterService;
-import org.seasar.framework.container.SingletonS2Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class UrlFilterImpl implements UrlFilter {
 
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(UrlFilterImpl.class);
+            .getLogger(UrlFilterImpl.class);
+
+    @Resource
+    protected ComponentContainer componentContainer;
 
     protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
@@ -52,7 +57,7 @@ public class UrlFilterImpl implements UrlFilter {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.filter.UrlFilter#addExclude(java.lang.String)
      */
     @Override
@@ -74,7 +79,7 @@ public class UrlFilterImpl implements UrlFilter {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.filter.UrlFilter#addInclude(java.lang.String)
      */
     @Override
@@ -96,7 +101,7 @@ public class UrlFilterImpl implements UrlFilter {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.filter.UrlFilter#clear()
      */
     @Override
@@ -110,37 +115,35 @@ public class UrlFilterImpl implements UrlFilter {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.filter.UrlFilter#init(java.lang.String)
      */
     @Override
     public void init(final String sessionId) {
         this.sessionId = sessionId;
         if (!cachedIncludeList.isEmpty()) {
-            getUrlFilterService().addIncludeUrlFilter(
-                sessionId,
-                cachedIncludeList);
+            getUrlFilterService().addIncludeUrlFilter(sessionId,
+                    cachedIncludeList);
             cachedIncludeList.clear();
         }
         if (!cachedExcludeList.isEmpty()) {
-            getUrlFilterService().addExcludeUrlFilter(
-                sessionId,
-                cachedExcludeList);
+            getUrlFilterService().addExcludeUrlFilter(sessionId,
+                    cachedExcludeList);
             cachedExcludeList.clear();
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.filter.UrlFilter#match(java.lang.String)
      */
     @Override
     public boolean match(final String url) {
-        final List<Pattern> includeList =
-            getUrlFilterService().getIncludeUrlPatternList(sessionId);
-        final List<Pattern> excludeList =
-            getUrlFilterService().getExcludeUrlPatternList(sessionId);
+        final List<Pattern> includeList = getUrlFilterService()
+                .getIncludeUrlPatternList(sessionId);
+        final List<Pattern> excludeList = getUrlFilterService()
+                .getExcludeUrlPatternList(sessionId);
 
         if (!includeList.isEmpty()) {
             boolean match = false;
@@ -173,7 +176,7 @@ public class UrlFilterImpl implements UrlFilter {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.filter.UrlFilter#processUrl(java.lang.String)
      */
     @Override
@@ -212,8 +215,8 @@ public class UrlFilterImpl implements UrlFilter {
 
     public UrlFilterService getUrlFilterService() {
         if (urlFilterService == null) {
-            urlFilterService =
-                SingletonS2Container.getComponent("urlFilterService");
+            urlFilterService = componentContainer
+                    .getComponent("urlFilterService");
             if (urlFilterService == null) {
                 throw new RobotSystemException("urlFilterService is not found.");
             }
@@ -224,11 +227,11 @@ public class UrlFilterImpl implements UrlFilter {
     @Override
     public String toString() {
         return "UrlFilterImpl [urlPattern=" + urlPattern
-            + ", includeFilteringPattern=" + includeFilteringPattern
-            + ", excludeFilteringPattern=" + excludeFilteringPattern
-            + ", cachedIncludeList=" + cachedIncludeList
-            + ", cachedExcludeList=" + cachedExcludeList + ", sessionId="
-            + sessionId + ", urlFilterService=" + urlFilterService + "]";
+                + ", includeFilteringPattern=" + includeFilteringPattern
+                + ", excludeFilteringPattern=" + excludeFilteringPattern
+                + ", cachedIncludeList=" + cachedIncludeList
+                + ", cachedExcludeList=" + cachedExcludeList + ", sessionId="
+                + sessionId + ", urlFilterService=" + urlFilterService + "]";
     }
 
 }

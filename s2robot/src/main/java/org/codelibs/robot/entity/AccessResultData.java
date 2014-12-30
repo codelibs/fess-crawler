@@ -17,7 +17,7 @@ package org.codelibs.robot.entity;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface AccessResultData {
 

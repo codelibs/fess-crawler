@@ -15,17 +15,14 @@
  */
 package org.codelibs.robot.entity;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
+import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.Constants;
-import org.seasar.framework.beans.util.Beans;
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class AccessResultImpl implements AccessResult {
     protected Long id;
@@ -46,36 +43,35 @@ public class AccessResultImpl implements AccessResult {
 
     protected String mimeType;
 
-    protected Timestamp createTime;
+    protected Long createTime;
 
     protected Integer executionTime;
 
     protected Long contentLength;
 
-    protected Timestamp lastModified;
+    protected Long lastModified;
 
-    @Binding(bindingType = BindingType.NONE)
     protected AccessResultData accessResultData;
 
     @Override
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
-        setCreateTime(new Timestamp(new Date().getTime()));
+        setCreateTime(new Long(new Date().getTime()));
         if (responseData != null) {
-            Beans.copy(responseData, this).execute();
+            BeanUtil.copyBeanToBean(responseData, this);
         }
 
         final AccessResultData accessResultData = new AccessResultDataImpl();
         if (resultData != null) {
-            Beans.copy(resultData, accessResultData).execute();
+            BeanUtil.copyBeanToBean(resultData, accessResultData);
         }
         setAccessResultData(accessResultData);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getId()
      */
     @Override
@@ -85,7 +81,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setId(java.lang.Long)
      */
     @Override
@@ -95,7 +91,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getSessionId()
      */
     @Override
@@ -105,7 +101,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setSessionId(java.lang.String)
      */
     @Override
@@ -115,7 +111,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getRuleId()
      */
     @Override
@@ -125,7 +121,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setRuleId(java.lang.String)
      */
     @Override
@@ -135,7 +131,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getUrl()
      */
     @Override
@@ -145,7 +141,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setUrl(java.lang.String)
      */
     @Override
@@ -155,7 +151,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getParentUrl()
      */
     @Override
@@ -165,7 +161,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setParentUrl(java.lang.String)
      */
     @Override
@@ -175,7 +171,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getStatus()
      */
     @Override
@@ -185,7 +181,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setStatus(java.lang.Integer)
      */
     @Override
@@ -195,7 +191,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getHttpStatusCode()
      */
     @Override
@@ -205,7 +201,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.entity.AccessResult#setHttpStatusCode(java.lang.Integer)
      */
@@ -216,7 +212,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getMethod()
      */
     @Override
@@ -226,7 +222,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setMethod(java.lang.String)
      */
     @Override
@@ -236,7 +232,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getMimeType()
      */
     @Override
@@ -246,7 +242,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#setMimeType(java.lang.String)
      */
     @Override
@@ -256,28 +252,28 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getCreateTime()
      */
     @Override
-    public Timestamp getCreateTime() {
+    public Long getCreateTime() {
         return createTime;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
-     * org.codelibs.robot.entity.AccessResult#setCreateTime(java.sql.Timestamp)
+     * org.codelibs.robot.entity.AccessResult#setCreateTime(java.sql.Long)
      */
     @Override
-    public void setCreateTime(final Timestamp createTime) {
+    public void setCreateTime(final Long createTime) {
         this.createTime = createTime;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getAccessResultDataAsOne()
      */
     @Override
@@ -287,7 +283,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.entity.AccessResult#setAccessResultDataAsOne(org.seasar
      * .robot.db.exentity.AccessResultData)
@@ -299,7 +295,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getExecutionTime()
      */
     @Override
@@ -309,7 +305,7 @@ public class AccessResultImpl implements AccessResult {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.entity.AccessResult#setExecutionTime(java.lang.Integer)
      */
@@ -329,24 +325,25 @@ public class AccessResultImpl implements AccessResult {
     }
 
     @Override
-    public Timestamp getLastModified() {
+    public Long getLastModified() {
         return lastModified;
     }
 
     @Override
-    public void setLastModified(final Timestamp lastModified) {
+    public void setLastModified(final Long lastModified) {
         this.lastModified = lastModified;
     }
 
     @Override
     public String toString() {
         return "AccessResultImpl [id=" + id + ", sessionId=" + sessionId
-            + ", ruleId=" + ruleId + ", url=" + url + ", parentUrl="
-            + parentUrl + ", status=" + status + ", httpStatusCode="
-            + httpStatusCode + ", method=" + method + ", mimeType=" + mimeType
-            + ", createTime=" + createTime + ", executionTime=" + executionTime
-            + ", contentLength=" + contentLength + ", lastModified="
-            + lastModified + ", accessResultData=" + accessResultData + "]";
+                + ", ruleId=" + ruleId + ", url=" + url + ", parentUrl="
+                + parentUrl + ", status=" + status + ", httpStatusCode="
+                + httpStatusCode + ", method=" + method + ", mimeType="
+                + mimeType + ", createTime=" + createTime + ", executionTime="
+                + executionTime + ", contentLength=" + contentLength
+                + ", lastModified=" + lastModified + ", accessResultData="
+                + accessResultData + "]";
     }
 
 }

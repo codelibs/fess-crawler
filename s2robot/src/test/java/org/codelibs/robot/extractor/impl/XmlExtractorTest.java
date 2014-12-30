@@ -20,9 +20,10 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +31,18 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class XmlExtractorTest extends S2TestCase {
+public class XmlExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory
             .getLogger(XmlExtractorTest.class);
 
     public XmlExtractor xmlExtractor;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "org/codelibs/robot/extractor/extractor.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("xmlExtractor", XmlExtractor.class);
+        xmlExtractor = container.getComponent("xmlExtractor");
     }
 
     public void test_getXml_utf8() {
@@ -82,7 +86,8 @@ public class XmlExtractorTest extends S2TestCase {
     }
 
     public void test_getXml_mm() {
-        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.mm");
+        final InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/test.mm");
         final String content = xmlExtractor.getText(in, null).getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
@@ -116,7 +121,8 @@ public class XmlExtractorTest extends S2TestCase {
     }
 
     public void test_getEncoding_none() {
-        final InputStream in = new ByteArrayInputStream("<hoge></hoge>".getBytes());
+        final InputStream in = new ByteArrayInputStream(
+                "<hoge></hoge>".getBytes());
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = xmlExtractor.getEncoding(bis);
         IOUtils.closeQuietly(bis);

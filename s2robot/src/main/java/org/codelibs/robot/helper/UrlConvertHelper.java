@@ -22,12 +22,11 @@ import org.codelibs.robot.RobotSystemException;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class UrlConvertHelper {
 
-    protected Map<String, String> convertMap =
-        new LinkedHashMap<String, String>();
+    protected Map<String, String> convertMap = new LinkedHashMap<String, String>();
 
     public String convert(final String url) {
         if (url == null) {
@@ -35,8 +34,8 @@ public class UrlConvertHelper {
         }
         String convertedUrl = url;
         for (final Map.Entry<String, String> entry : convertMap.entrySet()) {
-            convertedUrl =
-                convertedUrl.replaceAll(entry.getKey(), entry.getValue());
+            convertedUrl = convertedUrl.replaceAll(entry.getKey(),
+                    entry.getValue());
         }
         return convertedUrl;
     }

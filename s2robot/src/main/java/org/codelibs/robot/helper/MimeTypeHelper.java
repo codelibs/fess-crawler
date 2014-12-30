@@ -20,7 +20,7 @@ import java.util.Map;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public interface MimeTypeHelper {
     String getContentType(InputStream is, String filename);

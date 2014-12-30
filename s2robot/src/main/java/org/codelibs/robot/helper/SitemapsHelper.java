@@ -24,13 +24,13 @@ import java.util.zip.GZIPInputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSitemapsException;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.SitemapFile;
 import org.codelibs.robot.entity.SitemapSet;
 import org.codelibs.robot.entity.SitemapUrl;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -38,11 +38,11 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SitemapsHelper {
     private static final Logger logger = LoggerFactory
-        .getLogger(SitemapsHelper.class);
+            .getLogger(SitemapsHelper.class);
 
     public int preloadSize = 512;
 
@@ -68,7 +68,7 @@ public class SitemapsHelper {
                 // XML Sitemaps Index
                 return true;
             } else if (preloadDate.startsWith("http://")
-                || preloadDate.startsWith("https://")) {
+                    || preloadDate.startsWith("https://")) {
                 // Text Sitemaps Index
                 return true;
             } else {
@@ -86,9 +86,9 @@ public class SitemapsHelper {
 
     /**
      * Generates SitemapSet instance.
-     * 
+     *
      * This method does not close the input stream.
-     * 
+     *
      * @param in
      * @return a sitemap set
      */
@@ -116,7 +116,7 @@ public class SitemapsHelper {
                 bis.reset();
                 return parseXmlSitemapsIndex(bis);
             } else if (preloadDate.startsWith("http://")
-                || preloadDate.startsWith("https://")) {
+                    || preloadDate.startsWith("https://")) {
                 // Text Sitemaps Index
                 bis.reset();
                 return parseTextSitemaps(bis);
@@ -137,13 +137,14 @@ public class SitemapsHelper {
         sitemapSet.setType(SitemapSet.URLSET);
 
         try {
-            final BufferedReader br =
-                new BufferedReader(new InputStreamReader(in, Constants.UTF_8));
+            final BufferedReader br = new BufferedReader(new InputStreamReader(
+                    in, Constants.UTF_8));
             String line;
             while ((line = br.readLine()) != null) {
                 final String url = line.trim();
                 if (StringUtil.isNotBlank(url)
-                    && (url.startsWith("http://") || url.startsWith("https://"))) {
+                        && (url.startsWith("http://") || url
+                                .startsWith("https://"))) {
                     final SitemapUrl sitemapUrl = new SitemapUrl();
                     sitemapUrl.setLoc(url);
                     sitemapSet.addSitemap(sitemapUrl);
@@ -151,9 +152,8 @@ public class SitemapsHelper {
             }
             return sitemapSet;
         } catch (final Exception e) {
-            throw new RobotSitemapsException(
-                "Could not parse Text Sitemaps.",
-                e);
+            throw new RobotSitemapsException("Could not parse Text Sitemaps.",
+                    e);
         }
 
     }
@@ -173,27 +173,27 @@ public class SitemapsHelper {
     protected static class XmlSitemapsHandler extends DefaultHandler {
 
         /**
-         * 
+         *
          */
         private static final String PRIORITY_ELEMENT = "priority";
 
         /**
-         * 
+         *
          */
         private static final String CHANGEFREQ_ELEMENT = "changefreq";
 
         /**
-         * 
+         *
          */
         private static final String LASTMOD_ELEMENT = "lastmod";
 
         /**
-         * 
+         *
          */
         private static final String LOC_ELEMENT = "loc";
 
         /**
-         * 
+         *
          */
         private static final String URL_ELEMENT = "url";
 
@@ -281,8 +281,7 @@ public class SitemapsHelper {
             parser.parse(in, handler);
         } catch (final Exception e) {
             throw new RobotSitemapsException(
-                "Could not parse XML Sitemaps Index.",
-                e);
+                    "Could not parse XML Sitemaps Index.", e);
         }
         return handler.getSitemapSet();
     }

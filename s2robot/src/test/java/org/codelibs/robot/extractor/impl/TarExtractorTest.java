@@ -18,9 +18,12 @@ package org.codelibs.robot.extractor.impl;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.codelibs.robot.extractor.ExtractorFactory;
+import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
+import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,15 +31,26 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class TarExtractorTest extends S2TestCase {
+public class TarExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory
             .getLogger(TarExtractorTest.class);
 
     public TarExtractor tarExtractor;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "org/codelibs/robot/extractor/extractor.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+                .singleton("extractorFactory", ExtractorFactory.class)//
+                .singleton("tikaExtractor", TikaExtractor.class)//
+                .singleton("tarExtractor", TarExtractor.class);
+        ExtractorFactory extractorFactory = container
+                .getComponent("extractorFactory");
+        TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+        extractorFactory.addExtractor("text/plain", tikaExtractor);
+        extractorFactory.addExtractor("text/html", tikaExtractor);
+        tarExtractor = container.getComponent("tarExtractor");
     }
 
     public void test_getText() {

@@ -17,9 +17,11 @@ package org.codelibs.robot;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class RobotTxtException extends RobotSystemException {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * @param message

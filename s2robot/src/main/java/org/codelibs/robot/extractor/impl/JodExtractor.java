@@ -24,30 +24,31 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.OfficeManager;
+import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
-import org.codelibs.robot.util.StreamUtil;
-import org.seasar.framework.container.annotation.tiger.DestroyMethod;
-import org.seasar.framework.container.annotation.tiger.InitMethod;
-import org.seasar.framework.util.FileUtil;
-import org.seasar.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class JodExtractor implements Extractor {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(JodExtractor.class);
+            .getLogger(JodExtractor.class);
 
     public OfficeManager officeManager;
 
@@ -55,11 +56,9 @@ public class JodExtractor implements Extractor {
 
     public String outputEncoding = Constants.UTF_8;
 
-    private final Map<String, String> extensionMap =
-        new HashMap<String, String>();
+    private final Map<String, String> extensionMap = new HashMap<String, String>();
 
-    private final Map<String, Extractor> extractorMap =
-        new HashMap<String, Extractor>();
+    private final Map<String, Extractor> extractorMap = new HashMap<String, Extractor>();
 
     public JodExtractor() {
         extensionMap.put("", "txt");
@@ -89,7 +88,7 @@ public class JodExtractor implements Extractor {
         extractorMap.put("svg", new XmlExtractor());
     }
 
-    @InitMethod
+    @PostConstruct
     public void init() {
         if (officeManager == null) {
             throw new RobotSystemException("officeManager is null.");
@@ -97,7 +96,7 @@ public class JodExtractor implements Extractor {
         officeManager.start();
     }
 
-    @DestroyMethod
+    @PreDestroy
     public void destroy() {
         officeManager.stop();
     }
@@ -108,7 +107,7 @@ public class JodExtractor implements Extractor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
@@ -119,8 +118,7 @@ public class JodExtractor implements Extractor {
             throw new RobotSystemException("in is null.");
         }
 
-        final String resourceName =
-            params == null ? null : params
+        final String resourceName = params == null ? null : params
                 .get(TikaMetadataKeys.RESOURCE_NAME_KEY);
 
         String extension;
@@ -149,30 +147,25 @@ public class JodExtractor implements Extractor {
         File inputFile = null;
         File outputFile = null;
         try {
-            inputFile =
-                File.createTempFile(
-                    "jodextin_" + filePrefix + "_",
+            inputFile = File.createTempFile("jodextin_" + filePrefix + "_",
                     StringUtil.isNotBlank(extension) ? "." + extension
-                        : extension,
-                    tempDir);
+                            : extension, tempDir);
             final String outExt = getOutputExtension(extension);
-            outputFile =
-                File.createTempFile("cmdextout_" + filePrefix + "_", "."
-                    + outExt, tempDir);
+            outputFile = File.createTempFile("cmdextout_" + filePrefix + "_",
+                    "." + outExt, tempDir);
 
             // store to a file
-            StreamUtil.drain(in, inputFile);
+            CopyUtil.copy(in, inputFile);
 
-            final OfficeDocumentConverter converter =
-                new OfficeDocumentConverter(officeManager);
+            final OfficeDocumentConverter converter = new OfficeDocumentConverter(
+                    officeManager);
             converter.convert(inputFile, outputFile);
 
-            final ExtractData extractData =
-                new ExtractData(getOutputContent(outputFile, outExt));
+            final ExtractData extractData = new ExtractData(getOutputContent(
+                    outputFile, outExt));
             if (StringUtil.isNotBlank(resourceName)) {
-                extractData.putValues(
-                    "resourceName",
-                    new String[] { resourceName });
+                extractData.putValues("resourceName",
+                        new String[] { resourceName });
             }
 
             return extractData;
@@ -192,8 +185,7 @@ public class JodExtractor implements Extractor {
         final Extractor extractor = getExtractor(outExt);
         if (extractor != null) {
             final Map<String, String> params = new HashMap<String, String>();
-            params
-                .put(TikaMetadataKeys.RESOURCE_NAME_KEY, outputFile.getName());
+            params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, outputFile.getName());
             FileInputStream in = null;
             try {
                 in = new FileInputStream(outputFile);
@@ -201,17 +193,16 @@ public class JodExtractor implements Extractor {
                 return extractData.getContent();
             } catch (final FileNotFoundException e) {
                 throw new ExtractException("Could not open "
-                    + outputFile.getAbsolutePath(), e);
+                        + outputFile.getAbsolutePath(), e);
             } finally {
                 IOUtils.closeQuietly(in);
             }
         }
         try {
-            return new String(FileUtil.getBytes(outputFile), outputEncoding);
+            return new String(FileUtil.readBytes(outputFile), outputEncoding);
         } catch (final UnsupportedEncodingException e) {
-            return new String(
-                FileUtil.getBytes(outputFile),
-                Constants.UTF_8_CHARSET);
+            return new String(FileUtil.readBytes(outputFile),
+                    Constants.UTF_8_CHARSET);
         }
     }
 

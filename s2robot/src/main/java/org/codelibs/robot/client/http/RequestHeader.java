@@ -17,11 +17,11 @@ package org.codelibs.robot.client.http;
 
 import java.io.Serializable;
 
-import org.seasar.framework.util.StringUtil;
+import org.codelibs.core.lang.StringUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class RequestHeader implements Serializable {
 

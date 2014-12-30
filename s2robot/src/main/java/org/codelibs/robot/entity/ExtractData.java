@@ -30,7 +30,7 @@ import org.apache.tika.parser.pdf.PDFParser;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
         MSOffice, TikaMetadataKeys, TikaMimeKeys, Serializable {
@@ -81,6 +81,6 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
     @Override
     public String toString() {
         return "ExtractData [metadata=" + metadata + ", content=" + content
-            + "]";
+                + "]";
     }
 }

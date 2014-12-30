@@ -20,9 +20,9 @@ import java.io.InputStream;
 
 /**
  * This inputstream ignores a close method.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class IgnoreCloseInputStream extends InputStream {
 

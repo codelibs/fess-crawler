@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import javax.xml.transform.TransformerException;
 
 import org.apache.xpath.objects.XObject;
+import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.RobotSystemException;
@@ -34,7 +35,6 @@ import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
 import org.codelibs.robot.util.XmlUtil;
 import org.cyberneko.html.parsers.DOMParser;
-import org.seasar.framework.beans.util.Beans;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -44,20 +44,18 @@ import org.xml.sax.InputSource;
 
 /**
  * XpathTransformer stores WEB data as XML content.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class XpathTransformer extends HtmlTransformer {
     private static final Logger logger = LoggerFactory // NOPMD
-        .getLogger(XpathTransformer.class);
+            .getLogger(XpathTransformer.class);
 
-    private static final Pattern SPACE_PATTERN = Pattern.compile(
-        "\\s+",
-        Pattern.MULTILINE);
+    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",
+            Pattern.MULTILINE);
 
-    protected Map<String, String> fieldRuleMap =
-        new LinkedHashMap<String, String>();
+    protected Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
 
     /** a flag to trim a space characters. */
     protected boolean trimSpace = true;
@@ -75,15 +73,15 @@ public class XpathTransformer extends HtmlTransformer {
             final ResultData resultData) {
         final DOMParser parser = getDomParser();
         try {
-            final InputSource is =
-                new InputSource(responseData.getResponseBody());
+            final InputSource is = new InputSource(
+                    responseData.getResponseBody());
             if (responseData.getCharSet() != null) {
                 is.setEncoding(responseData.getCharSet());
             }
             parser.parse(is);
         } catch (final Exception e) {
             throw new RobotCrawlAccessException("Could not parse "
-                + responseData.getUrl(), e);
+                    + responseData.getUrl(), e);
         }
         final Document document = parser.getDocument();
 
@@ -95,54 +93,49 @@ public class XpathTransformer extends HtmlTransformer {
                 final XObject xObj = getXPathAPI().eval(document, path);
                 final int type = xObj.getType();
                 switch (type) {
-                case XObject.CLASS_BOOLEAN:
-                    final boolean b = xObj.bool();
-                    buf.append(getResultDataBody(
-                        entry.getKey(),
-                        Boolean.toString(b)));
-                    break;
-                case XObject.CLASS_NUMBER:
-                    final double d = xObj.num();
-                    buf.append(getResultDataBody(
-                        entry.getKey(),
-                        Double.toString(d)));
-                    break;
-                case XObject.CLASS_STRING:
-                    final String str = xObj.str();
-                    buf.append(getResultDataBody(entry.getKey(), str.trim()));
-                    break;
-                case XObject.CLASS_NODESET:
-                    final NodeList nodeList = xObj.nodelist();
-                    final List<String> strList = new ArrayList<String>();
-                    for (int i = 0; i < nodeList.getLength(); i++) {
-                        final Node node = nodeList.item(i);
-                        strList.add(node.getTextContent());
-                    }
-                    buf.append(getResultDataBody(entry.getKey(), strList));
-                    break;
-                case XObject.CLASS_RTREEFRAG:
-                    final int rtf = xObj.rtf();
-                    buf.append(getResultDataBody(
-                        entry.getKey(),
-                        Integer.toString(rtf)));
-                    break;
-                case XObject.CLASS_NULL:
-                case XObject.CLASS_UNKNOWN:
-                case XObject.CLASS_UNRESOLVEDVARIABLE:
-                default:
-                    Object obj = xObj.object();
-                    if (obj == null) {
-                        obj = "";
-                    }
-                    buf
-                        .append(getResultDataBody(
-                            entry.getKey(),
-                            obj.toString()));
-                    break;
+                    case XObject.CLASS_BOOLEAN:
+                        final boolean b = xObj.bool();
+                        buf.append(getResultDataBody(entry.getKey(),
+                                Boolean.toString(b)));
+                        break;
+                    case XObject.CLASS_NUMBER:
+                        final double d = xObj.num();
+                        buf.append(getResultDataBody(entry.getKey(),
+                                Double.toString(d)));
+                        break;
+                    case XObject.CLASS_STRING:
+                        final String str = xObj.str();
+                        buf.append(getResultDataBody(entry.getKey(), str.trim()));
+                        break;
+                    case XObject.CLASS_NODESET:
+                        final NodeList nodeList = xObj.nodelist();
+                        final List<String> strList = new ArrayList<String>();
+                        for (int i = 0; i < nodeList.getLength(); i++) {
+                            final Node node = nodeList.item(i);
+                            strList.add(node.getTextContent());
+                        }
+                        buf.append(getResultDataBody(entry.getKey(), strList));
+                        break;
+                    case XObject.CLASS_RTREEFRAG:
+                        final int rtf = xObj.rtf();
+                        buf.append(getResultDataBody(entry.getKey(),
+                                Integer.toString(rtf)));
+                        break;
+                    case XObject.CLASS_NULL:
+                    case XObject.CLASS_UNKNOWN:
+                    case XObject.CLASS_UNRESOLVEDVARIABLE:
+                    default:
+                        Object obj = xObj.object();
+                        if (obj == null) {
+                            obj = "";
+                        }
+                        buf.append(getResultDataBody(entry.getKey(),
+                                obj.toString()));
+                        break;
                 }
             } catch (final TransformerException e) {
                 logger.warn("Could not parse a value of " + entry.getKey()
-                    + ":" + entry.getValue());
+                        + ":" + entry.getValue());
             }
         }
         buf.append(getAdditionalData(responseData, document));
@@ -153,11 +146,11 @@ public class XpathTransformer extends HtmlTransformer {
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName
-                    + ". Changed to " + Constants.UTF_8, e);
+                        + ". Changed to " + Constants.UTF_8, e);
             }
             charsetName = Constants.UTF_8_CHARSET.name();
             resultData
-                .setData(buf.toString().getBytes(Constants.UTF_8_CHARSET));
+                    .setData(buf.toString().getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
     }
@@ -171,8 +164,8 @@ public class XpathTransformer extends HtmlTransformer {
         // TODO support other type
         // TODO trim(default)
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
-            + trimSpace(XmlUtil.escapeXml(value != null ? value : ""))
-            + "</field>\n";
+                + trimSpace(XmlUtil.escapeXml(value != null ? value : ""))
+                + "</field>\n";
     }
 
     protected String getResultDataBody(final String name,
@@ -190,7 +183,7 @@ public class XpathTransformer extends HtmlTransformer {
         // TODO support other type
         // TODO trim(default)
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
-            + buf.toString() + "</field>\n";
+                + buf.toString() + "</field>\n";
     }
 
     protected String getAdditionalData(final ResponseData responseData,
@@ -217,7 +210,7 @@ public class XpathTransformer extends HtmlTransformer {
 
     /**
      * Returns data as XML content of String.
-     * 
+     *
      * @return XML content of String.
      */
     @Override
@@ -226,20 +219,19 @@ public class XpathTransformer extends HtmlTransformer {
             return super.getData(accessResultData);
         }
 
-        final Map<String, Object> dataMap =
-            XmlUtil.getDataMap(accessResultData);
+        final Map<String, Object> dataMap = XmlUtil
+                .getDataMap(accessResultData);
         if (Map.class.equals(dataClass)) {
             return dataMap;
         }
 
         try {
             final Object obj = dataClass.newInstance();
-            Beans.copy(dataMap, obj).execute();
+            BeanUtil.copyMapToBean(dataMap, obj);
             return obj;
         } catch (final Exception e) {
             throw new RobotSystemException(
-                "Could not create/copy a data map to " + dataClass,
-                e);
+                    "Could not create/copy a data map to " + dataClass, e);
         }
     }
 

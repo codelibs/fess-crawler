@@ -28,20 +28,20 @@ import org.codelibs.robot.entity.UrlQueue;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class MemoryDataHelper {
     protected volatile Map<String, Queue<UrlQueue>> urlQueueMap = // NOPMD
-        new HashMap<String, Queue<UrlQueue>>();
+    new HashMap<String, Queue<UrlQueue>>();
 
     protected volatile Map<String, Map<String, AccessResult>> sessionMap = // NOPMD
-        new HashMap<String, Map<String, AccessResult>>();
+    new HashMap<String, Map<String, AccessResult>>();
 
     protected volatile Map<String, List<Pattern>> includeUrlPatternMap = // NOPMD
-        new HashMap<String, List<Pattern>>();
+    new HashMap<String, List<Pattern>>();
 
     protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = // NOPMD
-        new HashMap<String, List<Pattern>>();
+    new HashMap<String, List<Pattern>>();
 
     public void clear() {
         urlQueueMap.clear();
@@ -93,7 +93,7 @@ public class MemoryDataHelper {
     public synchronized List<AccessResult> getAccessResultList(final String url) {
         final List<AccessResult> acList = new ArrayList<AccessResult>();
         for (final Map.Entry<String, Map<String, AccessResult>> entry : sessionMap
-            .entrySet()) {
+                .entrySet()) {
             if (entry.getValue() != null) {
                 final AccessResult ar = entry.getValue().get(url);
                 if (ar != null) {

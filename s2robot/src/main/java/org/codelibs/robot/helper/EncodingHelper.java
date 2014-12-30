@@ -18,11 +18,11 @@ package org.codelibs.robot.helper;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.seasar.framework.util.StringUtil;
+import org.codelibs.core.lang.StringUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class EncodingHelper {
 

@@ -20,10 +20,10 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 
 /**
- * 
- * 
+ *
+ *
  * @author shinsuke
- * 
+ *
  */
 public interface Authentication {
 

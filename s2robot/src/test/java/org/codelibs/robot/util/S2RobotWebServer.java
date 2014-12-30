@@ -17,6 +17,7 @@ package org.codelibs.robot.util;
 
 import java.io.File;
 
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
@@ -24,7 +25,6 @@ import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerList;
 import org.mortbay.jetty.handler.ResourceHandler;
 import org.mortbay.log.Log;
-import org.seasar.framework.util.FileUtil;
 
 /**
  * @author shinsuke
@@ -93,7 +93,7 @@ public class S2RobotWebServer {
             buf.append("Disallow: /admin/").append('\n');
             buf.append("Disallow: /websvn/").append('\n');
             final File robotTxtFile = new File(tempDir, "robots.txt");
-            FileUtil.write(robotTxtFile.getAbsolutePath(), buf.toString()
+            FileUtil.writeBytes(robotTxtFile.getAbsolutePath(), buf.toString()
                     .getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 
@@ -101,28 +101,28 @@ public class S2RobotWebServer {
             buf = new StringBuilder();
             buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append(
                     '\n');
-            buf.append("<urlset ").append(
-                    "xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">")
+            buf.append("<urlset ")
+                    .append("xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">")
                     .append('\n');
             buf.append("<url>").append('\n');
             buf.append("<loc>http://localhost:7070/index.html</loc>").append(
                     '\n');
-            buf.append("<loc>http://localhost:7070/file").append(count).append(
-                    "-1.html").append("</loc>").append('\n');
+            buf.append("<loc>http://localhost:7070/file").append(count)
+                    .append("-1.html").append("</loc>").append('\n');
             buf.append("</url>").append('\n');
             buf.append("</urlset>").append('\n');
             File sitemapsFile = new File(tempDir, "sitemaps.xml");
-            FileUtil.write(sitemapsFile.getAbsolutePath(), buf.toString()
+            FileUtil.writeBytes(sitemapsFile.getAbsolutePath(), buf.toString()
                     .getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 
             // sitemaps.txt
             buf = new StringBuilder();
             buf.append("http://localhost:7070/index.html").append('\n');
-            buf.append("http://localhost:7070/file").append(count).append(
-                    "-1.html").append('\n');
+            buf.append("http://localhost:7070/file").append(count)
+                    .append("-1.html").append('\n');
             sitemapsFile = new File(tempDir, "sitemaps.txt");
-            FileUtil.write(sitemapsFile.getAbsolutePath(), buf.toString()
+            FileUtil.writeBytes(sitemapsFile.getAbsolutePath(), buf.toString()
                     .getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 
@@ -134,7 +134,8 @@ public class S2RobotWebServer {
         }
     }
 
-    private static void generateContents(final File dir, final int count) throws Exception {
+    private static void generateContents(final File dir, final int count)
+            throws Exception {
         if (count <= 0) {
             return;
         }
@@ -143,12 +144,14 @@ public class S2RobotWebServer {
 
         final File indexFile = new File(dir, "index.html");
         indexFile.deleteOnExit();
-        FileUtil.write(indexFile.getAbsolutePath(), content.getBytes("UTF-8"));
+        FileUtil.writeBytes(indexFile.getAbsolutePath(),
+                content.getBytes("UTF-8"));
 
         for (int i = 1; i <= 10; i++) {
             final File file = new File(dir, "file" + count + "-" + i + ".html");
             file.deleteOnExit();
-            FileUtil.write(file.getAbsolutePath(), content.getBytes("UTF-8"));
+            FileUtil.writeBytes(file.getAbsolutePath(),
+                    content.getBytes("UTF-8"));
             final File childDir = new File(dir, "dir" + count + "-" + i);
             childDir.mkdirs();
             generateContents(childDir, count - 1);

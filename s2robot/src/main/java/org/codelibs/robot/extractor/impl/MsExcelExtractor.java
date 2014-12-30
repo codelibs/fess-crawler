@@ -27,14 +27,14 @@ import org.codelibs.robot.extractor.Extractor;
 
 /**
  * Gets a text from .xls file.
- * 
+ *
  * @author shinsuke
- * 
+ *
  */
 public class MsExcelExtractor implements Extractor {
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.extractor.impl.Extractor#getText(java.io.InputStream,
      * java.util.Map)
@@ -47,8 +47,8 @@ public class MsExcelExtractor implements Extractor {
         }
         try {
             return new ExtractData(
-                new org.apache.poi.hssf.extractor.ExcelExtractor(
-                    new HSSFWorkbook(in)).getText());
+                    new org.apache.poi.hssf.extractor.ExcelExtractor(
+                            new HSSFWorkbook(in)).getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

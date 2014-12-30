@@ -26,18 +26,17 @@ import org.apache.tika.metadata.TikaMetadataKeys;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.mime.MimeTypesFactory;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.helper.MimeTypeException;
 import org.codelibs.robot.helper.MimeTypeHelper;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class MimeTypeHelperImpl implements MimeTypeHelper {
-    private static final String MIME_TYPES_RESOURCE_NAME =
-        "/org/codelibs/robot/mime/tika-mimetypes.xml";
+    private static final String MIME_TYPES_RESOURCE_NAME = "/org/codelibs/robot/mime/tika-mimetypes.xml";
 
     private MimeTypes mimeTypes;
 
@@ -46,8 +45,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
             mimeTypes = MimeTypesFactory.create(MIME_TYPES_RESOURCE_NAME);
         } catch (final Exception e) {
             throw new RobotSystemException(
-                "Could not initialize MimeTypeHelper.",
-                e);
+                    "Could not initialize MimeTypeHelper.", e);
         }
     }
 
@@ -67,16 +65,16 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         final String filename = params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
         if (StringUtil.isEmpty(filename) && is == null) {
             throw new MimeTypeException(
-                "The filename or input stream is empty.");
+                    "The filename or input stream is empty.");
         }
 
         final Metadata metadata = new Metadata();
         metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
 
         try {
-            final MediaType mediaType =
-                mimeTypes.detect(is == null || is.markSupported() ? is
-                    : new BufferedInputStream(is), metadata);
+            final MediaType mediaType = mimeTypes.detect(
+                    is == null || is.markSupported() ? is
+                            : new BufferedInputStream(is), metadata);
             return mediaType.getType() + "/" + mediaType.getSubtype();
         } catch (final IOException e) {
             throw new MimeTypeException("Could not detect a content type.", e);

@@ -20,9 +20,10 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,21 +31,25 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class HtmlXpathExtractorTest extends S2TestCase {
+public class HtmlXpathExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory
             .getLogger(HtmlXpathExtractorTest.class);
 
     public HtmlXpathExtractor htmlXpathExtractor;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "org/codelibs/robot/extractor/extractor.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("htmlXpathExtractor", HtmlXpathExtractor.class);
+        htmlXpathExtractor = container.getComponent("htmlXpathExtractor");
     }
 
     public void test_getHtml_utf8() {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.html");
-        final String content = htmlXpathExtractor.getText(in, null).getContent();
+        final String content = htmlXpathExtractor.getText(in, null)
+                .getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -53,7 +58,8 @@ public class HtmlXpathExtractorTest extends S2TestCase {
     public void test_getHtml_sjis() {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.html");
-        final String content = htmlXpathExtractor.getText(in, null).getContent();
+        final String content = htmlXpathExtractor.getText(in, null)
+                .getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
@@ -62,7 +68,8 @@ public class HtmlXpathExtractorTest extends S2TestCase {
     public void test_getHtml_attr() {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_attr.html");
-        final String content = htmlXpathExtractor.getText(in, null).getContent();
+        final String content = htmlXpathExtractor.getText(in, null)
+                .getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("本文1"));
@@ -76,7 +83,8 @@ public class HtmlXpathExtractorTest extends S2TestCase {
 
     public void test_getHtml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());
-        final String content = htmlXpathExtractor.getText(in, null).getContent();
+        final String content = htmlXpathExtractor.getText(in, null)
+                .getContent();
         IOUtils.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);

@@ -60,7 +60,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.interval.impl.AbstractIntervalController#
      * delayAfterProcessing()
      */
@@ -77,7 +77,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.codelibs.robot.interval.impl.AbstractIntervalController#delayAtNoUrlInQueue
      * ()
@@ -95,7 +95,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.interval.impl.AbstractIntervalController#
      * delayBeforeProcessing()
      */
@@ -112,7 +112,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.interval.impl.AbstractIntervalController#
      * delayForWaitingNewUrl()
      */

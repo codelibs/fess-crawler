@@ -32,11 +32,11 @@ import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
 import org.codelibs.robot.extractor.ExtractException;
 import org.codelibs.robot.extractor.Extractor;
-import org.seasar.framework.util.StringUtil;
 
 /**
  * Gets a text from .doc file.
@@ -61,7 +61,7 @@ public class PdfExtractor implements Extractor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream,
      * java.util.Map)
      */
@@ -78,21 +78,19 @@ public class PdfExtractor implements Extractor {
                 if (document.isEncrypted() && params != null) {
                     String password = params.get(ExtractData.PDF_PASSWORD);
                     if (password == null) {
-                        password =
-                            getPassword(
-                                params.get(ExtractData.URL),
+                        password = getPassword(params.get(ExtractData.URL),
                                 params.get(TikaMetadataKeys.RESOURCE_NAME_KEY));
                     }
                     if (password != null) {
-                        final StandardDecryptionMaterial sdm =
-                            new StandardDecryptionMaterial(password);
+                        final StandardDecryptionMaterial sdm = new StandardDecryptionMaterial(
+                                password);
                         document.openProtection(sdm);
-                        final AccessPermission ap =
-                            document.getCurrentAccessPermission();
+                        final AccessPermission ap = document
+                                .getCurrentAccessPermission();
 
                         if (!ap.canExtractContent()) {
                             throw new IOException(
-                                "You do not have permission to extract text.");
+                                    "You do not have permission to extract text.");
                         }
                     }
                 }
@@ -104,16 +102,13 @@ public class PdfExtractor implements Extractor {
                 final AtomicBoolean done = new AtomicBoolean(false);
                 final PDDocument doc = document;
                 final Set<Exception> exceptionSet = new HashSet<>();
-                Thread task = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            stripper.writeText(doc, output);
-                        } catch (Exception e) {
-                            exceptionSet.add(e);
-                        } finally {
-                            done.set(true);
-                        }
+                final Thread task = new Thread(() -> {
+                    try {
+                        stripper.writeText(doc, output);
+                    } catch (final Exception e) {
+                        exceptionSet.add(e);
+                    } finally {
+                        done.set(true);
                     }
                 });
                 task.setDaemon(true);
@@ -125,13 +120,14 @@ public class PdfExtractor implements Extractor {
                         Thread.sleep(50);
                     }
                     throw new ExtractException(
-                        "PDFBox process cannot finish in " + timeout + " sec.");
+                            "PDFBox process cannot finish in " + timeout
+                                    + " sec.");
                 } else if (!exceptionSet.isEmpty()) {
                     throw exceptionSet.iterator().next();
                 }
                 output.flush();
-                final ExtractData extractData =
-                    new ExtractData(baos.toString(encoding));
+                final ExtractData extractData = new ExtractData(
+                        baos.toString(encoding));
                 extractMetadata(document, extractData);
                 return extractData;
             } catch (final Exception e) {
@@ -215,7 +211,7 @@ public class PdfExtractor implements Extractor {
         return timeout;
     }
 
-    public void setTimeout(long timeout) {
+    public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
 }

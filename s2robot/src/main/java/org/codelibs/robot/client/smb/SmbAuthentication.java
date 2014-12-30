@@ -19,7 +19,7 @@ import jcifs.smb.NtlmPasswordAuthentication;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class SmbAuthentication {
     private String server;
@@ -47,10 +47,8 @@ public class SmbAuthentication {
     }
 
     public NtlmPasswordAuthentication getAuthentication() {
-        return new NtlmPasswordAuthentication(
-            domain == null ? "" : domain,
-            username,
-            password);
+        return new NtlmPasswordAuthentication(domain == null ? "" : domain,
+                username, password);
     }
 
     public String getServer() {

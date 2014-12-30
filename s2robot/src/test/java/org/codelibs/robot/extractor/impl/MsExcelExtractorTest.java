@@ -18,9 +18,10 @@ package org.codelibs.robot.extractor.impl;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.codelibs.robot.container.SimpleComponentContainer;
+import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,15 +29,18 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class MsExcelExtractorTest extends S2TestCase {
+public class MsExcelExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory
             .getLogger(MsExcelExtractorTest.class);
 
     public MsExcelExtractor msExcelExtractor;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "org/codelibs/robot/extractor/extractor.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("msExcelExtractor", MsExcelExtractor.class);
+        msExcelExtractor = container.getComponent("msExcelExtractor");
     }
 
     public void test_getText() {

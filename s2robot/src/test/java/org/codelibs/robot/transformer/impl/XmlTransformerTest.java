@@ -19,20 +19,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultDataImpl;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
 import org.codelibs.robot.entity.TestEntity;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class XmlTransformerTest extends S2TestCase {
+public class XmlTransformerTest extends PlainTestCase {
     public XmlTransformer xmlTransformer;
 
     public XmlTransformer xmlNsTransformer;
@@ -42,13 +42,76 @@ public class XmlTransformerTest extends S2TestCase {
     public XmlTransformer xmlEntityTransformer;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+
+        {
+            xmlTransformer = new XmlTransformer();
+            xmlTransformer.setName("xmlTransformer");
+            Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("name", "//address/item/name");
+            fieldRuleMap.put("access", "//address/item/access");
+            fieldRuleMap.put("image", "//address/item/image/@file");
+            fieldRuleMap.put("email", "//address/item/access[@kind='email']");
+            fieldRuleMap.put("url", "//address/item/access[@kind='url']");
+            fieldRuleMap.put("tel", "//address/item/access[@kind='tel']");
+            xmlTransformer.setFieldRuleMap(fieldRuleMap);
+        }
+        {
+            xmlNsTransformer = new XmlTransformer();
+            xmlNsTransformer.setName("xmlNsTransformer");
+            xmlNsTransformer.setNamespaceAware(true);
+            Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
+            fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
+            fieldRuleMap.put("image",
+                    "//hoge:address/hoge:item/hoge:image/@file");
+            fieldRuleMap.put("email",
+                    "//hoge:address/hoge:item/hoge:access[@kind='email']");
+            fieldRuleMap.put("url",
+                    "//hoge:address/hoge:item/hoge:access[@kind='url']");
+            fieldRuleMap.put("tel",
+                    "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+            xmlNsTransformer.setFieldRuleMap(fieldRuleMap);
+        }
+        {
+            xmlMapTransformer = new XmlTransformer();
+            xmlMapTransformer.setName("xmlMapTransformer");
+            xmlMapTransformer.setDataClass(Map.class);
+            Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
+            fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
+            fieldRuleMap.put("image",
+                    "//hoge:address/hoge:item/hoge:image/@file");
+            fieldRuleMap.put("email",
+                    "//hoge:address/hoge:item/hoge:access[@kind='email']");
+            fieldRuleMap.put("url",
+                    "//hoge:address/hoge:item/hoge:access[@kind='url']");
+            fieldRuleMap.put("tel",
+                    "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+            xmlMapTransformer.setFieldRuleMap(fieldRuleMap);
+        }
+        {
+            xmlEntityTransformer = new XmlTransformer();
+            xmlEntityTransformer.setName("xmlEntityTransformer");
+            xmlEntityTransformer.setDataClass(TestEntity.class);
+            Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
+            fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
+            fieldRuleMap.put("image",
+                    "//hoge:address/hoge:item/hoge:image/@file");
+            fieldRuleMap.put("email",
+                    "//hoge:address/hoge:item/hoge:access[@kind='email']");
+            fieldRuleMap.put("url",
+                    "//hoge:address/hoge:item/hoge:access[@kind='url']");
+            fieldRuleMap.put("tel",
+                    "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+            xmlEntityTransformer.setFieldRuleMap(fieldRuleMap);
+        }
     }
 
     public void test_transform() throws Exception {
-        final String result =
-            "<?xml version=\"1.0\"?>\n"//
+        final String result = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
                 + "<field name=\"access\"><list><item></item><item>http://www.taro.com/</item><item>jiro@hoge.foo.bar</item><item>090-xxxx-xxxx</item></list></field>\n"//
@@ -60,15 +123,14 @@ public class XmlTransformerTest extends S2TestCase {
 
         final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
-            .getResourceAsStream("extractor/test.xml"));
+                .getResourceAsStream("extractor/test.xml"));
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = xmlTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
     }
 
     public void test_transformNs() throws Exception {
-        final String result =
-            "<?xml version=\"1.0\"?>\n"//
+        final String result = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
                 + "<field name=\"access\"><list><item></item><item>http://www.taro.com/</item><item>jiro@hoge.foo.bar</item><item>090-xxxx-xxxx</item></list></field>\n"//
@@ -80,23 +142,21 @@ public class XmlTransformerTest extends S2TestCase {
 
         final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
-            .getResourceAsStream("extractor/test_ns.xml"));
+                .getResourceAsStream("extractor/test_ns.xml"));
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = xmlNsTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
     }
 
     public void test_getData() throws Exception {
-        final String value =
-            "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlTransformer");
@@ -107,13 +167,12 @@ public class XmlTransformerTest extends S2TestCase {
 
     public void test_getData_wrongName() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
-            + "<doc>\n"//
-            + "<field name=\"title\">タイトル</field>\n"//
-            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-            + "</doc>";
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("transformer");
@@ -127,13 +186,12 @@ public class XmlTransformerTest extends S2TestCase {
 
     public void test_getData_nullData() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
-            + "<doc>\n"//
-            + "<field name=\"title\">タイトル</field>\n"//
-            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-            + "</doc>";
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlTransformer");
@@ -148,16 +206,14 @@ public class XmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap() throws Exception {
-        final String value =
-            "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlMapTransformer");
@@ -175,16 +231,14 @@ public class XmlTransformerTest extends S2TestCase {
     }
 
     public void test_getData_dataMap_entity() throws Exception {
-        final String value =
-            "<?xml version=\"1.0\"?>\n"//
+        final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
                 + "<field name=\"title\">タイトル</field>\n"//
                 + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
                 + "<field name=\"list\"><list><item>リスト1</item><item>リスト2</item><item>リスト3</item></list></field>\n"//
                 + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlEntityTransformer");
@@ -203,14 +257,13 @@ public class XmlTransformerTest extends S2TestCase {
 
     public void test_getData_dataMap_entity_emptyList() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
-            + "<doc>\n"//
-            + "<field name=\"title\">タイトル</field>\n"//
-            + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
-            + "<field name=\"list\"><list></list></field>\n"//
-            + "</doc>";
+                + "<doc>\n"//
+                + "<field name=\"title\">タイトル</field>\n"//
+                + "<field name=\"body\">第一章 第一節 ほげほげふがふが LINK 第2章 第2節</field>\n"//
+                + "<field name=\"list\"><list></list></field>\n"//
+                + "</doc>";
 
-        final AccessResultDataImpl accessResultDataImpl =
-            new AccessResultDataImpl();
+        final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(value.getBytes(Constants.UTF_8));
         accessResultDataImpl.setEncoding(Constants.UTF_8);
         accessResultDataImpl.setTransformerName("xmlEntityTransformer");

@@ -17,7 +17,7 @@ package org.codelibs.robot.log;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public enum LogType {
     START_CRAWLING, //

@@ -20,10 +20,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
+import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.container.SimpleComponentContainer;
 import org.codelibs.robot.entity.ExtractData;
-import org.seasar.extension.unit.S2TestCase;
-import org.seasar.framework.util.ResourceUtil;
+import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,20 +33,29 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  * 
  */
-public class JodExtractorTest extends S2TestCase {
+public class JodExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory
-        .getLogger(JodExtractorTest.class);
+            .getLogger(JodExtractorTest.class);
 
     public JodExtractor jodExtractor;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "jodextractor.dicon";
+    protected void setUp() throws Exception {
+        super.setUp();
+        SimpleComponentContainer container = new SimpleComponentContainer()
+                .singleton("officeManagerConfiguration",
+                        DefaultOfficeManagerConfiguration.class)//
+                .singleton("jodExtractor", JodExtractor.class);
+        jodExtractor = container.getComponent("jodExtractor");
+        DefaultOfficeManagerConfiguration officeManagerConfiguration = container
+                .getComponent("officeManagerConfiguration");
+        jodExtractor.officeManager = officeManagerConfiguration.setPortNumber(
+                12002).buildOfficeManager();
     }
 
     public void test_getText_ooow() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/ooo/test.odt");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/ooo/test.odt");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.odt");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -55,8 +66,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_ooow_as() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/ooo/test_as.odt");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/ooo/test_as.odt");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test_as.odt");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -67,8 +78,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_ooos() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/ooo/test.ods");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/ooo/test.ods");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.ods");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -79,8 +90,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_ooos_as() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/ooo/test_as.ods");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/ooo/test_as.ods");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test_as.ods");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -91,8 +102,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_ooop() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/ooo/test.odp");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/ooo/test.odp");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.odp");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -103,8 +114,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_msword() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.doc");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.doc");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -115,8 +126,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_msword_as() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test_as.doc");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test_as.doc");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test_as.doc");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -127,8 +138,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_mswordx() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test.docx");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.docx");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.docx");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -149,8 +160,8 @@ public class JodExtractorTest extends S2TestCase {
      */
 
     public void test_getText_msexcel() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test.xls");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.xls");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.xls");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -161,8 +172,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_msexcel_as() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test_as.xls");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test_as.xls");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test_as.xls");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -173,8 +184,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_msexcelx() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test.xlsx");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.xlsx");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.xlsx");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -185,8 +196,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_msexcelx_as() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test_as.xlsx");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test_as.xlsx");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test_as.xlsx");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -197,8 +208,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_mspowerpoint() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test.ppt");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.ppt");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.ppt");
         ExtractData extractData = jodExtractor.getText(in, params);
@@ -209,8 +220,8 @@ public class JodExtractorTest extends S2TestCase {
     }
 
     public void test_getText_mspowerpointx() {
-        InputStream in =
-            ResourceUtil.getResourceAsStream("extractor/msoffice/test.pptx");
+        InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/msoffice/test.pptx");
         Map<String, String> params = new HashMap<String, String>();
         params.put("resourceName", "test.pptx");
         ExtractData extractData = jodExtractor.getText(in, params);

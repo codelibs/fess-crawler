@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<import resource="robotRobotsTxt.xml" />
+	<import resource="robotContentLength.xml" />
+
+	<bean id="clientConnectionManager"
+		class="org.apache.http.impl.conn.PoolingHttpClientConnectionManager"
+		destroy-method="shutdown">
+		<constructor-arg type="long" value="5" /><!-- timeToLive -->
+		<constructor-arg type="java.util.concurrent.TimeUnit"
+			value="MINUTES" /><!-- tunit -->
+		<!-- Increase max total connection to 200 -->
+		<property name="maxTotal" value="200" />
+		<!-- Increase default max connection per route to 20 -->
+		<property name="defaultMaxPerRoute" value="20" />
+	</bean>
+
+	<bean id="internalHttpClient" class="org.codelibs.robot.client.http.HcHttpClient"
+		scope="prototype">
+		<property name="cookieSpec" value="best-match" />
+		<property name="clientConnectionManager">
+			<ref bean="clientConnectionManager" />
+		</property>
+	</bean>
+	<bean id="httpClient" class="org.codelibs.robot.client.FaultTolerantClient"
+		scope="prototype">
+		<property name="robotClient">
+			<ref bean="internalHttpClient" />
+		</property>
+		<property name="maxRetryCount" value="5" />
+		<property name="retryInterval" value="500" />
+	</bean>
+
+	<bean id="fsClient" class="org.codelibs.robot.client.fs.FileSystemClient"
+		scope="prototype">
+		<property name="charset" value="UTF-8" />
+	</bean>
+
+	<bean id="smbClient" class="org.codelibs.robot.client.smb.SmbClient"
+		scope="prototype">
+		<property name="charset" value="UTF-8" />
+		<!-- ntlmPasswordAuthentication -->
+	</bean>
+
+	<bean id="clientFactory" class="org.codelibs.robot.client.S2RobotClientFactory"
+		scope="prototype">
+		<property name="clientMap">
+			<map>
+				<entry key="#{T(java.util.regex.Pattern).compile('http:.*')}"><ref bean="httpClient" /></entry>
+				<entry key="#{T(java.util.regex.Pattern).compile('https:.*')}"><ref bean="httpClient" /></entry>
+				<entry key="#{T(java.util.regex.Pattern).compile('file:.*')}"><ref bean="fsClient" /></entry>
+				<entry key="#{T(java.util.regex.Pattern).compile('smb:.*')}"><ref bean="smbClient" /></entry>
+			</map>
+		</property>
+	</bean>
+
+</beans>

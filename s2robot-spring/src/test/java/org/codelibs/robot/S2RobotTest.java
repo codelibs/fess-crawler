@@ -16,42 +16,14 @@
 package org.codelibs.robot;
 
 import java.io.File;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.codelibs.core.io.ResourceUtil;
-import org.codelibs.robot.client.FaultTolerantClient;
-import org.codelibs.robot.client.S2RobotClientFactory;
-import org.codelibs.robot.client.fs.FileSystemClient;
-import org.codelibs.robot.client.http.HcHttpClient;
-import org.codelibs.robot.container.StandardRobotContainer;
-import org.codelibs.robot.entity.AccessResultImpl;
+import org.codelibs.robot.container.RobotContainer;
+import org.codelibs.robot.container.SpringRobotContainer;
 import org.codelibs.robot.entity.UrlQueue;
-import org.codelibs.robot.entity.UrlQueueImpl;
-import org.codelibs.robot.extractor.ExtractorFactory;
-import org.codelibs.robot.extractor.impl.TikaExtractor;
 import org.codelibs.robot.filter.impl.UrlFilterImpl;
-import org.codelibs.robot.helper.ContentLengthHelper;
-import org.codelibs.robot.helper.EncodingHelper;
-import org.codelibs.robot.helper.MemoryDataHelper;
-import org.codelibs.robot.helper.RobotsTxtHelper;
-import org.codelibs.robot.helper.SitemapsHelper;
-import org.codelibs.robot.helper.UrlConvertHelper;
-import org.codelibs.robot.helper.impl.LogHelperImpl;
-import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
-import org.codelibs.robot.interval.impl.DefaultIntervalController;
-import org.codelibs.robot.processor.impl.DefaultResponseProcessor;
-import org.codelibs.robot.processor.impl.SitemapsResponseProcessor;
-import org.codelibs.robot.rule.impl.RegexRule;
-import org.codelibs.robot.rule.impl.RuleManagerImpl;
-import org.codelibs.robot.rule.impl.SitemapsRule;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.service.UrlQueueService;
-import org.codelibs.robot.service.impl.DataServiceImpl;
-import org.codelibs.robot.service.impl.UrlFilterServiceImpl;
-import org.codelibs.robot.service.impl.UrlQueueServiceImpl;
 import org.codelibs.robot.transformer.impl.FileTransformer;
 import org.codelibs.robot.util.S2RobotWebServer;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -66,136 +38,25 @@ public class S2RobotTest extends PlainTestCase {
 
     public FileTransformer fileTransformer;
 
-    private StandardRobotContainer container;
+    private RobotContainer container;
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
 
-        final Map<String, String> featureMap = newHashMap();
-        featureMap.put("http://xml.org/sax/features/namespaces", "false");
-        final Map<String, String> propertyMap = newHashMap();
-        final Map<String, String> childUrlRuleMap = newHashMap();
-        childUrlRuleMap.put("//A", "href");
-        childUrlRuleMap.put("//AREA", "href");
-        childUrlRuleMap.put("//FRAME", "src");
-        childUrlRuleMap.put("//IFRAME", "src");
-        childUrlRuleMap.put("//IMG", "src");
-        childUrlRuleMap.put("//LINK", "href");
-        childUrlRuleMap.put("//SCRIPT", "src");
-
-        container = new StandardRobotContainer();
-        container
-                .<HcHttpClient> prototype(
-                        "internalHttpClient",
-                        HcHttpClient.class,
-                        client -> {
-                            client.setCookieSpec(CookieSpecs.BEST_MATCH);
-                            client.setClientConnectionManager(container
-                                    .getComponent("clientConnectionManager"));
-                        })
-                .prototype(
-                        "httpClient",
-                        FaultTolerantClient.class,
-                        client -> {
-                            client.setRobotClient(container
-                                    .getComponent("internalHttpClient"));
-                            client.setMaxRetryCount(5);
-                            client.setRetryInterval(500);
-                        })
-                .prototype("fsClient", FileSystemClient.class)
-                .prototype("ruleManager", RuleManagerImpl.class, manager -> {
-                    manager.addRule(container.getComponent("sitemapsRule"));
-                    manager.addRule(container.getComponent("fileRule"));
-                })
-                .prototype("accessResult", AccessResultImpl.class)
-                .prototype("urlQueue", UrlQueueImpl.class)
-                .prototype("robotThread", S2RobotThread.class)
-                .prototype("s2Robot", S2Robot.class)
-                .prototype("urlFilterService", UrlFilterServiceImpl.class)
-                .prototype("urlQueueService", UrlQueueServiceImpl.class)
-                .prototype("dataService", DataServiceImpl.class)
-                .prototype("urlFilter", UrlFilterImpl.class)
-                .singleton("urlConvertHelper", UrlConvertHelper.class)
-                .singleton("intervalController",
-                        DefaultIntervalController.class)
-                .singleton("sitemapsHelper", SitemapsHelper.class)
-                .singleton("logHelper", LogHelperImpl.class)
-                .singleton("encodingHelper", EncodingHelper.class)
-                .singleton("contentLengthHelper", ContentLengthHelper.class)
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
-                .<FileTransformer> singleton("fileTransformer",
-                        FileTransformer.class, transformer -> {
-                            transformer.setName("fileTransformer");
-                            transformer.setFeatureMap(featureMap);
-                            transformer.setPropertyMap(propertyMap);
-                            transformer.setChildUrlRuleMap(childUrlRuleMap);
-                        })
-                .singleton("dataHelper", MemoryDataHelper.class)
-                .singleton("robotsTxtHelper", RobotsTxtHelper.class)
-                .<S2RobotClientFactory> singleton(
-                        "clientFactory",
-                        S2RobotClientFactory.class,
-                        factory -> {
-                            factory.addClient("http:.*",
-                                    container.getComponent("httpClient"));
-                            factory.addClient("file:.*",
-                                    container.getComponent("fsClient"));
-                        })
-                .singleton("tikaExtractor", TikaExtractor.class)
-                .<ExtractorFactory> singleton(
-                        "extractorFactory",
-                        ExtractorFactory.class,
-                        factory -> {
-                            TikaExtractor tikaExtractor = container
-                                    .getComponent("tikaExtractor");
-                            factory.addExtractor("text/plain", tikaExtractor);
-                            factory.addExtractor("text/html", tikaExtractor);
-                        })//
-                .singleton("httpClient", HcHttpClient.class)//
-                .singleton("sitemapsResponseProcessor",
-                        SitemapsResponseProcessor.class)//
-                .<SitemapsRule> singleton(
-                        "sitemapsRule",
-                        SitemapsRule.class,
-                        rule -> {
-                            rule.setResponseProcessor(container
-                                    .getComponent("sitemapsResponseProcessor"));
-                            rule.setRuleId("sitemapsRule");
-                            rule.addRule("url", ".*sitemap.*");
-                        })//
-                .<DefaultResponseProcessor> singleton(
-                        "defaultResponseProcessor",
-                        DefaultResponseProcessor.class,
-                        processor -> {
-                            processor.setTransformer(container
-                                    .getComponent("fileTransformer"));
-                            processor.setSuccessfulHttpCodes(new int[] { 200 });
-                            processor
-                                    .setNotModifiedHttpCodes(new int[] { 304 });
-                        })//
-                .<RegexRule> singleton(
-                        "fileRule",
-                        RegexRule.class,
-                        rule -> {
-                            rule.setRuleId("fileRule");
-                            rule.setDefaultRule(true);
-                            rule.setResponseProcessor(container
-                                    .getComponent("defaultResponseProcessor"));
-                        })//
-                .<PoolingHttpClientConnectionManager> singleton(
-                        "clientConnectionManager",
-                        new PoolingHttpClientConnectionManager(5,
-                                TimeUnit.MINUTES), manager -> {
-                            manager.setMaxTotal(200);
-                            manager.setDefaultMaxPerRoute(20);
-                        });
+        container = SpringRobotContainer.create("robot.xml");
 
         s2Robot = container.getComponent("s2Robot");
         dataService = container.getComponent("dataService");
         urlQueueService = container.getComponent("urlQueueService");
         fileTransformer = container.getComponent("fileTransformer");
 
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+        container.destroy();
+        super.tearDown();
     }
 
     public void test_execute_web() throws Exception {
@@ -468,36 +329,4 @@ public class S2RobotTest extends PlainTestCase {
         }
     }
 
-    /*
-     * TODO: needs to review/reconsider this feature public void
-     * test_execute_web_diffcrawl() throws Exception { S2RobotWebServer server =
-     * new S2RobotWebServer(7070); server.start();
-     *
-     * String url = "http://localhost:7070/"; try { int maxCount = 50; int
-     * numOfThread = 10;
-     *
-     * File file = File.createTempFile("s2robot-", ""); file.delete();
-     * file.mkdirs(); file.deleteOnExit();
-     * fileTransformer.setPath(file.getAbsolutePath()); s2Robot.addUrl(url);
-     * s2Robot.robotContext.setMaxAccessCount(maxCount);
-     * s2Robot.robotContext.setNumOfThread(numOfThread);
-     * s2Robot.urlFilter.addInclude(url + ".*"); String sessionId =
-     * s2Robot.execute(); assertEquals(maxCount,
-     * dataService.getCount(sessionId));
-     *
-     * String sessionId2 = sessionId + "X"; urlQueueService.delete(sessionId);
-     * s2Robot = SingletonS2Container.getComponent("s2Robot");
-     * s2Robot.setSessionId(sessionId2);
-     * urlQueueService.generateUrlQueues(sessionId, sessionId2);
-     * dataService.delete(sessionId);
-     *
-     * s2Robot.execute(); assertEquals(maxCount,
-     * dataService.getCount(sessionId2));
-     *
-     * dataService.iterate(sessionId2, new AccessResultCallback() { public void
-     * iterate(AccessResult accessResult) {
-     * assertEquals(Constants.NOT_MODIFIED_STATUS, accessResult
-     * .getStatus().intValue()); assertEquals(Constants.HEAD_METHOD,
-     * accessResult .getMethod()); } }); } finally { server.stop(); } }
-     */
 }

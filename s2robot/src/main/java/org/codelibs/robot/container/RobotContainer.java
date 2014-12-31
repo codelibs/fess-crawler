@@ -24,4 +24,6 @@ public interface RobotContainer {
     <T> T getComponent(String name);
 
     boolean available();
+
+    void destroy();
 }

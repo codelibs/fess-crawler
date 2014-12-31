@@ -120,4 +120,8 @@ public class RegexRule extends AbstractRule {
         }
         return hash;
     }
+
+    public void setRegexMap(final Map<String, Pattern> regexMap) {
+        this.regexMap = regexMap;
+    }
 }

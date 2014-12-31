@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<bean id="binaryTransformer" class="org.codelibs.robot.transformer.impl.BinaryTransformer">
+		<property name="name" value="binaryTransformer" />
+	</bean>
+
+	<util:map id="defaultFeatureMap" map-class="java.util.LinkedHashMap">
+		<entry key="http://xml.org/sax/features/namespaces" value="false"/>
+	</util:map>
+
+	<util:map id="defaultPropertyMap" map-class="java.util.LinkedHashMap">
+	</util:map>
+
+	<util:map id="allChildUrlRuleMap" map-class="java.util.LinkedHashMap">
+		<entry key="//A" value="href"/>
+		<entry key="//AREA" value="href"/>
+		<entry key="//FRAME" value="src"/>
+		<entry key="//IFRAME" value="src"/>
+		<entry key="//IMG" value="src"/>
+		<entry key="//LINK" value="href"/>
+		<entry key="//SCRIPT" value="src"/>
+	</util:map>
+
+	<util:map id="htmlUrlRuleMap" map-class="java.util.LinkedHashMap">
+		<entry key="//A" value="href"/>
+		<entry key="//AREA" value="href"/>
+		<entry key="//FRAME" value="src"/>
+		<entry key="//IFRAME" value="src"/>
+	</util:map>
+
+	<bean id="fileTransformer" class="org.codelibs.robot.transformer.impl.FileTransformer">
+		<property name="name" value="fileTransformer"/>
+		<property name="featureMap"><ref bean="defaultFeatureMap" /></property>
+		<property name="propertyMap"><ref bean="defaultPropertyMap" /></property>
+		<property name="childUrlRuleMap"><ref bean="allChildUrlRuleMap" /></property>
+	</bean>
+
+	<bean id="htmlTransformer" class="org.codelibs.robot.transformer.impl.HtmlTransformer">
+		<property name="name" value="htmlTransformer"/>
+		<property name="featureMap"><ref bean="defaultFeatureMap" /></property>
+		<property name="propertyMap"><ref bean="defaultPropertyMap" /></property>
+		<property name="childUrlRuleMap"><ref bean="allChildUrlRuleMap" /></property>
+	</bean>
+
+	<bean id="htmlOnlyTransformer" class="org.codelibs.robot.transformer.impl.HtmlTransformer">
+		<property name="name" value="htmlTransformer"/>
+		<property name="featureMap"><ref bean="defaultFeatureMap" /></property>
+		<property name="propertyMap"><ref bean="defaultPropertyMap" /></property>
+		<property name="childUrlRuleMap"><ref bean="htmlUrlRuleMap" /></property>
+	</bean>
+
+	<bean id="textTransformer" class="org.codelibs.robot.transformer.impl.TextTransformer">
+		<property name="name" value="textTransformer"/>
+	</bean>
+</beans>

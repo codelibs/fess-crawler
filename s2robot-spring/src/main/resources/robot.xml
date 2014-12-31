@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<context:annotation-config />
+
+	<import resource="robotClient.xml" />
+	<import resource="robotRule.xml" />
+	<import resource="robotFilter.xml" />
+	<import resource="robotInterval.xml" />
+	<import resource="robotExtractor.xml" />
+	<import resource="robotMimetype.xml" />
+	<import resource="robotEncoding.xml" />
+	<import resource="robotUrlConverter.xml" />
+	<import resource="robotLog.xml" />
+	<import resource="robotSitemaps.xml" />
+
+	<!-- Container -->
+	<bean id="robotContainer" class="org.codelibs.robot.container.SpringRobotContainer">
+	</bean>
+
+	<!-- S2Robot -->
+	<bean id="s2Robot" class="org.codelibs.robot.S2Robot" scope="prototype">
+	</bean>
+
+	<!-- Robot Thread -->
+	<bean id="robotThread" class="org.codelibs.robot.S2RobotThread"
+		scope="prototype">
+	</bean>
+
+	<!-- Entity -->
+	<bean id="accessResult" class="org.codelibs.robot.entity.AccessResultImpl"
+		scope="prototype">
+	</bean>
+	<bean id="urlQueue" class="org.codelibs.robot.entity.UrlQueueImpl"
+		scope="prototype">
+	</bean>
+
+	<!-- Service -->
+	<bean id="urlQueueService" class="org.codelibs.robot.service.impl.UrlQueueServiceImpl"
+		scope="prototype">
+	</bean>
+	<bean id="dataService" class="org.codelibs.robot.service.impl.DataServiceImpl"
+		scope="prototype">
+	</bean>
+	<bean id="urlFilterService" class="org.codelibs.robot.service.impl.UrlFilterServiceImpl"
+		scope="prototype">
+	</bean>
+
+	<!-- Helper -->
+	<bean id="dataHelper" class="org.codelibs.robot.helper.MemoryDataHelper">
+	</bean>
+</beans>

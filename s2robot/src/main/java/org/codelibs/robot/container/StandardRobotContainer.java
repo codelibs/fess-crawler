@@ -58,6 +58,7 @@ public class StandardRobotContainer implements RobotContainer {
         return available;
     }
 
+    @Override
     public void destroy() {
         available = false;
         for (final ComponentHolder<?> componentHolder : singletonMap.values()) {

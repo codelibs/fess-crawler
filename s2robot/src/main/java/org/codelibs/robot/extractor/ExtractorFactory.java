@@ -52,4 +52,8 @@ public class ExtractorFactory {
     public Extractor getExtractor(final String key) {
         return extractorMap.get(key);
     }
+
+    public void setExtractorMap(final Map<String, Extractor> extractorMap) {
+        this.extractorMap = extractorMap;
+    }
 }

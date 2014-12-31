@@ -82,4 +82,8 @@ public class RuleManagerImpl implements RuleManager {
     public boolean removeRule(final Rule rule) {
         return ruleList.remove(rule);
     }
+
+    public void setRuleList(final List<Rule> ruleList) {
+        this.ruleList = ruleList;
+    }
 }

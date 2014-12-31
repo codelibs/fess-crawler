@@ -79,4 +79,8 @@ public class S2RobotClientFactory {
             }
         }
     }
+
+    public void setClientMap(final Map<Pattern, S2RobotClient> clientMap) {
+        this.clientMap = clientMap;
+    }
 }

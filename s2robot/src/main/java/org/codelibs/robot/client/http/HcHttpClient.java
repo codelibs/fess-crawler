@@ -142,51 +142,52 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     private TimeoutTask connectionMonitorTask;
 
-    public Integer accessTimeout; // sec
+    protected Integer accessTimeout; // sec
 
-    public Integer connectionTimeout;
+    protected Integer connectionTimeout;
 
-    public Integer maxTotalConnections;
+    protected Integer maxTotalConnections;
 
-    public Integer maxConnectionsPerRoute;
+    protected Integer maxConnectionsPerRoute;
 
-    public Boolean staleCheckingEnabled;
+    protected Boolean staleCheckingEnabled;
 
-    public Integer soTimeout;
+    protected Integer soTimeout;
 
-    public String cookieSpec;
+    protected String cookieSpec;
 
-    public String userAgent = "S2Robot";
+    protected String userAgent = "S2Robot";
 
-    public HttpClientContext httpClientContext = HttpClientContext.create();
+    protected HttpClientContext httpClientContext = HttpClientContext.create();
 
-    public String proxyHost;
+    protected String proxyHost;
 
-    public Integer proxyPort;
+    protected Integer proxyPort;
 
-    public AuthScheme proxyAuthScheme = new BasicScheme();
+    protected AuthScheme proxyAuthScheme = new BasicScheme();
 
-    public Credentials proxyCredentials;
+    protected Credentials proxyCredentials;
 
-    public int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
+    protected int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
-    public String defaultMimeType = "application/octet-stream";
+    protected String defaultMimeType = "application/octet-stream";
 
-    public CookieStore cookieStore = new BasicCookieStore();
+    protected CookieStore cookieStore = new BasicCookieStore();
 
-    public HttpClientConnectionManager clientConnectionManager;
+    protected HttpClientConnectionManager clientConnectionManager;
 
-    public Map<String, AuthSchemeProvider> authSchemeProviderMap;
+    protected Map<String, AuthSchemeProvider> authSchemeProviderMap;
 
-    public int connectionCheckInterval = 5; // sec
+    protected int connectionCheckInterval = 5; // sec
 
-    public long idleConnectionTimeout = 60 * 1000; // 1min
+    protected long idleConnectionTimeout = 60 * 1000; // 1min
 
-    public Pattern redirectHttpStatusPattern = Pattern.compile("[3][0-9][0-9]");
+    protected Pattern redirectHttpStatusPattern = Pattern
+            .compile("[3][0-9][0-9]");
 
-    public boolean useRobotsTxtDisallows = true;
+    protected boolean useRobotsTxtDisallows = true;
 
-    public boolean useRobotsTxtAllows = false;
+    protected boolean useRobotsTxtAllows = false;
 
     public synchronized void init() {
         if (httpClient != null) {
@@ -835,5 +836,101 @@ public class HcHttpClient extends AbstractS2RobotClient {
         public void stop() {
             running.set(false);
         }
+    }
+
+    public void setAccessTimeout(final Integer accessTimeout) {
+        this.accessTimeout = accessTimeout;
+    }
+
+    public void setConnectionTimeout(final Integer connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    public void setMaxTotalConnections(final Integer maxTotalConnections) {
+        this.maxTotalConnections = maxTotalConnections;
+    }
+
+    public void setMaxConnectionsPerRoute(final Integer maxConnectionsPerRoute) {
+        this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+    }
+
+    public void setStaleCheckingEnabled(final Boolean staleCheckingEnabled) {
+        this.staleCheckingEnabled = staleCheckingEnabled;
+    }
+
+    public void setSoTimeout(final Integer soTimeout) {
+        this.soTimeout = soTimeout;
+    }
+
+    public void setCookieSpec(final String cookieSpec) {
+        this.cookieSpec = cookieSpec;
+    }
+
+    public void setUserAgent(final String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public void setProxyHost(final String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public void setProxyPort(final Integer proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    public void setProxyAuthScheme(final AuthScheme proxyAuthScheme) {
+        this.proxyAuthScheme = proxyAuthScheme;
+    }
+
+    public void setProxyCredentials(final Credentials proxyCredentials) {
+        this.proxyCredentials = proxyCredentials;
+    }
+
+    public void setResponseBodyInMemoryThresholdSize(
+            final int responseBodyInMemoryThresholdSize) {
+        this.responseBodyInMemoryThresholdSize = responseBodyInMemoryThresholdSize;
+    }
+
+    public void setDefaultMimeType(final String defaultMimeType) {
+        this.defaultMimeType = defaultMimeType;
+    }
+
+    public void setCookieStore(final CookieStore cookieStore) {
+        this.cookieStore = cookieStore;
+    }
+
+    public void setHttpClientContext(final HttpClientContext httpClientContext) {
+        this.httpClientContext = httpClientContext;
+    }
+
+    public void setClientConnectionManager(
+            final HttpClientConnectionManager clientConnectionManager) {
+        this.clientConnectionManager = clientConnectionManager;
+    }
+
+    public void setAuthSchemeProviderMap(
+            final Map<String, AuthSchemeProvider> authSchemeProviderMap) {
+        this.authSchemeProviderMap = authSchemeProviderMap;
+    }
+
+    public void setConnectionCheckInterval(final int connectionCheckInterval) {
+        this.connectionCheckInterval = connectionCheckInterval;
+    }
+
+    public void setIdleConnectionTimeout(final long idleConnectionTimeout) {
+        this.idleConnectionTimeout = idleConnectionTimeout;
+    }
+
+    public void setRedirectHttpStatusPattern(
+            final Pattern redirectHttpStatusPattern) {
+        this.redirectHttpStatusPattern = redirectHttpStatusPattern;
+    }
+
+    public void setUseRobotsTxtDisallows(final boolean useRobotsTxtDisallows) {
+        this.useRobotsTxtDisallows = useRobotsTxtDisallows;
+    }
+
+    public void setUseRobotsTxtAllows(final boolean useRobotsTxtAllows) {
+        this.useRobotsTxtAllows = useRobotsTxtAllows;
     }
 }

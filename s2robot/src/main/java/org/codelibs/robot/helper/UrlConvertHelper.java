@@ -46,4 +46,8 @@ public class UrlConvertHelper {
         }
         convertMap.put(target, replacement);
     }
+
+    public void setConvertMap(final Map<String, String> convertMap) {
+        this.convertMap = convertMap;
+    }
 }

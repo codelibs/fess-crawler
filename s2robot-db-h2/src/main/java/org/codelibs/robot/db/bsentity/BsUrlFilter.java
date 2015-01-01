@@ -1,32 +1,16 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
 import org.codelibs.robot.db.exentity.UrlFilter;
-import org.seasar.dbflute.Entity;
-import org.seasar.dbflute.dbmeta.DBMeta;
+import org.dbflute.dbmeta.AbstractEntity;
+import org.dbflute.dbmeta.DBMeta;
+import org.dbflute.dbmeta.accessory.DomainEntity;
 
 /**
- * The entity of URL_FILTER as TABLE. <br />
+ * The entity of URL_FILTER as TABLE. <br>
  * <pre>
  * [primary-key]
  *     ID
@@ -61,7 +45,7 @@ import org.seasar.dbflute.dbmeta.DBMeta;
  * String sessionId = entity.getSessionId();
  * String url = entity.getUrl();
  * String filterType = entity.getFilterType();
- * java.sql.Timestamp createTime = entity.getCreateTime();
+ * Long createTime = entity.getCreateTime();
  * entity.setId(id);
  * entity.setSessionId(sessionId);
  * entity.setUrl(url);
@@ -71,20 +55,18 @@ import org.seasar.dbflute.dbmeta.DBMeta;
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsUrlFilter implements Entity, Serializable, Cloneable {
+public abstract class BsUrlFilter extends AbstractEntity implements
+        DomainEntity {
 
     // ===================================================================================
     //                                                                          Definition
     //                                                                          ==========
-    /** Serial version UID. (Default) */
+    /** The serial version UID for object serialization. (Default) */
     private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    // -----------------------------------------------------
-    //                                                Column
-    //                                                ------
     /** ID: {PK, ID, NotNull, BIGINT(19)} */
     protected Long _id;
 
@@ -97,77 +79,34 @@ public abstract class BsUrlFilter implements Entity, Serializable, Cloneable {
     /** FILTER_TYPE: {NotNull, VARCHAR(1)} */
     protected String _filterType;
 
-    /** CREATE_TIME: {NotNull, TIMESTAMP(23, 10)} */
-    protected java.sql.Timestamp _createTime;
-
-    // -----------------------------------------------------
-    //                                              Internal
-    //                                              --------
-    /** The unique-driven properties for this entity. (NotNull) */
-    protected final EntityUniqueDrivenProperties __uniqueDrivenProperties =
-        newUniqueDrivenProperties();
-
-    /** The modified properties for this entity. (NotNull) */
-    protected final EntityModifiedProperties __modifiedProperties =
-        newModifiedProperties();
-
-    /** Is the entity created by DBFlute select process? */
-    protected boolean __createdBySelect;
+    /** CREATE_TIME: {NotNull, BIGINT(19)} */
+    protected Long _createTime;
 
     // ===================================================================================
-    //                                                                          Table Name
-    //                                                                          ==========
-    /**
-     * {@inheritDoc}
-     */
+    //                                                                             DB Meta
+    //                                                                             =======
+    /** {@inheritDoc} */
     @Override
-    public String getTableDbName() {
+    public DBMeta asDBMeta() {
+        return DBMetaInstanceHandler.findDBMeta(asTableDbName());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String asTableDbName() {
         return "URL_FILTER";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getTablePropertyName() { // according to Java Beans rule
-        return "urlFilter";
-    }
-
-    // ===================================================================================
-    //                                                                              DBMeta
-    //                                                                              ======
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DBMeta getDBMeta() {
-        return DBMetaInstanceHandler.findDBMeta(getTableDbName());
     }
 
     // ===================================================================================
     //                                                                         Primary Key
     //                                                                         ===========
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasPrimaryKeyValue() {
-        if (getId() == null) {
+        if (_id == null) {
             return false;
         }
         return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> myuniqueDrivenProperties() {
-        return __uniqueDrivenProperties.getPropertyNames();
-    }
-
-    protected EntityUniqueDrivenProperties newUniqueDrivenProperties() {
-        return new EntityUniqueDrivenProperties();
     }
 
     // ===================================================================================
@@ -176,156 +115,48 @@ public abstract class BsUrlFilter implements Entity, Serializable, Cloneable {
     // ===================================================================================
     //                                                                   Referrer Property
     //                                                                   =================
+    @Override
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
 
     // ===================================================================================
-    //                                                                 Modified Properties
-    //                                                                 ===================
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> modifiedProperties() {
-        return __modifiedProperties.getPropertyNames();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void clearModifiedInfo() {
-        __modifiedProperties.clear();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasModification() {
-        return !__modifiedProperties.isEmpty();
-    }
-
-    protected EntityModifiedProperties newModifiedProperties() {
-        return new EntityModifiedProperties();
-    }
-
-    // ===================================================================================
-    //                                                                     Birthplace Mark
-    //                                                                     ===============
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void markAsSelect() {
-        __createdBySelect = true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean createdBySelect() {
-        return __createdBySelect;
-    }
-
-    // ===================================================================================
     //                                                                      Basic Override
     //                                                                      ==============
-    /**
-     * Determine the object is equal with this. <br />
-     * If primary-keys or columns of the other are same as this one, returns true.
-     * @param obj The object as other entity. (NullAllowed: if null, returns false fixedly)
-     * @return Comparing result.
-     */
     @Override
-    public boolean equals(final Object obj) {
-        if (obj == null || !(obj instanceof BsUrlFilter)) {
+    protected boolean doEquals(final Object obj) {
+        if (obj instanceof BsUrlFilter) {
+            final BsUrlFilter other = (BsUrlFilter) obj;
+            if (!xSV(_id, other._id)) {
+                return false;
+            }
+            return true;
+        } else {
             return false;
         }
-        final BsUrlFilter other = (BsUrlFilter) obj;
-        if (!xSV(getId(), other.getId())) {
-            return false;
-        }
-        return true;
     }
 
-    protected boolean xSV(final Object v1, final Object v2) {
-        return FunCustodial.isSameValue(v1, v2);
-    }
-
-    /**
-     * Calculate the hash-code from primary-keys or columns.
-     * @return The hash-code from primary-key or columns.
-     */
     @Override
-    public int hashCode() {
-        int hs = 17;
-        hs = xCH(hs, getTableDbName());
-        hs = xCH(hs, getId());
+    protected int doHashCode(final int initial) {
+        int hs = initial;
+        hs = xCH(hs, asTableDbName());
+        hs = xCH(hs, _id);
         return hs;
     }
 
-    protected int xCH(final int hs, final Object vl) {
-        return FunCustodial.calculateHashcode(hs, vl);
+    @Override
+    protected String doBuildStringWithRelation(final String li) {
+        return "";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public int instanceHash() {
-        return super.hashCode();
-    }
-
-    /**
-     * Convert to display string of entity's data. (no relation data)
-     * @return The display string of all columns and relation existences. (NotNull)
-     */
-    @Override
-    public String toString() {
-        return buildDisplayString(FunCustodial.toClassTitle(this), true, true);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toStringWithRelation() {
+    protected String doBuildColumnString(final String dm) {
         final StringBuilder sb = new StringBuilder();
-        sb.append(toString());
-        return sb.toString();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String buildDisplayString(final String name, final boolean column,
-            final boolean relation) {
-        final StringBuilder sb = new StringBuilder();
-        if (name != null) {
-            sb.append(name).append(column || relation ? ":" : "");
-        }
-        if (column) {
-            sb.append(buildColumnString());
-        }
-        if (relation) {
-            sb.append(buildRelationString());
-        }
-        sb.append("@").append(Integer.toHexString(hashCode()));
-        return sb.toString();
-    }
-
-    protected String buildColumnString() {
-        final StringBuilder sb = new StringBuilder();
-        final String dm = ", ";
-        sb.append(dm).append(getId());
-        sb.append(dm).append(getSessionId());
-        sb.append(dm).append(getUrl());
-        sb.append(dm).append(getFilterType());
-        sb.append(dm).append(getCreateTime());
+        sb.append(dm).append(xfND(_id));
+        sb.append(dm).append(xfND(_sessionId));
+        sb.append(dm).append(xfND(_url));
+        sb.append(dm).append(xfND(_filterType));
+        sb.append(dm).append(xfND(_createTime));
         if (sb.length() > dm.length()) {
             sb.delete(0, dm.length());
         }
@@ -333,109 +164,106 @@ public abstract class BsUrlFilter implements Entity, Serializable, Cloneable {
         return sb.toString();
     }
 
-    protected String buildRelationString() {
+    @Override
+    protected String doBuildRelationString(final String dm) {
         return "";
     }
 
-    /**
-     * Clone entity instance using super.clone(). (shallow copy)
-     * @return The cloned instance of this entity. (NotNull)
-     */
     @Override
     public UrlFilter clone() {
-        try {
-            return (UrlFilter) super.clone();
-        } catch (final CloneNotSupportedException e) {
-            throw new IllegalStateException("Failed to clone the entity: "
-                + toString(), e);
-        }
+        return (UrlFilter) super.clone();
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * [get] ID: {PK, ID, NotNull, BIGINT(19)} <br />
+     * [get] ID: {PK, ID, NotNull, BIGINT(19)} <br>
      * @return The value of the column 'ID'. (basically NotNull if selected: for the constraint)
      */
     public Long getId() {
+        checkSpecifiedProperty("id");
         return _id;
     }
 
     /**
-     * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br />
+     * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br>
      * @param id The value of the column 'ID'. (basically NotNull if update: for the constraint)
      */
     public void setId(final Long id) {
-        __modifiedProperties.addPropertyName("id");
+        registerModifiedProperty("id");
         _id = id;
     }
 
     /**
-     * [get] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br />
+     * [get] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br>
      * @return The value of the column 'SESSION_ID'. (basically NotNull if selected: for the constraint)
      */
     public String getSessionId() {
+        checkSpecifiedProperty("sessionId");
         return _sessionId;
     }
 
     /**
-     * [set] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br />
+     * [set] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br>
      * @param sessionId The value of the column 'SESSION_ID'. (basically NotNull if update: for the constraint)
      */
     public void setSessionId(final String sessionId) {
-        __modifiedProperties.addPropertyName("sessionId");
+        registerModifiedProperty("sessionId");
         _sessionId = sessionId;
     }
 
     /**
-     * [get] URL: {NotNull, VARCHAR(65536)} <br />
+     * [get] URL: {NotNull, VARCHAR(65536)} <br>
      * @return The value of the column 'URL'. (basically NotNull if selected: for the constraint)
      */
     public String getUrl() {
+        checkSpecifiedProperty("url");
         return _url;
     }
 
     /**
-     * [set] URL: {NotNull, VARCHAR(65536)} <br />
+     * [set] URL: {NotNull, VARCHAR(65536)} <br>
      * @param url The value of the column 'URL'. (basically NotNull if update: for the constraint)
      */
     public void setUrl(final String url) {
-        __modifiedProperties.addPropertyName("url");
+        registerModifiedProperty("url");
         _url = url;
     }
 
     /**
-     * [get] FILTER_TYPE: {NotNull, VARCHAR(1)} <br />
+     * [get] FILTER_TYPE: {NotNull, VARCHAR(1)} <br>
      * @return The value of the column 'FILTER_TYPE'. (basically NotNull if selected: for the constraint)
      */
     public String getFilterType() {
+        checkSpecifiedProperty("filterType");
         return _filterType;
     }
 
     /**
-     * [set] FILTER_TYPE: {NotNull, VARCHAR(1)} <br />
+     * [set] FILTER_TYPE: {NotNull, VARCHAR(1)} <br>
      * @param filterType The value of the column 'FILTER_TYPE'. (basically NotNull if update: for the constraint)
      */
     public void setFilterType(final String filterType) {
-        __modifiedProperties.addPropertyName("filterType");
+        registerModifiedProperty("filterType");
         _filterType = filterType;
     }
 
     /**
-     * [get] CREATE_TIME: {NotNull, TIMESTAMP(23, 10)} <br />
+     * [get] CREATE_TIME: {NotNull, BIGINT(19)} <br>
      * @return The value of the column 'CREATE_TIME'. (basically NotNull if selected: for the constraint)
      */
-    public java.sql.Timestamp getCreateTime() {
+    public Long getCreateTime() {
+        checkSpecifiedProperty("createTime");
         return _createTime;
     }
 
     /**
-     * [set] CREATE_TIME: {NotNull, TIMESTAMP(23, 10)} <br />
+     * [set] CREATE_TIME: {NotNull, BIGINT(19)} <br>
      * @param createTime The value of the column 'CREATE_TIME'. (basically NotNull if update: for the constraint)
      */
-    public void setCreateTime(final java.sql.Timestamp createTime) {
-        __modifiedProperties.addPropertyName("createTime");
+    public void setCreateTime(final Long createTime) {
+        registerModifiedProperty("createTime");
         _createTime = createTime;
     }
 }

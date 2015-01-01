@@ -1,18 +1,3 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity.dbmeta;
 
 import java.util.List;
@@ -22,14 +7,15 @@ import org.codelibs.robot.db.allcommon.DBCurrent;
 import org.codelibs.robot.db.allcommon.DBFluteConfig;
 import org.codelibs.robot.db.exentity.AccessResult;
 import org.codelibs.robot.db.exentity.AccessResultData;
-import org.seasar.dbflute.DBDef;
-import org.seasar.dbflute.Entity;
-import org.seasar.dbflute.dbmeta.AbstractDBMeta;
-import org.seasar.dbflute.dbmeta.PropertyGateway;
-import org.seasar.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.dbflute.dbmeta.info.ForeignInfo;
-import org.seasar.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.dbflute.dbmeta.name.TableSqlName;
+import org.dbflute.Entity;
+import org.dbflute.dbmeta.AbstractDBMeta;
+import org.dbflute.dbmeta.info.ColumnInfo;
+import org.dbflute.dbmeta.info.ForeignInfo;
+import org.dbflute.dbmeta.info.UniqueInfo;
+import org.dbflute.dbmeta.name.TableSqlName;
+import org.dbflute.dbmeta.property.PropertyGateway;
+import org.dbflute.dbway.DBDef;
+import org.dbflute.optional.OptionalEntity;
 
 /**
  * The DB meta of ACCESS_RESULT_DATA. (Singleton)
@@ -40,8 +26,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                           Singleton
     //                                                                           =========
-    private static final AccessResultDataDbm _instance =
-        new AccessResultDataDbm();
+    private static final AccessResultDataDbm _instance = new AccessResultDataDbm();
 
     private AccessResultDataDbm() {
     }
@@ -53,6 +38,21 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                       Current DBDef
     //                                                                       =============
+    @Override
+    public String getProjectName() {
+        return DBCurrent.getInstance().projectName();
+    }
+
+    @Override
+    public String getProjectPrefix() {
+        return DBCurrent.getInstance().projectPrefix();
+    }
+
+    @Override
+    public String getGenerationGapBasePrefix() {
+        return DBCurrent.getInstance().generationGapBasePrefix();
+    }
+
     @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
@@ -66,58 +66,21 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
-        setupEpg(_epgMap, new EpgId(), "id");
-        setupEpg(_epgMap, new EpgTransformerName(), "transformerName");
-        setupEpg(_epgMap, new EpgData(), "data");
-        setupEpg(_epgMap, new EpgEncoding(), "encoding");
+        xsetupEpg();
     }
 
-    public static class EpgId implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultData) et).getId();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultData) et).setId(ctl(vl));
-        }
-    }
-
-    public static class EpgTransformerName implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultData) et).getTransformerName();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultData) et).setTransformerName((String) vl);
-        }
-    }
-
-    public static class EpgData implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultData) et).getData();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultData) et).setData((byte[]) vl);
-        }
-    }
-
-    public static class EpgEncoding implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultData) et).getEncoding();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultData) et).setEncoding((String) vl);
-        }
+    protected void xsetupEpg() {
+        setupEpg(_epgMap, et -> ((AccessResultData) et).getId(),
+                (et, vl) -> ((AccessResultData) et).setId(ctl(vl)), "id");
+        setupEpg(_epgMap, et -> ((AccessResultData) et).getTransformerName(),
+                (et, vl) -> ((AccessResultData) et)
+                        .setTransformerName((String) vl), "transformerName");
+        setupEpg(_epgMap, et -> ((AccessResultData) et).getData(),
+                (et, vl) -> ((AccessResultData) et).setData((byte[]) vl),
+                "data");
+        setupEpg(_epgMap, et -> ((AccessResultData) et).getEncoding(),
+                (et, vl) -> ((AccessResultData) et).setEncoding((String) vl),
+                "encoding");
     }
 
     @Override
@@ -130,19 +93,15 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     //                                      ----------------
     protected final Map<String, PropertyGateway> _efpgMap = newHashMap();
     {
-        setupEfpg(_efpgMap, new EfpgAccessResult(), "accessResult");
+        xsetupEfpg();
     }
 
-    public class EfpgAccessResult implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultData) et).getAccessResult();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultData) et).setAccessResult((AccessResult) vl);
-        }
+    @SuppressWarnings("unchecked")
+    protected void xsetupEfpg() {
+        setupEfpg(_efpgMap, et -> ((AccessResultData) et).getAccessResult(),
+                (et, vl) -> ((AccessResultData) et)
+                        .setAccessResult((OptionalEntity<AccessResult>) vl),
+                "accessResult");
     }
 
     @Override
@@ -158,12 +117,10 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     protected final String _tablePropertyName = "accessResultData";
 
     protected final TableSqlName _tableSqlName = new TableSqlName(
-        "ACCESS_RESULT_DATA",
-        _tableDbName);
+            "ACCESS_RESULT_DATA", _tableDbName);
     {
-        _tableSqlName.xacceptFilter(DBFluteConfig
-            .getInstance()
-            .getTableSqlNameFilter());
+        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
+                .getTableSqlNameFilter());
     }
 
     @Override
@@ -184,93 +141,22 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
-    protected final ColumnInfo _columnId = cci(
-        "ID",
-        "ID",
-        null,
-        null,
-        Long.class,
-        "id",
-        null,
-        true,
-        false,
-        true,
-        "BIGINT",
-        19,
-        0,
-        null,
-        false,
-        null,
-        null,
-        "accessResult",
-        null,
-        null);
+    protected final ColumnInfo _columnId = cci("ID", "ID", null, null,
+            Long.class, "id", null, true, false, true, "BIGINT", 19, 0, null,
+            false, null, null, "accessResult", null, null, false);
 
-    protected final ColumnInfo _columnTransformerName = cci(
-        "TRANSFORMER_NAME",
-        "TRANSFORMER_NAME",
-        null,
-        null,
-        String.class,
-        "transformerName",
-        null,
-        false,
-        false,
-        true,
-        "VARCHAR",
-        255,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnTransformerName = cci("TRANSFORMER_NAME",
+            "TRANSFORMER_NAME", null, null, String.class, "transformerName",
+            null, false, false, true, "VARCHAR", 255, 0, null, false, null,
+            null, null, null, null, false);
 
-    protected final ColumnInfo _columnData = cci(
-        "DATA",
-        "DATA",
-        null,
-        null,
-        byte[].class,
-        "data",
-        null,
-        false,
-        false,
-        false,
-        "BLOB",
-        2147483647,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnData = cci("DATA", "DATA", null, null,
+            byte[].class, "data", null, false, false, false, "BLOB",
+            2147483647, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnEncoding = cci(
-        "ENCODING",
-        "ENCODING",
-        null,
-        null,
-        String.class,
-        "encoding",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        20,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnEncoding = cci("ENCODING", "ENCODING",
+            null, null, String.class, "encoding", null, false, false, false,
+            "VARCHAR", 20, 0, null, false, null, null, null, null, null, false);
 
     /**
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
@@ -352,26 +238,12 @@ public class AccessResultDataDbm extends AbstractDBMeta {
      * @return The information object of foreign property. (NotNull)
      */
     public ForeignInfo foreignAccessResult() {
-        final Map<ColumnInfo, ColumnInfo> mp =
-            newLinkedHashMap(columnId(), AccessResultDbm
-                .getInstance()
-                .columnId());
-        return cfi(
-            "CONSTRAINT_13",
-            "accessResult",
-            this,
-            AccessResultDbm.getInstance(),
-            mp,
-            0,
-            null,
-            true,
-            false,
-            false,
-            false,
-            null,
-            null,
-            false,
-            "accessResultDataAsOne");
+        final Map<ColumnInfo, ColumnInfo> mp = newLinkedHashMap(columnId(),
+                AccessResultDbm.getInstance().columnId());
+        return cfi("CONSTRAINT_13", "accessResult", this,
+                AccessResultDbm.getInstance(), mp, 0,
+                org.dbflute.optional.OptionalEntity.class, true, false, false,
+                false, null, null, false, "accessResultDataAsOne", false);
     }
 
     // -----------------------------------------------------
@@ -412,11 +284,7 @@ public class AccessResultDataDbm extends AbstractDBMeta {
     //                                                                     Object Instance
     //                                                                     ===============
     @Override
-    public Entity newEntity() {
-        return newMyEntity();
-    }
-
-    public AccessResultData newMyEntity() {
+    public AccessResultData newEntity() {
         return new AccessResultData();
     }
 

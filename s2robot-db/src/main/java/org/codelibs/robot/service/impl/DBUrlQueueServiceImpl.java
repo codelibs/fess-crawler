@@ -15,10 +15,8 @@
  */
 package org.codelibs.robot.service.impl;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,19 +25,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
+import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.db.cbean.AccessResultCB;
-import org.codelibs.robot.db.cbean.UrlQueueCB;
 import org.codelibs.robot.db.exbhv.AccessResultBhv;
 import org.codelibs.robot.db.exbhv.UrlQueueBhv;
 import org.codelibs.robot.db.exentity.AccessResult;
-import org.codelibs.robot.dbflute.cbean.PagingResultBean;
+import org.codelibs.robot.dbflute.cbean.result.PagingResultBean;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.service.UrlQueueService;
 import org.codelibs.robot.util.LruHashMap;
-import org.codelibs.core.lang.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author shinsuke
@@ -50,13 +48,11 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     private static final String EMPTY_STRING = "";
 
     private static final Logger logger = LoggerFactory
-        .getLogger(DBUrlQueueServiceImpl.class);
+            .getLogger(DBUrlQueueServiceImpl.class);
 
-    protected static volatile Map<String, LinkedList<UrlQueue>> URL_QUEUE_MAP =
-        new HashMap<>();
+    protected static volatile Map<String, LinkedList<UrlQueue>> URL_QUEUE_MAP = new HashMap<>();
 
-    private static ConcurrentHashMap<String, Map<String, String>> VISITED_URL_CACHE_MAP =
-        new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Map<String, String>> VISITED_URL_CACHE_MAP = new ConcurrentHashMap<>();
 
     public int cacheSize = 1000;
 
@@ -87,11 +83,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.UrlQueueService#updateSessionId(java.lang.String
-     * , java.lang.String)
+     * @see org.codelibs.robot.service.UrlQueueService#updateSessionId(java.lang.String, java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void updateSessionId(final String oldSessionId,
             final String newSessionId) {
         // not MT-safe
@@ -104,20 +99,19 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /*
      * (non-Javadoc)
      *
-     * @see org.codelibs.robot.service.UrlQueueService#add(java.lang.String,
-     * java.lang.String)
+     * @see org.codelibs.robot.service.UrlQueueService#add(java.lang.String, java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void add(final String sessionId, final String url) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final UrlQueue urlQueue =
-                new org.codelibs.robot.db.exentity.UrlQueue();
+            final UrlQueue urlQueue = new org.codelibs.robot.db.exentity.UrlQueue();
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
             urlQueue.setUrl(url);
             urlQueue.setDepth(0);
-            urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
+            urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
             urlQueueList.add(urlQueue);
         }
     }
@@ -125,11 +119,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.UrlQueueService#insert(org.codelibs.robot.entity
-     * .UrlQueue)
+     * @see org.codelibs.robot.service.UrlQueueService#insert(org.codelibs.robot.entity.UrlQueue)
      */
     @Override
+    @Transactional("robotTx")
     public void insert(final UrlQueue urlQueue) {
         urlQueueBhv.insert((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
     }
@@ -140,6 +133,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#delete(java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void delete(final String sessionId) {
         final int count = urlQueueBhv.deleteBySessionId(sessionId);
 
@@ -159,6 +153,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#deleteAll()
      */
     @Override
+    @Transactional("robotTx")
     public void deleteAll() {
         final int count = urlQueueBhv.deleteAll();
 
@@ -175,20 +170,19 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /*
      * (non-Javadoc)
      *
-     * @see org.codelibs.robot.service.UrlQueueService#offerAll(java.lang.String,
-     * java.util.List)
+     * @see org.codelibs.robot.service.UrlQueueService#offerAll(java.lang.String, java.util.List)
      */
     @Override
+    @Transactional("robotTx")
     public void offerAll(final String sessionId,
             final List<UrlQueue> newUrlQueueList) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final List<org.codelibs.robot.db.exentity.UrlQueue> targetList =
-                new ArrayList<>();
+            final List<org.codelibs.robot.db.exentity.UrlQueue> targetList = new ArrayList<>();
             for (final UrlQueue urlQueue : newUrlQueueList) {
                 if (isNewUrl(urlQueue, urlQueueList, true)) {
                     targetList
-                        .add((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
+                            .add((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
                 }
             }
             urlQueueBhv.batchInsert(targetList);
@@ -196,14 +190,14 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     }
 
     private Map<String, String> getVisitedUrlCache(final String sessionId) {
-        Map<String, String> visitedUrlMap =
-            VISITED_URL_CACHE_MAP.get(sessionId);
+        Map<String, String> visitedUrlMap = VISITED_URL_CACHE_MAP
+                .get(sessionId);
         if (visitedUrlMap == null) {
-            visitedUrlMap =
-                Collections.synchronizedMap(new LruHashMap<String, String>(
-                    visitedUrlCacheSize));
-            final Map<String, String> urlMap =
-                VISITED_URL_CACHE_MAP.putIfAbsent(sessionId, visitedUrlMap);
+            visitedUrlMap = Collections
+                    .synchronizedMap(new LruHashMap<String, String>(
+                            visitedUrlCacheSize));
+            final Map<String, String> urlMap = VISITED_URL_CACHE_MAP
+                    .putIfAbsent(sessionId, visitedUrlMap);
             if (urlMap != null) {
                 visitedUrlMap = urlMap;
             }
@@ -225,7 +219,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         if (cache) {
             final String sessionId = urlQueue.getSessionId();
             // cache
-            String cacheKey = getCacheKey(urlQueue);
+            final String cacheKey = getCacheKey(urlQueue);
             if (getVisitedUrlCache(sessionId).containsKey(cacheKey)) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("URL exists in a cache: " + url);
@@ -246,11 +240,12 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
 
         // check it in queue db
-        final UrlQueueCB cb1 = new UrlQueueCB();
-        cb1.query().setUrl_Equal(url);
-        cb1.query().setMetaData_Equal(urlQueue.getMetaData());
-        cb1.query().setSessionId_Equal(urlQueue.getSessionId());
-        final int count1 = urlQueueBhv.selectCount(cb1);
+        final int count1 = urlQueueBhv.selectCount(cb1 -> {
+            cb1.ignoreNullOrEmptyQuery();
+            cb1.query().setUrl_Equal(url);
+            cb1.query().setMetaData_Equal(urlQueue.getMetaData());
+            cb1.query().setSessionId_Equal(urlQueue.getSessionId());
+        });
         if (count1 > 0) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL exists in a queue db: " + url);
@@ -259,10 +254,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         }
 
         // check it in result
-        final AccessResultCB cb2 = new AccessResultCB();
-        cb2.query().setUrl_Equal(url);
-        cb2.query().setSessionId_Equal(urlQueue.getSessionId());
-        final int count2 = accessResultBhv.selectCount(cb2);
+        final int count2 = accessResultBhv.selectCount(cb2 -> {
+            cb2.query().setUrl_Equal(url);
+            cb2.query().setSessionId_Equal(urlQueue.getSessionId());
+        });
         if (count2 > 0) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL exists in a result: " + url);
@@ -284,15 +279,16 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#poll(java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public UrlQueue poll(final String sessionId) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             if (urlQueueList.isEmpty()) {
-                UrlQueueCB cb = new UrlQueueCB();
-                cb.paging(cacheSize, 1);
-                cb.query().setSessionId_Equal(sessionId);
-                final List<org.codelibs.robot.db.exentity.UrlQueue> uqList =
-                    urlQueueBhv.selectPage(cb);
+                final List<org.codelibs.robot.db.exentity.UrlQueue> uqList = urlQueueBhv
+                        .selectPage(cb -> {
+                            cb.paging(cacheSize, 1);
+                            cb.query().setSessionId_Equal(sessionId);
+                        });
                 if (!uqList.isEmpty()) {
                     urlQueueList.addAll(uqList);
 
@@ -300,9 +296,9 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
                     for (final UrlQueue uq : uqList) {
                         idList.add(uq.getId());
                     }
-                    cb = new UrlQueueCB();
-                    cb.query().setId_InScope(idList);
-                    urlQueueBhv.queryDelete(cb);
+                    urlQueueBhv.queryDelete(cb -> {
+                        cb.query().setId_InScope(idList);
+                    });
                 }
             }
 
@@ -313,20 +309,19 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.UrlQueueService#saveSession(java.lang.String)
+     * @see org.codelibs.robot.service.UrlQueueService#saveSession(java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void saveSession(final String sessionId) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final List<org.codelibs.robot.db.exentity.UrlQueue> targetUrlQueueList =
-                new ArrayList<>();
+            final List<org.codelibs.robot.db.exentity.UrlQueue> targetUrlQueueList = new ArrayList<>();
             for (final UrlQueue urlQueue : urlQueueList) {
                 // clear id
                 urlQueue.setId(null);
                 targetUrlQueueList
-                    .add((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
+                        .add((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
             }
             urlQueueBhv.batchInsert(targetUrlQueueList);
             urlQueueList.clear();
@@ -339,9 +334,10 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#visited(UrlQueue)
      */
     @Override
+    @Transactional("robotTx")
     public boolean visited(final UrlQueue urlQueue) {
-        final LinkedList<UrlQueue> urlQueueList =
-            getUrlQueueList(urlQueue.getSessionId());
+        final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(urlQueue
+                .getSessionId());
         synchronized (urlQueueList) {
             return !isNewUrl(urlQueue, urlQueueList, false);
         }
@@ -350,34 +346,35 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.UrlQueueService#generateUrlQueues(java.lang.
-     * String, java.lang.String)
+     * @see org.codelibs.robot.service.UrlQueueService#generateUrlQueues(java.lang.String, java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void generateUrlQueues(final String previousSessionId,
             final String sessionId) {
-        final AccessResultCB cb = new AccessResultCB();
-        cb.query().setSessionId_Equal(previousSessionId);
-        cb.query().addOrderBy_CreateTime_Asc();
-        final int count = accessResultBhv.selectCount(cb);
-        final List<org.codelibs.robot.db.exentity.UrlQueue> urlQueueList =
-            new ArrayList<>();
+        final int count = accessResultBhv.selectCount(cb -> {
+            cb.query().setSessionId_Equal(previousSessionId);
+            cb.query().addOrderBy_CreateTime_Asc();
+        });
+        final List<org.codelibs.robot.db.exentity.UrlQueue> urlQueueList = new ArrayList<>();
         for (int i = 0; i * generatedUrlQueueSize < count; i++) {
             urlQueueList.clear();
-            cb.paging(generatedUrlQueueSize, i + 1);
-            final PagingResultBean<AccessResult> selectPage =
-                accessResultBhv.selectPage(cb);
+            final int num = i;
+            final PagingResultBean<AccessResult> selectPage = accessResultBhv
+                    .selectPage(cb -> {
+                        cb.query().setSessionId_Equal(previousSessionId);
+                        cb.query().addOrderBy_CreateTime_Asc();
+                        cb.paging(generatedUrlQueueSize, num + 1);
+                    });
             for (final AccessResult entity : selectPage) {
-                final org.codelibs.robot.db.exentity.UrlQueue urlQueue =
-                    new org.codelibs.robot.db.exentity.UrlQueue();
+                final org.codelibs.robot.db.exentity.UrlQueue urlQueue = new org.codelibs.robot.db.exentity.UrlQueue();
                 urlQueue.setSessionId(sessionId);
                 urlQueue.setMethod(entity.getMethod());
                 urlQueue.setUrl(entity.getUrl());
                 urlQueue.setParentUrl(entity.getParentUrl());
                 urlQueue.setDepth(0);
                 urlQueue.setLastModified(entity.getLastModified());
-                urlQueue.setCreateTime(new Timestamp(new Date().getTime()));
+                urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
                 urlQueueList.add(urlQueue);
             }
             urlQueueBhv.batchInsert(urlQueueList);

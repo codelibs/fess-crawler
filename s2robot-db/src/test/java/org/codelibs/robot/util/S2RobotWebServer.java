@@ -92,7 +92,7 @@ public class S2RobotWebServer {
             buf.append("Disallow: /admin/").append('\n');
             buf.append("Disallow: /websvn/").append('\n');
             final File robotTxtFile = new File(tempDir, "robots.txt");
-            FileUtil.write(robotTxtFile.getAbsolutePath(), buf
+            FileUtil.writeBytes(robotTxtFile.getAbsolutePath(), buf
                 .toString()
                 .getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
@@ -115,12 +115,12 @@ public class S2RobotWebServer {
 
         final File indexFile = new File(dir, "index.html");
         indexFile.deleteOnExit();
-        FileUtil.write(indexFile.getAbsolutePath(), content.getBytes("UTF-8"));
+        FileUtil.writeBytes(indexFile.getAbsolutePath(), content.getBytes("UTF-8"));
 
         for (int i = 1; i <= 10; i++) {
             final File file = new File(dir, "file" + count + "-" + i + ".html");
             file.deleteOnExit();
-            FileUtil.write(file.getAbsolutePath(), content.getBytes("UTF-8"));
+            FileUtil.writeBytes(file.getAbsolutePath(), content.getBytes("UTF-8"));
             final File childDir = new File(dir, "dir" + count + "-" + i);
             childDir.mkdirs();
             generateContents(childDir, count - 1);

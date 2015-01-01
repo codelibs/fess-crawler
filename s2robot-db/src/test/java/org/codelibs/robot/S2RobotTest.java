@@ -17,6 +17,8 @@ package org.codelibs.robot;
 
 import java.io.File;
 
+import org.codelibs.robot.container.RobotContainer;
+import org.codelibs.robot.container.SpringRobotContainer;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.filter.impl.UrlFilterImpl;
@@ -26,7 +28,7 @@ import org.codelibs.robot.service.UrlQueueService;
 import org.codelibs.robot.transformer.impl.FileTransformer;
 import org.codelibs.robot.util.AccessResultCallback;
 import org.codelibs.robot.util.S2RobotWebServer;
-import org.seasar.extension.unit.PlainTestCase;
+import org.dbflute.utflute.core.PlainTestCase;
 
 public class S2RobotTest extends PlainTestCase {
 
@@ -40,9 +42,24 @@ public class S2RobotTest extends PlainTestCase {
 
     public FileTransformer fileTransformer;
 
+    private RobotContainer container;
+
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    public void setUp() throws Exception {
+        super.setUp();
+
+        container = SpringRobotContainer.create("robotDb.xml");
+
+        s2Robot = container.getComponent("s2Robot");
+        dataService = container.getComponent("dataService");
+        urlQueueService = container.getComponent("urlQueueService");
+        fileTransformer = container.getComponent("fileTransformer");
+
+    }
+    @Override
+    public void tearDown() throws Exception {
+        container.destroy();
+        super.tearDown();
     }
 
     public void test_executeTx() throws Exception {
@@ -89,20 +106,20 @@ public class S2RobotTest extends PlainTestCase {
             file.deleteOnExit();
             fileTransformer.setPath(file.getAbsolutePath());
 
-            final S2Robot s2Robot1 = (S2Robot) getComponent(S2Robot.class);
+            final S2Robot s2Robot1 = container.getComponent("s2Robot");
             s2Robot1.setBackground(true);
             ((UrlFilterImpl) s2Robot1.urlFilter)
-                .setIncludeFilteringPattern("$1$2$3.*");
+                    .setIncludeFilteringPattern("$1$2$3.*");
             s2Robot1.addUrl(url1);
             s2Robot1.getRobotContext().setMaxAccessCount(maxCount);
             s2Robot1.getRobotContext().setNumOfThread(numOfThread);
 
             Thread.sleep(100);
 
-            final S2Robot s2Robot2 = (S2Robot) getComponent(S2Robot.class);
+            final S2Robot s2Robot2 = container.getComponent("s2Robot");
             s2Robot2.setBackground(true);
             ((UrlFilterImpl) s2Robot2.urlFilter)
-                .setIncludeFilteringPattern("$1$2$3.*");
+                    .setIncludeFilteringPattern("$1$2$3.*");
             s2Robot2.addUrl(url2);
             s2Robot2.getRobotContext().setMaxAccessCount(maxCount);
             s2Robot2.getRobotContext().setNumOfThread(numOfThread);

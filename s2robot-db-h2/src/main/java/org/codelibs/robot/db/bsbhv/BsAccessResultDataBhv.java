@@ -1,51 +1,39 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsbhv;
 
 import java.util.List;
 
+import org.codelibs.robot.db.bsbhv.loader.LoaderOfAccessResultData;
 import org.codelibs.robot.db.bsentity.dbmeta.AccessResultDataDbm;
 import org.codelibs.robot.db.cbean.AccessResultDataCB;
 import org.codelibs.robot.db.exbhv.AccessResultDataBhv;
 import org.codelibs.robot.db.exentity.AccessResult;
 import org.codelibs.robot.db.exentity.AccessResultData;
-import org.seasar.dbflute.Entity;
-import org.seasar.dbflute.bhv.AbstractBehaviorWritable;
-import org.seasar.dbflute.bhv.DeleteOption;
-import org.seasar.dbflute.bhv.InsertOption;
-import org.seasar.dbflute.bhv.QueryInsertSetupper;
-import org.seasar.dbflute.bhv.UpdateOption;
-import org.seasar.dbflute.cbean.ConditionBean;
-import org.seasar.dbflute.cbean.EntityRowHandler;
-import org.seasar.dbflute.cbean.ListResultBean;
-import org.seasar.dbflute.cbean.PagingResultBean;
-import org.seasar.dbflute.cbean.SpecifyQuery;
-import org.seasar.dbflute.dbmeta.DBMeta;
-import org.seasar.dbflute.exception.DangerousResultSizeException;
-import org.seasar.dbflute.exception.EntityAlreadyDeletedException;
-import org.seasar.dbflute.exception.EntityAlreadyExistsException;
-import org.seasar.dbflute.exception.EntityDuplicatedException;
-import org.seasar.dbflute.exception.NonQueryDeleteNotAllowedException;
-import org.seasar.dbflute.exception.NonQueryUpdateNotAllowedException;
-import org.seasar.dbflute.exception.SelectEntityConditionNotFoundException;
-import org.seasar.dbflute.optional.OptionalEntity;
-import org.seasar.dbflute.outsidesql.executor.OutsideSqlBasicExecutor;
+import org.dbflute.Entity;
+import org.dbflute.bhv.AbstractBehaviorWritable;
+import org.dbflute.bhv.readable.CBCall;
+import org.dbflute.bhv.readable.EntityRowHandler;
+import org.dbflute.bhv.referrer.ReferrerLoaderHandler;
+import org.dbflute.bhv.writable.DeleteOption;
+import org.dbflute.bhv.writable.InsertOption;
+import org.dbflute.bhv.writable.QueryInsertSetupper;
+import org.dbflute.bhv.writable.UpdateOption;
+import org.dbflute.bhv.writable.WritableOptionCall;
+import org.dbflute.cbean.ConditionBean;
+import org.dbflute.cbean.chelper.HpSLSFunction;
+import org.dbflute.cbean.result.ListResultBean;
+import org.dbflute.cbean.result.PagingResultBean;
+import org.dbflute.exception.DangerousResultSizeException;
+import org.dbflute.exception.EntityAlreadyDeletedException;
+import org.dbflute.exception.EntityAlreadyExistsException;
+import org.dbflute.exception.EntityDuplicatedException;
+import org.dbflute.exception.NonQueryDeleteNotAllowedException;
+import org.dbflute.exception.NonQueryUpdateNotAllowedException;
+import org.dbflute.exception.SelectEntityConditionNotFoundException;
+import org.dbflute.optional.OptionalEntity;
+import org.dbflute.outsidesql.executor.OutsideSqlAllFacadeExecutor;
 
 /**
- * The behavior of ACCESS_RESULT_DATA as TABLE. <br />
+ * The behavior of ACCESS_RESULT_DATA as TABLE. <br>
  * <pre>
  * [primary key]
  *     ID
@@ -76,37 +64,31 @@ import org.seasar.dbflute.outsidesql.executor.OutsideSqlBasicExecutor;
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
+public abstract class BsAccessResultDataBhv extends
+        AbstractBehaviorWritable<AccessResultData, AccessResultDataCB> {
 
     // ===================================================================================
     //                                                                          Definition
     //                                                                          ==========
     /*df:beginQueryPath*/
-    public static final String PATH_deleteAll = "deleteAll";
+    /** Delete All AccessResultData */
+    public static final String PATH_deleteAllAccessResultData = "deleteAllAccessResultData";
 
     /*df:endQueryPath*/
 
     // ===================================================================================
-    //                                                                          Table name
-    //                                                                          ==========
-    /** @return The name on database of table. (NotNull) */
+    //                                                                             DB Meta
+    //                                                                             =======
+    /** {@inheritDoc} */
     @Override
-    public String getTableDbName() {
+    public AccessResultDataDbm asDBMeta() {
+        return AccessResultDataDbm.getInstance();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String asTableDbName() {
         return "ACCESS_RESULT_DATA";
-    }
-
-    // ===================================================================================
-    //                                                                              DBMeta
-    //                                                                              ======
-    /** @return The instance of DBMeta. (NotNull) */
-    @Override
-    public DBMeta getDBMeta() {
-        return AccessResultDataDbm.getInstance();
-    }
-
-    /** @return The instance of DBMeta as my table type. (NotNull) */
-    public AccessResultDataDbm getMyDBMeta() {
-        return AccessResultDataDbm.getInstance();
     }
 
     // ===================================================================================
@@ -114,23 +96,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     //                                                                        ============
     /** {@inheritDoc} */
     @Override
-    public Entity newEntity() {
-        return newMyEntity();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public ConditionBean newConditionBean() {
-        return newMyConditionBean();
-    }
-
-    /** @return The instance of new entity as my table type. (NotNull) */
-    public AccessResultData newMyEntity() {
-        return new AccessResultData();
-    }
-
-    /** @return The instance of new condition-bean as my table type. (NotNull) */
-    public AccessResultDataCB newMyConditionBean() {
+    public AccessResultDataCB newConditionBean() {
         return new AccessResultDataCB();
     }
 
@@ -138,171 +104,120 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     //                                                                        Count Select
     //                                                                        ============
     /**
-     * Select the count of uniquely-selected records by the condition-bean. {IgnorePagingCondition, IgnoreSpecifyColumn}<br />
+     * Select the count of uniquely-selected records by the condition-bean. {IgnorePagingCondition, IgnoreSpecifyColumn}<br>
      * SpecifyColumn is ignored but you can use it only to remove text type column for union's distinct.
      * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * int count = accessResultDataBhv.<span style="color: #DD4747">selectCount</span>(cb);
+     * <span style="color: #70226C">int</span> count = <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectCount</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().set...
+     * });
      * </pre>
-     * @param cb The condition-bean of AccessResultData. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
      * @return The count for the condition. (NotMinus)
      */
-    public int selectCount(final AccessResultDataCB cb) {
-        return doSelectCountUniquely(cb);
-    }
-
-    protected int doSelectCountUniquely(final AccessResultDataCB cb) { // called by selectCount(cb)
-        assertCBStateValid(cb);
-        return delegateSelectCountUniquely(cb);
-    }
-
-    protected int doSelectCountPlainly(final AccessResultDataCB cb) { // called by selectPage(cb)
-        assertCBStateValid(cb);
-        return delegateSelectCountPlainly(cb);
-    }
-
-    @Override
-    protected int doReadCount(final ConditionBean cb) {
-        return selectCount(downcast(cb));
+    public int selectCount(final CBCall<AccessResultDataCB> cbLambda) {
+        return facadeSelectCount(createCB(cbLambda));
     }
 
     // ===================================================================================
     //                                                                       Entity Select
     //                                                                       =============
     /**
-     * Select the entity by the condition-bean. #beforejava8 <br />
-     * <span style="color: #AD4747; font-size: 120%">The return might be null if no data, so you should have null check.</span> <br />
-     * <span style="color: #AD4747; font-size: 120%">If the data always exists as your business rule, use selectEntityWithDeletedCheck().</span>
+     * Select the entity by the condition-bean. <br>
+     * It returns not-null optional entity, so you should ... <br>
+     * <span style="color: #AD4747; font-size: 120%">If the data is always present as your business rule, alwaysPresent().</span> <br>
+     * <span style="color: #AD4747; font-size: 120%">If it might be no data, isPresent() and orElse(), ...</span>
      * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * AccessResultData accessResultData = accessResultDataBhv.<span style="color: #DD4747">selectEntity</span>(cb);
-     * if (accessResultData != null) { <span style="color: #3F7E5E">// null check</span>
-     *     ... = accessResultData.get...();
-     * } else {
-     *     ...
-     * }
+     * <span style="color: #3F7E5E">// if the data always exists as your business rule</span>
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectEntity</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().set...
+     * }).<span style="color: #CC4747">alwaysPresent</span>(<span style="color: #553000">accessResultData</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #3F7E5E">// called if present, or exception</span>
+     *     ... = <span style="color: #553000">accessResultData</span>.get...
+     * });
+     *
+     * <span style="color: #3F7E5E">// if it might be no data, ...</span>
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectEntity</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().set...
+     * }).<span style="color: #CC4747">ifPresent</span>(<span style="color: #553000">accessResultData</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #3F7E5E">// called if present</span>
+     *     ... = <span style="color: #553000">accessResultData</span>.get...
+     * }).<span style="color: #994747">orElse</span>(() <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #3F7E5E">// called if not present</span>
+     * });
      * </pre>
-     * @param cb The condition-bean of AccessResultData. (NotNull)
-     * @return The entity selected by the condition. (NullAllowed: if no data, it returns null)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
+     * @return The optional entity selected by the condition. (NotNull: if no data, empty entity)
+     * @throws EntityAlreadyDeletedException When get(), required() of return value is called and the value is null, which means entity has already been deleted (not found).
+     * @throws EntityDuplicatedException When the entity has been duplicated.
+     * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public AccessResultData selectEntity(final AccessResultDataCB cb) {
-        return doSelectEntity(cb, AccessResultData.class);
+    public OptionalEntity<AccessResultData> selectEntity(
+            final CBCall<AccessResultDataCB> cbLambda) {
+        return facadeSelectEntity(createCB(cbLambda));
     }
 
-    protected <ENTITY extends AccessResultData> ENTITY doSelectEntity(
-            final AccessResultDataCB cb, final Class<ENTITY> tp) {
-        assertCBStateValid(cb);
-        assertObjectNotNull("entityType", tp);
-        return helpSelectEntityInternally(
-            cb,
-            tp,
-            new InternalSelectEntityCallback<ENTITY, AccessResultDataCB>() {
-                @Override
-                public List<ENTITY> callbackSelectList(
-                        final AccessResultDataCB lcb, final Class<ENTITY> ltp) {
-                    return doSelectList(lcb, ltp);
-                }
-            });
+    protected OptionalEntity<AccessResultData> facadeSelectEntity(
+            final AccessResultDataCB cb) {
+        return doSelectOptionalEntity(cb, typeOfSelectedEntity());
     }
 
     protected <ENTITY extends AccessResultData> OptionalEntity<ENTITY> doSelectOptionalEntity(
-            final AccessResultDataCB cb, final Class<ENTITY> tp) {
+            final AccessResultDataCB cb, final Class<? extends ENTITY> tp) {
         return createOptionalEntity(doSelectEntity(cb, tp), cb);
     }
 
     @Override
     protected Entity doReadEntity(final ConditionBean cb) {
-        return selectEntity(downcast(cb));
+        return facadeSelectEntity(downcast(cb)).orElse(null);
     }
 
     /**
-     * Select the entity by the condition-bean with deleted check. <br />
-     * <span style="color: #AD4747; font-size: 120%">If the data always exists as your business rule, this method is good.</span>
+     * Select the entity by the condition-bean with deleted check. <br>
+     * <span style="color: #AD4747; font-size: 120%">If the data is always present as your business rule, this method is good.</span>
      * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * AccessResultData accessResultData = accessResultDataBhv.<span style="color: #DD4747">selectEntityWithDeletedCheck</span>(cb);
-     * ... = accessResultData.get...(); <span style="color: #3F7E5E">// the entity always be not null</span>
+     * AccessResultData <span style="color: #553000">accessResultData</span> = <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectEntityWithDeletedCheck</span>(cb <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> cb.acceptPK(1));
+     * ... = <span style="color: #553000">accessResultData</span>.get...(); <span style="color: #3F7E5E">// the entity always be not null</span>
      * </pre>
-     * @param cb The condition-bean of AccessResultData. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
      * @return The entity selected by the condition. (NotNull: if no data, throws exception)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityDuplicatedException When the entity has been duplicated.
+     * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
     public AccessResultData selectEntityWithDeletedCheck(
-            final AccessResultDataCB cb) {
-        return doSelectEntityWithDeletedCheck(cb, AccessResultData.class);
-    }
-
-    protected <ENTITY extends AccessResultData> ENTITY doSelectEntityWithDeletedCheck(
-            final AccessResultDataCB cb, final Class<ENTITY> tp) {
-        assertCBStateValid(cb);
-        assertObjectNotNull("entityType", tp);
-        return helpSelectEntityWithDeletedCheckInternally(
-            cb,
-            tp,
-            new InternalSelectEntityWithDeletedCheckCallback<ENTITY, AccessResultDataCB>() {
-                @Override
-                public List<ENTITY> callbackSelectList(
-                        final AccessResultDataCB lcb, final Class<ENTITY> ltp) {
-                    return doSelectList(lcb, ltp);
-                }
-            });
-    }
-
-    @Override
-    protected Entity doReadEntityWithDeletedCheck(final ConditionBean cb) {
-        return selectEntityWithDeletedCheck(downcast(cb));
+            final CBCall<AccessResultDataCB> cbLambda) {
+        return facadeSelectEntityWithDeletedCheck(createCB(cbLambda));
     }
 
     /**
      * Select the entity by the primary-key value.
      * @param id : PK, NotNull, BIGINT(19), FK to ACCESS_RESULT. (NotNull)
-     * @return The entity selected by the PK. (NullAllowed: if no data, it returns null)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
+     * @return The optional entity selected by the PK. (NotNull: if no data, empty entity)
+     * @throws EntityAlreadyDeletedException When get(), required() of return value is called and the value is null, which means entity has already been deleted (not found).
+     * @throws EntityDuplicatedException When the entity has been duplicated.
+     * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public AccessResultData selectByPKValue(final Long id) {
-        return doSelectByPK(id, AccessResultData.class);
+    public OptionalEntity<AccessResultData> selectByPK(final Long id) {
+        return facadeSelectByPK(id);
+    }
+
+    protected OptionalEntity<AccessResultData> facadeSelectByPK(final Long id) {
+        return doSelectOptionalByPK(id, typeOfSelectedEntity());
     }
 
     protected <ENTITY extends AccessResultData> ENTITY doSelectByPK(
-            final Long id, final Class<ENTITY> entityType) {
-        return doSelectEntity(xprepareCBAsPK(id), entityType);
+            final Long id, final Class<? extends ENTITY> tp) {
+        return doSelectEntity(xprepareCBAsPK(id), tp);
     }
 
     protected <ENTITY extends AccessResultData> OptionalEntity<ENTITY> doSelectOptionalByPK(
-            final Long id, final Class<ENTITY> entityType) {
-        return createOptionalEntity(doSelectByPK(id, entityType), id);
-    }
-
-    /**
-     * Select the entity by the primary-key value with deleted check.
-     * @param id : PK, NotNull, BIGINT(19), FK to ACCESS_RESULT. (NotNull)
-     * @return The entity selected by the PK. (NotNull: if no data, throws exception)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
-     */
-    public AccessResultData selectByPKValueWithDeletedCheck(final Long id) {
-        return doSelectByPKWithDeletedCheck(id, AccessResultData.class);
-    }
-
-    protected <ENTITY extends AccessResultData> ENTITY doSelectByPKWithDeletedCheck(
-            final Long id, final Class<ENTITY> entityType) {
-        return doSelectEntityWithDeletedCheck(xprepareCBAsPK(id), entityType);
+            final Long id, final Class<? extends ENTITY> tp) {
+        return createOptionalEntity(doSelectByPK(id, tp), id);
     }
 
     protected AccessResultDataCB xprepareCBAsPK(final Long id) {
         assertObjectNotNull("id", id);
-        final AccessResultDataCB cb = newMyConditionBean();
-        cb.acceptPrimaryKey(id);
-        return cb;
+        return newConditionBean().acceptPK(id);
     }
 
     // ===================================================================================
@@ -311,100 +226,56 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     /**
      * Select the list as result bean.
      * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * cb.query().addOrderBy_Bar...();
-     * ListResultBean&lt;AccessResultData&gt; accessResultDataList = accessResultDataBhv.<span style="color: #DD4747">selectList</span>(cb);
-     * for (AccessResultData accessResultData : accessResultDataList) {
-     *     ... = accessResultData.get...();
+     * ListResultBean&lt;AccessResultData&gt; <span style="color: #553000">accessResultDataList</span> = <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectList</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().set...;
+     *     <span style="color: #553000">cb</span>.query().addOrderBy...;
+     * });
+     * <span style="color: #70226C">for</span> (AccessResultData <span style="color: #553000">accessResultData</span> : <span style="color: #553000">accessResultDataList</span>) {
+     *     ... = <span style="color: #553000">accessResultData</span>.get...;
      * }
      * </pre>
-     * @param cb The condition-bean of AccessResultData. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
      * @return The result bean of selected list. (NotNull: if no data, returns empty list)
-     * @exception DangerousResultSizeException When the result size is over the specified safety size.
+     * @throws DangerousResultSizeException When the result size is over the specified safety size.
      */
     public ListResultBean<AccessResultData> selectList(
-            final AccessResultDataCB cb) {
-        return doSelectList(cb, AccessResultData.class);
-    }
-
-    protected <ENTITY extends AccessResultData> ListResultBean<ENTITY> doSelectList(
-            final AccessResultDataCB cb, final Class<ENTITY> tp) {
-        assertCBStateValid(cb);
-        assertObjectNotNull("entityType", tp);
-        assertSpecifyDerivedReferrerEntityProperty(cb, tp);
-        return helpSelectListInternally(
-            cb,
-            tp,
-            new InternalSelectListCallback<ENTITY, AccessResultDataCB>() {
-                @Override
-                public List<ENTITY> callbackSelectList(
-                        final AccessResultDataCB lcb, final Class<ENTITY> ltp) {
-                    return delegateSelectList(lcb, ltp);
-                }
-            });
+            final CBCall<AccessResultDataCB> cbLambda) {
+        return facadeSelectList(createCB(cbLambda));
     }
 
     @Override
-    protected ListResultBean<? extends Entity> doReadList(final ConditionBean cb) {
-        return selectList(downcast(cb));
+    protected boolean isEntityDerivedMappable() {
+        return true;
     }
 
     // ===================================================================================
     //                                                                         Page Select
     //                                                                         ===========
     /**
-     * Select the page as result bean. <br />
+     * Select the page as result bean. <br>
      * (both count-select and paging-select are executed)
      * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * cb.query().addOrderBy_Bar...();
-     * cb.<span style="color: #DD4747">paging</span>(20, 3); <span style="color: #3F7E5E">// 20 records per a page and current page number is 3</span>
-     * PagingResultBean&lt;AccessResultData&gt; page = accessResultDataBhv.<span style="color: #DD4747">selectPage</span>(cb);
-     * int allRecordCount = page.getAllRecordCount();
-     * int allPageCount = page.getAllPageCount();
-     * boolean isExistPrePage = page.isExistPrePage();
-     * boolean isExistNextPage = page.isExistNextPage();
+     * PagingResultBean&lt;AccessResultData&gt; <span style="color: #553000">page</span> = <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectPage</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().set...
+     *     <span style="color: #553000">cb</span>.query().addOrderBy...
+     *     <span style="color: #553000">cb</span>.<span style="color: #CC4747">paging</span>(20, 3); <span style="color: #3F7E5E">// 20 records per a page and current page number is 3</span>
+     * });
+     * <span style="color: #70226C">int</span> allRecordCount = <span style="color: #553000">page</span>.getAllRecordCount();
+     * <span style="color: #70226C">int</span> allPageCount = <span style="color: #553000">page</span>.getAllPageCount();
+     * <span style="color: #70226C">boolean</span> isExistPrePage = <span style="color: #553000">page</span>.isExistPrePage();
+     * <span style="color: #70226C">boolean</span> isExistNextPage = <span style="color: #553000">page</span>.isExistNextPage();
      * ...
-     * for (AccessResultData accessResultData : page) {
-     *     ... = accessResultData.get...();
+     * <span style="color: #70226C">for</span> (AccessResultData accessResultData : <span style="color: #553000">page</span>) {
+     *     ... = accessResultData.get...;
      * }
      * </pre>
-     * @param cb The condition-bean of AccessResultData. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
      * @return The result bean of selected page. (NotNull: if no data, returns bean as empty list)
-     * @exception DangerousResultSizeException When the result size is over the specified safety size.
+     * @throws DangerousResultSizeException When the result size is over the specified safety size.
      */
     public PagingResultBean<AccessResultData> selectPage(
-            final AccessResultDataCB cb) {
-        return doSelectPage(cb, AccessResultData.class);
-    }
-
-    protected <ENTITY extends AccessResultData> PagingResultBean<ENTITY> doSelectPage(
-            final AccessResultDataCB cb, final Class<ENTITY> tp) {
-        assertCBStateValid(cb);
-        assertObjectNotNull("entityType", tp);
-        return helpSelectPageInternally(
-            cb,
-            tp,
-            new InternalSelectPageCallback<ENTITY, AccessResultDataCB>() {
-                @Override
-                public int callbackSelectCount(final AccessResultDataCB cb) {
-                    return doSelectCountPlainly(cb);
-                }
-
-                @Override
-                public List<ENTITY> callbackSelectList(
-                        final AccessResultDataCB cb, final Class<ENTITY> tp) {
-                    return doSelectList(cb, tp);
-                }
-            });
-    }
-
-    @Override
-    protected PagingResultBean<? extends Entity> doReadPage(
-            final ConditionBean cb) {
-        return selectPage(downcast(cb));
+            final CBCall<AccessResultDataCB> cbLambda) {
+        return facadeSelectPage(createCB(cbLambda));
     }
 
     // ===================================================================================
@@ -413,90 +284,39 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     /**
      * Select the cursor by the condition-bean.
      * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * accessResultDataBhv.<span style="color: #DD4747">selectCursor</span>(cb, new EntityRowHandler&lt;AccessResultData&gt;() {
-     *     public void handle(AccessResultData entity) {
-     *         ... = entity.getFoo...();
-     *     }
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectCursor</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().set...
+     * }, <span style="color: #553000">member</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     ... = <span style="color: #553000">member</span>.getMemberName();
      * });
      * </pre>
-     * @param cb The condition-bean of AccessResultData. (NotNull)
-     * @param entityRowHandler The handler of entity row of AccessResultData. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
+     * @param entityLambda The handler of entity row of AccessResultData. (NotNull)
      */
-    public void selectCursor(final AccessResultDataCB cb,
-            final EntityRowHandler<AccessResultData> entityRowHandler) {
-        doSelectCursor(cb, entityRowHandler, AccessResultData.class);
-    }
-
-    protected <ENTITY extends AccessResultData> void doSelectCursor(
-            final AccessResultDataCB cb,
-            final EntityRowHandler<ENTITY> handler, final Class<ENTITY> tp) {
-        assertCBStateValid(cb);
-        assertObjectNotNull("entityRowHandler", handler);
-        assertObjectNotNull("entityType", tp);
-        assertSpecifyDerivedReferrerEntityProperty(cb, tp);
-        helpSelectCursorInternally(
-            cb,
-            handler,
-            tp,
-            new InternalSelectCursorCallback<ENTITY, AccessResultDataCB>() {
-                @Override
-                public void callbackSelectCursor(final AccessResultDataCB cb,
-                        final EntityRowHandler<ENTITY> handler,
-                        final Class<ENTITY> tp) {
-                    delegateSelectCursor(cb, handler, tp);
-                }
-
-                @Override
-                public List<ENTITY> callbackSelectList(
-                        final AccessResultDataCB cb, final Class<ENTITY> tp) {
-                    return doSelectList(cb, tp);
-                }
-            });
+    public void selectCursor(final CBCall<AccessResultDataCB> cbLambda,
+            final EntityRowHandler<AccessResultData> entityLambda) {
+        facadeSelectCursor(createCB(cbLambda), entityLambda);
     }
 
     // ===================================================================================
     //                                                                       Scalar Select
     //                                                                       =============
     /**
-     * Select the scalar value derived by a function from uniquely-selected records. <br />
+     * Select the scalar value derived by a function from uniquely-selected records. <br>
      * You should call a function method after this method called like as follows:
      * <pre>
-     * accessResultDataBhv.<span style="color: #DD4747">scalarSelect</span>(Date.class).max(new ScalarQuery() {
-     *     public void query(AccessResultDataCB cb) {
-     *         cb.specify().<span style="color: #DD4747">columnFooDatetime()</span>; <span style="color: #3F7E5E">// required for a function</span>
-     *         cb.query().setBarName_PrefixSearch("S");
-     *     }
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">selectScalar</span>(Date.class).max(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.specify().<span style="color: #CC4747">column...</span>; <span style="color: #3F7E5E">// required for the function</span>
+     *     <span style="color: #553000">cb</span>.query().set...
      * });
      * </pre>
      * @param <RESULT> The type of result.
      * @param resultType The type of result. (NotNull)
      * @return The scalar function object to specify function for scalar value. (NotNull)
      */
-    public <RESULT> SLFunction<AccessResultDataCB, RESULT> scalarSelect(
+    public <RESULT> HpSLSFunction<AccessResultDataCB, RESULT> selectScalar(
             final Class<RESULT> resultType) {
-        return doScalarSelect(resultType, newMyConditionBean());
-    }
-
-    protected <RESULT, CB extends AccessResultDataCB> SLFunction<CB, RESULT> doScalarSelect(
-            final Class<RESULT> tp, final CB cb) {
-        assertObjectNotNull("resultType", tp);
-        assertCBStateValid(cb);
-        cb.xsetupForScalarSelect();
-        cb.getSqlClause().disableSelectIndex(); // for when you use union
-        return createSLFunction(cb, tp);
-    }
-
-    protected <RESULT, CB extends AccessResultDataCB> SLFunction<CB, RESULT> createSLFunction(
-            final CB cb, final Class<RESULT> tp) {
-        return new SLFunction<CB, RESULT>(cb, tp);
-    }
-
-    @Override
-    protected <RESULT> SLFunction<? extends ConditionBean, RESULT> doReadScalar(
-            final Class<RESULT> tp) {
-        return doScalarSelect(tp, newMyConditionBean());
+        return facadeScalarSelect(resultType);
     }
 
     // ===================================================================================
@@ -504,9 +324,86 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     //                                                                            ========
     @Override
     protected Number doReadNextVal() {
-        final String msg =
-            "This table is NOT related to sequence: " + getTableDbName();
+        final String msg = "This table is NOT related to sequence: "
+                + asTableDbName();
         throw new UnsupportedOperationException(msg);
+    }
+
+    // ===================================================================================
+    //                                                                       Load Referrer
+    //                                                                       =============
+    /**
+     * Load referrer for the list by the the referrer loader.
+     * <pre>
+     * List&lt;Member&gt; <span style="color: #553000">memberList</span> = <span style="color: #0000C0">memberBhv</span>.selectList(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().set...
+     * });
+     * memberBhv.<span style="color: #CC4747">load</span>(<span style="color: #553000">memberList</span>, <span style="color: #553000">memberLoader</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">memberLoader</span>.<span style="color: #CC4747">loadPurchase</span>(<span style="color: #553000">purchaseCB</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *         <span style="color: #553000">purchaseCB</span>.setupSelect...
+     *         <span style="color: #553000">purchaseCB</span>.query().set...
+     *         <span style="color: #553000">purchaseCB</span>.query().addOrderBy...
+     *     }); <span style="color: #3F7E5E">// you can also load nested referrer from here</span>
+     *     <span style="color: #3F7E5E">//}).withNestedReferrer(purchaseLoader -&gt; {</span>
+     *     <span style="color: #3F7E5E">//    purchaseLoader.loadPurchasePayment(...);</span>
+     *     <span style="color: #3F7E5E">//});</span>
+     *
+     *     <span style="color: #3F7E5E">// you can also pull out foreign table and load its referrer</span>
+     *     <span style="color: #3F7E5E">// (setupSelect of the foreign table should be called)</span>
+     *     <span style="color: #3F7E5E">//memberLoader.pulloutMemberStatus().loadMemberLogin(...)</span>
+     * });
+     * <span style="color: #70226C">for</span> (Member member : <span style="color: #553000">memberList</span>) {
+     *     List&lt;Purchase&gt; purchaseList = member.<span style="color: #CC4747">getPurchaseList()</span>;
+     *     <span style="color: #70226C">for</span> (Purchase purchase : purchaseList) {
+     *         ...
+     *     }
+     * }
+     * </pre>
+     * About internal policy, the value of primary key (and others too) is treated as case-insensitive. <br>
+     * The condition-bean, which the set-upper provides, has order by FK before callback.
+     * @param accessResultDataList The entity list of accessResultData. (NotNull)
+     * @param loaderLambda The callback to handle the referrer loader for actually loading referrer. (NotNull)
+     */
+    public void load(final List<AccessResultData> accessResultDataList,
+            final ReferrerLoaderHandler<LoaderOfAccessResultData> loaderLambda) {
+        xassLRArg(accessResultDataList, loaderLambda);
+        loaderLambda.handle(new LoaderOfAccessResultData().ready(
+                accessResultDataList, _behaviorSelector));
+    }
+
+    /**
+     * Load referrer for the entity by the referrer loader.
+     * <pre>
+     * Member <span style="color: #553000">member</span> = <span style="color: #0000C0">memberBhv</span>.selectEntityWithDeletedCheck(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> <span style="color: #553000">cb</span>.acceptPK(1));
+     * <span style="color: #0000C0">memberBhv</span>.<span style="color: #CC4747">load</span>(<span style="color: #553000">member</span>, <span style="color: #553000">memberLoader</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">memberLoader</span>.<span style="color: #CC4747">loadPurchase</span>(<span style="color: #553000">purchaseCB</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *         <span style="color: #553000">purchaseCB</span>.setupSelect...
+     *         <span style="color: #553000">purchaseCB</span>.query().set...
+     *         <span style="color: #553000">purchaseCB</span>.query().addOrderBy...
+     *     }); <span style="color: #3F7E5E">// you can also load nested referrer from here</span>
+     *     <span style="color: #3F7E5E">//}).withNestedReferrer(purchaseLoader -&gt; {</span>
+     *     <span style="color: #3F7E5E">//    purchaseLoader.loadPurchasePayment(...);</span>
+     *     <span style="color: #3F7E5E">//});</span>
+     *
+     *     <span style="color: #3F7E5E">// you can also pull out foreign table and load its referrer</span>
+     *     <span style="color: #3F7E5E">// (setupSelect of the foreign table should be called)</span>
+     *     <span style="color: #3F7E5E">//memberLoader.pulloutMemberStatus().loadMemberLogin(...)</span>
+     * });
+     * List&lt;Purchase&gt; purchaseList = <span style="color: #553000">member</span>.<span style="color: #CC4747">getPurchaseList()</span>;
+     * <span style="color: #70226C">for</span> (Purchase purchase : purchaseList) {
+     *     ...
+     * }
+     * </pre>
+     * About internal policy, the value of primary key (and others too) is treated as case-insensitive. <br>
+     * The condition-bean, which the set-upper provides, has order by FK before callback.
+     * @param accessResultData The entity of accessResultData. (NotNull)
+     * @param loaderLambda The callback to handle the referrer loader for actually loading referrer. (NotNull)
+     */
+    public void load(final AccessResultData accessResultData,
+            final ReferrerLoaderHandler<LoaderOfAccessResultData> loaderLambda) {
+        xassLRArg(accessResultData, loaderLambda);
+        loaderLambda.handle(new LoaderOfAccessResultData().ready(
+                xnewLRAryLs(accessResultData), _behaviorSelector));
     }
 
     // ===================================================================================
@@ -519,27 +416,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      */
     public List<AccessResult> pulloutAccessResult(
             final List<AccessResultData> accessResultDataList) {
-        return helpPulloutInternally(
-            accessResultDataList,
-            new InternalPulloutCallback<AccessResultData, AccessResult>() {
-                @Override
-                public AccessResult getFr(final AccessResultData et) {
-                    return et.getAccessResult();
-                }
-
-                @Override
-                public boolean hasRf() {
-                    return true;
-                }
-
-                @Override
-                public void setRfLs(final AccessResult et,
-                        final List<AccessResultData> ls) {
-                    if (!ls.isEmpty()) {
-                        et.setAccessResultDataAsOne(ls.get(0));
-                    }
-                }
-            });
+        return helpPulloutInternally(accessResultDataList, "accessResult");
     }
 
     // ===================================================================================
@@ -552,14 +429,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      */
     public List<Long> extractIdList(
             final List<AccessResultData> accessResultDataList) {
-        return helpExtractListInternally(
-            accessResultDataList,
-            new InternalExtractCallback<AccessResultData, Long>() {
-                @Override
-                public Long getCV(final AccessResultData et) {
-                    return et.getId();
-                }
-            });
+        return helpExtractListInternally(accessResultDataList, "id");
     }
 
     // ===================================================================================
@@ -568,263 +438,94 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     /**
      * Insert the entity modified-only. (DefaultConstraintsEnabled)
      * <pre>
-     * AccessResultData accessResultData = new AccessResultData();
+     * AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      * <span style="color: #3F7E5E">// if auto-increment, you don't need to set the PK value</span>
      * accessResultData.setFoo...(value);
      * accessResultData.setBar...(value);
      * <span style="color: #3F7E5E">// you don't need to set values of common columns</span>
      * <span style="color: #3F7E5E">//accessResultData.setRegisterUser(value);</span>
      * <span style="color: #3F7E5E">//accessResultData.set...;</span>
-     * accessResultDataBhv.<span style="color: #DD4747">insert</span>(accessResultData);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">insert</span>(accessResultData);
      * ... = accessResultData.getPK...(); <span style="color: #3F7E5E">// if auto-increment, you can get the value after</span>
      * </pre>
      * <p>While, when the entity is created by select, all columns are registered.</p>
-     * @param accessResultData The entity of insert target. (NotNull, PrimaryKeyNullAllowed: when auto-increment)
-     * @exception EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
+     * @param accessResultData The entity of insert. (NotNull, PrimaryKeyNullAllowed: when auto-increment)
+     * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
     public void insert(final AccessResultData accessResultData) {
         doInsert(accessResultData, null);
     }
 
-    protected void doInsert(final AccessResultData accessResultData,
-            final InsertOption<AccessResultDataCB> op) {
-        assertObjectNotNull("accessResultData", accessResultData);
-        prepareInsertOption(op);
-        delegateInsert(accessResultData, op);
-    }
-
-    protected void prepareInsertOption(final InsertOption<AccessResultDataCB> op) {
-        if (op == null) {
-            return;
-        }
-        assertInsertOptionStatus(op);
-        if (op.hasSpecifiedInsertColumn()) {
-            op.resolveInsertColumnSpecification(createCBForSpecifiedUpdate());
-        }
-    }
-
-    @Override
-    protected void doCreate(final Entity et,
-            final InsertOption<? extends ConditionBean> op) {
-        if (op == null) {
-            insert(downcast(et));
-        } else {
-            varyingInsert(downcast(et), downcast(op));
-        }
-    }
-
     /**
-     * Update the entity modified-only. (ZeroUpdateException, NonExclusiveControl)
+     * Update the entity modified-only. (ZeroUpdateException, NonExclusiveControl) <br>
+     * By PK as default, and also you can update by unique keys using entity's uniqueOf().
      * <pre>
-     * AccessResultData accessResultData = new AccessResultData();
+     * AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      * accessResultData.setPK...(value); <span style="color: #3F7E5E">// required</span>
      * accessResultData.setFoo...(value); <span style="color: #3F7E5E">// you should set only modified columns</span>
      * <span style="color: #3F7E5E">// you don't need to set values of common columns</span>
      * <span style="color: #3F7E5E">//accessResultData.setRegisterUser(value);</span>
      * <span style="color: #3F7E5E">//accessResultData.set...;</span>
-     * <span style="color: #3F7E5E">// if exclusive control, the value of exclusive control column is required</span>
-     * accessResultData.<span style="color: #DD4747">setVersionNo</span>(value);
-     * try {
-     *     accessResultDataBhv.<span style="color: #DD4747">update</span>(accessResultData);
-     * } catch (EntityAlreadyUpdatedException e) { <span style="color: #3F7E5E">// if concurrent update</span>
-     *     ...
-     * }
+     * <span style="color: #3F7E5E">// if exclusive control, the value of concurrency column is required</span>
+     * accessResultData.<span style="color: #CC4747">setVersionNo</span>(value);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">update</span>(accessResultData);
      * </pre>
-     * @param accessResultData The entity of update target. (NotNull, PrimaryKeyNotNull, ConcurrencyColumnRequired)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
+     * @param accessResultData The entity of update. (NotNull, PrimaryKeyNotNull)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityDuplicatedException When the entity has been duplicated.
+     * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
     public void update(final AccessResultData accessResultData) {
         doUpdate(accessResultData, null);
     }
 
-    protected void doUpdate(final AccessResultData accessResultData,
-            final UpdateOption<AccessResultDataCB> op) {
-        assertObjectNotNull("accessResultData", accessResultData);
-        prepareUpdateOption(op);
-        helpUpdateInternally(
-            accessResultData,
-            new InternalUpdateCallback<AccessResultData>() {
-                @Override
-                public int callbackDelegateUpdate(final AccessResultData et) {
-                    return delegateUpdate(et, op);
-                }
-            });
-    }
-
-    protected void prepareUpdateOption(final UpdateOption<AccessResultDataCB> op) {
-        if (op == null) {
-            return;
-        }
-        assertUpdateOptionStatus(op);
-        if (op.hasSelfSpecification()) {
-            op.resolveSelfSpecification(createCBForVaryingUpdate());
-        }
-        if (op.hasSpecifiedUpdateColumn()) {
-            op.resolveUpdateColumnSpecification(createCBForSpecifiedUpdate());
-        }
-    }
-
-    protected AccessResultDataCB createCBForVaryingUpdate() {
-        final AccessResultDataCB cb = newMyConditionBean();
-        cb.xsetupForVaryingUpdate();
-        return cb;
-    }
-
-    protected AccessResultDataCB createCBForSpecifiedUpdate() {
-        final AccessResultDataCB cb = newMyConditionBean();
-        cb.xsetupForSpecifiedUpdate();
-        return cb;
-    }
-
-    @Override
-    protected void doModify(final Entity et,
-            final UpdateOption<? extends ConditionBean> op) {
-        if (op == null) {
-            update(downcast(et));
-        } else {
-            varyingUpdate(downcast(et), downcast(op));
-        }
-    }
-
-    @Override
-    protected void doModifyNonstrict(final Entity et,
-            final UpdateOption<? extends ConditionBean> op) {
-        doModify(et, op);
-    }
-
     /**
-     * Insert or update the entity modified-only. (DefaultConstraintsEnabled, NonExclusiveControl) <br />
-     * if (the entity has no PK) { insert() } else { update(), but no data, insert() } <br />
-     * <p><span style="color: #DD4747; font-size: 120%">Attention, you cannot update by unique keys instead of PK.</span></p>
-     * @param accessResultData The entity of insert or update target. (NotNull)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
+     * Insert or update the entity modified-only. (DefaultConstraintsEnabled, NonExclusiveControl) <br>
+     * if (the entity has no PK) { insert() } else { update(), but no data, insert() } <br>
+     * <p><span style="color: #994747; font-size: 120%">Also you can update by unique keys using entity's uniqueOf().</span></p>
+     * @param accessResultData The entity of insert or update. (NotNull, ...depends on insert or update)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityDuplicatedException When the entity has been duplicated.
+     * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
     public void insertOrUpdate(final AccessResultData accessResultData) {
-        doInesrtOrUpdate(accessResultData, null, null);
-    }
-
-    protected void doInesrtOrUpdate(final AccessResultData accessResultData,
-            final InsertOption<AccessResultDataCB> iop,
-            final UpdateOption<AccessResultDataCB> uop) {
-        helpInsertOrUpdateInternally(
-            accessResultData,
-            new InternalInsertOrUpdateCallback<AccessResultData, AccessResultDataCB>() {
-                @Override
-                public void callbackInsert(final AccessResultData et) {
-                    doInsert(et, iop);
-                }
-
-                @Override
-                public void callbackUpdate(final AccessResultData et) {
-                    doUpdate(et, uop);
-                }
-
-                @Override
-                public AccessResultDataCB callbackNewMyConditionBean() {
-                    return newMyConditionBean();
-                }
-
-                @Override
-                public int callbackSelectCount(final AccessResultDataCB cb) {
-                    return selectCount(cb);
-                }
-            });
-    }
-
-    @Override
-    protected void doCreateOrModify(final Entity et,
-            InsertOption<? extends ConditionBean> iop,
-            UpdateOption<? extends ConditionBean> uop) {
-        if (iop == null && uop == null) {
-            insertOrUpdate(downcast(et));
-        } else {
-            iop = iop != null ? iop : new InsertOption<AccessResultDataCB>();
-            uop = uop != null ? uop : new UpdateOption<AccessResultDataCB>();
-            varyingInsertOrUpdate(downcast(et), downcast(iop), downcast(uop));
-        }
-    }
-
-    @Override
-    protected void doCreateOrModifyNonstrict(final Entity et,
-            final InsertOption<? extends ConditionBean> iop,
-            final UpdateOption<? extends ConditionBean> uop) {
-        doCreateOrModify(et, iop, uop);
+        doInsertOrUpdate(accessResultData, null, null);
     }
 
     /**
-     * Delete the entity. (ZeroUpdateException, NonExclusiveControl)
+     * Delete the entity. (ZeroUpdateException, NonExclusiveControl) <br>
+     * By PK as default, and also you can delete by unique keys using entity's uniqueOf().
      * <pre>
-     * AccessResultData accessResultData = new AccessResultData();
+     * AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      * accessResultData.setPK...(value); <span style="color: #3F7E5E">// required</span>
-     * <span style="color: #3F7E5E">// if exclusive control, the value of exclusive control column is required</span>
-     * accessResultData.<span style="color: #DD4747">setVersionNo</span>(value);
-     * try {
-     *     accessResultDataBhv.<span style="color: #DD4747">delete</span>(accessResultData);
-     * } catch (EntityAlreadyUpdatedException e) { <span style="color: #3F7E5E">// if concurrent update</span>
+     * <span style="color: #3F7E5E">// if exclusive control, the value of concurrency column is required</span>
+     * accessResultData.<span style="color: #CC4747">setVersionNo</span>(value);
+     * <span style="color: #70226C">try</span> {
+     *     <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">delete</span>(accessResultData);
+     * } <span style="color: #70226C">catch</span> (EntityAlreadyUpdatedException e) { <span style="color: #3F7E5E">// if concurrent update</span>
      *     ...
      * }
      * </pre>
-     * @param accessResultData The entity of delete target. (NotNull, PrimaryKeyNotNull, ConcurrencyColumnRequired)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
+     * @param accessResultData The entity of delete. (NotNull, PrimaryKeyNotNull)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityDuplicatedException When the entity has been duplicated.
      */
     public void delete(final AccessResultData accessResultData) {
         doDelete(accessResultData, null);
-    }
-
-    protected void doDelete(final AccessResultData accessResultData,
-            final DeleteOption<AccessResultDataCB> op) {
-        assertObjectNotNull("accessResultData", accessResultData);
-        prepareDeleteOption(op);
-        helpDeleteInternally(
-            accessResultData,
-            new InternalDeleteCallback<AccessResultData>() {
-                @Override
-                public int callbackDelegateDelete(final AccessResultData et) {
-                    return delegateDelete(et, op);
-                }
-            });
-    }
-
-    protected void prepareDeleteOption(final DeleteOption<AccessResultDataCB> op) {
-        if (op == null) {
-            return;
-        }
-        assertDeleteOptionStatus(op);
-    }
-
-    @Override
-    protected void doRemove(final Entity et,
-            final DeleteOption<? extends ConditionBean> op) {
-        if (op == null) {
-            delete(downcast(et));
-        } else {
-            varyingDelete(downcast(et), downcast(op));
-        }
-    }
-
-    @Override
-    protected void doRemoveNonstrict(final Entity et,
-            final DeleteOption<? extends ConditionBean> op) {
-        doRemove(et, op);
     }
 
     // ===================================================================================
     //                                                                        Batch Update
     //                                                                        ============
     /**
-     * Batch-insert the entity list modified-only of same-set columns. (DefaultConstraintsEnabled) <br />
-     * This method uses executeBatch() of java.sql.PreparedStatement. <br />
-     * <p><span style="color: #DD4747; font-size: 120%">The columns of least common multiple are registered like this:</span></p>
+     * Batch-insert the entity list modified-only of same-set columns. (DefaultConstraintsEnabled) <br>
+     * This method uses executeBatch() of java.sql.PreparedStatement. <br>
+     * <p><span style="color: #CC4747; font-size: 120%">The columns of least common multiple are registered like this:</span></p>
      * <pre>
-     * for (... : ...) {
-     *     AccessResultData accessResultData = new AccessResultData();
+     * <span style="color: #70226C">for</span> (... : ...) {
+     *     AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      *     accessResultData.setFooName("foo");
-     *     if (...) {
+     *     <span style="color: #70226C">if</span> (...) {
      *         accessResultData.setFooPrice(123);
      *     }
      *     <span style="color: #3F7E5E">// FOO_NAME and FOO_PRICE (and record meta columns) are registered</span>
@@ -832,7 +533,7 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      *     <span style="color: #3F7E5E">// columns not-called in all entities are registered as null or default value</span>
      *     accessResultDataList.add(accessResultData);
      * }
-     * accessResultDataBhv.<span style="color: #DD4747">batchInsert</span>(accessResultDataList);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">batchInsert</span>(accessResultDataList);
      * </pre>
      * <p>While, when the entities are created by select, all columns are registered.</p>
      * <p>And if the table has an identity, entities after the process don't have incremented values.
@@ -841,47 +542,20 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      * @return The array of inserted count. (NotNull, EmptyAllowed)
      */
     public int[] batchInsert(final List<AccessResultData> accessResultDataList) {
-        final InsertOption<AccessResultDataCB> op = createInsertUpdateOption();
-        return doBatchInsert(accessResultDataList, op);
-    }
-
-    protected int[] doBatchInsert(
-            final List<AccessResultData> accessResultDataList,
-            final InsertOption<AccessResultDataCB> op) {
-        assertObjectNotNull("accessResultDataList", accessResultDataList);
-        prepareBatchInsertOption(accessResultDataList, op);
-        return delegateBatchInsert(accessResultDataList, op);
-    }
-
-    protected void prepareBatchInsertOption(
-            final List<AccessResultData> accessResultDataList,
-            final InsertOption<AccessResultDataCB> op) {
-        op.xallowInsertColumnModifiedPropertiesFragmented();
-        op.xacceptInsertColumnModifiedPropertiesIfNeeds(accessResultDataList);
-        prepareInsertOption(op);
-    }
-
-    @Override
-    protected int[] doLumpCreate(final List<Entity> ls,
-            final InsertOption<? extends ConditionBean> op) {
-        if (op == null) {
-            return batchInsert(downcast(ls));
-        } else {
-            return varyingBatchInsert(downcast(ls), downcast(op));
-        }
+        return doBatchInsert(accessResultDataList, null);
     }
 
     /**
-     * Batch-update the entity list modified-only of same-set columns. (NonExclusiveControl) <br />
-     * This method uses executeBatch() of java.sql.PreparedStatement. <br />
-     * <span style="color: #DD4747; font-size: 120%">You should specify same-set columns to all entities like this:</span>
+     * Batch-update the entity list modified-only of same-set columns. (NonExclusiveControl) <br>
+     * This method uses executeBatch() of java.sql.PreparedStatement. <br>
+     * <span style="color: #CC4747; font-size: 120%">You should specify same-set columns to all entities like this:</span>
      * <pre>
      * for (... : ...) {
-     *     AccessResultData accessResultData = new AccessResultData();
+     *     AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      *     accessResultData.setFooName("foo");
-     *     if (...) {
+     *     <span style="color: #70226C">if</span> (...) {
      *         accessResultData.setFooPrice(123);
-     *     } else {
+     *     } <span style="color: #70226C">else</span> {
      *         accessResultData.setFooPrice(null); <span style="color: #3F7E5E">// updated as null</span>
      *         <span style="color: #3F7E5E">//accessResultData.setFooDate(...); // *not allowed, fragmented</span>
      *     }
@@ -889,116 +563,25 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      *     <span style="color: #3F7E5E">// (others are not updated: their values are kept)</span>
      *     accessResultDataList.add(accessResultData);
      * }
-     * accessResultDataBhv.<span style="color: #DD4747">batchUpdate</span>(accessResultDataList);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">batchUpdate</span>(accessResultDataList);
      * </pre>
      * @param accessResultDataList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNotNull)
      * @return The array of updated count. (NotNull, EmptyAllowed)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      */
     public int[] batchUpdate(final List<AccessResultData> accessResultDataList) {
-        final UpdateOption<AccessResultDataCB> op = createPlainUpdateOption();
-        return doBatchUpdate(accessResultDataList, op);
-    }
-
-    protected int[] doBatchUpdate(
-            final List<AccessResultData> accessResultDataList,
-            final UpdateOption<AccessResultDataCB> op) {
-        assertObjectNotNull("accessResultDataList", accessResultDataList);
-        prepareBatchUpdateOption(accessResultDataList, op);
-        return delegateBatchUpdate(accessResultDataList, op);
-    }
-
-    protected void prepareBatchUpdateOption(
-            final List<AccessResultData> accessResultDataList,
-            final UpdateOption<AccessResultDataCB> op) {
-        op.xacceptUpdateColumnModifiedPropertiesIfNeeds(accessResultDataList);
-        prepareUpdateOption(op);
-    }
-
-    @Override
-    protected int[] doLumpModify(final List<Entity> ls,
-            final UpdateOption<? extends ConditionBean> op) {
-        if (op == null) {
-            return batchUpdate(downcast(ls));
-        } else {
-            return varyingBatchUpdate(downcast(ls), downcast(op));
-        }
+        return doBatchUpdate(accessResultDataList, null);
     }
 
     /**
-     * Batch-update the entity list specified-only. (NonExclusiveControl) <br />
-     * This method uses executeBatch() of java.sql.PreparedStatement.
-     * <pre>
-     * <span style="color: #3F7E5E">// e.g. update two columns only</span>
-     * accessResultDataBhv.<span style="color: #DD4747">batchUpdate</span>(accessResultDataList, new SpecifyQuery<AccessResultDataCB>() {
-     *     public void specify(AccessResultDataCB cb) { <span style="color: #3F7E5E">// the two only updated</span>
-     *         cb.specify().<span style="color: #DD4747">columnFooStatusCode()</span>; <span style="color: #3F7E5E">// should be modified in any entities</span>
-     *         cb.specify().<span style="color: #DD4747">columnBarDate()</span>; <span style="color: #3F7E5E">// should be modified in any entities</span>
-     *     }
-     * });
-     * <span style="color: #3F7E5E">// e.g. update every column in the table</span>
-     * accessResultDataBhv.<span style="color: #DD4747">batchUpdate</span>(accessResultDataList, new SpecifyQuery<AccessResultDataCB>() {
-     *     public void specify(AccessResultDataCB cb) { <span style="color: #3F7E5E">// all columns are updated</span>
-     *         cb.specify().<span style="color: #DD4747">columnEveryColumn()</span>; <span style="color: #3F7E5E">// no check of modified properties</span>
-     *     }
-     * });
-     * </pre>
-     * <p>You can specify update columns used on set clause of update statement.
-     * However you do not need to specify common columns for update
-     * and an optimistic lock column because they are specified implicitly.</p>
-     * <p>And you should specify columns that are modified in any entities (at least one entity).
-     * But if you specify every column, it has no check.</p>
-     * @param accessResultDataList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNotNull)
-     * @param updateColumnSpec The specification of update columns. (NotNull)
-     * @return The array of updated count. (NotNull, EmptyAllowed)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     */
-    public int[] batchUpdate(final List<AccessResultData> accessResultDataList,
-            final SpecifyQuery<AccessResultDataCB> updateColumnSpec) {
-        return doBatchUpdate(
-            accessResultDataList,
-            createSpecifiedUpdateOption(updateColumnSpec));
-    }
-
-    @Override
-    protected int[] doLumpModifyNonstrict(final List<Entity> ls,
-            final UpdateOption<? extends ConditionBean> op) {
-        return doLumpModify(ls, op);
-    }
-
-    /**
-     * Batch-delete the entity list. (NonExclusiveControl) <br />
+     * Batch-delete the entity list. (NonExclusiveControl) <br>
      * This method uses executeBatch() of java.sql.PreparedStatement.
      * @param accessResultDataList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNotNull)
      * @return The array of deleted count. (NotNull, EmptyAllowed)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      */
     public int[] batchDelete(final List<AccessResultData> accessResultDataList) {
         return doBatchDelete(accessResultDataList, null);
-    }
-
-    protected int[] doBatchDelete(
-            final List<AccessResultData> accessResultDataList,
-            final DeleteOption<AccessResultDataCB> op) {
-        assertObjectNotNull("accessResultDataList", accessResultDataList);
-        prepareDeleteOption(op);
-        return delegateBatchDelete(accessResultDataList, op);
-    }
-
-    @Override
-    protected int[] doLumpRemove(final List<Entity> ls,
-            final DeleteOption<? extends ConditionBean> op) {
-        if (op == null) {
-            return batchDelete(downcast(ls));
-        } else {
-            return varyingBatchDelete(downcast(ls), downcast(op));
-        }
-    }
-
-    @Override
-    protected int[] doLumpRemoveNonstrict(final List<Entity> ls,
-            final DeleteOption<? extends ConditionBean> op) {
-        return doLumpRemove(ls, op);
     }
 
     // ===================================================================================
@@ -1007,8 +590,8 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     /**
      * Insert the several entities by query (modified-only for fixed value).
      * <pre>
-     * accessResultDataBhv.<span style="color: #DD4747">queryInsert</span>(new QueryInsertSetupper&lt;AccessResultData, AccessResultDataCB&gt;() {
-     *     public ConditionBean setup(accessResultData entity, AccessResultDataCB intoCB) {
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">queryInsert</span>(new QueryInsertSetupper&lt;AccessResultData, AccessResultDataCB&gt;() {
+     *     public ConditionBean setup(AccessResultData entity, AccessResultDataCB intoCB) {
      *         FooCB cb = FooCB();
      *         cb.setupSelect_Bar();
      *
@@ -1020,132 +603,61 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
      *         <span style="color: #3F7E5E">// you don't need to set values of common columns</span>
      *         <span style="color: #3F7E5E">//entity.setRegisterUser(value);</span>
      *         <span style="color: #3F7E5E">//entity.set...;</span>
-     *         <span style="color: #3F7E5E">// you don't need to set a value of exclusive control column</span>
+     *         <span style="color: #3F7E5E">// you don't need to set a value of concurrency column</span>
      *         <span style="color: #3F7E5E">//entity.setVersionNo(value);</span>
      *
      *         return cb;
      *     }
      * });
      * </pre>
-     * @param setupper The setup-per of query-insert. (NotNull)
+     * @param manyArgLambda The callback to set up query-insert. (NotNull)
      * @return The inserted count.
      */
     public int queryInsert(
-            final QueryInsertSetupper<AccessResultData, AccessResultDataCB> setupper) {
-        return doQueryInsert(setupper, null);
-    }
-
-    protected int doQueryInsert(
-            final QueryInsertSetupper<AccessResultData, AccessResultDataCB> sp,
-            final InsertOption<AccessResultDataCB> op) {
-        assertObjectNotNull("setupper", sp);
-        prepareInsertOption(op);
-        final AccessResultData e = new AccessResultData();
-        final AccessResultDataCB cb = createCBForQueryInsert();
-        return delegateQueryInsert(e, cb, sp.setup(e, cb), op);
-    }
-
-    protected AccessResultDataCB createCBForQueryInsert() {
-        final AccessResultDataCB cb = newMyConditionBean();
-        cb.xsetupForQueryInsert();
-        return cb;
-    }
-
-    @Override
-    protected int doRangeCreate(
-            final QueryInsertSetupper<? extends Entity, ? extends ConditionBean> setupper,
-            final InsertOption<? extends ConditionBean> option) {
-        if (option == null) {
-            return queryInsert(downcast(setupper));
-        } else {
-            return varyingQueryInsert(downcast(setupper), downcast(option));
-        }
+            final QueryInsertSetupper<AccessResultData, AccessResultDataCB> manyArgLambda) {
+        return doQueryInsert(manyArgLambda, null);
     }
 
     /**
      * Update the several entities by query non-strictly modified-only. (NonExclusiveControl)
      * <pre>
-     * AccessResultData accessResultData = new AccessResultData();
+     * AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      * <span style="color: #3F7E5E">// you don't need to set PK value</span>
      * <span style="color: #3F7E5E">//accessResultData.setPK...(value);</span>
      * accessResultData.setFoo...(value); <span style="color: #3F7E5E">// you should set only modified columns</span>
      * <span style="color: #3F7E5E">// you don't need to set values of common columns</span>
      * <span style="color: #3F7E5E">//accessResultData.setRegisterUser(value);</span>
      * <span style="color: #3F7E5E">//accessResultData.set...;</span>
-     * <span style="color: #3F7E5E">// you don't need to set a value of exclusive control column</span>
+     * <span style="color: #3F7E5E">// you don't need to set a value of concurrency column</span>
      * <span style="color: #3F7E5E">// (auto-increment for version number is valid though non-exclusive control)</span>
      * <span style="color: #3F7E5E">//accessResultData.setVersionNo(value);</span>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * accessResultDataBhv.<span style="color: #DD4747">queryUpdate</span>(accessResultData, cb);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">queryUpdate</span>(accessResultData, <span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().setFoo...
+     * });
      * </pre>
      * @param accessResultData The entity that contains update values. (NotNull, PrimaryKeyNullAllowed)
-     * @param cb The condition-bean of AccessResultData. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
      * @return The updated count.
-     * @exception NonQueryUpdateNotAllowedException When the query has no condition.
+     * @throws NonQueryUpdateNotAllowedException When the query has no condition.
      */
     public int queryUpdate(final AccessResultData accessResultData,
-            final AccessResultDataCB cb) {
-        return doQueryUpdate(accessResultData, cb, null);
-    }
-
-    protected int doQueryUpdate(final AccessResultData accessResultData,
-            final AccessResultDataCB cb,
-            final UpdateOption<AccessResultDataCB> op) {
-        assertObjectNotNull("accessResultData", accessResultData);
-        assertCBStateValid(cb);
-        prepareUpdateOption(op);
-        return checkCountBeforeQueryUpdateIfNeeds(cb) ? delegateQueryUpdate(
-            accessResultData,
-            cb,
-            op) : 0;
-    }
-
-    @Override
-    protected int doRangeModify(final Entity et, final ConditionBean cb,
-            final UpdateOption<? extends ConditionBean> op) {
-        if (op == null) {
-            return queryUpdate(downcast(et), (AccessResultDataCB) cb);
-        } else {
-            return varyingQueryUpdate(
-                downcast(et),
-                (AccessResultDataCB) cb,
-                downcast(op));
-        }
+            final CBCall<AccessResultDataCB> cbLambda) {
+        return doQueryUpdate(accessResultData, createCB(cbLambda), null);
     }
 
     /**
      * Delete the several entities by query. (NonExclusiveControl)
      * <pre>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * accessResultDataBhv.<span style="color: #DD4747">queryDelete</span>(accessResultData, cb);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">queryDelete</span>(accessResultData, <span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().setFoo...
+     * });
      * </pre>
-     * @param cb The condition-bean of AccessResultData. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
      * @return The deleted count.
-     * @exception NonQueryDeleteNotAllowedException When the query has no condition.
+     * @throws NonQueryDeleteNotAllowedException When the query has no condition.
      */
-    public int queryDelete(final AccessResultDataCB cb) {
-        return doQueryDelete(cb, null);
-    }
-
-    protected int doQueryDelete(final AccessResultDataCB cb,
-            final DeleteOption<AccessResultDataCB> op) {
-        assertCBStateValid(cb);
-        prepareDeleteOption(op);
-        return checkCountBeforeQueryUpdateIfNeeds(cb) ? delegateQueryDelete(
-            cb,
-            op) : 0;
-    }
-
-    @Override
-    protected int doRangeRemove(final ConditionBean cb,
-            final DeleteOption<? extends ConditionBean> op) {
-        if (op == null) {
-            return queryDelete((AccessResultDataCB) cb);
-        } else {
-            return varyingQueryDelete((AccessResultDataCB) cb, downcast(op));
-        }
+    public int queryDelete(final CBCall<AccessResultDataCB> cbLambda) {
+        return doQueryDelete(createCB(cbLambda), null);
     }
 
     // ===================================================================================
@@ -1155,455 +667,264 @@ public abstract class BsAccessResultDataBhv extends AbstractBehaviorWritable {
     //                                         Entity Update
     //                                         -------------
     /**
-     * Insert the entity with varying requests. <br />
-     * For example, disableCommonColumnAutoSetup(), disablePrimaryKeyIdentity(). <br />
+     * Insert the entity with varying requests. <br>
+     * For example, disableCommonColumnAutoSetup(), disablePrimaryKeyIdentity(). <br>
      * Other specifications are same as insert(entity).
      * <pre>
-     * AccessResultData accessResultData = new AccessResultData();
+     * AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      * <span style="color: #3F7E5E">// if auto-increment, you don't need to set the PK value</span>
      * accessResultData.setFoo...(value);
      * accessResultData.setBar...(value);
-     * InsertOption<AccessResultDataCB> option = new InsertOption<AccessResultDataCB>();
-     * <span style="color: #3F7E5E">// you can insert by your values for common columns</span>
-     * option.disableCommonColumnAutoSetup();
-     * accessResultDataBhv.<span style="color: #DD4747">varyingInsert</span>(accessResultData, option);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">varyingInsert</span>(accessResultData, <span style="color: #553000">op</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #3F7E5E">// you can insert by your values for common columns</span>
+     *     <span style="color: #553000">op</span>.disableCommonColumnAutoSetup();
+     * });
      * ... = accessResultData.getPK...(); <span style="color: #3F7E5E">// if auto-increment, you can get the value after</span>
      * </pre>
-     * @param accessResultData The entity of insert target. (NotNull, PrimaryKeyNullAllowed: when auto-increment)
-     * @param option The option of insert for varying requests. (NotNull)
-     * @exception EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
+     * @param accessResultData The entity of insert. (NotNull, PrimaryKeyNullAllowed: when auto-increment)
+     * @param opLambda The callback for option of insert for varying requests. (NotNull)
+     * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingInsert(final AccessResultData accessResultData,
-            final InsertOption<AccessResultDataCB> option) {
-        assertInsertOptionNotNull(option);
-        doInsert(accessResultData, option);
+    public void varyingInsert(
+            final AccessResultData accessResultData,
+            final WritableOptionCall<AccessResultDataCB, InsertOption<AccessResultDataCB>> opLambda) {
+        doInsert(accessResultData, createInsertOption(opLambda));
     }
 
     /**
-     * Update the entity with varying requests modified-only. (ZeroUpdateException, NonExclusiveControl) <br />
-     * For example, self(selfCalculationSpecification), specify(updateColumnSpecification), disableCommonColumnAutoSetup(). <br />
+     * Update the entity with varying requests modified-only. (ZeroUpdateException, NonExclusiveControl) <br>
+     * For example, self(selfCalculationSpecification), specify(updateColumnSpecification), disableCommonColumnAutoSetup(). <br>
      * Other specifications are same as update(entity).
      * <pre>
-     * AccessResultData accessResultData = new AccessResultData();
+     * AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      * accessResultData.setPK...(value); <span style="color: #3F7E5E">// required</span>
      * accessResultData.setOther...(value); <span style="color: #3F7E5E">// you should set only modified columns</span>
-     * <span style="color: #3F7E5E">// if exclusive control, the value of exclusive control column is required</span>
-     * accessResultData.<span style="color: #DD4747">setVersionNo</span>(value);
-     * try {
-     *     <span style="color: #3F7E5E">// you can update by self calculation values</span>
-     *     UpdateOption&lt;AccessResultDataCB&gt; option = new UpdateOption&lt;AccessResultDataCB&gt;();
-     *     option.self(new SpecifyQuery&lt;AccessResultDataCB&gt;() {
-     *         public void specify(AccessResultDataCB cb) {
-     *             cb.specify().<span style="color: #DD4747">columnXxxCount()</span>;
-     *         }
+     * <span style="color: #3F7E5E">// if exclusive control, the value of concurrency column is required</span>
+     * accessResultData.<span style="color: #CC4747">setVersionNo</span>(value);
+     * <span style="color: #3F7E5E">// you can update by self calculation values</span>
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">varyingUpdate</span>(accessResultData, <span style="color: #553000">op</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">op</span>.self(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *         <span style="color: #553000">cb</span>.specify().<span style="color: #CC4747">columnXxxCount()</span>;
      *     }).plus(1); <span style="color: #3F7E5E">// XXX_COUNT = XXX_COUNT + 1</span>
-     *     accessResultDataBhv.<span style="color: #DD4747">varyingUpdate</span>(accessResultData, option);
-     * } catch (EntityAlreadyUpdatedException e) { <span style="color: #3F7E5E">// if concurrent update</span>
-     *     ...
-     * }
+     * });
      * </pre>
-     * @param accessResultData The entity of update target. (NotNull, PrimaryKeyNotNull, ConcurrencyColumnRequired)
-     * @param option The option of update for varying requests. (NotNull)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
+     * @param accessResultData The entity of update. (NotNull, PrimaryKeyNotNull)
+     * @param opLambda The callback for option of update for varying requests. (NotNull)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityDuplicatedException When the entity has been duplicated.
+     * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingUpdate(final AccessResultData accessResultData,
-            final UpdateOption<AccessResultDataCB> option) {
-        assertUpdateOptionNotNull(option);
-        doUpdate(accessResultData, option);
+    public void varyingUpdate(
+            final AccessResultData accessResultData,
+            final WritableOptionCall<AccessResultDataCB, UpdateOption<AccessResultDataCB>> opLambda) {
+        doUpdate(accessResultData, createUpdateOption(opLambda));
     }
 
     /**
-     * Insert or update the entity with varying requests. (ExclusiveControl: when update) <br />
+     * Insert or update the entity with varying requests. (ExclusiveControl: when update) <br>
      * Other specifications are same as insertOrUpdate(entity).
-     * @param accessResultData The entity of insert or update target. (NotNull)
-     * @param insertOption The option of insert for varying requests. (NotNull)
-     * @param updateOption The option of update for varying requests. (NotNull)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
-     * @exception EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
+     * @param accessResultData The entity of insert or update. (NotNull)
+     * @param insertOpLambda The callback for option of insert for varying requests. (NotNull)
+     * @param updateOpLambda The callback for option of update for varying requests. (NotNull)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityDuplicatedException When the entity has been duplicated.
+     * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingInsertOrUpdate(final AccessResultData accessResultData,
-            final InsertOption<AccessResultDataCB> insertOption,
-            final UpdateOption<AccessResultDataCB> updateOption) {
-        assertInsertOptionNotNull(insertOption);
-        assertUpdateOptionNotNull(updateOption);
-        doInesrtOrUpdate(accessResultData, insertOption, updateOption);
+    public void varyingInsertOrUpdate(
+            final AccessResultData accessResultData,
+            final WritableOptionCall<AccessResultDataCB, InsertOption<AccessResultDataCB>> insertOpLambda,
+            final WritableOptionCall<AccessResultDataCB, UpdateOption<AccessResultDataCB>> updateOpLambda) {
+        doInsertOrUpdate(accessResultData, createInsertOption(insertOpLambda),
+                createUpdateOption(updateOpLambda));
     }
 
     /**
-     * Delete the entity with varying requests. (ZeroUpdateException, NonExclusiveControl) <br />
-     * Now a valid option does not exist. <br />
+     * Delete the entity with varying requests. (ZeroUpdateException, NonExclusiveControl) <br>
+     * Now a valid option does not exist. <br>
      * Other specifications are same as delete(entity).
-     * @param accessResultData The entity of delete target. (NotNull, PrimaryKeyNotNull, ConcurrencyColumnRequired)
-     * @param option The option of update for varying requests. (NotNull)
-     * @exception EntityAlreadyDeletedException When the entity has already been deleted. (not found)
-     * @exception EntityDuplicatedException When the entity has been duplicated.
+     * @param accessResultData The entity of delete. (NotNull, PrimaryKeyNotNull, ConcurrencyColumnNotNull)
+     * @param opLambda The callback for option of delete for varying requests. (NotNull)
+     * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
+     * @throws EntityDuplicatedException When the entity has been duplicated.
      */
-    public void varyingDelete(final AccessResultData accessResultData,
-            final DeleteOption<AccessResultDataCB> option) {
-        assertDeleteOptionNotNull(option);
-        doDelete(accessResultData, option);
+    public void varyingDelete(
+            final AccessResultData accessResultData,
+            final WritableOptionCall<AccessResultDataCB, DeleteOption<AccessResultDataCB>> opLambda) {
+        doDelete(accessResultData, createDeleteOption(opLambda));
     }
 
     // -----------------------------------------------------
     //                                          Batch Update
     //                                          ------------
     /**
-     * Batch-insert the list with varying requests. <br />
+     * Batch-insert the list with varying requests. <br>
      * For example, disableCommonColumnAutoSetup()
-     * , disablePrimaryKeyIdentity(), limitBatchInsertLogging(). <br />
+     * , disablePrimaryKeyIdentity(), limitBatchInsertLogging(). <br>
      * Other specifications are same as batchInsert(entityList).
      * @param accessResultDataList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNotNull)
-     * @param option The option of insert for varying requests. (NotNull)
+     * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @return The array of updated count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchInsert(
             final List<AccessResultData> accessResultDataList,
-            final InsertOption<AccessResultDataCB> option) {
-        assertInsertOptionNotNull(option);
-        return doBatchInsert(accessResultDataList, option);
+            final WritableOptionCall<AccessResultDataCB, InsertOption<AccessResultDataCB>> opLambda) {
+        return doBatchInsert(accessResultDataList, createInsertOption(opLambda));
     }
 
     /**
-     * Batch-update the list with varying requests. <br />
+     * Batch-update the list with varying requests. <br>
      * For example, self(selfCalculationSpecification), specify(updateColumnSpecification)
-     * , disableCommonColumnAutoSetup(), limitBatchUpdateLogging(). <br />
+     * , disableCommonColumnAutoSetup(), limitBatchUpdateLogging(). <br>
      * Other specifications are same as batchUpdate(entityList).
      * @param accessResultDataList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNotNull)
-     * @param option The option of update for varying requests. (NotNull)
+     * @param opLambda The callback for option of update for varying requests. (NotNull)
      * @return The array of updated count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchUpdate(
             final List<AccessResultData> accessResultDataList,
-            final UpdateOption<AccessResultDataCB> option) {
-        assertUpdateOptionNotNull(option);
-        return doBatchUpdate(accessResultDataList, option);
+            final WritableOptionCall<AccessResultDataCB, UpdateOption<AccessResultDataCB>> opLambda) {
+        return doBatchUpdate(accessResultDataList, createUpdateOption(opLambda));
     }
 
     /**
-     * Batch-delete the list with varying requests. <br />
-     * For example, limitBatchDeleteLogging(). <br />
+     * Batch-delete the list with varying requests. <br>
+     * For example, limitBatchDeleteLogging(). <br>
      * Other specifications are same as batchDelete(entityList).
      * @param accessResultDataList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNotNull)
-     * @param option The option of delete for varying requests. (NotNull)
+     * @param opLambda The callback for option of delete for varying requests. (NotNull)
      * @return The array of deleted count. (NotNull, EmptyAllowed)
      */
     public int[] varyingBatchDelete(
             final List<AccessResultData> accessResultDataList,
-            final DeleteOption<AccessResultDataCB> option) {
-        assertDeleteOptionNotNull(option);
-        return doBatchDelete(accessResultDataList, option);
+            final WritableOptionCall<AccessResultDataCB, DeleteOption<AccessResultDataCB>> opLambda) {
+        return doBatchDelete(accessResultDataList, createDeleteOption(opLambda));
     }
 
     // -----------------------------------------------------
     //                                          Query Update
     //                                          ------------
     /**
-     * Insert the several entities by query with varying requests (modified-only for fixed value). <br />
-     * For example, disableCommonColumnAutoSetup(), disablePrimaryKeyIdentity(). <br />
+     * Insert the several entities by query with varying requests (modified-only for fixed value). <br>
+     * For example, disableCommonColumnAutoSetup(), disablePrimaryKeyIdentity(). <br>
      * Other specifications are same as queryInsert(entity, setupper).
-     * @param setupper The setup-per of query-insert. (NotNull)
-     * @param option The option of insert for varying requests. (NotNull)
+     * @param manyArgLambda The set-upper of query-insert. (NotNull)
+     * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @return The inserted count.
      */
     public int varyingQueryInsert(
-            final QueryInsertSetupper<AccessResultData, AccessResultDataCB> setupper,
-            final InsertOption<AccessResultDataCB> option) {
-        assertInsertOptionNotNull(option);
-        return doQueryInsert(setupper, option);
+            final QueryInsertSetupper<AccessResultData, AccessResultDataCB> manyArgLambda,
+            final WritableOptionCall<AccessResultDataCB, InsertOption<AccessResultDataCB>> opLambda) {
+        return doQueryInsert(manyArgLambda, createInsertOption(opLambda));
     }
 
     /**
-     * Update the several entities by query with varying requests non-strictly modified-only. {NonExclusiveControl} <br />
+     * Update the several entities by query with varying requests non-strictly modified-only. {NonExclusiveControl} <br>
      * For example, self(selfCalculationSpecification), specify(updateColumnSpecification)
-     * , disableCommonColumnAutoSetup(), allowNonQueryUpdate(). <br />
+     * , disableCommonColumnAutoSetup(), allowNonQueryUpdate(). <br>
      * Other specifications are same as queryUpdate(entity, cb).
      * <pre>
      * <span style="color: #3F7E5E">// ex) you can update by self calculation values</span>
-     * AccessResultData accessResultData = new AccessResultData();
+     * AccessResultData accessResultData = <span style="color: #70226C">new</span> AccessResultData();
      * <span style="color: #3F7E5E">// you don't need to set PK value</span>
      * <span style="color: #3F7E5E">//accessResultData.setPK...(value);</span>
      * accessResultData.setOther...(value); <span style="color: #3F7E5E">// you should set only modified columns</span>
-     * <span style="color: #3F7E5E">// you don't need to set a value of exclusive control column</span>
+     * <span style="color: #3F7E5E">// you don't need to set a value of concurrency column</span>
      * <span style="color: #3F7E5E">// (auto-increment for version number is valid though non-exclusive control)</span>
      * <span style="color: #3F7E5E">//accessResultData.setVersionNo(value);</span>
-     * AccessResultDataCB cb = new AccessResultDataCB();
-     * cb.query().setFoo...(value);
-     * UpdateOption&lt;AccessResultDataCB&gt; option = new UpdateOption&lt;AccessResultDataCB&gt;();
-     * option.self(new SpecifyQuery&lt;AccessResultDataCB&gt;() {
-     *     public void specify(AccessResultDataCB cb) {
-     *         cb.specify().<span style="color: #DD4747">columnFooCount()</span>;
-     *     }
-     * }).plus(1); <span style="color: #3F7E5E">// FOO_COUNT = FOO_COUNT + 1</span>
-     * accessResultDataBhv.<span style="color: #DD4747">varyingQueryUpdate</span>(accessResultData, cb, option);
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">varyingQueryUpdate</span>(accessResultData, <span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().setFoo...
+     * }, <span style="color: #553000">op</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">op</span>.self(<span style="color: #553000">colCB</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *         <span style="color: #553000">colCB</span>.specify().<span style="color: #CC4747">columnFooCount()</span>;
+     *     }).plus(1); <span style="color: #3F7E5E">// FOO_COUNT = FOO_COUNT + 1</span>
+     * });
      * </pre>
      * @param accessResultData The entity that contains update values. (NotNull) {PrimaryKeyNotRequired}
-     * @param cb The condition-bean of AccessResultData. (NotNull)
-     * @param option The option of update for varying requests. (NotNull)
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
+     * @param opLambda The callback for option of update for varying requests. (NotNull)
      * @return The updated count.
-     * @exception NonQueryUpdateNotAllowedException When the query has no condition (if not allowed).
+     * @throws NonQueryUpdateNotAllowedException When the query has no condition (if not allowed).
      */
-    public int varyingQueryUpdate(final AccessResultData accessResultData,
-            final AccessResultDataCB cb,
-            final UpdateOption<AccessResultDataCB> option) {
-        assertUpdateOptionNotNull(option);
-        return doQueryUpdate(accessResultData, cb, option);
+    public int varyingQueryUpdate(
+            final AccessResultData accessResultData,
+            final CBCall<AccessResultDataCB> cbLambda,
+            final WritableOptionCall<AccessResultDataCB, UpdateOption<AccessResultDataCB>> opLambda) {
+        return doQueryUpdate(accessResultData, createCB(cbLambda),
+                createUpdateOption(opLambda));
     }
 
     /**
-     * Delete the several entities by query with varying requests non-strictly. <br />
-     * For example, allowNonQueryDelete(). <br />
-     * Other specifications are same as batchUpdateNonstrict(entityList).
-     * @param cb The condition-bean of AccessResultData. (NotNull)
-     * @param option The option of delete for varying requests. (NotNull)
+     * Delete the several entities by query with varying requests non-strictly. <br>
+     * For example, allowNonQueryDelete(). <br>
+     * Other specifications are same as queryDelete(cb).
+     * <pre>
+     * <span style="color: #0000C0">accessResultDataBhv</span>.<span style="color: #CC4747">queryDelete</span>(accessResultData, <span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">cb</span>.query().setFoo...
+     * }, <span style="color: #553000">op</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">op</span>...
+     * });
+     * </pre>
+     * @param cbLambda The callback for condition-bean of AccessResultData. (NotNull)
+     * @param opLambda The callback for option of delete for varying requests. (NotNull)
      * @return The deleted count.
-     * @exception NonQueryDeleteNotAllowedException When the query has no condition (if not allowed).
+     * @throws NonQueryDeleteNotAllowedException When the query has no condition (if not allowed).
      */
-    public int varyingQueryDelete(final AccessResultDataCB cb,
-            final DeleteOption<AccessResultDataCB> option) {
-        assertDeleteOptionNotNull(option);
-        return doQueryDelete(cb, option);
+    public int varyingQueryDelete(
+            final CBCall<AccessResultDataCB> cbLambda,
+            final WritableOptionCall<AccessResultDataCB, DeleteOption<AccessResultDataCB>> opLambda) {
+        return doQueryDelete(createCB(cbLambda), createDeleteOption(opLambda));
     }
 
     // ===================================================================================
     //                                                                          OutsideSql
     //                                                                          ==========
     /**
-     * Prepare the basic executor of outside-SQL to execute it. <br />
-     * The invoker of behavior command should be not null when you call this method.
+     * Prepare the all facade executor of outside-SQL to execute it.
      * <pre>
-     * You can use the methods for outside-SQL are as follows:
-     * {Basic}
-     *   o selectList()
-     *   o execute()
-     *   o call()
+     * <span style="color: #3F7E5E">// main style</span>
+     * accessResultDataBhv.outideSql().selectEntity(pmb); <span style="color: #3F7E5E">// optional</span>
+     * accessResultDataBhv.outideSql().selectList(pmb); <span style="color: #3F7E5E">// ListResultBean</span>
+     * accessResultDataBhv.outideSql().selectPage(pmb); <span style="color: #3F7E5E">// PagingResultBean</span>
+     * accessResultDataBhv.outideSql().selectPagedListOnly(pmb); <span style="color: #3F7E5E">// ListResultBean</span>
+     * accessResultDataBhv.outideSql().selectCursor(pmb, handler); <span style="color: #3F7E5E">// (by handler)</span>
+     * accessResultDataBhv.outideSql().execute(pmb); <span style="color: #3F7E5E">// int (updated count)</span>
+     * accessResultDataBhv.outideSql().call(pmb); <span style="color: #3F7E5E">// void (pmb has OUT parameters)</span>
      *
-     * {Entity}
-     *   o entityHandling().selectEntity()
-     *   o entityHandling().selectEntityWithDeletedCheck()
+     * <span style="color: #3F7E5E">// traditional style</span>
+     * accessResultDataBhv.outideSql().traditionalStyle().selectEntity(path, pmb, entityType);
+     * accessResultDataBhv.outideSql().traditionalStyle().selectList(path, pmb, entityType);
+     * accessResultDataBhv.outideSql().traditionalStyle().selectPage(path, pmb, entityType);
+     * accessResultDataBhv.outideSql().traditionalStyle().selectPagedListOnly(path, pmb, entityType);
+     * accessResultDataBhv.outideSql().traditionalStyle().selectCursor(path, pmb, handler);
+     * accessResultDataBhv.outideSql().traditionalStyle().execute(path, pmb);
      *
-     * {Paging}
-     *   o autoPaging().selectList()
-     *   o autoPaging().selectPage()
-     *   o manualPaging().selectList()
-     *   o manualPaging().selectPage()
-     *
-     * {Cursor}
-     *   o cursorHandling().selectCursor()
-     *
-     * {Option}
-     *   o dynamicBinding().selectList()
-     *   o removeBlockComment().selectList()
-     *   o removeLineComment().selectList()
-     *   o formatSql().selectList()
+     * <span style="color: #3F7E5E">// options</span>
+     * accessResultDataBhv.outideSql().removeBlockComment().selectList()
+     * accessResultDataBhv.outideSql().removeLineComment().selectList()
+     * accessResultDataBhv.outideSql().formatSql().selectList()
      * </pre>
-     * @return The basic executor of outside-SQL. (NotNull)
+     * <p>The invoker of behavior command should be not null when you call this method.</p>
+     * @return The new-created all facade executor of outside-SQL. (NotNull)
      */
-    public OutsideSqlBasicExecutor<AccessResultDataBhv> outsideSql() {
+    public OutsideSqlAllFacadeExecutor<AccessResultDataBhv> outsideSql() {
         return doOutsideSql();
     }
 
     // ===================================================================================
-    //                                                                     Delegate Method
-    //                                                                     ===============
-    // [Behavior Command]
-    // -----------------------------------------------------
-    //                                                Select
-    //                                                ------
-    protected int delegateSelectCountUniquely(final AccessResultDataCB cb) {
-        return invoke(createSelectCountCBCommand(cb, true));
-    }
-
-    protected int delegateSelectCountPlainly(final AccessResultDataCB cb) {
-        return invoke(createSelectCountCBCommand(cb, false));
-    }
-
-    protected <ENTITY extends AccessResultData> void delegateSelectCursor(
-            final AccessResultDataCB cb, final EntityRowHandler<ENTITY> rh,
-            final Class<ENTITY> tp) {
-        invoke(createSelectCursorCBCommand(cb, rh, tp));
-    }
-
-    protected <ENTITY extends AccessResultData> List<ENTITY> delegateSelectList(
-            final AccessResultDataCB cb, final Class<ENTITY> tp) {
-        return invoke(createSelectListCBCommand(cb, tp));
-    }
-
-    // -----------------------------------------------------
-    //                                                Update
-    //                                                ------
-    protected int delegateInsert(final AccessResultData et,
-            final InsertOption<AccessResultDataCB> op) {
-        if (!processBeforeInsert(et, op)) {
-            return 0;
-        }
-        return invoke(createInsertEntityCommand(et, op));
-    }
-
-    protected int delegateUpdate(final AccessResultData et,
-            final UpdateOption<AccessResultDataCB> op) {
-        if (!processBeforeUpdate(et, op)) {
-            return 0;
-        }
-        return delegateUpdateNonstrict(et, op);
-    }
-
-    protected int delegateUpdateNonstrict(final AccessResultData et,
-            final UpdateOption<AccessResultDataCB> op) {
-        if (!processBeforeUpdate(et, op)) {
-            return 0;
-        }
-        return invoke(createUpdateNonstrictEntityCommand(et, op));
-    }
-
-    protected int delegateDelete(final AccessResultData et,
-            final DeleteOption<AccessResultDataCB> op) {
-        if (!processBeforeDelete(et, op)) {
-            return 0;
-        }
-        return delegateDeleteNonstrict(et, op);
-    }
-
-    protected int delegateDeleteNonstrict(final AccessResultData et,
-            final DeleteOption<AccessResultDataCB> op) {
-        if (!processBeforeDelete(et, op)) {
-            return 0;
-        }
-        return invoke(createDeleteNonstrictEntityCommand(et, op));
-    }
-
-    protected int[] delegateBatchInsert(final List<AccessResultData> ls,
-            final InsertOption<AccessResultDataCB> op) {
-        if (ls.isEmpty()) {
-            return new int[] {};
-        }
-        return invoke(createBatchInsertCommand(
-            processBatchInternally(ls, op),
-            op));
-    }
-
-    protected int[] delegateBatchUpdate(final List<AccessResultData> ls,
-            final UpdateOption<AccessResultDataCB> op) {
-        if (ls.isEmpty()) {
-            return new int[] {};
-        }
-        return delegateBatchUpdateNonstrict(ls, op);
-    }
-
-    protected int[] delegateBatchUpdateNonstrict(
-            final List<AccessResultData> ls,
-            final UpdateOption<AccessResultDataCB> op) {
-        if (ls.isEmpty()) {
-            return new int[] {};
-        }
-        return invoke(createBatchUpdateNonstrictCommand(
-            processBatchInternally(ls, op, true),
-            op));
-    }
-
-    protected int[] delegateBatchDelete(final List<AccessResultData> ls,
-            final DeleteOption<AccessResultDataCB> op) {
-        if (ls.isEmpty()) {
-            return new int[] {};
-        }
-        return delegateBatchDeleteNonstrict(ls, op);
-    }
-
-    protected int[] delegateBatchDeleteNonstrict(
-            final List<AccessResultData> ls,
-            final DeleteOption<AccessResultDataCB> op) {
-        if (ls.isEmpty()) {
-            return new int[] {};
-        }
-        return invoke(createBatchDeleteNonstrictCommand(
-            processBatchInternally(ls, op, true),
-            op));
-    }
-
-    protected int delegateQueryInsert(final AccessResultData et,
-            final AccessResultDataCB inCB, final ConditionBean resCB,
-            final InsertOption<AccessResultDataCB> op) {
-        if (!processBeforeQueryInsert(et, inCB, resCB, op)) {
-            return 0;
-        }
-        return invoke(createQueryInsertCBCommand(et, inCB, resCB, op));
-    }
-
-    protected int delegateQueryUpdate(final AccessResultData et,
-            final AccessResultDataCB cb,
-            final UpdateOption<AccessResultDataCB> op) {
-        if (!processBeforeQueryUpdate(et, cb, op)) {
-            return 0;
-        }
-        return invoke(createQueryUpdateCBCommand(et, cb, op));
-    }
-
-    protected int delegateQueryDelete(final AccessResultDataCB cb,
-            final DeleteOption<AccessResultDataCB> op) {
-        if (!processBeforeQueryDelete(cb, op)) {
-            return 0;
-        }
-        return invoke(createQueryDeleteCBCommand(cb, op));
-    }
-
-    // ===================================================================================
-    //                                                                Optimistic Lock Info
-    //                                                                ====================
-    /**
-     * {@inheritDoc}
-     */
+    //                                                                         Type Helper
+    //                                                                         ===========
     @Override
-    protected boolean hasVersionNoValue(final Entity et) {
-        return false;
+    protected Class<? extends AccessResultData> typeOfSelectedEntity() {
+        return AccessResultData.class;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected boolean hasUpdateDateValue(final Entity et) {
-        return false;
+    protected Class<AccessResultData> typeOfHandlingEntity() {
+        return AccessResultData.class;
     }
 
-    // ===================================================================================
-    //                                                                     Downcast Helper
-    //                                                                     ===============
-    protected AccessResultData downcast(final Entity et) {
-        return helpEntityDowncastInternally(et, AccessResultData.class);
-    }
-
-    protected AccessResultDataCB downcast(final ConditionBean cb) {
-        return helpConditionBeanDowncastInternally(cb, AccessResultDataCB.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected List<AccessResultData> downcast(final List<? extends Entity> ls) {
-        return (List<AccessResultData>) ls;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected InsertOption<AccessResultDataCB> downcast(
-            final InsertOption<? extends ConditionBean> op) {
-        return (InsertOption<AccessResultDataCB>) op;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected UpdateOption<AccessResultDataCB> downcast(
-            final UpdateOption<? extends ConditionBean> op) {
-        return (UpdateOption<AccessResultDataCB>) op;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected DeleteOption<AccessResultDataCB> downcast(
-            final DeleteOption<? extends ConditionBean> op) {
-        return (DeleteOption<AccessResultDataCB>) op;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected QueryInsertSetupper<AccessResultData, AccessResultDataCB> downcast(
-            final QueryInsertSetupper<? extends Entity, ? extends ConditionBean> sp) {
-        return (QueryInsertSetupper<AccessResultData, AccessResultDataCB>) sp;
+    @Override
+    protected Class<AccessResultDataCB> typeOfHandlingConditionBean() {
+        return AccessResultDataCB.class;
     }
 }

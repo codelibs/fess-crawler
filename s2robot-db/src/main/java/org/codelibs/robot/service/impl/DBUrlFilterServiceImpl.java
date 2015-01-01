@@ -15,19 +15,19 @@
  */
 package org.codelibs.robot.service.impl;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
-import org.codelibs.robot.db.cbean.UrlFilterCB;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.db.exbhv.UrlFilterBhv;
 import org.codelibs.robot.db.exentity.UrlFilter;
 import org.codelibs.robot.service.UrlFilterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author shinsuke
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DBUrlFilterServiceImpl implements UrlFilterService {
     private final Logger logger = LoggerFactory
-        .getLogger(DBUrlFilterServiceImpl.class);
+            .getLogger(DBUrlFilterServiceImpl.class);
 
     private static final String INCLUDE_FILTER_TYPE = "I";
 
@@ -53,11 +53,10 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java
-     * .lang.String, java.lang.String)
+     * @see org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void addIncludeUrlFilter(final String sessionId, final String url) {
         addUrlFilter(sessionId, url, INCLUDE_FILTER_TYPE);
     }
@@ -65,11 +64,10 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java
-     * .lang.String, java.util.List)
+     * @see org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.util.List)
      */
     @Override
+    @Transactional("robotTx")
     public void addIncludeUrlFilter(final String sessionId,
             final List<String> urlList) {
         addUrlFilter(sessionId, urlList, INCLUDE_FILTER_TYPE);
@@ -78,11 +76,10 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java
-     * .lang.String, java.lang.String)
+     * @see org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void addExcludeUrlFilter(final String sessionId, final String url) {
         addUrlFilter(sessionId, url, EXCLUDE_FILTER_TYPE);
     }
@@ -90,11 +87,10 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java
-     * .lang.String, java.util.List)
+     * @see org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.util.List)
      */
     @Override
+    @Transactional("robotTx")
     public void addExcludeUrlFilter(final String sessionId,
             final List<String> urlList) {
         addUrlFilter(sessionId, urlList, EXCLUDE_FILTER_TYPE);
@@ -115,7 +111,7 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
         urlFilter.setSessionId(sessionId);
         urlFilter.setUrl(url);
         urlFilter.setFilterType(filterType);
-        urlFilter.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        urlFilter.setCreateTime(SystemUtil.currentTimeMillis());
         urlFilterBhv.insert(urlFilter);
     }
 
@@ -136,7 +132,7 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
             urlFilter.setSessionId(sessionId);
             urlFilter.setUrl(url);
             urlFilter.setFilterType(filterType);
-            urlFilter.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            urlFilter.setCreateTime(SystemUtil.currentTimeMillis());
             urlFilterList.add(urlFilter);
         }
         urlFilterBhv.batchInsert(urlFilterList);
@@ -145,10 +141,10 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.impl.UrlFilterService#delete(java.lang.String)
+     * @see org.codelibs.robot.service.impl.UrlFilterService#delete(java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public void delete(final String sessionId) {
         clearCache();
         urlFilterBhv.deleteBySessionId(sessionId);
@@ -160,6 +156,7 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#deleteAll()
      */
     @Override
+    @Transactional("robotTx")
     public void deleteAll() {
         clearCache();
         urlFilterBhv.deleteAll();
@@ -168,15 +165,14 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.impl.UrlFilterService#getIncludeUrlPatternList
-     * (java.lang.String)
+     * @see org.codelibs.robot.service.impl.UrlFilterService#getIncludeUrlPatternList(java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
         if (includeUrlPatternListCache == null) {
-            final List<Pattern> urlPatternList =
-                getUrlPatternList(sessionId, INCLUDE_FILTER_TYPE);
+            final List<Pattern> urlPatternList = getUrlPatternList(sessionId,
+                    INCLUDE_FILTER_TYPE);
             if (urlPatternList.size() < maxCacheSize) {
                 includeUrlPatternListCache = urlPatternList;
             }
@@ -188,15 +184,14 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.impl.UrlFilterService#getExcludeUrlPatternList
-     * (java.lang.String)
+     * @see org.codelibs.robot.service.impl.UrlFilterService#getExcludeUrlPatternList(java.lang.String)
      */
     @Override
+    @Transactional("robotTx")
     public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
         if (excludeUrlPatternListCache == null) {
-            final List<Pattern> urlPatternList =
-                getUrlPatternList(sessionId, EXCLUDE_FILTER_TYPE);
+            final List<Pattern> urlPatternList = getUrlPatternList(sessionId,
+                    EXCLUDE_FILTER_TYPE);
             if (urlPatternList.size() < maxCacheSize) {
                 excludeUrlPatternListCache = urlPatternList;
             }
@@ -207,10 +202,10 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
 
     protected List<Pattern> getUrlPatternList(final String sessionId,
             final String filterType) {
-        final UrlFilterCB cb = new UrlFilterCB();
-        cb.query().setSessionId_Equal(sessionId);
-        cb.query().setFilterType_Equal(filterType);
-        final List<UrlFilter> urlFilterList = urlFilterBhv.selectList(cb);
+        final List<UrlFilter> urlFilterList = urlFilterBhv.selectList(cb -> {
+            cb.query().setSessionId_Equal(sessionId);
+            cb.query().setFilterType_Equal(filterType);
+        });
 
         final List<Pattern> urlPatternList = new ArrayList<>();
         for (final UrlFilter urlFilter : urlFilterList) {

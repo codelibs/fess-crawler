@@ -16,7 +16,6 @@
 package org.codelibs.robot.db.exbhv;
 
 import org.codelibs.robot.db.bsbhv.BsAccessResultDataBhv;
-import org.codelibs.robot.db.cbean.AccessResultDataCB;
 
 /**
  * The behavior of ACCESS_RESULT_DATA.
@@ -29,9 +28,9 @@ import org.codelibs.robot.db.cbean.AccessResultDataCB;
  */
 public class AccessResultDataBhv extends BsAccessResultDataBhv {
     public int deleteBySessionId(final String sessionId) {
-        final AccessResultDataCB cb1 = new AccessResultDataCB();
-        cb1.query().queryAccessResult().setSessionId_Equal(sessionId);
-        return queryDelete(cb1);
+        return queryDelete(cb -> {
+            cb.query().queryAccessResult().setSessionId_Equal(sessionId);
+        });
 
         // return
         // outsideSql().execute(AccessResultDataBhv.PATH_deleteBySessionId,
@@ -41,7 +40,7 @@ public class AccessResultDataBhv extends BsAccessResultDataBhv {
     public int deleteAll() {
         // AccessResultDataCB cb1 = new AccessResultDataCB();
         // accessResultDataBhv.queryDelete(cb1);
-        final String pmb = null;
-        return outsideSql().execute(BsAccessResultDataBhv.PATH_deleteAll, pmb);
+        return outsideSql().traditionalStyle().execute(
+                BsAccessResultDataBhv.PATH_deleteAllAccessResultData, null);
     }
 }

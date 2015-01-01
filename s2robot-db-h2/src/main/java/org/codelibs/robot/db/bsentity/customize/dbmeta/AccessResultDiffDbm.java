@@ -1,18 +1,3 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity.customize.dbmeta;
 
 import java.util.List;
@@ -21,13 +6,13 @@ import java.util.Map;
 import org.codelibs.robot.db.allcommon.DBCurrent;
 import org.codelibs.robot.db.allcommon.DBFluteConfig;
 import org.codelibs.robot.db.exentity.customize.AccessResultDiff;
-import org.seasar.dbflute.DBDef;
-import org.seasar.dbflute.Entity;
-import org.seasar.dbflute.dbmeta.AbstractDBMeta;
-import org.seasar.dbflute.dbmeta.PropertyGateway;
-import org.seasar.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.dbflute.dbmeta.name.TableSqlName;
+import org.dbflute.Entity;
+import org.dbflute.dbmeta.AbstractDBMeta;
+import org.dbflute.dbmeta.info.ColumnInfo;
+import org.dbflute.dbmeta.info.UniqueInfo;
+import org.dbflute.dbmeta.name.TableSqlName;
+import org.dbflute.dbmeta.property.PropertyGateway;
+import org.dbflute.dbway.DBDef;
 
 /**
  * The DB meta of AccessResultDiff. (Singleton)
@@ -38,8 +23,7 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                           Singleton
     //                                                                           =========
-    private static final AccessResultDiffDbm _instance =
-        new AccessResultDiffDbm();
+    private static final AccessResultDiffDbm _instance = new AccessResultDiffDbm();
 
     private AccessResultDiffDbm() {
     }
@@ -51,6 +35,21 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                       Current DBDef
     //                                                                       =============
+    @Override
+    public String getProjectName() {
+        return DBCurrent.getInstance().projectName();
+    }
+
+    @Override
+    public String getProjectPrefix() {
+        return DBCurrent.getInstance().projectPrefix();
+    }
+
+    @Override
+    public String getGenerationGapBasePrefix() {
+        return DBCurrent.getInstance().generationGapBasePrefix();
+    }
+
     @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
@@ -64,162 +63,44 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
-        setupEpg(_epgMap, new EpgId(), "id");
-        setupEpg(_epgMap, new EpgSessionId(), "sessionId");
-        setupEpg(_epgMap, new EpgRuleId(), "ruleId");
-        setupEpg(_epgMap, new EpgUrl(), "url");
-        setupEpg(_epgMap, new EpgParentUrl(), "parentUrl");
-        setupEpg(_epgMap, new EpgStatus(), "status");
-        setupEpg(_epgMap, new EpgHttpStatusCode(), "httpStatusCode");
-        setupEpg(_epgMap, new EpgMethod(), "method");
-        setupEpg(_epgMap, new EpgMimeType(), "mimeType");
-        setupEpg(_epgMap, new EpgContentLength(), "contentLength");
-        setupEpg(_epgMap, new EpgExecutionTime(), "executionTime");
-        setupEpg(_epgMap, new EpgCreateTime(), "createTime");
+        xsetupEpg();
     }
 
-    public static class EpgId implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getId();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setId(ctl(vl));
-        }
-    }
-
-    public static class EpgSessionId implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getSessionId();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setSessionId((String) vl);
-        }
-    }
-
-    public static class EpgRuleId implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getRuleId();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setRuleId((String) vl);
-        }
-    }
-
-    public static class EpgUrl implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getUrl();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setUrl((String) vl);
-        }
-    }
-
-    public static class EpgParentUrl implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getParentUrl();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setParentUrl((String) vl);
-        }
-    }
-
-    public static class EpgStatus implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getStatus();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setStatus(cti(vl));
-        }
-    }
-
-    public static class EpgHttpStatusCode implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getHttpStatusCode();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setHttpStatusCode(cti(vl));
-        }
-    }
-
-    public static class EpgMethod implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getMethod();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setMethod((String) vl);
-        }
-    }
-
-    public static class EpgMimeType implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getMimeType();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setMimeType((String) vl);
-        }
-    }
-
-    public static class EpgContentLength implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getContentLength();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setContentLength(ctl(vl));
-        }
-    }
-
-    public static class EpgExecutionTime implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getExecutionTime();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setExecutionTime(cti(vl));
-        }
-    }
-
-    public static class EpgCreateTime implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResultDiff) et).getCreateTime();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResultDiff) et).setCreateTime((java.sql.Timestamp) vl);
-        }
+    protected void xsetupEpg() {
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getId(),
+                (et, vl) -> ((AccessResultDiff) et).setId(ctl(vl)), "id");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getSessionId(),
+                (et, vl) -> ((AccessResultDiff) et).setSessionId((String) vl),
+                "sessionId");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getRuleId(),
+                (et, vl) -> ((AccessResultDiff) et).setRuleId((String) vl),
+                "ruleId");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getUrl(),
+                (et, vl) -> ((AccessResultDiff) et).setUrl((String) vl), "url");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getParentUrl(),
+                (et, vl) -> ((AccessResultDiff) et).setParentUrl((String) vl),
+                "parentUrl");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getStatus(),
+                (et, vl) -> ((AccessResultDiff) et).setStatus(cti(vl)),
+                "status");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getHttpStatusCode(), (
+                et, vl) -> ((AccessResultDiff) et).setHttpStatusCode(cti(vl)),
+                "httpStatusCode");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getMethod(),
+                (et, vl) -> ((AccessResultDiff) et).setMethod((String) vl),
+                "method");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getMimeType(),
+                (et, vl) -> ((AccessResultDiff) et).setMimeType((String) vl),
+                "mimeType");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getContentLength(), (
+                et, vl) -> ((AccessResultDiff) et).setContentLength(ctl(vl)),
+                "contentLength");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getExecutionTime(), (
+                et, vl) -> ((AccessResultDiff) et).setExecutionTime(cti(vl)),
+                "executionTime");
+        setupEpg(_epgMap, et -> ((AccessResultDiff) et).getCreateTime(), (et,
+                vl) -> ((AccessResultDiff) et).setCreateTime(ctl(vl)),
+                "createTime");
     }
 
     @Override
@@ -235,12 +116,10 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     protected final String _tablePropertyName = "accessResultDiff";
 
     protected final TableSqlName _tableSqlName = new TableSqlName(
-        "AccessResultDiff",
-        _tableDbName);
+            "AccessResultDiff", _tableDbName);
     {
-        _tableSqlName.xacceptFilter(DBFluteConfig
-            .getInstance()
-            .getTableSqlNameFilter());
+        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
+                .getTableSqlNameFilter());
     }
 
     @Override
@@ -261,269 +140,59 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
-    protected final ColumnInfo _columnId = cci(
-        "ID",
-        "ID",
-        null,
-        null,
-        Long.class,
-        "id",
-        null,
-        false,
-        false,
-        false,
-        "BIGINT",
-        19,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnId = cci("ID", "ID", null, null,
+            Long.class, "id", null, false, false, false, "BIGINT", 19, 0, null,
+            false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnSessionId = cci(
-        "SESSION_ID",
-        "SESSION_ID",
-        null,
-        null,
-        String.class,
-        "sessionId",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        20,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnSessionId = cci("SESSION_ID",
+            "SESSION_ID", null, null, String.class, "sessionId", null, false,
+            false, false, "VARCHAR", 20, 0, null, false, null, null, null,
+            null, null, false);
 
-    protected final ColumnInfo _columnRuleId = cci(
-        "RULE_ID",
-        "RULE_ID",
-        null,
-        null,
-        String.class,
-        "ruleId",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        20,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnRuleId = cci("RULE_ID", "RULE_ID", null,
+            null, String.class, "ruleId", null, false, false, false, "VARCHAR",
+            20, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnUrl = cci(
-        "URL",
-        "URL",
-        null,
-        null,
-        String.class,
-        "url",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        65536,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null,
+            String.class, "url", null, false, false, false, "VARCHAR", 65536,
+            0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnParentUrl = cci(
-        "PARENT_URL",
-        "PARENT_URL",
-        null,
-        null,
-        String.class,
-        "parentUrl",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        65536,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnParentUrl = cci("PARENT_URL",
+            "PARENT_URL", null, null, String.class, "parentUrl", null, false,
+            false, false, "VARCHAR", 65536, 0, null, false, null, null, null,
+            null, null, false);
 
-    protected final ColumnInfo _columnStatus = cci(
-        "STATUS",
-        "STATUS",
-        null,
-        null,
-        Integer.class,
-        "status",
-        null,
-        false,
-        false,
-        false,
-        "INTEGER",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnStatus = cci("STATUS", "STATUS", null,
+            null, Integer.class, "status", null, false, false, false,
+            "INTEGER", 10, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnHttpStatusCode = cci(
-        "HTTP_STATUS_CODE",
-        "HTTP_STATUS_CODE",
-        null,
-        null,
-        Integer.class,
-        "httpStatusCode",
-        null,
-        false,
-        false,
-        false,
-        "INTEGER",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnHttpStatusCode = cci("HTTP_STATUS_CODE",
+            "HTTP_STATUS_CODE", null, null, Integer.class, "httpStatusCode",
+            null, false, false, false, "INTEGER", 10, 0, null, false, null,
+            null, null, null, null, false);
 
-    protected final ColumnInfo _columnMethod = cci(
-        "METHOD",
-        "METHOD",
-        null,
-        null,
-        String.class,
-        "method",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnMethod = cci("METHOD", "METHOD", null,
+            null, String.class, "method", null, false, false, false, "VARCHAR",
+            10, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnMimeType = cci(
-        "MIME_TYPE",
-        "MIME_TYPE",
-        null,
-        null,
-        String.class,
-        "mimeType",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        100,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnMimeType = cci("MIME_TYPE", "MIME_TYPE",
+            null, null, String.class, "mimeType", null, false, false, false,
+            "VARCHAR", 100, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnContentLength = cci(
-        "CONTENT_LENGTH",
-        "CONTENT_LENGTH",
-        null,
-        null,
-        Long.class,
-        "contentLength",
-        null,
-        false,
-        false,
-        false,
-        "BIGINT",
-        19,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnContentLength = cci("CONTENT_LENGTH",
+            "CONTENT_LENGTH", null, null, Long.class, "contentLength", null,
+            false, false, false, "BIGINT", 19, 0, null, false, null, null,
+            null, null, null, false);
 
-    protected final ColumnInfo _columnExecutionTime = cci(
-        "EXECUTION_TIME",
-        "EXECUTION_TIME",
-        null,
-        null,
-        Integer.class,
-        "executionTime",
-        null,
-        false,
-        false,
-        false,
-        "INTEGER",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnExecutionTime = cci("EXECUTION_TIME",
+            "EXECUTION_TIME", null, null, Integer.class, "executionTime", null,
+            false, false, false, "INTEGER", 10, 0, null, false, null, null,
+            null, null, null, false);
 
-    protected final ColumnInfo _columnCreateTime = cci(
-        "CREATE_TIME",
-        "CREATE_TIME",
-        null,
-        null,
-        java.sql.Timestamp.class,
-        "createTime",
-        null,
-        false,
-        false,
-        false,
-        "TIMESTAMP",
-        23,
-        10,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnCreateTime = cci("CREATE_TIME",
+            "CREATE_TIME", null, null, Long.class, "createTime", null, false,
+            false, false, "BIGINT", 19, 0, null, false, null, null, null, null,
+            null, false);
 
     /**
      * ID: {BIGINT(19), refers to ACCESS_RESULT.ID}
@@ -614,7 +283,7 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     }
 
     /**
-     * CREATE_TIME: {TIMESTAMP(23, 10), refers to ACCESS_RESULT.CREATE_TIME}
+     * CREATE_TIME: {BIGINT(19), refers to ACCESS_RESULT.CREATE_TIME}
      * @return The information object of specified column. (NotNull)
      */
     public ColumnInfo columnCreateTime() {
@@ -652,7 +321,7 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     @Override
     protected UniqueInfo cpui() {
         throw new UnsupportedOperationException(
-            "The table does not have primary key: " + getTableDbName());
+                "The table does not have primary key: " + getTableDbName());
     }
 
     @Override
@@ -712,11 +381,7 @@ public class AccessResultDiffDbm extends AbstractDBMeta {
     //                                                                     Object Instance
     //                                                                     ===============
     @Override
-    public Entity newEntity() {
-        return newMyEntity();
-    }
-
-    public AccessResultDiff newMyEntity() {
+    public AccessResultDiff newEntity() {
         return new AccessResultDiff();
     }
 

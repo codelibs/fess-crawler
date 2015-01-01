@@ -10,8 +10,8 @@
 # o targetProcedureNameList: (NotRequired - Default list:{})
 # o executionMetaProcedureNameList: (NotRequired - Default list:{})
 # o procedureSynonymHandlingType: (NotRequired - Default NONE)
-# o isRequiredSqlTitle: (NotRequired - Default false)
-# o isRequiredSqlDescription: (NotRequired - Default false)
+# o isRequiredSqlTitle: (NotRequired - Default true)
+# o isRequiredSqlDescription: (NotRequired - Default true)
 # o sqlFileEncoding: (NotRequired - Default 'UTF-8')
 # o sqlDirectory: (NotRequired - Default generateOutputDirectory & resourceOutputDirectory)
 # o sql2EntityOutputDirectory: (NotRequired - Default generateOutputDirectory)
@@ -99,7 +99,7 @@ map:{
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isRequiredSqlTitle: (NotRequired - Default false)
+    # o isRequiredSqlTitle: (NotRequired - Default true)
     #   [true]
     #     You should always write the title of outsideSql.
     #     If it doesn't exist, the OutsideSqlTest task fails.
@@ -107,11 +107,11 @@ map:{
     #   [false]
     #     Non.
     #
-    #; isRequiredSqlTitle = false
+    #; isRequiredSqlTitle = true
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isRequiredSqlDescription: (NotRequired - Default false)
+    # o isRequiredSqlDescription: (NotRequired - Default true)
     #   [true]
     #     You should always write the description of outsideSql.
     #     If it doesn't exist, the OutsideSqlTest task fails.
@@ -119,7 +119,7 @@ map:{
     #   [false]
     #     Non.
     #
-    #; isRequiredSqlDescription = false
+    #; isRequiredSqlDescription = true
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

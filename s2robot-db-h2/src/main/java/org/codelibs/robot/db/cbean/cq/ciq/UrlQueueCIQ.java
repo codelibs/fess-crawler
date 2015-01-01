@@ -1,18 +1,3 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.cbean.cq.ciq;
 
 import java.util.Map;
@@ -21,12 +6,12 @@ import org.codelibs.robot.db.cbean.UrlQueueCB;
 import org.codelibs.robot.db.cbean.cq.UrlQueueCQ;
 import org.codelibs.robot.db.cbean.cq.bs.AbstractBsUrlQueueCQ;
 import org.codelibs.robot.db.cbean.cq.bs.BsUrlQueueCQ;
-import org.seasar.dbflute.cbean.ConditionQuery;
-import org.seasar.dbflute.cbean.ckey.ConditionKey;
-import org.seasar.dbflute.cbean.coption.ConditionOption;
-import org.seasar.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
+import org.dbflute.cbean.ConditionQuery;
+import org.dbflute.cbean.ckey.ConditionKey;
+import org.dbflute.cbean.coption.ConditionOption;
+import org.dbflute.cbean.cvalue.ConditionValue;
+import org.dbflute.cbean.sqlclause.SqlClause;
+import org.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
  * The condition-query for in-line of URL_QUEUE.
@@ -59,7 +44,7 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     protected void reflectRelationOnUnionQuery(final ConditionQuery bq,
             final ConditionQuery uq) {
         throw new IllegalConditionBeanOperationException(
-            "InlineView cannot use Union: " + bq + " : " + uq);
+                "InlineView cannot use Union: " + bq + " : " + uq);
     }
 
     @Override
@@ -85,7 +70,7 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     protected boolean isInScopeRelationSuppressLocalAliasName() {
         if (_onClause) {
             throw new IllegalConditionBeanOperationException(
-                "InScopeRelation on OnClause is unsupported.");
+                    "InScopeRelation on OnClause is unsupported.");
         }
         return true;
     }
@@ -94,53 +79,53 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
     //                                                                Override about Query
     //                                                                ====================
     @Override
-    protected ConditionValue getCValueId() {
-        return _myCQ.getId();
+    protected ConditionValue xgetCValueId() {
+        return _myCQ.xdfgetId();
     }
 
     @Override
-    protected ConditionValue getCValueSessionId() {
-        return _myCQ.getSessionId();
+    protected ConditionValue xgetCValueSessionId() {
+        return _myCQ.xdfgetSessionId();
     }
 
     @Override
-    protected ConditionValue getCValueMethod() {
-        return _myCQ.getMethod();
+    protected ConditionValue xgetCValueMethod() {
+        return _myCQ.xdfgetMethod();
     }
 
     @Override
-    protected ConditionValue getCValueUrl() {
-        return _myCQ.getUrl();
+    protected ConditionValue xgetCValueUrl() {
+        return _myCQ.xdfgetUrl();
     }
 
     @Override
-    protected ConditionValue getCValueMetaData() {
-        return _myCQ.getMetaData();
+    protected ConditionValue xgetCValueMetaData() {
+        return _myCQ.xdfgetMetaData();
     }
 
     @Override
-    protected ConditionValue getCValueEncoding() {
-        return _myCQ.getEncoding();
+    protected ConditionValue xgetCValueEncoding() {
+        return _myCQ.xdfgetEncoding();
     }
 
     @Override
-    protected ConditionValue getCValueParentUrl() {
-        return _myCQ.getParentUrl();
+    protected ConditionValue xgetCValueParentUrl() {
+        return _myCQ.xdfgetParentUrl();
     }
 
     @Override
-    protected ConditionValue getCValueDepth() {
-        return _myCQ.getDepth();
+    protected ConditionValue xgetCValueDepth() {
+        return _myCQ.xdfgetDepth();
     }
 
     @Override
-    protected ConditionValue getCValueLastModified() {
-        return _myCQ.getLastModified();
+    protected ConditionValue xgetCValueLastModified() {
+        return _myCQ.xdfgetLastModified();
     }
 
     @Override
-    protected ConditionValue getCValueCreateTime() {
-        return _myCQ.getCreateTime();
+    protected ConditionValue xgetCValueCreateTime() {
+        return _myCQ.xdfgetCreateTime();
     }
 
     @Override
@@ -179,15 +164,9 @@ public class UrlQueueCIQ extends AbstractBsUrlQueueCQ {
         return null;
     }
 
-    @Override
-    public String keepMyselfInScope(final UrlQueueCQ sq) {
-        throwIICBOE("MyselfInScope");
-        return null;
-    }
-
     protected void throwIICBOE(final String name) {
         throw new IllegalConditionBeanOperationException(name
-            + " at InlineView is unsupported.");
+                + " at InlineView is unsupported.");
     }
 
     // ===================================================================================

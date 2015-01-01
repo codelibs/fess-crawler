@@ -1,46 +1,28 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.cbean.cq.bs;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
 import org.codelibs.robot.db.cbean.AccessResultCB;
-import org.codelibs.robot.db.cbean.AccessResultDataCB;
 import org.codelibs.robot.db.cbean.cq.AccessResultCQ;
-import org.codelibs.robot.db.cbean.cq.AccessResultDataCQ;
-import org.seasar.dbflute.cbean.AbstractConditionQuery;
-import org.seasar.dbflute.cbean.ConditionBean;
-import org.seasar.dbflute.cbean.ConditionQuery;
-import org.seasar.dbflute.cbean.ManualOrderBean;
-import org.seasar.dbflute.cbean.SubQuery;
-import org.seasar.dbflute.cbean.chelper.HpQDRFunction;
-import org.seasar.dbflute.cbean.chelper.HpSSQFunction;
-import org.seasar.dbflute.cbean.chelper.HpSSQOption;
-import org.seasar.dbflute.cbean.chelper.HpSSQSetupper;
-import org.seasar.dbflute.cbean.ckey.ConditionKey;
-import org.seasar.dbflute.cbean.coption.DerivedReferrerOption;
-import org.seasar.dbflute.cbean.coption.FromToOption;
-import org.seasar.dbflute.cbean.coption.LikeSearchOption;
-import org.seasar.dbflute.cbean.coption.RangeOfOption;
-import org.seasar.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.dbflute.dbmeta.DBMetaProvider;
+import org.dbflute.cbean.AbstractConditionQuery;
+import org.dbflute.cbean.ConditionBean;
+import org.dbflute.cbean.ConditionQuery;
+import org.dbflute.cbean.chelper.HpQDRFunction;
+import org.dbflute.cbean.chelper.HpSSQFunction;
+import org.dbflute.cbean.chelper.HpSSQOption;
+import org.dbflute.cbean.chelper.HpSSQSetupper;
+import org.dbflute.cbean.ckey.ConditionKey;
+import org.dbflute.cbean.coption.ConditionOptionCall;
+import org.dbflute.cbean.coption.DerivedReferrerOption;
+import org.dbflute.cbean.coption.LikeSearchOption;
+import org.dbflute.cbean.coption.RangeOfOption;
+import org.dbflute.cbean.cvalue.ConditionValue;
+import org.dbflute.cbean.ordering.ManualOrderOptionCall;
+import org.dbflute.cbean.scoping.SubQuery;
+import org.dbflute.cbean.sqlclause.SqlClause;
+import org.dbflute.dbmeta.DBMetaProvider;
 
 /**
  * The abstract condition-query of ACCESS_RESULT.
@@ -58,27 +40,23 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     // ===================================================================================
-    //                                                                     DBMeta Provider
-    //                                                                     ===============
+    //                                                                             DB Meta
+    //                                                                             =======
     @Override
     protected DBMetaProvider xgetDBMetaProvider() {
         return DBMetaInstanceHandler.getProvider();
     }
 
-    // ===================================================================================
-    //                                                                          Table Name
-    //                                                                          ==========
     @Override
-    public String getTableDbName() {
+    public String asTableDbName() {
         return "ACCESS_RESULT";
     }
 
     // ===================================================================================
     //                                                                               Query
     //                                                                               =====
-
     /**
-     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as equal. (NullAllowed: if null, no condition)
      */
@@ -91,7 +69,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as notEqual. (NullAllowed: if null, no condition)
      */
@@ -104,7 +82,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as greaterThan. (NullAllowed: if null, no condition)
      */
@@ -113,7 +91,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as lessThan. (NullAllowed: if null, no condition)
      */
@@ -122,7 +100,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as greaterEqual. (NullAllowed: if null, no condition)
      */
@@ -131,7 +109,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as lessEqual. (NullAllowed: if null, no condition)
      */
@@ -140,21 +118,35 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * RangeOf with various options. (versatile) <br />
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * ID: {PK, ID, NotNull, BIGINT(19)}
+     * @param minNumber The min number of id. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of id. (NullAllowed: if null, no to-condition)
+     * @param opLambda The callback for option of range-of. (NotNull)
+     */
+    public void setId_RangeOf(final Long minNumber, final Long maxNumber,
+            final ConditionOptionCall<RangeOfOption> opLambda) {
+        setId_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
+    }
+
+    /**
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param minNumber The min number of id. (NullAllowed: if null, no from-condition)
      * @param maxNumber The max number of id. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    public void setId_RangeOf(final Long minNumber, final Long maxNumber,
+    protected void setId_RangeOf(final Long minNumber, final Long maxNumber,
             final RangeOfOption rangeOfOption) {
-        regROO(minNumber, maxNumber, getCValueId(), "ID", rangeOfOption);
+        regROO(minNumber, maxNumber, xgetCValueId(), "ID", rangeOfOption);
     }
 
     /**
-     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param idList The collection of id as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -163,11 +155,11 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     protected void doSetId_InScope(final Collection<Long> idList) {
-        regINS(CK_INS, cTL(idList), getCValueId(), "ID");
+        regINS(CK_INS, cTL(idList), xgetCValueId(), "ID");
     }
 
     /**
-     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param idList The collection of id as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -176,145 +168,11 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     protected void doSetId_NotInScope(final Collection<Long> idList) {
-        regINS(CK_NINS, cTL(idList), getCValueId(), "ID");
+        regINS(CK_NINS, cTL(idList), xgetCValueId(), "ID");
     }
 
     /**
-     * Set up ExistsReferrer (correlated sub-query). <br />
-     * {exists (select ID from ACCESS_RESULT_DATA where ...)} <br />
-     * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
-     * <pre>
-     * cb.query().<span style="color: #DD4747">existsAccessResultDataAsOne</span>(new SubQuery&lt;AccessResultDataCB&gt;() {
-     *     public void query(AccessResultDataCB subCB) {
-     *         subCB.query().setXxx...
-     *     }
-     * });
-     * </pre>
-     * @param subQuery The sub-query of AccessResultDataAsOne for 'exists'. (NotNull)
-     */
-    public void existsAccessResultDataAsOne(
-            final SubQuery<AccessResultDataCB> subQuery) {
-        assertObjectNotNull("subQuery", subQuery);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForExistsReferrer(this);
-        try {
-            lock();
-            subQuery.query(cb);
-        } finally {
-            unlock();
-        }
-        final String pp =
-            keepId_ExistsReferrer_AccessResultDataAsOne(cb.query());
-        registerExistsReferrer(
-            cb.query(),
-            "ID",
-            "ID",
-            pp,
-            "accessResultDataAsOne");
-    }
-
-    public abstract String keepId_ExistsReferrer_AccessResultDataAsOne(
-            AccessResultDataCQ sq);
-
-    /**
-     * Set up NotExistsReferrer (correlated sub-query). <br />
-     * {not exists (select ID from ACCESS_RESULT_DATA where ...)} <br />
-     * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
-     * <pre>
-     * cb.query().<span style="color: #DD4747">notExistsAccessResultDataAsOne</span>(new SubQuery&lt;AccessResultDataCB&gt;() {
-     *     public void query(AccessResultDataCB subCB) {
-     *         subCB.query().setXxx...
-     *     }
-     * });
-     * </pre>
-     * @param subQuery The sub-query of Id_NotExistsReferrer_AccessResultDataAsOne for 'not exists'. (NotNull)
-     */
-    public void notExistsAccessResultDataAsOne(
-            final SubQuery<AccessResultDataCB> subQuery) {
-        assertObjectNotNull("subQuery", subQuery);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForExistsReferrer(this);
-        try {
-            lock();
-            subQuery.query(cb);
-        } finally {
-            unlock();
-        }
-        final String pp =
-            keepId_NotExistsReferrer_AccessResultDataAsOne(cb.query());
-        registerNotExistsReferrer(
-            cb.query(),
-            "ID",
-            "ID",
-            pp,
-            "accessResultDataAsOne");
-    }
-
-    public abstract String keepId_NotExistsReferrer_AccessResultDataAsOne(
-            AccessResultDataCQ sq);
-
-    /**
-     * Set up InScopeRelation (sub-query). <br />
-     * {in (select ID from ACCESS_RESULT_DATA where ...)} <br />
-     * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
-     * @param subQuery The sub-query of AccessResultDataAsOne for 'in-scope'. (NotNull)
-     */
-    public void inScopeAccessResultDataAsOne(
-            final SubQuery<AccessResultDataCB> subQuery) {
-        assertObjectNotNull("subQuery", subQuery);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForInScopeRelation(this);
-        try {
-            lock();
-            subQuery.query(cb);
-        } finally {
-            unlock();
-        }
-        final String pp =
-            keepId_InScopeRelation_AccessResultDataAsOne(cb.query());
-        registerInScopeRelation(
-            cb.query(),
-            "ID",
-            "ID",
-            pp,
-            "accessResultDataAsOne");
-    }
-
-    public abstract String keepId_InScopeRelation_AccessResultDataAsOne(
-            AccessResultDataCQ sq);
-
-    /**
-     * Set up NotInScopeRelation (sub-query). <br />
-     * {not in (select ID from ACCESS_RESULT_DATA where ...)} <br />
-     * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
-     * @param subQuery The sub-query of AccessResultDataAsOne for 'not in-scope'. (NotNull)
-     */
-    public void notInScopeAccessResultDataAsOne(
-            final SubQuery<AccessResultDataCB> subQuery) {
-        assertObjectNotNull("subQuery", subQuery);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForInScopeRelation(this);
-        try {
-            lock();
-            subQuery.query(cb);
-        } finally {
-            unlock();
-        }
-        final String pp =
-            keepId_NotInScopeRelation_AccessResultDataAsOne(cb.query());
-        registerNotInScopeRelation(
-            cb.query(),
-            "ID",
-            "ID",
-            pp,
-            "accessResultDataAsOne");
-    }
-
-    public abstract String keepId_NotInScopeRelation_AccessResultDataAsOne(
-            AccessResultDataCQ sq);
-
-    /**
-     * IsNull {is null}. And OnlyOnceRegistered. <br />
+     * IsNull {is null}. And OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      */
     public void setId_IsNull() {
@@ -322,7 +180,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * IsNotNull {is not null}. And OnlyOnceRegistered. <br />
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      */
     public void setId_IsNotNull() {
@@ -330,13 +188,13 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     protected void regId(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueId(), "ID");
+        regQ(ky, vl, xgetCValueId(), "ID");
     }
 
-    protected abstract ConditionValue getCValueId();
+    protected abstract ConditionValue xgetCValueId();
 
     /**
-     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as equal. (NullAllowed: if null (or empty), no condition)
      */
@@ -349,7 +207,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as notEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -362,7 +220,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -371,7 +229,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as lessThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -380,7 +238,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -389,7 +247,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -398,7 +256,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionIdList The collection of sessionId as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -406,12 +264,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetSessionId_InScope(sessionIdList);
     }
 
-    public void doSetSessionId_InScope(final Collection<String> sessionIdList) {
-        regINS(CK_INS, cTL(sessionIdList), getCValueSessionId(), "SESSION_ID");
+    protected void doSetSessionId_InScope(final Collection<String> sessionIdList) {
+        regINS(CK_INS, cTL(sessionIdList), xgetCValueSessionId(), "SESSION_ID");
     }
 
     /**
-     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionIdList The collection of sessionId as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -419,61 +277,69 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetSessionId_NotInScope(sessionIdList);
     }
 
-    public void doSetSessionId_NotInScope(final Collection<String> sessionIdList) {
-        regINS(CK_NINS, cTL(sessionIdList), getCValueSessionId(), "SESSION_ID");
+    protected void doSetSessionId_NotInScope(
+            final Collection<String> sessionIdList) {
+        regINS(CK_NINS, cTL(sessionIdList), xgetCValueSessionId(), "SESSION_ID");
     }
 
     /**
-     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
-     * @param sessionId The value of sessionId as prefixSearch. (NullAllowed: if null (or empty), no condition)
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br>
+     * <pre>e.g. setSessionId_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
+     * @param sessionId The value of sessionId as likeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setSessionId_PrefixSearch(final String sessionId) {
-        setSessionId_LikeSearch(sessionId, cLSOP());
+    public void setSessionId_LikeSearch(final String sessionId,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setSessionId_LikeSearch(sessionId, xcLSOP(opLambda));
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br />
-     * <pre>e.g. setSessionId_LikeSearch("xxx", new <span style="color: #DD4747">LikeSearchOption</span>().likeContain());</pre>
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br>
+     * <pre>e.g. setSessionId_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
      * @param sessionId The value of sessionId as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setSessionId_LikeSearch(final String sessionId,
+    protected void setSessionId_LikeSearch(final String sessionId,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_LS,
-            fRES(sessionId),
-            getCValueSessionId(),
-            "SESSION_ID",
-            likeSearchOption);
+        regLSQ(CK_LS, fRES(sessionId), xgetCValueSessionId(), "SESSION_ID",
+                likeSearchOption);
     }
 
     /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
+     * @param sessionId The value of sessionId as notLikeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
+     */
+    public void setSessionId_NotLikeSearch(final String sessionId,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setSessionId_NotLikeSearch(sessionId, xcLSOP(opLambda));
+    }
+
+    /**
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setSessionId_NotLikeSearch(final String sessionId,
+    protected void setSessionId_NotLikeSearch(final String sessionId,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_NLS,
-            fRES(sessionId),
-            getCValueSessionId(),
-            "SESSION_ID",
-            likeSearchOption);
+        regLSQ(CK_NLS, fRES(sessionId), xgetCValueSessionId(), "SESSION_ID",
+                likeSearchOption);
     }
 
     protected void regSessionId(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueSessionId(), "SESSION_ID");
+        regQ(ky, vl, xgetCValueSessionId(), "SESSION_ID");
     }
 
-    protected abstract ConditionValue getCValueSessionId();
+    protected abstract ConditionValue xgetCValueSessionId();
 
     /**
-     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleId The value of ruleId as equal. (NullAllowed: if null (or empty), no condition)
      */
@@ -486,7 +352,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleId The value of ruleId as notEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -499,7 +365,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleId The value of ruleId as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -508,7 +374,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleId The value of ruleId as lessThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -517,7 +383,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleId The value of ruleId as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -526,7 +392,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleId The value of ruleId as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -535,7 +401,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleIdList The collection of ruleId as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -543,12 +409,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetRuleId_InScope(ruleIdList);
     }
 
-    public void doSetRuleId_InScope(final Collection<String> ruleIdList) {
-        regINS(CK_INS, cTL(ruleIdList), getCValueRuleId(), "RULE_ID");
+    protected void doSetRuleId_InScope(final Collection<String> ruleIdList) {
+        regINS(CK_INS, cTL(ruleIdList), xgetCValueRuleId(), "RULE_ID");
     }
 
     /**
-     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleIdList The collection of ruleId as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -556,55 +422,62 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetRuleId_NotInScope(ruleIdList);
     }
 
-    public void doSetRuleId_NotInScope(final Collection<String> ruleIdList) {
-        regINS(CK_NINS, cTL(ruleIdList), getCValueRuleId(), "RULE_ID");
+    protected void doSetRuleId_NotInScope(final Collection<String> ruleIdList) {
+        regINS(CK_NINS, cTL(ruleIdList), xgetCValueRuleId(), "RULE_ID");
     }
 
     /**
-     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * RULE_ID: {VARCHAR(20)}
-     * @param ruleId The value of ruleId as prefixSearch. (NullAllowed: if null (or empty), no condition)
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * RULE_ID: {VARCHAR(20)} <br>
+     * <pre>e.g. setRuleId_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
+     * @param ruleId The value of ruleId as likeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setRuleId_PrefixSearch(final String ruleId) {
-        setRuleId_LikeSearch(ruleId, cLSOP());
+    public void setRuleId_LikeSearch(final String ruleId,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setRuleId_LikeSearch(ruleId, xcLSOP(opLambda));
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * RULE_ID: {VARCHAR(20)} <br />
-     * <pre>e.g. setRuleId_LikeSearch("xxx", new <span style="color: #DD4747">LikeSearchOption</span>().likeContain());</pre>
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * RULE_ID: {VARCHAR(20)} <br>
+     * <pre>e.g. setRuleId_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
      * @param ruleId The value of ruleId as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setRuleId_LikeSearch(final String ruleId,
+    protected void setRuleId_LikeSearch(final String ruleId,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_LS,
-            fRES(ruleId),
-            getCValueRuleId(),
-            "RULE_ID",
-            likeSearchOption);
+        regLSQ(CK_LS, fRES(ruleId), xgetCValueRuleId(), "RULE_ID",
+                likeSearchOption);
     }
 
     /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * RULE_ID: {VARCHAR(20)}
+     * @param ruleId The value of ruleId as notLikeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
+     */
+    public void setRuleId_NotLikeSearch(final String ruleId,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setRuleId_NotLikeSearch(ruleId, xcLSOP(opLambda));
+    }
+
+    /**
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      * @param ruleId The value of ruleId as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setRuleId_NotLikeSearch(final String ruleId,
+    protected void setRuleId_NotLikeSearch(final String ruleId,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_NLS,
-            fRES(ruleId),
-            getCValueRuleId(),
-            "RULE_ID",
-            likeSearchOption);
+        regLSQ(CK_NLS, fRES(ruleId), xgetCValueRuleId(), "RULE_ID",
+                likeSearchOption);
     }
 
     /**
-     * IsNull {is null}. And OnlyOnceRegistered. <br />
+     * IsNull {is null}. And OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      */
     public void setRuleId_IsNull() {
@@ -612,7 +485,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * IsNullOrEmpty {is null or empty}. And OnlyOnceRegistered. <br />
+     * IsNullOrEmpty {is null or empty}. And OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      */
     public void setRuleId_IsNullOrEmpty() {
@@ -620,7 +493,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * IsNotNull {is not null}. And OnlyOnceRegistered. <br />
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
      * RULE_ID: {VARCHAR(20)}
      */
     public void setRuleId_IsNotNull() {
@@ -628,13 +501,13 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     protected void regRuleId(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueRuleId(), "RULE_ID");
+        regQ(ky, vl, xgetCValueRuleId(), "RULE_ID");
     }
 
-    protected abstract ConditionValue getCValueRuleId();
+    protected abstract ConditionValue xgetCValueRuleId();
 
     /**
-     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param url The value of url as equal. (NullAllowed: if null (or empty), no condition)
      */
@@ -647,7 +520,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param url The value of url as notEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -660,7 +533,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param url The value of url as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -669,7 +542,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param url The value of url as lessThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -678,7 +551,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param url The value of url as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -687,7 +560,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param url The value of url as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -696,7 +569,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param urlList The collection of url as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -704,12 +577,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetUrl_InScope(urlList);
     }
 
-    public void doSetUrl_InScope(final Collection<String> urlList) {
-        regINS(CK_INS, cTL(urlList), getCValueUrl(), "URL");
+    protected void doSetUrl_InScope(final Collection<String> urlList) {
+        regINS(CK_INS, cTL(urlList), xgetCValueUrl(), "URL");
     }
 
     /**
-     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param urlList The collection of url as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -717,51 +590,66 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetUrl_NotInScope(urlList);
     }
 
-    public void doSetUrl_NotInScope(final Collection<String> urlList) {
-        regINS(CK_NINS, cTL(urlList), getCValueUrl(), "URL");
+    protected void doSetUrl_NotInScope(final Collection<String> urlList) {
+        regINS(CK_NINS, cTL(urlList), xgetCValueUrl(), "URL");
     }
 
     /**
-     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * URL: {IX+, NotNull, VARCHAR(65536)}
-     * @param url The value of url as prefixSearch. (NullAllowed: if null (or empty), no condition)
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * URL: {IX+, NotNull, VARCHAR(65536)} <br>
+     * <pre>e.g. setUrl_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
+     * @param url The value of url as likeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setUrl_PrefixSearch(final String url) {
-        setUrl_LikeSearch(url, cLSOP());
+    public void setUrl_LikeSearch(final String url,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setUrl_LikeSearch(url, xcLSOP(opLambda));
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * URL: {IX+, NotNull, VARCHAR(65536)} <br />
-     * <pre>e.g. setUrl_LikeSearch("xxx", new <span style="color: #DD4747">LikeSearchOption</span>().likeContain());</pre>
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * URL: {IX+, NotNull, VARCHAR(65536)} <br>
+     * <pre>e.g. setUrl_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
      * @param url The value of url as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setUrl_LikeSearch(final String url,
+    protected void setUrl_LikeSearch(final String url,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(url), getCValueUrl(), "URL", likeSearchOption);
+        regLSQ(CK_LS, fRES(url), xgetCValueUrl(), "URL", likeSearchOption);
     }
 
     /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * URL: {IX+, NotNull, VARCHAR(65536)}
+     * @param url The value of url as notLikeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
+     */
+    public void setUrl_NotLikeSearch(final String url,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setUrl_NotLikeSearch(url, xcLSOP(opLambda));
+    }
+
+    /**
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @param url The value of url as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setUrl_NotLikeSearch(final String url,
+    protected void setUrl_NotLikeSearch(final String url,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(url), getCValueUrl(), "URL", likeSearchOption);
+        regLSQ(CK_NLS, fRES(url), xgetCValueUrl(), "URL", likeSearchOption);
     }
 
     protected void regUrl(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueUrl(), "URL");
+        regQ(ky, vl, xgetCValueUrl(), "URL");
     }
 
-    protected abstract ConditionValue getCValueUrl();
+    protected abstract ConditionValue xgetCValueUrl();
 
     /**
-     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrl The value of parentUrl as equal. (NullAllowed: if null (or empty), no condition)
      */
@@ -774,7 +662,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrl The value of parentUrl as notEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -787,7 +675,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrl The value of parentUrl as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -796,7 +684,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrl The value of parentUrl as lessThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -805,7 +693,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrl The value of parentUrl as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -814,7 +702,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrl The value of parentUrl as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -823,7 +711,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrlList The collection of parentUrl as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -831,12 +719,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetParentUrl_InScope(parentUrlList);
     }
 
-    public void doSetParentUrl_InScope(final Collection<String> parentUrlList) {
-        regINS(CK_INS, cTL(parentUrlList), getCValueParentUrl(), "PARENT_URL");
+    protected void doSetParentUrl_InScope(final Collection<String> parentUrlList) {
+        regINS(CK_INS, cTL(parentUrlList), xgetCValueParentUrl(), "PARENT_URL");
     }
 
     /**
-     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrlList The collection of parentUrl as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -844,55 +732,63 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetParentUrl_NotInScope(parentUrlList);
     }
 
-    public void doSetParentUrl_NotInScope(final Collection<String> parentUrlList) {
-        regINS(CK_NINS, cTL(parentUrlList), getCValueParentUrl(), "PARENT_URL");
+    protected void doSetParentUrl_NotInScope(
+            final Collection<String> parentUrlList) {
+        regINS(CK_NINS, cTL(parentUrlList), xgetCValueParentUrl(), "PARENT_URL");
     }
 
     /**
-     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * PARENT_URL: {VARCHAR(65536)}
-     * @param parentUrl The value of parentUrl as prefixSearch. (NullAllowed: if null (or empty), no condition)
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * PARENT_URL: {VARCHAR(65536)} <br>
+     * <pre>e.g. setParentUrl_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
+     * @param parentUrl The value of parentUrl as likeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setParentUrl_PrefixSearch(final String parentUrl) {
-        setParentUrl_LikeSearch(parentUrl, cLSOP());
+    public void setParentUrl_LikeSearch(final String parentUrl,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setParentUrl_LikeSearch(parentUrl, xcLSOP(opLambda));
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * PARENT_URL: {VARCHAR(65536)} <br />
-     * <pre>e.g. setParentUrl_LikeSearch("xxx", new <span style="color: #DD4747">LikeSearchOption</span>().likeContain());</pre>
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * PARENT_URL: {VARCHAR(65536)} <br>
+     * <pre>e.g. setParentUrl_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
      * @param parentUrl The value of parentUrl as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setParentUrl_LikeSearch(final String parentUrl,
+    protected void setParentUrl_LikeSearch(final String parentUrl,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_LS,
-            fRES(parentUrl),
-            getCValueParentUrl(),
-            "PARENT_URL",
-            likeSearchOption);
+        regLSQ(CK_LS, fRES(parentUrl), xgetCValueParentUrl(), "PARENT_URL",
+                likeSearchOption);
     }
 
     /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * PARENT_URL: {VARCHAR(65536)}
+     * @param parentUrl The value of parentUrl as notLikeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
+     */
+    public void setParentUrl_NotLikeSearch(final String parentUrl,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setParentUrl_NotLikeSearch(parentUrl, xcLSOP(opLambda));
+    }
+
+    /**
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @param parentUrl The value of parentUrl as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setParentUrl_NotLikeSearch(final String parentUrl,
+    protected void setParentUrl_NotLikeSearch(final String parentUrl,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_NLS,
-            fRES(parentUrl),
-            getCValueParentUrl(),
-            "PARENT_URL",
-            likeSearchOption);
+        regLSQ(CK_NLS, fRES(parentUrl), xgetCValueParentUrl(), "PARENT_URL",
+                likeSearchOption);
     }
 
     /**
-     * IsNull {is null}. And OnlyOnceRegistered. <br />
+     * IsNull {is null}. And OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      */
     public void setParentUrl_IsNull() {
@@ -900,7 +796,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * IsNullOrEmpty {is null or empty}. And OnlyOnceRegistered. <br />
+     * IsNullOrEmpty {is null or empty}. And OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      */
     public void setParentUrl_IsNullOrEmpty() {
@@ -908,7 +804,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * IsNotNull {is not null}. And OnlyOnceRegistered. <br />
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
      * PARENT_URL: {VARCHAR(65536)}
      */
     public void setParentUrl_IsNotNull() {
@@ -916,13 +812,13 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     protected void regParentUrl(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueParentUrl(), "PARENT_URL");
+        regQ(ky, vl, xgetCValueParentUrl(), "PARENT_URL");
     }
 
-    protected abstract ConditionValue getCValueParentUrl();
+    protected abstract ConditionValue xgetCValueParentUrl();
 
     /**
-     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param status The value of status as equal. (NullAllowed: if null, no condition)
      */
@@ -935,7 +831,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param status The value of status as notEqual. (NullAllowed: if null, no condition)
      */
@@ -948,7 +844,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param status The value of status as greaterThan. (NullAllowed: if null, no condition)
      */
@@ -957,7 +853,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param status The value of status as lessThan. (NullAllowed: if null, no condition)
      */
@@ -966,7 +862,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param status The value of status as greaterEqual. (NullAllowed: if null, no condition)
      */
@@ -975,7 +871,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param status The value of status as lessEqual. (NullAllowed: if null, no condition)
      */
@@ -984,21 +880,37 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * RangeOf with various options. (versatile) <br />
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * STATUS: {NotNull, INTEGER(10)}
+     * @param minNumber The min number of status. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of status. (NullAllowed: if null, no to-condition)
+     * @param opLambda The callback for option of range-of. (NotNull)
+     */
+    public void setStatus_RangeOf(final Integer minNumber,
+            final Integer maxNumber,
+            final ConditionOptionCall<RangeOfOption> opLambda) {
+        setStatus_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
+    }
+
+    /**
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param minNumber The min number of status. (NullAllowed: if null, no from-condition)
      * @param maxNumber The max number of status. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    public void setStatus_RangeOf(final Integer minNumber,
+    protected void setStatus_RangeOf(final Integer minNumber,
             final Integer maxNumber, final RangeOfOption rangeOfOption) {
-        regROO(minNumber, maxNumber, getCValueStatus(), "STATUS", rangeOfOption);
+        regROO(minNumber, maxNumber, xgetCValueStatus(), "STATUS",
+                rangeOfOption);
     }
 
     /**
-     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param statusList The collection of status as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1007,11 +919,11 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     protected void doSetStatus_InScope(final Collection<Integer> statusList) {
-        regINS(CK_INS, cTL(statusList), getCValueStatus(), "STATUS");
+        regINS(CK_INS, cTL(statusList), xgetCValueStatus(), "STATUS");
     }
 
     /**
-     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @param statusList The collection of status as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1020,17 +932,17 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     protected void doSetStatus_NotInScope(final Collection<Integer> statusList) {
-        regINS(CK_NINS, cTL(statusList), getCValueStatus(), "STATUS");
+        regINS(CK_NINS, cTL(statusList), xgetCValueStatus(), "STATUS");
     }
 
     protected void regStatus(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueStatus(), "STATUS");
+        regQ(ky, vl, xgetCValueStatus(), "STATUS");
     }
 
-    protected abstract ConditionValue getCValueStatus();
+    protected abstract ConditionValue xgetCValueStatus();
 
     /**
-     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCode The value of httpStatusCode as equal. (NullAllowed: if null, no condition)
      */
@@ -1043,7 +955,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCode The value of httpStatusCode as notEqual. (NullAllowed: if null, no condition)
      */
@@ -1056,7 +968,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCode The value of httpStatusCode as greaterThan. (NullAllowed: if null, no condition)
      */
@@ -1065,7 +977,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCode The value of httpStatusCode as lessThan. (NullAllowed: if null, no condition)
      */
@@ -1074,7 +986,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCode The value of httpStatusCode as greaterEqual. (NullAllowed: if null, no condition)
      */
@@ -1083,7 +995,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCode The value of httpStatusCode as lessEqual. (NullAllowed: if null, no condition)
      */
@@ -1092,26 +1004,37 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * RangeOf with various options. (versatile) <br />
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
+     * @param minNumber The min number of httpStatusCode. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of httpStatusCode. (NullAllowed: if null, no to-condition)
+     * @param opLambda The callback for option of range-of. (NotNull)
+     */
+    public void setHttpStatusCode_RangeOf(final Integer minNumber,
+            final Integer maxNumber,
+            final ConditionOptionCall<RangeOfOption> opLambda) {
+        setHttpStatusCode_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
+    }
+
+    /**
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param minNumber The min number of httpStatusCode. (NullAllowed: if null, no from-condition)
      * @param maxNumber The max number of httpStatusCode. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    public void setHttpStatusCode_RangeOf(final Integer minNumber,
+    protected void setHttpStatusCode_RangeOf(final Integer minNumber,
             final Integer maxNumber, final RangeOfOption rangeOfOption) {
-        regROO(
-            minNumber,
-            maxNumber,
-            getCValueHttpStatusCode(),
-            "HTTP_STATUS_CODE",
-            rangeOfOption);
+        regROO(minNumber, maxNumber, xgetCValueHttpStatusCode(),
+                "HTTP_STATUS_CODE", rangeOfOption);
     }
 
     /**
-     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCodeList The collection of httpStatusCode as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1122,15 +1045,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     protected void doSetHttpStatusCode_InScope(
             final Collection<Integer> httpStatusCodeList) {
-        regINS(
-            CK_INS,
-            cTL(httpStatusCodeList),
-            getCValueHttpStatusCode(),
-            "HTTP_STATUS_CODE");
+        regINS(CK_INS, cTL(httpStatusCodeList), xgetCValueHttpStatusCode(),
+                "HTTP_STATUS_CODE");
     }
 
     /**
-     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @param httpStatusCodeList The collection of httpStatusCode as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1141,21 +1061,18 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     protected void doSetHttpStatusCode_NotInScope(
             final Collection<Integer> httpStatusCodeList) {
-        regINS(
-            CK_NINS,
-            cTL(httpStatusCodeList),
-            getCValueHttpStatusCode(),
-            "HTTP_STATUS_CODE");
+        regINS(CK_NINS, cTL(httpStatusCodeList), xgetCValueHttpStatusCode(),
+                "HTTP_STATUS_CODE");
     }
 
     protected void regHttpStatusCode(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueHttpStatusCode(), "HTTP_STATUS_CODE");
+        regQ(ky, vl, xgetCValueHttpStatusCode(), "HTTP_STATUS_CODE");
     }
 
-    protected abstract ConditionValue getCValueHttpStatusCode();
+    protected abstract ConditionValue xgetCValueHttpStatusCode();
 
     /**
-     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param method The value of method as equal. (NullAllowed: if null (or empty), no condition)
      */
@@ -1168,7 +1085,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param method The value of method as notEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -1181,7 +1098,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param method The value of method as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -1190,7 +1107,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param method The value of method as lessThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -1199,7 +1116,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param method The value of method as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -1208,7 +1125,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param method The value of method as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -1217,7 +1134,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param methodList The collection of method as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1225,12 +1142,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetMethod_InScope(methodList);
     }
 
-    public void doSetMethod_InScope(final Collection<String> methodList) {
-        regINS(CK_INS, cTL(methodList), getCValueMethod(), "METHOD");
+    protected void doSetMethod_InScope(final Collection<String> methodList) {
+        regINS(CK_INS, cTL(methodList), xgetCValueMethod(), "METHOD");
     }
 
     /**
-     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param methodList The collection of method as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1238,61 +1155,68 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetMethod_NotInScope(methodList);
     }
 
-    public void doSetMethod_NotInScope(final Collection<String> methodList) {
-        regINS(CK_NINS, cTL(methodList), getCValueMethod(), "METHOD");
+    protected void doSetMethod_NotInScope(final Collection<String> methodList) {
+        regINS(CK_NINS, cTL(methodList), xgetCValueMethod(), "METHOD");
     }
 
     /**
-     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * METHOD: {NotNull, VARCHAR(10)}
-     * @param method The value of method as prefixSearch. (NullAllowed: if null (or empty), no condition)
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * METHOD: {NotNull, VARCHAR(10)} <br>
+     * <pre>e.g. setMethod_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
+     * @param method The value of method as likeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setMethod_PrefixSearch(final String method) {
-        setMethod_LikeSearch(method, cLSOP());
+    public void setMethod_LikeSearch(final String method,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setMethod_LikeSearch(method, xcLSOP(opLambda));
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * METHOD: {NotNull, VARCHAR(10)} <br />
-     * <pre>e.g. setMethod_LikeSearch("xxx", new <span style="color: #DD4747">LikeSearchOption</span>().likeContain());</pre>
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * METHOD: {NotNull, VARCHAR(10)} <br>
+     * <pre>e.g. setMethod_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
      * @param method The value of method as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setMethod_LikeSearch(final String method,
+    protected void setMethod_LikeSearch(final String method,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_LS,
-            fRES(method),
-            getCValueMethod(),
-            "METHOD",
-            likeSearchOption);
+        regLSQ(CK_LS, fRES(method), xgetCValueMethod(), "METHOD",
+                likeSearchOption);
     }
 
     /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * METHOD: {NotNull, VARCHAR(10)}
+     * @param method The value of method as notLikeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
+     */
+    public void setMethod_NotLikeSearch(final String method,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setMethod_NotLikeSearch(method, xcLSOP(opLambda));
+    }
+
+    /**
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @param method The value of method as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setMethod_NotLikeSearch(final String method,
+    protected void setMethod_NotLikeSearch(final String method,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_NLS,
-            fRES(method),
-            getCValueMethod(),
-            "METHOD",
-            likeSearchOption);
+        regLSQ(CK_NLS, fRES(method), xgetCValueMethod(), "METHOD",
+                likeSearchOption);
     }
 
     protected void regMethod(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueMethod(), "METHOD");
+        regQ(ky, vl, xgetCValueMethod(), "METHOD");
     }
 
-    protected abstract ConditionValue getCValueMethod();
+    protected abstract ConditionValue xgetCValueMethod();
 
     /**
-     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeType The value of mimeType as equal. (NullAllowed: if null (or empty), no condition)
      */
@@ -1305,7 +1229,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeType The value of mimeType as notEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -1318,7 +1242,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeType The value of mimeType as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -1327,7 +1251,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeType The value of mimeType as lessThan. (NullAllowed: if null (or empty), no condition)
      */
@@ -1336,7 +1260,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeType The value of mimeType as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -1345,7 +1269,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeType The value of mimeType as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
@@ -1354,7 +1278,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeTypeList The collection of mimeType as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1362,12 +1286,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetMimeType_InScope(mimeTypeList);
     }
 
-    public void doSetMimeType_InScope(final Collection<String> mimeTypeList) {
-        regINS(CK_INS, cTL(mimeTypeList), getCValueMimeType(), "MIME_TYPE");
+    protected void doSetMimeType_InScope(final Collection<String> mimeTypeList) {
+        regINS(CK_INS, cTL(mimeTypeList), xgetCValueMimeType(), "MIME_TYPE");
     }
 
     /**
-     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeTypeList The collection of mimeType as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1375,61 +1299,69 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         doSetMimeType_NotInScope(mimeTypeList);
     }
 
-    public void doSetMimeType_NotInScope(final Collection<String> mimeTypeList) {
-        regINS(CK_NINS, cTL(mimeTypeList), getCValueMimeType(), "MIME_TYPE");
+    protected void doSetMimeType_NotInScope(
+            final Collection<String> mimeTypeList) {
+        regINS(CK_NINS, cTL(mimeTypeList), xgetCValueMimeType(), "MIME_TYPE");
     }
 
     /**
-     * PrefixSearch {like 'xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * MIME_TYPE: {NotNull, VARCHAR(100)}
-     * @param mimeType The value of mimeType as prefixSearch. (NullAllowed: if null (or empty), no condition)
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * MIME_TYPE: {NotNull, VARCHAR(100)} <br>
+     * <pre>e.g. setMimeType_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
+     * @param mimeType The value of mimeType as likeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setMimeType_PrefixSearch(final String mimeType) {
-        setMimeType_LikeSearch(mimeType, cLSOP());
+    public void setMimeType_LikeSearch(final String mimeType,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setMimeType_LikeSearch(mimeType, xcLSOP(opLambda));
     }
 
     /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br />
-     * MIME_TYPE: {NotNull, VARCHAR(100)} <br />
-     * <pre>e.g. setMimeType_LikeSearch("xxx", new <span style="color: #DD4747">LikeSearchOption</span>().likeContain());</pre>
+     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * MIME_TYPE: {NotNull, VARCHAR(100)} <br>
+     * <pre>e.g. setMimeType_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
      * @param mimeType The value of mimeType as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    public void setMimeType_LikeSearch(final String mimeType,
+    protected void setMimeType_LikeSearch(final String mimeType,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_LS,
-            fRES(mimeType),
-            getCValueMimeType(),
-            "MIME_TYPE",
-            likeSearchOption);
+        regLSQ(CK_LS, fRES(mimeType), xgetCValueMimeType(), "MIME_TYPE",
+                likeSearchOption);
     }
 
     /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br />
-     * And NullOrEmptyIgnored, SeveralRegistered. <br />
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
+     * MIME_TYPE: {NotNull, VARCHAR(100)}
+     * @param mimeType The value of mimeType as notLikeSearch. (NullAllowed: if null (or empty), no condition)
+     * @param opLambda The callback for option of like-search. (NotNull)
+     */
+    public void setMimeType_NotLikeSearch(final String mimeType,
+            final ConditionOptionCall<LikeSearchOption> opLambda) {
+        setMimeType_NotLikeSearch(mimeType, xcLSOP(opLambda));
+    }
+
+    /**
+     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
+     * And NullOrEmptyIgnored, SeveralRegistered. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @param mimeType The value of mimeType as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    public void setMimeType_NotLikeSearch(final String mimeType,
+    protected void setMimeType_NotLikeSearch(final String mimeType,
             final LikeSearchOption likeSearchOption) {
-        regLSQ(
-            CK_NLS,
-            fRES(mimeType),
-            getCValueMimeType(),
-            "MIME_TYPE",
-            likeSearchOption);
+        regLSQ(CK_NLS, fRES(mimeType), xgetCValueMimeType(), "MIME_TYPE",
+                likeSearchOption);
     }
 
     protected void regMimeType(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueMimeType(), "MIME_TYPE");
+        regQ(ky, vl, xgetCValueMimeType(), "MIME_TYPE");
     }
 
-    protected abstract ConditionValue getCValueMimeType();
+    protected abstract ConditionValue xgetCValueMimeType();
 
     /**
-     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLength The value of contentLength as equal. (NullAllowed: if null, no condition)
      */
@@ -1442,7 +1374,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLength The value of contentLength as notEqual. (NullAllowed: if null, no condition)
      */
@@ -1455,7 +1387,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLength The value of contentLength as greaterThan. (NullAllowed: if null, no condition)
      */
@@ -1464,7 +1396,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLength The value of contentLength as lessThan. (NullAllowed: if null, no condition)
      */
@@ -1473,7 +1405,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLength The value of contentLength as greaterEqual. (NullAllowed: if null, no condition)
      */
@@ -1482,7 +1414,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLength The value of contentLength as lessEqual. (NullAllowed: if null, no condition)
      */
@@ -1491,26 +1423,37 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * RangeOf with various options. (versatile) <br />
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * CONTENT_LENGTH: {NotNull, BIGINT(19)}
+     * @param minNumber The min number of contentLength. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of contentLength. (NullAllowed: if null, no to-condition)
+     * @param opLambda The callback for option of range-of. (NotNull)
+     */
+    public void setContentLength_RangeOf(final Long minNumber,
+            final Long maxNumber,
+            final ConditionOptionCall<RangeOfOption> opLambda) {
+        setContentLength_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
+    }
+
+    /**
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param minNumber The min number of contentLength. (NullAllowed: if null, no from-condition)
      * @param maxNumber The max number of contentLength. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    public void setContentLength_RangeOf(final Long minNumber,
+    protected void setContentLength_RangeOf(final Long minNumber,
             final Long maxNumber, final RangeOfOption rangeOfOption) {
-        regROO(
-            minNumber,
-            maxNumber,
-            getCValueContentLength(),
-            "CONTENT_LENGTH",
-            rangeOfOption);
+        regROO(minNumber, maxNumber, xgetCValueContentLength(),
+                "CONTENT_LENGTH", rangeOfOption);
     }
 
     /**
-     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLengthList The collection of contentLength as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1521,15 +1464,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     protected void doSetContentLength_InScope(
             final Collection<Long> contentLengthList) {
-        regINS(
-            CK_INS,
-            cTL(contentLengthList),
-            getCValueContentLength(),
-            "CONTENT_LENGTH");
+        regINS(CK_INS, cTL(contentLengthList), xgetCValueContentLength(),
+                "CONTENT_LENGTH");
     }
 
     /**
-     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @param contentLengthList The collection of contentLength as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1540,21 +1480,18 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     protected void doSetContentLength_NotInScope(
             final Collection<Long> contentLengthList) {
-        regINS(
-            CK_NINS,
-            cTL(contentLengthList),
-            getCValueContentLength(),
-            "CONTENT_LENGTH");
+        regINS(CK_NINS, cTL(contentLengthList), xgetCValueContentLength(),
+                "CONTENT_LENGTH");
     }
 
     protected void regContentLength(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueContentLength(), "CONTENT_LENGTH");
+        regQ(ky, vl, xgetCValueContentLength(), "CONTENT_LENGTH");
     }
 
-    protected abstract ConditionValue getCValueContentLength();
+    protected abstract ConditionValue xgetCValueContentLength();
 
     /**
-     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTime The value of executionTime as equal. (NullAllowed: if null, no condition)
      */
@@ -1567,7 +1504,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTime The value of executionTime as notEqual. (NullAllowed: if null, no condition)
      */
@@ -1580,7 +1517,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTime The value of executionTime as greaterThan. (NullAllowed: if null, no condition)
      */
@@ -1589,7 +1526,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTime The value of executionTime as lessThan. (NullAllowed: if null, no condition)
      */
@@ -1598,7 +1535,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTime The value of executionTime as greaterEqual. (NullAllowed: if null, no condition)
      */
@@ -1607,7 +1544,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTime The value of executionTime as lessEqual. (NullAllowed: if null, no condition)
      */
@@ -1616,26 +1553,37 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     /**
-     * RangeOf with various options. (versatile) <br />
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * EXECUTION_TIME: {NotNull, INTEGER(10)}
+     * @param minNumber The min number of executionTime. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of executionTime. (NullAllowed: if null, no to-condition)
+     * @param opLambda The callback for option of range-of. (NotNull)
+     */
+    public void setExecutionTime_RangeOf(final Integer minNumber,
+            final Integer maxNumber,
+            final ConditionOptionCall<RangeOfOption> opLambda) {
+        setExecutionTime_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
+    }
+
+    /**
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param minNumber The min number of executionTime. (NullAllowed: if null, no from-condition)
      * @param maxNumber The max number of executionTime. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    public void setExecutionTime_RangeOf(final Integer minNumber,
+    protected void setExecutionTime_RangeOf(final Integer minNumber,
             final Integer maxNumber, final RangeOfOption rangeOfOption) {
-        regROO(
-            minNumber,
-            maxNumber,
-            getCValueExecutionTime(),
-            "EXECUTION_TIME",
-            rangeOfOption);
+        regROO(minNumber, maxNumber, xgetCValueExecutionTime(),
+                "EXECUTION_TIME", rangeOfOption);
     }
 
     /**
-     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTimeList The collection of executionTime as inScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1646,15 +1594,12 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     protected void doSetExecutionTime_InScope(
             final Collection<Integer> executionTimeList) {
-        regINS(
-            CK_INS,
-            cTL(executionTimeList),
-            getCValueExecutionTime(),
-            "EXECUTION_TIME");
+        regINS(CK_INS, cTL(executionTimeList), xgetCValueExecutionTime(),
+                "EXECUTION_TIME");
     }
 
     /**
-     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br />
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @param executionTimeList The collection of executionTime as notInScope. (NullAllowed: if null (or empty), no condition)
      */
@@ -1665,210 +1610,296 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     protected void doSetExecutionTime_NotInScope(
             final Collection<Integer> executionTimeList) {
-        regINS(
-            CK_NINS,
-            cTL(executionTimeList),
-            getCValueExecutionTime(),
-            "EXECUTION_TIME");
+        regINS(CK_NINS, cTL(executionTimeList), xgetCValueExecutionTime(),
+                "EXECUTION_TIME");
     }
 
     protected void regExecutionTime(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueExecutionTime(), "EXECUTION_TIME");
+        regQ(ky, vl, xgetCValueExecutionTime(), "EXECUTION_TIME");
     }
 
-    protected abstract ConditionValue getCValueExecutionTime();
+    protected abstract ConditionValue xgetCValueExecutionTime();
 
     /**
-     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
      * @param lastModified The value of lastModified as equal. (NullAllowed: if null, no condition)
      */
-    public void setLastModified_Equal(final java.sql.Timestamp lastModified) {
+    public void setLastModified_Equal(final Long lastModified) {
+        doSetLastModified_Equal(lastModified);
+    }
+
+    protected void doSetLastModified_Equal(final Long lastModified) {
         regLastModified(CK_EQ, lastModified);
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
+     * @param lastModified The value of lastModified as notEqual. (NullAllowed: if null, no condition)
+     */
+    public void setLastModified_NotEqual(final Long lastModified) {
+        doSetLastModified_NotEqual(lastModified);
+    }
+
+    protected void doSetLastModified_NotEqual(final Long lastModified) {
+        regLastModified(CK_NES, lastModified);
+    }
+
+    /**
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
      * @param lastModified The value of lastModified as greaterThan. (NullAllowed: if null, no condition)
      */
-    public void setLastModified_GreaterThan(
-            final java.sql.Timestamp lastModified) {
+    public void setLastModified_GreaterThan(final Long lastModified) {
         regLastModified(CK_GT, lastModified);
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
      * @param lastModified The value of lastModified as lessThan. (NullAllowed: if null, no condition)
      */
-    public void setLastModified_LessThan(final java.sql.Timestamp lastModified) {
+    public void setLastModified_LessThan(final Long lastModified) {
         regLastModified(CK_LT, lastModified);
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
      * @param lastModified The value of lastModified as greaterEqual. (NullAllowed: if null, no condition)
      */
-    public void setLastModified_GreaterEqual(
-            final java.sql.Timestamp lastModified) {
+    public void setLastModified_GreaterEqual(final Long lastModified) {
         regLastModified(CK_GE, lastModified);
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
      * @param lastModified The value of lastModified as lessEqual. (NullAllowed: if null, no condition)
      */
-    public void setLastModified_LessEqual(final java.sql.Timestamp lastModified) {
+    public void setLastModified_LessEqual(final Long lastModified) {
         regLastModified(CK_LE, lastModified);
     }
 
     /**
-     * FromTo with various options. (versatile) {(default) fromDatetime &lt;= column &lt;= toDatetime} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
-     * <pre>e.g. setLastModified_FromTo(fromDate, toDate, new <span style="color: #DD4747">FromToOption</span>().compareAsDate());</pre>
-     * @param fromDatetime The from-datetime(yyyy/MM/dd HH:mm:ss.SSS) of lastModified. (NullAllowed: if null, no from-condition)
-     * @param toDatetime The to-datetime(yyyy/MM/dd HH:mm:ss.SSS) of lastModified. (NullAllowed: if null, no to-condition)
-     * @param fromToOption The option of from-to. (NotNull)
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
+     * @param minNumber The min number of lastModified. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of lastModified. (NullAllowed: if null, no to-condition)
+     * @param opLambda The callback for option of range-of. (NotNull)
      */
-    public void setLastModified_FromTo(final Date fromDatetime,
-            final Date toDatetime, final FromToOption fromToOption) {
-        regFTQ(
-            fromDatetime != null ? new java.sql.Timestamp(
-                fromDatetime.getTime()) : null,
-            toDatetime != null ? new java.sql.Timestamp(toDatetime.getTime())
-                : null,
-            getCValueLastModified(),
-            "LAST_MODIFIED",
-            fromToOption);
+    public void setLastModified_RangeOf(final Long minNumber,
+            final Long maxNumber,
+            final ConditionOptionCall<RangeOfOption> opLambda) {
+        setLastModified_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
     }
 
     /**
-     * DateFromTo. (Date means yyyy/MM/dd) {fromDate &lt;= column &lt; toDate + 1 day} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
-     * <pre>
-     * e.g. from:{2007/04/10 08:24:53} to:{2007/04/16 14:36:29}
-     *  column &gt;= '2007/04/10 00:00:00' and column <span style="color: #DD4747">&lt; '2007/04/17 00:00:00'</span>
-     * </pre>
-     * @param fromDate The from-date(yyyy/MM/dd) of lastModified. (NullAllowed: if null, no from-condition)
-     * @param toDate The to-date(yyyy/MM/dd) of lastModified. (NullAllowed: if null, no to-condition)
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
+     * @param minNumber The min number of lastModified. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of lastModified. (NullAllowed: if null, no to-condition)
+     * @param rangeOfOption The option of range-of. (NotNull)
      */
-    public void setLastModified_DateFromTo(final Date fromDate,
-            final Date toDate) {
-        setLastModified_FromTo(
-            fromDate,
-            toDate,
-            new FromToOption().compareAsDate());
+    protected void setLastModified_RangeOf(final Long minNumber,
+            final Long maxNumber, final RangeOfOption rangeOfOption) {
+        regROO(minNumber, maxNumber, xgetCValueLastModified(), "LAST_MODIFIED",
+                rangeOfOption);
+    }
+
+    /**
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
+     * @param lastModifiedList The collection of lastModified as inScope. (NullAllowed: if null (or empty), no condition)
+     */
+    public void setLastModified_InScope(final Collection<Long> lastModifiedList) {
+        doSetLastModified_InScope(lastModifiedList);
+    }
+
+    protected void doSetLastModified_InScope(
+            final Collection<Long> lastModifiedList) {
+        regINS(CK_INS, cTL(lastModifiedList), xgetCValueLastModified(),
+                "LAST_MODIFIED");
+    }
+
+    /**
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
+     * @param lastModifiedList The collection of lastModified as notInScope. (NullAllowed: if null (or empty), no condition)
+     */
+    public void setLastModified_NotInScope(
+            final Collection<Long> lastModifiedList) {
+        doSetLastModified_NotInScope(lastModifiedList);
+    }
+
+    protected void doSetLastModified_NotInScope(
+            final Collection<Long> lastModifiedList) {
+        regINS(CK_NINS, cTL(lastModifiedList), xgetCValueLastModified(),
+                "LAST_MODIFIED");
+    }
+
+    /**
+     * IsNull {is null}. And OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
+     */
+    public void setLastModified_IsNull() {
+        regLastModified(CK_ISN, DOBJ);
+    }
+
+    /**
+     * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
+     */
+    public void setLastModified_IsNotNull() {
+        regLastModified(CK_ISNN, DOBJ);
     }
 
     protected void regLastModified(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueLastModified(), "LAST_MODIFIED");
+        regQ(ky, vl, xgetCValueLastModified(), "LAST_MODIFIED");
     }
 
-    protected abstract ConditionValue getCValueLastModified();
+    protected abstract ConditionValue xgetCValueLastModified();
 
     /**
-     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as equal. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_Equal(final java.sql.Timestamp createTime) {
+    public void setCreateTime_Equal(final Long createTime) {
+        doSetCreateTime_Equal(createTime);
+    }
+
+    protected void doSetCreateTime_Equal(final Long createTime) {
         regCreateTime(CK_EQ, createTime);
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
+     * @param createTime The value of createTime as notEqual. (NullAllowed: if null, no condition)
+     */
+    public void setCreateTime_NotEqual(final Long createTime) {
+        doSetCreateTime_NotEqual(createTime);
+    }
+
+    protected void doSetCreateTime_NotEqual(final Long createTime) {
+        regCreateTime(CK_NES, createTime);
+    }
+
+    /**
+     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as greaterThan. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_GreaterThan(final java.sql.Timestamp createTime) {
+    public void setCreateTime_GreaterThan(final Long createTime) {
         regCreateTime(CK_GT, createTime);
     }
 
     /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as lessThan. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_LessThan(final java.sql.Timestamp createTime) {
+    public void setCreateTime_LessThan(final Long createTime) {
         regCreateTime(CK_LT, createTime);
     }
 
     /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as greaterEqual. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_GreaterEqual(final java.sql.Timestamp createTime) {
+    public void setCreateTime_GreaterEqual(final Long createTime) {
         regCreateTime(CK_GE, createTime);
     }
 
     /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as lessEqual. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_LessEqual(final java.sql.Timestamp createTime) {
+    public void setCreateTime_LessEqual(final Long createTime) {
         regCreateTime(CK_LE, createTime);
     }
 
     /**
-     * FromTo with various options. (versatile) {(default) fromDatetime &lt;= column &lt;= toDatetime} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
-     * <pre>e.g. setCreateTime_FromTo(fromDate, toDate, new <span style="color: #DD4747">FromToOption</span>().compareAsDate());</pre>
-     * @param fromDatetime The from-datetime(yyyy/MM/dd HH:mm:ss.SSS) of createTime. (NullAllowed: if null, no from-condition)
-     * @param toDatetime The to-datetime(yyyy/MM/dd HH:mm:ss.SSS) of createTime. (NullAllowed: if null, no to-condition)
-     * @param fromToOption The option of from-to. (NotNull)
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
+     * @param minNumber The min number of createTime. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of createTime. (NullAllowed: if null, no to-condition)
+     * @param opLambda The callback for option of range-of. (NotNull)
      */
-    public void setCreateTime_FromTo(final Date fromDatetime,
-            final Date toDatetime, final FromToOption fromToOption) {
-        regFTQ(
-            fromDatetime != null ? new java.sql.Timestamp(
-                fromDatetime.getTime()) : null,
-            toDatetime != null ? new java.sql.Timestamp(toDatetime.getTime())
-                : null,
-            getCValueCreateTime(),
-            "CREATE_TIME",
-            fromToOption);
+    public void setCreateTime_RangeOf(final Long minNumber,
+            final Long maxNumber,
+            final ConditionOptionCall<RangeOfOption> opLambda) {
+        setCreateTime_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
     }
 
     /**
-     * DateFromTo. (Date means yyyy/MM/dd) {fromDate &lt;= column &lt; toDate + 1 day} <br />
-     * And NullIgnored, OnlyOnceRegistered. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
-     * <pre>
-     * e.g. from:{2007/04/10 08:24:53} to:{2007/04/16 14:36:29}
-     *  column &gt;= '2007/04/10 00:00:00' and column <span style="color: #DD4747">&lt; '2007/04/17 00:00:00'</span>
-     * </pre>
-     * @param fromDate The from-date(yyyy/MM/dd) of createTime. (NullAllowed: if null, no from-condition)
-     * @param toDate The to-date(yyyy/MM/dd) of createTime. (NullAllowed: if null, no to-condition)
+     * RangeOf with various options. (versatile) <br>
+     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
+     * And NullIgnored, OnlyOnceRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
+     * @param minNumber The min number of createTime. (NullAllowed: if null, no from-condition)
+     * @param maxNumber The max number of createTime. (NullAllowed: if null, no to-condition)
+     * @param rangeOfOption The option of range-of. (NotNull)
      */
-    public void setCreateTime_DateFromTo(final Date fromDate, final Date toDate) {
-        setCreateTime_FromTo(
-            fromDate,
-            toDate,
-            new FromToOption().compareAsDate());
+    protected void setCreateTime_RangeOf(final Long minNumber,
+            final Long maxNumber, final RangeOfOption rangeOfOption) {
+        regROO(minNumber, maxNumber, xgetCValueCreateTime(), "CREATE_TIME",
+                rangeOfOption);
+    }
+
+    /**
+     * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
+     * @param createTimeList The collection of createTime as inScope. (NullAllowed: if null (or empty), no condition)
+     */
+    public void setCreateTime_InScope(final Collection<Long> createTimeList) {
+        doSetCreateTime_InScope(createTimeList);
+    }
+
+    protected void doSetCreateTime_InScope(final Collection<Long> createTimeList) {
+        regINS(CK_INS, cTL(createTimeList), xgetCValueCreateTime(),
+                "CREATE_TIME");
+    }
+
+    /**
+     * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
+     * @param createTimeList The collection of createTime as notInScope. (NullAllowed: if null (or empty), no condition)
+     */
+    public void setCreateTime_NotInScope(final Collection<Long> createTimeList) {
+        doSetCreateTime_NotInScope(createTimeList);
+    }
+
+    protected void doSetCreateTime_NotInScope(
+            final Collection<Long> createTimeList) {
+        regINS(CK_NINS, cTL(createTimeList), xgetCValueCreateTime(),
+                "CREATE_TIME");
     }
 
     protected void regCreateTime(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, getCValueCreateTime(), "CREATE_TIME");
+        regQ(ky, vl, xgetCValueCreateTime(), "CREATE_TIME");
     }
 
-    protected abstract ConditionValue getCValueCreateTime();
+    protected abstract ConditionValue xgetCValueCreateTime();
 
     // ===================================================================================
     //                                                                     ScalarCondition
     //                                                                     ===============
     /**
-     * Prepare ScalarCondition as equal. <br />
+     * Prepare ScalarCondition as equal. <br>
      * {where FOO = (select max(BAR) from ...)
      * <pre>
-     * cb.query().<span style="color: #DD4747">scalar_Equal()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
+     * cb.query().<span style="color: #CC4747">scalar_Equal()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
      *     public void query(AccessResultCB subCB) {
      *         subCB.specify().setXxx... <span style="color: #3F7E5E">// derived column for function</span>
      *         subCB.query().setYyy...
@@ -1878,14 +1909,14 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
      * @return The object to set up a function. (NotNull)
      */
     public HpSSQFunction<AccessResultCB> scalar_Equal() {
-        return xcreateSSQFunction(CK_EQ.getOperand(), AccessResultCB.class);
+        return xcreateSSQFunction(CK_EQ, AccessResultCB.class);
     }
 
     /**
-     * Prepare ScalarCondition as equal. <br />
+     * Prepare ScalarCondition as equal. <br>
      * {where FOO &lt;&gt; (select max(BAR) from ...)
      * <pre>
-     * cb.query().<span style="color: #DD4747">scalar_NotEqual()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
+     * cb.query().<span style="color: #CC4747">scalar_NotEqual()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
      *     public void query(AccessResultCB subCB) {
      *         subCB.specify().setXxx... <span style="color: #3F7E5E">// derived column for function</span>
      *         subCB.query().setYyy...
@@ -1895,14 +1926,14 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
      * @return The object to set up a function. (NotNull)
      */
     public HpSSQFunction<AccessResultCB> scalar_NotEqual() {
-        return xcreateSSQFunction(CK_NES.getOperand(), AccessResultCB.class);
+        return xcreateSSQFunction(CK_NES, AccessResultCB.class);
     }
 
     /**
-     * Prepare ScalarCondition as greaterThan. <br />
+     * Prepare ScalarCondition as greaterThan. <br>
      * {where FOO &gt; (select max(BAR) from ...)
      * <pre>
-     * cb.query().<span style="color: #DD4747">scalar_GreaterThan()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
+     * cb.query().<span style="color: #CC4747">scalar_GreaterThan()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
      *     public void query(AccessResultCB subCB) {
      *         subCB.specify().setFoo... <span style="color: #3F7E5E">// derived column for function</span>
      *         subCB.query().setBar...
@@ -1912,14 +1943,14 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
      * @return The object to set up a function. (NotNull)
      */
     public HpSSQFunction<AccessResultCB> scalar_GreaterThan() {
-        return xcreateSSQFunction(CK_GT.getOperand(), AccessResultCB.class);
+        return xcreateSSQFunction(CK_GT, AccessResultCB.class);
     }
 
     /**
-     * Prepare ScalarCondition as lessThan. <br />
+     * Prepare ScalarCondition as lessThan. <br>
      * {where FOO &lt; (select max(BAR) from ...)
      * <pre>
-     * cb.query().<span style="color: #DD4747">scalar_LessThan()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
+     * cb.query().<span style="color: #CC4747">scalar_LessThan()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
      *     public void query(AccessResultCB subCB) {
      *         subCB.specify().setFoo... <span style="color: #3F7E5E">// derived column for function</span>
      *         subCB.query().setBar...
@@ -1929,14 +1960,14 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
      * @return The object to set up a function. (NotNull)
      */
     public HpSSQFunction<AccessResultCB> scalar_LessThan() {
-        return xcreateSSQFunction(CK_LT.getOperand(), AccessResultCB.class);
+        return xcreateSSQFunction(CK_LT, AccessResultCB.class);
     }
 
     /**
-     * Prepare ScalarCondition as greaterEqual. <br />
+     * Prepare ScalarCondition as greaterEqual. <br>
      * {where FOO &gt;= (select max(BAR) from ...)
      * <pre>
-     * cb.query().<span style="color: #DD4747">scalar_GreaterEqual()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
+     * cb.query().<span style="color: #CC4747">scalar_GreaterEqual()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
      *     public void query(AccessResultCB subCB) {
      *         subCB.specify().setFoo... <span style="color: #3F7E5E">// derived column for function</span>
      *         subCB.query().setBar...
@@ -1946,14 +1977,14 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
      * @return The object to set up a function. (NotNull)
      */
     public HpSSQFunction<AccessResultCB> scalar_GreaterEqual() {
-        return xcreateSSQFunction(CK_GE.getOperand(), AccessResultCB.class);
+        return xcreateSSQFunction(CK_GE, AccessResultCB.class);
     }
 
     /**
-     * Prepare ScalarCondition as lessEqual. <br />
+     * Prepare ScalarCondition as lessEqual. <br>
      * {where FOO &lt;= (select max(BAR) from ...)
      * <pre>
-     * cb.query().<span style="color: #DD4747">scalar_LessEqual()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
+     * cb.query().<span style="color: #CC4747">scalar_LessEqual()</span>.max(new SubQuery&lt;AccessResultCB&gt;() {
      *     public void query(AccessResultCB subCB) {
      *         subCB.specify().setFoo... <span style="color: #3F7E5E">// derived column for function</span>
      *         subCB.query().setBar...
@@ -1963,7 +1994,7 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
      * @return The object to set up a function. (NotNull)
      */
     public HpSSQFunction<AccessResultCB> scalar_LessEqual() {
-        return xcreateSSQFunction(CK_LE.getOperand(), AccessResultCB.class);
+        return xcreateSSQFunction(CK_LE, AccessResultCB.class);
     }
 
     @Override
@@ -2001,23 +2032,11 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         assertObjectNotNull("subQuery", sq);
         final AccessResultCB cb = new AccessResultCB();
         cb.xsetupForDerivedReferrer(this);
-        try {
-            lock();
-            sq.query(cb);
-        } finally {
-            unlock();
-        }
+        lockCall(() -> sq.query(cb));
         final String pp = keepSpecifyMyselfDerived(cb.query());
         final String pk = "ID";
-        registerSpecifyMyselfDerived(
-            fn,
-            cb.query(),
-            pk,
-            pk,
-            pp,
-            "myselfDerived",
-            al,
-            op);
+        registerSpecifyMyselfDerived(fn, cb.query(), pk, pk, pp,
+                "myselfDerived", al, op);
     }
 
     public abstract String keepSpecifyMyselfDerived(AccessResultCQ sq);
@@ -2042,17 +2061,8 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
         final String pk = "ID";
         final String sqpp = keepQueryMyselfDerived(cb.query()); // for saving query-value.
         final String prpp = keepQueryMyselfDerivedParameter(vl);
-        registerQueryMyselfDerived(
-            fn,
-            cb.query(),
-            pk,
-            pk,
-            sqpp,
-            "myselfDerived",
-            rd,
-            vl,
-            prpp,
-            op);
+        registerQueryMyselfDerived(fn, cb.query(), pk, pk, sqpp,
+                "myselfDerived", rd, vl, prpp, op);
     }
 
     public abstract String keepQueryMyselfDerived(AccessResultCQ sq);
@@ -2064,18 +2074,13 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     //                                                                        ============
     /**
      * Prepare for MyselfExists (correlated sub-query).
-     * @param subQuery The implementation of sub-query. (NotNull)
+     * @param subCBLambda The implementation of sub-query. (NotNull)
      */
-    public void myselfExists(final SubQuery<AccessResultCB> subQuery) {
-        assertObjectNotNull("subQuery", subQuery);
+    public void myselfExists(final SubQuery<AccessResultCB> subCBLambda) {
+        assertObjectNotNull("subCBLambda", subCBLambda);
         final AccessResultCB cb = new AccessResultCB();
         cb.xsetupForMyselfExists(this);
-        try {
-            lock();
-            subQuery.query(cb);
-        } finally {
-            unlock();
-        }
+        lockCall(() -> subCBLambda.query(cb));
         final String pp = keepMyselfExists(cb.query());
         registerMyselfExists(cb.query(), pp);
     }
@@ -2083,42 +2088,26 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     public abstract String keepMyselfExists(AccessResultCQ sq);
 
     // ===================================================================================
-    //                                                                       MyselfInScope
-    //                                                                       =============
+    //                                                                        Manual Order
+    //                                                                        ============
     /**
-     * Prepare for MyselfInScope (sub-query).
-     * @param subQuery The implementation of sub-query. (NotNull)
-     */
-    public void myselfInScope(final SubQuery<AccessResultCB> subQuery) {
-        assertObjectNotNull("subQuery", subQuery);
-        final AccessResultCB cb = new AccessResultCB();
-        cb.xsetupForMyselfInScope(this);
-        try {
-            lock();
-            subQuery.query(cb);
-        } finally {
-            unlock();
-        }
-        final String pp = keepMyselfInScope(cb.query());
-        registerMyselfInScope(cb.query(), pp);
-    }
-
-    public abstract String keepMyselfInScope(AccessResultCQ sq);
-
-    // ===================================================================================
-    //                                                                          Compatible
-    //                                                                          ==========
-    /**
-     * Order along the list of manual values. #beforejava8 <br />
-     * This function with Union is unsupported! <br />
-     * The order values are bound (treated as bind parameter).
+     * Order along manual ordering information.
      * <pre>
-     * MemberCB cb = new MemberCB();
-     * List&lt;CDef.MemberStatus&gt; orderValueList = new ArrayList&lt;CDef.MemberStatus&gt;();
-     * orderValueList.add(CDef.MemberStatus.Withdrawal);
-     * orderValueList.add(CDef.MemberStatus.Formalized);
-     * orderValueList.add(CDef.MemberStatus.Provisional);
-     * cb.query().addOrderBy_MemberStatusCode_Asc().<span style="color: #DD4747">withManualOrder(orderValueList)</span>;
+     * cb.query().addOrderBy_Birthdate_Asc().<span style="color: #CC4747">withManualOrder</span>(<span style="color: #553000">op</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">op</span>.<span style="color: #CC4747">when_GreaterEqual</span>(priorityDate); <span style="color: #3F7E5E">// e.g. 2000/01/01</span>
+     * });
+     * <span style="color: #3F7E5E">// order by </span>
+     * <span style="color: #3F7E5E">//   case</span>
+     * <span style="color: #3F7E5E">//     when BIRTHDATE &gt;= '2000/01/01' then 0</span>
+     * <span style="color: #3F7E5E">//     else 1</span>
+     * <span style="color: #3F7E5E">//   end asc, ...</span>
+     *
+     * cb.query().addOrderBy_MemberStatusCode_Asc().<span style="color: #CC4747">withManualOrder</span>(<span style="color: #553000">op</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
+     *     <span style="color: #553000">op</span>.<span style="color: #CC4747">when_GreaterEqual</span>(priorityDate); <span style="color: #3F7E5E">// e.g. 2000/01/01</span>
+     *     <span style="color: #553000">op</span>.<span style="color: #CC4747">when_Equal</span>(CDef.MemberStatus.Withdrawal);
+     *     <span style="color: #553000">op</span>.<span style="color: #CC4747">when_Equal</span>(CDef.MemberStatus.Formalized);
+     *     <span style="color: #553000">op</span>.<span style="color: #CC4747">when_Equal</span>(CDef.MemberStatus.Provisional);
+     * });
      * <span style="color: #3F7E5E">// order by </span>
      * <span style="color: #3F7E5E">//   case</span>
      * <span style="color: #3F7E5E">//     when MEMBER_STATUS_CODE = 'WDL' then 0</span>
@@ -2127,15 +2116,17 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
      * <span style="color: #3F7E5E">//     else 3</span>
      * <span style="color: #3F7E5E">//   end asc, ...</span>
      * </pre>
-     * @param orderValueList The list of order values for manual ordering. (NotNull)
+     * <p>This function with Union is unsupported!</p>
+     * <p>The order values are bound (treated as bind parameter).</p>
+     * @param opLambda The callback for option of manual-order containing order values. (NotNull)
      */
-    public void withManualOrder(final List<? extends Object> orderValueList) { // is user public!
-        assertObjectNotNull("withManualOrder(orderValueList)", orderValueList);
-        final ManualOrderBean manualOrderBean = new ManualOrderBean();
-        manualOrderBean.acceptOrderValueList(orderValueList);
-        withManualOrder(manualOrderBean);
+    public void withManualOrder(final ManualOrderOptionCall opLambda) { // is user public!
+        xdoWithManualOrder(cMOO(opLambda));
     }
 
+    // ===================================================================================
+    //                                                                    Small Adjustment
+    //                                                                    ================
     // ===================================================================================
     //                                                                       Very Internal
     //                                                                       =============
@@ -2144,6 +2135,10 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
     }
 
     // very internal (for suppressing warn about 'Not Use Import')
+    protected String xabUDT() {
+        return Date.class.getName();
+    }
+
     protected String xabCQ() {
         return AccessResultCQ.class.getName();
     }
@@ -2154,5 +2149,9 @@ public abstract class AbstractBsAccessResultCQ extends AbstractConditionQuery {
 
     protected String xabSSQS() {
         return HpSSQSetupper.class.getName();
+    }
+
+    protected String xabSCP() {
+        return SubQuery.class.getName();
     }
 }

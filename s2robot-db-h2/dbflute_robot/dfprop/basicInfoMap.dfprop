@@ -21,6 +21,7 @@
 # o sourceCodeLineSeparator: (NotRequired - Default no setting)
 # o applicationBehaviorMap: (NotRequired - Default map:{})
 # o outputPackageAdjustmentMap: (NotRequired - Default map:{})
+# o dbfluteSystemFinalTimeZone: (NotRequired - Default null)
 #
 # *The line that starts with '#' means comment-out.
 #
@@ -32,7 +33,7 @@ map:{
     #  Your possible choices are:
     #
     #    mysql, postgresql, oracle, db2, sqlserver,
-    #    h2, derby, (sqlite, msaccess)
+    #    h2, derby, (sqlite, firebird, msaccess)
     #
     ; database = h2
     # - - - - - - - - - -/
@@ -42,7 +43,7 @@ map:{
     #  The target language.
     #  Your possible choices are:
     #
-    #       java, csharp
+    #       java, csharp, scala
     #
     ; targetLanguage = java
     # - - - - - - - - - -/
@@ -53,9 +54,9 @@ map:{
     #  If your target language is 'csharp', you can specify 'seasar' only.
     #  Your possible choices are:
     #
-    #       seasar, spring, guice, cdi
+    #       spring, guice, seasar, cdi
     #
-    ; targetContainer = seasar
+    ; targetContainer = spring
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,13 +68,13 @@ map:{
     #  If this property is specified and detail package properties is not specified, 
     #  Then the packages of generated class are as follows:
     #
-    #  e.g. packageBase = com.example.dbflute.basic.dbflute
-    #      --> com.example.dbflute.basic.dbflute.allcommon
-    #      --> com.example.dbflute.basic.dbflute.bsbhv
-    #      --> com.example.dbflute.basic.dbflute.bsentity
-    #      --> com.example.dbflute.basic.dbflute.cbean
-    #      --> com.example.dbflute.basic.dbflute.exbhv
-    #      --> com.example.dbflute.basic.dbflute.exentity
+    #  e.g. packageBase = org.docksidestage.dbflute
+    #      --> org.docksidestage.dbflute.allcommon
+    #      --> org.docksidestage.dbflute.bsbhv
+    #      --> org.docksidestage.dbflute.bsentity
+    #      --> org.docksidestage.dbflute.cbean
+    #      --> org.docksidestage.dbflute.exbhv
+    #      --> org.docksidestage.dbflute.exentity
     #
     ; packageBase = org.codelibs.robot.db
     # - - - - - - - - - -/
@@ -160,7 +161,6 @@ map:{
     #  The value of the author tag in java-doc of generated classes.
     #  All classes are target.
     #
-    # @JavaOnly
     #; classAuthor = DBFlute(AutoGenerator)
     # - - - - - - - - - -/
 
@@ -215,6 +215,14 @@ map:{
     #    ; flatDirectoryPackage = Aaa.Bbb.DBFlute
     #    ; omitDirectoryPackage = Aaa
     #}
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o dbfluteSystemFinalTimeZone: (NotRequired - Default null)
+    #  The ID of time-zone for DBFlute system.
+    #  basically for e.g. DisplaySql, Date conversion, LocalDate mapping and so on...
+    #
+    #; dbfluteSystemFinalTimeZone = GMT
     # - - - - - - - - - -/
 }
 # ----------------/

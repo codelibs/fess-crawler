@@ -3,8 +3,11 @@
 /s2robot*/target/
 /s2robot*/bin/
 /s2robot*/mydbflute/
-/s2robot*/.project/
-/s2robot*/.classpath/
+/s2robot*/.project
+/s2robot*/.classpath
 /s2robot*/.settings/
 /s2robot*/dependency-reduced-pom.xml
+/s2robot*/dbflute_robot/log/*.log
+/s2robot*/dbflute_robot/schema/project-schema-robot.xml
+/s2robot/phantomjsdriver.log
 .project

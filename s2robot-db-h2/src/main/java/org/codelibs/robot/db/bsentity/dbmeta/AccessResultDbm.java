@@ -1,18 +1,3 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity.dbmeta;
 
 import java.util.List;
@@ -22,14 +7,15 @@ import org.codelibs.robot.db.allcommon.DBCurrent;
 import org.codelibs.robot.db.allcommon.DBFluteConfig;
 import org.codelibs.robot.db.exentity.AccessResult;
 import org.codelibs.robot.db.exentity.AccessResultData;
-import org.seasar.dbflute.DBDef;
-import org.seasar.dbflute.Entity;
-import org.seasar.dbflute.dbmeta.AbstractDBMeta;
-import org.seasar.dbflute.dbmeta.PropertyGateway;
-import org.seasar.dbflute.dbmeta.info.ColumnInfo;
-import org.seasar.dbflute.dbmeta.info.ForeignInfo;
-import org.seasar.dbflute.dbmeta.info.UniqueInfo;
-import org.seasar.dbflute.dbmeta.name.TableSqlName;
+import org.dbflute.Entity;
+import org.dbflute.dbmeta.AbstractDBMeta;
+import org.dbflute.dbmeta.info.ColumnInfo;
+import org.dbflute.dbmeta.info.ForeignInfo;
+import org.dbflute.dbmeta.info.UniqueInfo;
+import org.dbflute.dbmeta.name.TableSqlName;
+import org.dbflute.dbmeta.property.PropertyGateway;
+import org.dbflute.dbway.DBDef;
+import org.dbflute.optional.OptionalEntity;
 
 /**
  * The DB meta of ACCESS_RESULT. (Singleton)
@@ -53,6 +39,21 @@ public class AccessResultDbm extends AbstractDBMeta {
     //                                                                       Current DBDef
     //                                                                       =============
     @Override
+    public String getProjectName() {
+        return DBCurrent.getInstance().projectName();
+    }
+
+    @Override
+    public String getProjectPrefix() {
+        return DBCurrent.getInstance().projectPrefix();
+    }
+
+    @Override
+    public String getGenerationGapBasePrefix() {
+        return DBCurrent.getInstance().generationGapBasePrefix();
+    }
+
+    @Override
     public DBDef getCurrentDBDef() {
         return DBCurrent.getInstance().currentDBDef();
     }
@@ -65,175 +66,46 @@ public class AccessResultDbm extends AbstractDBMeta {
     //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
-        setupEpg(_epgMap, new EpgId(), "id");
-        setupEpg(_epgMap, new EpgSessionId(), "sessionId");
-        setupEpg(_epgMap, new EpgRuleId(), "ruleId");
-        setupEpg(_epgMap, new EpgUrl(), "url");
-        setupEpg(_epgMap, new EpgParentUrl(), "parentUrl");
-        setupEpg(_epgMap, new EpgStatus(), "status");
-        setupEpg(_epgMap, new EpgHttpStatusCode(), "httpStatusCode");
-        setupEpg(_epgMap, new EpgMethod(), "method");
-        setupEpg(_epgMap, new EpgMimeType(), "mimeType");
-        setupEpg(_epgMap, new EpgContentLength(), "contentLength");
-        setupEpg(_epgMap, new EpgExecutionTime(), "executionTime");
-        setupEpg(_epgMap, new EpgLastModified(), "lastModified");
-        setupEpg(_epgMap, new EpgCreateTime(), "createTime");
+        xsetupEpg();
     }
 
-    public static class EpgId implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getId();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setId(ctl(vl));
-        }
-    }
-
-    public static class EpgSessionId implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getSessionId();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setSessionId((String) vl);
-        }
-    }
-
-    public static class EpgRuleId implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getRuleId();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setRuleId((String) vl);
-        }
-    }
-
-    public static class EpgUrl implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getUrl();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setUrl((String) vl);
-        }
-    }
-
-    public static class EpgParentUrl implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getParentUrl();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setParentUrl((String) vl);
-        }
-    }
-
-    public static class EpgStatus implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getStatus();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setStatus(cti(vl));
-        }
-    }
-
-    public static class EpgHttpStatusCode implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getHttpStatusCode();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setHttpStatusCode(cti(vl));
-        }
-    }
-
-    public static class EpgMethod implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getMethod();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setMethod((String) vl);
-        }
-    }
-
-    public static class EpgMimeType implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getMimeType();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setMimeType((String) vl);
-        }
-    }
-
-    public static class EpgContentLength implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getContentLength();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setContentLength(ctl(vl));
-        }
-    }
-
-    public static class EpgExecutionTime implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getExecutionTime();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setExecutionTime(cti(vl));
-        }
-    }
-
-    public static class EpgLastModified implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getLastModified();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setLastModified((java.sql.Timestamp) vl);
-        }
-    }
-
-    public static class EpgCreateTime implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getCreateTime();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setCreateTime((java.sql.Timestamp) vl);
-        }
+    protected void xsetupEpg() {
+        setupEpg(_epgMap, et -> ((AccessResult) et).getId(),
+                (et, vl) -> ((AccessResult) et).setId(ctl(vl)), "id");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getSessionId(),
+                (et, vl) -> ((AccessResult) et).setSessionId((String) vl),
+                "sessionId");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getRuleId(),
+                (et, vl) -> ((AccessResult) et).setRuleId((String) vl),
+                "ruleId");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getUrl(),
+                (et, vl) -> ((AccessResult) et).setUrl((String) vl), "url");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getParentUrl(),
+                (et, vl) -> ((AccessResult) et).setParentUrl((String) vl),
+                "parentUrl");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getStatus(),
+                (et, vl) -> ((AccessResult) et).setStatus(cti(vl)), "status");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getHttpStatusCode(), (et,
+                vl) -> ((AccessResult) et).setHttpStatusCode(cti(vl)),
+                "httpStatusCode");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getMethod(),
+                (et, vl) -> ((AccessResult) et).setMethod((String) vl),
+                "method");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getMimeType(),
+                (et, vl) -> ((AccessResult) et).setMimeType((String) vl),
+                "mimeType");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getContentLength(),
+                (et, vl) -> ((AccessResult) et).setContentLength(ctl(vl)),
+                "contentLength");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getExecutionTime(),
+                (et, vl) -> ((AccessResult) et).setExecutionTime(cti(vl)),
+                "executionTime");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getLastModified(),
+                (et, vl) -> ((AccessResult) et).setLastModified(ctl(vl)),
+                "lastModified");
+        setupEpg(_epgMap, et -> ((AccessResult) et).getCreateTime(),
+                (et, vl) -> ((AccessResult) et).setCreateTime(ctl(vl)),
+                "createTime");
     }
 
     @Override
@@ -246,22 +118,17 @@ public class AccessResultDbm extends AbstractDBMeta {
     //                                      ----------------
     protected final Map<String, PropertyGateway> _efpgMap = newHashMap();
     {
-        setupEfpg(
-            _efpgMap,
-            new EfpgAccessResultDataAsOne(),
-            "accessResultDataAsOne");
+        xsetupEfpg();
     }
 
-    public class EfpgAccessResultDataAsOne implements PropertyGateway {
-        @Override
-        public Object read(final Entity et) {
-            return ((AccessResult) et).getAccessResultDataAsOne();
-        }
-
-        @Override
-        public void write(final Entity et, final Object vl) {
-            ((AccessResult) et).setAccessResultDataAsOne((AccessResultData) vl);
-        }
+    @SuppressWarnings("unchecked")
+    protected void xsetupEfpg() {
+        setupEfpg(
+                _efpgMap,
+                et -> ((AccessResult) et).getAccessResultDataAsOne(),
+                (et, vl) -> ((AccessResult) et)
+                        .setAccessResultDataAsOne((OptionalEntity<AccessResultData>) vl),
+                "accessResultDataAsOne");
     }
 
     @Override
@@ -277,12 +144,10 @@ public class AccessResultDbm extends AbstractDBMeta {
     protected final String _tablePropertyName = "accessResult";
 
     protected final TableSqlName _tableSqlName = new TableSqlName(
-        "ACCESS_RESULT",
-        _tableDbName);
+            "ACCESS_RESULT", _tableDbName);
     {
-        _tableSqlName.xacceptFilter(DBFluteConfig
-            .getInstance()
-            .getTableSqlNameFilter());
+        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
+                .getTableSqlNameFilter());
     }
 
     @Override
@@ -303,8 +168,7 @@ public class AccessResultDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
-    protected final ColumnInfo _columnId =
-        cci(
+    protected final ColumnInfo _columnId = cci(
             "ID",
             "ID",
             null,
@@ -318,277 +182,63 @@ public class AccessResultDbm extends AbstractDBMeta {
             "BIGINT",
             19,
             0,
-            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_7A496CBE_0B89_45E9_92D6_22B4646749E6",
-            false,
-            null,
-            null,
-            null,
-            "",
-            null);
+            "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_45070C7E_F10A_49A8_994B_A1FA9CBF900D",
+            false, null, null, null, "", null, false);
 
-    protected final ColumnInfo _columnSessionId = cci(
-        "SESSION_ID",
-        "SESSION_ID",
-        null,
-        null,
-        String.class,
-        "sessionId",
-        null,
-        false,
-        false,
-        true,
-        "VARCHAR",
-        20,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnSessionId = cci("SESSION_ID",
+            "SESSION_ID", null, null, String.class, "sessionId", null, false,
+            false, true, "VARCHAR", 20, 0, null, false, null, null, null, null,
+            null, false);
 
-    protected final ColumnInfo _columnRuleId = cci(
-        "RULE_ID",
-        "RULE_ID",
-        null,
-        null,
-        String.class,
-        "ruleId",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        20,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnRuleId = cci("RULE_ID", "RULE_ID", null,
+            null, String.class, "ruleId", null, false, false, false, "VARCHAR",
+            20, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnUrl = cci(
-        "URL",
-        "URL",
-        null,
-        null,
-        String.class,
-        "url",
-        null,
-        false,
-        false,
-        true,
-        "VARCHAR",
-        65536,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null,
+            String.class, "url", null, false, false, true, "VARCHAR", 65536, 0,
+            null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnParentUrl = cci(
-        "PARENT_URL",
-        "PARENT_URL",
-        null,
-        null,
-        String.class,
-        "parentUrl",
-        null,
-        false,
-        false,
-        false,
-        "VARCHAR",
-        65536,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnParentUrl = cci("PARENT_URL",
+            "PARENT_URL", null, null, String.class, "parentUrl", null, false,
+            false, false, "VARCHAR", 65536, 0, null, false, null, null, null,
+            null, null, false);
 
-    protected final ColumnInfo _columnStatus = cci(
-        "STATUS",
-        "STATUS",
-        null,
-        null,
-        Integer.class,
-        "status",
-        null,
-        false,
-        false,
-        true,
-        "INTEGER",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnStatus = cci("STATUS", "STATUS", null,
+            null, Integer.class, "status", null, false, false, true, "INTEGER",
+            10, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnHttpStatusCode = cci(
-        "HTTP_STATUS_CODE",
-        "HTTP_STATUS_CODE",
-        null,
-        null,
-        Integer.class,
-        "httpStatusCode",
-        null,
-        false,
-        false,
-        true,
-        "INTEGER",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnHttpStatusCode = cci("HTTP_STATUS_CODE",
+            "HTTP_STATUS_CODE", null, null, Integer.class, "httpStatusCode",
+            null, false, false, true, "INTEGER", 10, 0, null, false, null,
+            null, null, null, null, false);
 
-    protected final ColumnInfo _columnMethod = cci(
-        "METHOD",
-        "METHOD",
-        null,
-        null,
-        String.class,
-        "method",
-        null,
-        false,
-        false,
-        true,
-        "VARCHAR",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnMethod = cci("METHOD", "METHOD", null,
+            null, String.class, "method", null, false, false, true, "VARCHAR",
+            10, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnMimeType = cci(
-        "MIME_TYPE",
-        "MIME_TYPE",
-        null,
-        null,
-        String.class,
-        "mimeType",
-        null,
-        false,
-        false,
-        true,
-        "VARCHAR",
-        100,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnMimeType = cci("MIME_TYPE", "MIME_TYPE",
+            null, null, String.class, "mimeType", null, false, false, true,
+            "VARCHAR", 100, 0, null, false, null, null, null, null, null, false);
 
-    protected final ColumnInfo _columnContentLength = cci(
-        "CONTENT_LENGTH",
-        "CONTENT_LENGTH",
-        null,
-        null,
-        Long.class,
-        "contentLength",
-        null,
-        false,
-        false,
-        true,
-        "BIGINT",
-        19,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnContentLength = cci("CONTENT_LENGTH",
+            "CONTENT_LENGTH", null, null, Long.class, "contentLength", null,
+            false, false, true, "BIGINT", 19, 0, null, false, null, null, null,
+            null, null, false);
 
-    protected final ColumnInfo _columnExecutionTime = cci(
-        "EXECUTION_TIME",
-        "EXECUTION_TIME",
-        null,
-        null,
-        Integer.class,
-        "executionTime",
-        null,
-        false,
-        false,
-        true,
-        "INTEGER",
-        10,
-        0,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnExecutionTime = cci("EXECUTION_TIME",
+            "EXECUTION_TIME", null, null, Integer.class, "executionTime", null,
+            false, false, true, "INTEGER", 10, 0, null, false, null, null,
+            null, null, null, false);
 
-    protected final ColumnInfo _columnLastModified = cci(
-        "LAST_MODIFIED",
-        "LAST_MODIFIED",
-        null,
-        null,
-        java.sql.Timestamp.class,
-        "lastModified",
-        null,
-        false,
-        false,
-        true,
-        "TIMESTAMP",
-        23,
-        10,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnLastModified = cci("LAST_MODIFIED",
+            "LAST_MODIFIED", null, null, Long.class, "lastModified", null,
+            false, false, false, "BIGINT", 19, 0, null, false, null, null,
+            null, null, null, false);
 
-    protected final ColumnInfo _columnCreateTime = cci(
-        "CREATE_TIME",
-        "CREATE_TIME",
-        null,
-        null,
-        java.sql.Timestamp.class,
-        "createTime",
-        null,
-        false,
-        false,
-        true,
-        "TIMESTAMP",
-        23,
-        10,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null);
+    protected final ColumnInfo _columnCreateTime = cci("CREATE_TIME",
+            "CREATE_TIME", null, null, Long.class, "createTime", null, false,
+            false, true, "BIGINT", 19, 0, null, false, null, null, null, null,
+            null, false);
 
     /**
      * ID: {PK, ID, NotNull, BIGINT(19)}
@@ -679,7 +329,7 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     /**
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * LAST_MODIFIED: {BIGINT(19)}
      * @return The information object of specified column. (NotNull)
      */
     public ColumnInfo columnLastModified() {
@@ -687,7 +337,7 @@ public class AccessResultDbm extends AbstractDBMeta {
     }
 
     /**
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @return The information object of specified column. (NotNull)
      */
     public ColumnInfo columnCreateTime() {
@@ -751,26 +401,12 @@ public class AccessResultDbm extends AbstractDBMeta {
      * @return The information object of foreign property(referrer-as-one). (NotNull)
      */
     public ForeignInfo foreignAccessResultDataAsOne() {
-        final Map<ColumnInfo, ColumnInfo> mp =
-            newLinkedHashMap(columnId(), AccessResultDataDbm
-                .getInstance()
-                .columnId());
-        return cfi(
-            "CONSTRAINT_13",
-            "accessResultDataAsOne",
-            this,
-            AccessResultDataDbm.getInstance(),
-            mp,
-            0,
-            null,
-            true,
-            false,
-            true,
-            false,
-            null,
-            null,
-            false,
-            "accessResult");
+        final Map<ColumnInfo, ColumnInfo> mp = newLinkedHashMap(columnId(),
+                AccessResultDataDbm.getInstance().columnId());
+        return cfi("CONSTRAINT_13", "accessResultDataAsOne", this,
+                AccessResultDataDbm.getInstance(), mp, 0,
+                org.dbflute.optional.OptionalEntity.class, true, false, true,
+                false, null, null, false, "accessResult", false);
     }
 
     // -----------------------------------------------------
@@ -815,11 +451,7 @@ public class AccessResultDbm extends AbstractDBMeta {
     //                                                                     Object Instance
     //                                                                     ===============
     @Override
-    public Entity newEntity() {
-        return newMyEntity();
-    }
-
-    public AccessResult newMyEntity() {
+    public AccessResult newEntity() {
         return new AccessResult();
     }
 

@@ -1,18 +1,3 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.cbean.cq.bs;
 
 import java.util.Map;
@@ -21,12 +6,12 @@ import org.codelibs.robot.db.cbean.AccessResultCB;
 import org.codelibs.robot.db.cbean.cq.AccessResultCQ;
 import org.codelibs.robot.db.cbean.cq.AccessResultDataCQ;
 import org.codelibs.robot.db.cbean.cq.ciq.AccessResultCIQ;
-import org.seasar.dbflute.cbean.ConditionQuery;
-import org.seasar.dbflute.cbean.chelper.HpCalculator;
-import org.seasar.dbflute.cbean.coption.ConditionOption;
-import org.seasar.dbflute.cbean.cvalue.ConditionValue;
-import org.seasar.dbflute.cbean.sqlclause.SqlClause;
-import org.seasar.dbflute.exception.IllegalConditionBeanOperationException;
+import org.dbflute.cbean.ConditionQuery;
+import org.dbflute.cbean.chelper.HpQDRFunction;
+import org.dbflute.cbean.coption.ConditionOption;
+import org.dbflute.cbean.cvalue.ConditionValue;
+import org.dbflute.cbean.sqlclause.SqlClause;
+import org.dbflute.exception.IllegalConditionBeanOperationException;
 
 /**
  * The base condition-query of ACCESS_RESULT.
@@ -52,10 +37,10 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     //                                                                 InlineView/OrClause
     //                                                                 ===================
     /**
-     * Prepare InlineView query. <br />
+     * Prepare InlineView query. <br>
      * {select ... from ... left outer join (select * from ACCESS_RESULT) where FOO = [value] ...}
      * <pre>
-     * cb.query().queryMemberStatus().<span style="color: #DD4747">inline()</span>.setFoo...;
+     * cb.query().queryMemberStatus().<span style="color: #CC4747">inline()</span>.setFoo...;
      * </pre>
      * @return The condition-query for InlineView query. (NotNull)
      */
@@ -74,19 +59,15 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     protected AccessResultCIQ xnewCIQ() {
-        return new AccessResultCIQ(
-            xgetReferrerQuery(),
-            xgetSqlClause(),
-            xgetAliasName(),
-            xgetNestLevel(),
-            this);
+        return new AccessResultCIQ(xgetReferrerQuery(), xgetSqlClause(),
+                xgetAliasName(), xgetNestLevel(), this);
     }
 
     /**
-     * Prepare OnClause query. <br />
+     * Prepare OnClause query. <br>
      * {select ... from ... left outer join ACCESS_RESULT on ... and FOO = [value] ...}
      * <pre>
-     * cb.query().queryMemberStatus().<span style="color: #DD4747">on()</span>.setFoo...;
+     * cb.query().queryMemberStatus().<span style="color: #CC4747">on()</span>.setFoo...;
      * </pre>
      * @return The condition-query for OnClause query. (NotNull)
      * @throws IllegalConditionBeanOperationException When this condition-query is base query.
@@ -94,7 +75,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     public AccessResultCIQ on() {
         if (isBaseQuery()) {
             throw new IllegalConditionBeanOperationException(
-                "OnClause for local table is unavailable!");
+                    "OnClause for local table is unavailable!");
         }
         final AccessResultCIQ inlineQuery = inline();
         inlineQuery.xsetOnClause(true);
@@ -106,7 +87,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     //                                                                               =====
     protected ConditionValue _id;
 
-    public ConditionValue getId() {
+    public ConditionValue xdfgetId() {
         if (_id == null) {
             _id = nCV();
         }
@@ -114,92 +95,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueId() {
-        return getId();
-    }
-
-    protected Map<String, AccessResultDataCQ> _id_ExistsReferrer_AccessResultDataAsOneMap;
-
-    public Map<String, AccessResultDataCQ> getId_ExistsReferrer_AccessResultDataAsOne() {
-        return _id_ExistsReferrer_AccessResultDataAsOneMap;
-    }
-
-    @Override
-    public String keepId_ExistsReferrer_AccessResultDataAsOne(
-            final AccessResultDataCQ sq) {
-        if (_id_ExistsReferrer_AccessResultDataAsOneMap == null) {
-            _id_ExistsReferrer_AccessResultDataAsOneMap =
-                newLinkedHashMapSized(4);
-        }
-        final String ky =
-            "subQueryMapKey"
-                + (_id_ExistsReferrer_AccessResultDataAsOneMap.size() + 1);
-        _id_ExistsReferrer_AccessResultDataAsOneMap.put(ky, sq);
-        return "id_ExistsReferrer_AccessResultDataAsOne." + ky;
-    }
-
-    protected Map<String, AccessResultDataCQ> _id_NotExistsReferrer_AccessResultDataAsOneMap;
-
-    public Map<String, AccessResultDataCQ> getId_NotExistsReferrer_AccessResultDataAsOne() {
-        return _id_NotExistsReferrer_AccessResultDataAsOneMap;
-    }
-
-    @Override
-    public String keepId_NotExistsReferrer_AccessResultDataAsOne(
-            final AccessResultDataCQ sq) {
-        if (_id_NotExistsReferrer_AccessResultDataAsOneMap == null) {
-            _id_NotExistsReferrer_AccessResultDataAsOneMap =
-                newLinkedHashMapSized(4);
-        }
-        final String ky =
-            "subQueryMapKey"
-                + (_id_NotExistsReferrer_AccessResultDataAsOneMap.size() + 1);
-        _id_NotExistsReferrer_AccessResultDataAsOneMap.put(ky, sq);
-        return "id_NotExistsReferrer_AccessResultDataAsOne." + ky;
-    }
-
-    protected Map<String, AccessResultDataCQ> _id_InScopeRelation_AccessResultDataAsOneMap;
-
-    public Map<String, AccessResultDataCQ> getId_InScopeRelation_AccessResultDataAsOne() {
-        return _id_InScopeRelation_AccessResultDataAsOneMap;
-    }
-
-    @Override
-    public String keepId_InScopeRelation_AccessResultDataAsOne(
-            final AccessResultDataCQ sq) {
-        if (_id_InScopeRelation_AccessResultDataAsOneMap == null) {
-            _id_InScopeRelation_AccessResultDataAsOneMap =
-                newLinkedHashMapSized(4);
-        }
-        final String ky =
-            "subQueryMapKey"
-                + (_id_InScopeRelation_AccessResultDataAsOneMap.size() + 1);
-        _id_InScopeRelation_AccessResultDataAsOneMap.put(ky, sq);
-        return "id_InScopeRelation_AccessResultDataAsOne." + ky;
-    }
-
-    protected Map<String, AccessResultDataCQ> _id_NotInScopeRelation_AccessResultDataAsOneMap;
-
-    public Map<String, AccessResultDataCQ> getId_NotInScopeRelation_AccessResultDataAsOne() {
-        return _id_NotInScopeRelation_AccessResultDataAsOneMap;
-    }
-
-    @Override
-    public String keepId_NotInScopeRelation_AccessResultDataAsOne(
-            final AccessResultDataCQ sq) {
-        if (_id_NotInScopeRelation_AccessResultDataAsOneMap == null) {
-            _id_NotInScopeRelation_AccessResultDataAsOneMap =
-                newLinkedHashMapSized(4);
-        }
-        final String ky =
-            "subQueryMapKey"
-                + (_id_NotInScopeRelation_AccessResultDataAsOneMap.size() + 1);
-        _id_NotInScopeRelation_AccessResultDataAsOneMap.put(ky, sq);
-        return "id_NotInScopeRelation_AccessResultDataAsOne." + ky;
+    protected ConditionValue xgetCValueId() {
+        return xdfgetId();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @return this. (NotNull)
      */
@@ -209,7 +110,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @return this. (NotNull)
      */
@@ -220,7 +121,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _sessionId;
 
-    public ConditionValue getSessionId() {
+    public ConditionValue xdfgetSessionId() {
         if (_sessionId == null) {
             _sessionId = nCV();
         }
@@ -228,12 +129,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueSessionId() {
-        return getSessionId();
+    protected ConditionValue xgetCValueSessionId() {
+        return xdfgetSessionId();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @return this. (NotNull)
      */
@@ -243,7 +144,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @return this. (NotNull)
      */
@@ -254,7 +155,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _ruleId;
 
-    public ConditionValue getRuleId() {
+    public ConditionValue xdfgetRuleId() {
         if (_ruleId == null) {
             _ruleId = nCV();
         }
@@ -262,12 +163,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueRuleId() {
-        return getRuleId();
+    protected ConditionValue xgetCValueRuleId() {
+        return xdfgetRuleId();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * RULE_ID: {VARCHAR(20)}
      * @return this. (NotNull)
      */
@@ -277,7 +178,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * RULE_ID: {VARCHAR(20)}
      * @return this. (NotNull)
      */
@@ -288,7 +189,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _url;
 
-    public ConditionValue getUrl() {
+    public ConditionValue xdfgetUrl() {
         if (_url == null) {
             _url = nCV();
         }
@@ -296,12 +197,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueUrl() {
-        return getUrl();
+    protected ConditionValue xgetCValueUrl() {
+        return xdfgetUrl();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @return this. (NotNull)
      */
@@ -311,7 +212,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * URL: {IX+, NotNull, VARCHAR(65536)}
      * @return this. (NotNull)
      */
@@ -322,7 +223,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _parentUrl;
 
-    public ConditionValue getParentUrl() {
+    public ConditionValue xdfgetParentUrl() {
         if (_parentUrl == null) {
             _parentUrl = nCV();
         }
@@ -330,12 +231,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueParentUrl() {
-        return getParentUrl();
+    protected ConditionValue xgetCValueParentUrl() {
+        return xdfgetParentUrl();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @return this. (NotNull)
      */
@@ -345,7 +246,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * PARENT_URL: {VARCHAR(65536)}
      * @return this. (NotNull)
      */
@@ -356,7 +257,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _status;
 
-    public ConditionValue getStatus() {
+    public ConditionValue xdfgetStatus() {
         if (_status == null) {
             _status = nCV();
         }
@@ -364,12 +265,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueStatus() {
-        return getStatus();
+    protected ConditionValue xgetCValueStatus() {
+        return xdfgetStatus();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @return this. (NotNull)
      */
@@ -379,7 +280,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * STATUS: {NotNull, INTEGER(10)}
      * @return this. (NotNull)
      */
@@ -390,7 +291,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _httpStatusCode;
 
-    public ConditionValue getHttpStatusCode() {
+    public ConditionValue xdfgetHttpStatusCode() {
         if (_httpStatusCode == null) {
             _httpStatusCode = nCV();
         }
@@ -398,12 +299,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueHttpStatusCode() {
-        return getHttpStatusCode();
+    protected ConditionValue xgetCValueHttpStatusCode() {
+        return xdfgetHttpStatusCode();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @return this. (NotNull)
      */
@@ -413,7 +314,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * HTTP_STATUS_CODE: {NotNull, INTEGER(10)}
      * @return this. (NotNull)
      */
@@ -424,7 +325,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _method;
 
-    public ConditionValue getMethod() {
+    public ConditionValue xdfgetMethod() {
         if (_method == null) {
             _method = nCV();
         }
@@ -432,12 +333,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueMethod() {
-        return getMethod();
+    protected ConditionValue xgetCValueMethod() {
+        return xdfgetMethod();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @return this. (NotNull)
      */
@@ -447,7 +348,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * METHOD: {NotNull, VARCHAR(10)}
      * @return this. (NotNull)
      */
@@ -458,7 +359,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _mimeType;
 
-    public ConditionValue getMimeType() {
+    public ConditionValue xdfgetMimeType() {
         if (_mimeType == null) {
             _mimeType = nCV();
         }
@@ -466,12 +367,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueMimeType() {
-        return getMimeType();
+    protected ConditionValue xgetCValueMimeType() {
+        return xdfgetMimeType();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @return this. (NotNull)
      */
@@ -481,7 +382,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * MIME_TYPE: {NotNull, VARCHAR(100)}
      * @return this. (NotNull)
      */
@@ -492,7 +393,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _contentLength;
 
-    public ConditionValue getContentLength() {
+    public ConditionValue xdfgetContentLength() {
         if (_contentLength == null) {
             _contentLength = nCV();
         }
@@ -500,12 +401,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueContentLength() {
-        return getContentLength();
+    protected ConditionValue xgetCValueContentLength() {
+        return xdfgetContentLength();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @return this. (NotNull)
      */
@@ -515,7 +416,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * CONTENT_LENGTH: {NotNull, BIGINT(19)}
      * @return this. (NotNull)
      */
@@ -526,7 +427,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _executionTime;
 
-    public ConditionValue getExecutionTime() {
+    public ConditionValue xdfgetExecutionTime() {
         if (_executionTime == null) {
             _executionTime = nCV();
         }
@@ -534,12 +435,12 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueExecutionTime() {
-        return getExecutionTime();
+    protected ConditionValue xgetCValueExecutionTime() {
+        return xdfgetExecutionTime();
     }
 
     /**
-     * Add order-by as ascend. <br />
+     * Add order-by as ascend. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @return this. (NotNull)
      */
@@ -549,7 +450,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
+     * Add order-by as descend. <br>
      * EXECUTION_TIME: {NotNull, INTEGER(10)}
      * @return this. (NotNull)
      */
@@ -560,7 +461,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _lastModified;
 
-    public ConditionValue getLastModified() {
+    public ConditionValue xdfgetLastModified() {
         if (_lastModified == null) {
             _lastModified = nCV();
         }
@@ -568,13 +469,13 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueLastModified() {
-        return getLastModified();
+    protected ConditionValue xgetCValueLastModified() {
+        return xdfgetLastModified();
     }
 
     /**
-     * Add order-by as ascend. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * Add order-by as ascend. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
      * @return this. (NotNull)
      */
     public BsAccessResultCQ addOrderBy_LastModified_Asc() {
@@ -583,8 +484,8 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
-     * LAST_MODIFIED: {NotNull, TIMESTAMP(23, 10)}
+     * Add order-by as descend. <br>
+     * LAST_MODIFIED: {BIGINT(19)}
      * @return this. (NotNull)
      */
     public BsAccessResultCQ addOrderBy_LastModified_Desc() {
@@ -594,7 +495,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
 
     protected ConditionValue _createTime;
 
-    public ConditionValue getCreateTime() {
+    public ConditionValue xdfgetCreateTime() {
         if (_createTime == null) {
             _createTime = nCV();
         }
@@ -602,13 +503,13 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     @Override
-    protected ConditionValue getCValueCreateTime() {
-        return getCreateTime();
+    protected ConditionValue xgetCValueCreateTime() {
+        return xdfgetCreateTime();
     }
 
     /**
-     * Add order-by as ascend. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * Add order-by as ascend. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @return this. (NotNull)
      */
     public BsAccessResultCQ addOrderBy_CreateTime_Asc() {
@@ -617,8 +518,8 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     /**
-     * Add order-by as descend. <br />
-     * CREATE_TIME: {NotNull, TIMESTAMP(23, 10)}
+     * Add order-by as descend. <br>
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @return this. (NotNull)
      */
     public BsAccessResultCQ addOrderBy_CreateTime_Desc() {
@@ -636,9 +537,9 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
      *     public void query(PurchaseCB subCB) {
      *         subCB.specify().columnPurchaseDatetime();
      *     }
-     * }, <span style="color: #DD4747">aliasName</span>);
+     * }, <span style="color: #CC4747">aliasName</span>);
      * <span style="color: #3F7E5E">// order by [alias-name] asc</span>
-     * cb.<span style="color: #DD4747">addSpecifiedDerivedOrderBy_Asc</span>(<span style="color: #DD4747">aliasName</span>);
+     * cb.<span style="color: #CC4747">addSpecifiedDerivedOrderBy_Asc</span>(<span style="color: #CC4747">aliasName</span>);
      * </pre>
      * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
      * @return this. (NotNull)
@@ -656,9 +557,9 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
      *     public void query(PurchaseCB subCB) {
      *         subCB.specify().columnPurchaseDatetime();
      *     }
-     * }, <span style="color: #DD4747">aliasName</span>);
+     * }, <span style="color: #CC4747">aliasName</span>);
      * <span style="color: #3F7E5E">// order by [alias-name] desc</span>
-     * cb.<span style="color: #DD4747">addSpecifiedDerivedOrderBy_Desc</span>(<span style="color: #DD4747">aliasName</span>);
+     * cb.<span style="color: #CC4747">addSpecifiedDerivedOrderBy_Desc</span>(<span style="color: #CC4747">aliasName</span>);
      * </pre>
      * @param aliasName The alias name specified at (Specify)DerivedReferrer. (NotNull)
      * @return this. (NotNull)
@@ -679,8 +580,8 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
         final AccessResultCQ uq = (AccessResultCQ) uqs;
         if (bq.hasConditionQueryAccessResultDataAsOne()) {
             uq.queryAccessResultDataAsOne().reflectRelationOnUnionQuery(
-                bq.queryAccessResultDataAsOne(),
-                uq.queryAccessResultDataAsOne());
+                    bq.queryAccessResultDataAsOne(),
+                    uq.queryAccessResultDataAsOne());
         }
     }
 
@@ -688,50 +589,36 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     //                                                                       Foreign Query
     //                                                                       =============
     /**
-     * Get the condition-query for relation table. <br />
+     * Get the condition-query for relation table. <br>
      * ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
      * @return The instance of condition-query. (NotNull)
      */
     public AccessResultDataCQ queryAccessResultDataAsOne() {
-        return getConditionQueryAccessResultDataAsOne();
+        return xdfgetConditionQueryAccessResultDataAsOne();
     }
 
-    protected AccessResultDataCQ _conditionQueryAccessResultDataAsOne;
-
-    public AccessResultDataCQ getConditionQueryAccessResultDataAsOne() {
-        if (_conditionQueryAccessResultDataAsOne == null) {
-            _conditionQueryAccessResultDataAsOne =
-                xcreateQueryAccessResultDataAsOne();
+    public AccessResultDataCQ xdfgetConditionQueryAccessResultDataAsOne() {
+        final String prop = "accessResultDataAsOne";
+        if (!xhasQueRlMap(prop)) {
+            xregQueRl(prop, xcreateQueryAccessResultDataAsOne());
             xsetupOuterJoinAccessResultDataAsOne();
         }
-        return _conditionQueryAccessResultDataAsOne;
+        return xgetQueRlMap(prop);
     }
 
     protected AccessResultDataCQ xcreateQueryAccessResultDataAsOne() {
-        final String nrp =
-            resolveNextRelationPath("ACCESS_RESULT", "accessResultDataAsOne");
-        final String jan = resolveJoinAliasName(nrp, xgetNextNestLevel());
-        final AccessResultDataCQ cq =
-            new AccessResultDataCQ(
-                this,
-                xgetSqlClause(),
-                jan,
-                xgetNextNestLevel());
-        cq.xsetBaseCB(_baseCB);
-        cq.xsetForeignPropertyName("accessResultDataAsOne");
-        cq.xsetRelationPath(nrp);
-        return cq;
+        final String nrp = xresolveNRP("ACCESS_RESULT", "accessResultDataAsOne");
+        final String jan = xresolveJAN(nrp, xgetNNLvl());
+        return xinitRelCQ(new AccessResultDataCQ(this, xgetSqlClause(), jan,
+                xgetNNLvl()), _baseCB, "accessResultDataAsOne", nrp);
     }
 
     protected void xsetupOuterJoinAccessResultDataAsOne() {
-        final AccessResultDataCQ cq = getConditionQueryAccessResultDataAsOne();
-        final Map<String, String> joinOnMap = newLinkedHashMapSized(4);
-        joinOnMap.put("ID", "ID");
-        registerOuterJoin(cq, joinOnMap, "accessResultDataAsOne");
+        xregOutJo("accessResultDataAsOne");
     }
 
     public boolean hasConditionQueryAccessResultDataAsOne() {
-        return _conditionQueryAccessResultDataAsOne != null;
+        return xhasQueRlMap("accessResultDataAsOne");
     }
 
     @Override
@@ -743,75 +630,43 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     // ===================================================================================
     //                                                                     ScalarCondition
     //                                                                     ===============
-    protected Map<String, AccessResultCQ> _scalarConditionMap;
-
-    public Map<String, AccessResultCQ> getScalarCondition() {
-        return _scalarConditionMap;
+    public Map<String, AccessResultCQ> xdfgetScalarCondition() {
+        return xgetSQueMap("scalarCondition");
     }
 
     @Override
     public String keepScalarCondition(final AccessResultCQ sq) {
-        if (_scalarConditionMap == null) {
-            _scalarConditionMap = newLinkedHashMapSized(4);
-        }
-        final String ky = "subQueryMapKey" + (_scalarConditionMap.size() + 1);
-        _scalarConditionMap.put(ky, sq);
-        return "scalarCondition." + ky;
+        return xkeepSQue("scalarCondition", sq);
     }
 
     // ===================================================================================
     //                                                                       MyselfDerived
     //                                                                       =============
-    protected Map<String, AccessResultCQ> _specifyMyselfDerivedMap;
-
-    public Map<String, AccessResultCQ> getSpecifyMyselfDerived() {
-        return _specifyMyselfDerivedMap;
+    public Map<String, AccessResultCQ> xdfgetSpecifyMyselfDerived() {
+        return xgetSQueMap("specifyMyselfDerived");
     }
 
     @Override
     public String keepSpecifyMyselfDerived(final AccessResultCQ sq) {
-        if (_specifyMyselfDerivedMap == null) {
-            _specifyMyselfDerivedMap = newLinkedHashMapSized(4);
-        }
-        final String ky =
-            "subQueryMapKey" + (_specifyMyselfDerivedMap.size() + 1);
-        _specifyMyselfDerivedMap.put(ky, sq);
-        return "specifyMyselfDerived." + ky;
+        return xkeepSQue("specifyMyselfDerived", sq);
     }
 
-    protected Map<String, AccessResultCQ> _queryMyselfDerivedMap;
-
-    public Map<String, AccessResultCQ> getQueryMyselfDerived() {
-        return _queryMyselfDerivedMap;
+    public Map<String, AccessResultCQ> xdfgetQueryMyselfDerived() {
+        return xgetSQueMap("queryMyselfDerived");
     }
 
     @Override
     public String keepQueryMyselfDerived(final AccessResultCQ sq) {
-        if (_queryMyselfDerivedMap == null) {
-            _queryMyselfDerivedMap = newLinkedHashMapSized(4);
-        }
-        final String ky =
-            "subQueryMapKey" + (_queryMyselfDerivedMap.size() + 1);
-        _queryMyselfDerivedMap.put(ky, sq);
-        return "queryMyselfDerived." + ky;
+        return xkeepSQue("queryMyselfDerived", sq);
     }
 
-    protected Map<String, Object> _qyeryMyselfDerivedParameterMap;
-
-    public Map<String, Object> getQueryMyselfDerivedParameter() {
-        return _qyeryMyselfDerivedParameterMap;
+    public Map<String, Object> xdfgetQueryMyselfDerivedParameter() {
+        return xgetSQuePmMap("queryMyselfDerived");
     }
 
     @Override
-    public String keepQueryMyselfDerivedParameter(final Object vl) {
-        if (_qyeryMyselfDerivedParameterMap == null) {
-            _qyeryMyselfDerivedParameterMap = newLinkedHashMapSized(4);
-        }
-        final String ky =
-            "subQueryParameterKey"
-                + (_qyeryMyselfDerivedParameterMap.size() + 1);
-        _qyeryMyselfDerivedParameterMap.put(ky, vl);
-        return "queryMyselfDerivedParameter." + ky;
+    public String keepQueryMyselfDerivedParameter(final Object pm) {
+        return xkeepSQuePm("queryMyselfDerived", pm);
     }
 
     // ===================================================================================
@@ -819,37 +674,24 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     //                                                                        ============
     protected Map<String, AccessResultCQ> _myselfExistsMap;
 
-    public Map<String, AccessResultCQ> getMyselfExists() {
-        return _myselfExistsMap;
+    public Map<String, AccessResultCQ> xdfgetMyselfExists() {
+        return xgetSQueMap("myselfExists");
     }
 
     @Override
     public String keepMyselfExists(final AccessResultCQ sq) {
-        if (_myselfExistsMap == null) {
-            _myselfExistsMap = newLinkedHashMapSized(4);
-        }
-        final String ky = "subQueryMapKey" + (_myselfExistsMap.size() + 1);
-        _myselfExistsMap.put(ky, sq);
-        return "myselfExists." + ky;
+        return xkeepSQue("myselfExists", sq);
     }
 
     // ===================================================================================
     //                                                                       MyselfInScope
     //                                                                       =============
-    protected Map<String, AccessResultCQ> _myselfInScopeMap;
-
-    public Map<String, AccessResultCQ> getMyselfInScope() {
-        return _myselfInScopeMap;
+    public Map<String, AccessResultCQ> xdfgetMyselfInScope() {
+        return xgetSQueMap("myselfInScope");
     }
 
-    @Override
     public String keepMyselfInScope(final AccessResultCQ sq) {
-        if (_myselfInScopeMap == null) {
-            _myselfInScopeMap = newLinkedHashMapSized(4);
-        }
-        final String ky = "subQueryMapKey" + (_myselfInScopeMap.size() + 1);
-        _myselfInScopeMap.put(ky, sq);
-        return "myselfInScope." + ky;
+        return xkeepSQue("myselfInScope", sq);
     }
 
     // ===================================================================================
@@ -865,7 +707,7 @@ public class BsAccessResultCQ extends AbstractBsAccessResultCQ {
     }
 
     protected String xCHp() {
-        return HpCalculator.class.getName();
+        return HpQDRFunction.class.getName();
     }
 
     protected String xCOp() {

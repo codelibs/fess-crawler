@@ -15,13 +15,12 @@
  */
 package org.codelibs.robot.db.exentity;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
+import org.codelibs.core.beans.util.BeanUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.db.bsentity.BsAccessResult;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
-import org.seasar.framework.beans.util.Beans;
+import org.dbflute.optional.OptionalEntity;
 
 /**
  * The entity of ACCESS_RESULT.
@@ -42,13 +41,13 @@ public class AccessResult extends BsAccessResult implements
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
-        setCreateTime(new Timestamp(new Date().getTime())); // TODO response
+        setCreateTime(SystemUtil.currentTimeMillis()); // TODO response
         // time
-        Beans.copy(responseData, this).execute();
+        BeanUtil.copyBeanToBean(responseData, this);
 
         final AccessResultData accessResultData = new AccessResultData();
-        Beans.copy(resultData, accessResultData).execute();
-        setAccessResultDataAsOne(accessResultData);
+        BeanUtil.copyBeanToBean(resultData, accessResultData);
+        setAccessResultDataAsOne(OptionalEntity.of(accessResultData));
     }
 
     /*
@@ -58,7 +57,7 @@ public class AccessResult extends BsAccessResult implements
      */
     @Override
     public AccessResultData getAccessResultData() {
-        return getAccessResultDataAsOne();
+        return getAccessResultDataAsOne().orElse(null);
     }
 
     /*
@@ -71,7 +70,8 @@ public class AccessResult extends BsAccessResult implements
     @Override
     public void setAccessResultData(
             final org.codelibs.robot.entity.AccessResultData accessResultData) {
-        setAccessResultDataAsOne((AccessResultData) accessResultData);
+        setAccessResultDataAsOne(OptionalEntity
+                .of((AccessResultData) accessResultData));
     }
 
 }

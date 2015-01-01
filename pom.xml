@@ -37,11 +37,11 @@
   <modules>
     <module>s2robot</module>
     <module>s2robot-spring</module>
-<!-- TODO
     <module>s2robot-db-h2</module>
+    <module>s2robot-db</module>
+<!-- TODO
     <module>s2robot-db-mysql</module>
     <module>s2robot-db-oracle</module>
-    <module>s2robot-db</module>
 -->
   </modules>
   <properties>
@@ -58,6 +58,7 @@
     <bouncycastle.version>1.51</bouncycastle.version>
     <nekohtml.version>1.9.21</nekohtml.version>
     <utflute.version>0.5.0-RC4</utflute.version>
+    <spring.version>4.1.4.RELEASE</spring.version>
   </properties>
   <build>
     <pluginManagement>
@@ -180,7 +181,7 @@
         <plugin>
           <groupId>org.dbflute</groupId>
           <artifactId>dbflute-maven-plugin</artifactId>
-          <version>1.1.0-SNAPSHOT</version>
+          <version>1.1.0-RC1</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

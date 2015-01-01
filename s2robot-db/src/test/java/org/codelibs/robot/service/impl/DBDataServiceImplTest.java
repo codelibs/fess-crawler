@@ -15,40 +15,48 @@
  */
 package org.codelibs.robot.service.impl;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import org.codelibs.core.beans.util.BeanUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
+import org.codelibs.robot.container.RobotContainer;
+import org.codelibs.robot.container.SpringRobotContainer;
 import org.codelibs.robot.entity.AccessResult;
+import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
-import org.seasar.extension.unit.PlainTestCase;
-import org.seasar.framework.beans.util.Beans;
+import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
  * 
  */
 public class DBDataServiceImplTest extends PlainTestCase {
-    public DBDataServiceImpl dataService;
+    public DataService dataService;
+
+    private RobotContainer container;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    public void setUp() throws Exception {
+        super.setUp();
+
+        container = SpringRobotContainer.create("robotDb.xml");
+        dataService = container.getComponent("dataService");
     }
 
     @Override
-    protected void setUpAfterBindFields() throws Throwable {
+    public void tearDown() throws Exception {
         dataService.deleteAll();
+        container.destroy();
+        super.tearDown();
     }
 
     public void test_iterateUrlDiffTx() {
-        final org.codelibs.robot.db.exentity.AccessResult accessResult =
-            new org.codelibs.robot.db.exentity.AccessResult();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult = new org.codelibs.robot.db.exentity.AccessResult();
         accessResult.setSessionId("1");
         accessResult.setUrl("http://www.example.com/a");
-        accessResult.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        accessResult.setCreateTime(SystemUtil.currentTimeMillis());
         accessResult.setExecutionTime(10);
         accessResult.setHttpStatusCode(200);
         accessResult.setMethod(Constants.GET_METHOD);
@@ -56,29 +64,29 @@ public class DBDataServiceImplTest extends PlainTestCase {
         accessResult.setRuleId("html");
         accessResult.setStatus(Constants.OK_STATUS);
         accessResult.setContentLength(100L);
-        accessResult.setLastModified(new Timestamp(new Date().getTime()));
+        accessResult.setLastModified(SystemUtil.currentTimeMillis());
         dataService.store(accessResult);
 
-        final org.codelibs.robot.db.exentity.AccessResult accessResult1a =
-            new org.codelibs.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult1a).excludes("id").execute();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult1a = new org.codelibs.robot.db.exentity.AccessResult();
+        BeanUtil.copyBeanToBean(accessResult, accessResult1a,
+                option -> option.exclude("id"));
         dataService.store(accessResult1a);
 
-        final org.codelibs.robot.db.exentity.AccessResult accessResult1b =
-            new org.codelibs.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult1b).excludes("id").execute();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult1b = new org.codelibs.robot.db.exentity.AccessResult();
+        BeanUtil.copyBeanToBean(accessResult, accessResult1b,
+                option -> option.exclude("id"));
         accessResult1b.setUrl("http://www.example.com/b");
         dataService.store(accessResult1b);
 
-        final org.codelibs.robot.db.exentity.AccessResult accessResult2a =
-            new org.codelibs.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult2a).excludes("id").execute();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult2a = new org.codelibs.robot.db.exentity.AccessResult();
+        BeanUtil.copyBeanToBean(accessResult, accessResult2a,
+                option -> option.exclude("id"));
         accessResult2a.setSessionId("2");
         dataService.store(accessResult2a);
 
-        final org.codelibs.robot.db.exentity.AccessResult accessResult2c =
-            new org.codelibs.robot.db.exentity.AccessResult();
-        Beans.copy(accessResult, accessResult2c).excludes("id").execute();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult2c = new org.codelibs.robot.db.exentity.AccessResult();
+        BeanUtil.copyBeanToBean(accessResult, accessResult2c,
+                option -> option.exclude("id"));
         accessResult2c.setSessionId("2");
         accessResult2c.setUrl("http://www.example.com/c");
         dataService.store(accessResult2c);
@@ -97,13 +105,12 @@ public class DBDataServiceImplTest extends PlainTestCase {
     }
 
     public void test_insert_deleteTx() {
-        final org.codelibs.robot.db.exentity.AccessResult accessResult1 =
-            new org.codelibs.robot.db.exentity.AccessResult();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult1 = new org.codelibs.robot.db.exentity.AccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
-        accessResult1.setCreateTime(new Timestamp(new Date().getTime()));
+        accessResult1.setCreateTime(SystemUtil.currentTimeMillis());
         accessResult1.setExecutionTime(10);
         accessResult1.setHttpStatusCode(200);
-        accessResult1.setLastModified(new Timestamp(new Date().getTime()));
+        accessResult1.setLastModified(SystemUtil.currentTimeMillis());
         accessResult1.setMethod("GET");
         accessResult1.setMimeType("text/plain");
         accessResult1.setParentUrl("http://www.parent.com/");
@@ -114,33 +121,32 @@ public class DBDataServiceImplTest extends PlainTestCase {
 
         dataService.store(accessResult1);
 
-        final AccessResult accessResult2 =
-            dataService.getAccessResult("id1", "http://www.id1.com/");
+        final AccessResult accessResult2 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
         assertNotNull(accessResult2);
 
         accessResult2.setMimeType("text/html");
         dataService.update(accessResult2);
 
-        final AccessResult accessResult3 =
-            dataService.getAccessResult("id1", "http://www.id1.com/");
+        final AccessResult accessResult3 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
         assertNotNull(accessResult3);
         assertEquals("text/html", accessResult3.getMimeType());
 
         dataService.delete("id1");
 
-        final AccessResult accessResult4 =
-            dataService.getAccessResult("id1", "http://www.id1.com/");
+        final AccessResult accessResult4 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
         assertNull(accessResult4);
     }
 
     public void test_insert_delete_multiTx() {
-        final org.codelibs.robot.db.exentity.AccessResult accessResult1 =
-            new org.codelibs.robot.db.exentity.AccessResult();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult1 = new org.codelibs.robot.db.exentity.AccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
-        accessResult1.setCreateTime(new Timestamp(new Date().getTime()));
+        accessResult1.setCreateTime(SystemUtil.currentTimeMillis());
         accessResult1.setExecutionTime(10);
         accessResult1.setHttpStatusCode(200);
-        accessResult1.setLastModified(new Timestamp(new Date().getTime()));
+        accessResult1.setLastModified(SystemUtil.currentTimeMillis());
         accessResult1.setMethod("GET");
         accessResult1.setMimeType("text/plain");
         accessResult1.setParentUrl("http://www.parent.com/");
@@ -151,13 +157,12 @@ public class DBDataServiceImplTest extends PlainTestCase {
 
         dataService.store(accessResult1);
 
-        final org.codelibs.robot.db.exentity.AccessResult accessResult2 =
-            new org.codelibs.robot.db.exentity.AccessResult();
+        final org.codelibs.robot.db.exentity.AccessResult accessResult2 = new org.codelibs.robot.db.exentity.AccessResult();
         accessResult2.setContentLength(Long.valueOf(10));
-        accessResult2.setCreateTime(new Timestamp(new Date().getTime()));
+        accessResult2.setCreateTime(SystemUtil.currentTimeMillis());
         accessResult2.setExecutionTime(10);
         accessResult2.setHttpStatusCode(200);
-        accessResult2.setLastModified(new Timestamp(new Date().getTime()));
+        accessResult2.setLastModified(SystemUtil.currentTimeMillis());
         accessResult2.setMethod("GET");
         accessResult2.setMimeType("text/plain");
         accessResult2.setParentUrl("http://www.parent.com/");
@@ -168,25 +173,24 @@ public class DBDataServiceImplTest extends PlainTestCase {
 
         dataService.store(accessResult2);
 
-        final AccessResult accessResult3 =
-            dataService.getAccessResult("id1", "http://www.id1.com/");
-        final AccessResult accessResult4 =
-            dataService.getAccessResult("id2", "http://www.id2.com/");
+        final AccessResult accessResult3 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
+        final AccessResult accessResult4 = dataService.getAccessResult("id2",
+                "http://www.id2.com/");
         assertNotNull(accessResult3);
         assertNotNull(accessResult4);
 
-        final List<AccessResult> accessResultList =
-            new ArrayList<AccessResult>();
+        final List<AccessResult> accessResultList = new ArrayList<AccessResult>();
         accessResult3.setMimeType("text/html");
         accessResult4.setMimeType("text/html");
         accessResultList.add(accessResult3);
         accessResultList.add(accessResult4);
         dataService.update(accessResultList);
 
-        final AccessResult accessResult5 =
-            dataService.getAccessResult("id1", "http://www.id1.com/");
-        final AccessResult accessResult6 =
-            dataService.getAccessResult("id2", "http://www.id2.com/");
+        final AccessResult accessResult5 = dataService.getAccessResult("id1",
+                "http://www.id1.com/");
+        final AccessResult accessResult6 = dataService.getAccessResult("id2",
+                "http://www.id2.com/");
         assertNotNull(accessResult5);
         assertNotNull(accessResult6);
         assertEquals("text/html", accessResult5.getMimeType());

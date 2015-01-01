@@ -17,9 +17,9 @@ package org.codelibs.robot.db.exentity;
 
 import java.io.UnsupportedEncodingException;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.db.bsentity.BsAccessResultData;
-import org.codelibs.core.lang.StringUtil;
 
 /**
  * The entity of ACCESS_RESULT_DATA.
@@ -50,7 +50,7 @@ public class AccessResultData extends BsAccessResultData implements
         final String encoding = getEncoding();
         try {
             return new String(data, StringUtil.isNotBlank(encoding) ? encoding
-                : Constants.UTF_8);
+                    : Constants.UTF_8);
         } catch (final UnsupportedEncodingException e) {
             return new String(data, Constants.UTF_8_CHARSET);
         }

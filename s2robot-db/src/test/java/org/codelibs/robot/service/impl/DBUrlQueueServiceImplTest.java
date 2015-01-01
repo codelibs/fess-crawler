@@ -21,6 +21,7 @@ import org.codelibs.robot.container.SpringRobotContainer;
 import org.codelibs.robot.db.exbhv.UrlQueueBhv;
 import org.codelibs.robot.db.exentity.UrlQueue;
 import org.codelibs.robot.service.UrlQueueService;
+import org.codelibs.robot.util.ProfileUtil;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -37,6 +38,8 @@ public class DBUrlQueueServiceImplTest extends PlainTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+
+        ProfileUtil.setup();
 
         container = SpringRobotContainer.create("robotDb.xml");
         urlQueueService = container.getComponent("urlQueueService");

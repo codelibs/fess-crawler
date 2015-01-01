@@ -26,6 +26,7 @@ import org.codelibs.robot.container.SpringRobotContainer;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
+import org.codelibs.robot.util.ProfileUtil;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -40,6 +41,8 @@ public class DBDataServiceImplTest extends PlainTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+
+        ProfileUtil.setup();
 
         container = SpringRobotContainer.create("robotDb.xml");
         dataService = container.getComponent("dataService");

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans profile="mysql" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="robotDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="url">
+			<value>jdbc:mysql://localhost/robot?useUnicode=true&amp;amp;characterEncoding=UTF-8</value>
+		</property>
+		<property name="username">
+			<value>s2robot</value>
+		</property>
+		<property name="password">
+			<value>s2robot</value>
+		</property>
+	</bean>
+</beans>

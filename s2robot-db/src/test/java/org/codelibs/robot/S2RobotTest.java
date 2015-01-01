@@ -27,6 +27,7 @@ import org.codelibs.robot.service.UrlFilterService;
 import org.codelibs.robot.service.UrlQueueService;
 import org.codelibs.robot.transformer.impl.FileTransformer;
 import org.codelibs.robot.util.AccessResultCallback;
+import org.codelibs.robot.util.ProfileUtil;
 import org.codelibs.robot.util.S2RobotWebServer;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -48,6 +49,8 @@ public class S2RobotTest extends PlainTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
+        ProfileUtil.setup();
+
         container = SpringRobotContainer.create("robotDb.xml");
 
         s2Robot = container.getComponent("s2Robot");
@@ -56,6 +59,7 @@ public class S2RobotTest extends PlainTestCase {
         fileTransformer = container.getComponent("fileTransformer");
 
     }
+
     @Override
     public void tearDown() throws Exception {
         container.destroy();

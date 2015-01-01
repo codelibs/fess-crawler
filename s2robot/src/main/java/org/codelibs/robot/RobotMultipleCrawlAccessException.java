@@ -29,10 +29,6 @@ public class RobotMultipleCrawlAccessException extends
 
     private final Throwable[] throwables;
 
-    /**
-     * @param message
-     * @param throwables
-     */
     public RobotMultipleCrawlAccessException(final String message,
             final Throwable[] throwables) {
         super(message);

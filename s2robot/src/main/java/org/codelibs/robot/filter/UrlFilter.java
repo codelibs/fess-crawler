@@ -26,14 +26,14 @@ public interface UrlFilter {
     /**
      * Initialize a url filter by sessionId.
      *
-     * @param sessionId
+     * @param sessionId Session ID
      */
     void init(String sessionId);
 
     /**
      * Check if a given url is a target.
      *
-     * @param url
+     * @param url URL
      * @return true if url is matched
      */
     boolean match(String url);
@@ -41,21 +41,21 @@ public interface UrlFilter {
     /**
      * Add an url pattern as a target.
      *
-     * @param urlPattern
+     * @param urlPattern Regular expression that is crawled
      */
     void addInclude(String urlPattern);
 
     /**
      * Add an url pattern as a non-target.
      *
-     * @param urlPattern
+     * @param urlPattern Regular expression that is not crawled
      */
     void addExclude(String urlPattern);
 
     /**
      * Process an url when it's added as a seed url.
      *
-     * @param url
+     * @param url URL
      */
     void processUrl(String url);
 

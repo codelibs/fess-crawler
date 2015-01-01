@@ -8,26 +8,21 @@
 # o isAvailableDatabaseDependency: (NotRequired - Default false)
 # o isAvailableDatabaseNativeJDBC: (NotRequired - Default false)
 # o isAvailableNonPrimaryKeyWritable: (NotRequired - Default false)
-# o isCheckSelectedClassification: (NotRequired - Default false)
-# o isForceClassificationSetting: (NotRequired - Default false)
-# o isMakeEntityChaseRelation: (NotRequired - Default false)
+# o classificationUndefinedHandlingType: (NotRequired - Default LOGGING)
 # o isEntityConvertEmptyStringToNull: (NotRequired - Default false)
 # o isMakeConditionQueryEqualEmptyString: (NotRequired - Default false)
-# o isPagingCountLater: (NotRequired - Default true)
-# o isPagingCountLeastJoin: (NotRequired - Default true)
-# o isInnerJoinAutoDetect: (NotRequired - Default true)
 # o isTableDispNameUpperCase: (NotRequired - Default false)
 # o isTableSqlNameUpperCase: (NotRequired - Default false)
 # o isColumnSqlNameUpperCase: (NotRequired - Default false)
 # o isMakeDeprecated: (NotRequired - Default false)
 # o isMakeRecentlyDeprecated: (NotRequired - Default true)
-# o extendedDBFluteInitializerClass: (NotRequired - Default '')
-# o extendedImplementedInvokerAssistantClass: (NotRequired - Default '')
-# o extendedImplementedCommonColumnAutoSetupperClass: (NotRequired - Default '')
-# o extendedS2DaoSettingClass: (NotRequired - Default '')
+# o extendedDBFluteInitializerClass: (NotRequired - Default null)
+# o extendedImplementedInvokerAssistantClass: (NotRequired - Default null)
+# o extendedImplementedCommonColumnAutoSetupperClass: (NotRequired - Default null)
 # o shortCharHandlingMode: (NotRequired - Default NONE)
 # o quoteTableNameList: (NotRequired - Default list:{})
 # o quoteColumnNameList: (NotRequired - Default list:{})
+# o columnNullObjectMap: (NotRequired - Default map:{})
 # o relationalNullObjectMap: (NotRequired - Default map:{})
 # o cursorSelectFetchSize: (NotRequired - Default null)
 #
@@ -94,42 +89,14 @@ map:{
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isCheckSelectedClassification: (NotRequired - Default false)
-    #   [true]
-    #     Check a code of a column related to classification
-    #     whether it's one of classification when it's selected.
-    #     If wrong, throws an exception (when selecting).
+    # o classificationUndefinedHandlingType: (NotRequired - Default LOGGING)
+    #  The handling type when undefined classification is found.
     #
-    #   [false]
-    #     Non.
+    #   EXCEPTION - throws exception when found
+    #   LOGGING   - logging only when found (exception if ReplaceSchema)
+    #   ALLOWED   - no action
     #
-    #; isCheckSelectedClassification = false
-    # - - - - - - - - - -/
-
-    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isForceClassificationSetting: (NotRequired - Default false)
-    #   [true]
-    #     Force developer to set a code of a column related to classification
-    #     by classification type-safe method of Entity and ConditionBean.
-    #     A setter method of original type becomes 'protected' scope.
-    #
-    #   [false]
-    #     Non.
-    #
-    #; isForceClassificationSetting = false
-    # - - - - - - - - - -/
-
-    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isMakeEntityChaseRelation: (NotRequired - Default false)
-    #   [true]
-    #     Make chase-relation methods of entity.
-    #     For example: member.chaseMemberStatus().getMemberStatusName()
-    #     This statement doesn't have a null pointer if the MemberStatus doesn't exist.
-    #
-    #   [false]
-    #     Non.
-    #
-    #; isMakeEntityChaseRelation = false
+    #; classificationUndefinedHandlingType = LOGGING
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -153,41 +120,6 @@ map:{
     #     Non.
     #
     #; isMakeConditionQueryEqualEmptyString = false
-    # - - - - - - - - - -/
-
-    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isPagingCountLater: (NotRequired - Default true)
-    #   [true]
-    #     The count SQL for paging are executed after paging main select.
-    #
-    #   [false]
-    #     Non.
-    #
-    #; isPagingCountLater = true
-    # - - - - - - - - - -/
-
-    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isPagingCountLeastJoin: (NotRequired - Default true)
-    #   [true]
-    #     Join statements in count SQL of paging select are trimmed
-    #     for performance tuning. (only countable joins are valid)
-    #
-    #   [false]
-    #     Non.
-    #
-    #; isPagingCountLeastJoin = true
-    # - - - - - - - - - -/
-
-    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o isInnerJoinAutoDetect: (NotRequired - Default true)
-    #   [true]
-    #     Joins that can be inner-join on condition-bean are auto-detected
-    #     for performance tuning. (DBFlute uses NotNull constraint info)
-    #
-    #   [false]
-    #     Non.
-    #
-    #; isInnerJoinAutoDetect = true
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -251,47 +183,33 @@ map:{
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o extendedDBFluteInitializerClass: (NotRequired - Default '')
+    # o extendedDBFluteInitializerClass: (NotRequired - Default null)
     #  If you want to extend the embedded DBFlute initializer,
     #  specify the class name of your original initializer
     #  that extends the embedded one.
     #  *Basically for fixed DBFluteConfig settings
     #
-    # @JavaOnly
     #; extendedDBFluteInitializerClass = com.example.ExtendedDBFluteInitializer
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o extendedImplementedInvokerAssistantClass: (NotRequired - Default '')
+    # o extendedImplementedInvokerAssistantClass: (NotRequired - Default null)
     #  If you want to extend the embedded invoker assistant,
     #  specify the class name of your original invoker assistant
     #  that extends the embedded one.
     #  *Basically you SHOULD NOT specify this property!
     #
-    # @JavaOnly
     #; extendedImplementedInvokerAssistantClass = com.example.ExtendedImplementedInvokerAssistant
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o extendedImplementedCommonColumnAutoSetupperClass: (NotRequired - Default '')
+    # o extendedImplementedCommonColumnAutoSetupperClass: (NotRequired - Default null)
     #  If you want to extend the embedded common column auto setupper,
     #  specify the class name of your original common column auto setupper
     #  that extends the embedded one.
     #  *Basically you SHOULD NOT specify this property!
     #
-    # @JavaOnly
     #; extendedImplementedCommonColumnAutoSetupperClass = com.example.ExtendedImplementedCommonColumnAutoSetupper
-    # - - - - - - - - - -/
-
-    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # o extendedS2DaoSettingClass: (NotRequired - Default '')
-    #  If you want to extend the embedded S2Dao setting,
-    #  specify the class name of your original S2Dao setting
-    #  that extends the embedded one.
-    #  *Basically you SHOULD NOT specify this property!
-    #
-    # @CSharpOnly
-    #; extendedS2DaoSettingClass = Com.Example.ExtendedS2DaoSetting
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -322,14 +240,33 @@ map:{
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o columnNullObjectMap: (NotRequired - Default map:{})
+    #  You can get a null object when the column is null.
+    #
+    #; columnNullObjectMap = map:{
+    #    ; providerPackage = $$packageBase$$.nogen.cache
+    #    ; isGearedToSpecify = true
+    #    ; columnMap = map:{
+    #        ; MEMBER_STATUS = map:{
+    #            ; DESCRIPTION = CachedMemberStatus.get(this, "$$columnName$$", $$primaryKey$$)
+    #        }
+    #        ; MEMBER_SECURITY = map:{
+    #            ; REMINDER_ANSWER = CachedMemberSecurity.get(this, "$$columnName$$", $$primaryKey$$)
+    #            ; REMINDER_QUESTION = CachedMemberSecurity.get(this, "$$columnName$$", $$primaryKey$$)
+    #        }
+    #    }
+    #}
+    # - - - - - - - - - -/
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # o relationalNullObjectMap: (NotRequired - Default map:{})
     #  You can get a null object when the relation is null.
     #
     #; relationalNullObjectMap = map:{
     #    ; providerPackage = $$packageBase$$.nogen.cache
     #    ; foreignMap = map:{
-    #        ; MEMBER_STATUS = CachedMemberStatus.get($$PrimaryKey$$)
-    #        ; MEMBER_SECURITY = CachedMemberSecurity.get($$PrimaryKey$$)
+    #        ; MEMBER_STATUS = CachedMemberStatus.get(this, "$$foreignPropertyName$$", $$primaryKey$$)
+    #        ; MEMBER_SECURITY = CachedMemberSecurity.get(this, "$$foreignPropertyName$$", $$primaryKey$$)
     #    }
     #}
     # - - - - - - - - - -/

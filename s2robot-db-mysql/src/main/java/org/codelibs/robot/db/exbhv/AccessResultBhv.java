@@ -16,6 +16,8 @@
 package org.codelibs.robot.db.exbhv;
 
 import org.codelibs.robot.db.bsbhv.BsAccessResultBhv;
+import org.codelibs.robot.db.exbhv.pmbean.AccessResultBySessionIdPmb;
+import org.codelibs.robot.db.exbhv.pmbean.AccessResultForeignKeyChecksPmb;
 
 /**
  * The behavior of ACCESS_RESULT.
@@ -23,7 +25,7 @@ import org.codelibs.robot.db.bsbhv.BsAccessResultBhv;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultBhv extends BsAccessResultBhv {
@@ -31,24 +33,23 @@ public class AccessResultBhv extends BsAccessResultBhv {
         // AccessResultCB cb2 = new AccessResultCB();
         // cb2.query().setSessionId_Equal(sessionId);
         // accessResultBhv.queryDelete(cb2);
-        return outsideSql().execute(
-            BsAccessResultBhv.PATH_deleteBySessionId,
-            sessionId);
+        final AccessResultBySessionIdPmb pmb = new AccessResultBySessionIdPmb();
+        pmb.setSessionId(sessionId);
+        return outsideSql().execute(pmb);
     }
 
     public int deleteAll() {
         // AccessResultCB cb2 = new AccessResultCB();
         // accessResultBhv.queryDelete(cb2);
 
-        outsideSql().execute(
-            BsAccessResultBhv.PATH_foreignKeyChecks,
-            Integer.valueOf(0));
-        final String pmb = null;
-        final int ret =
-            outsideSql().execute(BsAccessResultBhv.PATH_deleteAll, pmb);
-        outsideSql().execute(
-            BsAccessResultBhv.PATH_foreignKeyChecks,
-            Integer.valueOf(1));
+        final AccessResultForeignKeyChecksPmb pmb0 = new AccessResultForeignKeyChecksPmb();
+        pmb0.setKey(0);
+        outsideSql().execute(pmb0);
+        final int ret = outsideSql().traditionalStyle().execute(
+                BsAccessResultBhv.PATH_deleteAllAccessResult, null);
+        final AccessResultForeignKeyChecksPmb pmb1 = new AccessResultForeignKeyChecksPmb();
+        pmb1.setKey(1);
+        outsideSql().execute(pmb1);
         return ret;
     }
 }

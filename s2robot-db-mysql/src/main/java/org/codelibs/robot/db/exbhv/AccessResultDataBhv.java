@@ -16,6 +16,7 @@
 package org.codelibs.robot.db.exbhv;
 
 import org.codelibs.robot.db.bsbhv.BsAccessResultDataBhv;
+import org.codelibs.robot.db.exbhv.pmbean.AccessResultDataBySessionIdPmb;
 
 /**
  * The behavior of ACCESS_RESULT_DATA.
@@ -23,7 +24,7 @@ import org.codelibs.robot.db.bsbhv.BsAccessResultDataBhv;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDataBhv extends BsAccessResultDataBhv {
@@ -32,15 +33,15 @@ public class AccessResultDataBhv extends BsAccessResultDataBhv {
         // cb1.query().queryAccessResult().setSessionId_Equal(sessionId);
         // accessResultDataBhv.queryDelete(cb1);
 
-        return outsideSql().execute(
-            BsAccessResultDataBhv.PATH_deleteBySessionId,
-            sessionId);
+        final AccessResultDataBySessionIdPmb pmb = new AccessResultDataBySessionIdPmb();
+        pmb.setSessionId(sessionId);
+        return outsideSql().execute(pmb);
     }
 
     public int deleteAll() {
         // AccessResultDataCB cb1 = new AccessResultDataCB();
         // accessResultDataBhv.queryDelete(cb1);
-        final String pmb = null;
-        return outsideSql().execute(BsAccessResultDataBhv.PATH_deleteAll, pmb);
+        return outsideSql().traditionalStyle().execute(
+                BsAccessResultDataBhv.PATH_deleteAllAccessResultData, null);
     }
 }

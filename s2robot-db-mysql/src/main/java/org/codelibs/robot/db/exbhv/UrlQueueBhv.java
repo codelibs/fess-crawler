@@ -16,6 +16,7 @@
 package org.codelibs.robot.db.exbhv;
 
 import org.codelibs.robot.db.bsbhv.BsUrlQueueBhv;
+import org.codelibs.robot.db.exbhv.pmbean.UrlQueueBySessionIdPmb;
 
 /**
  * The behavior of URL_QUEUE.
@@ -23,7 +24,7 @@ import org.codelibs.robot.db.bsbhv.BsUrlQueueBhv;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueueBhv extends BsUrlQueueBhv {
@@ -31,15 +32,15 @@ public class UrlQueueBhv extends BsUrlQueueBhv {
         // UrlQueueCB cb = new UrlQueueCB();
         // cb.query().setSessionId_Equal(sessionId);
         // urlQueueBhv.queryDelete(cb);
-        return outsideSql().execute(
-            BsUrlQueueBhv.PATH_deleteBySessionId,
-            sessionId);
+        final UrlQueueBySessionIdPmb pmb = new UrlQueueBySessionIdPmb();
+        pmb.setSessionId(sessionId);
+        return outsideSql().execute(pmb);
     }
 
     public int deleteAll() {
         // UrlQueueCB cb = new UrlQueueCB();
         // urlQueueBhv.queryDelete(cb);
-        final String pmb = null;
-        return outsideSql().execute(BsUrlQueueBhv.PATH_deleteAll, pmb);
+        return outsideSql().traditionalStyle().execute(
+                BsUrlQueueBhv.PATH_deleteAllUrlQueue, null);
     }
 }

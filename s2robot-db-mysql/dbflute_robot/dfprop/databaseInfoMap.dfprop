@@ -15,10 +15,10 @@
 # *The line that starts with '#' means comment-out.
 #
 map:{
-    ; driver = com.mysql.jdbc.Driver
-    ; url = jdbc:mysql://localhost/robot?useUnicode=true&amp;characterEncoding=UTF-8
-    ; schema =  
-    ; user = s2robot
+    ; driver   = com.mysql.jdbc.Driver
+    ; url      = jdbc:mysql://localhost/robot?useUnicode=true&amp;characterEncoding=UTF-8
+    ; schema   =  
+    ; user     = s2robot
     ; password = s2robot
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

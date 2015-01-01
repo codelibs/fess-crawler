@@ -16,8 +16,6 @@
 package org.codelibs.robot.db.exbhv;
 
 import org.codelibs.robot.db.bsbhv.BsUrlFilterBhv;
-import org.codelibs.robot.db.cbean.UrlFilterCB;
-import org.seasar.dbflute.bhv.DeleteOption;
 
 /**
  * The behavior of URL_FILTER.
@@ -25,20 +23,18 @@ import org.seasar.dbflute.bhv.DeleteOption;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class UrlFilterBhv extends BsUrlFilterBhv {
     public int deleteBySessionId(final String sessionId) {
-        final UrlFilterCB cb = new UrlFilterCB();
-        cb.query().setSessionId_Equal(sessionId);
-        return queryDelete(cb);
+        return queryDelete(cb -> {
+            cb.query().setSessionId_Equal(sessionId);
+        });
     }
 
     public int deleteAll() {
-        final UrlFilterCB cb = new UrlFilterCB();
-        return varyingQueryDelete(
-            cb,
-            new DeleteOption<UrlFilterCB>().allowNonQueryDelete());
+        return varyingQueryDelete(cb -> {
+        }, op -> op.allowNonQueryDelete());
     }
 }

@@ -2,9 +2,7 @@
 
 set ANT_OPTS=-Xmx512m
 
-set DBFLUTE_HOME=..\mydbflute\dbflute-1.0.5H
-
-set MY_PROJECT_NAME=robot
+set DBFLUTE_HOME=..\mydbflute\dbflute-1.1.0-RC4
 
 set MY_PROPERTIES_PATH=build.properties
 

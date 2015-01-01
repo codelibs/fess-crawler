@@ -1,10 +1,15 @@
+/*
+ [df:title]
+ Compare AccessResult with SessionIDs
+ 
+ [df:description]
+ Compare AccessResult with SessionIDs
+*/
 -- #AccessResultDiff#
 -- +cursor+
 
--- !AccessResultPmb!
--- !!String newSessionId!!
--- !!String oldSessionId!!
-
+-- !df:pmb!
+-- !!AutoDetect!!
 select
     ar1.ID,
     ar1.SESSION_ID,

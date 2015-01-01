@@ -15,13 +15,12 @@
  */
 package org.codelibs.robot.db.exentity;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
+import org.codelibs.core.beans.util.BeanUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.db.bsentity.BsAccessResult;
-import org.seasar.framework.beans.util.Beans;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
+import org.dbflute.optional.OptionalEntity;
 
 /**
  * The entity of ACCESS_RESULT.
@@ -29,7 +28,7 @@ import org.codelibs.robot.entity.ResultData;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResult extends BsAccessResult implements
@@ -42,35 +41,33 @@ public class AccessResult extends BsAccessResult implements
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
-        setCreateTime(new Timestamp(new Date().getTime())); // TODO response
-                                                            // time
-        Beans.copy(responseData, this).execute();
+        setCreateTime(SystemUtil.currentTimeMillis()); // TODO response time
+        BeanUtil.copyBeanToBean(responseData, this);
 
         final AccessResultData accessResultData = new AccessResultData();
-        Beans.copy(resultData, accessResultData).execute();
-        setAccessResultDataAsOne(accessResultData);
+        BeanUtil.copyBeanToBean(resultData, accessResultData);
+        setAccessResultDataAsOne(OptionalEntity.of(accessResultData));
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.codelibs.robot.entity.AccessResult#getAccessResultData()
      */
     @Override
     public AccessResultData getAccessResultData() {
-        return getAccessResultDataAsOne();
+        return getAccessResultDataAsOne().orElse(null);
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.codelibs.robot.entity.AccessResult#setAccessResultData(org.codelibs.robot
-     * .db.exentity.AccessResultData)
+     *
+     * @see org.codelibs.robot.entity.AccessResult#setAccessResultData(org.codelibs.robot.db.exentity.AccessResultData)
      */
     @Override
     public void setAccessResultData(
             final org.codelibs.robot.entity.AccessResultData accessResultData) {
-        setAccessResultDataAsOne((AccessResultData) accessResultData);
+        setAccessResultDataAsOne(OptionalEntity
+                .of((AccessResultData) accessResultData));
     }
 }

@@ -38,9 +38,9 @@
     <module>s2robot</module>
     <module>s2robot-spring</module>
     <module>s2robot-db-h2</module>
-    <module>s2robot-db</module>
-<!-- TODO
     <module>s2robot-db-mysql</module>
+    <module>s2robot-db</module>
+<!-- 
     <module>s2robot-db-oracle</module>
 -->
   </modules>

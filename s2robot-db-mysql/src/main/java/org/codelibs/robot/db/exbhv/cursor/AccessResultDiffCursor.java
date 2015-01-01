@@ -23,7 +23,7 @@ import org.codelibs.robot.db.bsbhv.cursor.BsAccessResultDiffCursor;
  * You can implement your original methods here. This class remains when
  * re-generating.
  * </p>
- * 
+ *
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultDiffCursor extends BsAccessResultDiffCursor {

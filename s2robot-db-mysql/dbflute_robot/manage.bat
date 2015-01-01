@@ -5,12 +5,13 @@ setlocal
 cd %~p0
 call _project.bat
 
-set FIRST_ARG=%1
+:: tilde to remove double quotation
+set FIRST_ARG=%~1
 if "%FIRST_ARG%"=="" set FIRST_ARG=""
 set SECOND_ARG=%2
 if "%SECOND_ARG%"=="" set SECOND_ARG=""
 
-call %DBFLUTE_HOME%\etc\cmd\_df-manage.cmd %MY_PROPERTIES_PATH% %FIRST_ARG% %SECOND_ARG%
+call %DBFLUTE_HOME%\etc\cmd\_df-manage.cmd %MY_PROPERTIES_PATH% "%FIRST_ARG%" %SECOND_ARG%
 
 if "%pause_at_end%"=="y" (
   pause

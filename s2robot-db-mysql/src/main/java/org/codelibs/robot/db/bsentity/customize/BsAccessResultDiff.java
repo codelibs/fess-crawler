@@ -1,59 +1,43 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity.customize;
 
-import java.io.Serializable;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.List;
 
-import org.codelibs.robot.db.exentity.customize.*;
-import org.seasar.dbflute.dbmeta.DBMeta;
-import org.seasar.dbflute.Entity;
+import org.codelibs.robot.db.exentity.customize.AccessResultDiff;
+import org.dbflute.dbmeta.AbstractEntity;
+import org.dbflute.dbmeta.DBMeta;
+import org.dbflute.dbmeta.accessory.CustomizeEntity;
 
 /**
- * The entity of AccessResultDiff. <br />
+ * The entity of AccessResultDiff. <br>
  * <pre>
  * [primary-key]
- *     
- * 
+ *
+ *
  * [column]
  *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, CREATE_TIME
- * 
+ *
  * [sequence]
- *     
- * 
+ *
+ *
  * [identity]
- *     
- * 
+ *
+ *
  * [version-no]
- *     
- * 
+ *
+ *
  * [foreign table]
- *     
- * 
+ *
+ *
  * [referrer table]
- *     
- * 
+ *
+ *
  * [foreign property]
- *     
- * 
+ *
+ *
  * [referrer property]
- *     
- * 
+ *
+ *
  * [get/set template]
  * /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  * Long id = entity.getId();
@@ -67,7 +51,7 @@ import org.seasar.dbflute.Entity;
  * String mimeType = entity.getMimeType();
  * Long contentLength = entity.getContentLength();
  * Integer executionTime = entity.getExecutionTime();
- * java.sql.Timestamp createTime = entity.getCreateTime();
+ * Long createTime = entity.getCreateTime();
  * entity.setId(id);
  * entity.setSessionId(sessionId);
  * entity.setRuleId(ruleId);
@@ -84,20 +68,18 @@ import org.seasar.dbflute.Entity;
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResultDiff implements Entity, Serializable, Cloneable {
+public abstract class BsAccessResultDiff extends AbstractEntity implements
+        CustomizeEntity {
 
     // ===================================================================================
     //                                                                          Definition
     //                                                                          ==========
-    /** Serial version UID. (Default) */
+    /** The serial version UID for object serialization. (Default) */
     private static final long serialVersionUID = 1L;
 
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    // -----------------------------------------------------
-    //                                                Column
-    //                                                ------
     /** ID: {BIGINT(20), refers to ACCESS_RESULT.ID} */
     protected Long _id;
 
@@ -131,67 +113,32 @@ public abstract class BsAccessResultDiff implements Entity, Serializable, Clonea
     /** EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} */
     protected Integer _executionTime;
 
-    /** CREATE_TIME: {DATETIME(19), refers to ACCESS_RESULT.CREATE_TIME} */
-    protected java.sql.Timestamp _createTime;
-
-    // -----------------------------------------------------
-    //                                              Internal
-    //                                              --------
-    /** The unique-driven properties for this entity. (NotNull) */
-    protected final EntityUniqueDrivenProperties __uniqueDrivenProperties = newUniqueDrivenProperties();
-
-    /** The modified properties for this entity. (NotNull) */
-    protected final EntityModifiedProperties __modifiedProperties = newModifiedProperties();
-
-    /** Is the entity created by DBFlute select process? */
-    protected boolean __createdBySelect;
+    /** CREATE_TIME: {BIGINT(20), refers to ACCESS_RESULT.CREATE_TIME} */
+    protected Long _createTime;
 
     // ===================================================================================
-    //                                                                          Table Name
-    //                                                                          ==========
-    /**
-     * {@inheritDoc}
-     */
-    public String getTableDbName() {
+    //                                                                             DB Meta
+    //                                                                             =======
+    /** {@inheritDoc} */
+    @Override
+    public DBMeta asDBMeta() {
+        return org.codelibs.robot.db.bsentity.customize.dbmeta.AccessResultDiffDbm
+                .getInstance();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String asTableDbName() {
         return "AccessResultDiff";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getTablePropertyName() { // according to Java Beans rule
-        return "accessResultDiff";
-    }
-
-    // ===================================================================================
-    //                                                                              DBMeta
-    //                                                                              ======
-    /**
-     * {@inheritDoc}
-     */
-    public DBMeta getDBMeta() {
-        return org.codelibs.robot.db.bsentity.customize.dbmeta.AccessResultDiffDbm.getInstance();
     }
 
     // ===================================================================================
     //                                                                         Primary Key
     //                                                                         ===========
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean hasPrimaryKeyValue() {
         return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> myuniqueDrivenProperties() {
-        return __uniqueDrivenProperties.getPropertyNames();
-    }
-
-    protected EntityUniqueDrivenProperties newUniqueDrivenProperties() {
-        return new EntityUniqueDrivenProperties();
     }
 
     // ===================================================================================
@@ -200,386 +147,332 @@ public abstract class BsAccessResultDiff implements Entity, Serializable, Clonea
     // ===================================================================================
     //                                                                   Referrer Property
     //                                                                   =================
+    @Override
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
 
     // ===================================================================================
-    //                                                                 Modified Properties
-    //                                                                 ===================
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> modifiedProperties() {
-        return __modifiedProperties.getPropertyNames();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void clearModifiedInfo() {
-        __modifiedProperties.clear();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean hasModification() {
-        return !__modifiedProperties.isEmpty();
-    }
-
-    protected EntityModifiedProperties newModifiedProperties() {
-        return new EntityModifiedProperties();
-    }
-
-    // ===================================================================================
-    //                                                                     Birthplace Mark
-    //                                                                     ===============
-    /**
-     * {@inheritDoc}
-     */
-    public void markAsSelect() {
-        __createdBySelect = true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean createdBySelect() {
-        return __createdBySelect;
-    }
-
-    // ===================================================================================
     //                                                                      Basic Override
     //                                                                      ==============
-    /**
-     * Determine the object is equal with this. <br />
-     * If primary-keys or columns of the other are same as this one, returns true.
-     * @param obj The object as other entity. (NullAllowed: if null, returns false fixedly)
-     * @return Comparing result.
-     */
-    public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof BsAccessResultDiff)) { return false; }
-        BsAccessResultDiff other = (BsAccessResultDiff)obj;
-        if (!xSV(getId(), other.getId())) { return false; }
-        if (!xSV(getSessionId(), other.getSessionId())) { return false; }
-        if (!xSV(getRuleId(), other.getRuleId())) { return false; }
-        if (!xSV(getUrl(), other.getUrl())) { return false; }
-        if (!xSV(getParentUrl(), other.getParentUrl())) { return false; }
-        if (!xSV(getStatus(), other.getStatus())) { return false; }
-        if (!xSV(getHttpStatusCode(), other.getHttpStatusCode())) { return false; }
-        if (!xSV(getMethod(), other.getMethod())) { return false; }
-        if (!xSV(getMimeType(), other.getMimeType())) { return false; }
-        if (!xSV(getContentLength(), other.getContentLength())) { return false; }
-        if (!xSV(getExecutionTime(), other.getExecutionTime())) { return false; }
-        if (!xSV(getCreateTime(), other.getCreateTime())) { return false; }
-        return true;
-    }
-    protected boolean xSV(Object v1, Object v2) {
-        return FunCustodial.isSameValue(v1, v2);
+    @Override
+    protected boolean doEquals(final Object obj) {
+        if (obj instanceof BsAccessResultDiff) {
+            final BsAccessResultDiff other = (BsAccessResultDiff) obj;
+            if (!xSV(_id, other._id)) {
+                return false;
+            }
+            if (!xSV(_sessionId, other._sessionId)) {
+                return false;
+            }
+            if (!xSV(_ruleId, other._ruleId)) {
+                return false;
+            }
+            if (!xSV(_url, other._url)) {
+                return false;
+            }
+            if (!xSV(_parentUrl, other._parentUrl)) {
+                return false;
+            }
+            if (!xSV(_status, other._status)) {
+                return false;
+            }
+            if (!xSV(_httpStatusCode, other._httpStatusCode)) {
+                return false;
+            }
+            if (!xSV(_method, other._method)) {
+                return false;
+            }
+            if (!xSV(_mimeType, other._mimeType)) {
+                return false;
+            }
+            if (!xSV(_contentLength, other._contentLength)) {
+                return false;
+            }
+            if (!xSV(_executionTime, other._executionTime)) {
+                return false;
+            }
+            if (!xSV(_createTime, other._createTime)) {
+                return false;
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    /**
-     * Calculate the hash-code from primary-keys or columns.
-     * @return The hash-code from primary-key or columns.
-     */
-    public int hashCode() {
-        int hs = 17;
-        hs = xCH(hs, getTableDbName());
-        hs = xCH(hs, getId());
-        hs = xCH(hs, getSessionId());
-        hs = xCH(hs, getRuleId());
-        hs = xCH(hs, getUrl());
-        hs = xCH(hs, getParentUrl());
-        hs = xCH(hs, getStatus());
-        hs = xCH(hs, getHttpStatusCode());
-        hs = xCH(hs, getMethod());
-        hs = xCH(hs, getMimeType());
-        hs = xCH(hs, getContentLength());
-        hs = xCH(hs, getExecutionTime());
-        hs = xCH(hs, getCreateTime());
+    @Override
+    protected int doHashCode(final int initial) {
+        int hs = initial;
+        hs = xCH(hs, asTableDbName());
+        hs = xCH(hs, _id);
+        hs = xCH(hs, _sessionId);
+        hs = xCH(hs, _ruleId);
+        hs = xCH(hs, _url);
+        hs = xCH(hs, _parentUrl);
+        hs = xCH(hs, _status);
+        hs = xCH(hs, _httpStatusCode);
+        hs = xCH(hs, _method);
+        hs = xCH(hs, _mimeType);
+        hs = xCH(hs, _contentLength);
+        hs = xCH(hs, _executionTime);
+        hs = xCH(hs, _createTime);
         return hs;
     }
-    protected int xCH(int hs, Object vl) {
-        return FunCustodial.calculateHashcode(hs, vl);
+
+    @Override
+    protected String doBuildStringWithRelation(final String li) {
+        return "";
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public int instanceHash() {
-        return super.hashCode();
-    }
-
-    /**
-     * Convert to display string of entity's data. (no relation data)
-     * @return The display string of all columns and relation existences. (NotNull)
-     */
-    public String toString() {
-        return buildDisplayString(FunCustodial.toClassTitle(this), true, true);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String toStringWithRelation() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(toString());
-        return sb.toString();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String buildDisplayString(String name, boolean column, boolean relation) {
-        StringBuilder sb = new StringBuilder();
-        if (name != null) { sb.append(name).append(column || relation ? ":" : ""); }
-        if (column) { sb.append(buildColumnString()); }
-        if (relation) { sb.append(buildRelationString()); }
-        sb.append("@").append(Integer.toHexString(hashCode()));
-        return sb.toString();
-    }
-    protected String buildColumnString() {
-        StringBuilder sb = new StringBuilder();
-        String dm = ", ";
-        sb.append(dm).append(getId());
-        sb.append(dm).append(getSessionId());
-        sb.append(dm).append(getRuleId());
-        sb.append(dm).append(getUrl());
-        sb.append(dm).append(getParentUrl());
-        sb.append(dm).append(getStatus());
-        sb.append(dm).append(getHttpStatusCode());
-        sb.append(dm).append(getMethod());
-        sb.append(dm).append(getMimeType());
-        sb.append(dm).append(getContentLength());
-        sb.append(dm).append(getExecutionTime());
-        sb.append(dm).append(getCreateTime());
+    @Override
+    protected String doBuildColumnString(final String dm) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(dm).append(xfND(_id));
+        sb.append(dm).append(xfND(_sessionId));
+        sb.append(dm).append(xfND(_ruleId));
+        sb.append(dm).append(xfND(_url));
+        sb.append(dm).append(xfND(_parentUrl));
+        sb.append(dm).append(xfND(_status));
+        sb.append(dm).append(xfND(_httpStatusCode));
+        sb.append(dm).append(xfND(_method));
+        sb.append(dm).append(xfND(_mimeType));
+        sb.append(dm).append(xfND(_contentLength));
+        sb.append(dm).append(xfND(_executionTime));
+        sb.append(dm).append(xfND(_createTime));
         if (sb.length() > dm.length()) {
             sb.delete(0, dm.length());
         }
         sb.insert(0, "{").append("}");
         return sb.toString();
     }
-    protected String buildRelationString() {
+
+    @Override
+    protected String doBuildRelationString(final String dm) {
         return "";
     }
 
-    /**
-     * Clone entity instance using super.clone(). (shallow copy) 
-     * @return The cloned instance of this entity. (NotNull)
-     */
+    @Override
     public AccessResultDiff clone() {
-        try {
-            return (AccessResultDiff)super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new IllegalStateException("Failed to clone the entity: " + toString(), e);
-        }
+        return (AccessResultDiff) super.clone();
     }
 
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * [get] ID: {BIGINT(20), refers to ACCESS_RESULT.ID} <br />
+     * [get] ID: {BIGINT(20), refers to ACCESS_RESULT.ID} <br>
      * @return The value of the column 'ID'. (NullAllowed even if selected: for no constraint)
      */
     public Long getId() {
+        checkSpecifiedProperty("id");
         return _id;
     }
 
     /**
-     * [set] ID: {BIGINT(20), refers to ACCESS_RESULT.ID} <br />
+     * [set] ID: {BIGINT(20), refers to ACCESS_RESULT.ID} <br>
      * @param id The value of the column 'ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setId(Long id) {
-        __modifiedProperties.addPropertyName("id");
-        this._id = id;
+    public void setId(final Long id) {
+        registerModifiedProperty("id");
+        _id = id;
     }
 
     /**
-     * [get] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br />
+     * [get] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br>
      * @return The value of the column 'SESSION_ID'. (NullAllowed even if selected: for no constraint)
      */
     public String getSessionId() {
+        checkSpecifiedProperty("sessionId");
         return _sessionId;
     }
 
     /**
-     * [set] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br />
+     * [set] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br>
      * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setSessionId(String sessionId) {
-        __modifiedProperties.addPropertyName("sessionId");
-        this._sessionId = sessionId;
+    public void setSessionId(final String sessionId) {
+        registerModifiedProperty("sessionId");
+        _sessionId = sessionId;
     }
 
     /**
-     * [get] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br />
+     * [get] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br>
      * @return The value of the column 'RULE_ID'. (NullAllowed even if selected: for no constraint)
      */
     public String getRuleId() {
+        checkSpecifiedProperty("ruleId");
         return _ruleId;
     }
 
     /**
-     * [set] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br />
+     * [set] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br>
      * @param ruleId The value of the column 'RULE_ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setRuleId(String ruleId) {
-        __modifiedProperties.addPropertyName("ruleId");
-        this._ruleId = ruleId;
+    public void setRuleId(final String ruleId) {
+        registerModifiedProperty("ruleId");
+        _ruleId = ruleId;
     }
 
     /**
-     * [get] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br />
+     * [get] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br>
      * @return The value of the column 'URL'. (NullAllowed even if selected: for no constraint)
      */
     public String getUrl() {
+        checkSpecifiedProperty("url");
         return _url;
     }
 
     /**
-     * [set] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br />
+     * [set] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br>
      * @param url The value of the column 'URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setUrl(String url) {
-        __modifiedProperties.addPropertyName("url");
-        this._url = url;
+    public void setUrl(final String url) {
+        registerModifiedProperty("url");
+        _url = url;
     }
 
     /**
-     * [get] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br />
+     * [get] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br>
      * @return The value of the column 'PARENT_URL'. (NullAllowed even if selected: for no constraint)
      */
     public String getParentUrl() {
+        checkSpecifiedProperty("parentUrl");
         return _parentUrl;
     }
 
     /**
-     * [set] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br />
+     * [set] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br>
      * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setParentUrl(String parentUrl) {
-        __modifiedProperties.addPropertyName("parentUrl");
-        this._parentUrl = parentUrl;
+    public void setParentUrl(final String parentUrl) {
+        registerModifiedProperty("parentUrl");
+        _parentUrl = parentUrl;
     }
 
     /**
-     * [get] STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} <br />
+     * [get] STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} <br>
      * @return The value of the column 'STATUS'. (NullAllowed even if selected: for no constraint)
      */
     public Integer getStatus() {
+        checkSpecifiedProperty("status");
         return _status;
     }
 
     /**
-     * [set] STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} <br />
+     * [set] STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} <br>
      * @param status The value of the column 'STATUS'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setStatus(Integer status) {
-        __modifiedProperties.addPropertyName("status");
-        this._status = status;
+    public void setStatus(final Integer status) {
+        registerModifiedProperty("status");
+        _status = status;
     }
 
     /**
-     * [get] HTTP_STATUS_CODE: {INT(11), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br />
+     * [get] HTTP_STATUS_CODE: {INT(11), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br>
      * @return The value of the column 'HTTP_STATUS_CODE'. (NullAllowed even if selected: for no constraint)
      */
     public Integer getHttpStatusCode() {
+        checkSpecifiedProperty("httpStatusCode");
         return _httpStatusCode;
     }
 
     /**
-     * [set] HTTP_STATUS_CODE: {INT(11), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br />
+     * [set] HTTP_STATUS_CODE: {INT(11), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br>
      * @param httpStatusCode The value of the column 'HTTP_STATUS_CODE'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setHttpStatusCode(Integer httpStatusCode) {
-        __modifiedProperties.addPropertyName("httpStatusCode");
-        this._httpStatusCode = httpStatusCode;
+    public void setHttpStatusCode(final Integer httpStatusCode) {
+        registerModifiedProperty("httpStatusCode");
+        _httpStatusCode = httpStatusCode;
     }
 
     /**
-     * [get] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br />
+     * [get] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br>
      * @return The value of the column 'METHOD'. (NullAllowed even if selected: for no constraint)
      */
     public String getMethod() {
+        checkSpecifiedProperty("method");
         return _method;
     }
 
     /**
-     * [set] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br />
+     * [set] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br>
      * @param method The value of the column 'METHOD'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setMethod(String method) {
-        __modifiedProperties.addPropertyName("method");
-        this._method = method;
+    public void setMethod(final String method) {
+        registerModifiedProperty("method");
+        _method = method;
     }
 
     /**
-     * [get] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br />
+     * [get] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br>
      * @return The value of the column 'MIME_TYPE'. (NullAllowed even if selected: for no constraint)
      */
     public String getMimeType() {
+        checkSpecifiedProperty("mimeType");
         return _mimeType;
     }
 
     /**
-     * [set] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br />
+     * [set] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br>
      * @param mimeType The value of the column 'MIME_TYPE'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setMimeType(String mimeType) {
-        __modifiedProperties.addPropertyName("mimeType");
-        this._mimeType = mimeType;
+    public void setMimeType(final String mimeType) {
+        registerModifiedProperty("mimeType");
+        _mimeType = mimeType;
     }
 
     /**
-     * [get] CONTENT_LENGTH: {BIGINT(20), refers to ACCESS_RESULT.CONTENT_LENGTH} <br />
+     * [get] CONTENT_LENGTH: {BIGINT(20), refers to ACCESS_RESULT.CONTENT_LENGTH} <br>
      * @return The value of the column 'CONTENT_LENGTH'. (NullAllowed even if selected: for no constraint)
      */
     public Long getContentLength() {
+        checkSpecifiedProperty("contentLength");
         return _contentLength;
     }
 
     /**
-     * [set] CONTENT_LENGTH: {BIGINT(20), refers to ACCESS_RESULT.CONTENT_LENGTH} <br />
+     * [set] CONTENT_LENGTH: {BIGINT(20), refers to ACCESS_RESULT.CONTENT_LENGTH} <br>
      * @param contentLength The value of the column 'CONTENT_LENGTH'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setContentLength(Long contentLength) {
-        __modifiedProperties.addPropertyName("contentLength");
-        this._contentLength = contentLength;
+    public void setContentLength(final Long contentLength) {
+        registerModifiedProperty("contentLength");
+        _contentLength = contentLength;
     }
 
     /**
-     * [get] EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} <br />
+     * [get] EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} <br>
      * @return The value of the column 'EXECUTION_TIME'. (NullAllowed even if selected: for no constraint)
      */
     public Integer getExecutionTime() {
+        checkSpecifiedProperty("executionTime");
         return _executionTime;
     }
 
     /**
-     * [set] EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} <br />
+     * [set] EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} <br>
      * @param executionTime The value of the column 'EXECUTION_TIME'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setExecutionTime(Integer executionTime) {
-        __modifiedProperties.addPropertyName("executionTime");
-        this._executionTime = executionTime;
+    public void setExecutionTime(final Integer executionTime) {
+        registerModifiedProperty("executionTime");
+        _executionTime = executionTime;
     }
 
     /**
-     * [get] CREATE_TIME: {DATETIME(19), refers to ACCESS_RESULT.CREATE_TIME} <br />
+     * [get] CREATE_TIME: {BIGINT(20), refers to ACCESS_RESULT.CREATE_TIME} <br>
      * @return The value of the column 'CREATE_TIME'. (NullAllowed even if selected: for no constraint)
      */
-    public java.sql.Timestamp getCreateTime() {
+    public Long getCreateTime() {
+        checkSpecifiedProperty("createTime");
         return _createTime;
     }
 
     /**
-     * [set] CREATE_TIME: {DATETIME(19), refers to ACCESS_RESULT.CREATE_TIME} <br />
+     * [set] CREATE_TIME: {BIGINT(20), refers to ACCESS_RESULT.CREATE_TIME} <br>
      * @param createTime The value of the column 'CREATE_TIME'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setCreateTime(java.sql.Timestamp createTime) {
-        __modifiedProperties.addPropertyName("createTime");
-        this._createTime = createTime;
+    public void setCreateTime(final Long createTime) {
+        registerModifiedProperty("createTime");
+        _createTime = createTime;
     }
 }

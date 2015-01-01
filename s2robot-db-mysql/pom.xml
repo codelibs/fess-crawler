@@ -48,15 +48,13 @@
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.seasar.dbflute</groupId>
+        <groupId>org.dbflute</groupId>
         <artifactId>dbflute-maven-plugin</artifactId>
         <configuration>
           <dbfluteVersion>${dbflute.version}</dbfluteVersion>
-          <rootPackage>org.codelibs.robot</rootPackage>
-          <dbPackage>org.codelibs.robot.db</dbPackage>
+          <packageBase>org.codelibs.robot.db</packageBase>
           <clientProject>robot</clientProject>
           <dbfluteClientDir>${basedir}/dbflute_robot</dbfluteClientDir>
-          <schemaFile>${basedir}/dbflute_robot/schema/project-schema-robot.xml</schemaFile>
           <database>mysql</database>
           <databaseDriver>com.mysql.jdbc.Driver</databaseDriver>
           <databaseUrl>jdbc:mysql://localhost/robot?useUnicode=true&amp;amp;characterEncoding=UTF-8</databaseUrl>
@@ -71,7 +69,7 @@
           <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.21</version>
+            <version>${mysql.version}</version>
           </dependency>
         </dependencies>
         <configuration>
@@ -99,8 +97,13 @@
   <dependencies>
     <dependency>
       <groupId>org.codelibs.robot</groupId>
-      <artifactId>s2robot</artifactId>
+      <artifactId>s2robot-spring</artifactId>
       <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>${spring.version}</version>
     </dependency>
     <dependency>
       <groupId>mysql</groupId>
@@ -108,14 +111,14 @@
       <version>${mysql.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.seasar.dbflute</groupId>
+      <groupId>org.dbflute</groupId>
       <artifactId>dbflute-runtime</artifactId>
       <version>${dbflute.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.11</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

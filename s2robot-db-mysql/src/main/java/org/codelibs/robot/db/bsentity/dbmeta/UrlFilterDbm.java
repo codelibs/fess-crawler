@@ -1,31 +1,18 @@
-/*
- * Copyright 2004-2014 the Seasar Foundation and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity.dbmeta;
 
 import java.util.List;
 import java.util.Map;
 
-import org.codelibs.robot.db.allcommon.*;
-import org.codelibs.robot.db.exentity.*;
-import org.seasar.dbflute.DBDef;
-import org.seasar.dbflute.Entity;
-import org.seasar.dbflute.dbmeta.AbstractDBMeta;
-import org.seasar.dbflute.dbmeta.PropertyGateway;
-import org.seasar.dbflute.dbmeta.info.*;
-import org.seasar.dbflute.dbmeta.name.*;
+import org.codelibs.robot.db.allcommon.DBCurrent;
+import org.codelibs.robot.db.allcommon.DBFluteConfig;
+import org.codelibs.robot.db.exentity.UrlFilter;
+import org.dbflute.Entity;
+import org.dbflute.dbmeta.AbstractDBMeta;
+import org.dbflute.dbmeta.info.ColumnInfo;
+import org.dbflute.dbmeta.info.UniqueInfo;
+import org.dbflute.dbmeta.name.TableSqlName;
+import org.dbflute.dbmeta.property.PropertyGateway;
+import org.dbflute.dbway.DBDef;
 
 /**
  * The DB meta of URL_FILTER. (Singleton)
@@ -37,13 +24,36 @@ public class UrlFilterDbm extends AbstractDBMeta {
     //                                                                           Singleton
     //                                                                           =========
     private static final UrlFilterDbm _instance = new UrlFilterDbm();
-    private UrlFilterDbm() {}
-    public static UrlFilterDbm getInstance() { return _instance; }
+
+    private UrlFilterDbm() {
+    }
+
+    public static UrlFilterDbm getInstance() {
+        return _instance;
+    }
 
     // ===================================================================================
     //                                                                       Current DBDef
     //                                                                       =============
-    public DBDef getCurrentDBDef() { return DBCurrent.getInstance().currentDBDef(); }
+    @Override
+    public String getProjectName() {
+        return DBCurrent.getInstance().projectName();
+    }
+
+    @Override
+    public String getProjectPrefix() {
+        return DBCurrent.getInstance().projectPrefix();
+    }
+
+    @Override
+    public String getGenerationGapBasePrefix() {
+        return DBCurrent.getInstance().generationGapBasePrefix();
+    }
+
+    @Override
+    public DBDef getCurrentDBDef() {
+        return DBCurrent.getInstance().currentDBDef();
+    }
 
     // ===================================================================================
     //                                                                    Property Gateway
@@ -53,83 +63,128 @@ public class UrlFilterDbm extends AbstractDBMeta {
     //                                       ---------------
     protected final Map<String, PropertyGateway> _epgMap = newHashMap();
     {
-        setupEpg(_epgMap, new EpgId(), "id");
-        setupEpg(_epgMap, new EpgSessionId(), "sessionId");
-        setupEpg(_epgMap, new EpgUrl(), "url");
-        setupEpg(_epgMap, new EpgFilterType(), "filterType");
-        setupEpg(_epgMap, new EpgCreateTime(), "createTime");
+        xsetupEpg();
     }
-    public static class EpgId implements PropertyGateway {
-        public Object read(Entity et) { return ((UrlFilter)et).getId(); }
-        public void write(Entity et, Object vl) { ((UrlFilter)et).setId(ctl(vl)); }
+
+    protected void xsetupEpg() {
+        setupEpg(_epgMap, et -> ((UrlFilter) et).getId(),
+                (et, vl) -> ((UrlFilter) et).setId(ctl(vl)), "id");
+        setupEpg(_epgMap, et -> ((UrlFilter) et).getSessionId(),
+                (et, vl) -> ((UrlFilter) et).setSessionId((String) vl),
+                "sessionId");
+        setupEpg(_epgMap, et -> ((UrlFilter) et).getUrl(),
+                (et, vl) -> ((UrlFilter) et).setUrl((String) vl), "url");
+        setupEpg(_epgMap, et -> ((UrlFilter) et).getFilterType(),
+                (et, vl) -> ((UrlFilter) et).setFilterType((String) vl),
+                "filterType");
+        setupEpg(_epgMap, et -> ((UrlFilter) et).getCreateTime(),
+                (et, vl) -> ((UrlFilter) et).setCreateTime(ctl(vl)),
+                "createTime");
     }
-    public static class EpgSessionId implements PropertyGateway {
-        public Object read(Entity et) { return ((UrlFilter)et).getSessionId(); }
-        public void write(Entity et, Object vl) { ((UrlFilter)et).setSessionId((String)vl); }
+
+    @Override
+    public PropertyGateway findPropertyGateway(final String prop) {
+        return doFindEpg(_epgMap, prop);
     }
-    public static class EpgUrl implements PropertyGateway {
-        public Object read(Entity et) { return ((UrlFilter)et).getUrl(); }
-        public void write(Entity et, Object vl) { ((UrlFilter)et).setUrl((String)vl); }
-    }
-    public static class EpgFilterType implements PropertyGateway {
-        public Object read(Entity et) { return ((UrlFilter)et).getFilterType(); }
-        public void write(Entity et, Object vl) { ((UrlFilter)et).setFilterType((String)vl); }
-    }
-    public static class EpgCreateTime implements PropertyGateway {
-        public Object read(Entity et) { return ((UrlFilter)et).getCreateTime(); }
-        public void write(Entity et, Object vl) { ((UrlFilter)et).setCreateTime((java.sql.Timestamp)vl); }
-    }
-    public PropertyGateway findPropertyGateway(String prop)
-    { return doFindEpg(_epgMap, prop); }
 
     // ===================================================================================
     //                                                                          Table Info
     //                                                                          ==========
     protected final String _tableDbName = "URL_FILTER";
+
     protected final String _tablePropertyName = "urlFilter";
-    protected final TableSqlName _tableSqlName = new TableSqlName("URL_FILTER", _tableDbName);
-    { _tableSqlName.xacceptFilter(DBFluteConfig.getInstance().getTableSqlNameFilter()); }
-    public String getTableDbName() { return _tableDbName; }
-    public String getTablePropertyName() { return _tablePropertyName; }
-    public TableSqlName getTableSqlName() { return _tableSqlName; }
+
+    protected final TableSqlName _tableSqlName = new TableSqlName("URL_FILTER",
+            _tableDbName);
+    {
+        _tableSqlName.xacceptFilter(DBFluteConfig.getInstance()
+                .getTableSqlNameFilter());
+    }
+
+    @Override
+    public String getTableDbName() {
+        return _tableDbName;
+    }
+
+    @Override
+    public String getTablePropertyName() {
+        return _tablePropertyName;
+    }
+
+    @Override
+    public TableSqlName getTableSqlName() {
+        return _tableSqlName;
+    }
 
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
-    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, Long.class, "id", null, true, true, true, "BIGINT", 19, 0, null, false, null, null, null, null, null);
-    protected final ColumnInfo _columnSessionId = cci("SESSION_ID", "SESSION_ID", null, null, String.class, "sessionId", null, false, false, true, "VARCHAR", 20, 0, null, false, null, null, null, null, null);
-    protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null, String.class, "url", null, false, false, true, "TEXT", 65535, 0, null, false, null, null, null, null, null);
-    protected final ColumnInfo _columnFilterType = cci("FILTER_TYPE", "FILTER_TYPE", null, null, String.class, "filterType", null, false, false, true, "VARCHAR", 1, 0, null, false, null, null, null, null, null);
-    protected final ColumnInfo _columnCreateTime = cci("CREATE_TIME", "CREATE_TIME", null, null, java.sql.Timestamp.class, "createTime", null, false, false, true, "DATETIME", 19, 0, null, false, null, null, null, null, null);
+    protected final ColumnInfo _columnId = cci("ID", "ID", null, null,
+            Long.class, "id", null, true, true, true, "BIGINT", 19, 0, null,
+            false, null, null, null, null, null, false);
+
+    protected final ColumnInfo _columnSessionId = cci("SESSION_ID",
+            "SESSION_ID", null, null, String.class, "sessionId", null, false,
+            false, true, "VARCHAR", 20, 0, null, false, null, null, null, null,
+            null, false);
+
+    protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null,
+            String.class, "url", null, false, false, true, "TEXT", 65535, 0,
+            null, false, null, null, null, null, null, false);
+
+    protected final ColumnInfo _columnFilterType = cci("FILTER_TYPE",
+            "FILTER_TYPE", null, null, String.class, "filterType", null, false,
+            false, true, "VARCHAR", 1, 0, null, false, null, null, null, null,
+            null, false);
+
+    protected final ColumnInfo _columnCreateTime = cci("CREATE_TIME",
+            "CREATE_TIME", null, null, Long.class, "createTime", null, false,
+            false, true, "BIGINT", 19, 0, null, false, null, null, null, null,
+            null, false);
 
     /**
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @return The information object of specified column. (NotNull)
      */
-    public ColumnInfo columnId() { return _columnId; }
+    public ColumnInfo columnId() {
+        return _columnId;
+    }
+
     /**
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @return The information object of specified column. (NotNull)
      */
-    public ColumnInfo columnSessionId() { return _columnSessionId; }
+    public ColumnInfo columnSessionId() {
+        return _columnSessionId;
+    }
+
     /**
      * URL: {NotNull, TEXT(65535)}
      * @return The information object of specified column. (NotNull)
      */
-    public ColumnInfo columnUrl() { return _columnUrl; }
+    public ColumnInfo columnUrl() {
+        return _columnUrl;
+    }
+
     /**
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @return The information object of specified column. (NotNull)
      */
-    public ColumnInfo columnFilterType() { return _columnFilterType; }
+    public ColumnInfo columnFilterType() {
+        return _columnFilterType;
+    }
+
     /**
-     * CREATE_TIME: {NotNull, DATETIME(19)}
+     * CREATE_TIME: {NotNull, BIGINT(19)}
      * @return The information object of specified column. (NotNull)
      */
-    public ColumnInfo columnCreateTime() { return _columnCreateTime; }
+    public ColumnInfo columnCreateTime() {
+        return _columnCreateTime;
+    }
 
+    @Override
     protected List<ColumnInfo> ccil() {
-        List<ColumnInfo> ls = newArrayList();
+        final List<ColumnInfo> ls = newArrayList();
         ls.add(columnId());
         ls.add(columnSessionId());
         ls.add(columnUrl());
@@ -138,7 +193,9 @@ public class UrlFilterDbm extends AbstractDBMeta {
         return ls;
     }
 
-    { initializeInformationResource(); }
+    {
+        initializeInformationResource();
+    }
 
     // ===================================================================================
     //                                                                         Unique Info
@@ -146,9 +203,20 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // -----------------------------------------------------
     //                                       Primary Element
     //                                       ---------------
-    protected UniqueInfo cpui() { return hpcpui(columnId()); }
-    public boolean hasPrimaryKey() { return true; }
-    public boolean hasCompoundPrimaryKey() { return false; }
+    @Override
+    protected UniqueInfo cpui() {
+        return hpcpui(columnId());
+    }
+
+    @Override
+    public boolean hasPrimaryKey() {
+        return true;
+    }
+
+    @Override
+    public boolean hasCompoundPrimaryKey() {
+        return false;
+    }
 
     // ===================================================================================
     //                                                                       Relation Info
@@ -166,33 +234,67 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                        Various Info
     //                                                                        ============
-    public boolean hasIdentity() { return true; }
+    @Override
+    public boolean hasIdentity() {
+        return true;
+    }
 
     // ===================================================================================
     //                                                                           Type Name
     //                                                                           =========
-    public String getEntityTypeName() { return "org.codelibs.robot.db.exentity.UrlFilter"; }
-    public String getConditionBeanTypeName() { return "org.codelibs.robot.db.cbean.UrlFilterCB"; }
-    public String getBehaviorTypeName() { return "org.codelibs.robot.db.exbhv.UrlFilterBhv"; }
+    @Override
+    public String getEntityTypeName() {
+        return "org.codelibs.robot.db.exentity.UrlFilter";
+    }
+
+    @Override
+    public String getConditionBeanTypeName() {
+        return "org.codelibs.robot.db.cbean.UrlFilterCB";
+    }
+
+    @Override
+    public String getBehaviorTypeName() {
+        return "org.codelibs.robot.db.exbhv.UrlFilterBhv";
+    }
 
     // ===================================================================================
     //                                                                         Object Type
     //                                                                         ===========
-    public Class<UrlFilter> getEntityType() { return UrlFilter.class; }
+    @Override
+    public Class<UrlFilter> getEntityType() {
+        return UrlFilter.class;
+    }
 
     // ===================================================================================
     //                                                                     Object Instance
     //                                                                     ===============
-    public Entity newEntity() { return newMyEntity(); }
-    public UrlFilter newMyEntity() { return new UrlFilter(); }
+    @Override
+    public UrlFilter newEntity() {
+        return new UrlFilter();
+    }
 
     // ===================================================================================
     //                                                                   Map Communication
     //                                                                   =================
-    public void acceptPrimaryKeyMap(Entity et, Map<String, ? extends Object> mp)
-    { doAcceptPrimaryKeyMap((UrlFilter)et, mp); }
-    public void acceptAllColumnMap(Entity et, Map<String, ? extends Object> mp)
-    { doAcceptAllColumnMap((UrlFilter)et, mp); }
-    public Map<String, Object> extractPrimaryKeyMap(Entity et) { return doExtractPrimaryKeyMap(et); }
-    public Map<String, Object> extractAllColumnMap(Entity et) { return doExtractAllColumnMap(et); }
+    @Override
+    public void acceptPrimaryKeyMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptPrimaryKeyMap((UrlFilter) et, mp);
+    }
+
+    @Override
+    public void acceptAllColumnMap(final Entity et,
+            final Map<String, ? extends Object> mp) {
+        doAcceptAllColumnMap((UrlFilter) et, mp);
+    }
+
+    @Override
+    public Map<String, Object> extractPrimaryKeyMap(final Entity et) {
+        return doExtractPrimaryKeyMap(et);
+    }
+
+    @Override
+    public Map<String, Object> extractAllColumnMap(final Entity et) {
+        return doExtractAllColumnMap(et);
+    }
 }

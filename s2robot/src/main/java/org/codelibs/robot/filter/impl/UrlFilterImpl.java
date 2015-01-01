@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.container.RobotContainer;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.service.UrlFilterService;
 import org.slf4j.Logger;

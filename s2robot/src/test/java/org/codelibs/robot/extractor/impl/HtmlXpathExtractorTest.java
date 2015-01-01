@@ -21,8 +21,8 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.container.StandardRobotContainer;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -23,7 +23,6 @@ import javax.annotation.Resource;
 
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.db.exbhv.AccessResultBhv;
 import org.codelibs.robot.db.exbhv.AccessResultDataBhv;
 import org.codelibs.robot.db.exbhv.cursor.AccessResultDiffCursor;
@@ -32,6 +31,7 @@ import org.codelibs.robot.db.exbhv.pmbean.AccessResultListByUrlDiffPmb;
 import org.codelibs.robot.dbflute.cbean.result.ListResultBean;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.AccessResultData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
 import org.slf4j.Logger;

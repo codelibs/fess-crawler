@@ -27,8 +27,8 @@ import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.mime.MimeTypesFactory;
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.helper.MimeTypeException;
+import org.codelibs.robot.exception.MimeTypeException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.helper.MimeTypeHelper;
 
 /**

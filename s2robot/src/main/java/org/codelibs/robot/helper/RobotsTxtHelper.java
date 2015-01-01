@@ -27,9 +27,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.input.BOMInputStream;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotTxtException;
 import org.codelibs.robot.entity.RobotsTxt;
 import org.codelibs.robot.entity.RobotsTxt.Directive;
+import org.codelibs.robot.exception.RobotTxtException;
 
 /**
  * Robots.txt Specifications:

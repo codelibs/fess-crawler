@@ -19,9 +19,9 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
-import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.exception.RobotCrawlAccessException;
 import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.rule.Rule;
 import org.codelibs.robot.rule.RuleManager;

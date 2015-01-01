@@ -25,8 +25,8 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;

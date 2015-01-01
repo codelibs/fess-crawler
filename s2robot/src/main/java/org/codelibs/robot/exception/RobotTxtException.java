@@ -13,31 +13,22 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot.client.fs;
-
-import java.util.Set;
-
-import org.codelibs.robot.RobotSystemException;
-import org.codelibs.robot.entity.RequestData;
+package org.codelibs.robot.exception;
 
 /**
- * ChildUrlsException is thrown when having child urls.
- *
  * @author shinsuke
  *
  */
-public class ChildUrlsException extends RobotSystemException {
+public class RobotTxtException extends RobotSystemException {
 
     private static final long serialVersionUID = 1L;
 
-    private final Set<RequestData> childUrlList;
-
-    public ChildUrlsException(final Set<RequestData> childUrlList) {
-        super("Threw child urls(" + childUrlList.size() + ").");
-        this.childUrlList = childUrlList;
+    public RobotTxtException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 
-    public Set<RequestData> getChildUrlList() {
-        return childUrlList;
+    public RobotTxtException(final String message) {
+        super(message);
     }
+
 }

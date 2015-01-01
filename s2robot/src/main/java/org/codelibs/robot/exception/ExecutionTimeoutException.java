@@ -13,37 +13,25 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot.helper;
-
-import org.codelibs.robot.RobotSystemException;
+package org.codelibs.robot.exception;
 
 /**
  * @author shinsuke
  *
  */
-public class MimeTypeException extends RobotSystemException {
+public class ExecutionTimeoutException extends ExtractException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * @param message
-     * @param cause
-     */
-    public MimeTypeException(final String message, final Throwable cause) {
+    public ExecutionTimeoutException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    /**
-     * @param message
-     */
-    public MimeTypeException(final String message) {
+    public ExecutionTimeoutException(final String message) {
         super(message);
     }
 
-    /**
-     * @param cause
-     */
-    public MimeTypeException(final Throwable cause) {
+    public ExecutionTimeoutException(final Throwable cause) {
         super(cause);
     }
 

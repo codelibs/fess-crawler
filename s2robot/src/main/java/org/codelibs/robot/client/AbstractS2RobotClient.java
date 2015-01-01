@@ -17,9 +17,9 @@ package org.codelibs.robot.client;
 
 import java.util.Map;
 
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

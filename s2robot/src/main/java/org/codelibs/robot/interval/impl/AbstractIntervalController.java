@@ -15,7 +15,7 @@
  */
 package org.codelibs.robot.interval.impl;
 
-import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.interval.IntervalController;
 
 /**

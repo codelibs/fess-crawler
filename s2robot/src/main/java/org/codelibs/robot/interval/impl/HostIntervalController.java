@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.UrlQueue;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.util.CrawlingParameterUtil;
 
 public class HostIntervalController extends DefaultIntervalController {

@@ -17,10 +17,10 @@ package org.codelibs.robot.helper.impl;
 
 import java.util.Set;
 
-import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.UrlQueue;
+import org.codelibs.robot.exception.RobotCrawlAccessException;
 import org.codelibs.robot.helper.LogHelper;
 import org.codelibs.robot.log.LogType;
 import org.slf4j.Logger;

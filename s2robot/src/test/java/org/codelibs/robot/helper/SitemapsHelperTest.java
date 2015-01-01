@@ -19,11 +19,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.codelibs.core.io.ResourceUtil;
-import org.codelibs.robot.RobotSitemapsException;
 import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.Sitemap;
 import org.codelibs.robot.entity.SitemapSet;
 import org.codelibs.robot.entity.SitemapUrl;
+import org.codelibs.robot.exception.RobotSitemapsException;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

@@ -13,36 +13,18 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot.extractor;
+package org.codelibs.robot.exception;
 
 /**
  * @author shinsuke
  *
  */
-public class ExecutionTimeoutException extends ExtractException {
+public class MaxLengthExceededException extends RobotCrawlAccessException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * @param message
-     * @param cause
-     */
-    public ExecutionTimeoutException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     * @param message
-     */
-    public ExecutionTimeoutException(final String message) {
+    public MaxLengthExceededException(final String message) {
         super(message);
-    }
-
-    /**
-     * @param cause
-     */
-    public ExecutionTimeoutException(final Throwable cause) {
-        super(cause);
     }
 
 }

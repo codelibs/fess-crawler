@@ -18,7 +18,7 @@ package org.codelibs.robot.helper;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.exception.RobotSystemException;
 
 /**
  * @author shinsuke

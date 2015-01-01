@@ -18,7 +18,7 @@ package org.codelibs.robot.util;
 import java.io.File;
 
 import org.codelibs.core.io.FileUtil;
-import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.DefaultHandler;

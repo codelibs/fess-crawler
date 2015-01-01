@@ -23,9 +23,9 @@ import java.io.InputStream;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.util.ResponseDataUtil;
 import org.codelibs.robot.util.TemporaryFileInputStream;

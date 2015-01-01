@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;

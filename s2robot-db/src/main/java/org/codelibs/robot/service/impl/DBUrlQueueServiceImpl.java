@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
+import org.codelibs.core.collection.LruHashMap;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
@@ -34,7 +35,6 @@ import org.codelibs.robot.db.exentity.AccessResult;
 import org.codelibs.robot.dbflute.cbean.result.PagingResultBean;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.service.UrlQueueService;
-import org.codelibs.robot.util.LruHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;

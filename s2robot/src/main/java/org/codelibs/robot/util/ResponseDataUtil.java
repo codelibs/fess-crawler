@@ -21,8 +21,8 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.CopyUtil;
-import org.codelibs.robot.RobotCrawlAccessException;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.exception.RobotCrawlAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

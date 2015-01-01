@@ -26,11 +26,11 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotSitemapsException;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.SitemapFile;
 import org.codelibs.robot.entity.SitemapSet;
 import org.codelibs.robot.entity.SitemapUrl;
+import org.codelibs.robot.exception.RobotSitemapsException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -89,7 +89,7 @@ public class SitemapsHelper {
      *
      * This method does not close the input stream.
      *
-     * @param in
+     * @param in Input stream for a sitemap
      * @return a sitemap set
      */
     public SitemapSet parse(final InputStream in) {
@@ -172,29 +172,14 @@ public class SitemapsHelper {
 
     protected static class XmlSitemapsHandler extends DefaultHandler {
 
-        /**
-         *
-         */
         private static final String PRIORITY_ELEMENT = "priority";
 
-        /**
-         *
-         */
         private static final String CHANGEFREQ_ELEMENT = "changefreq";
 
-        /**
-         *
-         */
         private static final String LASTMOD_ELEMENT = "lastmod";
 
-        /**
-         *
-         */
         private static final String LOC_ELEMENT = "loc";
 
-        /**
-         *
-         */
         private static final String URL_ELEMENT = "url";
 
         private SitemapSet sitemapSet;

@@ -13,25 +13,25 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot;
+package org.codelibs.robot.exception;
 
 /**
  * @author shinsuke
  *
  */
-public class RobotSystemException extends RuntimeException {
+public class ExtractException extends RobotSystemException {
 
     private static final long serialVersionUID = 1L;
 
-    public RobotSystemException(final String message, final Throwable cause) {
+    public ExtractException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public RobotSystemException(final String message) {
+    public ExtractException(final String message) {
         super(message);
     }
 
-    public RobotSystemException(final Throwable cause) {
+    public ExtractException(final Throwable cause) {
         super(cause);
     }
 

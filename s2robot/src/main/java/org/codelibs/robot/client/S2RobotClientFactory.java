@@ -22,7 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.exception.RobotSystemException;
 
 /**
  * @author shinsuke

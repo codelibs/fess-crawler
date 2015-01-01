@@ -24,10 +24,10 @@ import java.io.UnsupportedEncodingException;
 
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public class FileTransformer extends HtmlTransformer {
     protected String semicolonStr = "_SCLN_";
 
     /**
-     * A string to replace &.
+     * A string to replace &amp;.
      */
     protected String ampersandStr = "_AMP_";
 
@@ -176,25 +176,14 @@ public class FileTransformer extends HtmlTransformer {
     /**
      * Generate a path from a url.
      *
-     * @param url
-     * @return path
+     * @param url URL
+     * @return path File path
      */
     protected String getFilePath(final String url) {
-        return url.replaceAll("/+", "/")//
-                .replaceAll("\\./", "")
-                //
-                .replaceAll("\\.\\./", "")
-                //
-                .replaceAll("/$", "/index.html")
-                //
-                .replaceAll("\\?", questionStr)
-                //
-                .replaceAll(":", colonStr)
-                //
-                .replaceAll(";", semicolonStr)
-                //
-                .replaceAll("&", ampersandStr)//
-        ;
+        return url.replaceAll("/+", "/").replaceAll("\\./", "")
+                .replaceAll("\\.\\./", "").replaceAll("/$", "/index.html")
+                .replaceAll("\\?", questionStr).replaceAll(":", colonStr)
+                .replaceAll(";", semicolonStr).replaceAll("&", ampersandStr);
     }
 
     /**

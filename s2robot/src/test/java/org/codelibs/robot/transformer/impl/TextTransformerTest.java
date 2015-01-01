@@ -18,11 +18,11 @@ package org.codelibs.robot.transformer.impl;
 import java.io.ByteArrayInputStream;
 
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.container.StandardRobotContainer;
 import org.codelibs.robot.entity.AccessResultDataImpl;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.extractor.ExtractorFactory;
 import org.codelibs.robot.extractor.impl.TikaExtractor;
 import org.dbflute.utflute.core.PlainTestCase;

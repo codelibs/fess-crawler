@@ -20,12 +20,12 @@ import java.util.Map;
 
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotMultipleCrawlAccessException;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.FaultTolerantClient.RequestListener;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.exception.RobotMultipleCrawlAccessException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

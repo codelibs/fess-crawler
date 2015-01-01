@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.codelibs.robot.MaxLengthExceededException;
-import org.codelibs.robot.RobotMultipleCrawlAccessException;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
+import org.codelibs.robot.exception.MaxLengthExceededException;
+import org.codelibs.robot.exception.RobotMultipleCrawlAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

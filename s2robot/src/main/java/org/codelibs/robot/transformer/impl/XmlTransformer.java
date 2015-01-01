@@ -36,11 +36,11 @@ import org.apache.xpath.CachedXPathAPI;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotCrawlAccessException;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
+import org.codelibs.robot.exception.RobotCrawlAccessException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.util.ResponseDataUtil;
 import org.codelibs.robot.util.XmlUtil;
 import org.slf4j.Logger;
@@ -144,9 +144,7 @@ public class XmlTransformer extends AbstractTransformer {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.transformer.impl.AbstractTransformer#transform(org.seasar
-     * .robot.entity.ResponseData)
+     * @see org.codelibs.robot.transformer.impl.AbstractTransformer#transform(org.seasar.robot.entity.ResponseData)
      */
     @Override
     public ResultData transform(final ResponseData responseData) {
@@ -327,8 +325,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param fieldRuleMap
-     *            the fieldRuleMap to set
+     * @param fieldRuleMap the fieldRuleMap to set
      */
     public void setFieldRuleMap(final Map<String, String> fieldRuleMap) {
         this.fieldRuleMap = fieldRuleMap;
@@ -342,8 +339,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param trimSpace
-     *            the trimSpace to set
+     * @param trimSpace the trimSpace to set
      */
     public void setTrimSpace(final boolean trimSpace) {
         this.trimSpace = trimSpace;
@@ -357,8 +353,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param charsetName
-     *            the charsetName to set
+     * @param charsetName the charsetName to set
      */
     public void setCharsetName(final String charsetName) {
         this.charsetName = charsetName;
@@ -372,8 +367,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param dataClass
-     *            the dataClass to set
+     * @param dataClass the dataClass to set
      */
     public void setDataClass(final Class<?> dataClass) {
         this.dataClass = dataClass;
@@ -387,8 +381,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param namespaceAware
-     *            the namespaceAware to set
+     * @param namespaceAware the namespaceAware to set
      */
     public void setNamespaceAware(final boolean namespaceAware) {
         this.namespaceAware = namespaceAware;
@@ -402,8 +395,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param coalescing
-     *            the coalescing to set
+     * @param coalescing the coalescing to set
      */
     public void setCoalescing(final boolean coalescing) {
         this.coalescing = coalescing;
@@ -417,8 +409,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param expandEntityRef
-     *            the expandEntityRef to set
+     * @param expandEntityRef the expandEntityRef to set
      */
     public void setExpandEntityRef(final boolean expandEntityRef) {
         this.expandEntityRef = expandEntityRef;
@@ -432,8 +423,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param ignoringComments
-     *            the ignoringComments to set
+     * @param ignoringComments the ignoringComments to set
      */
     public void setIgnoringComments(final boolean ignoringComments) {
         this.ignoringComments = ignoringComments;
@@ -447,8 +437,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param ignoringElementContentWhitespace
-     *            the ignoringElementContentWhitespace to set
+     * @param ignoringElementContentWhitespace the ignoringElementContentWhitespace to set
      */
     public void setIgnoringElementContentWhitespace(
             final boolean ignoringElementContentWhitespace) {
@@ -463,8 +452,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param validating
-     *            the validating to set
+     * @param validating the validating to set
      */
     public void setValidating(final boolean validating) {
         this.validating = validating;
@@ -478,8 +466,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
-     * @param includeAware
-     *            the includeAware to set
+     * @param includeAware the includeAware to set
      */
     public void setIncludeAware(final boolean includeAware) {
         this.includeAware = includeAware;
@@ -487,9 +474,6 @@ public class XmlTransformer extends AbstractTransformer {
 
     public static class DefaultPrefixResolver extends PrefixResolverDefault {
 
-        /**
-         * @param xpathExpressionContext
-         */
         public DefaultPrefixResolver(final Node xpathExpressionContext) {
             super(xpathExpressionContext);
         }
@@ -497,9 +481,7 @@ public class XmlTransformer extends AbstractTransformer {
         /*
          * (non-Javadoc)
          *
-         * @see
-         * org.apache.xml.utils.PrefixResolverDefault#getNamespaceForPrefix(
-         * java.lang.String, org.w3c.dom.Node)
+         * @see org.apache.xml.utils.PrefixResolverDefault#getNamespaceForPrefix(java.lang.String, org.w3c.dom.Node)
          */
         @Override
         public String getNamespaceForPrefix(final String prefix,
@@ -509,7 +491,7 @@ public class XmlTransformer extends AbstractTransformer {
             if (StringUtil.isNotBlank(namespace)) {
                 return namespace;
             }
-            return "http://s2robot.sandbox.seasar.org/namespace/" + prefix;
+            return "http://robot.codelibs.org/namespace/" + prefix;
         }
 
     }

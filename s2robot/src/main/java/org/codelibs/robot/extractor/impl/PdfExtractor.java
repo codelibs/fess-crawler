@@ -33,9 +33,9 @@ import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
-import org.codelibs.robot.extractor.ExtractException;
+import org.codelibs.robot.exception.ExtractException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.extractor.Extractor;
 
 /**

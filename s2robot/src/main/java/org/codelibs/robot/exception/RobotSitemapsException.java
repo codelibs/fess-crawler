@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot;
+package org.codelibs.robot.exception;
 
 /*
  * Copyright 2004-2009 the Seasar Foundation and the Others.

@@ -13,18 +13,30 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot;
+package org.codelibs.robot.exception;
+
+import java.util.Set;
+
+import org.codelibs.robot.entity.RequestData;
 
 /**
+ * ChildUrlsException is thrown when having child urls.
+ *
  * @author shinsuke
  *
  */
-public class MaxLengthExceededException extends RobotCrawlAccessException {
+public class ChildUrlsException extends RobotSystemException {
 
     private static final long serialVersionUID = 1L;
 
-    public MaxLengthExceededException(final String message) {
-        super(message);
+    private final Set<RequestData> childUrlList;
+
+    public ChildUrlsException(final Set<RequestData> childUrlList) {
+        super("Threw child urls(" + childUrlList.size() + ").");
+        this.childUrlList = childUrlList;
     }
 
+    public Set<RequestData> getChildUrlList() {
+        return childUrlList;
+    }
 }

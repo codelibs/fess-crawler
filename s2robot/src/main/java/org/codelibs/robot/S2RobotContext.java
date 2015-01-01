@@ -17,10 +17,10 @@ package org.codelibs.robot;
 
 import java.util.Set;
 
+import org.codelibs.core.collection.LruHashSet;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.interval.IntervalController;
 import org.codelibs.robot.rule.RuleManager;
-import org.codelibs.robot.util.LruHashSet;
 
 /**
  * @author shinsuke

@@ -21,10 +21,10 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.AccessResultDataImpl;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.helper.MemoryDataHelper;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;

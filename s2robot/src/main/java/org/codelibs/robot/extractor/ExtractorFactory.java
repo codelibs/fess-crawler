@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.exception.RobotSystemException;
 
 /**
  * @author shinsuke

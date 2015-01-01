@@ -20,11 +20,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
-import org.codelibs.robot.RobotCrawlAccessException;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
+import org.codelibs.robot.exception.RobotCrawlAccessException;
+import org.codelibs.robot.exception.RobotSystemException;
 
 /**
  * BinaryTransformer stores WEB data as binary data.

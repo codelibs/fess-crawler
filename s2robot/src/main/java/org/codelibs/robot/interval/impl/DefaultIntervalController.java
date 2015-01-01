@@ -17,7 +17,7 @@ package org.codelibs.robot.interval.impl;
 
 import java.util.Map;
 
-import org.codelibs.robot.RobotSystemException;
+import org.codelibs.robot.exception.RobotSystemException;
 
 public class DefaultIntervalController extends AbstractIntervalController {
 

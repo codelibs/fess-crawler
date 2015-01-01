@@ -13,37 +13,25 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.robot.extractor;
-
-import org.codelibs.robot.RobotSystemException;
+package org.codelibs.robot.exception;
 
 /**
  * @author shinsuke
  *
  */
-public class ExtractException extends RobotSystemException {
+public class RobotSystemException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * @param message
-     * @param cause
-     */
-    public ExtractException(final String message, final Throwable cause) {
+    public RobotSystemException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    /**
-     * @param message
-     */
-    public ExtractException(final String message) {
+    public RobotSystemException(final String message) {
         super(message);
     }
 
-    /**
-     * @param cause
-     */
-    public ExtractException(final Throwable cause) {
+    public RobotSystemException(final Throwable cause) {
         super(cause);
     }
 

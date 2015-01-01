@@ -19,8 +19,8 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.container.StandardRobotContainer;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.extractor.ExtractorFactory;
 import org.codelibs.robot.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;

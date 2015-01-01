@@ -23,9 +23,9 @@ import java.util.regex.Pattern;
 
 import org.apache.xpath.CachedXPathAPI;
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.entity.ExtractData;
-import org.codelibs.robot.extractor.ExtractException;
+import org.codelibs.robot.exception.ExtractException;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.extractor.Extractor;
 import org.cyberneko.html.parsers.DOMParser;
 import org.w3c.dom.Document;

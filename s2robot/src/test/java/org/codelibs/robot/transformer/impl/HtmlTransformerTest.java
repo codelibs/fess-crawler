@@ -19,11 +19,11 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.RobotSystemException;
 import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.entity.AccessResultDataImpl;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.ResultData;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

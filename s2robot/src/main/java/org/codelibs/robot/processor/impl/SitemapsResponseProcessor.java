@@ -22,12 +22,12 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import org.codelibs.robot.builder.RequestDataBuilder;
-import org.codelibs.robot.client.fs.ChildUrlsException;
 import org.codelibs.robot.container.RobotContainer;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.Sitemap;
 import org.codelibs.robot.entity.SitemapSet;
+import org.codelibs.robot.exception.ChildUrlsException;
 import org.codelibs.robot.helper.SitemapsHelper;
 import org.codelibs.robot.processor.ResponseProcessor;
 

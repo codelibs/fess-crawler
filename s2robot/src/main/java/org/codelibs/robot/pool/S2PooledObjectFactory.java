@@ -24,10 +24,9 @@ import org.codelibs.robot.container.RobotContainer;
 
 /**
  *
- * @param <T>
+ * @param <T> Pooled object
  *
  * @author shinsuke
- *
  */
 public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     @Resource

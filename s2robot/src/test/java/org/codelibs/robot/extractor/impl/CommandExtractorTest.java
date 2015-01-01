@@ -26,7 +26,7 @@ import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.robot.entity.ExtractData;
-import org.codelibs.robot.extractor.ExecutionTimeoutException;
+import org.codelibs.robot.exception.ExecutionTimeoutException;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

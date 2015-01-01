@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.robot.container.StandardRobotContainer;
-import org.codelibs.robot.helper.MimeTypeException;
+import org.codelibs.robot.exception.MimeTypeException;
 import org.codelibs.robot.helper.MimeTypeHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 

@@ -142,13 +142,13 @@
           <artifactId>maven-license-plugin</artifactId>
           <version>1.4.0</version>
           <configuration>
-            <header>http://www.seasar.org/license/header.txt</header>
+            <header>http://www.codelibs.org/assets/license/header.txt</header>
             <includes>
               <include>src/**/*.java</include>
             </includes>
             <encoding>UTF-8</encoding>
             <headerDefinitions>
-              <headerDefinition>http://www.seasar.org/license/header-definition.xml</headerDefinition>
+              <headerDefinition>http://www.codelibs.org/assets/license/header-definition.xml</headerDefinition>
             </headerDefinitions>
           </configuration>
         </plugin>

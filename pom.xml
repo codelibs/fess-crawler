@@ -36,19 +36,14 @@
   </parent>
   <modules>
     <module>s2robot</module>
-    <module>s2robot-spring</module>
     <module>s2robot-db-h2</module>
     <module>s2robot-db-mysql</module>
     <module>s2robot-db</module>
-<!-- 
-    <module>s2robot-db-oracle</module>
--->
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <h2.version>1.4.181</h2.version>
     <mysql.version>5.1.32</mysql.version>
-    <oracle.version>11.2.0.3</oracle.version>
     <dbflute.version>1.1.0-RC4</dbflute.version>
     <slf4j.version>1.7.7</slf4j.version>
     <httpcomponents.version>4.3.6</httpcomponents.version>

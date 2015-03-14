@@ -1,43 +1,19 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.cbean.cq.bs;
 
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 
-import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
-import org.codelibs.robot.db.cbean.UrlFilterCB;
-import org.codelibs.robot.db.cbean.cq.UrlFilterCQ;
-import org.dbflute.cbean.AbstractConditionQuery;
-import org.dbflute.cbean.ConditionBean;
-import org.dbflute.cbean.ConditionQuery;
-import org.dbflute.cbean.chelper.HpQDRFunction;
-import org.dbflute.cbean.chelper.HpSSQFunction;
-import org.dbflute.cbean.chelper.HpSSQOption;
-import org.dbflute.cbean.chelper.HpSSQSetupper;
-import org.dbflute.cbean.ckey.ConditionKey;
-import org.dbflute.cbean.coption.ConditionOptionCall;
-import org.dbflute.cbean.coption.DerivedReferrerOption;
-import org.dbflute.cbean.coption.LikeSearchOption;
-import org.dbflute.cbean.coption.RangeOfOption;
+import org.dbflute.cbean.*;
+import org.dbflute.cbean.chelper.*;
+import org.dbflute.cbean.ckey.*;
+import org.dbflute.cbean.coption.*;
 import org.dbflute.cbean.cvalue.ConditionValue;
-import org.dbflute.cbean.ordering.ManualOrderOptionCall;
-import org.dbflute.cbean.scoping.SubQuery;
+import org.dbflute.cbean.ordering.*;
+import org.dbflute.cbean.scoping.*;
 import org.dbflute.cbean.sqlclause.SqlClause;
 import org.dbflute.dbmeta.DBMetaProvider;
+import org.codelibs.robot.db.allcommon.*;
+import org.codelibs.robot.db.cbean.*;
+import org.codelibs.robot.db.cbean.cq.*;
 
 /**
  * The abstract condition-query of URL_FILTER.
@@ -48,9 +24,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public AbstractBsUrlFilterCQ(final ConditionQuery referrerQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel) {
+    public AbstractBsUrlFilterCQ(ConditionQuery referrerQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
         super(referrerQuery, sqlClause, aliasName, nestLevel);
     }
 
@@ -62,7 +36,6 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
         return DBMetaInstanceHandler.getProvider();
     }
 
-    @Override
     public String asTableDbName() {
         return "URL_FILTER";
     }
@@ -75,11 +48,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as equal. (NullAllowed: if null, no condition)
      */
-    public void setId_Equal(final Long id) {
+    public void setId_Equal(Long id) {
         doSetId_Equal(id);
     }
 
-    protected void doSetId_Equal(final Long id) {
+    protected void doSetId_Equal(Long id) {
         regId(CK_EQ, id);
     }
 
@@ -88,11 +61,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as notEqual. (NullAllowed: if null, no condition)
      */
-    public void setId_NotEqual(final Long id) {
+    public void setId_NotEqual(Long id) {
         doSetId_NotEqual(id);
     }
 
-    protected void doSetId_NotEqual(final Long id) {
+    protected void doSetId_NotEqual(Long id) {
         regId(CK_NES, id);
     }
 
@@ -101,7 +74,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as greaterThan. (NullAllowed: if null, no condition)
      */
-    public void setId_GreaterThan(final Long id) {
+    public void setId_GreaterThan(Long id) {
         regId(CK_GT, id);
     }
 
@@ -110,7 +83,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as lessThan. (NullAllowed: if null, no condition)
      */
-    public void setId_LessThan(final Long id) {
+    public void setId_LessThan(Long id) {
         regId(CK_LT, id);
     }
 
@@ -119,7 +92,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as greaterEqual. (NullAllowed: if null, no condition)
      */
-    public void setId_GreaterEqual(final Long id) {
+    public void setId_GreaterEqual(Long id) {
         regId(CK_GE, id);
     }
 
@@ -128,7 +101,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param id The value of id as lessEqual. (NullAllowed: if null, no condition)
      */
-    public void setId_LessEqual(final Long id) {
+    public void setId_LessEqual(Long id) {
         regId(CK_LE, id);
     }
 
@@ -141,8 +114,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param maxNumber The max number of id. (NullAllowed: if null, no to-condition)
      * @param opLambda The callback for option of range-of. (NotNull)
      */
-    public void setId_RangeOf(final Long minNumber, final Long maxNumber,
-            final ConditionOptionCall<RangeOfOption> opLambda) {
+    public void setId_RangeOf(Long minNumber, Long maxNumber, ConditionOptionCall<RangeOfOption> opLambda) {
         setId_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
     }
 
@@ -155,8 +127,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param maxNumber The max number of id. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    protected void setId_RangeOf(final Long minNumber, final Long maxNumber,
-            final RangeOfOption rangeOfOption) {
+    protected void setId_RangeOf(Long minNumber, Long maxNumber, RangeOfOption rangeOfOption) {
         regROO(minNumber, maxNumber, xgetCValueId(), "ID", rangeOfOption);
     }
 
@@ -165,11 +136,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param idList The collection of id as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setId_InScope(final Collection<Long> idList) {
+    public void setId_InScope(Collection<Long> idList) {
         doSetId_InScope(idList);
     }
 
-    protected void doSetId_InScope(final Collection<Long> idList) {
+    protected void doSetId_InScope(Collection<Long> idList) {
         regINS(CK_INS, cTL(idList), xgetCValueId(), "ID");
     }
 
@@ -178,11 +149,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * ID: {PK, ID, NotNull, BIGINT(19)}
      * @param idList The collection of id as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setId_NotInScope(final Collection<Long> idList) {
+    public void setId_NotInScope(Collection<Long> idList) {
         doSetId_NotInScope(idList);
     }
 
-    protected void doSetId_NotInScope(final Collection<Long> idList) {
+    protected void doSetId_NotInScope(Collection<Long> idList) {
         regINS(CK_NINS, cTL(idList), xgetCValueId(), "ID");
     }
 
@@ -190,22 +161,15 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * IsNull {is null}. And OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      */
-    public void setId_IsNull() {
-        regId(CK_ISN, DOBJ);
-    }
+    public void setId_IsNull() { regId(CK_ISN, DOBJ); }
 
     /**
      * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
      * ID: {PK, ID, NotNull, BIGINT(19)}
      */
-    public void setId_IsNotNull() {
-        regId(CK_ISNN, DOBJ);
-    }
+    public void setId_IsNotNull() { regId(CK_ISNN, DOBJ); }
 
-    protected void regId(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueId(), "ID");
-    }
-
+    protected void regId(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueId(), "ID"); }
     protected abstract ConditionValue xgetCValueId();
 
     /**
@@ -213,11 +177,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as equal. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_Equal(final String sessionId) {
+    public void setSessionId_Equal(String sessionId) {
         doSetSessionId_Equal(fRES(sessionId));
     }
 
-    protected void doSetSessionId_Equal(final String sessionId) {
+    protected void doSetSessionId_Equal(String sessionId) {
         regSessionId(CK_EQ, sessionId);
     }
 
@@ -226,11 +190,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as notEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_NotEqual(final String sessionId) {
+    public void setSessionId_NotEqual(String sessionId) {
         doSetSessionId_NotEqual(fRES(sessionId));
     }
 
-    protected void doSetSessionId_NotEqual(final String sessionId) {
+    protected void doSetSessionId_NotEqual(String sessionId) {
         regSessionId(CK_NES, sessionId);
     }
 
@@ -239,7 +203,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_GreaterThan(final String sessionId) {
+    public void setSessionId_GreaterThan(String sessionId) {
         regSessionId(CK_GT, fRES(sessionId));
     }
 
@@ -248,7 +212,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as lessThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_LessThan(final String sessionId) {
+    public void setSessionId_LessThan(String sessionId) {
         regSessionId(CK_LT, fRES(sessionId));
     }
 
@@ -257,7 +221,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_GreaterEqual(final String sessionId) {
+    public void setSessionId_GreaterEqual(String sessionId) {
         regSessionId(CK_GE, fRES(sessionId));
     }
 
@@ -266,7 +230,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionId The value of sessionId as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_LessEqual(final String sessionId) {
+    public void setSessionId_LessEqual(String sessionId) {
         regSessionId(CK_LE, fRES(sessionId));
     }
 
@@ -275,11 +239,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionIdList The collection of sessionId as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_InScope(final Collection<String> sessionIdList) {
+    public void setSessionId_InScope(Collection<String> sessionIdList) {
         doSetSessionId_InScope(sessionIdList);
     }
 
-    protected void doSetSessionId_InScope(final Collection<String> sessionIdList) {
+    protected void doSetSessionId_InScope(Collection<String> sessionIdList) {
         regINS(CK_INS, cTL(sessionIdList), xgetCValueSessionId(), "SESSION_ID");
     }
 
@@ -288,12 +252,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * SESSION_ID: {IX+, NotNull, VARCHAR(20)}
      * @param sessionIdList The collection of sessionId as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setSessionId_NotInScope(final Collection<String> sessionIdList) {
+    public void setSessionId_NotInScope(Collection<String> sessionIdList) {
         doSetSessionId_NotInScope(sessionIdList);
     }
 
-    protected void doSetSessionId_NotInScope(
-            final Collection<String> sessionIdList) {
+    protected void doSetSessionId_NotInScope(Collection<String> sessionIdList) {
         regINS(CK_NINS, cTL(sessionIdList), xgetCValueSessionId(), "SESSION_ID");
     }
 
@@ -304,8 +267,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param sessionId The value of sessionId as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setSessionId_LikeSearch(final String sessionId,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setSessionId_LikeSearch(String sessionId, ConditionOptionCall<LikeSearchOption> opLambda) {
         setSessionId_LikeSearch(sessionId, xcLSOP(opLambda));
     }
 
@@ -316,10 +278,8 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param sessionId The value of sessionId as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    protected void setSessionId_LikeSearch(final String sessionId,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(sessionId), xgetCValueSessionId(), "SESSION_ID",
-                likeSearchOption);
+    protected void setSessionId_LikeSearch(String sessionId, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(sessionId), xgetCValueSessionId(), "SESSION_ID", likeSearchOption);
     }
 
     /**
@@ -329,8 +289,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param sessionId The value of sessionId as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setSessionId_NotLikeSearch(final String sessionId,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setSessionId_NotLikeSearch(String sessionId, ConditionOptionCall<LikeSearchOption> opLambda) {
         setSessionId_NotLikeSearch(sessionId, xcLSOP(opLambda));
     }
 
@@ -341,16 +300,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param sessionId The value of sessionId as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    protected void setSessionId_NotLikeSearch(final String sessionId,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(sessionId), xgetCValueSessionId(), "SESSION_ID",
-                likeSearchOption);
+    protected void setSessionId_NotLikeSearch(String sessionId, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(sessionId), xgetCValueSessionId(), "SESSION_ID", likeSearchOption);
     }
 
-    protected void regSessionId(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueSessionId(), "SESSION_ID");
-    }
-
+    protected void regSessionId(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueSessionId(), "SESSION_ID"); }
     protected abstract ConditionValue xgetCValueSessionId();
 
     /**
@@ -358,11 +312,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param url The value of url as equal. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_Equal(final String url) {
+    public void setUrl_Equal(String url) {
         doSetUrl_Equal(fRES(url));
     }
 
-    protected void doSetUrl_Equal(final String url) {
+    protected void doSetUrl_Equal(String url) {
         regUrl(CK_EQ, url);
     }
 
@@ -371,11 +325,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param url The value of url as notEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_NotEqual(final String url) {
+    public void setUrl_NotEqual(String url) {
         doSetUrl_NotEqual(fRES(url));
     }
 
-    protected void doSetUrl_NotEqual(final String url) {
+    protected void doSetUrl_NotEqual(String url) {
         regUrl(CK_NES, url);
     }
 
@@ -384,7 +338,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param url The value of url as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_GreaterThan(final String url) {
+    public void setUrl_GreaterThan(String url) {
         regUrl(CK_GT, fRES(url));
     }
 
@@ -393,7 +347,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param url The value of url as lessThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_LessThan(final String url) {
+    public void setUrl_LessThan(String url) {
         regUrl(CK_LT, fRES(url));
     }
 
@@ -402,7 +356,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param url The value of url as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_GreaterEqual(final String url) {
+    public void setUrl_GreaterEqual(String url) {
         regUrl(CK_GE, fRES(url));
     }
 
@@ -411,7 +365,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param url The value of url as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_LessEqual(final String url) {
+    public void setUrl_LessEqual(String url) {
         regUrl(CK_LE, fRES(url));
     }
 
@@ -420,11 +374,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param urlList The collection of url as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_InScope(final Collection<String> urlList) {
+    public void setUrl_InScope(Collection<String> urlList) {
         doSetUrl_InScope(urlList);
     }
 
-    protected void doSetUrl_InScope(final Collection<String> urlList) {
+    protected void doSetUrl_InScope(Collection<String> urlList) {
         regINS(CK_INS, cTL(urlList), xgetCValueUrl(), "URL");
     }
 
@@ -433,11 +387,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * URL: {NotNull, TEXT(65535)}
      * @param urlList The collection of url as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setUrl_NotInScope(final Collection<String> urlList) {
+    public void setUrl_NotInScope(Collection<String> urlList) {
         doSetUrl_NotInScope(urlList);
     }
 
-    protected void doSetUrl_NotInScope(final Collection<String> urlList) {
+    protected void doSetUrl_NotInScope(Collection<String> urlList) {
         regINS(CK_NINS, cTL(urlList), xgetCValueUrl(), "URL");
     }
 
@@ -448,8 +402,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param url The value of url as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setUrl_LikeSearch(final String url,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setUrl_LikeSearch(String url, ConditionOptionCall<LikeSearchOption> opLambda) {
         setUrl_LikeSearch(url, xcLSOP(opLambda));
     }
 
@@ -460,8 +413,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param url The value of url as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    protected void setUrl_LikeSearch(final String url,
-            final LikeSearchOption likeSearchOption) {
+    protected void setUrl_LikeSearch(String url, LikeSearchOption likeSearchOption) {
         regLSQ(CK_LS, fRES(url), xgetCValueUrl(), "URL", likeSearchOption);
     }
 
@@ -472,8 +424,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param url The value of url as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setUrl_NotLikeSearch(final String url,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setUrl_NotLikeSearch(String url, ConditionOptionCall<LikeSearchOption> opLambda) {
         setUrl_NotLikeSearch(url, xcLSOP(opLambda));
     }
 
@@ -484,15 +435,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param url The value of url as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    protected void setUrl_NotLikeSearch(final String url,
-            final LikeSearchOption likeSearchOption) {
+    protected void setUrl_NotLikeSearch(String url, LikeSearchOption likeSearchOption) {
         regLSQ(CK_NLS, fRES(url), xgetCValueUrl(), "URL", likeSearchOption);
     }
 
-    protected void regUrl(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueUrl(), "URL");
-    }
-
+    protected void regUrl(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueUrl(), "URL"); }
     protected abstract ConditionValue xgetCValueUrl();
 
     /**
@@ -500,11 +447,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterType The value of filterType as equal. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_Equal(final String filterType) {
+    public void setFilterType_Equal(String filterType) {
         doSetFilterType_Equal(fRES(filterType));
     }
 
-    protected void doSetFilterType_Equal(final String filterType) {
+    protected void doSetFilterType_Equal(String filterType) {
         regFilterType(CK_EQ, filterType);
     }
 
@@ -513,11 +460,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterType The value of filterType as notEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_NotEqual(final String filterType) {
+    public void setFilterType_NotEqual(String filterType) {
         doSetFilterType_NotEqual(fRES(filterType));
     }
 
-    protected void doSetFilterType_NotEqual(final String filterType) {
+    protected void doSetFilterType_NotEqual(String filterType) {
         regFilterType(CK_NES, filterType);
     }
 
@@ -526,7 +473,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterType The value of filterType as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_GreaterThan(final String filterType) {
+    public void setFilterType_GreaterThan(String filterType) {
         regFilterType(CK_GT, fRES(filterType));
     }
 
@@ -535,7 +482,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterType The value of filterType as lessThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_LessThan(final String filterType) {
+    public void setFilterType_LessThan(String filterType) {
         regFilterType(CK_LT, fRES(filterType));
     }
 
@@ -544,7 +491,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterType The value of filterType as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_GreaterEqual(final String filterType) {
+    public void setFilterType_GreaterEqual(String filterType) {
         regFilterType(CK_GE, fRES(filterType));
     }
 
@@ -553,7 +500,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterType The value of filterType as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_LessEqual(final String filterType) {
+    public void setFilterType_LessEqual(String filterType) {
         regFilterType(CK_LE, fRES(filterType));
     }
 
@@ -562,14 +509,12 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterTypeList The collection of filterType as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_InScope(final Collection<String> filterTypeList) {
+    public void setFilterType_InScope(Collection<String> filterTypeList) {
         doSetFilterType_InScope(filterTypeList);
     }
 
-    protected void doSetFilterType_InScope(
-            final Collection<String> filterTypeList) {
-        regINS(CK_INS, cTL(filterTypeList), xgetCValueFilterType(),
-                "FILTER_TYPE");
+    protected void doSetFilterType_InScope(Collection<String> filterTypeList) {
+        regINS(CK_INS, cTL(filterTypeList), xgetCValueFilterType(), "FILTER_TYPE");
     }
 
     /**
@@ -577,14 +522,12 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * FILTER_TYPE: {NotNull, VARCHAR(1)}
      * @param filterTypeList The collection of filterType as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setFilterType_NotInScope(final Collection<String> filterTypeList) {
+    public void setFilterType_NotInScope(Collection<String> filterTypeList) {
         doSetFilterType_NotInScope(filterTypeList);
     }
 
-    protected void doSetFilterType_NotInScope(
-            final Collection<String> filterTypeList) {
-        regINS(CK_NINS, cTL(filterTypeList), xgetCValueFilterType(),
-                "FILTER_TYPE");
+    protected void doSetFilterType_NotInScope(Collection<String> filterTypeList) {
+        regINS(CK_NINS, cTL(filterTypeList), xgetCValueFilterType(), "FILTER_TYPE");
     }
 
     /**
@@ -594,8 +537,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param filterType The value of filterType as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setFilterType_LikeSearch(final String filterType,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setFilterType_LikeSearch(String filterType, ConditionOptionCall<LikeSearchOption> opLambda) {
         setFilterType_LikeSearch(filterType, xcLSOP(opLambda));
     }
 
@@ -606,10 +548,8 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param filterType The value of filterType as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    protected void setFilterType_LikeSearch(final String filterType,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(filterType), xgetCValueFilterType(), "FILTER_TYPE",
-                likeSearchOption);
+    protected void setFilterType_LikeSearch(String filterType, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(filterType), xgetCValueFilterType(), "FILTER_TYPE", likeSearchOption);
     }
 
     /**
@@ -619,8 +559,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param filterType The value of filterType as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setFilterType_NotLikeSearch(final String filterType,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setFilterType_NotLikeSearch(String filterType, ConditionOptionCall<LikeSearchOption> opLambda) {
         setFilterType_NotLikeSearch(filterType, xcLSOP(opLambda));
     }
 
@@ -631,16 +570,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param filterType The value of filterType as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    protected void setFilterType_NotLikeSearch(final String filterType,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(filterType), xgetCValueFilterType(), "FILTER_TYPE",
-                likeSearchOption);
+    protected void setFilterType_NotLikeSearch(String filterType, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(filterType), xgetCValueFilterType(), "FILTER_TYPE", likeSearchOption);
     }
 
-    protected void regFilterType(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueFilterType(), "FILTER_TYPE");
-    }
-
+    protected void regFilterType(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueFilterType(), "FILTER_TYPE"); }
     protected abstract ConditionValue xgetCValueFilterType();
 
     /**
@@ -648,11 +582,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as equal. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_Equal(final Long createTime) {
+    public void setCreateTime_Equal(Long createTime) {
         doSetCreateTime_Equal(createTime);
     }
 
-    protected void doSetCreateTime_Equal(final Long createTime) {
+    protected void doSetCreateTime_Equal(Long createTime) {
         regCreateTime(CK_EQ, createTime);
     }
 
@@ -661,11 +595,11 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as notEqual. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_NotEqual(final Long createTime) {
+    public void setCreateTime_NotEqual(Long createTime) {
         doSetCreateTime_NotEqual(createTime);
     }
 
-    protected void doSetCreateTime_NotEqual(final Long createTime) {
+    protected void doSetCreateTime_NotEqual(Long createTime) {
         regCreateTime(CK_NES, createTime);
     }
 
@@ -674,7 +608,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as greaterThan. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_GreaterThan(final Long createTime) {
+    public void setCreateTime_GreaterThan(Long createTime) {
         regCreateTime(CK_GT, createTime);
     }
 
@@ -683,7 +617,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as lessThan. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_LessThan(final Long createTime) {
+    public void setCreateTime_LessThan(Long createTime) {
         regCreateTime(CK_LT, createTime);
     }
 
@@ -692,7 +626,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as greaterEqual. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_GreaterEqual(final Long createTime) {
+    public void setCreateTime_GreaterEqual(Long createTime) {
         regCreateTime(CK_GE, createTime);
     }
 
@@ -701,7 +635,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTime The value of createTime as lessEqual. (NullAllowed: if null, no condition)
      */
-    public void setCreateTime_LessEqual(final Long createTime) {
+    public void setCreateTime_LessEqual(Long createTime) {
         regCreateTime(CK_LE, createTime);
     }
 
@@ -714,9 +648,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param maxNumber The max number of createTime. (NullAllowed: if null, no to-condition)
      * @param opLambda The callback for option of range-of. (NotNull)
      */
-    public void setCreateTime_RangeOf(final Long minNumber,
-            final Long maxNumber,
-            final ConditionOptionCall<RangeOfOption> opLambda) {
+    public void setCreateTime_RangeOf(Long minNumber, Long maxNumber, ConditionOptionCall<RangeOfOption> opLambda) {
         setCreateTime_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
     }
 
@@ -729,10 +661,8 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * @param maxNumber The max number of createTime. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    protected void setCreateTime_RangeOf(final Long minNumber,
-            final Long maxNumber, final RangeOfOption rangeOfOption) {
-        regROO(minNumber, maxNumber, xgetCValueCreateTime(), "CREATE_TIME",
-                rangeOfOption);
+    protected void setCreateTime_RangeOf(Long minNumber, Long maxNumber, RangeOfOption rangeOfOption) {
+        regROO(minNumber, maxNumber, xgetCValueCreateTime(), "CREATE_TIME", rangeOfOption);
     }
 
     /**
@@ -740,13 +670,12 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTimeList The collection of createTime as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setCreateTime_InScope(final Collection<Long> createTimeList) {
+    public void setCreateTime_InScope(Collection<Long> createTimeList) {
         doSetCreateTime_InScope(createTimeList);
     }
 
-    protected void doSetCreateTime_InScope(final Collection<Long> createTimeList) {
-        regINS(CK_INS, cTL(createTimeList), xgetCValueCreateTime(),
-                "CREATE_TIME");
+    protected void doSetCreateTime_InScope(Collection<Long> createTimeList) {
+        regINS(CK_INS, cTL(createTimeList), xgetCValueCreateTime(), "CREATE_TIME");
     }
 
     /**
@@ -754,20 +683,15 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * CREATE_TIME: {NotNull, BIGINT(19)}
      * @param createTimeList The collection of createTime as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setCreateTime_NotInScope(final Collection<Long> createTimeList) {
+    public void setCreateTime_NotInScope(Collection<Long> createTimeList) {
         doSetCreateTime_NotInScope(createTimeList);
     }
 
-    protected void doSetCreateTime_NotInScope(
-            final Collection<Long> createTimeList) {
-        regINS(CK_NINS, cTL(createTimeList), xgetCValueCreateTime(),
-                "CREATE_TIME");
+    protected void doSetCreateTime_NotInScope(Collection<Long> createTimeList) {
+        regINS(CK_NINS, cTL(createTimeList), xgetCValueCreateTime(), "CREATE_TIME");
     }
 
-    protected void regCreateTime(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueCreateTime(), "CREATE_TIME");
-    }
-
+    protected void regCreateTime(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueCreateTime(), "CREATE_TIME"); }
     protected abstract ConditionValue xgetCValueCreateTime();
 
     // ===================================================================================
@@ -875,47 +799,33 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
         return xcreateSSQFunction(CK_LE, UrlFilterCB.class);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    protected <CB extends ConditionBean> void xscalarCondition(final String fn,
-            final SubQuery<CB> sq, final String rd, final HpSSQOption<CB> op) {
+    protected <CB extends ConditionBean> void xscalarCondition(String fn, SubQuery<CB> sq, String rd, HpSSQOption<CB> op) {
         assertObjectNotNull("subQuery", sq);
-        final UrlFilterCB cb = xcreateScalarConditionCB();
-        sq.query((CB) cb);
-        final String pp = keepScalarCondition(cb.query()); // for saving query-value
-        op.setPartitionByCBean((CB) xcreateScalarConditionPartitionByCB()); // for using partition-by
+        UrlFilterCB cb = xcreateScalarConditionCB(); sq.query((CB)cb);
+        String pp = keepScalarCondition(cb.query()); // for saving query-value
+        op.setPartitionByCBean((CB)xcreateScalarConditionPartitionByCB()); // for using partition-by
         registerScalarCondition(fn, cb.query(), pp, rd, op);
     }
-
     public abstract String keepScalarCondition(UrlFilterCQ sq);
 
     protected UrlFilterCB xcreateScalarConditionCB() {
-        final UrlFilterCB cb = newMyCB();
-        cb.xsetupForScalarCondition(this);
-        return cb;
+        UrlFilterCB cb = newMyCB(); cb.xsetupForScalarCondition(this); return cb;
     }
 
     protected UrlFilterCB xcreateScalarConditionPartitionByCB() {
-        final UrlFilterCB cb = newMyCB();
-        cb.xsetupForScalarConditionPartitionBy(this);
-        return cb;
+        UrlFilterCB cb = newMyCB(); cb.xsetupForScalarConditionPartitionBy(this); return cb;
     }
 
     // ===================================================================================
     //                                                                       MyselfDerived
     //                                                                       =============
-    public void xsmyselfDerive(final String fn, final SubQuery<UrlFilterCB> sq,
-            final String al, final DerivedReferrerOption op) {
+    public void xsmyselfDerive(String fn, SubQuery<UrlFilterCB> sq, String al, DerivedReferrerOption op) {
         assertObjectNotNull("subQuery", sq);
-        final UrlFilterCB cb = new UrlFilterCB();
-        cb.xsetupForDerivedReferrer(this);
-        lockCall(() -> sq.query(cb));
-        final String pp = keepSpecifyMyselfDerived(cb.query());
-        final String pk = "ID";
-        registerSpecifyMyselfDerived(fn, cb.query(), pk, pk, pp,
-                "myselfDerived", al, op);
+        UrlFilterCB cb = new UrlFilterCB(); cb.xsetupForDerivedReferrer(this);
+        lockCall(() -> sq.query(cb)); String pp = keepSpecifyMyselfDerived(cb.query()); String pk = "ID";
+        registerSpecifyMyselfDerived(fn, cb.query(), pk, pk, pp, "myselfDerived", al, op);
     }
-
     public abstract String keepSpecifyMyselfDerived(UrlFilterCQ sq);
 
     /**
@@ -925,25 +835,16 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
     public HpQDRFunction<UrlFilterCB> myselfDerived() {
         return xcreateQDRFunctionMyselfDerived(UrlFilterCB.class);
     }
-
-    @Override
     @SuppressWarnings("unchecked")
-    protected <CB extends ConditionBean> void xqderiveMyselfDerived(
-            final String fn, final SubQuery<CB> sq, final String rd,
-            final Object vl, final DerivedReferrerOption op) {
+    protected <CB extends ConditionBean> void xqderiveMyselfDerived(String fn, SubQuery<CB> sq, String rd, Object vl, DerivedReferrerOption op) {
         assertObjectNotNull("subQuery", sq);
-        final UrlFilterCB cb = new UrlFilterCB();
-        cb.xsetupForDerivedReferrer(this);
-        sq.query((CB) cb);
-        final String pk = "ID";
-        final String sqpp = keepQueryMyselfDerived(cb.query()); // for saving query-value.
-        final String prpp = keepQueryMyselfDerivedParameter(vl);
-        registerQueryMyselfDerived(fn, cb.query(), pk, pk, sqpp,
-                "myselfDerived", rd, vl, prpp, op);
+        UrlFilterCB cb = new UrlFilterCB(); cb.xsetupForDerivedReferrer(this); sq.query((CB)cb);
+        String pk = "ID";
+        String sqpp = keepQueryMyselfDerived(cb.query()); // for saving query-value.
+        String prpp = keepQueryMyselfDerivedParameter(vl);
+        registerQueryMyselfDerived(fn, cb.query(), pk, pk, sqpp, "myselfDerived", rd, vl, prpp, op);
     }
-
     public abstract String keepQueryMyselfDerived(UrlFilterCQ sq);
-
     public abstract String keepQueryMyselfDerivedParameter(Object vl);
 
     // ===================================================================================
@@ -953,15 +854,12 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * Prepare for MyselfExists (correlated sub-query).
      * @param subCBLambda The implementation of sub-query. (NotNull)
      */
-    public void myselfExists(final SubQuery<UrlFilterCB> subCBLambda) {
+    public void myselfExists(SubQuery<UrlFilterCB> subCBLambda) {
         assertObjectNotNull("subCBLambda", subCBLambda);
-        final UrlFilterCB cb = new UrlFilterCB();
-        cb.xsetupForMyselfExists(this);
-        lockCall(() -> subCBLambda.query(cb));
-        final String pp = keepMyselfExists(cb.query());
+        UrlFilterCB cb = new UrlFilterCB(); cb.xsetupForMyselfExists(this);
+        lockCall(() -> subCBLambda.query(cb)); String pp = keepMyselfExists(cb.query());
         registerMyselfExists(cb.query(), pp);
     }
-
     public abstract String keepMyselfExists(UrlFilterCQ sq);
 
     // ===================================================================================
@@ -997,7 +895,7 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
      * <p>The order values are bound (treated as bind parameter).</p>
      * @param opLambda The callback for option of manual-order containing order values. (NotNull)
      */
-    public void withManualOrder(final ManualOrderOptionCall opLambda) { // is user public!
+    public void withManualOrder(ManualOrderOptionCall opLambda) { // is user public!
         xdoWithManualOrder(cMOO(opLambda));
     }
 
@@ -1010,25 +908,10 @@ public abstract class AbstractBsUrlFilterCQ extends AbstractConditionQuery {
     protected UrlFilterCB newMyCB() {
         return new UrlFilterCB();
     }
-
     // very internal (for suppressing warn about 'Not Use Import')
-    protected String xabUDT() {
-        return Date.class.getName();
-    }
-
-    protected String xabCQ() {
-        return UrlFilterCQ.class.getName();
-    }
-
-    protected String xabLSO() {
-        return LikeSearchOption.class.getName();
-    }
-
-    protected String xabSSQS() {
-        return HpSSQSetupper.class.getName();
-    }
-
-    protected String xabSCP() {
-        return SubQuery.class.getName();
-    }
+    protected String xabUDT() { return Date.class.getName(); }
+    protected String xabCQ() { return UrlFilterCQ.class.getName(); }
+    protected String xabLSO() { return LikeSearchOption.class.getName(); }
+    protected String xabSSQS() { return HpSSQSetupper.class.getName(); }
+    protected String xabSCP() { return SubQuery.class.getName(); }
 }

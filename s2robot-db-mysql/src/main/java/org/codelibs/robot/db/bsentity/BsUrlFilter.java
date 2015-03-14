@@ -1,59 +1,44 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
-import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
-import org.codelibs.robot.db.exentity.UrlFilter;
-import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.DBMeta;
+import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
+import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
+import org.codelibs.robot.db.exentity.*;
 
 /**
  * The entity of URL_FILTER as TABLE. <br>
  * <pre>
  * [primary-key]
  *     ID
- *
+ * 
  * [column]
  *     ID, SESSION_ID, URL, FILTER_TYPE, CREATE_TIME
- *
+ * 
  * [sequence]
- *
- *
+ *     
+ * 
  * [identity]
  *     ID
- *
+ * 
  * [version-no]
- *
- *
+ *     
+ * 
  * [foreign table]
- *
- *
+ *     
+ * 
  * [referrer table]
- *
- *
+ *     
+ * 
  * [foreign property]
- *
- *
+ *     
+ * 
  * [referrer property]
- *
- *
+ *     
+ * 
  * [get/set template]
  * /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  * Long id = entity.getId();
@@ -70,8 +55,7 @@ import org.dbflute.dbmeta.accessory.DomainEntity;
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsUrlFilter extends AbstractEntity implements
-        DomainEntity {
+public abstract class BsUrlFilter extends AbstractEntity implements DomainEntity {
 
     // ===================================================================================
     //                                                                          Definition
@@ -101,26 +85,21 @@ public abstract class BsUrlFilter extends AbstractEntity implements
     //                                                                             DB Meta
     //                                                                             =======
     /** {@inheritDoc} */
-    @Override
     public DBMeta asDBMeta() {
         return DBMetaInstanceHandler.findDBMeta(asTableDbName());
     }
 
     /** {@inheritDoc} */
-    @Override
     public String asTableDbName() {
         return "URL_FILTER";
     }
 
     // ===================================================================================
-    //                                                                         Primary Key
-    //                                                                         ===========
+    //                                                                        Key Handling
+    //                                                                        ============
     /** {@inheritDoc} */
-    @Override
     public boolean hasPrimaryKeyValue() {
-        if (_id == null) {
-            return false;
-        }
+        if (_id == null) { return false; }
         return true;
     }
 
@@ -130,7 +109,6 @@ public abstract class BsUrlFilter extends AbstractEntity implements
     // ===================================================================================
     //                                                                   Referrer Property
     //                                                                   =================
-    @Override
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
@@ -139,12 +117,10 @@ public abstract class BsUrlFilter extends AbstractEntity implements
     //                                                                      Basic Override
     //                                                                      ==============
     @Override
-    protected boolean doEquals(final Object obj) {
+    protected boolean doEquals(Object obj) {
         if (obj instanceof BsUrlFilter) {
-            final BsUrlFilter other = (BsUrlFilter) obj;
-            if (!xSV(_id, other._id)) {
-                return false;
-            }
+            BsUrlFilter other = (BsUrlFilter)obj;
+            if (!xSV(_id, other._id)) { return false; }
             return true;
         } else {
             return false;
@@ -152,7 +128,7 @@ public abstract class BsUrlFilter extends AbstractEntity implements
     }
 
     @Override
-    protected int doHashCode(final int initial) {
+    protected int doHashCode(int initial) {
         int hs = initial;
         hs = xCH(hs, asTableDbName());
         hs = xCH(hs, _id);
@@ -160,13 +136,13 @@ public abstract class BsUrlFilter extends AbstractEntity implements
     }
 
     @Override
-    protected String doBuildStringWithRelation(final String li) {
+    protected String doBuildStringWithRelation(String li) {
         return "";
     }
 
     @Override
-    protected String doBuildColumnString(final String dm) {
-        final StringBuilder sb = new StringBuilder();
+    protected String doBuildColumnString(String dm) {
+        StringBuilder sb = new StringBuilder();
         sb.append(dm).append(xfND(_id));
         sb.append(dm).append(xfND(_sessionId));
         sb.append(dm).append(xfND(_url));
@@ -180,13 +156,13 @@ public abstract class BsUrlFilter extends AbstractEntity implements
     }
 
     @Override
-    protected String doBuildRelationString(final String dm) {
+    protected String doBuildRelationString(String dm) {
         return "";
     }
 
     @Override
     public UrlFilter clone() {
-        return (UrlFilter) super.clone();
+        return (UrlFilter)super.clone();
     }
 
     // ===================================================================================
@@ -205,7 +181,7 @@ public abstract class BsUrlFilter extends AbstractEntity implements
      * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br>
      * @param id The value of the column 'ID'. (basically NotNull if update: for the constraint)
      */
-    public void setId(final Long id) {
+    public void setId(Long id) {
         registerModifiedProperty("id");
         _id = id;
     }
@@ -223,7 +199,7 @@ public abstract class BsUrlFilter extends AbstractEntity implements
      * [set] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br>
      * @param sessionId The value of the column 'SESSION_ID'. (basically NotNull if update: for the constraint)
      */
-    public void setSessionId(final String sessionId) {
+    public void setSessionId(String sessionId) {
         registerModifiedProperty("sessionId");
         _sessionId = sessionId;
     }
@@ -241,7 +217,7 @@ public abstract class BsUrlFilter extends AbstractEntity implements
      * [set] URL: {NotNull, TEXT(65535)} <br>
      * @param url The value of the column 'URL'. (basically NotNull if update: for the constraint)
      */
-    public void setUrl(final String url) {
+    public void setUrl(String url) {
         registerModifiedProperty("url");
         _url = url;
     }
@@ -259,7 +235,7 @@ public abstract class BsUrlFilter extends AbstractEntity implements
      * [set] FILTER_TYPE: {NotNull, VARCHAR(1)} <br>
      * @param filterType The value of the column 'FILTER_TYPE'. (basically NotNull if update: for the constraint)
      */
-    public void setFilterType(final String filterType) {
+    public void setFilterType(String filterType) {
         registerModifiedProperty("filterType");
         _filterType = filterType;
     }
@@ -277,7 +253,7 @@ public abstract class BsUrlFilter extends AbstractEntity implements
      * [set] CREATE_TIME: {NotNull, BIGINT(19)} <br>
      * @param createTime The value of the column 'CREATE_TIME'. (basically NotNull if update: for the constraint)
      */
-    public void setCreateTime(final Long createTime) {
+    public void setCreateTime(Long createTime) {
         registerModifiedProperty("createTime");
         _createTime = createTime;
     }

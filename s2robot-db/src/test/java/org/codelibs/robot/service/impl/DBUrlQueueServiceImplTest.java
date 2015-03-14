@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 CodeLibs Project and the Others.
+ * Copyright 2004-2014 the Seasar Foundation and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,47 +15,29 @@
  */
 package org.codelibs.robot.service.impl;
 
-import org.codelibs.core.lang.SystemUtil;
-import org.codelibs.robot.container.RobotContainer;
-import org.codelibs.robot.container.SpringRobotContainer;
-import org.codelibs.robot.db.exbhv.UrlQueueBhv;
 import org.codelibs.robot.db.exentity.UrlQueue;
-import org.codelibs.robot.service.UrlQueueService;
-import org.codelibs.robot.util.ProfileUtil;
-import org.dbflute.utflute.core.PlainTestCase;
+import org.seasar.extension.unit.S2TestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class DBUrlQueueServiceImplTest extends PlainTestCase {
-    public UrlQueueService urlQueueService;
-
-    private RobotContainer container;
-
-    private UrlQueueBhv urlQueueBhv;
+public class DBUrlQueueServiceImplTest extends S2TestCase {
+    public DBUrlQueueServiceImpl urlQueueService;
 
     @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        ProfileUtil.setup();
-
-        container = SpringRobotContainer.create("robotDb.xml");
-        urlQueueService = container.getComponent("urlQueueService");
-        urlQueueBhv = container.getComponent("urlQueueBhv");
+    protected String getRootDicon() throws Throwable {
+        return "app.dicon";
     }
 
     @Override
-    public void tearDown() throws Exception {
+    protected void setUpAfterBindFields() throws Throwable {
         urlQueueService.deleteAll();
-        container.destroy();
-        super.tearDown();
     }
 
     public void test_insert_update_deleteTx() {
         final UrlQueue urlQueue = new UrlQueue();
-        urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
+        urlQueue.setCreateTime(System.currentTimeMillis());
         urlQueue.setDepth(1);
         urlQueue.setMethod("GET");
         urlQueue.setSessionId("sessionId");
@@ -63,13 +45,13 @@ public class DBUrlQueueServiceImplTest extends PlainTestCase {
 
         urlQueueService.insert(urlQueue);
 
-        final UrlQueue urlQueue2 = urlQueueBhv.selectEntity(cb -> {
+        final UrlQueue urlQueue2 = urlQueueService.urlQueueBhv.selectEntity(cb->{
             cb.query().setSessionId_Equal("sessionId");
         }).get();
         assertNotNull(urlQueue2);
 
         urlQueueService.delete("sessionId");
-        final UrlQueue urlQueue3 = urlQueueBhv.selectEntity(cb -> {
+        final UrlQueue urlQueue3 = urlQueueService.urlQueueBhv.selectEntity( cb -> {
             cb.query().setSessionId_Equal("sessionId");
         }).orElse(null);
         assertNull(urlQueue3);
@@ -78,7 +60,7 @@ public class DBUrlQueueServiceImplTest extends PlainTestCase {
 
     public void test_insert_update_delete_multiTx() {
         final UrlQueue urlQueue = new UrlQueue();
-        urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
+        urlQueue.setCreateTime(System.currentTimeMillis());
         urlQueue.setDepth(1);
         urlQueue.setMethod("GET");
         urlQueue.setSessionId("id1");
@@ -87,7 +69,7 @@ public class DBUrlQueueServiceImplTest extends PlainTestCase {
         urlQueueService.insert(urlQueue);
 
         final UrlQueue urlQueue2 = new UrlQueue();
-        urlQueue2.setCreateTime(SystemUtil.currentTimeMillis());
+        urlQueue2.setCreateTime(System.currentTimeMillis());
         urlQueue2.setDepth(1);
         urlQueue2.setMethod("GET");
         urlQueue2.setSessionId("id2");
@@ -95,27 +77,27 @@ public class DBUrlQueueServiceImplTest extends PlainTestCase {
 
         urlQueueService.insert(urlQueue2);
 
-        assertNotNull(urlQueueBhv.selectEntity(cb -> {
+        assertNotNull(urlQueueService.urlQueueBhv.selectEntity(cb->{
             cb.query().setSessionId_Equal("id1");
-        }));
+        }).get());
 
-        assertNotNull(urlQueueBhv.selectEntity(cb -> {
+        assertNotNull(urlQueueService.urlQueueBhv.selectEntity(cb->{
             cb.query().setSessionId_Equal("id2");
-        }));
+        }).get());
 
         urlQueueService.delete("id1");
 
-        assertNull(urlQueueBhv.selectEntity(cb -> {
+        assertNull(urlQueueService.urlQueueBhv.selectEntity(cb->{
             cb.query().setSessionId_Equal("id1");
         }).orElse(null));
 
-        assertNotNull(urlQueueBhv.selectEntity(cb -> {
+        assertNotNull(urlQueueService.urlQueueBhv.selectEntity(cb->{
             cb.query().setSessionId_Equal("id2");
-        }).orElse(null));
+        }).get());
 
         urlQueueService.deleteAll();
 
-        assertNull(urlQueueBhv.selectEntity(cb -> {
+        assertNull(urlQueueService.urlQueueBhv.selectEntity(cb->{
             cb.query().setSessionId_Equal("id2");
         }).orElse(null));
     }

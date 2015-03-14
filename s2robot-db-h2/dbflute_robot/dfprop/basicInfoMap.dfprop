@@ -56,7 +56,7 @@ map:{
     #
     #       spring, guice, seasar, cdi
     #
-    ; targetContainer = spring
+    ; targetContainer = seasar
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

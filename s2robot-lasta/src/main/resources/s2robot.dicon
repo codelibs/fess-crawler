@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+	"http://www.seasar.org/dtd/components24.dtd">
+<components namespace="s2robot">
+	<include path="s2robot/container.dicon"/>
+	<include path="s2robot/client.dicon"/>
+	<include path="s2robot/rule.dicon"/>
+	<include path="s2robot/filter.dicon"/>
+	<include path="s2robot/interval.dicon"/>
+	<include path="s2robot/extractor.dicon"/>
+	<include path="s2robot/mimetype.dicon"/>
+	<include path="s2robot/encoding.dicon"/>
+	<include path="s2robot/urlconverter.dicon"/>
+	<include path="s2robot/log.dicon"/>
+	<include path="s2robot/sitemaps.dicon"/>
+
+	<!-- S2Robot -->
+	<component name="s2Robot" class="org.codelibs.robot.S2Robot" instance="prototype" >
+	</component>
+
+	<!-- Robot Thread -->
+	<component name="robotThread" class="org.codelibs.robot.S2RobotThread" instance="prototype" >
+	</component>
+	
+	<!-- Entity -->
+	<component name="accessResult" class="org.codelibs.robot.entity.AccessResultImpl" instance="prototype" >
+	</component>
+	<component name="urlQueue" class="org.codelibs.robot.entity.UrlQueueImpl" instance="prototype" >
+	</component>
+
+	<!-- Service -->
+	<component name="urlQueueService" class="org.codelibs.robot.service.impl.UrlQueueServiceImpl" instance="prototype" >
+	</component>
+	<component name="dataService" class="org.codelibs.robot.service.impl.DataServiceImpl" instance="prototype" >
+	</component>
+	<component name="urlFilterService" class="org.codelibs.robot.service.impl.UrlFilterServiceImpl" instance="prototype" >
+	</component>
+
+	<!-- Helper -->
+	<component name="dataHelper" class="org.codelibs.robot.helper.MemoryDataHelper" instance="singleton" >
+	</component>
+
+</components>

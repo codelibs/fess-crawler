@@ -1,38 +1,20 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsbhv.pmbean;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
-import org.codelibs.robot.db.allcommon.DBFluteConfig;
-import org.codelibs.robot.db.exbhv.AccessResultBhv;
-import org.dbflute.jdbc.FetchBean;
+import org.dbflute.outsidesql.typed.*;
+import org.dbflute.jdbc.*;
 import org.dbflute.outsidesql.PmbCustodial;
-import org.dbflute.outsidesql.typed.CursorHandlingPmb;
 import org.dbflute.util.DfTypeUtil;
+import org.codelibs.robot.db.allcommon.*;
+import org.codelibs.robot.db.exbhv.*;
 
 /**
  * The base class for typed parameter-bean of AccessResultListByUrlDiff. <br>
  * This is related to "<span style="color: #AD4747">selectAccessResultListByUrlDiff</span>" on AccessResultBhv.
  * @author DBFlute(AutoGenerator)
  */
-public class BsAccessResultListByUrlDiffPmb implements
-        CursorHandlingPmb<AccessResultBhv, Void>, FetchBean {
+public class BsAccessResultListByUrlDiffPmb implements CursorHandlingPmb<AccessResultBhv, Void>, FetchBean {
 
     // ===================================================================================
     //                                                                           Attribute
@@ -65,19 +47,13 @@ public class BsAccessResultListByUrlDiffPmb implements
     /**
      * {@inheritDoc}
      */
-    @Override
-    public String getOutsideSqlPath() {
-        return "selectAccessResultListByUrlDiff";
-    }
+    public String getOutsideSqlPath() { return "selectAccessResultListByUrlDiff"; }
 
     /**
      * Get the type of an entity for result. (implementation)
      * @return The type instance of an entity, cursor handling. (NotNull)
      */
-    @Override
-    public Class<Void> getEntityType() {
-        return Void.class;
-    }
+    public Class<Void> getEntityType() { return Void.class; }
 
     // ===================================================================================
     //                                                                       Safety Result
@@ -85,15 +61,13 @@ public class BsAccessResultListByUrlDiffPmb implements
     /**
      * {@inheritDoc}
      */
-    @Override
-    public void checkSafetyResult(final int safetyMaxResultSize) {
+    public void checkSafetyResult(int safetyMaxResultSize) {
         _safetyMaxResultSize = safetyMaxResultSize;
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public int getSafetyMaxResultSize() {
         return _safetyMaxResultSize;
     }
@@ -104,34 +78,16 @@ public class BsAccessResultListByUrlDiffPmb implements
     // -----------------------------------------------------
     //                                                String
     //                                                ------
-    protected String filterStringParameter(final String value) {
-        return isEmptyStringParameterAllowed() ? value
-                : convertEmptyToNull(value);
-    }
-
-    protected boolean isEmptyStringParameterAllowed() {
-        return DBFluteConfig.getInstance().isEmptyStringParameterAllowed();
-    }
-
-    protected String convertEmptyToNull(final String value) {
-        return PmbCustodial.convertEmptyToNull(value);
-    }
-
+    protected String filterStringParameter(String value) { return isEmptyStringParameterAllowed() ? value : convertEmptyToNull(value); }
+    protected boolean isEmptyStringParameterAllowed() { return DBFluteConfig.getInstance().isEmptyStringParameterAllowed(); }
+    protected String convertEmptyToNull(String value) { return PmbCustodial.convertEmptyToNull(value); }
+    
     // -----------------------------------------------------
     //                                                  Date
     //                                                  ----
-    protected Date toUtilDate(final Object date) {
-        return PmbCustodial.toUtilDate(date, _timeZone);
-    }
-
-    protected <DATE> DATE toLocalDate(final Date date,
-            final Class<DATE> localType) {
-        return PmbCustodial.toLocalDate(date, localType, chooseRealTimeZone());
-    }
-
-    protected TimeZone chooseRealTimeZone() {
-        return PmbCustodial.chooseRealTimeZone(_timeZone);
-    }
+    protected Date toUtilDate(Object date) { return PmbCustodial.toUtilDate(date, _timeZone); }
+    protected <DATE> DATE toLocalDate(Date date, Class<DATE> localType) { return PmbCustodial.toLocalDate(date, localType, chooseRealTimeZone()); }
+    protected TimeZone chooseRealTimeZone() { return PmbCustodial.chooseRealTimeZone(_timeZone); }
 
     /**
      * Set time-zone, basically for LocalDate conversion. <br>
@@ -139,28 +95,16 @@ public class BsAccessResultListByUrlDiffPmb implements
      * (DBFlute system's time-zone is used as default)
      * @param timeZone The time-zone for filtering. (NullAllowed: if null, default zone)
      */
-    public void zone(final TimeZone timeZone) {
-        _timeZone = timeZone;
-    }
+    public void zone(TimeZone timeZone) { _timeZone = timeZone; }
 
     // -----------------------------------------------------
     //                                    by Option Handling
     //                                    ------------------
     // might be called by option handling
-    protected <NUMBER extends Number> NUMBER toNumber(final Object obj,
-            final Class<NUMBER> type) {
-        return PmbCustodial.toNumber(obj, type);
-    }
-
-    protected Boolean toBoolean(final Object obj) {
-        return PmbCustodial.toBoolean(obj);
-    }
-
+    protected <NUMBER extends Number> NUMBER toNumber(Object obj, Class<NUMBER> type) { return PmbCustodial.toNumber(obj, type); }
+    protected Boolean toBoolean(Object obj) { return PmbCustodial.toBoolean(obj); }
     @SuppressWarnings("unchecked")
-    protected <ELEMENT> ArrayList<ELEMENT> newArrayList(
-            final ELEMENT... elements) {
-        return PmbCustodial.newArrayList(elements);
-    }
+    protected <ELEMENT> ArrayList<ELEMENT> newArrayList(ELEMENT... elements) { return PmbCustodial.newArrayList(elements); }
 
     // ===================================================================================
     //                                                                      Basic Override
@@ -175,15 +119,12 @@ public class BsAccessResultListByUrlDiffPmb implements
         sb.append(xbuildColumnString());
         return sb.toString();
     }
-
     protected String xbuildColumnString() {
         final String dm = ", ";
         final StringBuilder sb = new StringBuilder();
         sb.append(dm).append(_oldSessionId);
         sb.append(dm).append(_newSessionId);
-        if (sb.length() > 0) {
-            sb.delete(0, dm.length());
-        }
+        if (sb.length() > 0) { sb.delete(0, dm.length()); }
         sb.insert(0, "{").append("}");
         return sb.toString();
     }
@@ -203,7 +144,7 @@ public class BsAccessResultListByUrlDiffPmb implements
      * [set] oldSessionId <br>
      * @param oldSessionId The value of oldSessionId. (NullAllowed)
      */
-    public void setOldSessionId(final String oldSessionId) {
+    public void setOldSessionId(String oldSessionId) {
         _oldSessionId = oldSessionId;
     }
 
@@ -219,7 +160,7 @@ public class BsAccessResultListByUrlDiffPmb implements
      * [set] newSessionId <br>
      * @param newSessionId The value of newSessionId. (NullAllowed)
      */
-    public void setNewSessionId(final String newSessionId) {
+    public void setNewSessionId(String newSessionId) {
         _newSessionId = newSessionId;
     }
 }

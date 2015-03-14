@@ -23,6 +23,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>**/WebDriverClientTest.java</exclude>
             <exclude>**/JodExtractorTest.java</exclude>
           </excludes>
         </configuration>

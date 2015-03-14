@@ -62,48 +62,13 @@
           <databasePassword>s2robot</databasePassword>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>sql-maven-plugin</artifactId>
-        <dependencies>
-          <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql.version}</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <driver>com.mysql.jdbc.Driver</driver>
-          <url>jdbc:mysql://localhost/robot?useUnicode=true&amp;amp;characterEncoding=UTF-8</url>
-          <username>s2robot</username>
-          <password>s2robot</password>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>execute</goal>
-            </goals>
-            <configuration>
-              <srcFiles>
-                <srcFile>${basedir}/src/main/config/robot.ddl</srcFile>
-              </srcFiles>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <dependencies>
     <dependency>
       <groupId>org.codelibs.robot</groupId>
-      <artifactId>s2robot-spring</artifactId>
+      <artifactId>s2robot-lasta</artifactId>
       <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jdbc</artifactId>
-      <version>${spring.version}</version>
     </dependency>
     <dependency>
       <groupId>mysql</groupId>

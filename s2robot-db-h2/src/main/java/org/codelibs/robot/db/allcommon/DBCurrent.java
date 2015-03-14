@@ -1,23 +1,8 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.allcommon;
 
-import org.dbflute.dbway.DBDef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.dbflute.dbway.DBDef;
 
 /**
  * @author DBFlute(AutoGenerator)
@@ -37,9 +22,7 @@ public class DBCurrent {
     //                                                                           Attribute
     //                                                                           =========
     protected final String _projectName = "robot";
-
     protected final String _projectPrefix = "";
-
     protected final String _generationGapBasePrefix = "Bs";
 
     protected DBDef _currentDBDef;
@@ -49,7 +32,7 @@ public class DBCurrent {
             _currentDBDef = DBDef.Unknown;
         }
     }
-
+	
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
@@ -101,14 +84,14 @@ public class DBCurrent {
     // ===================================================================================
     //                                                                       Current DBDef
     //                                                                       =============
-    public void initializeCurrentDBDef(final DBDef currentDBDef) {
-        if (_log.isInfoEnabled()) {
-            _log.info("...Setting currentDBDef: " + currentDBDef);
-        }
-        if (currentDBDef == null) {
-            final String msg = "The argument 'currentDBDef' should not be null!";
-            throw new IllegalArgumentException(msg);
-        }
+    public void initializeCurrentDBDef(DBDef currentDBDef) {
+	    if (_log.isInfoEnabled()) {
+		    _log.info("...Setting currentDBDef: " + currentDBDef);
+		}
+		if (currentDBDef == null) {
+		    String msg = "The argument 'currentDBDef' should not be null!";
+		    throw new IllegalArgumentException(msg);
+		}
         _currentDBDef = currentDBDef;
     }
 
@@ -125,7 +108,7 @@ public class DBCurrent {
      * @param currentDBDef The DB definition of current DB. (NullAllowed: if null, returns false)
      * @return The determination, true or false.
      */
-    public boolean isCurrentDBDef(final DBDef currentDBDef) {
-        return _currentDBDef.equals(currentDBDef);
+    public boolean isCurrentDBDef(DBDef currentDBDef) {
+	    return _currentDBDef.equals(currentDBDef);
     }
 }

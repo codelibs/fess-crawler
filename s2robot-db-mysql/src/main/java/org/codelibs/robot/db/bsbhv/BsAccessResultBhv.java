@@ -1,51 +1,23 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsbhv;
 
 import java.util.List;
 
-import org.codelibs.robot.db.bsbhv.loader.LoaderOfAccessResult;
-import org.codelibs.robot.db.bsentity.dbmeta.AccessResultDbm;
-import org.codelibs.robot.db.cbean.AccessResultCB;
-import org.codelibs.robot.db.exbhv.AccessResultBhv;
-import org.codelibs.robot.db.exentity.AccessResult;
-import org.codelibs.robot.db.exentity.AccessResultData;
-import org.dbflute.Entity;
-import org.dbflute.bhv.AbstractBehaviorWritable;
-import org.dbflute.bhv.readable.CBCall;
-import org.dbflute.bhv.readable.EntityRowHandler;
-import org.dbflute.bhv.referrer.ReferrerLoaderHandler;
-import org.dbflute.bhv.writable.DeleteOption;
-import org.dbflute.bhv.writable.InsertOption;
-import org.dbflute.bhv.writable.QueryInsertSetupper;
-import org.dbflute.bhv.writable.UpdateOption;
-import org.dbflute.bhv.writable.WritableOptionCall;
-import org.dbflute.cbean.ConditionBean;
+import org.dbflute.*;
+import org.dbflute.bhv.*;
+import org.dbflute.bhv.readable.*;
+import org.dbflute.bhv.writable.*;
+import org.dbflute.bhv.referrer.*;
+import org.dbflute.cbean.*;
 import org.dbflute.cbean.chelper.HpSLSFunction;
-import org.dbflute.cbean.result.ListResultBean;
-import org.dbflute.cbean.result.PagingResultBean;
-import org.dbflute.exception.DangerousResultSizeException;
-import org.dbflute.exception.EntityAlreadyDeletedException;
-import org.dbflute.exception.EntityAlreadyExistsException;
-import org.dbflute.exception.EntityDuplicatedException;
-import org.dbflute.exception.NonQueryDeleteNotAllowedException;
-import org.dbflute.exception.NonQueryUpdateNotAllowedException;
-import org.dbflute.exception.SelectEntityConditionNotFoundException;
+import org.dbflute.cbean.result.*;
+import org.dbflute.exception.*;
 import org.dbflute.optional.OptionalEntity;
-import org.dbflute.outsidesql.executor.OutsideSqlAllFacadeExecutor;
+import org.dbflute.outsidesql.executor.*;
+import org.codelibs.robot.db.exbhv.*;
+import org.codelibs.robot.db.bsbhv.loader.*;
+import org.codelibs.robot.db.exentity.*;
+import org.codelibs.robot.db.bsentity.dbmeta.*;
+import org.codelibs.robot.db.cbean.*;
 
 /**
  * The behavior of ACCESS_RESULT as TABLE. <br>
@@ -57,13 +29,13 @@ import org.dbflute.outsidesql.executor.OutsideSqlAllFacadeExecutor;
  *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, LAST_MODIFIED, CREATE_TIME
  *
  * [sequence]
- *
+ *     
  *
  * [identity]
  *     ID
  *
  * [version-no]
- *
+ *     
  *
  * [foreign table]
  *     ACCESS_RESULT_DATA(AsOne)
@@ -75,12 +47,11 @@ import org.dbflute.outsidesql.executor.OutsideSqlAllFacadeExecutor;
  *     accessResultDataAsOne
  *
  * [referrer property]
- *
+ *     
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResultBhv extends
-        AbstractBehaviorWritable<AccessResult, AccessResultCB> {
+public abstract class BsAccessResultBhv extends AbstractBehaviorWritable<AccessResult, AccessResultCB> {
 
     // ===================================================================================
     //                                                                          Definition
@@ -88,41 +59,27 @@ public abstract class BsAccessResultBhv extends
     /*df:beginQueryPath*/
     /** Compare AccessResult with SessionIDs */
     public static final String PATH_selectAccessResultListByUrlDiff = "selectAccessResultListByUrlDiff";
-
     /** Set FOREIGN_KEY_CHECKS */
     public static final String PATH_setAccessResultForeignKeyChecks = "setAccessResultForeignKeyChecks";
-
     /** Delete AccessResult by SessionID */
     public static final String PATH_deleteAccessResultBySessionId = "deleteAccessResultBySessionId";
-
     /** Delete All AccessResult */
     public static final String PATH_deleteAllAccessResult = "deleteAllAccessResult";
-
     /*df:endQueryPath*/
 
     // ===================================================================================
     //                                                                             DB Meta
     //                                                                             =======
     /** {@inheritDoc} */
-    @Override
-    public AccessResultDbm asDBMeta() {
-        return AccessResultDbm.getInstance();
-    }
-
+    public AccessResultDbm asDBMeta() { return AccessResultDbm.getInstance(); }
     /** {@inheritDoc} */
-    @Override
-    public String asTableDbName() {
-        return "ACCESS_RESULT";
-    }
+    public String asTableDbName() { return "ACCESS_RESULT"; }
 
     // ===================================================================================
     //                                                                        New Instance
     //                                                                        ============
     /** {@inheritDoc} */
-    @Override
-    public AccessResultCB newConditionBean() {
-        return new AccessResultCB();
-    }
+    public AccessResultCB newConditionBean() { return new AccessResultCB(); }
 
     // ===================================================================================
     //                                                                        Count Select
@@ -138,7 +95,7 @@ public abstract class BsAccessResultBhv extends
      * @param cbLambda The callback for condition-bean of AccessResult. (NotNull)
      * @return The count for the condition. (NotMinus)
      */
-    public int selectCount(final CBCall<AccessResultCB> cbLambda) {
+    public int selectCount(CBCall<AccessResultCB> cbLambda) {
         return facadeSelectCount(createCB(cbLambda));
     }
 
@@ -158,7 +115,7 @@ public abstract class BsAccessResultBhv extends
      *     <span style="color: #3F7E5E">// called if present, or exception</span>
      *     ... = <span style="color: #553000">accessResult</span>.get...
      * });
-     *
+     * 
      * <span style="color: #3F7E5E">// if it might be no data, ...</span>
      * <span style="color: #0000C0">accessResultBhv</span>.<span style="color: #CC4747">selectEntity</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
      *     <span style="color: #553000">cb</span>.query().set...
@@ -175,25 +132,19 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public OptionalEntity<AccessResult> selectEntity(
-            final CBCall<AccessResultCB> cbLambda) {
+    public OptionalEntity<AccessResult> selectEntity(CBCall<AccessResultCB> cbLambda) {
         return facadeSelectEntity(createCB(cbLambda));
     }
 
-    protected OptionalEntity<AccessResult> facadeSelectEntity(
-            final AccessResultCB cb) {
+    protected OptionalEntity<AccessResult> facadeSelectEntity(AccessResultCB cb) {
         return doSelectOptionalEntity(cb, typeOfSelectedEntity());
     }
 
-    protected <ENTITY extends AccessResult> OptionalEntity<ENTITY> doSelectOptionalEntity(
-            final AccessResultCB cb, final Class<? extends ENTITY> tp) {
+    protected <ENTITY extends AccessResult> OptionalEntity<ENTITY> doSelectOptionalEntity(AccessResultCB cb, Class<? extends ENTITY> tp) {
         return createOptionalEntity(doSelectEntity(cb, tp), cb);
     }
 
-    @Override
-    protected Entity doReadEntity(final ConditionBean cb) {
-        return facadeSelectEntity(downcast(cb)).orElse(null);
-    }
+    protected Entity doReadEntity(ConditionBean cb) { return facadeSelectEntity(downcast(cb)).orElse(null); }
 
     /**
      * Select the entity by the condition-bean with deleted check. <br>
@@ -208,8 +159,7 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public AccessResult selectEntityWithDeletedCheck(
-            final CBCall<AccessResultCB> cbLambda) {
+    public AccessResult selectEntityWithDeletedCheck(CBCall<AccessResultCB> cbLambda) {
         return facadeSelectEntityWithDeletedCheck(createCB(cbLambda));
     }
 
@@ -221,25 +171,23 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public OptionalEntity<AccessResult> selectByPK(final Long id) {
+    public OptionalEntity<AccessResult> selectByPK(Long id) {
         return facadeSelectByPK(id);
     }
 
-    protected OptionalEntity<AccessResult> facadeSelectByPK(final Long id) {
+    protected OptionalEntity<AccessResult> facadeSelectByPK(Long id) {
         return doSelectOptionalByPK(id, typeOfSelectedEntity());
     }
 
-    protected <ENTITY extends AccessResult> ENTITY doSelectByPK(final Long id,
-            final Class<? extends ENTITY> tp) {
+    protected <ENTITY extends AccessResult> ENTITY doSelectByPK(Long id, Class<? extends ENTITY> tp) {
         return doSelectEntity(xprepareCBAsPK(id), tp);
     }
 
-    protected <ENTITY extends AccessResult> OptionalEntity<ENTITY> doSelectOptionalByPK(
-            final Long id, final Class<? extends ENTITY> tp) {
+    protected <ENTITY extends AccessResult> OptionalEntity<ENTITY> doSelectOptionalByPK(Long id, Class<? extends ENTITY> tp) {
         return createOptionalEntity(doSelectByPK(id, tp), id);
     }
 
-    protected AccessResultCB xprepareCBAsPK(final Long id) {
+    protected AccessResultCB xprepareCBAsPK(Long id) {
         assertObjectNotNull("id", id);
         return newConditionBean().acceptPK(id);
     }
@@ -262,15 +210,12 @@ public abstract class BsAccessResultBhv extends
      * @return The result bean of selected list. (NotNull: if no data, returns empty list)
      * @throws DangerousResultSizeException When the result size is over the specified safety size.
      */
-    public ListResultBean<AccessResult> selectList(
-            final CBCall<AccessResultCB> cbLambda) {
+    public ListResultBean<AccessResult> selectList(CBCall<AccessResultCB> cbLambda) {
         return facadeSelectList(createCB(cbLambda));
     }
 
     @Override
-    protected boolean isEntityDerivedMappable() {
-        return true;
-    }
+    protected boolean isEntityDerivedMappable() { return true; }
 
     // ===================================================================================
     //                                                                         Page Select
@@ -297,8 +242,7 @@ public abstract class BsAccessResultBhv extends
      * @return The result bean of selected page. (NotNull: if no data, returns bean as empty list)
      * @throws DangerousResultSizeException When the result size is over the specified safety size.
      */
-    public PagingResultBean<AccessResult> selectPage(
-            final CBCall<AccessResultCB> cbLambda) {
+    public PagingResultBean<AccessResult> selectPage(CBCall<AccessResultCB> cbLambda) {
         return facadeSelectPage(createCB(cbLambda));
     }
 
@@ -317,8 +261,7 @@ public abstract class BsAccessResultBhv extends
      * @param cbLambda The callback for condition-bean of AccessResult. (NotNull)
      * @param entityLambda The handler of entity row of AccessResult. (NotNull)
      */
-    public void selectCursor(final CBCall<AccessResultCB> cbLambda,
-            final EntityRowHandler<AccessResult> entityLambda) {
+    public void selectCursor(CBCall<AccessResultCB> cbLambda, EntityRowHandler<AccessResult> entityLambda) {
         facadeSelectCursor(createCB(cbLambda), entityLambda);
     }
 
@@ -338,8 +281,7 @@ public abstract class BsAccessResultBhv extends
      * @param resultType The type of result. (NotNull)
      * @return The scalar function object to specify function for scalar value. (NotNull)
      */
-    public <RESULT> HpSLSFunction<AccessResultCB, RESULT> selectScalar(
-            final Class<RESULT> resultType) {
+    public <RESULT> HpSLSFunction<AccessResultCB, RESULT> selectScalar(Class<RESULT> resultType) {
         return facadeScalarSelect(resultType);
     }
 
@@ -348,8 +290,7 @@ public abstract class BsAccessResultBhv extends
     //                                                                            ========
     @Override
     protected Number doReadNextVal() {
-        final String msg = "This table is NOT related to sequence: "
-                + asTableDbName();
+        String msg = "This table is NOT related to sequence: " + asTableDbName();
         throw new UnsupportedOperationException(msg);
     }
 
@@ -357,7 +298,7 @@ public abstract class BsAccessResultBhv extends
     //                                                                       Load Referrer
     //                                                                       =============
     /**
-     * Load referrer for the list by the the referrer loader.
+     * Load referrer for the list by the referrer loader.
      * <pre>
      * List&lt;Member&gt; <span style="color: #553000">memberList</span> = <span style="color: #0000C0">memberBhv</span>.selectList(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
      *     <span style="color: #553000">cb</span>.query().set...
@@ -388,11 +329,9 @@ public abstract class BsAccessResultBhv extends
      * @param accessResultList The entity list of accessResult. (NotNull)
      * @param loaderLambda The callback to handle the referrer loader for actually loading referrer. (NotNull)
      */
-    public void load(final List<AccessResult> accessResultList,
-            final ReferrerLoaderHandler<LoaderOfAccessResult> loaderLambda) {
+    public void load(List<AccessResult> accessResultList, ReferrerLoaderHandler<LoaderOfAccessResult> loaderLambda) {
         xassLRArg(accessResultList, loaderLambda);
-        loaderLambda.handle(new LoaderOfAccessResult().ready(accessResultList,
-                _behaviorSelector));
+        loaderLambda.handle(new LoaderOfAccessResult().ready(accessResultList, _behaviorSelector));
     }
 
     /**
@@ -423,11 +362,9 @@ public abstract class BsAccessResultBhv extends
      * @param accessResult The entity of accessResult. (NotNull)
      * @param loaderLambda The callback to handle the referrer loader for actually loading referrer. (NotNull)
      */
-    public void load(final AccessResult accessResult,
-            final ReferrerLoaderHandler<LoaderOfAccessResult> loaderLambda) {
+    public void load(AccessResult accessResult, ReferrerLoaderHandler<LoaderOfAccessResult> loaderLambda) {
         xassLRArg(accessResult, loaderLambda);
-        loaderLambda.handle(new LoaderOfAccessResult().ready(
-                xnewLRAryLs(accessResult), _behaviorSelector));
+        loaderLambda.handle(new LoaderOfAccessResult().ready(xnewLRAryLs(accessResult), _behaviorSelector));
     }
 
     // ===================================================================================
@@ -438,10 +375,8 @@ public abstract class BsAccessResultBhv extends
      * @param accessResultList The list of accessResult. (NotNull, EmptyAllowed)
      * @return The list of referrer-as-one table. (NotNull, EmptyAllowed, NotNullElement)
      */
-    public List<AccessResultData> pulloutAccessResultDataAsOne(
-            final List<AccessResult> accessResultList) {
-        return helpPulloutInternally(accessResultList, "accessResultDataAsOne");
-    }
+    public List<AccessResultData> pulloutAccessResultDataAsOne(List<AccessResult> accessResultList)
+    { return helpPulloutInternally(accessResultList, "accessResultDataAsOne"); }
 
     // ===================================================================================
     //                                                                      Extract Column
@@ -451,9 +386,8 @@ public abstract class BsAccessResultBhv extends
      * @param accessResultList The list of accessResult. (NotNull, EmptyAllowed)
      * @return The list of the column value. (NotNull, EmptyAllowed, NotNullElement)
      */
-    public List<Long> extractIdList(final List<AccessResult> accessResultList) {
-        return helpExtractListInternally(accessResultList, "id");
-    }
+    public List<Long> extractIdList(List<AccessResult> accessResultList)
+    { return helpExtractListInternally(accessResultList, "id"); }
 
     // ===================================================================================
     //                                                                       Entity Update
@@ -475,7 +409,7 @@ public abstract class BsAccessResultBhv extends
      * @param accessResult The entity of insert. (NotNull, PrimaryKeyNullAllowed: when auto-increment)
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void insert(final AccessResult accessResult) {
+    public void insert(AccessResult accessResult) {
         doInsert(accessResult, null);
     }
 
@@ -498,7 +432,7 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void update(final AccessResult accessResult) {
+    public void update(AccessResult accessResult) {
         doUpdate(accessResult, null);
     }
 
@@ -511,7 +445,7 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void insertOrUpdate(final AccessResult accessResult) {
+    public void insertOrUpdate(AccessResult accessResult) {
         doInsertOrUpdate(accessResult, null, null);
     }
 
@@ -533,7 +467,7 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      * @throws EntityDuplicatedException When the entity has been duplicated.
      */
-    public void delete(final AccessResult accessResult) {
+    public void delete(AccessResult accessResult) {
         doDelete(accessResult, null);
     }
 
@@ -564,7 +498,7 @@ public abstract class BsAccessResultBhv extends
      * @param accessResultList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNullAllowed: when auto-increment)
      * @return The array of inserted count. (NotNull, EmptyAllowed)
      */
-    public int[] batchInsert(final List<AccessResult> accessResultList) {
+    public int[] batchInsert(List<AccessResult> accessResultList) {
         return doBatchInsert(accessResultList, null);
     }
 
@@ -592,7 +526,7 @@ public abstract class BsAccessResultBhv extends
      * @return The array of updated count. (NotNull, EmptyAllowed)
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      */
-    public int[] batchUpdate(final List<AccessResult> accessResultList) {
+    public int[] batchUpdate(List<AccessResult> accessResultList) {
         return doBatchUpdate(accessResultList, null);
     }
 
@@ -603,7 +537,7 @@ public abstract class BsAccessResultBhv extends
      * @return The array of deleted count. (NotNull, EmptyAllowed)
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      */
-    public int[] batchDelete(final List<AccessResult> accessResultList) {
+    public int[] batchDelete(List<AccessResult> accessResultList) {
         return doBatchDelete(accessResultList, null);
     }
 
@@ -636,8 +570,7 @@ public abstract class BsAccessResultBhv extends
      * @param manyArgLambda The callback to set up query-insert. (NotNull)
      * @return The inserted count.
      */
-    public int queryInsert(
-            final QueryInsertSetupper<AccessResult, AccessResultCB> manyArgLambda) {
+    public int queryInsert(QueryInsertSetupper<AccessResult, AccessResultCB> manyArgLambda) {
         return doQueryInsert(manyArgLambda, null);
     }
 
@@ -663,8 +596,7 @@ public abstract class BsAccessResultBhv extends
      * @return The updated count.
      * @throws NonQueryUpdateNotAllowedException When the query has no condition.
      */
-    public int queryUpdate(final AccessResult accessResult,
-            final CBCall<AccessResultCB> cbLambda) {
+    public int queryUpdate(AccessResult accessResult, CBCall<AccessResultCB> cbLambda) {
         return doQueryUpdate(accessResult, createCB(cbLambda), null);
     }
 
@@ -679,7 +611,7 @@ public abstract class BsAccessResultBhv extends
      * @return The deleted count.
      * @throws NonQueryDeleteNotAllowedException When the query has no condition.
      */
-    public int queryDelete(final CBCall<AccessResultCB> cbLambda) {
+    public int queryDelete(CBCall<AccessResultCB> cbLambda) {
         return doQueryDelete(createCB(cbLambda), null);
     }
 
@@ -708,9 +640,7 @@ public abstract class BsAccessResultBhv extends
      * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingInsert(
-            final AccessResult accessResult,
-            final WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> opLambda) {
+    public void varyingInsert(AccessResult accessResult, WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> opLambda) {
         doInsert(accessResult, createInsertOption(opLambda));
     }
 
@@ -737,9 +667,7 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingUpdate(
-            final AccessResult accessResult,
-            final WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> opLambda) {
+    public void varyingUpdate(AccessResult accessResult, WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> opLambda) {
         doUpdate(accessResult, createUpdateOption(opLambda));
     }
 
@@ -753,12 +681,8 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingInsertOrUpdate(
-            final AccessResult accessResult,
-            final WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> insertOpLambda,
-            final WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> updateOpLambda) {
-        doInsertOrUpdate(accessResult, createInsertOption(insertOpLambda),
-                createUpdateOption(updateOpLambda));
+    public void varyingInsertOrUpdate(AccessResult accessResult, WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> insertOpLambda, WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> updateOpLambda) {
+        doInsertOrUpdate(accessResult, createInsertOption(insertOpLambda), createUpdateOption(updateOpLambda));
     }
 
     /**
@@ -770,9 +694,7 @@ public abstract class BsAccessResultBhv extends
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      * @throws EntityDuplicatedException When the entity has been duplicated.
      */
-    public void varyingDelete(
-            final AccessResult accessResult,
-            final WritableOptionCall<AccessResultCB, DeleteOption<AccessResultCB>> opLambda) {
+    public void varyingDelete(AccessResult accessResult, WritableOptionCall<AccessResultCB, DeleteOption<AccessResultCB>> opLambda) {
         doDelete(accessResult, createDeleteOption(opLambda));
     }
 
@@ -788,9 +710,7 @@ public abstract class BsAccessResultBhv extends
      * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @return The array of updated count. (NotNull, EmptyAllowed)
      */
-    public int[] varyingBatchInsert(
-            final List<AccessResult> accessResultList,
-            final WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> opLambda) {
+    public int[] varyingBatchInsert(List<AccessResult> accessResultList, WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> opLambda) {
         return doBatchInsert(accessResultList, createInsertOption(opLambda));
     }
 
@@ -803,9 +723,7 @@ public abstract class BsAccessResultBhv extends
      * @param opLambda The callback for option of update for varying requests. (NotNull)
      * @return The array of updated count. (NotNull, EmptyAllowed)
      */
-    public int[] varyingBatchUpdate(
-            final List<AccessResult> accessResultList,
-            final WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> opLambda) {
+    public int[] varyingBatchUpdate(List<AccessResult> accessResultList, WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> opLambda) {
         return doBatchUpdate(accessResultList, createUpdateOption(opLambda));
     }
 
@@ -817,9 +735,7 @@ public abstract class BsAccessResultBhv extends
      * @param opLambda The callback for option of delete for varying requests. (NotNull)
      * @return The array of deleted count. (NotNull, EmptyAllowed)
      */
-    public int[] varyingBatchDelete(
-            final List<AccessResult> accessResultList,
-            final WritableOptionCall<AccessResultCB, DeleteOption<AccessResultCB>> opLambda) {
+    public int[] varyingBatchDelete(List<AccessResult> accessResultList, WritableOptionCall<AccessResultCB, DeleteOption<AccessResultCB>> opLambda) {
         return doBatchDelete(accessResultList, createDeleteOption(opLambda));
     }
 
@@ -834,9 +750,7 @@ public abstract class BsAccessResultBhv extends
      * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @return The inserted count.
      */
-    public int varyingQueryInsert(
-            final QueryInsertSetupper<AccessResult, AccessResultCB> manyArgLambda,
-            final WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> opLambda) {
+    public int varyingQueryInsert(QueryInsertSetupper<AccessResult, AccessResultCB> manyArgLambda, WritableOptionCall<AccessResultCB, InsertOption<AccessResultCB>> opLambda) {
         return doQueryInsert(manyArgLambda, createInsertOption(opLambda));
     }
 
@@ -868,12 +782,8 @@ public abstract class BsAccessResultBhv extends
      * @return The updated count.
      * @throws NonQueryUpdateNotAllowedException When the query has no condition (if not allowed).
      */
-    public int varyingQueryUpdate(
-            final AccessResult accessResult,
-            final CBCall<AccessResultCB> cbLambda,
-            final WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> opLambda) {
-        return doQueryUpdate(accessResult, createCB(cbLambda),
-                createUpdateOption(opLambda));
+    public int varyingQueryUpdate(AccessResult accessResult, CBCall<AccessResultCB> cbLambda, WritableOptionCall<AccessResultCB, UpdateOption<AccessResultCB>> opLambda) {
+        return doQueryUpdate(accessResult, createCB(cbLambda), createUpdateOption(opLambda));
     }
 
     /**
@@ -892,9 +802,7 @@ public abstract class BsAccessResultBhv extends
      * @return The deleted count.
      * @throws NonQueryDeleteNotAllowedException When the query has no condition (if not allowed).
      */
-    public int varyingQueryDelete(
-            final CBCall<AccessResultCB> cbLambda,
-            final WritableOptionCall<AccessResultCB, DeleteOption<AccessResultCB>> opLambda) {
+    public int varyingQueryDelete(CBCall<AccessResultCB> cbLambda, WritableOptionCall<AccessResultCB, DeleteOption<AccessResultCB>> opLambda) {
         return doQueryDelete(createCB(cbLambda), createDeleteOption(opLambda));
     }
 
@@ -904,8 +812,8 @@ public abstract class BsAccessResultBhv extends
     /**
      * Prepare the all facade executor of outside-SQL to execute it.
      * <pre>
-     * <span style="color: #3F7E5E">// main style</span>
-     * accessResultBhv.outideSql().selectEntity(pmb); <span style="color: #3F7E5E">// optional</span>
+     * <span style="color: #3F7E5E">// main style</span> 
+     * accessResultBhv.outideSql().selectEntity(pmb); <span style="color: #3F7E5E">// optional</span> 
      * accessResultBhv.outideSql().selectList(pmb); <span style="color: #3F7E5E">// ListResultBean</span>
      * accessResultBhv.outideSql().selectPage(pmb); <span style="color: #3F7E5E">// PagingResultBean</span>
      * accessResultBhv.outideSql().selectPagedListOnly(pmb); <span style="color: #3F7E5E">// ListResultBean</span>
@@ -913,7 +821,7 @@ public abstract class BsAccessResultBhv extends
      * accessResultBhv.outideSql().execute(pmb); <span style="color: #3F7E5E">// int (updated count)</span>
      * accessResultBhv.outideSql().call(pmb); <span style="color: #3F7E5E">// void (pmb has OUT parameters)</span>
      *
-     * <span style="color: #3F7E5E">// traditional style</span>
+     * <span style="color: #3F7E5E">// traditional style</span> 
      * accessResultBhv.outideSql().traditionalStyle().selectEntity(path, pmb, entityType);
      * accessResultBhv.outideSql().traditionalStyle().selectList(path, pmb, entityType);
      * accessResultBhv.outideSql().traditionalStyle().selectPage(path, pmb, entityType);
@@ -921,7 +829,7 @@ public abstract class BsAccessResultBhv extends
      * accessResultBhv.outideSql().traditionalStyle().selectCursor(path, pmb, handler);
      * accessResultBhv.outideSql().traditionalStyle().execute(path, pmb);
      *
-     * <span style="color: #3F7E5E">// options</span>
+     * <span style="color: #3F7E5E">// options</span> 
      * accessResultBhv.outideSql().removeBlockComment().selectList()
      * accessResultBhv.outideSql().removeLineComment().selectList()
      * accessResultBhv.outideSql().formatSql().selectList()
@@ -936,18 +844,7 @@ public abstract class BsAccessResultBhv extends
     // ===================================================================================
     //                                                                         Type Helper
     //                                                                         ===========
-    @Override
-    protected Class<? extends AccessResult> typeOfSelectedEntity() {
-        return AccessResult.class;
-    }
-
-    @Override
-    protected Class<AccessResult> typeOfHandlingEntity() {
-        return AccessResult.class;
-    }
-
-    @Override
-    protected Class<AccessResultCB> typeOfHandlingConditionBean() {
-        return AccessResultCB.class;
-    }
+    protected Class<? extends AccessResult> typeOfSelectedEntity() { return AccessResult.class; }
+    protected Class<AccessResult> typeOfHandlingEntity() { return AccessResult.class; }
+    protected Class<AccessResultCB> typeOfHandlingConditionBean() { return AccessResultCB.class; }
 }

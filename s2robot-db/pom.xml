@@ -32,15 +32,6 @@
         <databaseVersion>${mysql.version}</databaseVersion>
       </properties>
     </profile>
-    <profile>
-      <id>oracle</id>
-      <properties>
-        <database>oracle</database>
-        <databaseGroupId>com.oracle</databaseGroupId>
-        <databaseArtifactId>ojdbc6</databaseArtifactId>
-        <databaseVersion>${oracle.version}</databaseVersion>
-      </properties>
-    </profile>
   </profiles>
   <build>
     <plugins>
@@ -94,6 +85,36 @@
       <artifactId>${databaseArtifactId}</artifactId>
       <version>${databaseVersion}</version>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-j2ee_1.4_spec</artifactId>
+      <version>1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-annotation_1.0_spec</artifactId>
+      <version>1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-ejb_3.0_spec</artifactId>
+      <version>1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-interceptor_3.0_spec</artifactId>
+      <version>1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jta_1.1_spec</artifactId>
+      <version>1.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

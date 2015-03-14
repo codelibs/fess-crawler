@@ -1,62 +1,46 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
-import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
-import org.codelibs.robot.db.exentity.AccessResult;
-import org.codelibs.robot.db.exentity.AccessResultData;
 import org.dbflute.Entity;
-import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.DBMeta;
+import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
 import org.dbflute.optional.OptionalEntity;
+import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
+import org.codelibs.robot.db.exentity.*;
 
 /**
  * The entity of ACCESS_RESULT as TABLE. <br>
  * <pre>
  * [primary-key]
  *     ID
- *
+ * 
  * [column]
  *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, LAST_MODIFIED, CREATE_TIME
- *
+ * 
  * [sequence]
- *
- *
+ *     
+ * 
  * [identity]
  *     ID
- *
+ * 
  * [version-no]
- *
- *
+ *     
+ * 
  * [foreign table]
  *     ACCESS_RESULT_DATA(AsOne)
- *
+ * 
  * [referrer table]
  *     ACCESS_RESULT_DATA
- *
+ * 
  * [foreign property]
  *     accessResultDataAsOne
- *
+ * 
  * [referrer property]
- *
- *
+ *     
+ * 
  * [get/set template]
  * /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  * Long id = entity.getId();
@@ -89,8 +73,7 @@ import org.dbflute.optional.OptionalEntity;
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResult extends AbstractEntity implements
-        DomainEntity {
+public abstract class BsAccessResult extends AbstractEntity implements DomainEntity {
 
     // ===================================================================================
     //                                                                          Definition
@@ -144,26 +127,21 @@ public abstract class BsAccessResult extends AbstractEntity implements
     //                                                                             DB Meta
     //                                                                             =======
     /** {@inheritDoc} */
-    @Override
     public DBMeta asDBMeta() {
         return DBMetaInstanceHandler.findDBMeta(asTableDbName());
     }
 
     /** {@inheritDoc} */
-    @Override
     public String asTableDbName() {
         return "ACCESS_RESULT";
     }
 
     // ===================================================================================
-    //                                                                         Primary Key
-    //                                                                         ===========
+    //                                                                        Key Handling
+    //                                                                        ============
     /** {@inheritDoc} */
-    @Override
     public boolean hasPrimaryKeyValue() {
-        if (_id == null) {
-            return false;
-        }
+        if (_id == null) { return false; }
         return true;
     }
 
@@ -179,10 +157,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * @return the entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (NotNull, EmptyAllowed: when e.g. no data, no setupSelect)
      */
     public OptionalEntity<AccessResultData> getAccessResultDataAsOne() {
-        if (_accessResultDataAsOne == null) {
-            _accessResultDataAsOne = OptionalEntity.relationEmpty(this,
-                    "accessResultDataAsOne");
-        }
+        if (_accessResultDataAsOne == null) { _accessResultDataAsOne = OptionalEntity.relationEmpty(this, "accessResultDataAsOne"); }
         return _accessResultDataAsOne;
     }
 
@@ -190,15 +165,13 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] ACCESS_RESULT_DATA by ID, named 'accessResultDataAsOne'.
      * @param accessResultDataAsOne The entity of foreign property(referrer-as-one) 'accessResultDataAsOne'. (NullAllowed)
      */
-    public void setAccessResultDataAsOne(
-            final OptionalEntity<AccessResultData> accessResultDataAsOne) {
+    public void setAccessResultDataAsOne(OptionalEntity<AccessResultData> accessResultDataAsOne) {
         _accessResultDataAsOne = accessResultDataAsOne;
     }
 
     // ===================================================================================
     //                                                                   Referrer Property
     //                                                                   =================
-    @Override
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
@@ -207,12 +180,10 @@ public abstract class BsAccessResult extends AbstractEntity implements
     //                                                                      Basic Override
     //                                                                      ==============
     @Override
-    protected boolean doEquals(final Object obj) {
+    protected boolean doEquals(Object obj) {
         if (obj instanceof BsAccessResult) {
-            final BsAccessResult other = (BsAccessResult) obj;
-            if (!xSV(_id, other._id)) {
-                return false;
-            }
+            BsAccessResult other = (BsAccessResult)obj;
+            if (!xSV(_id, other._id)) { return false; }
             return true;
         } else {
             return false;
@@ -220,7 +191,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
     }
 
     @Override
-    protected int doHashCode(final int initial) {
+    protected int doHashCode(int initial) {
         int hs = initial;
         hs = xCH(hs, asTableDbName());
         hs = xCH(hs, _id);
@@ -228,24 +199,19 @@ public abstract class BsAccessResult extends AbstractEntity implements
     }
 
     @Override
-    protected String doBuildStringWithRelation(final String li) {
-        final StringBuilder sb = new StringBuilder();
-        if (_accessResultDataAsOne != null
-                && _accessResultDataAsOne.isPresent()) {
-            sb.append(li).append(
-                    xbRDS(_accessResultDataAsOne, "accessResultDataAsOne"));
-        }
+    protected String doBuildStringWithRelation(String li) {
+        StringBuilder sb = new StringBuilder();
+        if (_accessResultDataAsOne != null && _accessResultDataAsOne.isPresent())
+        { sb.append(li).append(xbRDS(_accessResultDataAsOne, "accessResultDataAsOne")); }
         return sb.toString();
     }
-
-    protected <ET extends Entity> String xbRDS(
-            final org.dbflute.optional.OptionalEntity<ET> et, final String name) { // buildRelationDisplayString()
+    protected <ET extends Entity> String xbRDS(org.dbflute.optional.OptionalEntity<ET> et, String name) { // buildRelationDisplayString()
         return et.get().buildDisplayString(name, true, true);
     }
 
     @Override
-    protected String doBuildColumnString(final String dm) {
-        final StringBuilder sb = new StringBuilder();
+    protected String doBuildColumnString(String dm) {
+        StringBuilder sb = new StringBuilder();
         sb.append(dm).append(xfND(_id));
         sb.append(dm).append(xfND(_sessionId));
         sb.append(dm).append(xfND(_ruleId));
@@ -267,12 +233,10 @@ public abstract class BsAccessResult extends AbstractEntity implements
     }
 
     @Override
-    protected String doBuildRelationString(final String dm) {
-        final StringBuilder sb = new StringBuilder();
-        if (_accessResultDataAsOne != null
-                && _accessResultDataAsOne.isPresent()) {
-            sb.append(dm).append("accessResultDataAsOne");
-        }
+    protected String doBuildRelationString(String dm) {
+        StringBuilder sb = new StringBuilder();
+        if (_accessResultDataAsOne != null && _accessResultDataAsOne.isPresent())
+        { sb.append(dm).append("accessResultDataAsOne"); }
         if (sb.length() > dm.length()) {
             sb.delete(0, dm.length()).insert(0, "(").append(")");
         }
@@ -281,7 +245,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
 
     @Override
     public AccessResult clone() {
-        return (AccessResult) super.clone();
+        return (AccessResult)super.clone();
     }
 
     // ===================================================================================
@@ -300,7 +264,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br>
      * @param id The value of the column 'ID'. (basically NotNull if update: for the constraint)
      */
-    public void setId(final Long id) {
+    public void setId(Long id) {
         registerModifiedProperty("id");
         _id = id;
     }
@@ -318,7 +282,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br>
      * @param sessionId The value of the column 'SESSION_ID'. (basically NotNull if update: for the constraint)
      */
-    public void setSessionId(final String sessionId) {
+    public void setSessionId(String sessionId) {
         registerModifiedProperty("sessionId");
         _sessionId = sessionId;
     }
@@ -336,7 +300,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] RULE_ID: {VARCHAR(20)} <br>
      * @param ruleId The value of the column 'RULE_ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setRuleId(final String ruleId) {
+    public void setRuleId(String ruleId) {
         registerModifiedProperty("ruleId");
         _ruleId = ruleId;
     }
@@ -354,7 +318,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] URL: {IX+, NotNull, VARCHAR(65536)} <br>
      * @param url The value of the column 'URL'. (basically NotNull if update: for the constraint)
      */
-    public void setUrl(final String url) {
+    public void setUrl(String url) {
         registerModifiedProperty("url");
         _url = url;
     }
@@ -372,7 +336,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] PARENT_URL: {VARCHAR(65536)} <br>
      * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setParentUrl(final String parentUrl) {
+    public void setParentUrl(String parentUrl) {
         registerModifiedProperty("parentUrl");
         _parentUrl = parentUrl;
     }
@@ -390,7 +354,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] STATUS: {NotNull, INTEGER(10)} <br>
      * @param status The value of the column 'STATUS'. (basically NotNull if update: for the constraint)
      */
-    public void setStatus(final Integer status) {
+    public void setStatus(Integer status) {
         registerModifiedProperty("status");
         _status = status;
     }
@@ -408,7 +372,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] HTTP_STATUS_CODE: {NotNull, INTEGER(10)} <br>
      * @param httpStatusCode The value of the column 'HTTP_STATUS_CODE'. (basically NotNull if update: for the constraint)
      */
-    public void setHttpStatusCode(final Integer httpStatusCode) {
+    public void setHttpStatusCode(Integer httpStatusCode) {
         registerModifiedProperty("httpStatusCode");
         _httpStatusCode = httpStatusCode;
     }
@@ -426,7 +390,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] METHOD: {NotNull, VARCHAR(10)} <br>
      * @param method The value of the column 'METHOD'. (basically NotNull if update: for the constraint)
      */
-    public void setMethod(final String method) {
+    public void setMethod(String method) {
         registerModifiedProperty("method");
         _method = method;
     }
@@ -444,7 +408,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] MIME_TYPE: {NotNull, VARCHAR(100)} <br>
      * @param mimeType The value of the column 'MIME_TYPE'. (basically NotNull if update: for the constraint)
      */
-    public void setMimeType(final String mimeType) {
+    public void setMimeType(String mimeType) {
         registerModifiedProperty("mimeType");
         _mimeType = mimeType;
     }
@@ -462,7 +426,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] CONTENT_LENGTH: {NotNull, BIGINT(19)} <br>
      * @param contentLength The value of the column 'CONTENT_LENGTH'. (basically NotNull if update: for the constraint)
      */
-    public void setContentLength(final Long contentLength) {
+    public void setContentLength(Long contentLength) {
         registerModifiedProperty("contentLength");
         _contentLength = contentLength;
     }
@@ -480,7 +444,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] EXECUTION_TIME: {NotNull, INTEGER(10)} <br>
      * @param executionTime The value of the column 'EXECUTION_TIME'. (basically NotNull if update: for the constraint)
      */
-    public void setExecutionTime(final Integer executionTime) {
+    public void setExecutionTime(Integer executionTime) {
         registerModifiedProperty("executionTime");
         _executionTime = executionTime;
     }
@@ -498,7 +462,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] LAST_MODIFIED: {BIGINT(19)} <br>
      * @param lastModified The value of the column 'LAST_MODIFIED'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setLastModified(final Long lastModified) {
+    public void setLastModified(Long lastModified) {
         registerModifiedProperty("lastModified");
         _lastModified = lastModified;
     }
@@ -516,7 +480,7 @@ public abstract class BsAccessResult extends AbstractEntity implements
      * [set] CREATE_TIME: {NotNull, BIGINT(19)} <br>
      * @param createTime The value of the column 'CREATE_TIME'. (basically NotNull if update: for the constraint)
      */
-    public void setCreateTime(final Long createTime) {
+    public void setCreateTime(Long createTime) {
         registerModifiedProperty("createTime");
         _createTime = createTime;
     }

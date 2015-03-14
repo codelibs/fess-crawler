@@ -1,59 +1,44 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
-import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
-import org.codelibs.robot.db.exentity.UrlQueue;
-import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.DBMeta;
+import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
+import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
+import org.codelibs.robot.db.exentity.*;
 
 /**
  * The entity of URL_QUEUE as TABLE. <br>
  * <pre>
  * [primary-key]
  *     ID
- *
+ * 
  * [column]
  *     ID, SESSION_ID, METHOD, URL, META_DATA, ENCODING, PARENT_URL, DEPTH, LAST_MODIFIED, CREATE_TIME
- *
+ * 
  * [sequence]
- *
- *
+ *     
+ * 
  * [identity]
  *     ID
- *
+ * 
  * [version-no]
- *
- *
+ *     
+ * 
  * [foreign table]
- *
- *
+ *     
+ * 
  * [referrer table]
- *
- *
+ *     
+ * 
  * [foreign property]
- *
- *
+ *     
+ * 
  * [referrer property]
- *
- *
+ *     
+ * 
  * [get/set template]
  * /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  * Long id = entity.getId();
@@ -125,26 +110,21 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
     //                                                                             DB Meta
     //                                                                             =======
     /** {@inheritDoc} */
-    @Override
     public DBMeta asDBMeta() {
         return DBMetaInstanceHandler.findDBMeta(asTableDbName());
     }
 
     /** {@inheritDoc} */
-    @Override
     public String asTableDbName() {
         return "URL_QUEUE";
     }
 
     // ===================================================================================
-    //                                                                         Primary Key
-    //                                                                         ===========
+    //                                                                        Key Handling
+    //                                                                        ============
     /** {@inheritDoc} */
-    @Override
     public boolean hasPrimaryKeyValue() {
-        if (_id == null) {
-            return false;
-        }
+        if (_id == null) { return false; }
         return true;
     }
 
@@ -154,7 +134,6 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
     // ===================================================================================
     //                                                                   Referrer Property
     //                                                                   =================
-    @Override
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
@@ -163,12 +142,10 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
     //                                                                      Basic Override
     //                                                                      ==============
     @Override
-    protected boolean doEquals(final Object obj) {
+    protected boolean doEquals(Object obj) {
         if (obj instanceof BsUrlQueue) {
-            final BsUrlQueue other = (BsUrlQueue) obj;
-            if (!xSV(_id, other._id)) {
-                return false;
-            }
+            BsUrlQueue other = (BsUrlQueue)obj;
+            if (!xSV(_id, other._id)) { return false; }
             return true;
         } else {
             return false;
@@ -176,7 +153,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
     }
 
     @Override
-    protected int doHashCode(final int initial) {
+    protected int doHashCode(int initial) {
         int hs = initial;
         hs = xCH(hs, asTableDbName());
         hs = xCH(hs, _id);
@@ -184,13 +161,13 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
     }
 
     @Override
-    protected String doBuildStringWithRelation(final String li) {
+    protected String doBuildStringWithRelation(String li) {
         return "";
     }
 
     @Override
-    protected String doBuildColumnString(final String dm) {
-        final StringBuilder sb = new StringBuilder();
+    protected String doBuildColumnString(String dm) {
+        StringBuilder sb = new StringBuilder();
         sb.append(dm).append(xfND(_id));
         sb.append(dm).append(xfND(_sessionId));
         sb.append(dm).append(xfND(_method));
@@ -209,13 +186,13 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
     }
 
     @Override
-    protected String doBuildRelationString(final String dm) {
+    protected String doBuildRelationString(String dm) {
         return "";
     }
 
     @Override
     public UrlQueue clone() {
-        return (UrlQueue) super.clone();
+        return (UrlQueue)super.clone();
     }
 
     // ===================================================================================
@@ -234,7 +211,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] ID: {PK, ID, NotNull, BIGINT(19)} <br>
      * @param id The value of the column 'ID'. (basically NotNull if update: for the constraint)
      */
-    public void setId(final Long id) {
+    public void setId(Long id) {
         registerModifiedProperty("id");
         _id = id;
     }
@@ -252,7 +229,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] SESSION_ID: {IX+, NotNull, VARCHAR(20)} <br>
      * @param sessionId The value of the column 'SESSION_ID'. (basically NotNull if update: for the constraint)
      */
-    public void setSessionId(final String sessionId) {
+    public void setSessionId(String sessionId) {
         registerModifiedProperty("sessionId");
         _sessionId = sessionId;
     }
@@ -270,7 +247,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] METHOD: {NotNull, VARCHAR(10)} <br>
      * @param method The value of the column 'METHOD'. (basically NotNull if update: for the constraint)
      */
-    public void setMethod(final String method) {
+    public void setMethod(String method) {
         registerModifiedProperty("method");
         _method = method;
     }
@@ -288,7 +265,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] URL: {NotNull, VARCHAR(65536)} <br>
      * @param url The value of the column 'URL'. (basically NotNull if update: for the constraint)
      */
-    public void setUrl(final String url) {
+    public void setUrl(String url) {
         registerModifiedProperty("url");
         _url = url;
     }
@@ -306,7 +283,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] META_DATA: {VARCHAR(65536)} <br>
      * @param metaData The value of the column 'META_DATA'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setMetaData(final String metaData) {
+    public void setMetaData(String metaData) {
         registerModifiedProperty("metaData");
         _metaData = metaData;
     }
@@ -324,7 +301,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] ENCODING: {VARCHAR(20)} <br>
      * @param encoding The value of the column 'ENCODING'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setEncoding(final String encoding) {
+    public void setEncoding(String encoding) {
         registerModifiedProperty("encoding");
         _encoding = encoding;
     }
@@ -342,7 +319,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] PARENT_URL: {VARCHAR(65536)} <br>
      * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setParentUrl(final String parentUrl) {
+    public void setParentUrl(String parentUrl) {
         registerModifiedProperty("parentUrl");
         _parentUrl = parentUrl;
     }
@@ -360,7 +337,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] DEPTH: {NotNull, INTEGER(10)} <br>
      * @param depth The value of the column 'DEPTH'. (basically NotNull if update: for the constraint)
      */
-    public void setDepth(final Integer depth) {
+    public void setDepth(Integer depth) {
         registerModifiedProperty("depth");
         _depth = depth;
     }
@@ -378,7 +355,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] LAST_MODIFIED: {BIGINT(19)} <br>
      * @param lastModified The value of the column 'LAST_MODIFIED'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setLastModified(final Long lastModified) {
+    public void setLastModified(Long lastModified) {
         registerModifiedProperty("lastModified");
         _lastModified = lastModified;
     }
@@ -396,7 +373,7 @@ public abstract class BsUrlQueue extends AbstractEntity implements DomainEntity 
      * [set] CREATE_TIME: {NotNull, BIGINT(19)} <br>
      * @param createTime The value of the column 'CREATE_TIME'. (basically NotNull if update: for the constraint)
      */
-    public void setCreateTime(final Long createTime) {
+    public void setCreateTime(Long createTime) {
         registerModifiedProperty("createTime");
         _createTime = createTime;
     }

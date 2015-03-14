@@ -27,7 +27,6 @@ import org.codelibs.robot.db.exentity.UrlFilter;
 import org.codelibs.robot.service.UrlFilterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author shinsuke
@@ -56,7 +55,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void addIncludeUrlFilter(final String sessionId, final String url) {
         addUrlFilter(sessionId, url, INCLUDE_FILTER_TYPE);
     }
@@ -67,7 +65,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#addIncludeUrlFilter(java.lang.String, java.util.List)
      */
     @Override
-    @Transactional("robotTx")
     public void addIncludeUrlFilter(final String sessionId,
             final List<String> urlList) {
         addUrlFilter(sessionId, urlList, INCLUDE_FILTER_TYPE);
@@ -79,7 +76,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void addExcludeUrlFilter(final String sessionId, final String url) {
         addUrlFilter(sessionId, url, EXCLUDE_FILTER_TYPE);
     }
@@ -90,7 +86,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#addExcludeUrlFilter(java.lang.String, java.util.List)
      */
     @Override
-    @Transactional("robotTx")
     public void addExcludeUrlFilter(final String sessionId,
             final List<String> urlList) {
         addUrlFilter(sessionId, urlList, EXCLUDE_FILTER_TYPE);
@@ -144,7 +139,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#delete(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void delete(final String sessionId) {
         clearCache();
         urlFilterBhv.deleteBySessionId(sessionId);
@@ -156,7 +150,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#deleteAll()
      */
     @Override
-    @Transactional("robotTx")
     public void deleteAll() {
         clearCache();
         urlFilterBhv.deleteAll();
@@ -168,7 +161,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#getIncludeUrlPatternList(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
         if (includeUrlPatternListCache == null) {
             final List<Pattern> urlPatternList = getUrlPatternList(sessionId,
@@ -187,7 +179,6 @@ public class DBUrlFilterServiceImpl implements UrlFilterService {
      * @see org.codelibs.robot.service.impl.UrlFilterService#getExcludeUrlPatternList(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
         if (excludeUrlPatternListCache == null) {
             final List<Pattern> urlPatternList = getUrlPatternList(sessionId,

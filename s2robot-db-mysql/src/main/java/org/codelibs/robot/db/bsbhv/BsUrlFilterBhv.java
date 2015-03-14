@@ -1,50 +1,23 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsbhv;
 
 import java.util.List;
 
-import org.codelibs.robot.db.bsbhv.loader.LoaderOfUrlFilter;
-import org.codelibs.robot.db.bsentity.dbmeta.UrlFilterDbm;
-import org.codelibs.robot.db.cbean.UrlFilterCB;
-import org.codelibs.robot.db.exbhv.UrlFilterBhv;
-import org.codelibs.robot.db.exentity.UrlFilter;
-import org.dbflute.Entity;
-import org.dbflute.bhv.AbstractBehaviorWritable;
-import org.dbflute.bhv.readable.CBCall;
-import org.dbflute.bhv.readable.EntityRowHandler;
-import org.dbflute.bhv.referrer.ReferrerLoaderHandler;
-import org.dbflute.bhv.writable.DeleteOption;
-import org.dbflute.bhv.writable.InsertOption;
-import org.dbflute.bhv.writable.QueryInsertSetupper;
-import org.dbflute.bhv.writable.UpdateOption;
-import org.dbflute.bhv.writable.WritableOptionCall;
-import org.dbflute.cbean.ConditionBean;
+import org.dbflute.*;
+import org.dbflute.bhv.*;
+import org.dbflute.bhv.readable.*;
+import org.dbflute.bhv.writable.*;
+import org.dbflute.bhv.referrer.*;
+import org.dbflute.cbean.*;
 import org.dbflute.cbean.chelper.HpSLSFunction;
-import org.dbflute.cbean.result.ListResultBean;
-import org.dbflute.cbean.result.PagingResultBean;
-import org.dbflute.exception.DangerousResultSizeException;
-import org.dbflute.exception.EntityAlreadyDeletedException;
-import org.dbflute.exception.EntityAlreadyExistsException;
-import org.dbflute.exception.EntityDuplicatedException;
-import org.dbflute.exception.NonQueryDeleteNotAllowedException;
-import org.dbflute.exception.NonQueryUpdateNotAllowedException;
-import org.dbflute.exception.SelectEntityConditionNotFoundException;
+import org.dbflute.cbean.result.*;
+import org.dbflute.exception.*;
 import org.dbflute.optional.OptionalEntity;
-import org.dbflute.outsidesql.executor.OutsideSqlAllFacadeExecutor;
+import org.dbflute.outsidesql.executor.*;
+import org.codelibs.robot.db.exbhv.*;
+import org.codelibs.robot.db.bsbhv.loader.*;
+import org.codelibs.robot.db.exentity.*;
+import org.codelibs.robot.db.bsentity.dbmeta.*;
+import org.codelibs.robot.db.cbean.*;
 
 /**
  * The behavior of URL_FILTER as TABLE. <br>
@@ -56,30 +29,29 @@ import org.dbflute.outsidesql.executor.OutsideSqlAllFacadeExecutor;
  *     ID, SESSION_ID, URL, FILTER_TYPE, CREATE_TIME
  *
  * [sequence]
- *
+ *     
  *
  * [identity]
  *     ID
  *
  * [version-no]
- *
+ *     
  *
  * [foreign table]
- *
+ *     
  *
  * [referrer table]
- *
+ *     
  *
  * [foreign property]
- *
+ *     
  *
  * [referrer property]
- *
+ *     
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsUrlFilterBhv extends
-        AbstractBehaviorWritable<UrlFilter, UrlFilterCB> {
+public abstract class BsUrlFilterBhv extends AbstractBehaviorWritable<UrlFilter, UrlFilterCB> {
 
     // ===================================================================================
     //                                                                          Definition
@@ -91,25 +63,15 @@ public abstract class BsUrlFilterBhv extends
     //                                                                             DB Meta
     //                                                                             =======
     /** {@inheritDoc} */
-    @Override
-    public UrlFilterDbm asDBMeta() {
-        return UrlFilterDbm.getInstance();
-    }
-
+    public UrlFilterDbm asDBMeta() { return UrlFilterDbm.getInstance(); }
     /** {@inheritDoc} */
-    @Override
-    public String asTableDbName() {
-        return "URL_FILTER";
-    }
+    public String asTableDbName() { return "URL_FILTER"; }
 
     // ===================================================================================
     //                                                                        New Instance
     //                                                                        ============
     /** {@inheritDoc} */
-    @Override
-    public UrlFilterCB newConditionBean() {
-        return new UrlFilterCB();
-    }
+    public UrlFilterCB newConditionBean() { return new UrlFilterCB(); }
 
     // ===================================================================================
     //                                                                        Count Select
@@ -125,7 +87,7 @@ public abstract class BsUrlFilterBhv extends
      * @param cbLambda The callback for condition-bean of UrlFilter. (NotNull)
      * @return The count for the condition. (NotMinus)
      */
-    public int selectCount(final CBCall<UrlFilterCB> cbLambda) {
+    public int selectCount(CBCall<UrlFilterCB> cbLambda) {
         return facadeSelectCount(createCB(cbLambda));
     }
 
@@ -145,7 +107,7 @@ public abstract class BsUrlFilterBhv extends
      *     <span style="color: #3F7E5E">// called if present, or exception</span>
      *     ... = <span style="color: #553000">urlFilter</span>.get...
      * });
-     *
+     * 
      * <span style="color: #3F7E5E">// if it might be no data, ...</span>
      * <span style="color: #0000C0">urlFilterBhv</span>.<span style="color: #CC4747">selectEntity</span>(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
      *     <span style="color: #553000">cb</span>.query().set...
@@ -162,24 +124,19 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public OptionalEntity<UrlFilter> selectEntity(
-            final CBCall<UrlFilterCB> cbLambda) {
+    public OptionalEntity<UrlFilter> selectEntity(CBCall<UrlFilterCB> cbLambda) {
         return facadeSelectEntity(createCB(cbLambda));
     }
 
-    protected OptionalEntity<UrlFilter> facadeSelectEntity(final UrlFilterCB cb) {
+    protected OptionalEntity<UrlFilter> facadeSelectEntity(UrlFilterCB cb) {
         return doSelectOptionalEntity(cb, typeOfSelectedEntity());
     }
 
-    protected <ENTITY extends UrlFilter> OptionalEntity<ENTITY> doSelectOptionalEntity(
-            final UrlFilterCB cb, final Class<? extends ENTITY> tp) {
+    protected <ENTITY extends UrlFilter> OptionalEntity<ENTITY> doSelectOptionalEntity(UrlFilterCB cb, Class<? extends ENTITY> tp) {
         return createOptionalEntity(doSelectEntity(cb, tp), cb);
     }
 
-    @Override
-    protected Entity doReadEntity(final ConditionBean cb) {
-        return facadeSelectEntity(downcast(cb)).orElse(null);
-    }
+    protected Entity doReadEntity(ConditionBean cb) { return facadeSelectEntity(downcast(cb)).orElse(null); }
 
     /**
      * Select the entity by the condition-bean with deleted check. <br>
@@ -194,8 +151,7 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public UrlFilter selectEntityWithDeletedCheck(
-            final CBCall<UrlFilterCB> cbLambda) {
+    public UrlFilter selectEntityWithDeletedCheck(CBCall<UrlFilterCB> cbLambda) {
         return facadeSelectEntityWithDeletedCheck(createCB(cbLambda));
     }
 
@@ -207,25 +163,23 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws SelectEntityConditionNotFoundException When the condition for selecting an entity is not found.
      */
-    public OptionalEntity<UrlFilter> selectByPK(final Long id) {
+    public OptionalEntity<UrlFilter> selectByPK(Long id) {
         return facadeSelectByPK(id);
     }
 
-    protected OptionalEntity<UrlFilter> facadeSelectByPK(final Long id) {
+    protected OptionalEntity<UrlFilter> facadeSelectByPK(Long id) {
         return doSelectOptionalByPK(id, typeOfSelectedEntity());
     }
 
-    protected <ENTITY extends UrlFilter> ENTITY doSelectByPK(final Long id,
-            final Class<? extends ENTITY> tp) {
+    protected <ENTITY extends UrlFilter> ENTITY doSelectByPK(Long id, Class<? extends ENTITY> tp) {
         return doSelectEntity(xprepareCBAsPK(id), tp);
     }
 
-    protected <ENTITY extends UrlFilter> OptionalEntity<ENTITY> doSelectOptionalByPK(
-            final Long id, final Class<? extends ENTITY> tp) {
+    protected <ENTITY extends UrlFilter> OptionalEntity<ENTITY> doSelectOptionalByPK(Long id, Class<? extends ENTITY> tp) {
         return createOptionalEntity(doSelectByPK(id, tp), id);
     }
 
-    protected UrlFilterCB xprepareCBAsPK(final Long id) {
+    protected UrlFilterCB xprepareCBAsPK(Long id) {
         assertObjectNotNull("id", id);
         return newConditionBean().acceptPK(id);
     }
@@ -248,15 +202,12 @@ public abstract class BsUrlFilterBhv extends
      * @return The result bean of selected list. (NotNull: if no data, returns empty list)
      * @throws DangerousResultSizeException When the result size is over the specified safety size.
      */
-    public ListResultBean<UrlFilter> selectList(
-            final CBCall<UrlFilterCB> cbLambda) {
+    public ListResultBean<UrlFilter> selectList(CBCall<UrlFilterCB> cbLambda) {
         return facadeSelectList(createCB(cbLambda));
     }
 
     @Override
-    protected boolean isEntityDerivedMappable() {
-        return true;
-    }
+    protected boolean isEntityDerivedMappable() { return true; }
 
     // ===================================================================================
     //                                                                         Page Select
@@ -283,8 +234,7 @@ public abstract class BsUrlFilterBhv extends
      * @return The result bean of selected page. (NotNull: if no data, returns bean as empty list)
      * @throws DangerousResultSizeException When the result size is over the specified safety size.
      */
-    public PagingResultBean<UrlFilter> selectPage(
-            final CBCall<UrlFilterCB> cbLambda) {
+    public PagingResultBean<UrlFilter> selectPage(CBCall<UrlFilterCB> cbLambda) {
         return facadeSelectPage(createCB(cbLambda));
     }
 
@@ -303,8 +253,7 @@ public abstract class BsUrlFilterBhv extends
      * @param cbLambda The callback for condition-bean of UrlFilter. (NotNull)
      * @param entityLambda The handler of entity row of UrlFilter. (NotNull)
      */
-    public void selectCursor(final CBCall<UrlFilterCB> cbLambda,
-            final EntityRowHandler<UrlFilter> entityLambda) {
+    public void selectCursor(CBCall<UrlFilterCB> cbLambda, EntityRowHandler<UrlFilter> entityLambda) {
         facadeSelectCursor(createCB(cbLambda), entityLambda);
     }
 
@@ -324,8 +273,7 @@ public abstract class BsUrlFilterBhv extends
      * @param resultType The type of result. (NotNull)
      * @return The scalar function object to specify function for scalar value. (NotNull)
      */
-    public <RESULT> HpSLSFunction<UrlFilterCB, RESULT> selectScalar(
-            final Class<RESULT> resultType) {
+    public <RESULT> HpSLSFunction<UrlFilterCB, RESULT> selectScalar(Class<RESULT> resultType) {
         return facadeScalarSelect(resultType);
     }
 
@@ -334,8 +282,7 @@ public abstract class BsUrlFilterBhv extends
     //                                                                            ========
     @Override
     protected Number doReadNextVal() {
-        final String msg = "This table is NOT related to sequence: "
-                + asTableDbName();
+        String msg = "This table is NOT related to sequence: " + asTableDbName();
         throw new UnsupportedOperationException(msg);
     }
 
@@ -343,7 +290,7 @@ public abstract class BsUrlFilterBhv extends
     //                                                                       Load Referrer
     //                                                                       =============
     /**
-     * Load referrer for the list by the the referrer loader.
+     * Load referrer for the list by the referrer loader.
      * <pre>
      * List&lt;Member&gt; <span style="color: #553000">memberList</span> = <span style="color: #0000C0">memberBhv</span>.selectList(<span style="color: #553000">cb</span> <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
      *     <span style="color: #553000">cb</span>.query().set...
@@ -374,11 +321,9 @@ public abstract class BsUrlFilterBhv extends
      * @param urlFilterList The entity list of urlFilter. (NotNull)
      * @param loaderLambda The callback to handle the referrer loader for actually loading referrer. (NotNull)
      */
-    public void load(final List<UrlFilter> urlFilterList,
-            final ReferrerLoaderHandler<LoaderOfUrlFilter> loaderLambda) {
+    public void load(List<UrlFilter> urlFilterList, ReferrerLoaderHandler<LoaderOfUrlFilter> loaderLambda) {
         xassLRArg(urlFilterList, loaderLambda);
-        loaderLambda.handle(new LoaderOfUrlFilter().ready(urlFilterList,
-                _behaviorSelector));
+        loaderLambda.handle(new LoaderOfUrlFilter().ready(urlFilterList, _behaviorSelector));
     }
 
     /**
@@ -409,11 +354,9 @@ public abstract class BsUrlFilterBhv extends
      * @param urlFilter The entity of urlFilter. (NotNull)
      * @param loaderLambda The callback to handle the referrer loader for actually loading referrer. (NotNull)
      */
-    public void load(final UrlFilter urlFilter,
-            final ReferrerLoaderHandler<LoaderOfUrlFilter> loaderLambda) {
+    public void load(UrlFilter urlFilter, ReferrerLoaderHandler<LoaderOfUrlFilter> loaderLambda) {
         xassLRArg(urlFilter, loaderLambda);
-        loaderLambda.handle(new LoaderOfUrlFilter().ready(
-                xnewLRAryLs(urlFilter), _behaviorSelector));
+        loaderLambda.handle(new LoaderOfUrlFilter().ready(xnewLRAryLs(urlFilter), _behaviorSelector));
     }
 
     // ===================================================================================
@@ -427,9 +370,8 @@ public abstract class BsUrlFilterBhv extends
      * @param urlFilterList The list of urlFilter. (NotNull, EmptyAllowed)
      * @return The list of the column value. (NotNull, EmptyAllowed, NotNullElement)
      */
-    public List<Long> extractIdList(final List<UrlFilter> urlFilterList) {
-        return helpExtractListInternally(urlFilterList, "id");
-    }
+    public List<Long> extractIdList(List<UrlFilter> urlFilterList)
+    { return helpExtractListInternally(urlFilterList, "id"); }
 
     // ===================================================================================
     //                                                                       Entity Update
@@ -451,7 +393,7 @@ public abstract class BsUrlFilterBhv extends
      * @param urlFilter The entity of insert. (NotNull, PrimaryKeyNullAllowed: when auto-increment)
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void insert(final UrlFilter urlFilter) {
+    public void insert(UrlFilter urlFilter) {
         doInsert(urlFilter, null);
     }
 
@@ -474,7 +416,7 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void update(final UrlFilter urlFilter) {
+    public void update(UrlFilter urlFilter) {
         doUpdate(urlFilter, null);
     }
 
@@ -487,7 +429,7 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void insertOrUpdate(final UrlFilter urlFilter) {
+    public void insertOrUpdate(UrlFilter urlFilter) {
         doInsertOrUpdate(urlFilter, null, null);
     }
 
@@ -509,7 +451,7 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      * @throws EntityDuplicatedException When the entity has been duplicated.
      */
-    public void delete(final UrlFilter urlFilter) {
+    public void delete(UrlFilter urlFilter) {
         doDelete(urlFilter, null);
     }
 
@@ -540,7 +482,7 @@ public abstract class BsUrlFilterBhv extends
      * @param urlFilterList The list of the entity. (NotNull, EmptyAllowed, PrimaryKeyNullAllowed: when auto-increment)
      * @return The array of inserted count. (NotNull, EmptyAllowed)
      */
-    public int[] batchInsert(final List<UrlFilter> urlFilterList) {
+    public int[] batchInsert(List<UrlFilter> urlFilterList) {
         return doBatchInsert(urlFilterList, null);
     }
 
@@ -568,7 +510,7 @@ public abstract class BsUrlFilterBhv extends
      * @return The array of updated count. (NotNull, EmptyAllowed)
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      */
-    public int[] batchUpdate(final List<UrlFilter> urlFilterList) {
+    public int[] batchUpdate(List<UrlFilter> urlFilterList) {
         return doBatchUpdate(urlFilterList, null);
     }
 
@@ -579,7 +521,7 @@ public abstract class BsUrlFilterBhv extends
      * @return The array of deleted count. (NotNull, EmptyAllowed)
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      */
-    public int[] batchDelete(final List<UrlFilter> urlFilterList) {
+    public int[] batchDelete(List<UrlFilter> urlFilterList) {
         return doBatchDelete(urlFilterList, null);
     }
 
@@ -612,8 +554,7 @@ public abstract class BsUrlFilterBhv extends
      * @param manyArgLambda The callback to set up query-insert. (NotNull)
      * @return The inserted count.
      */
-    public int queryInsert(
-            final QueryInsertSetupper<UrlFilter, UrlFilterCB> manyArgLambda) {
+    public int queryInsert(QueryInsertSetupper<UrlFilter, UrlFilterCB> manyArgLambda) {
         return doQueryInsert(manyArgLambda, null);
     }
 
@@ -639,8 +580,7 @@ public abstract class BsUrlFilterBhv extends
      * @return The updated count.
      * @throws NonQueryUpdateNotAllowedException When the query has no condition.
      */
-    public int queryUpdate(final UrlFilter urlFilter,
-            final CBCall<UrlFilterCB> cbLambda) {
+    public int queryUpdate(UrlFilter urlFilter, CBCall<UrlFilterCB> cbLambda) {
         return doQueryUpdate(urlFilter, createCB(cbLambda), null);
     }
 
@@ -655,7 +595,7 @@ public abstract class BsUrlFilterBhv extends
      * @return The deleted count.
      * @throws NonQueryDeleteNotAllowedException When the query has no condition.
      */
-    public int queryDelete(final CBCall<UrlFilterCB> cbLambda) {
+    public int queryDelete(CBCall<UrlFilterCB> cbLambda) {
         return doQueryDelete(createCB(cbLambda), null);
     }
 
@@ -684,9 +624,7 @@ public abstract class BsUrlFilterBhv extends
      * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingInsert(
-            final UrlFilter urlFilter,
-            final WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> opLambda) {
+    public void varyingInsert(UrlFilter urlFilter, WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> opLambda) {
         doInsert(urlFilter, createInsertOption(opLambda));
     }
 
@@ -713,9 +651,7 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingUpdate(
-            final UrlFilter urlFilter,
-            final WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> opLambda) {
+    public void varyingUpdate(UrlFilter urlFilter, WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> opLambda) {
         doUpdate(urlFilter, createUpdateOption(opLambda));
     }
 
@@ -729,12 +665,8 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityDuplicatedException When the entity has been duplicated.
      * @throws EntityAlreadyExistsException When the entity already exists. (unique constraint violation)
      */
-    public void varyingInsertOrUpdate(
-            final UrlFilter urlFilter,
-            final WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> insertOpLambda,
-            final WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> updateOpLambda) {
-        doInsertOrUpdate(urlFilter, createInsertOption(insertOpLambda),
-                createUpdateOption(updateOpLambda));
+    public void varyingInsertOrUpdate(UrlFilter urlFilter, WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> insertOpLambda, WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> updateOpLambda) {
+        doInsertOrUpdate(urlFilter, createInsertOption(insertOpLambda), createUpdateOption(updateOpLambda));
     }
 
     /**
@@ -746,9 +678,7 @@ public abstract class BsUrlFilterBhv extends
      * @throws EntityAlreadyDeletedException When the entity has already been deleted. (not found)
      * @throws EntityDuplicatedException When the entity has been duplicated.
      */
-    public void varyingDelete(
-            final UrlFilter urlFilter,
-            final WritableOptionCall<UrlFilterCB, DeleteOption<UrlFilterCB>> opLambda) {
+    public void varyingDelete(UrlFilter urlFilter, WritableOptionCall<UrlFilterCB, DeleteOption<UrlFilterCB>> opLambda) {
         doDelete(urlFilter, createDeleteOption(opLambda));
     }
 
@@ -764,9 +694,7 @@ public abstract class BsUrlFilterBhv extends
      * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @return The array of updated count. (NotNull, EmptyAllowed)
      */
-    public int[] varyingBatchInsert(
-            final List<UrlFilter> urlFilterList,
-            final WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> opLambda) {
+    public int[] varyingBatchInsert(List<UrlFilter> urlFilterList, WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> opLambda) {
         return doBatchInsert(urlFilterList, createInsertOption(opLambda));
     }
 
@@ -779,9 +707,7 @@ public abstract class BsUrlFilterBhv extends
      * @param opLambda The callback for option of update for varying requests. (NotNull)
      * @return The array of updated count. (NotNull, EmptyAllowed)
      */
-    public int[] varyingBatchUpdate(
-            final List<UrlFilter> urlFilterList,
-            final WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> opLambda) {
+    public int[] varyingBatchUpdate(List<UrlFilter> urlFilterList, WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> opLambda) {
         return doBatchUpdate(urlFilterList, createUpdateOption(opLambda));
     }
 
@@ -793,9 +719,7 @@ public abstract class BsUrlFilterBhv extends
      * @param opLambda The callback for option of delete for varying requests. (NotNull)
      * @return The array of deleted count. (NotNull, EmptyAllowed)
      */
-    public int[] varyingBatchDelete(
-            final List<UrlFilter> urlFilterList,
-            final WritableOptionCall<UrlFilterCB, DeleteOption<UrlFilterCB>> opLambda) {
+    public int[] varyingBatchDelete(List<UrlFilter> urlFilterList, WritableOptionCall<UrlFilterCB, DeleteOption<UrlFilterCB>> opLambda) {
         return doBatchDelete(urlFilterList, createDeleteOption(opLambda));
     }
 
@@ -810,9 +734,7 @@ public abstract class BsUrlFilterBhv extends
      * @param opLambda The callback for option of insert for varying requests. (NotNull)
      * @return The inserted count.
      */
-    public int varyingQueryInsert(
-            final QueryInsertSetupper<UrlFilter, UrlFilterCB> manyArgLambda,
-            final WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> opLambda) {
+    public int varyingQueryInsert(QueryInsertSetupper<UrlFilter, UrlFilterCB> manyArgLambda, WritableOptionCall<UrlFilterCB, InsertOption<UrlFilterCB>> opLambda) {
         return doQueryInsert(manyArgLambda, createInsertOption(opLambda));
     }
 
@@ -844,12 +766,8 @@ public abstract class BsUrlFilterBhv extends
      * @return The updated count.
      * @throws NonQueryUpdateNotAllowedException When the query has no condition (if not allowed).
      */
-    public int varyingQueryUpdate(
-            final UrlFilter urlFilter,
-            final CBCall<UrlFilterCB> cbLambda,
-            final WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> opLambda) {
-        return doQueryUpdate(urlFilter, createCB(cbLambda),
-                createUpdateOption(opLambda));
+    public int varyingQueryUpdate(UrlFilter urlFilter, CBCall<UrlFilterCB> cbLambda, WritableOptionCall<UrlFilterCB, UpdateOption<UrlFilterCB>> opLambda) {
+        return doQueryUpdate(urlFilter, createCB(cbLambda), createUpdateOption(opLambda));
     }
 
     /**
@@ -868,9 +786,7 @@ public abstract class BsUrlFilterBhv extends
      * @return The deleted count.
      * @throws NonQueryDeleteNotAllowedException When the query has no condition (if not allowed).
      */
-    public int varyingQueryDelete(
-            final CBCall<UrlFilterCB> cbLambda,
-            final WritableOptionCall<UrlFilterCB, DeleteOption<UrlFilterCB>> opLambda) {
+    public int varyingQueryDelete(CBCall<UrlFilterCB> cbLambda, WritableOptionCall<UrlFilterCB, DeleteOption<UrlFilterCB>> opLambda) {
         return doQueryDelete(createCB(cbLambda), createDeleteOption(opLambda));
     }
 
@@ -880,8 +796,8 @@ public abstract class BsUrlFilterBhv extends
     /**
      * Prepare the all facade executor of outside-SQL to execute it.
      * <pre>
-     * <span style="color: #3F7E5E">// main style</span>
-     * urlFilterBhv.outideSql().selectEntity(pmb); <span style="color: #3F7E5E">// optional</span>
+     * <span style="color: #3F7E5E">// main style</span> 
+     * urlFilterBhv.outideSql().selectEntity(pmb); <span style="color: #3F7E5E">// optional</span> 
      * urlFilterBhv.outideSql().selectList(pmb); <span style="color: #3F7E5E">// ListResultBean</span>
      * urlFilterBhv.outideSql().selectPage(pmb); <span style="color: #3F7E5E">// PagingResultBean</span>
      * urlFilterBhv.outideSql().selectPagedListOnly(pmb); <span style="color: #3F7E5E">// ListResultBean</span>
@@ -889,7 +805,7 @@ public abstract class BsUrlFilterBhv extends
      * urlFilterBhv.outideSql().execute(pmb); <span style="color: #3F7E5E">// int (updated count)</span>
      * urlFilterBhv.outideSql().call(pmb); <span style="color: #3F7E5E">// void (pmb has OUT parameters)</span>
      *
-     * <span style="color: #3F7E5E">// traditional style</span>
+     * <span style="color: #3F7E5E">// traditional style</span> 
      * urlFilterBhv.outideSql().traditionalStyle().selectEntity(path, pmb, entityType);
      * urlFilterBhv.outideSql().traditionalStyle().selectList(path, pmb, entityType);
      * urlFilterBhv.outideSql().traditionalStyle().selectPage(path, pmb, entityType);
@@ -897,7 +813,7 @@ public abstract class BsUrlFilterBhv extends
      * urlFilterBhv.outideSql().traditionalStyle().selectCursor(path, pmb, handler);
      * urlFilterBhv.outideSql().traditionalStyle().execute(path, pmb);
      *
-     * <span style="color: #3F7E5E">// options</span>
+     * <span style="color: #3F7E5E">// options</span> 
      * urlFilterBhv.outideSql().removeBlockComment().selectList()
      * urlFilterBhv.outideSql().removeLineComment().selectList()
      * urlFilterBhv.outideSql().formatSql().selectList()
@@ -912,18 +828,7 @@ public abstract class BsUrlFilterBhv extends
     // ===================================================================================
     //                                                                         Type Helper
     //                                                                         ===========
-    @Override
-    protected Class<? extends UrlFilter> typeOfSelectedEntity() {
-        return UrlFilter.class;
-    }
-
-    @Override
-    protected Class<UrlFilter> typeOfHandlingEntity() {
-        return UrlFilter.class;
-    }
-
-    @Override
-    protected Class<UrlFilterCB> typeOfHandlingConditionBean() {
-        return UrlFilterCB.class;
-    }
+    protected Class<? extends UrlFilter> typeOfSelectedEntity() { return UrlFilter.class; }
+    protected Class<UrlFilter> typeOfHandlingEntity() { return UrlFilter.class; }
+    protected Class<UrlFilterCB> typeOfHandlingConditionBean() { return UrlFilterCB.class; }
 }

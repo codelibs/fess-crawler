@@ -29,7 +29,7 @@ map:{
     #  The namespace of DBFlute DI configuration.
     #
     # @SeasarOnly
-    #; dbfluteDiconNamespace = dbflute
+    ; dbfluteDiconNamespace = s2robot
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,7 +37,7 @@ map:{
     #  The package name(output directory) of DBFlute DI configuration for Seasar.
     #
     # @SeasarOnly
-    #; dbfluteDiconPackageName = ../resources
+    ; dbfluteDiconPackageName = ../resources/s2robot
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,7 +45,7 @@ map:{
     #  The file name of DBFlute DI configuration for Seasar.
     #
     # @SeasarOnly
-    #; dbfluteDiconFileName = dbflute.dicon
+    ; dbfluteDiconFileName = dbflute.dicon
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -53,7 +53,7 @@ map:{
     #  The file name of J2EE DI configuration.
     #
     # @SeasarOnly
-    #; j2eeDiconResourceName = j2ee.dicon
+    ; j2eeDiconResourceName = s2robot/j2ee.dicon
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -87,7 +87,7 @@ map:{
     #  The file name of DBFlute DI configuration for Spring and Lucy.
     #
     # @SpringOnly
-    ; dbfluteBeansFileName = robotDbflute.xml
+    #; dbfluteBeansFileName = robotDbflute.xml
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -95,7 +95,7 @@ map:{
     #  The data source name that DBFlute(Behaviors) uses.
     #
     # @SpringOnly
-    ; dbfluteBeansDataSourceName = robotDataSource
+    #; dbfluteBeansDataSourceName = robotDataSource
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,7 +111,7 @@ map:{
     #  Does it generate JavaConfig for DBFluteBeans? (not use XML configuration)
     #
     # @SpringOnly
-    ; isDBFluteBeansGeneratedAsJavaConfig = false
+    #; isDBFluteBeansGeneratedAsJavaConfig = false
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

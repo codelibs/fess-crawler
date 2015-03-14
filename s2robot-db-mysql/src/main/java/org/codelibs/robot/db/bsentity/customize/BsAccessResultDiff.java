@@ -1,58 +1,43 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.bsentity.customize;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
-import org.codelibs.robot.db.exentity.customize.AccessResultDiff;
-import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.DBMeta;
+import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.CustomizeEntity;
+import org.codelibs.robot.db.exentity.customize.*;
 
 /**
  * The entity of AccessResultDiff. <br>
  * <pre>
  * [primary-key]
- *
- *
+ *     
+ * 
  * [column]
  *     ID, SESSION_ID, RULE_ID, URL, PARENT_URL, STATUS, HTTP_STATUS_CODE, METHOD, MIME_TYPE, CONTENT_LENGTH, EXECUTION_TIME, CREATE_TIME
- *
+ * 
  * [sequence]
- *
- *
+ *     
+ * 
  * [identity]
- *
- *
+ *     
+ * 
  * [version-no]
- *
- *
+ *     
+ * 
  * [foreign table]
- *
- *
+ *     
+ * 
  * [referrer table]
- *
- *
+ *     
+ * 
  * [foreign property]
- *
- *
+ *     
+ * 
  * [referrer property]
- *
- *
+ *     
+ * 
  * [get/set template]
  * /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  * Long id = entity.getId();
@@ -83,8 +68,7 @@ import org.dbflute.dbmeta.accessory.CustomizeEntity;
  * </pre>
  * @author DBFlute(AutoGenerator)
  */
-public abstract class BsAccessResultDiff extends AbstractEntity implements
-        CustomizeEntity {
+public abstract class BsAccessResultDiff extends AbstractEntity implements CustomizeEntity {
 
     // ===================================================================================
     //                                                                          Definition
@@ -104,10 +88,10 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     /** RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} */
     protected String _ruleId;
 
-    /** URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} */
+    /** URL: {VARCHAR(65535), refers to ACCESS_RESULT.URL} */
     protected String _url;
 
-    /** PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} */
+    /** PARENT_URL: {VARCHAR(65535), refers to ACCESS_RESULT.PARENT_URL} */
     protected String _parentUrl;
 
     /** STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} */
@@ -135,23 +119,19 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     //                                                                             DB Meta
     //                                                                             =======
     /** {@inheritDoc} */
-    @Override
     public DBMeta asDBMeta() {
-        return org.codelibs.robot.db.bsentity.customize.dbmeta.AccessResultDiffDbm
-                .getInstance();
+        return org.codelibs.robot.db.bsentity.customize.dbmeta.AccessResultDiffDbm.getInstance();
     }
 
     /** {@inheritDoc} */
-    @Override
     public String asTableDbName() {
         return "AccessResultDiff";
     }
 
     // ===================================================================================
-    //                                                                         Primary Key
-    //                                                                         ===========
+    //                                                                        Key Handling
+    //                                                                        ============
     /** {@inheritDoc} */
-    @Override
     public boolean hasPrimaryKeyValue() {
         return false;
     }
@@ -162,7 +142,6 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     // ===================================================================================
     //                                                                   Referrer Property
     //                                                                   =================
-    @Override
     protected <ELEMENT> List<ELEMENT> newReferrerList() {
         return new ArrayList<ELEMENT>();
     }
@@ -171,45 +150,21 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     //                                                                      Basic Override
     //                                                                      ==============
     @Override
-    protected boolean doEquals(final Object obj) {
+    protected boolean doEquals(Object obj) {
         if (obj instanceof BsAccessResultDiff) {
-            final BsAccessResultDiff other = (BsAccessResultDiff) obj;
-            if (!xSV(_id, other._id)) {
-                return false;
-            }
-            if (!xSV(_sessionId, other._sessionId)) {
-                return false;
-            }
-            if (!xSV(_ruleId, other._ruleId)) {
-                return false;
-            }
-            if (!xSV(_url, other._url)) {
-                return false;
-            }
-            if (!xSV(_parentUrl, other._parentUrl)) {
-                return false;
-            }
-            if (!xSV(_status, other._status)) {
-                return false;
-            }
-            if (!xSV(_httpStatusCode, other._httpStatusCode)) {
-                return false;
-            }
-            if (!xSV(_method, other._method)) {
-                return false;
-            }
-            if (!xSV(_mimeType, other._mimeType)) {
-                return false;
-            }
-            if (!xSV(_contentLength, other._contentLength)) {
-                return false;
-            }
-            if (!xSV(_executionTime, other._executionTime)) {
-                return false;
-            }
-            if (!xSV(_createTime, other._createTime)) {
-                return false;
-            }
+            BsAccessResultDiff other = (BsAccessResultDiff)obj;
+            if (!xSV(_id, other._id)) { return false; }
+            if (!xSV(_sessionId, other._sessionId)) { return false; }
+            if (!xSV(_ruleId, other._ruleId)) { return false; }
+            if (!xSV(_url, other._url)) { return false; }
+            if (!xSV(_parentUrl, other._parentUrl)) { return false; }
+            if (!xSV(_status, other._status)) { return false; }
+            if (!xSV(_httpStatusCode, other._httpStatusCode)) { return false; }
+            if (!xSV(_method, other._method)) { return false; }
+            if (!xSV(_mimeType, other._mimeType)) { return false; }
+            if (!xSV(_contentLength, other._contentLength)) { return false; }
+            if (!xSV(_executionTime, other._executionTime)) { return false; }
+            if (!xSV(_createTime, other._createTime)) { return false; }
             return true;
         } else {
             return false;
@@ -217,7 +172,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     }
 
     @Override
-    protected int doHashCode(final int initial) {
+    protected int doHashCode(int initial) {
         int hs = initial;
         hs = xCH(hs, asTableDbName());
         hs = xCH(hs, _id);
@@ -236,13 +191,13 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     }
 
     @Override
-    protected String doBuildStringWithRelation(final String li) {
+    protected String doBuildStringWithRelation(String li) {
         return "";
     }
 
     @Override
-    protected String doBuildColumnString(final String dm) {
-        final StringBuilder sb = new StringBuilder();
+    protected String doBuildColumnString(String dm) {
+        StringBuilder sb = new StringBuilder();
         sb.append(dm).append(xfND(_id));
         sb.append(dm).append(xfND(_sessionId));
         sb.append(dm).append(xfND(_ruleId));
@@ -263,13 +218,13 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     }
 
     @Override
-    protected String doBuildRelationString(final String dm) {
+    protected String doBuildRelationString(String dm) {
         return "";
     }
 
     @Override
     public AccessResultDiff clone() {
-        return (AccessResultDiff) super.clone();
+        return (AccessResultDiff)super.clone();
     }
 
     // ===================================================================================
@@ -288,7 +243,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] ID: {BIGINT(20), refers to ACCESS_RESULT.ID} <br>
      * @param id The value of the column 'ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setId(final Long id) {
+    public void setId(Long id) {
         registerModifiedProperty("id");
         _id = id;
     }
@@ -306,7 +261,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] SESSION_ID: {VARCHAR(20), refers to ACCESS_RESULT.SESSION_ID} <br>
      * @param sessionId The value of the column 'SESSION_ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setSessionId(final String sessionId) {
+    public void setSessionId(String sessionId) {
         registerModifiedProperty("sessionId");
         _sessionId = sessionId;
     }
@@ -324,13 +279,13 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] RULE_ID: {VARCHAR(20), refers to ACCESS_RESULT.RULE_ID} <br>
      * @param ruleId The value of the column 'RULE_ID'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setRuleId(final String ruleId) {
+    public void setRuleId(String ruleId) {
         registerModifiedProperty("ruleId");
         _ruleId = ruleId;
     }
 
     /**
-     * [get] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br>
+     * [get] URL: {VARCHAR(65535), refers to ACCESS_RESULT.URL} <br>
      * @return The value of the column 'URL'. (NullAllowed even if selected: for no constraint)
      */
     public String getUrl() {
@@ -339,16 +294,16 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     }
 
     /**
-     * [set] URL: {VARCHAR(21845), refers to ACCESS_RESULT.URL} <br>
+     * [set] URL: {VARCHAR(65535), refers to ACCESS_RESULT.URL} <br>
      * @param url The value of the column 'URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setUrl(final String url) {
+    public void setUrl(String url) {
         registerModifiedProperty("url");
         _url = url;
     }
 
     /**
-     * [get] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br>
+     * [get] PARENT_URL: {VARCHAR(65535), refers to ACCESS_RESULT.PARENT_URL} <br>
      * @return The value of the column 'PARENT_URL'. (NullAllowed even if selected: for no constraint)
      */
     public String getParentUrl() {
@@ -357,10 +312,10 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
     }
 
     /**
-     * [set] PARENT_URL: {VARCHAR(21845), refers to ACCESS_RESULT.PARENT_URL} <br>
+     * [set] PARENT_URL: {VARCHAR(65535), refers to ACCESS_RESULT.PARENT_URL} <br>
      * @param parentUrl The value of the column 'PARENT_URL'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setParentUrl(final String parentUrl) {
+    public void setParentUrl(String parentUrl) {
         registerModifiedProperty("parentUrl");
         _parentUrl = parentUrl;
     }
@@ -378,7 +333,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] STATUS: {INT(11), refers to ACCESS_RESULT.STATUS} <br>
      * @param status The value of the column 'STATUS'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setStatus(final Integer status) {
+    public void setStatus(Integer status) {
         registerModifiedProperty("status");
         _status = status;
     }
@@ -396,7 +351,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] HTTP_STATUS_CODE: {INT(11), refers to ACCESS_RESULT.HTTP_STATUS_CODE} <br>
      * @param httpStatusCode The value of the column 'HTTP_STATUS_CODE'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setHttpStatusCode(final Integer httpStatusCode) {
+    public void setHttpStatusCode(Integer httpStatusCode) {
         registerModifiedProperty("httpStatusCode");
         _httpStatusCode = httpStatusCode;
     }
@@ -414,7 +369,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] METHOD: {VARCHAR(10), refers to ACCESS_RESULT.METHOD} <br>
      * @param method The value of the column 'METHOD'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setMethod(final String method) {
+    public void setMethod(String method) {
         registerModifiedProperty("method");
         _method = method;
     }
@@ -432,7 +387,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] MIME_TYPE: {VARCHAR(100), refers to ACCESS_RESULT.MIME_TYPE} <br>
      * @param mimeType The value of the column 'MIME_TYPE'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setMimeType(final String mimeType) {
+    public void setMimeType(String mimeType) {
         registerModifiedProperty("mimeType");
         _mimeType = mimeType;
     }
@@ -450,7 +405,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] CONTENT_LENGTH: {BIGINT(20), refers to ACCESS_RESULT.CONTENT_LENGTH} <br>
      * @param contentLength The value of the column 'CONTENT_LENGTH'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setContentLength(final Long contentLength) {
+    public void setContentLength(Long contentLength) {
         registerModifiedProperty("contentLength");
         _contentLength = contentLength;
     }
@@ -468,7 +423,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] EXECUTION_TIME: {INT(11), refers to ACCESS_RESULT.EXECUTION_TIME} <br>
      * @param executionTime The value of the column 'EXECUTION_TIME'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setExecutionTime(final Integer executionTime) {
+    public void setExecutionTime(Integer executionTime) {
         registerModifiedProperty("executionTime");
         _executionTime = executionTime;
     }
@@ -486,7 +441,7 @@ public abstract class BsAccessResultDiff extends AbstractEntity implements
      * [set] CREATE_TIME: {BIGINT(20), refers to ACCESS_RESULT.CREATE_TIME} <br>
      * @param createTime The value of the column 'CREATE_TIME'. (NullAllowed: null update allowed for no constraint)
      */
-    public void setCreateTime(final Long createTime) {
+    public void setCreateTime(Long createTime) {
         registerModifiedProperty("createTime");
         _createTime = createTime;
     }

@@ -1,51 +1,24 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.cbean.bs;
 
+import org.dbflute.cbean.AbstractConditionBean;
+import org.dbflute.cbean.ConditionBean;
+import org.dbflute.cbean.ConditionQuery;
+import org.dbflute.cbean.chelper.*;
+import org.dbflute.cbean.coption.*;
+import org.dbflute.cbean.dream.*;
+import org.dbflute.cbean.sqlclause.SqlClause;
+import org.dbflute.cbean.sqlclause.SqlClauseCreator;
+import org.dbflute.cbean.scoping.*;
+import org.dbflute.dbmeta.DBMetaProvider;
+import org.dbflute.twowaysql.factory.SqlAnalyzerFactory;
+import org.dbflute.twowaysql.style.BoundDateDisplayTimeZoneProvider;
 import org.codelibs.robot.db.allcommon.DBFluteConfig;
 import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
 import org.codelibs.robot.db.allcommon.ImplementedInvokerAssistant;
 import org.codelibs.robot.db.allcommon.ImplementedSqlClauseCreator;
-import org.codelibs.robot.db.cbean.AccessResultCB;
-import org.codelibs.robot.db.cbean.AccessResultDataCB;
-import org.codelibs.robot.db.cbean.cq.AccessResultDataCQ;
-import org.codelibs.robot.db.cbean.nss.AccessResultNss;
-import org.dbflute.cbean.AbstractConditionBean;
-import org.dbflute.cbean.ConditionBean;
-import org.dbflute.cbean.ConditionQuery;
-import org.dbflute.cbean.chelper.HpAbstractSpecification;
-import org.dbflute.cbean.chelper.HpCBPurpose;
-import org.dbflute.cbean.chelper.HpColQyOperand;
-import org.dbflute.cbean.chelper.HpColumnSpHandler;
-import org.dbflute.cbean.chelper.HpSDRFunction;
-import org.dbflute.cbean.chelper.HpSDRFunctionFactory;
-import org.dbflute.cbean.chelper.HpSpQyCall;
-import org.dbflute.cbean.coption.ConditionOption;
-import org.dbflute.cbean.coption.DerivedReferrerOption;
-import org.dbflute.cbean.dream.SpecifiedColumn;
-import org.dbflute.cbean.scoping.AndQuery;
-import org.dbflute.cbean.scoping.OrQuery;
-import org.dbflute.cbean.scoping.SpecifyQuery;
-import org.dbflute.cbean.scoping.SubQuery;
-import org.dbflute.cbean.scoping.UnionQuery;
-import org.dbflute.cbean.sqlclause.SqlClause;
-import org.dbflute.cbean.sqlclause.SqlClauseCreator;
-import org.dbflute.dbmeta.DBMetaProvider;
-import org.dbflute.twowaysql.factory.SqlAnalyzerFactory;
-import org.dbflute.twowaysql.style.BoundDateDisplayTimeZoneProvider;
+import org.codelibs.robot.db.cbean.*;
+import org.codelibs.robot.db.cbean.cq.*;
+import org.codelibs.robot.db.cbean.nss.*;
 
 /**
  * The base condition-bean of ACCESS_RESULT_DATA.
@@ -81,8 +54,7 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                           =========
     @Override
     protected SqlClause createSqlClause() {
-        final SqlClauseCreator creator = DBFluteConfig.getInstance()
-                .getSqlClauseCreator();
+        SqlClauseCreator creator = DBFluteConfig.getInstance().getSqlClauseCreator();
         if (creator != null) {
             return creator.createSqlClause(this);
         }
@@ -97,7 +69,6 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
         return DBMetaInstanceHandler.getProvider(); // as default
     }
 
-    @Override
     public String asTableDbName() {
         return "ACCESS_RESULT_DATA";
     }
@@ -110,20 +81,18 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * @param id : PK, NotNull, BIGINT(19), FK to ACCESS_RESULT. (NotNull)
      * @return this. (NotNull)
      */
-    public AccessResultDataCB acceptPK(final Long id) {
+    public AccessResultDataCB acceptPK(Long id) {
         assertObjectNotNull("id", id);
-        final BsAccessResultDataCB cb = this;
+        BsAccessResultDataCB cb = this;
         cb.query().setId_Equal(id);
-        return (AccessResultDataCB) this;
+        return (AccessResultDataCB)this;
     }
 
-    @Override
     public ConditionBean addOrderBy_PK_Asc() {
         query().addOrderBy_Id_Asc();
         return this;
     }
 
-    @Override
     public ConditionBean addOrderBy_PK_Desc() {
         query().addOrderBy_Id_Desc();
         return this;
@@ -156,33 +125,33 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * <span style="color: #3F7E5E">// {fromDate &lt;= BIRTHDATE &lt; toDate + 1 day}</span>
      * cb.query().setBirthdate_IsNull();    <span style="color: #3F7E5E">// is null</span>
      * cb.query().setBirthdate_IsNotNull(); <span style="color: #3F7E5E">// is not null</span>
-     *
+     * 
      * <span style="color: #3F7E5E">// ExistsReferrer: (correlated sub-query)</span>
      * <span style="color: #3F7E5E">// {where exists (select PURCHASE_ID from PURCHASE where ...)}</span>
      * cb.query().existsPurchase(purchaseCB <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
      *     purchaseCB.query().set... <span style="color: #3F7E5E">// referrer sub-query condition</span>
      * });
      * cb.query().notExistsPurchase...
-     *
+     * 
      * <span style="color: #3F7E5E">// (Query)DerivedReferrer: (correlated sub-query)</span>
      * cb.query().derivedPurchaseList().max(purchaseCB <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
      *     purchaseCB.specify().columnPurchasePrice(); <span style="color: #3F7E5E">// derived column for function</span>
      *     purchaseCB.query().set... <span style="color: #3F7E5E">// referrer sub-query condition</span>
      * }).greaterEqual(value);
-     *
+     * 
      * <span style="color: #3F7E5E">// ScalarCondition: (self-table sub-query)</span>
      * cb.query().scalar_Equal().max(scalarCB <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> {
      *     scalarCB.specify().columnBirthdate(); <span style="color: #3F7E5E">// derived column for function</span>
      *     scalarCB.query().set... <span style="color: #3F7E5E">// scalar sub-query condition</span>
      * });
-     *
+     * 
      * <span style="color: #3F7E5E">// OrderBy</span>
      * cb.query().addOrderBy_MemberName_Asc();
      * cb.query().addOrderBy_MemberName_Desc().withManualOrder(option);
      * cb.query().addOrderBy_MemberName_Desc().withNullsFirst();
      * cb.query().addOrderBy_MemberName_Desc().withNullsLast();
      * cb.query().addSpecifiedDerivedOrderBy_Desc(aliasName);
-     *
+     * 
      * <span style="color: #3F7E5E">// Query(Relation)</span>
      * cb.query().queryMemberStatus()...;
      * cb.query().queryMemberAddressAsValid(targetDate)...;
@@ -190,7 +159,7 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * @return The instance of condition-query for base-point table to set up query. (NotNull)
      */
     public AccessResultDataCQ query() {
-        assertQueryPurpose(); // assert only when user-public query
+        assertQueryPurpose(); // assert only when user-public query 
         return doGetConditionQuery();
     }
 
@@ -206,30 +175,22 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     }
 
     protected AccessResultDataCQ createLocalCQ() {
-        return xcreateCQ(null, getSqlClause(), getSqlClause()
-                .getBasePointAliasName(), 0);
+        return xcreateCQ(null, getSqlClause(), getSqlClause().getBasePointAliasName(), 0);
     }
 
-    protected AccessResultDataCQ xcreateCQ(final ConditionQuery childQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel) {
-        final AccessResultDataCQ cq = xnewCQ(childQuery, sqlClause, aliasName,
-                nestLevel);
+    protected AccessResultDataCQ xcreateCQ(ConditionQuery childQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
+        AccessResultDataCQ cq = xnewCQ(childQuery, sqlClause, aliasName, nestLevel);
         cq.xsetBaseCB(this);
         return cq;
     }
 
-    protected AccessResultDataCQ xnewCQ(final ConditionQuery childQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel) {
-        return new AccessResultDataCQ(childQuery, sqlClause, aliasName,
-                nestLevel);
+    protected AccessResultDataCQ xnewCQ(ConditionQuery childQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
+        return new AccessResultDataCQ(childQuery, sqlClause, aliasName, nestLevel);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public ConditionQuery localCQ() {
         return doGetConditionQuery();
     }
@@ -248,19 +209,10 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * </pre>
      * @param unionCBLambda The callback for query of 'union'. (NotNull)
      */
-    public void union(final UnionQuery<AccessResultDataCB> unionCBLambda) {
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForUnion(this);
-        xsyncUQ(cb);
-        try {
-            lock();
-            unionCBLambda.query(cb);
-        } finally {
-            unlock();
-        }
-        xsaveUCB(cb);
-        final AccessResultDataCQ cq = cb.query();
-        query().xsetUnionQuery(cq);
+    public void union(UnionQuery<AccessResultDataCB> unionCBLambda) {
+        final AccessResultDataCB cb = new AccessResultDataCB(); cb.xsetupForUnion(this); xsyncUQ(cb); 
+        try { lock(); unionCBLambda.query(cb); } finally { unlock(); } xsaveUCB(cb);
+        final AccessResultDataCQ cq = cb.query(); query().xsetUnionQuery(cq);
     }
 
     /**
@@ -274,33 +226,20 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * </pre>
      * @param unionCBLambda The callback for query of 'union all'. (NotNull)
      */
-    public void unionAll(final UnionQuery<AccessResultDataCB> unionCBLambda) {
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForUnion(this);
-        xsyncUQ(cb);
-        try {
-            lock();
-            unionCBLambda.query(cb);
-        } finally {
-            unlock();
-        }
-        xsaveUCB(cb);
-        final AccessResultDataCQ cq = cb.query();
-        query().xsetUnionAllQuery(cq);
+    public void unionAll(UnionQuery<AccessResultDataCB> unionCBLambda) {
+        final AccessResultDataCB cb = new AccessResultDataCB(); cb.xsetupForUnion(this); xsyncUQ(cb);
+        try { lock(); unionCBLambda.query(cb); } finally { unlock(); } xsaveUCB(cb);
+        final AccessResultDataCQ cq = cb.query(); query().xsetUnionAllQuery(cq);
     }
 
     // ===================================================================================
     //                                                                         SetupSelect
     //                                                                         ===========
     protected AccessResultNss _nssAccessResult;
-
     public AccessResultNss xdfgetNssAccessResult() {
-        if (_nssAccessResult == null) {
-            _nssAccessResult = new AccessResultNss(null);
-        }
+        if (_nssAccessResult == null) { _nssAccessResult = new AccessResultNss(null); }
         return _nssAccessResult;
     }
-
     /**
      * Set up relation columns to select clause. <br>
      * ACCESS_RESULT by my ID, named 'accessResult'.
@@ -317,9 +256,8 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     public AccessResultNss setupSelect_AccessResult() {
         assertSetupSelectPurpose("accessResult");
         doSetupSelect(() -> query().queryAccessResult());
-        if (_nssAccessResult == null || !_nssAccessResult.hasConditionQuery()) {
-            _nssAccessResult = new AccessResultNss(query().queryAccessResult());
-        }
+        if (_nssAccessResult == null || !_nssAccessResult.hasConditionQuery())
+        { _nssAccessResult = new AccessResultNss(query().queryAccessResult()); }
         return _nssAccessResult;
     }
 
@@ -349,88 +287,54 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      */
     public HpSpecification specify() {
         assertSpecifyPurpose();
-        if (_specification == null) {
-            _specification = new HpSpecification(this, xcreateSpQyCall(
-                    () -> true, () -> xdfgetConditionQuery()), _purpose,
-                    getDBMetaProvider(), xcSDRFnFc());
-        }
+        if (_specification == null) { _specification = new HpSpecification(this
+            , xcreateSpQyCall(() -> true, () -> xdfgetConditionQuery())
+            , _purpose, getDBMetaProvider(), xcSDRFnFc()); }
         return _specification;
     }
 
-    @Override
     public HpColumnSpHandler localSp() {
         return specify();
     }
 
-    @Override
     public boolean hasSpecifiedColumn() {
-        return _specification != null
-                && _specification.isAlreadySpecifiedRequiredColumn();
+        return _specification != null && _specification.isAlreadySpecifiedRequiredColumn();
     }
 
-    public static class HpSpecification extends
-            HpAbstractSpecification<AccessResultDataCQ> {
+    public static class HpSpecification extends HpAbstractSpecification<AccessResultDataCQ> {
         protected AccessResultCB.HpSpecification _accessResult;
-
-        public HpSpecification(final ConditionBean baseCB,
-                final HpSpQyCall<AccessResultDataCQ> qyCall,
-                final HpCBPurpose purpose, final DBMetaProvider dbmetaProvider,
-                final HpSDRFunctionFactory sdrFuncFactory) {
-            super(baseCB, qyCall, purpose, dbmetaProvider, sdrFuncFactory);
-        }
-
+        public HpSpecification(ConditionBean baseCB, HpSpQyCall<AccessResultDataCQ> qyCall
+                             , HpCBPurpose purpose, DBMetaProvider dbmetaProvider
+                             , HpSDRFunctionFactory sdrFuncFactory)
+        { super(baseCB, qyCall, purpose, dbmetaProvider, sdrFuncFactory); }
         /**
          * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
          * @return The information object of specified column. (NotNull)
          */
-        public SpecifiedColumn columnId() {
-            return doColumn("ID");
-        }
-
+        public SpecifiedColumn columnId() { return doColumn("ID"); }
         /**
          * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
          * @return The information object of specified column. (NotNull)
          */
-        public SpecifiedColumn columnTransformerName() {
-            return doColumn("TRANSFORMER_NAME");
-        }
-
+        public SpecifiedColumn columnTransformerName() { return doColumn("TRANSFORMER_NAME"); }
         /**
          * DATA: {BLOB(2147483647)}
          * @return The information object of specified column. (NotNull)
          */
-        public SpecifiedColumn columnData() {
-            return doColumn("DATA");
-        }
-
+        public SpecifiedColumn columnData() { return doColumn("DATA"); }
         /**
          * ENCODING: {VARCHAR(20)}
          * @return The information object of specified column. (NotNull)
          */
-        public SpecifiedColumn columnEncoding() {
-            return doColumn("ENCODING");
-        }
-
-        @Override
-        public void everyColumn() {
-            doEveryColumn();
-        }
-
-        @Override
-        public void exceptRecordMetaColumn() {
-            doExceptRecordMetaColumn();
-        }
-
+        public SpecifiedColumn columnEncoding() { return doColumn("ENCODING"); }
+        public void everyColumn() { doEveryColumn(); }
+        public void exceptRecordMetaColumn() { doExceptRecordMetaColumn(); }
         @Override
         protected void doSpecifyRequiredColumn() {
             columnId(); // PK
         }
-
         @Override
-        protected String getTableDbName() {
-            return "ACCESS_RESULT_DATA";
-        }
-
+        protected String getTableDbName() { return "ACCESS_RESULT_DATA"; }
         /**
          * Prepare to specify functions about relation table. <br>
          * ACCESS_RESULT by my ID, named 'accessResult'.
@@ -439,40 +343,26 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
         public AccessResultCB.HpSpecification specifyAccessResult() {
             assertRelation("accessResult");
             if (_accessResult == null) {
-                _accessResult = new AccessResultCB.HpSpecification(
-                        _baseCB,
-                        xcreateSpQyCall(
-                                () -> _qyCall.has()
-                                        && _qyCall
-                                                .qy()
-                                                .hasConditionQueryAccessResult(),
-                                () -> _qyCall.qy().queryAccessResult()),
-                        _purpose, _dbmetaProvider, xgetSDRFnFc());
+                _accessResult = new AccessResultCB.HpSpecification(_baseCB
+                    , xcreateSpQyCall(() -> _qyCall.has() && _qyCall.qy().hasConditionQueryAccessResult()
+                                    , () -> _qyCall.qy().queryAccessResult())
+                    , _purpose, _dbmetaProvider, xgetSDRFnFc());
                 if (xhasSyncQyCall()) { // inherits it
                     _accessResult.xsetSyncQyCall(xcreateSpQyCall(
-                            () -> xsyncQyCall().has()
-                                    && xsyncQyCall().qy()
-                                            .hasConditionQueryAccessResult(),
-                            () -> xsyncQyCall().qy().queryAccessResult()));
+                        () -> xsyncQyCall().has() && xsyncQyCall().qy().hasConditionQueryAccessResult()
+                      , () -> xsyncQyCall().qy().queryAccessResult()));
                 }
             }
             return _accessResult;
         }
-
         /**
          * Prepare for (Specify)MyselfDerived (SubQuery).
          * @return The object to set up a function for myself table. (NotNull)
          */
         public HpSDRFunction<AccessResultDataCB, AccessResultDataCQ> myselfDerived() {
-            assertDerived("myselfDerived");
-            if (xhasSyncQyCall()) {
-                xsyncQyCall().qy();
-            } // for sync (for example, this in ColumnQuery)
-            return cHSDRF(_baseCB, _qyCall.qy(), (final String fn,
-                    final SubQuery<AccessResultDataCB> sq,
-                    final AccessResultDataCQ cq, final String al,
-                    final DerivedReferrerOption op) -> cq.xsmyselfDerive(fn,
-                    sq, al, op), _dbmetaProvider);
+            assertDerived("myselfDerived"); if (xhasSyncQyCall()) { xsyncQyCall().qy(); } // for sync (for example, this in ColumnQuery)
+            return cHSDRF(_baseCB, _qyCall.qy(), (String fn, SubQuery<AccessResultDataCB> sq, AccessResultDataCQ cq, String al, DerivedReferrerOption op)
+                    -> cq.xsmyselfDerive(fn, sq, al, op), _dbmetaProvider);
         }
     }
 
@@ -485,12 +375,11 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * @return The condition-bean for dream cruise, which is linked to main condition-bean.
      */
     public AccessResultDataCB dreamCruiseCB() {
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForDreamCruise(this);
+        AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForDreamCruise((AccessResultDataCB) this);
         return cb;
     }
 
-    @Override
     protected ConditionBean xdoCreateDreamCruiseCB() {
         return dreamCruiseCB();
     }
@@ -512,17 +401,15 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * @param colCBLambda The callback for specify-query of left column. (NotNull)
      * @return The object for setting up operand and right column. (NotNull)
      */
-    public HpColQyOperand<AccessResultDataCB> columnQuery(
-            final SpecifyQuery<AccessResultDataCB> colCBLambda) {
+    public HpColQyOperand<AccessResultDataCB> columnQuery(final SpecifyQuery<AccessResultDataCB> colCBLambda) {
         return xcreateColQyOperand((rightSp, operand) -> {
-            return xcolqy(xcreateColumnQueryCB(), xcreateColumnQueryCB(),
-                    colCBLambda, rightSp, operand);
+            return xcolqy(xcreateColumnQueryCB(), xcreateColumnQueryCB(), colCBLambda, rightSp, operand);
         });
     }
 
     protected AccessResultDataCB xcreateColumnQueryCB() {
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForColumnQuery(this);
+        AccessResultDataCB cb = new AccessResultDataCB();
+        cb.xsetupForColumnQuery((AccessResultDataCB)this);
         return cb;
     }
 
@@ -542,8 +429,8 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * </pre>
      * @param orCBLambda The callback for query of or-condition. (NotNull)
      */
-    public void orScopeQuery(final OrQuery<AccessResultDataCB> orCBLambda) {
-        xorSQ((AccessResultDataCB) this, orCBLambda);
+    public void orScopeQuery(OrQuery<AccessResultDataCB> orCBLambda) {
+        xorSQ((AccessResultDataCB)this, orCBLambda);
     }
 
     /**
@@ -561,43 +448,28 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
      * </pre>
      * @param andCBLambda The callback for query of and-condition. (NotNull)
      */
-    public void orScopeQueryAndPart(
-            final AndQuery<AccessResultDataCB> andCBLambda) {
-        xorSQAP((AccessResultDataCB) this, andCBLambda);
+    public void orScopeQueryAndPart(AndQuery<AccessResultDataCB> andCBLambda) {
+        xorSQAP((AccessResultDataCB)this, andCBLambda);
     }
 
     // ===================================================================================
     //                                                                          DisplaySQL
     //                                                                          ==========
     @Override
-    protected SqlAnalyzerFactory getSqlAnalyzerFactory() {
-        return new ImplementedInvokerAssistant().assistSqlAnalyzerFactory();
-    }
-
+    protected SqlAnalyzerFactory getSqlAnalyzerFactory()
+    { return new ImplementedInvokerAssistant().assistSqlAnalyzerFactory(); }
     @Override
-    protected String getConfiguredLogDatePattern() {
-        return DBFluteConfig.getInstance().getLogDatePattern();
-    }
-
+    protected String getConfiguredLogDatePattern() { return DBFluteConfig.getInstance().getLogDatePattern(); }
     @Override
-    protected String getConfiguredLogTimestampPattern() {
-        return DBFluteConfig.getInstance().getLogTimestampPattern();
-    }
-
+    protected String getConfiguredLogTimestampPattern() { return DBFluteConfig.getInstance().getLogTimestampPattern(); }
     @Override
-    protected String getConfiguredLogTimePattern() {
-        return DBFluteConfig.getInstance().getLogTimePattern();
-    }
-
+    protected String getConfiguredLogTimePattern() { return DBFluteConfig.getInstance().getLogTimePattern(); }
     @Override
-    protected BoundDateDisplayTimeZoneProvider getConfiguredLogTimeZoneProvider() {
-        return DBFluteConfig.getInstance().getLogTimeZoneProvider();
-    }
+    protected BoundDateDisplayTimeZoneProvider getConfiguredLogTimeZoneProvider() { return DBFluteConfig.getInstance().getLogTimeZoneProvider(); }
 
     // ===================================================================================
     //                                                                       Meta Handling
     //                                                                       =============
-    @Override
     public boolean hasUnionQueryOrUnionAllQuery() {
         return query().hasUnionQueryOrUnionAllQuery();
     }
@@ -606,10 +478,10 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                        Purpose Type
     //                                                                        ============
     @Override
-    protected void xprepareSyncQyCall(final ConditionBean mainCB) {
+    protected void xprepareSyncQyCall(ConditionBean mainCB) {
         final AccessResultDataCB cb;
         if (mainCB != null) {
-            cb = (AccessResultDataCB) mainCB;
+            cb = (AccessResultDataCB)mainCB;
         } else {
             cb = new AccessResultDataCB();
         }
@@ -620,19 +492,8 @@ public class BsAccessResultDataCB extends AbstractConditionBean {
     //                                                                            Internal
     //                                                                            ========
     // very internal (for suppressing warn about 'Not Use Import')
-    protected String xgetConditionBeanClassNameInternally() {
-        return AccessResultDataCB.class.getName();
-    }
-
-    protected String xgetConditionQueryClassNameInternally() {
-        return AccessResultDataCQ.class.getName();
-    }
-
-    protected String xgetSubQueryClassNameInternally() {
-        return SubQuery.class.getName();
-    }
-
-    protected String xgetConditionOptionClassNameInternally() {
-        return ConditionOption.class.getName();
-    }
+    protected String xgetConditionBeanClassNameInternally() { return AccessResultDataCB.class.getName(); }
+    protected String xgetConditionQueryClassNameInternally() { return AccessResultDataCQ.class.getName(); }
+    protected String xgetSubQueryClassNameInternally() { return SubQuery.class.getName(); }
+    protected String xgetConditionOptionClassNameInternally() { return ConditionOption.class.getName(); }
 }

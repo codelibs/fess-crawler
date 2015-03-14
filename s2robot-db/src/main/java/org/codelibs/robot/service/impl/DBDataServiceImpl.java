@@ -36,7 +36,6 @@ import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author shinsuke
@@ -58,7 +57,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#store(org.codelibs.robot.entity.AccessResult)
      */
     @Override
-    @Transactional("robotTx")
     public void store(final AccessResult accessResult) {
         if (accessResult == null) {
             throw new RobotSystemException("AccessResult is null.");
@@ -83,7 +81,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#getCount(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public int getCount(final String sessionId) {
         return accessResultBhv.selectCount(cb -> {
             cb.query().setSessionId_Equal(sessionId);
@@ -96,7 +93,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#delete(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void delete(final String sessionId) {
         int count = accessResultDataBhv.deleteBySessionId(sessionId);
 
@@ -117,7 +113,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#deleteAll()
      */
     @Override
-    @Transactional("robotTx")
     public void deleteAll() {
         int count = accessResultDataBhv.deleteAll();
 
@@ -138,7 +133,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#getAccessResult(java.lang.String, java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public AccessResult getAccessResult(final String sessionId, final String url) {
         final ListResultBean<org.codelibs.robot.db.exentity.AccessResult> list = accessResultBhv
                 .selectList(cb -> {
@@ -158,7 +152,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#getAccessResultList(java.lang.String, boolean)
      */
     @Override
-    @Transactional("robotTx")
     public List<AccessResult> getAccessResultList(final String url,
             final boolean hasData) {
         final List<org.codelibs.robot.db.exentity.AccessResult> list = accessResultBhv
@@ -181,7 +174,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#iterate(java.lang.String, org.codelibs.robot.util.AccessResultCallback)
      */
     @Override
-    @Transactional("robotTx")
     public void iterate(final String sessionId,
             final AccessResultCallback accessResultCallback) {
         accessResultBhv.selectCursor(cb -> {
@@ -197,7 +189,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#iterateUrlDiff(java.lang.String, java.lang.String, org.codelibs.robot.util.AccessResultCallback)
      */
     @Override
-    @Transactional("robotTx")
     public void iterateUrlDiff(final String oldSessionId,
             final String newSessionId,
             final AccessResultCallback accessResultCallback) {
@@ -227,7 +218,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#update(org.codelibs.robot.entity.AccessResult)
      */
     @Override
-    @Transactional("robotTx")
     public void update(final AccessResult accessResult) {
         accessResultBhv
                 .update((org.codelibs.robot.db.exentity.AccessResult) accessResult);
@@ -245,7 +235,6 @@ public class DBDataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#update(java.util.List)
      */
     @Override
-    @Transactional("robotTx")
     public void update(final List<AccessResult> accessResultList) {
         final List<org.codelibs.robot.db.exentity.AccessResult> arList = new ArrayList<>();
         final List<org.codelibs.robot.db.exentity.AccessResultData> ardList = new ArrayList<>();

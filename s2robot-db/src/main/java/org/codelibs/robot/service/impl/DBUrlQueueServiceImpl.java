@@ -37,7 +37,6 @@ import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.service.UrlQueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author shinsuke
@@ -86,7 +85,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#updateSessionId(java.lang.String, java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void updateSessionId(final String oldSessionId,
             final String newSessionId) {
         // not MT-safe
@@ -102,7 +100,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#add(java.lang.String, java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void add(final String sessionId, final String url) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
@@ -122,7 +119,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#insert(org.codelibs.robot.entity.UrlQueue)
      */
     @Override
-    @Transactional("robotTx")
     public void insert(final UrlQueue urlQueue) {
         urlQueueBhv.insert((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
     }
@@ -133,7 +129,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#delete(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void delete(final String sessionId) {
         final int count = urlQueueBhv.deleteBySessionId(sessionId);
 
@@ -153,7 +148,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#deleteAll()
      */
     @Override
-    @Transactional("robotTx")
     public void deleteAll() {
         final int count = urlQueueBhv.deleteAll();
 
@@ -173,7 +167,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#offerAll(java.lang.String, java.util.List)
      */
     @Override
-    @Transactional("robotTx")
     public void offerAll(final String sessionId,
             final List<UrlQueue> newUrlQueueList) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
@@ -279,7 +272,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#poll(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public UrlQueue poll(final String sessionId) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
@@ -312,7 +304,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#saveSession(java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void saveSession(final String sessionId) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
@@ -334,7 +325,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#visited(UrlQueue)
      */
     @Override
-    @Transactional("robotTx")
     public boolean visited(final UrlQueue urlQueue) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(urlQueue
                 .getSessionId());
@@ -349,7 +339,6 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      * @see org.codelibs.robot.service.UrlQueueService#generateUrlQueues(java.lang.String, java.lang.String)
      */
     @Override
-    @Transactional("robotTx")
     public void generateUrlQueues(final String previousSessionId,
             final String sessionId) {
         final int count = accessResultBhv.selectCount(cb -> {

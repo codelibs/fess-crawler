@@ -1,57 +1,30 @@
-/*
- * Copyright 2012-2015 CodeLibs Project and the Others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 package org.codelibs.robot.db.cbean.cq.bs;
 
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 
-import org.codelibs.robot.db.allcommon.DBMetaInstanceHandler;
-import org.codelibs.robot.db.cbean.AccessResultDataCB;
-import org.codelibs.robot.db.cbean.cq.AccessResultDataCQ;
-import org.dbflute.cbean.AbstractConditionQuery;
-import org.dbflute.cbean.ConditionBean;
-import org.dbflute.cbean.ConditionQuery;
-import org.dbflute.cbean.chelper.HpQDRFunction;
-import org.dbflute.cbean.chelper.HpSSQFunction;
-import org.dbflute.cbean.chelper.HpSSQOption;
-import org.dbflute.cbean.chelper.HpSSQSetupper;
-import org.dbflute.cbean.ckey.ConditionKey;
-import org.dbflute.cbean.coption.ConditionOptionCall;
-import org.dbflute.cbean.coption.DerivedReferrerOption;
-import org.dbflute.cbean.coption.LikeSearchOption;
-import org.dbflute.cbean.coption.RangeOfOption;
+import org.dbflute.cbean.*;
+import org.dbflute.cbean.chelper.*;
+import org.dbflute.cbean.ckey.*;
+import org.dbflute.cbean.coption.*;
 import org.dbflute.cbean.cvalue.ConditionValue;
-import org.dbflute.cbean.ordering.ManualOrderOptionCall;
-import org.dbflute.cbean.scoping.SubQuery;
+import org.dbflute.cbean.ordering.*;
+import org.dbflute.cbean.scoping.*;
 import org.dbflute.cbean.sqlclause.SqlClause;
 import org.dbflute.dbmeta.DBMetaProvider;
+import org.codelibs.robot.db.allcommon.*;
+import org.codelibs.robot.db.cbean.*;
+import org.codelibs.robot.db.cbean.cq.*;
 
 /**
  * The abstract condition-query of ACCESS_RESULT_DATA.
  * @author DBFlute(AutoGenerator)
  */
-public abstract class AbstractBsAccessResultDataCQ extends
-        AbstractConditionQuery {
+public abstract class AbstractBsAccessResultDataCQ extends AbstractConditionQuery {
 
     // ===================================================================================
     //                                                                         Constructor
     //                                                                         ===========
-    public AbstractBsAccessResultDataCQ(final ConditionQuery referrerQuery,
-            final SqlClause sqlClause, final String aliasName,
-            final int nestLevel) {
+    public AbstractBsAccessResultDataCQ(ConditionQuery referrerQuery, SqlClause sqlClause, String aliasName, int nestLevel) {
         super(referrerQuery, sqlClause, aliasName, nestLevel);
     }
 
@@ -63,7 +36,6 @@ public abstract class AbstractBsAccessResultDataCQ extends
         return DBMetaInstanceHandler.getProvider();
     }
 
-    @Override
     public String asTableDbName() {
         return "ACCESS_RESULT_DATA";
     }
@@ -76,11 +48,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param id The value of id as equal. (NullAllowed: if null, no condition)
      */
-    public void setId_Equal(final Long id) {
+    public void setId_Equal(Long id) {
         doSetId_Equal(id);
     }
 
-    protected void doSetId_Equal(final Long id) {
+    protected void doSetId_Equal(Long id) {
         regId(CK_EQ, id);
     }
 
@@ -89,11 +61,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param id The value of id as notEqual. (NullAllowed: if null, no condition)
      */
-    public void setId_NotEqual(final Long id) {
+    public void setId_NotEqual(Long id) {
         doSetId_NotEqual(id);
     }
 
-    protected void doSetId_NotEqual(final Long id) {
+    protected void doSetId_NotEqual(Long id) {
         regId(CK_NES, id);
     }
 
@@ -102,7 +74,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param id The value of id as greaterThan. (NullAllowed: if null, no condition)
      */
-    public void setId_GreaterThan(final Long id) {
+    public void setId_GreaterThan(Long id) {
         regId(CK_GT, id);
     }
 
@@ -111,7 +83,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param id The value of id as lessThan. (NullAllowed: if null, no condition)
      */
-    public void setId_LessThan(final Long id) {
+    public void setId_LessThan(Long id) {
         regId(CK_LT, id);
     }
 
@@ -120,7 +92,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param id The value of id as greaterEqual. (NullAllowed: if null, no condition)
      */
-    public void setId_GreaterEqual(final Long id) {
+    public void setId_GreaterEqual(Long id) {
         regId(CK_GE, id);
     }
 
@@ -129,7 +101,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param id The value of id as lessEqual. (NullAllowed: if null, no condition)
      */
-    public void setId_LessEqual(final Long id) {
+    public void setId_LessEqual(Long id) {
         regId(CK_LE, id);
     }
 
@@ -142,8 +114,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param maxNumber The max number of id. (NullAllowed: if null, no to-condition)
      * @param opLambda The callback for option of range-of. (NotNull)
      */
-    public void setId_RangeOf(final Long minNumber, final Long maxNumber,
-            final ConditionOptionCall<RangeOfOption> opLambda) {
+    public void setId_RangeOf(Long minNumber, Long maxNumber, ConditionOptionCall<RangeOfOption> opLambda) {
         setId_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
     }
 
@@ -156,8 +127,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param maxNumber The max number of id. (NullAllowed: if null, no to-condition)
      * @param rangeOfOption The option of range-of. (NotNull)
      */
-    protected void setId_RangeOf(final Long minNumber, final Long maxNumber,
-            final RangeOfOption rangeOfOption) {
+    protected void setId_RangeOf(Long minNumber, Long maxNumber, RangeOfOption rangeOfOption) {
         regROO(minNumber, maxNumber, xgetCValueId(), "ID", rangeOfOption);
     }
 
@@ -166,11 +136,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param idList The collection of id as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setId_InScope(final Collection<Long> idList) {
+    public void setId_InScope(Collection<Long> idList) {
         doSetId_InScope(idList);
     }
 
-    protected void doSetId_InScope(final Collection<Long> idList) {
+    protected void doSetId_InScope(Collection<Long> idList) {
         regINS(CK_INS, cTL(idList), xgetCValueId(), "ID");
     }
 
@@ -179,11 +149,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      * @param idList The collection of id as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setId_NotInScope(final Collection<Long> idList) {
+    public void setId_NotInScope(Collection<Long> idList) {
         doSetId_NotInScope(idList);
     }
 
-    protected void doSetId_NotInScope(final Collection<Long> idList) {
+    protected void doSetId_NotInScope(Collection<Long> idList) {
         regINS(CK_NINS, cTL(idList), xgetCValueId(), "ID");
     }
 
@@ -191,22 +161,15 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * IsNull {is null}. And OnlyOnceRegistered. <br>
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      */
-    public void setId_IsNull() {
-        regId(CK_ISN, DOBJ);
-    }
+    public void setId_IsNull() { regId(CK_ISN, DOBJ); }
 
     /**
      * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
      * ID: {PK, NotNull, BIGINT(19), FK to ACCESS_RESULT}
      */
-    public void setId_IsNotNull() {
-        regId(CK_ISNN, DOBJ);
-    }
+    public void setId_IsNotNull() { regId(CK_ISNN, DOBJ); }
 
-    protected void regId(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueId(), "ID");
-    }
-
+    protected void regId(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueId(), "ID"); }
     protected abstract ConditionValue xgetCValueId();
 
     /**
@@ -214,11 +177,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerName The value of transformerName as equal. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_Equal(final String transformerName) {
+    public void setTransformerName_Equal(String transformerName) {
         doSetTransformerName_Equal(fRES(transformerName));
     }
 
-    protected void doSetTransformerName_Equal(final String transformerName) {
+    protected void doSetTransformerName_Equal(String transformerName) {
         regTransformerName(CK_EQ, transformerName);
     }
 
@@ -227,11 +190,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerName The value of transformerName as notEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_NotEqual(final String transformerName) {
+    public void setTransformerName_NotEqual(String transformerName) {
         doSetTransformerName_NotEqual(fRES(transformerName));
     }
 
-    protected void doSetTransformerName_NotEqual(final String transformerName) {
+    protected void doSetTransformerName_NotEqual(String transformerName) {
         regTransformerName(CK_NES, transformerName);
     }
 
@@ -240,7 +203,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerName The value of transformerName as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_GreaterThan(final String transformerName) {
+    public void setTransformerName_GreaterThan(String transformerName) {
         regTransformerName(CK_GT, fRES(transformerName));
     }
 
@@ -249,7 +212,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerName The value of transformerName as lessThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_LessThan(final String transformerName) {
+    public void setTransformerName_LessThan(String transformerName) {
         regTransformerName(CK_LT, fRES(transformerName));
     }
 
@@ -258,7 +221,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerName The value of transformerName as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_GreaterEqual(final String transformerName) {
+    public void setTransformerName_GreaterEqual(String transformerName) {
         regTransformerName(CK_GE, fRES(transformerName));
     }
 
@@ -267,7 +230,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerName The value of transformerName as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_LessEqual(final String transformerName) {
+    public void setTransformerName_LessEqual(String transformerName) {
         regTransformerName(CK_LE, fRES(transformerName));
     }
 
@@ -276,15 +239,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerNameList The collection of transformerName as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_InScope(
-            final Collection<String> transformerNameList) {
+    public void setTransformerName_InScope(Collection<String> transformerNameList) {
         doSetTransformerName_InScope(transformerNameList);
     }
 
-    protected void doSetTransformerName_InScope(
-            final Collection<String> transformerNameList) {
-        regINS(CK_INS, cTL(transformerNameList), xgetCValueTransformerName(),
-                "TRANSFORMER_NAME");
+    protected void doSetTransformerName_InScope(Collection<String> transformerNameList) {
+        regINS(CK_INS, cTL(transformerNameList), xgetCValueTransformerName(), "TRANSFORMER_NAME");
     }
 
     /**
@@ -292,15 +252,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * TRANSFORMER_NAME: {NotNull, VARCHAR(255)}
      * @param transformerNameList The collection of transformerName as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setTransformerName_NotInScope(
-            final Collection<String> transformerNameList) {
+    public void setTransformerName_NotInScope(Collection<String> transformerNameList) {
         doSetTransformerName_NotInScope(transformerNameList);
     }
 
-    protected void doSetTransformerName_NotInScope(
-            final Collection<String> transformerNameList) {
-        regINS(CK_NINS, cTL(transformerNameList), xgetCValueTransformerName(),
-                "TRANSFORMER_NAME");
+    protected void doSetTransformerName_NotInScope(Collection<String> transformerNameList) {
+        regINS(CK_NINS, cTL(transformerNameList), xgetCValueTransformerName(), "TRANSFORMER_NAME");
     }
 
     /**
@@ -310,8 +267,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param transformerName The value of transformerName as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setTransformerName_LikeSearch(final String transformerName,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setTransformerName_LikeSearch(String transformerName, ConditionOptionCall<LikeSearchOption> opLambda) {
         setTransformerName_LikeSearch(transformerName, xcLSOP(opLambda));
     }
 
@@ -322,10 +278,8 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param transformerName The value of transformerName as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    protected void setTransformerName_LikeSearch(final String transformerName,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(transformerName), xgetCValueTransformerName(),
-                "TRANSFORMER_NAME", likeSearchOption);
+    protected void setTransformerName_LikeSearch(String transformerName, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(transformerName), xgetCValueTransformerName(), "TRANSFORMER_NAME", likeSearchOption);
     }
 
     /**
@@ -335,8 +289,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param transformerName The value of transformerName as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setTransformerName_NotLikeSearch(final String transformerName,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setTransformerName_NotLikeSearch(String transformerName, ConditionOptionCall<LikeSearchOption> opLambda) {
         setTransformerName_NotLikeSearch(transformerName, xcLSOP(opLambda));
     }
 
@@ -347,39 +300,27 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param transformerName The value of transformerName as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    protected void setTransformerName_NotLikeSearch(
-            final String transformerName,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(transformerName), xgetCValueTransformerName(),
-                "TRANSFORMER_NAME", likeSearchOption);
+    protected void setTransformerName_NotLikeSearch(String transformerName, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(transformerName), xgetCValueTransformerName(), "TRANSFORMER_NAME", likeSearchOption);
     }
 
-    protected void regTransformerName(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueTransformerName(), "TRANSFORMER_NAME");
-    }
-
+    protected void regTransformerName(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueTransformerName(), "TRANSFORMER_NAME"); }
     protected abstract ConditionValue xgetCValueTransformerName();
+
 
     /**
      * IsNull {is null}. And OnlyOnceRegistered. <br>
      * DATA: {LONGBLOB(2147483647)}
      */
-    public void setData_IsNull() {
-        regData(CK_ISN, DOBJ);
-    }
+    public void setData_IsNull() { regData(CK_ISN, DOBJ); }
 
     /**
      * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
      * DATA: {LONGBLOB(2147483647)}
      */
-    public void setData_IsNotNull() {
-        regData(CK_ISNN, DOBJ);
-    }
+    public void setData_IsNotNull() { regData(CK_ISNN, DOBJ); }
 
-    protected void regData(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueData(), "DATA");
-    }
-
+    protected void regData(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueData(), "DATA"); }
     protected abstract ConditionValue xgetCValueData();
 
     /**
@@ -387,11 +328,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encoding The value of encoding as equal. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_Equal(final String encoding) {
+    public void setEncoding_Equal(String encoding) {
         doSetEncoding_Equal(fRES(encoding));
     }
 
-    protected void doSetEncoding_Equal(final String encoding) {
+    protected void doSetEncoding_Equal(String encoding) {
         regEncoding(CK_EQ, encoding);
     }
 
@@ -400,11 +341,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encoding The value of encoding as notEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_NotEqual(final String encoding) {
+    public void setEncoding_NotEqual(String encoding) {
         doSetEncoding_NotEqual(fRES(encoding));
     }
 
-    protected void doSetEncoding_NotEqual(final String encoding) {
+    protected void doSetEncoding_NotEqual(String encoding) {
         regEncoding(CK_NES, encoding);
     }
 
@@ -413,7 +354,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encoding The value of encoding as greaterThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_GreaterThan(final String encoding) {
+    public void setEncoding_GreaterThan(String encoding) {
         regEncoding(CK_GT, fRES(encoding));
     }
 
@@ -422,7 +363,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encoding The value of encoding as lessThan. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_LessThan(final String encoding) {
+    public void setEncoding_LessThan(String encoding) {
         regEncoding(CK_LT, fRES(encoding));
     }
 
@@ -431,7 +372,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encoding The value of encoding as greaterEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_GreaterEqual(final String encoding) {
+    public void setEncoding_GreaterEqual(String encoding) {
         regEncoding(CK_GE, fRES(encoding));
     }
 
@@ -440,7 +381,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encoding The value of encoding as lessEqual. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_LessEqual(final String encoding) {
+    public void setEncoding_LessEqual(String encoding) {
         regEncoding(CK_LE, fRES(encoding));
     }
 
@@ -449,11 +390,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encodingList The collection of encoding as inScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_InScope(final Collection<String> encodingList) {
+    public void setEncoding_InScope(Collection<String> encodingList) {
         doSetEncoding_InScope(encodingList);
     }
 
-    protected void doSetEncoding_InScope(final Collection<String> encodingList) {
+    protected void doSetEncoding_InScope(Collection<String> encodingList) {
         regINS(CK_INS, cTL(encodingList), xgetCValueEncoding(), "ENCODING");
     }
 
@@ -462,12 +403,11 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * ENCODING: {VARCHAR(20)}
      * @param encodingList The collection of encoding as notInScope. (NullAllowed: if null (or empty), no condition)
      */
-    public void setEncoding_NotInScope(final Collection<String> encodingList) {
+    public void setEncoding_NotInScope(Collection<String> encodingList) {
         doSetEncoding_NotInScope(encodingList);
     }
 
-    protected void doSetEncoding_NotInScope(
-            final Collection<String> encodingList) {
+    protected void doSetEncoding_NotInScope(Collection<String> encodingList) {
         regINS(CK_NINS, cTL(encodingList), xgetCValueEncoding(), "ENCODING");
     }
 
@@ -478,8 +418,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param encoding The value of encoding as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setEncoding_LikeSearch(final String encoding,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setEncoding_LikeSearch(String encoding, ConditionOptionCall<LikeSearchOption> opLambda) {
         setEncoding_LikeSearch(encoding, xcLSOP(opLambda));
     }
 
@@ -490,10 +429,8 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param encoding The value of encoding as likeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of like-search. (NotNull)
      */
-    protected void setEncoding_LikeSearch(final String encoding,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(encoding), xgetCValueEncoding(), "ENCODING",
-                likeSearchOption);
+    protected void setEncoding_LikeSearch(String encoding, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_LS, fRES(encoding), xgetCValueEncoding(), "ENCODING", likeSearchOption);
     }
 
     /**
@@ -503,8 +440,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param encoding The value of encoding as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param opLambda The callback for option of like-search. (NotNull)
      */
-    public void setEncoding_NotLikeSearch(final String encoding,
-            final ConditionOptionCall<LikeSearchOption> opLambda) {
+    public void setEncoding_NotLikeSearch(String encoding, ConditionOptionCall<LikeSearchOption> opLambda) {
         setEncoding_NotLikeSearch(encoding, xcLSOP(opLambda));
     }
 
@@ -515,40 +451,29 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * @param encoding The value of encoding as notLikeSearch. (NullAllowed: if null (or empty), no condition)
      * @param likeSearchOption The option of not-like-search. (NotNull)
      */
-    protected void setEncoding_NotLikeSearch(final String encoding,
-            final LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(encoding), xgetCValueEncoding(), "ENCODING",
-                likeSearchOption);
+    protected void setEncoding_NotLikeSearch(String encoding, LikeSearchOption likeSearchOption) {
+        regLSQ(CK_NLS, fRES(encoding), xgetCValueEncoding(), "ENCODING", likeSearchOption);
     }
 
     /**
      * IsNull {is null}. And OnlyOnceRegistered. <br>
      * ENCODING: {VARCHAR(20)}
      */
-    public void setEncoding_IsNull() {
-        regEncoding(CK_ISN, DOBJ);
-    }
+    public void setEncoding_IsNull() { regEncoding(CK_ISN, DOBJ); }
 
     /**
      * IsNullOrEmpty {is null or empty}. And OnlyOnceRegistered. <br>
      * ENCODING: {VARCHAR(20)}
      */
-    public void setEncoding_IsNullOrEmpty() {
-        regEncoding(CK_ISNOE, DOBJ);
-    }
+    public void setEncoding_IsNullOrEmpty() { regEncoding(CK_ISNOE, DOBJ); }
 
     /**
      * IsNotNull {is not null}. And OnlyOnceRegistered. <br>
      * ENCODING: {VARCHAR(20)}
      */
-    public void setEncoding_IsNotNull() {
-        regEncoding(CK_ISNN, DOBJ);
-    }
+    public void setEncoding_IsNotNull() { regEncoding(CK_ISNN, DOBJ); }
 
-    protected void regEncoding(final ConditionKey ky, final Object vl) {
-        regQ(ky, vl, xgetCValueEncoding(), "ENCODING");
-    }
-
+    protected void regEncoding(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueEncoding(), "ENCODING"); }
     protected abstract ConditionValue xgetCValueEncoding();
 
     // ===================================================================================
@@ -656,48 +581,33 @@ public abstract class AbstractBsAccessResultDataCQ extends
         return xcreateSSQFunction(CK_LE, AccessResultDataCB.class);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    protected <CB extends ConditionBean> void xscalarCondition(final String fn,
-            final SubQuery<CB> sq, final String rd, final HpSSQOption<CB> op) {
+    protected <CB extends ConditionBean> void xscalarCondition(String fn, SubQuery<CB> sq, String rd, HpSSQOption<CB> op) {
         assertObjectNotNull("subQuery", sq);
-        final AccessResultDataCB cb = xcreateScalarConditionCB();
-        sq.query((CB) cb);
-        final String pp = keepScalarCondition(cb.query()); // for saving query-value
-        op.setPartitionByCBean((CB) xcreateScalarConditionPartitionByCB()); // for using partition-by
+        AccessResultDataCB cb = xcreateScalarConditionCB(); sq.query((CB)cb);
+        String pp = keepScalarCondition(cb.query()); // for saving query-value
+        op.setPartitionByCBean((CB)xcreateScalarConditionPartitionByCB()); // for using partition-by
         registerScalarCondition(fn, cb.query(), pp, rd, op);
     }
-
     public abstract String keepScalarCondition(AccessResultDataCQ sq);
 
     protected AccessResultDataCB xcreateScalarConditionCB() {
-        final AccessResultDataCB cb = newMyCB();
-        cb.xsetupForScalarCondition(this);
-        return cb;
+        AccessResultDataCB cb = newMyCB(); cb.xsetupForScalarCondition(this); return cb;
     }
 
     protected AccessResultDataCB xcreateScalarConditionPartitionByCB() {
-        final AccessResultDataCB cb = newMyCB();
-        cb.xsetupForScalarConditionPartitionBy(this);
-        return cb;
+        AccessResultDataCB cb = newMyCB(); cb.xsetupForScalarConditionPartitionBy(this); return cb;
     }
 
     // ===================================================================================
     //                                                                       MyselfDerived
     //                                                                       =============
-    public void xsmyselfDerive(final String fn,
-            final SubQuery<AccessResultDataCB> sq, final String al,
-            final DerivedReferrerOption op) {
+    public void xsmyselfDerive(String fn, SubQuery<AccessResultDataCB> sq, String al, DerivedReferrerOption op) {
         assertObjectNotNull("subQuery", sq);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForDerivedReferrer(this);
-        lockCall(() -> sq.query(cb));
-        final String pp = keepSpecifyMyselfDerived(cb.query());
-        final String pk = "ID";
-        registerSpecifyMyselfDerived(fn, cb.query(), pk, pk, pp,
-                "myselfDerived", al, op);
+        AccessResultDataCB cb = new AccessResultDataCB(); cb.xsetupForDerivedReferrer(this);
+        lockCall(() -> sq.query(cb)); String pp = keepSpecifyMyselfDerived(cb.query()); String pk = "ID";
+        registerSpecifyMyselfDerived(fn, cb.query(), pk, pk, pp, "myselfDerived", al, op);
     }
-
     public abstract String keepSpecifyMyselfDerived(AccessResultDataCQ sq);
 
     /**
@@ -707,25 +617,16 @@ public abstract class AbstractBsAccessResultDataCQ extends
     public HpQDRFunction<AccessResultDataCB> myselfDerived() {
         return xcreateQDRFunctionMyselfDerived(AccessResultDataCB.class);
     }
-
-    @Override
     @SuppressWarnings("unchecked")
-    protected <CB extends ConditionBean> void xqderiveMyselfDerived(
-            final String fn, final SubQuery<CB> sq, final String rd,
-            final Object vl, final DerivedReferrerOption op) {
+    protected <CB extends ConditionBean> void xqderiveMyselfDerived(String fn, SubQuery<CB> sq, String rd, Object vl, DerivedReferrerOption op) {
         assertObjectNotNull("subQuery", sq);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForDerivedReferrer(this);
-        sq.query((CB) cb);
-        final String pk = "ID";
-        final String sqpp = keepQueryMyselfDerived(cb.query()); // for saving query-value.
-        final String prpp = keepQueryMyselfDerivedParameter(vl);
-        registerQueryMyselfDerived(fn, cb.query(), pk, pk, sqpp,
-                "myselfDerived", rd, vl, prpp, op);
+        AccessResultDataCB cb = new AccessResultDataCB(); cb.xsetupForDerivedReferrer(this); sq.query((CB)cb);
+        String pk = "ID";
+        String sqpp = keepQueryMyselfDerived(cb.query()); // for saving query-value.
+        String prpp = keepQueryMyselfDerivedParameter(vl);
+        registerQueryMyselfDerived(fn, cb.query(), pk, pk, sqpp, "myselfDerived", rd, vl, prpp, op);
     }
-
     public abstract String keepQueryMyselfDerived(AccessResultDataCQ sq);
-
     public abstract String keepQueryMyselfDerivedParameter(Object vl);
 
     // ===================================================================================
@@ -735,15 +636,12 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * Prepare for MyselfExists (correlated sub-query).
      * @param subCBLambda The implementation of sub-query. (NotNull)
      */
-    public void myselfExists(final SubQuery<AccessResultDataCB> subCBLambda) {
+    public void myselfExists(SubQuery<AccessResultDataCB> subCBLambda) {
         assertObjectNotNull("subCBLambda", subCBLambda);
-        final AccessResultDataCB cb = new AccessResultDataCB();
-        cb.xsetupForMyselfExists(this);
-        lockCall(() -> subCBLambda.query(cb));
-        final String pp = keepMyselfExists(cb.query());
+        AccessResultDataCB cb = new AccessResultDataCB(); cb.xsetupForMyselfExists(this);
+        lockCall(() -> subCBLambda.query(cb)); String pp = keepMyselfExists(cb.query());
         registerMyselfExists(cb.query(), pp);
     }
-
     public abstract String keepMyselfExists(AccessResultDataCQ sq);
 
     // ===================================================================================
@@ -779,7 +677,7 @@ public abstract class AbstractBsAccessResultDataCQ extends
      * <p>The order values are bound (treated as bind parameter).</p>
      * @param opLambda The callback for option of manual-order containing order values. (NotNull)
      */
-    public void withManualOrder(final ManualOrderOptionCall opLambda) { // is user public!
+    public void withManualOrder(ManualOrderOptionCall opLambda) { // is user public!
         xdoWithManualOrder(cMOO(opLambda));
     }
 
@@ -792,25 +690,10 @@ public abstract class AbstractBsAccessResultDataCQ extends
     protected AccessResultDataCB newMyCB() {
         return new AccessResultDataCB();
     }
-
     // very internal (for suppressing warn about 'Not Use Import')
-    protected String xabUDT() {
-        return Date.class.getName();
-    }
-
-    protected String xabCQ() {
-        return AccessResultDataCQ.class.getName();
-    }
-
-    protected String xabLSO() {
-        return LikeSearchOption.class.getName();
-    }
-
-    protected String xabSSQS() {
-        return HpSSQSetupper.class.getName();
-    }
-
-    protected String xabSCP() {
-        return SubQuery.class.getName();
-    }
+    protected String xabUDT() { return Date.class.getName(); }
+    protected String xabCQ() { return AccessResultDataCQ.class.getName(); }
+    protected String xabLSO() { return LikeSearchOption.class.getName(); }
+    protected String xabSSQS() { return HpSSQSetupper.class.getName(); }
+    protected String xabSCP() { return SubQuery.class.getName(); }
 }

@@ -16,7 +16,7 @@
 #
 map:{
     ; driver   = org.h2.Driver
-    ; url      = jdbc:h2:file:../target/db/robot
+    ; url      = jdbc:h2:file:../src/main/db/robot
     ; schema   =  
     ; user     = sa
     ; password =  

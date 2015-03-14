@@ -55,51 +55,16 @@
           <packageBase>org.codelibs.robot.db</packageBase>
           <clientProject>robot</clientProject>
           <dbfluteClientDir>${basedir}/dbflute_robot</dbfluteClientDir>
-          <databaseUrl>jdbc:h2:file:${basedir}/target/db/robot</databaseUrl>
+          <databaseUrl>jdbc:h2:file:${basedir}/src/main/db/robot</databaseUrl>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>sql-maven-plugin</artifactId>
-        <dependencies>
-          <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <driver>org.h2.Driver</driver>
-          <url>jdbc:h2:file:${basedir}/target/db/robot</url>
-          <username>sa</username>
-          <password />
-        </configuration>
-        <executions>
-          <execution>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>execute</goal>
-            </goals>
-            <configuration>
-              <srcFiles>
-                <srcFile>${basedir}/src/main/config/robot.ddl</srcFile>
-              </srcFiles>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
   <dependencies>
     <dependency>
       <groupId>org.codelibs.robot</groupId>
-      <artifactId>s2robot-spring</artifactId>
+      <artifactId>s2robot-lasta</artifactId>
       <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jdbc</artifactId>
-      <version>${spring.version}</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>

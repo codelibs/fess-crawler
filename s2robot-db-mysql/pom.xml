@@ -66,6 +66,11 @@
   </build>
   <dependencies>
     <dependency>
+      <groupId>org.lastaflute</groupId>
+      <artifactId>lasta-di</artifactId>
+      <version>${lastaflute.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.codelibs.robot</groupId>
       <artifactId>s2robot-lasta</artifactId>
       <version>${project.parent.version}</version>

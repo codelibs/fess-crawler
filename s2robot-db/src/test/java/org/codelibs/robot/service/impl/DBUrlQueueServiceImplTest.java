@@ -16,22 +16,23 @@
 package org.codelibs.robot.service.impl;
 
 import org.codelibs.robot.db.exentity.UrlQueue;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class DBUrlQueueServiceImplTest extends S2TestCase {
+public class DBUrlQueueServiceImplTest extends LastaDiTestCase {
     public DBUrlQueueServiceImpl urlQueueService;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected String prepareConfigFile() {
+        return "app.xml";
     }
 
     @Override
-    protected void setUpAfterBindFields() throws Throwable {
+    public void setUp() throws Exception {
+        super.setUp();
         urlQueueService.deleteAll();
     }
 

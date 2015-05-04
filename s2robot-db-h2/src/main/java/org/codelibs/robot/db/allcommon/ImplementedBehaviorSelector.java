@@ -3,6 +3,7 @@ package org.codelibs.robot.db.allcommon;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,8 @@ import org.dbflute.util.DfTraceViewUtil;
 import org.dbflute.util.DfTypeUtil;
 import org.dbflute.util.Srl;
 
-import org.seasar.framework.container.S2Container;
-import org.seasar.framework.container.ComponentNotFoundRuntimeException;
+import org.lastaflute.di.core.LaContainer;
+import org.lastaflute.di.core.exception.ComponentNotFoundException;
 
 /**
  * The implementation of behavior selector.
@@ -35,8 +36,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     /** The concurrent cache of behavior. */
     protected final Map<Class<? extends BehaviorReadable>, BehaviorReadable> _behaviorCache = newConcurrentHashMap();
 
-    /** The container of Seasar. */
-    protected S2Container _container;
+    /** The container of Lasta Di. */
+    protected LaContainer _container;
 
     // ===================================================================================
     //                                                                          Initialize
@@ -136,21 +137,19 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     // ===================================================================================
     //                                                                           Component
     //                                                                           =========
-    @SuppressWarnings("unchecked")
     protected <COMPONENT> COMPONENT getComponent(Class<COMPONENT> componentType) { // only for behavior
         assertObjectNotNull("componentType", componentType);
         assertObjectNotNull("_container", _container);
         try {
-		    return (COMPONENT)_container.getComponent(componentType);
-		} catch (ComponentNotFoundRuntimeException e) { // Normally it doesn't come.
+		    return _container.getComponent(componentType);
+		} catch (ComponentNotFoundException e) { // normally it doesn't come.
 		    final COMPONENT component;
 		    try {
-		        // for HotDeploy Mode
-		        component = (COMPONENT)_container.getRoot().getComponent(componentType);
-		    } catch (ComponentNotFoundRuntimeException ignored) {
+		        component = _container.getRoot().getComponent(componentType); // retry for HotDeploy mode
+		    } catch (ComponentNotFoundException ignored) {
 		        throw e;
 		    }
-		    _container = _container.getRoot(); // Change container.
+		    _container = _container.getRoot(); // change container
 		    return component;
 		}
     }
@@ -218,7 +217,8 @@ public class ImplementedBehaviorSelector implements BehaviorSelector {
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
-    public void setContainer(S2Container container) {
+    @Resource
+    public void setContainer(LaContainer container) {
         this._container = container;
     }
 }

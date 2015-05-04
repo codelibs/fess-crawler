@@ -25,9 +25,9 @@ import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.service.UrlQueueService;
 import org.codelibs.robot.transformer.impl.FileTransformer;
 import org.codelibs.robot.util.S2RobotWebServer;
-import org.dbflute.utflute.seasar.SeasarTestCase;
+import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
-public class S2RobotTest extends SeasarTestCase {
+public class S2RobotTest extends LastaDiTestCase {
 
     public S2Robot s2Robot;
 
@@ -41,7 +41,7 @@ public class S2RobotTest extends SeasarTestCase {
 
     @Override
     protected String prepareConfigFile() {
-        return "s2robot.dicon";
+        return "s2robot.xml";
     }
 
     public void test_execute_web() throws Exception {

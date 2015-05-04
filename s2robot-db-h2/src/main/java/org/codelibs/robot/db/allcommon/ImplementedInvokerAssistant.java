@@ -31,10 +31,8 @@ import org.dbflute.s2dao.jdbc.TnStatementFactoryImpl;
 import org.dbflute.s2dao.metadata.TnBeanMetaDataFactory;
 import org.dbflute.twowaysql.factory.SqlAnalyzerFactory;
 
-import org.seasar.framework.container.annotation.tiger.Binding;
-import org.seasar.framework.container.annotation.tiger.BindingType;
-import org.seasar.framework.util.Disposable;
-import org.seasar.framework.util.DisposableUtil;
+import org.lastaflute.di.Disposable;
+import org.lastaflute.di.DisposableUtil;
 
 /**
  * @author DBFlute(AutoGenerator)
@@ -505,6 +503,7 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     // ===================================================================================
     //                                                                            Accessor
     //                                                                            ========
+    @javax.annotation.Resource
     public void setDataSource(DataSource dataSource) {
         _dataSource = dataSource;
     }
@@ -512,9 +511,8 @@ public class ImplementedInvokerAssistant implements InvokerAssistant {
     // to check the initializer is an instance of DBFluteInitializer
     // when the initializer is extended by DBFlute property
     // so this variable is actually unused in this class
-    // (needs to be injected only when the DI container
-    // is set by its DI setting file)
-    @Binding(bindingType=BindingType.MUST)
+    // (needs to be injected only when the DI container is set by its DI setting file)
+    @javax.annotation.Resource
     public void setIntroduction(DBFluteInitializer introduction) {
         _introduction = introduction;
     }

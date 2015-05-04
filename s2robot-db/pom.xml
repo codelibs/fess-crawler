@@ -87,33 +87,14 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-j2ee_1.4_spec</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
+      <groupId>org.lastaflute</groupId>
+      <artifactId>lasta-di</artifactId>
+      <version>${lastaflute.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-annotation_1.0_spec</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-ejb_3.0_spec</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-interceptor_3.0_spec</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jta_1.1_spec</artifactId>
-      <version>1.0</version>
+      <groupId>javax.transaction</groupId>
+      <artifactId>javax.transaction-api</artifactId>
+      <version>${jta.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -124,7 +105,7 @@
     </dependency>
     <dependency>
       <groupId>org.dbflute.utflute</groupId>
-      <artifactId>utflute-core</artifactId>
+      <artifactId>utflute-lasta-di</artifactId>
       <version>${utflute.version}</version>
       <scope>test</scope>
     </dependency>

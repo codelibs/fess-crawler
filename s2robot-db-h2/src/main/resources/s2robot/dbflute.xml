@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN" 
+	"http://dbflute.org/meta/lastadi10.dtd">
+<components namespace="s2robot">
+	<include condition="#exists('#path')" path="my_included_dbflute.xml"/>
+	<include path="s2robot/rdb.xml"/>
+
+	<!-- The components of DBFlute Runtime. -->
+	<component name="introduction" class="org.codelibs.robot.db.allcommon.DBFluteInitializer"/>
+	<component name="invokerAssistant" class="org.codelibs.robot.db.allcommon.ImplementedInvokerAssistant"/>
+	<component name="behaviorCommandInvoker" class="org.codelibs.robot.dbflute.bhv.core.BehaviorCommandInvoker"/>
+	<component name="behaviorSelector" class="org.codelibs.robot.db.allcommon.ImplementedBehaviorSelector"/>
+	<component name="commonColumnAutoSetupper" class="org.codelibs.robot.db.allcommon.ImplementedCommonColumnAutoSetupper"/>
+
+	<!-- The components of Behavior. -->
+	<component name="accessResultBhv" class="org.codelibs.robot.db.exbhv.AccessResultBhv"/>
+	<component name="accessResultDataBhv" class="org.codelibs.robot.db.exbhv.AccessResultDataBhv"/>
+	<component name="urlFilterBhv" class="org.codelibs.robot.db.exbhv.UrlFilterBhv"/>
+	<component name="urlQueueBhv" class="org.codelibs.robot.db.exbhv.UrlQueueBhv"/>
+</components>

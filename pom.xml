@@ -43,9 +43,12 @@
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jta.version>1.2</jta.version>
     <h2.version>1.4.181</h2.version>
     <mysql.version>5.1.32</mysql.version>
-    <dbflute.version>1.1.0-sp1</dbflute.version>
+    <dbflute.version>1.1.0-sp3-RC2</dbflute.version>
+    <lastaflute.version>0.6.0-RC3</lastaflute.version>
+    <utflute.version>0.5.0-sp3</utflute.version>
     <slf4j.version>1.7.7</slf4j.version>
     <httpcomponents.version>4.3.6</httpcomponents.version>
     <tika.version>1.6</tika.version>
@@ -53,8 +56,6 @@
     <pdfbox.version>1.8.8</pdfbox.version>
     <bouncycastle.version>1.51</bouncycastle.version>
     <nekohtml.version>1.9.21</nekohtml.version>
-    <utflute.version>0.5.0-RC4</utflute.version>
-    <spring.version>4.1.4.RELEASE</spring.version>
   </properties>
   <build>
     <pluginManagement>
@@ -177,7 +178,7 @@
         <plugin>
           <groupId>org.dbflute</groupId>
           <artifactId>dbflute-maven-plugin</artifactId>
-          <version>1.1.0-RC3</version>
+          <version>1.1.0</version>
         </plugin>
       </plugins>
     </pluginManagement>

@@ -26,9 +26,9 @@ import org.codelibs.robot.service.UrlQueueService;
 import org.codelibs.robot.transformer.impl.FileTransformer;
 import org.codelibs.robot.util.AccessResultCallback;
 import org.codelibs.robot.util.S2RobotWebServer;
-import org.seasar.extension.unit.S2TestCase;
+import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
-public class S2RobotTest extends S2TestCase {
+public class S2RobotTest extends LastaDiTestCase {
 
     public S2Robot s2Robot;
 
@@ -41,8 +41,8 @@ public class S2RobotTest extends S2TestCase {
     public FileTransformer fileTransformer;
 
     @Override
-    protected String getRootDicon() throws Throwable {
-        return "app.dicon";
+    protected String prepareConfigFile() {
+        return "app.xml";
     }
 
     public void test_executeTx() throws Exception {
@@ -91,8 +91,7 @@ public class S2RobotTest extends S2TestCase {
 
             final S2Robot s2Robot1 = (S2Robot) getComponent(S2Robot.class);
             s2Robot1.setBackground(true);
-            ((UrlFilterImpl) s2Robot1.urlFilter)
-                .setIncludeFilteringPattern("$1$2$3.*");
+            ((UrlFilterImpl) s2Robot1.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
             s2Robot1.addUrl(url1);
             s2Robot1.getRobotContext().setMaxAccessCount(maxCount);
             s2Robot1.getRobotContext().setNumOfThread(numOfThread);
@@ -101,8 +100,7 @@ public class S2RobotTest extends S2TestCase {
 
             final S2Robot s2Robot2 = (S2Robot) getComponent(S2Robot.class);
             s2Robot2.setBackground(true);
-            ((UrlFilterImpl) s2Robot2.urlFilter)
-                .setIncludeFilteringPattern("$1$2$3.*");
+            ((UrlFilterImpl) s2Robot2.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
             s2Robot2.addUrl(url2);
             s2Robot2.getRobotContext().setMaxAccessCount(maxCount);
             s2Robot2.getRobotContext().setNumOfThread(numOfThread);

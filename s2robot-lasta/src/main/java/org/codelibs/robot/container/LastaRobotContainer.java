@@ -15,24 +15,23 @@
  */
 package org.codelibs.robot.container;
 
-import org.seasar.framework.container.SingletonS2Container;
-import org.seasar.framework.container.factory.SingletonS2ContainerFactory;
+import org.lastaflute.di.core.factory.SingletonLaContainerFactory;
 
 public class LastaRobotContainer implements RobotContainer {
 
     @Override
     public <T> T getComponent(String name) {
-        return SingletonS2Container.getComponent(name);
+        return SingletonLaContainerFactory.getContainer().getComponent(name);
     }
 
     @Override
     public boolean available() {
-        return SingletonS2ContainerFactory.getContainer().getClassLoader() != null;
+        return SingletonLaContainerFactory.getContainer().getClassLoader() != null;
     }
 
     @Override
     public void destroy() {
-        SingletonS2ContainerFactory.destroy();
+        SingletonLaContainerFactory.destroy();
     }
 
 }

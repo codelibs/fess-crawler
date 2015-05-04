@@ -256,7 +256,8 @@ public class BsAccessResultCB extends AbstractConditionBean {
     public AccessResultDataNss setupSelect_AccessResultDataAsOne() {
         assertSetupSelectPurpose("accessResultDataAsOne");
         doSetupSelect(() -> query().queryAccessResultDataAsOne());
-        if (_nssAccessResultDataAsOne == null || !_nssAccessResultDataAsOne.hasConditionQuery()) { _nssAccessResultDataAsOne = new AccessResultDataNss(query().queryAccessResultDataAsOne()); }
+        if (_nssAccessResultDataAsOne == null || !_nssAccessResultDataAsOne.hasConditionQuery())
+        { _nssAccessResultDataAsOne = new AccessResultDataNss(query().queryAccessResultDataAsOne()); }
         return _nssAccessResultDataAsOne;
     }
 
@@ -296,8 +297,8 @@ public class BsAccessResultCB extends AbstractConditionBean {
         return specify();
     }
 
-    public boolean hasSpecifiedColumn() {
-        return _specification != null && _specification.isAlreadySpecifiedRequiredColumn();
+    public boolean hasSpecifiedLocalColumn() {
+        return _specification != null && _specification.hasSpecifiedColumn();
     }
 
     public static class HpSpecification extends HpAbstractSpecification<AccessResultCQ> {

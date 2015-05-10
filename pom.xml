@@ -47,7 +47,7 @@
     <h2.version>1.4.181</h2.version>
     <mysql.version>5.1.32</mysql.version>
     <dbflute.version>1.1.0-sp3-RC2</dbflute.version>
-    <lastaflute.version>0.6.0-RC3</lastaflute.version>
+    <lastaflute.version>0.6.0-RC6</lastaflute.version>
     <utflute.version>0.5.0-sp3</utflute.version>
     <slf4j.version>1.7.7</slf4j.version>
     <httpcomponents.version>4.3.6</httpcomponents.version>

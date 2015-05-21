@@ -23,7 +23,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.text.translate.AggregateTranslator;
+import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
+import org.apache.commons.lang3.text.translate.EntityArrays;
+import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.lang3.text.translate.NumericEntityUnescaper;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
@@ -41,6 +45,10 @@ public abstract class AbstractXmlExtractor {
 
     protected static final Logger logger = LoggerFactory // NOPMD
             .getLogger(AbstractXmlExtractor.class);
+
+    protected static final CharSequenceTranslator UNESCAPE_HTML4 = new AggregateTranslator(new LookupTranslator(
+            EntityArrays.BASIC_UNESCAPE()), new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE()), new LookupTranslator(
+            EntityArrays.HTML40_EXTENDED_UNESCAPE()), new NumericEntityUnescaper());
 
     protected String encoding = Constants.UTF_8;
 
@@ -60,7 +68,7 @@ public abstract class AbstractXmlExtractor {
         try {
             final BufferedInputStream bis = new BufferedInputStream(in);
             final String enc = getEncoding(bis);
-            final String content = StringEscapeUtils.unescapeHtml4(new String(
+            final String content = UNESCAPE_HTML4.translate(new String(
                     InputStreamUtil.getBytes(bis), enc));
             return new ExtractData(extractString(content));
         } catch (final Exception e) {

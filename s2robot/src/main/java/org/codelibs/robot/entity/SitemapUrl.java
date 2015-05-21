@@ -15,7 +15,7 @@
  */
 package org.codelibs.robot.entity;
 
-import org.apache.commons.lang3.StringUtils;
+import org.codelibs.core.lang.StringUtil;
 
 /**
  * @author shinsuke
@@ -129,10 +129,10 @@ public class SitemapUrl implements Sitemap {
             return false;
         }
         final SitemapUrl sitemapUrl = (SitemapUrl) obj;
-        if (StringUtils.equals(loc, sitemapUrl.loc)
-                && StringUtils.equals(changefreq, sitemapUrl.changefreq)
-                && StringUtils.equals(lastmod, sitemapUrl.lastmod)
-                && StringUtils.equals(priority, sitemapUrl.priority)) {
+        if (StringUtil.equals(loc, sitemapUrl.loc)
+                && StringUtil.equals(changefreq, sitemapUrl.changefreq)
+                && StringUtil.equals(lastmod, sitemapUrl.lastmod)
+                && StringUtil.equals(priority, sitemapUrl.priority)) {
             return true;
         }
         return false;

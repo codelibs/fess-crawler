@@ -29,7 +29,6 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.Constants;
@@ -188,7 +187,7 @@ public class FileSystemClient extends AbstractS2RobotClient {
                     buf.append("%20");
                 } else {
                     final String str = String.valueOf(c);
-                    if (StringUtils.isAsciiPrintable(str)) {
+                    if (StringUtil.isAsciiPrintable(str)) {
                         buf.append(c);
                     } else {
                         buf.append(URLEncoder.encode(str, charset));

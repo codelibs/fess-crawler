@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.entity.UrlQueueImpl;
 import org.codelibs.robot.util.CrawlingParameterUtil;
@@ -70,9 +69,8 @@ public class HostIntervalControllerTest extends PlainTestCase {
             tasks.add(testCallable);
         }
 
-        // 時間取得
-        final StopWatch watch = new StopWatch();
-        watch.start();
+         // 時間取得
+        final long time = System.currentTimeMillis();
 
         // Callableタスク(複数)を実行する
         final ExecutorService executor = Executors.newFixedThreadPool(numTasks);
@@ -87,6 +85,6 @@ public class HostIntervalControllerTest extends PlainTestCase {
             // no thing to do
         }
 
-        assertTrue(watch.getTime() > waittime * (numTasks - 1));
+        assertTrue(System.currentTimeMillis() - time > waittime * (numTasks - 1));
     }
 }

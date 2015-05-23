@@ -89,7 +89,7 @@
     <dependency>
       <groupId>org.lastaflute</groupId>
       <artifactId>lasta-di</artifactId>
-      <version>${lastaflute.version}</version>
+      <version>${lastadi.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.transaction</groupId>

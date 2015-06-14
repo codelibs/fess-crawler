@@ -37,6 +37,7 @@
   <modules>
     <module>s2robot</module>
     <module>s2robot-lasta</module>
+    <module>s2robot-es</module>
     <module>s2robot-db-h2</module>
     <module>s2robot-db-mysql</module>
     <module>s2robot-db</module>
@@ -49,6 +50,7 @@
     <dbflute.version>1.1.0-sp3-RC2</dbflute.version>
     <lastadi.version>0.6.0</lastadi.version>
     <utflute.version>0.5.0-sp3</utflute.version>
+    <corelib.version>0.3.0</corelib.version>
     <slf4j.version>1.7.7</slf4j.version>
     <httpcomponents.version>4.3.6</httpcomponents.version>
     <tika.version>1.6</tika.version>
@@ -56,6 +58,7 @@
     <pdfbox.version>1.8.8</pdfbox.version>
     <bouncycastle.version>1.51</bouncycastle.version>
     <nekohtml.version>1.9.21</nekohtml.version>
+    <elasticsearch.version>1.6.0</elasticsearch.version>
   </properties>
   <build>
     <pluginManagement>

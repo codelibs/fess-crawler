@@ -20,7 +20,6 @@ import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.AccessResultImpl;
 import org.codelibs.robot.helper.MemoryDataHelper;
 import org.codelibs.robot.service.DataService;
-import org.codelibs.robot.util.AccessResultCallback;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -39,37 +38,36 @@ public class DataServiceImplTest extends PlainTestCase {
         dataService = container.getComponent("dataService");
     }
 
-    public void test_iterateUrlDiff() {
-        final AccessResultImpl accessResult1a = new AccessResultImpl();
-        accessResult1a.setSessionId("1");
-        accessResult1a.setUrl("http://www.example.com/a");
-        dataService.store(accessResult1a);
+    public void test_insert_deleteTx() {
+        final AccessResult accessResult1 = new AccessResultImpl();
+        accessResult1.setContentLength(Long.valueOf(10));
+        accessResult1.setCreateTime(System.currentTimeMillis());
+        accessResult1.setExecutionTime(10);
+        accessResult1.setHttpStatusCode(200);
+        accessResult1.setLastModified(System.currentTimeMillis());
+        accessResult1.setMethod("GET");
+        accessResult1.setMimeType("text/plain");
+        accessResult1.setParentUrl("http://www.parent.com/");
+        accessResult1.setRuleId("htmlRule");
+        accessResult1.setSessionId("id1");
+        accessResult1.setStatus(200);
+        accessResult1.setUrl("http://www.id1.com/");
 
-        final AccessResultImpl accessResult1b = new AccessResultImpl();
-        accessResult1b.setSessionId("1");
-        accessResult1b.setUrl("http://www.example.com/b");
-        dataService.store(accessResult1b);
+        dataService.store(accessResult1);
 
-        final AccessResultImpl accessResult2a = new AccessResultImpl();
-        accessResult2a.setSessionId("2");
-        accessResult2a.setUrl("http://www.example.com/a");
-        dataService.store(accessResult2a);
+        final AccessResult accessResult2 = dataService.getAccessResult("id1", "http://www.id1.com/");
+        assertNotNull(accessResult2);
 
-        final AccessResultImpl accessResult2c = new AccessResultImpl();
-        accessResult2c.setSessionId("2");
-        accessResult2c.setUrl("http://www.example.com/c");
-        dataService.store(accessResult2c);
+        accessResult2.setMimeType("text/html");
+        dataService.update(accessResult2);
 
-        dataService.iterateUrlDiff("1", "2", new AccessResultCallback() {
-            public void iterate(final AccessResult accessResult) {
-                assertEquals(accessResult2c, accessResult);
-            }
-        });
+        final AccessResult accessResult3 = dataService.getAccessResult("id1", "http://www.id1.com/");
+        assertNotNull(accessResult3);
+        assertEquals("text/html", accessResult3.getMimeType());
 
-        dataService.iterateUrlDiff("2", "1", new AccessResultCallback() {
-            public void iterate(final AccessResult accessResult) {
-                assertEquals(accessResult1b, accessResult);
-            }
-        });
+        dataService.delete("id1");
+
+        final AccessResult accessResult4 = dataService.getAccessResult("id1", "http://www.id1.com/");
+        assertNull(accessResult4);
     }
 }

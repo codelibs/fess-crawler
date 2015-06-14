@@ -88,7 +88,7 @@
     <dependency>
       <groupId>org.codelibs</groupId>
       <artifactId>corelib</artifactId>
-      <version>0.3.0</version>
+      <version>${corelib.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>

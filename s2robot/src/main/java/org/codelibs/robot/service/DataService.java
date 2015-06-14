@@ -42,10 +42,6 @@ public interface DataService {
 
     List<AccessResult> getAccessResultList(String url, boolean hasData);
 
-    void iterate(String sessionId,
-            final AccessResultCallback accessResultCallback);
-
-    void iterateUrlDiff(String oldSessionId, String newSessionId,
-            final AccessResultCallback accessResultCallback);
+    void iterate(String sessionId, final AccessResultCallback accessResultCallback);
 
 }

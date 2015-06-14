@@ -151,29 +151,6 @@ public class DataServiceImpl implements DataService {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * org.codelibs.robot.service.DataService#iterateUrlDiff(java.lang.String,
-     * java.lang.String, org.codelibs.robot.util.AccessResultCallback)
-     */
-    @Override
-    public void iterateUrlDiff(final String oldSessionId,
-            final String newSessionId,
-            final AccessResultCallback accessResultCallback) {
-        final Map<String, AccessResult> oldAccessResultMap = dataHelper
-                .getAccessResultMap(oldSessionId);
-        final Map<String, AccessResult> newAccessResultMap = dataHelper
-                .getAccessResultMap(newSessionId);
-        for (final Map.Entry<String, AccessResult> newEntry : newAccessResultMap
-                .entrySet()) {
-            if (!oldAccessResultMap.keySet().contains(newEntry.getKey())) {
-                accessResultCallback.iterate(newEntry.getValue());
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
      * @see org.codelibs.robot.service.DataService#update(org.codelibs.robot.entity.
      * AccessResult)
      */

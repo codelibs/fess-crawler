@@ -15,22 +15,28 @@
  */
 package org.codelibs.robot.service.impl;
 
-import java.beans.Beans;
+import static org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner.newConfigs;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-import org.codelibs.core.beans.util.BeanUtil;
-import org.codelibs.robot.Constants;
+import org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner;
+import org.codelibs.robot.client.EsClient;
 import org.codelibs.robot.entity.AccessResult;
-import org.codelibs.robot.util.AccessResultCallback;
+import org.codelibs.robot.entity.EsAccessResult;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
 /**
  * @author shinsuke
  * 
  */
-public class DBDataServiceImplTest extends LastaDiTestCase {
-    public DBDataServiceImpl dataService;
+public class EsDataServiceTest extends LastaDiTestCase {
+    public EsDataService dataService;
+
+    public EsClient esClient;
+
+    private ElasticsearchClusterRunner runner;
 
     @Override
     protected String prepareConfigFile() {
@@ -38,13 +44,39 @@ public class DBDataServiceImplTest extends LastaDiTestCase {
     }
 
     @Override
+    protected boolean isUseOneTimeContainer() {
+        return true;
+    }
+
+    @Override
     public void setUp() throws Exception {
+        // create runner instance
+        runner = new ElasticsearchClusterRunner();
+        // create ES nodes
+        final String clusterName = UUID.randomUUID().toString();
+        runner.onBuild((number, settingsBuilder) -> settingsBuilder.put("http.cors.enabled", true))
+                .build(newConfigs().clusterName(clusterName).ramIndexStore().numOfNode(1));
+
+        // wait for yellow status
+        runner.ensureYellow();
+
+        System.setProperty(EsClient.CLUSTER_NAME, clusterName);
+        System.setProperty(EsClient.TCP_PORT, runner.node().settings().get("transport.tcp.port", "9301"));
+
         super.setUp();
-        dataService.deleteAll();
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+        super.tearDown();
+        // close runner
+        runner.close();
+        // delete all files
+        runner.clean();
     }
 
     public void test_insert_deleteTx() {
-        final org.codelibs.robot.db.exentity.AccessResult accessResult1 = new org.codelibs.robot.db.exentity.AccessResult();
+        final EsAccessResult accessResult1 = new EsAccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
         accessResult1.setCreateTime(System.currentTimeMillis());
         accessResult1.setExecutionTime(10);
@@ -77,7 +109,7 @@ public class DBDataServiceImplTest extends LastaDiTestCase {
     }
 
     public void test_insert_delete_multiTx() {
-        final org.codelibs.robot.db.exentity.AccessResult accessResult1 = new org.codelibs.robot.db.exentity.AccessResult();
+        final EsAccessResult accessResult1 = new EsAccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
         accessResult1.setCreateTime(System.currentTimeMillis());
         accessResult1.setExecutionTime(10);
@@ -93,7 +125,7 @@ public class DBDataServiceImplTest extends LastaDiTestCase {
 
         dataService.store(accessResult1);
 
-        final org.codelibs.robot.db.exentity.AccessResult accessResult2 = new org.codelibs.robot.db.exentity.AccessResult();
+        final EsAccessResult accessResult2 = new EsAccessResult();
         accessResult2.setContentLength(Long.valueOf(10));
         accessResult2.setCreateTime(System.currentTimeMillis());
         accessResult2.setExecutionTime(10);

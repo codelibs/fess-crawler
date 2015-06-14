@@ -186,35 +186,6 @@ public class DBDataServiceImpl implements DataService {
     /*
      * (non-Javadoc)
      *
-     * @see org.codelibs.robot.service.DataService#iterateUrlDiff(java.lang.String, java.lang.String, org.codelibs.robot.util.AccessResultCallback)
-     */
-    @Override
-    public void iterateUrlDiff(final String oldSessionId,
-            final String newSessionId,
-            final AccessResultCallback accessResultCallback) {
-
-        final AccessResultListByUrlDiffPmb pmb = new AccessResultListByUrlDiffPmb();
-        pmb.setOldSessionId(oldSessionId);
-        pmb.setNewSessionId(newSessionId);
-        final AccessResultDiffCursorHandler handler = new AccessResultDiffCursorHandler() {
-            @Override
-            public Object fetchCursor(final AccessResultDiffCursor cursor)
-                    throws SQLException {
-                while (cursor.next()) {
-                    final AccessResult accessResult = new org.codelibs.robot.db.exentity.AccessResult();
-                    BeanUtil.copyBeanToBean(cursor, accessResult);
-                    accessResultCallback.iterate(accessResult);
-                }
-                return null;
-            }
-        };
-        accessResultBhv.outsideSql().selectCursor(pmb, handler);
-
-    }
-
-    /*
-     * (non-Javadoc)
-     *
      * @see org.codelibs.robot.service.DataService#update(org.codelibs.robot.entity.AccessResult)
      */
     @Override

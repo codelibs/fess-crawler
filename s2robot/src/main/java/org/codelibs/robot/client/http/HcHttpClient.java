@@ -57,6 +57,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -189,6 +190,12 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     protected boolean useRobotsTxtAllows = false;
 
+    protected CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+    protected AuthCache authCache = new BasicAuthCache();
+
+    protected HttpRoutePlanner routePlanner;
+
     public synchronized void init() {
         if (httpClient != null) {
             return;
@@ -254,47 +261,17 @@ public class HcHttpClient extends AbstractS2RobotClient {
             httpClientBuilder.setUserAgent(userAgent);
         }
 
-        CredentialsProvider credsProvider = null;
-        AuthCache authCache = null;
-
-        // proxy
-        final String proxyHost = getInitParameter(PROXY_HOST_PROPERTY,
-                this.proxyHost);
-        final Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY,
-                this.proxyPort);
-        if (proxyHost != null && proxyPort != null) {
-            final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-            final DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(
-                    proxy);
-            httpClientBuilder.setRoutePlanner(routePlanner);
-
-            final Credentials credentials = getInitParameter(
-                    PROXY_CREDENTIALS_PROPERTY, proxyCredentials);
-            if (credentials != null) {
-                authCache = new BasicAuthCache();
-                credsProvider = new BasicCredentialsProvider();
-
-                credsProvider.setCredentials(
-                        new AuthScope(proxyHost, proxyPort), credentials);
-                final AuthScheme authScheme = getInitParameter(
-                        PROXY_AUTH_SCHEME_PROPERTY, proxyAuthScheme);
-                if (authScheme != null) {
-                    authCache.put(proxy, authScheme);
-                }
-            }
+        HttpRoutePlanner planner = buildRoutePlanner();
+        if (planner != null) {
+            httpClientBuilder.setRoutePlanner(planner);
         }
 
         // Authentication
         final Authentication[] siteCredentialList = getInitParameter(
                 BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0]);
-        if (siteCredentialList != null && siteCredentialList.length > 0
-                && authCache == null) {
-            authCache = new BasicAuthCache();
-            credsProvider = new BasicCredentialsProvider();
-        }
         for (final Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
-            credsProvider.setCredentials(authScope,
+            credentialsProvider.setCredentials(authScope,
                     authentication.getCredentials());
             final AuthScheme authScheme = authentication.getAuthScheme();
             if (authScope.getHost() != null && authScheme != null) {
@@ -303,10 +280,9 @@ public class HcHttpClient extends AbstractS2RobotClient {
                 authCache.put(targetHost, authScheme);
             }
         }
-        if (authCache != null) {
-            httpClientContext.setAuthCache(authCache);
-            httpClientContext.setCredentialsProvider(credsProvider);
-        }
+
+        httpClientContext.setAuthCache(authCache);
+        httpClientContext.setCredentialsProvider(credentialsProvider);
 
         // Request Header
         final RequestHeader[] requestHeaders = getInitParameter(
@@ -798,6 +774,31 @@ public class HcHttpClient extends AbstractS2RobotClient {
         }
     }
 
+    protected HttpRoutePlanner buildRoutePlanner() {
+        if (routePlanner != null) {
+            return routePlanner;
+        }
+
+        // proxy
+        final String proxyHost = getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
+        final Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort);
+        if (proxyHost != null && proxyPort != null) {
+            final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+            final DefaultProxyRoutePlanner defaultRoutePlanner = new DefaultProxyRoutePlanner(proxy);
+
+            final Credentials credentials = getInitParameter(PROXY_CREDENTIALS_PROPERTY, proxyCredentials);
+            if (credentials != null) {
+                credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), credentials);
+                final AuthScheme authScheme = getInitParameter(PROXY_AUTH_SCHEME_PROPERTY, proxyAuthScheme);
+                if (authScheme != null) {
+                    authCache.put(proxy, authScheme);
+                }
+            }
+            return defaultRoutePlanner;
+        }
+        return null;
+    }
+
     protected static class AccessTimeoutTarget implements TimeoutTarget {
 
         private static final int MAX_LOOP_COUNT = 10;
@@ -932,5 +933,17 @@ public class HcHttpClient extends AbstractS2RobotClient {
 
     public void setUseRobotsTxtAllows(final boolean useRobotsTxtAllows) {
         this.useRobotsTxtAllows = useRobotsTxtAllows;
+    }
+
+    public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
+        this.credentialsProvider = credentialsProvider;
+    }
+
+    public void setAuthCache(AuthCache authCache) {
+        this.authCache = authCache;
+    }
+
+    public void setRoutePlanner(HttpRoutePlanner routePlanner) {
+        this.routePlanner = routePlanner;
     }
 }

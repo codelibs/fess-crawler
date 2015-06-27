@@ -95,6 +95,12 @@ public class HcHttpClientTest extends PlainTestCase {
         }
     }
 
+    public void test_processRobotsTxt_disabled() {
+        final String url = "http://localhost:7070/hoge.html";
+        httpClient.robotsTxtHelper.setEnabled(false);
+        httpClient.processRobotsTxt(url);
+    }
+
     public void test_convertRobotsTxtPathPattern() {
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/"));
         assertEquals("/index\\.html$",

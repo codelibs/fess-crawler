@@ -365,7 +365,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             throw new RobotSystemException("url is null or empty.");
         }
 
-        if (robotsTxtHelper == null) {
+        if (robotsTxtHelper == null || !robotsTxtHelper.isEnabled()) {
             // not support robots.txt
             return;
         }

@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
 import javax.annotation.Resource;
 
@@ -25,23 +26,27 @@ import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.client.EsClient;
 import org.codelibs.robot.entity.AccessResult;
-import org.codelibs.robot.entity.AccessResultDataImpl;
+import org.codelibs.robot.entity.EsAccessResultData;
+import org.codelibs.robot.exception.EsAccessException;
 import org.codelibs.robot.exception.RobotSystemException;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.base.Charsets;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.hash.HashFunction;
 import org.elasticsearch.common.hash.Hashing;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
@@ -78,10 +83,14 @@ public abstract class AbstractRobotService {
 
     protected String type;
 
+    protected int scrollTimeout = 60000;
+
+    protected int scrollSize = 100;
+
     @Resource
     protected EsClient esClient;
 
-    protected long hashCodeAsLong(String value) {
+    protected long hashCodeAsLong(final String value) {
         return murmur3Hash.hashString(value, Charsets.UTF_8).asLong();
     }
 
@@ -194,6 +203,12 @@ public abstract class AbstractRobotService {
         return response.isExists();
     }
 
+    public int getCount(final Consumer<CountRequestBuilder> callback) {
+        final CountRequestBuilder builder = getClient().prepareCount(index).setTypes(type);
+        callback.accept(builder);
+        return (int) builder.execute().actionGet().getCount();
+    }
+
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         final GetResponse response = getClient().prepareGet(index, type, id).execute().actionGet();
@@ -204,8 +219,8 @@ public abstract class AbstractRobotService {
             });
             if (source.containsKey("accessResultData")) {
                 @SuppressWarnings("unchecked")
-                final Map<String, Object> accessResultDataMap = (Map<String, Object>) source.get("accessResultData");
-                ((AccessResult) bean).setAccessResultData(BeanUtil.copyMapToNewBean(accessResultDataMap, AccessResultDataImpl.class));
+                final Map<String, Object> src = (Map<String, Object>) source.get("accessResultData");
+                ((AccessResult) bean).setAccessResultData(new EsAccessResultData(src));
             }
             return bean;
         }
@@ -214,8 +229,38 @@ public abstract class AbstractRobotService {
 
     protected <T> List<T> getList(final Class<T> clazz, final String sessionId, final QueryBuilder queryBuilder, final Integer from,
             final Integer size, final SortBuilder sortBuilder) {
+        return getList(clazz, builder -> {
+            if (StringUtil.isNotBlank(sessionId)) {
+                final FilterBuilder filterBuilder = FilterBuilders.queryFilter(QueryBuilders.termQuery(SESSION_ID, sessionId));
+                if (queryBuilder != null) {
+                    builder.setQuery(QueryBuilders.filteredQuery(queryBuilder, filterBuilder));
+                } else {
+                    builder.setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(), filterBuilder));
+                }
+            } else {
+                if (queryBuilder != null) {
+                    builder.setQuery(queryBuilder);
+                } else {
+                    builder.setQuery(QueryBuilders.matchAllQuery());
+                }
+            }
+            if (sortBuilder != null) {
+                builder.addSort(sortBuilder);
+            }
+            if (from != null) {
+                builder.setFrom(from);
+            }
+            if (size != null) {
+                builder.setSize(size);
+            }
+        });
+    }
+
+    protected <T> List<T> getList(final Class<T> clazz, final Consumer<SearchRequestBuilder> callback) {
         final List<T> targetList = new ArrayList<T>();
-        final SearchResponse response = getSearchResponse(sessionId, queryBuilder, from, size, sortBuilder);
+        final SearchRequestBuilder builder = getClient().prepareSearch(index).setTypes(type);
+        callback.accept(builder);
+        final SearchResponse response = builder.execute().actionGet();
         final SearchHits hits = response.getHits();
         if (hits.getTotalHits() != 0) {
             try {
@@ -238,44 +283,40 @@ public abstract class AbstractRobotService {
     }
 
     protected void deleteBySessionId(final String sessionId) {
-        getClient().prepareDeleteByQuery(index).setTypes(type).setQuery(QueryBuilders.termQuery(SESSION_ID, sessionId)).execute()
-                .actionGet();
-        refresh();
+        delete(builder -> builder.setQuery(QueryBuilders.termQuery(SESSION_ID, sessionId)));
     }
 
     public void deleteAll() {
-        getClient().prepareDeleteByQuery(index).setTypes(type).setQuery(QueryBuilders.matchAllQuery()).execute().actionGet();
-        refresh();
+        delete(builder -> builder.setQuery(QueryBuilders.matchAllQuery()));
     }
 
-    private SearchResponse getSearchResponse(final String sessionId, final QueryBuilder queryBuilder, final Integer from,
-            final Integer size, final SortBuilder sortBuilder) {
-        final SearchRequestBuilder builder = getClient().prepareSearch(index).setTypes(type);
-        if (StringUtil.isNotBlank(sessionId)) {
-            final FilterBuilder filterBuilder = FilterBuilders.queryFilter(QueryBuilders.termQuery(SESSION_ID, sessionId));
-            if (queryBuilder != null) {
-                builder.setQuery(QueryBuilders.filteredQuery(queryBuilder, filterBuilder));
-            } else {
-                builder.setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(), filterBuilder));
+    public void delete(final Consumer<SearchRequestBuilder> callback) {
+        final SearchRequestBuilder builder = getClient().prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN)
+                .setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
+        callback.accept(builder);
+        SearchResponse response = builder.execute().actionGet();
+
+        while (true) {
+            response =
+                    getClient().prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute().actionGet();
+
+            final SearchHits searchHits = response.getHits();
+            if (searchHits.hits().length == 0) {
+                break;
             }
-        } else {
-            if (queryBuilder != null) {
-                builder.setQuery(queryBuilder);
-            } else {
-                builder.setQuery(QueryBuilders.matchAllQuery());
+
+            final BulkRequestBuilder bulkBuilder = getClient().prepareBulk();
+            for (final SearchHit searchHit : searchHits) {
+                bulkBuilder.add(getClient().prepareDelete(index, type, searchHit.getId()));
+            }
+
+            final BulkResponse bulkResponse = bulkBuilder.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                throw new EsAccessException(bulkResponse.buildFailureMessage());
             }
         }
-        if (sortBuilder != null) {
-            builder.addSort(sortBuilder);
-        }
-        if (from != null) {
-            builder.setFrom(from);
-        }
-        if (size != null) {
-            builder.setSize(size);
-        }
-        final SearchResponse response = builder.execute().actionGet();
-        return response;
+
+        refresh();
     }
 
     private String getId(final String sessionId, final String url) {
@@ -312,6 +353,22 @@ public abstract class AbstractRobotService {
         this.type = type;
     }
 
+    public int getScrollTimeout() {
+        return scrollTimeout;
+    }
+
+    public void setScrollTimeout(final int scrollTimeout) {
+        this.scrollTimeout = scrollTimeout;
+    }
+
+    public int getScrollSize() {
+        return scrollSize;
+    }
+
+    public void setScrollSize(final int scrollSize) {
+        this.scrollSize = scrollSize;
+    }
+
     protected static class EsTimestampConverter implements Converter {
 
         @Override
@@ -336,5 +393,4 @@ public abstract class AbstractRobotService {
         }
 
     }
-
 }

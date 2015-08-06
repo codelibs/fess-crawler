@@ -24,6 +24,8 @@ import javax.annotation.Resource;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.client.S2RobotClientFactory;
 import org.codelibs.robot.container.RobotContainer;
+import org.codelibs.robot.entity.AccessResult;
+import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.filter.UrlFilter;
 import org.codelibs.robot.interval.IntervalController;
 import org.codelibs.robot.rule.RuleManager;
@@ -43,10 +45,10 @@ public class S2Robot implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(S2Robot.class); // NOPMD
 
     @Resource
-    protected UrlQueueService urlQueueService;
+    protected UrlQueueService<UrlQueue> urlQueueService;
 
     @Resource
-    protected DataService dataService;
+    protected DataService<AccessResult> dataService;
 
     @Resource
     protected UrlFilter urlFilter;

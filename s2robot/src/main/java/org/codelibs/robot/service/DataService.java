@@ -24,13 +24,13 @@ import org.codelibs.robot.util.AccessResultCallback;
  * @author shinsuke
  *
  */
-public interface DataService {
+public interface DataService<RESULT extends AccessResult> {
 
-    void store(AccessResult accessResult);
+    void store(RESULT accessResult);
 
-    void update(AccessResult accessResult);
+    void update(RESULT accessResult);
 
-    void update(List<AccessResult> accessResult);
+    void update(List<RESULT> accessResult);
 
     int getCount(String sessionId);
 
@@ -38,10 +38,10 @@ public interface DataService {
 
     void deleteAll();
 
-    AccessResult getAccessResult(String sessionId, String url);
+    RESULT getAccessResult(String sessionId, String url);
 
-    List<AccessResult> getAccessResultList(String url, boolean hasData);
+    List<RESULT> getAccessResultList(String url, boolean hasData);
 
-    void iterate(String sessionId, final AccessResultCallback accessResultCallback);
+    void iterate(String sessionId, final AccessResultCallback<RESULT> accessResultCallback);
 
 }

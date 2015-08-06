@@ -16,6 +16,7 @@
 package org.codelibs.robot.util;
 
 import org.codelibs.robot.S2RobotContext;
+import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.UrlQueue;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.service.UrlQueueService;
@@ -27,11 +28,11 @@ import org.codelibs.robot.service.UrlQueueService;
 public final class CrawlingParameterUtil {
     private static final ThreadLocal<UrlQueue> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<UrlQueue>();
 
-    private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL = new ThreadLocal<S2RobotContext>();
+    private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
 
-    private static final ThreadLocal<UrlQueueService> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<UrlQueueService>();
+    private static final ThreadLocal<UrlQueueService<UrlQueue>> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<>();
 
-    private static final ThreadLocal<DataService> DATA_SERVICE_THREAD_LOCAL = new ThreadLocal<DataService>();
+    private static final ThreadLocal<DataService<AccessResult>> DATA_SERVICE_THREAD_LOCAL = new ThreadLocal<>();
 
     private CrawlingParameterUtil() {
     }
@@ -70,14 +71,14 @@ public final class CrawlingParameterUtil {
         }
     }
 
-    public static UrlQueueService getUrlQueueService() {
+    public static UrlQueueService<UrlQueue> getUrlQueueService() {
         if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
             return URL_QUEUE_SERVICE_THREAD_LOCAL.get();
         }
         return null;
     }
 
-    public static void setUrlQueueService(final UrlQueueService urlQueueService) {
+    public static void setUrlQueueService(final UrlQueueService<UrlQueue> urlQueueService) {
         if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
             if (urlQueueService == null) {
                 URL_QUEUE_SERVICE_THREAD_LOCAL.remove();
@@ -87,14 +88,14 @@ public final class CrawlingParameterUtil {
         }
     }
 
-    public static DataService getDataService() {
+    public static DataService<AccessResult> getDataService() {
         if (DATA_SERVICE_THREAD_LOCAL != null) {
             return DATA_SERVICE_THREAD_LOCAL.get();
         }
         return null;
     }
 
-    public static void setDataService(final DataService dataService) {
+    public static void setDataService(final DataService<AccessResult> dataService) {
         if (DATA_SERVICE_THREAD_LOCAL != null) {
             if (dataService == null) {
                 DATA_SERVICE_THREAD_LOCAL.remove();

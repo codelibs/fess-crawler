@@ -32,9 +32,9 @@ import org.codelibs.robot.Constants;
 import org.codelibs.robot.db.exbhv.AccessResultBhv;
 import org.codelibs.robot.db.exbhv.UrlQueueBhv;
 import org.codelibs.robot.db.exentity.AccessResult;
+import org.codelibs.robot.db.exentity.UrlQueue;
 import org.codelibs.robot.dbflute.cbean.result.PagingResultBean;
-import org.codelibs.robot.entity.UrlQueue;
-import org.codelibs.robot.service.UrlQueueService;
+ import org.codelibs.robot.service.UrlQueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class DBUrlQueueServiceImpl implements UrlQueueService {
+public class DBUrlQueueServiceImpl implements UrlQueueService<UrlQueue> {
 
     private static final String EMPTY_STRING = "";
 
@@ -103,7 +103,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     public void add(final String sessionId, final String url) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final UrlQueue urlQueue = new org.codelibs.robot.db.exentity.UrlQueue();
+            final UrlQueue urlQueue = new UrlQueue();
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
             urlQueue.setUrl(url);
@@ -120,7 +120,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
      */
     @Override
     public void insert(final UrlQueue urlQueue) {
-        urlQueueBhv.insert((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
+        urlQueueBhv.insert(urlQueue);
     }
 
     /*
@@ -171,11 +171,11 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
             final List<UrlQueue> newUrlQueueList) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final List<org.codelibs.robot.db.exentity.UrlQueue> targetList = new ArrayList<>();
+            final List<UrlQueue> targetList = new ArrayList<>();
             for (final UrlQueue urlQueue : newUrlQueueList) {
                 if (isNewUrl(urlQueue, urlQueueList, true)) {
                     targetList
-                            .add((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
+                            .add(urlQueue);
                 }
             }
             urlQueueBhv.batchInsert(targetList);
@@ -276,7 +276,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             if (urlQueueList.isEmpty()) {
-                final List<org.codelibs.robot.db.exentity.UrlQueue> uqList = urlQueueBhv
+                final List<UrlQueue> uqList = urlQueueBhv
                         .selectPage(cb -> {
                             cb.paging(cacheSize, 1);
                             cb.query().setSessionId_Equal(sessionId);
@@ -307,12 +307,12 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
     public void saveSession(final String sessionId) {
         final LinkedList<UrlQueue> urlQueueList = getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
-            final List<org.codelibs.robot.db.exentity.UrlQueue> targetUrlQueueList = new ArrayList<>();
+            final List<UrlQueue> targetUrlQueueList = new ArrayList<>();
             for (final UrlQueue urlQueue : urlQueueList) {
                 // clear id
                 urlQueue.setId(null);
                 targetUrlQueueList
-                        .add((org.codelibs.robot.db.exentity.UrlQueue) urlQueue);
+                        .add(urlQueue);
             }
             urlQueueBhv.batchInsert(targetUrlQueueList);
             urlQueueList.clear();
@@ -345,7 +345,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
             cb.query().setSessionId_Equal(previousSessionId);
             cb.query().addOrderBy_CreateTime_Asc();
         });
-        final List<org.codelibs.robot.db.exentity.UrlQueue> urlQueueList = new ArrayList<>();
+        final List<UrlQueue> urlQueueList = new ArrayList<>();
         for (int i = 0; i * generatedUrlQueueSize < count; i++) {
             urlQueueList.clear();
             final int num = i;
@@ -356,7 +356,7 @@ public class DBUrlQueueServiceImpl implements UrlQueueService {
                         cb.paging(generatedUrlQueueSize, num + 1);
                     });
             for (final AccessResult entity : selectPage) {
-                final org.codelibs.robot.db.exentity.UrlQueue urlQueue = new org.codelibs.robot.db.exentity.UrlQueue();
+                final UrlQueue urlQueue = new UrlQueue();
                 urlQueue.setSessionId(sessionId);
                 urlQueue.setMethod(entity.getMethod());
                 urlQueue.setUrl(entity.getUrl());

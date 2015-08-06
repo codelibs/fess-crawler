@@ -92,7 +92,7 @@ public class EsDataServiceTest extends LastaDiTestCase {
 
         dataService.store(accessResult1);
 
-        final AccessResult accessResult2 = dataService.getAccessResult("id1", "http://www.id1.com/");
+        final EsAccessResult accessResult2 = dataService.getAccessResult("id1", "http://www.id1.com/");
         assertNotNull(accessResult2);
 
         accessResult2.setMimeType("text/html");
@@ -141,12 +141,12 @@ public class EsDataServiceTest extends LastaDiTestCase {
 
         dataService.store(accessResult2);
 
-        final AccessResult accessResult3 = dataService.getAccessResult("id1", "http://www.id1.com/");
-        final AccessResult accessResult4 = dataService.getAccessResult("id2", "http://www.id2.com/");
+        final EsAccessResult accessResult3 = dataService.getAccessResult("id1", "http://www.id1.com/");
+        final EsAccessResult accessResult4 = dataService.getAccessResult("id2", "http://www.id2.com/");
         assertNotNull(accessResult3);
         assertNotNull(accessResult4);
 
-        final List<AccessResult> accessResultList = new ArrayList<AccessResult>();
+        final List<EsAccessResult> accessResultList = new ArrayList<>();
         accessResult3.setMimeType("text/html");
         accessResult4.setMimeType("text/html");
         accessResultList.add(accessResult3);

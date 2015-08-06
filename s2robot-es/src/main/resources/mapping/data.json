@@ -32,6 +32,14 @@
           "transformerName": {
             "type": "string",
             "index": "not_analyzed"
+          },
+          "encoding": {
+            "type": "string",
+            "index": "not_analyzed"
+          },
+          "data": {
+            "type": "binary",
+            "compress": "true"
           }
         }
       },

@@ -15,14 +15,10 @@
  */
 package org.codelibs.robot.service.impl;
 
-import java.beans.Beans;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codelibs.core.beans.util.BeanUtil;
-import org.codelibs.robot.Constants;
-import org.codelibs.robot.entity.AccessResult;
-import org.codelibs.robot.util.AccessResultCallback;
+import org.codelibs.robot.db.exentity.AccessResult;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
 /**

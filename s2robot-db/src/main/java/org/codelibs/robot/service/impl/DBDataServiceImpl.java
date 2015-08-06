@@ -15,22 +15,17 @@
  */
 package org.codelibs.robot.service.impl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.Constants;
 import org.codelibs.robot.db.exbhv.AccessResultBhv;
 import org.codelibs.robot.db.exbhv.AccessResultDataBhv;
-import org.codelibs.robot.db.exbhv.cursor.AccessResultDiffCursor;
-import org.codelibs.robot.db.exbhv.cursor.AccessResultDiffCursorHandler;
-import org.codelibs.robot.db.exbhv.pmbean.AccessResultListByUrlDiffPmb;
+import org.codelibs.robot.db.exentity.AccessResult;
+import org.codelibs.robot.db.exentity.AccessResultData;
 import org.codelibs.robot.dbflute.cbean.result.ListResultBean;
-import org.codelibs.robot.entity.AccessResult;
-import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
@@ -41,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class DBDataServiceImpl implements DataService {
+public class DBDataServiceImpl implements DataService<AccessResult> {
     private static final Logger logger = LoggerFactory
             .getLogger(DBDataServiceImpl.class);
 
@@ -63,16 +58,16 @@ public class DBDataServiceImpl implements DataService {
         }
 
         accessResultBhv
-                .insert((org.codelibs.robot.db.exentity.AccessResult) accessResult);
+                .insert(accessResult);
 
         AccessResultData accessResultData = accessResult.getAccessResultData();
         if (accessResultData == null) {
-            accessResultData = new org.codelibs.robot.db.exentity.AccessResultData();
+            accessResultData = new AccessResultData();
             accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
         }
         accessResultData.setId(accessResult.getId());
         accessResultDataBhv
-                .insert((org.codelibs.robot.db.exentity.AccessResultData) accessResultData);
+                .insert(accessResultData);
     }
 
     /*
@@ -134,7 +129,7 @@ public class DBDataServiceImpl implements DataService {
      */
     @Override
     public AccessResult getAccessResult(final String sessionId, final String url) {
-        final ListResultBean<org.codelibs.robot.db.exentity.AccessResult> list = accessResultBhv
+        final ListResultBean<AccessResult> list = accessResultBhv
                 .selectList(cb -> {
                     cb.setupSelect_AccessResultDataAsOne();
                     cb.query().setSessionId_Equal(sessionId);
@@ -154,7 +149,7 @@ public class DBDataServiceImpl implements DataService {
     @Override
     public List<AccessResult> getAccessResultList(final String url,
             final boolean hasData) {
-        final List<org.codelibs.robot.db.exentity.AccessResult> list = accessResultBhv
+        final List<AccessResult> list = accessResultBhv
                 .selectList(cb -> {
                     if (hasData) {
                         cb.setupSelect_AccessResultDataAsOne();
@@ -175,7 +170,7 @@ public class DBDataServiceImpl implements DataService {
      */
     @Override
     public void iterate(final String sessionId,
-            final AccessResultCallback accessResultCallback) {
+            final AccessResultCallback<AccessResult> accessResultCallback) {
         accessResultBhv.selectCursor(cb -> {
             cb.setupSelect_AccessResultDataAsOne();
             cb.query().setSessionId_Equal(sessionId);
@@ -191,11 +186,11 @@ public class DBDataServiceImpl implements DataService {
     @Override
     public void update(final AccessResult accessResult) {
         accessResultBhv
-                .update((org.codelibs.robot.db.exentity.AccessResult) accessResult);
+                .update(accessResult);
 
         if (accessResult.getAccessResultData() != null) {
             accessResultDataBhv
-                    .update((org.codelibs.robot.db.exentity.AccessResultData) accessResult
+                    .update(accessResult
                             .getAccessResultData());
         }
     }
@@ -207,13 +202,13 @@ public class DBDataServiceImpl implements DataService {
      */
     @Override
     public void update(final List<AccessResult> accessResultList) {
-        final List<org.codelibs.robot.db.exentity.AccessResult> arList = new ArrayList<>();
-        final List<org.codelibs.robot.db.exentity.AccessResultData> ardList = new ArrayList<>();
+        final List<AccessResult> arList = new ArrayList<>();
+        final List<AccessResultData> ardList = new ArrayList<>();
 
         for (final AccessResult accessResult : accessResultList) {
-            arList.add((org.codelibs.robot.db.exentity.AccessResult) accessResult);
+            arList.add(accessResult);
             if (accessResult.getAccessResultData() != null) {
-                ardList.add((org.codelibs.robot.db.exentity.AccessResultData) accessResult
+                ardList.add(accessResult
                         .getAccessResultData());
             }
         }

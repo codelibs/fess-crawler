@@ -21,9 +21,9 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.codelibs.robot.Constants;
-import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.AccessResultData;
 import org.codelibs.robot.entity.AccessResultDataImpl;
+import org.codelibs.robot.entity.AccessResultImpl;
 import org.codelibs.robot.exception.RobotSystemException;
 import org.codelibs.robot.helper.MemoryDataHelper;
 import org.codelibs.robot.service.DataService;
@@ -33,7 +33,7 @@ import org.codelibs.robot.util.AccessResultCallback;
  * @author shinsuke
  *
  */
-public class DataServiceImpl implements DataService {
+public class DataServiceImpl implements DataService<AccessResultImpl> {
 
     protected static volatile long idCount = 0L; // NOPMD
 
@@ -49,7 +49,7 @@ public class DataServiceImpl implements DataService {
      * AccessResult)
      */
     @Override
-    public void store(final AccessResult accessResult) {
+    public void store(final AccessResultImpl accessResult) {
         if (accessResult == null) {
             throw new RobotSystemException("AccessResult is null.");
         }
@@ -66,7 +66,7 @@ public class DataServiceImpl implements DataService {
             }
             accessResultData.setId(accessResult.getId());
 
-            final Map<String, AccessResult> arMap = dataHelper
+            final Map<String, AccessResultImpl> arMap = dataHelper
                     .getAccessResultMap(accessResult.getSessionId());
             if (arMap.containsKey(accessResult.getUrl())) {
                 throw new RobotSystemException(accessResult.getUrl()
@@ -115,7 +115,7 @@ public class DataServiceImpl implements DataService {
      * java.lang.String)
      */
     @Override
-    public AccessResult getAccessResult(final String sessionId, final String url) {
+    public AccessResultImpl getAccessResult(final String sessionId, final String url) {
         return dataHelper.getAccessResultMap(sessionId).get(url);
     }
 
@@ -127,7 +127,7 @@ public class DataServiceImpl implements DataService {
      * , boolean)
      */
     @Override
-    public List<AccessResult> getAccessResultList(final String url,
+    public List<AccessResultImpl> getAccessResultList(final String url,
             final boolean hasData) {
         return dataHelper.getAccessResultList(url);
     }
@@ -140,10 +140,10 @@ public class DataServiceImpl implements DataService {
      */
     @Override
     public void iterate(final String sessionId,
-            final AccessResultCallback accessResultCallback) {
-        final Map<String, AccessResult> arMap = dataHelper
+            final AccessResultCallback<AccessResultImpl> accessResultCallback) {
+        final Map<String, AccessResultImpl> arMap = dataHelper
                 .getAccessResultMap(sessionId);
-        for (final Map.Entry<String, AccessResult> entry : arMap.entrySet()) {
+        for (final Map.Entry<String, AccessResultImpl> entry : arMap.entrySet()) {
             accessResultCallback.iterate(entry.getValue());
         }
     }
@@ -155,8 +155,8 @@ public class DataServiceImpl implements DataService {
      * AccessResult)
      */
     @Override
-    public void update(final AccessResult accessResult) {
-        final Map<String, AccessResult> arMap = dataHelper
+    public void update(final AccessResultImpl accessResult) {
+        final Map<String, AccessResultImpl> arMap = dataHelper
                 .getAccessResultMap(accessResult.getSessionId());
         if (!arMap.containsKey(accessResult.getUrl())) {
             throw new RobotSystemException(accessResult.getUrl()
@@ -171,8 +171,8 @@ public class DataServiceImpl implements DataService {
      * @see org.codelibs.robot.service.DataService#update(java.util.List)
      */
     @Override
-    public void update(final List<AccessResult> accessResultList) {
-        for (final AccessResult accessResult : accessResultList) {
+    public void update(final List<AccessResultImpl> accessResultList) {
+        for (final AccessResultImpl accessResult : accessResultList) {
             update(accessResult);
         }
     }

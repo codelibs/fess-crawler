@@ -23,25 +23,25 @@ import org.codelibs.robot.entity.UrlQueue;
  * @author shinsuke
  *
  */
-public interface UrlQueueService {
+public interface UrlQueueService<QUEUE extends UrlQueue> {
 
     void updateSessionId(String oldSessionId, String newSessionId);
 
     void add(String sessionId, String url);
 
-    void insert(UrlQueue urlQueue);
+    void insert(QUEUE urlQueue);
 
     void delete(String sessionId);
 
     void deleteAll();
 
-    void offerAll(String sessionId, List<UrlQueue> newUrlQueueList);
+    void offerAll(String sessionId, List<QUEUE> newUrlQueueList);
 
-    UrlQueue poll(String sessionId);
+    QUEUE poll(String sessionId);
 
     void saveSession(String sessionId);
 
-    boolean visited(UrlQueue urlQueue);
+    boolean visited(QUEUE urlQueue);
 
     void generateUrlQueues(String previousSessionId, String sessionId);
 }

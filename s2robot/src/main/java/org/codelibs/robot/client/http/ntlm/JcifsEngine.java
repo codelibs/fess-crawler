@@ -17,14 +17,14 @@ package org.codelibs.robot.client.http.ntlm;
 
 import java.io.IOException;
 
+import org.apache.http.impl.auth.NTLMEngine;
+import org.apache.http.impl.auth.NTLMEngineException;
+
 import jcifs.ntlmssp.NtlmFlags;
 import jcifs.ntlmssp.Type1Message;
 import jcifs.ntlmssp.Type2Message;
 import jcifs.ntlmssp.Type3Message;
 import jcifs.util.Base64;
-
-import org.apache.http.impl.auth.NTLMEngine;
-import org.apache.http.impl.auth.NTLMEngineException;
 
 /**
  * JcifsEngine is a NTLM Engine implementation based on JCIFS.

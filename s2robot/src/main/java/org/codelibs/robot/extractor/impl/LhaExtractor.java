@@ -25,9 +25,6 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
-import jp.gr.java_conf.dangan.util.lha.LhaFile;
-import jp.gr.java_conf.dangan.util.lha.LhaHeader;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CopyUtil;
@@ -41,6 +38,9 @@ import org.codelibs.robot.helper.MimeTypeHelper;
 import org.codelibs.robot.util.IgnoreCloseInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jp.gr.java_conf.dangan.util.lha.LhaFile;
+import jp.gr.java_conf.dangan.util.lha.LhaHeader;
 
 /**
  * Extractor implementation for LHA.

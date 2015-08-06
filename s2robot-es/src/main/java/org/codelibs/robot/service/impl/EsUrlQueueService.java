@@ -20,7 +20,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EsUrlQueueService extends AbstractRobotService implements UrlQueueService {
+public class EsUrlQueueService extends AbstractRobotService implements UrlQueueService<EsUrlQueue> {
     private static final Logger logger = LoggerFactory.getLogger(EsUrlQueueService.class);
 
     @Resource
@@ -42,11 +42,12 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
         // TODO Script Query
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     @Override
     public void add(final String sessionId, final String url) {
-        final UrlQueue urlQueue = new EsUrlQueue();
+        final EsUrlQueue urlQueue = new EsUrlQueue();
         urlQueue.setSessionId(sessionId);
         urlQueue.setUrl(url);
         urlQueue.setCreateTime(System.currentTimeMillis());
@@ -57,7 +58,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     }
 
     @Override
-    public void insert(final UrlQueue urlQueue) {
+    public void insert(final EsUrlQueue urlQueue) {
         urlQueue.setId(hashCodeAsLong(super.insert(urlQueue, urlQueue.getId() == null ? OpType.CREATE : OpType.INDEX)));
     }
 
@@ -67,7 +68,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     }
 
     @Override
-    public void offerAll(final String sessionId, final List<UrlQueue> urlQueueList) {
+    public void offerAll(final String sessionId, final List<EsUrlQueue> urlQueueList) {
         if (logger.isDebugEnabled()) {
             logger.debug("Offering URL: Session ID: {}, UrlQueue: {}", sessionId, urlQueueList);
         }
@@ -89,7 +90,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     }
 
     @Override
-    public UrlQueue poll(final String sessionId) {
+    public EsUrlQueue poll(final String sessionId) {
         final List<EsUrlQueue> urlQueueList =
                 getList(EsUrlQueue.class, sessionId, null, 0, pollingFetchSize, SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
         if (urlQueueList.isEmpty()) {
@@ -119,7 +120,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     }
 
     @Override
-    public boolean visited(final UrlQueue urlQueue) {
+    public boolean visited(final EsUrlQueue urlQueue) {
         final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
             if (logger.isDebugEnabled()) {
@@ -157,7 +158,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     @Override
     public void generateUrlQueues(final String previousSessionId, final String sessionId) {
         dataService.iterate(previousSessionId, accessResult -> {
-            final UrlQueue urlQueue = new EsUrlQueue();
+            final EsUrlQueue urlQueue = new EsUrlQueue();
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(accessResult.getMethod());
             urlQueue.setUrl(accessResult.getUrl());

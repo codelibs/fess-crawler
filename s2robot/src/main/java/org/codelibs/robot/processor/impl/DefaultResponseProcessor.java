@@ -121,7 +121,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
 
         final S2RobotContext robotContext = CrawlingParameterUtil
                 .getRobotContext();
-        final UrlQueueService urlQueueService = CrawlingParameterUtil
+        final UrlQueueService<UrlQueue> urlQueueService = CrawlingParameterUtil
                 .getUrlQueueService();
         synchronized (robotContext.getAccessCountLock()) {
             if (!urlQueueService.visited(urlQueue)) {

@@ -23,43 +23,39 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Pattern;
 
-import org.codelibs.robot.entity.AccessResult;
-import org.codelibs.robot.entity.UrlQueue;
+import org.codelibs.robot.entity.AccessResultImpl;
+import org.codelibs.robot.entity.UrlQueueImpl;
 
 /**
  * @author shinsuke
  *
  */
 public class MemoryDataHelper {
-    protected volatile Map<String, Queue<UrlQueue>> urlQueueMap = // NOPMD
-    new HashMap<String, Queue<UrlQueue>>();
+    protected volatile Map<String, Queue<UrlQueueImpl>> urlQueueMap = new HashMap<>();
 
-    protected volatile Map<String, Map<String, AccessResult>> sessionMap = // NOPMD
-    new HashMap<String, Map<String, AccessResult>>();
+    protected volatile Map<String, Map<String, AccessResultImpl>> sessionMap = new HashMap<>();
 
-    protected volatile Map<String, List<Pattern>> includeUrlPatternMap = // NOPMD
-    new HashMap<String, List<Pattern>>();
+    protected volatile Map<String, List<Pattern>> includeUrlPatternMap = new HashMap<>();
 
-    protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = // NOPMD
-    new HashMap<String, List<Pattern>>();
+    protected volatile Map<String, List<Pattern>> excludeUrlPatternMap = new HashMap<>();
 
     public void clear() {
         urlQueueMap.clear();
         sessionMap.clear();
     }
 
-    public synchronized Queue<UrlQueue> getUrlQueueList(final String sessionId) {
-        Queue<UrlQueue> urlQueueList = urlQueueMap.get(sessionId);
+    public synchronized Queue<UrlQueueImpl> getUrlQueueList(final String sessionId) {
+        Queue<UrlQueueImpl> urlQueueList = urlQueueMap.get(sessionId);
         if (urlQueueList == null) {
-            urlQueueList = new LinkedList<UrlQueue>();
+            urlQueueList = new LinkedList<>();
             urlQueueMap.put(sessionId, urlQueueList);
         }
         return urlQueueList;
     }
 
     public synchronized void addUrlQueueList(final String sessionId,
-            final Queue<UrlQueue> urlQueueList) {
-        final Queue<UrlQueue> uqList = getUrlQueueList(sessionId);
+            final Queue<UrlQueueImpl> urlQueueList) {
+        final Queue<UrlQueueImpl> uqList = getUrlQueueList(sessionId);
         uqList.addAll(urlQueueList);
         urlQueueMap.put(sessionId, uqList);
     }
@@ -72,11 +68,11 @@ public class MemoryDataHelper {
         urlQueueMap.clear();
     }
 
-    public synchronized Map<String, AccessResult> getAccessResultMap(
+    public synchronized Map<String, AccessResultImpl> getAccessResultMap(
             final String sessionId) {
-        Map<String, AccessResult> arMap = sessionMap.get(sessionId);
+        Map<String, AccessResultImpl> arMap = sessionMap.get(sessionId);
         if (arMap == null) {
-            arMap = new HashMap<String, AccessResult>();
+            arMap = new HashMap<>();
             sessionMap.put(sessionId, arMap);
         }
         return arMap;
@@ -90,12 +86,12 @@ public class MemoryDataHelper {
         sessionMap.clear();
     }
 
-    public synchronized List<AccessResult> getAccessResultList(final String url) {
-        final List<AccessResult> acList = new ArrayList<AccessResult>();
-        for (final Map.Entry<String, Map<String, AccessResult>> entry : sessionMap
+    public synchronized List<AccessResultImpl> getAccessResultList(final String url) {
+        final List<AccessResultImpl> acList = new ArrayList<>();
+        for (final Map.Entry<String, Map<String, AccessResultImpl>> entry : sessionMap
                 .entrySet()) {
             if (entry.getValue() != null) {
-                final AccessResult ar = entry.getValue().get(url);
+                final AccessResultImpl ar = entry.getValue().get(url);
                 if (ar != null) {
                     acList.add(ar);
                 }

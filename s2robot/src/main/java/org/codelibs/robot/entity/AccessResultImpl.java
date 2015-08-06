@@ -15,8 +15,6 @@
  */
 package org.codelibs.robot.entity;
 
-import java.util.Date;
-
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.Constants;
 
@@ -57,7 +55,7 @@ public class AccessResultImpl implements AccessResult {
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
-        setCreateTime(new Long(new Date().getTime()));
+        setCreateTime(new Long(System.currentTimeMillis()));
         if (responseData != null) {
             BeanUtil.copyBeanToBean(responseData, this);
         }

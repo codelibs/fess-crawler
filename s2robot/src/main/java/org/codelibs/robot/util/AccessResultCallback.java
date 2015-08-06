@@ -21,6 +21,6 @@ import org.codelibs.robot.entity.AccessResult;
  * @author shinsuke
  *
  */
-public interface AccessResultCallback {
-    void iterate(AccessResult accessResult);
+public interface AccessResultCallback<RESULT extends AccessResult> {
+    void iterate(RESULT accessResult);
 }

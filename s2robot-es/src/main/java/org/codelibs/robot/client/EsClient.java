@@ -121,15 +121,15 @@ public class EsClient implements Client {
         port = Integer.parseInt(System.getProperty(TCP_PORT, "9300"));
     }
 
-    public void setClusterName(String clusterName) {
+    public void setClusterName(final String clusterName) {
         this.clusterName = clusterName;
     }
 
-    public void setHostname(String hostname) {
+    public void setHostname(final String hostname) {
         this.hostname = hostname;
     }
 
-    public void setPort(int port) {
+    public void setPort(final int port) {
         this.port = port;
     }
 
@@ -293,16 +293,19 @@ public class EsClient implements Client {
         return client.prepareBulk();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionFuture<DeleteByQueryResponse> deleteByQuery(final DeleteByQueryRequest request) {
         return client.deleteByQuery(request);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void deleteByQuery(final DeleteByQueryRequest request, final ActionListener<DeleteByQueryResponse> listener) {
         client.deleteByQuery(request, listener);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public DeleteByQueryRequestBuilder prepareDeleteByQuery(final String... indices) {
         return client.prepareDeleteByQuery(indices);
@@ -493,16 +496,19 @@ public class EsClient implements Client {
         return client.prepareMultiSearch();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionFuture<SearchResponse> moreLikeThis(final MoreLikeThisRequest request) {
         return client.moreLikeThis(request);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void moreLikeThis(final MoreLikeThisRequest request, final ActionListener<SearchResponse> listener) {
         client.moreLikeThis(request, listener);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public MoreLikeThisRequestBuilder prepareMoreLikeThis(final String index, final String type, final String id) {
         return client.prepareMoreLikeThis(index, type, id);
@@ -614,12 +620,12 @@ public class EsClient implements Client {
     }
 
     @Override
-    public ActionFuture<FieldStatsResponse> fieldStats(FieldStatsRequest request) {
+    public ActionFuture<FieldStatsResponse> fieldStats(final FieldStatsRequest request) {
         return client.fieldStats(request);
     }
 
     @Override
-    public void fieldStats(FieldStatsRequest request, ActionListener<FieldStatsResponse> listener) {
+    public void fieldStats(final FieldStatsRequest request, final ActionListener<FieldStatsResponse> listener) {
         client.fieldStats(request, listener);
     }
 

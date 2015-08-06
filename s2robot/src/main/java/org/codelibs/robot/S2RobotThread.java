@@ -28,6 +28,7 @@ import org.codelibs.robot.builder.RequestDataBuilder;
 import org.codelibs.robot.client.S2RobotClient;
 import org.codelibs.robot.client.S2RobotClientFactory;
 import org.codelibs.robot.container.RobotContainer;
+import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.RequestData;
 import org.codelibs.robot.entity.ResponseData;
 import org.codelibs.robot.entity.UrlQueue;
@@ -49,10 +50,10 @@ import org.codelibs.robot.util.CrawlingParameterUtil;
 public class S2RobotThread implements Runnable {
 
     @Resource
-    protected UrlQueueService urlQueueService;
+    protected UrlQueueService<UrlQueue> urlQueueService;
 
     @Resource
-    protected DataService dataService;
+    protected DataService<AccessResult> dataService;
 
     @Resource
     protected RobotContainer robotContainer;

@@ -6,6 +6,13 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 public class EsUrlFilter implements ToXContent {
+
+    public static final String SESSION_ID = "sessionId";
+
+    public static final String FILTER_TYPE = "filterType";
+
+    public static final String URL = "url";
+
     private String sessionId;
 
     private String filterType;
@@ -40,13 +47,13 @@ public class EsUrlFilter implements ToXContent {
     public XContentBuilder toXContent(final XContentBuilder builder, final Params params) throws IOException {
         builder.startObject();
         if (sessionId != null) {
-            builder.field("sessionId", sessionId);
+            builder.field(SESSION_ID, sessionId);
         }
         if (filterType != null) {
-            builder.field("filterType", filterType);
+            builder.field(FILTER_TYPE, filterType);
         }
         if (url != null) {
-            builder.field("url", url);
+            builder.field(URL, url);
         }
         builder.endObject();
         return builder;

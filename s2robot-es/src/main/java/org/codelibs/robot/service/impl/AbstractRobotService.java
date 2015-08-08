@@ -29,6 +29,7 @@ import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.EsAccessResultData;
 import org.codelibs.robot.exception.EsAccessException;
 import org.codelibs.robot.exception.RobotSystemException;
+import org.codelibs.robot.util.EsResultList;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
@@ -257,11 +258,13 @@ public abstract class AbstractRobotService {
     }
 
     protected <T> List<T> getList(final Class<T> clazz, final Consumer<SearchRequestBuilder> callback) {
-        final List<T> targetList = new ArrayList<T>();
+        final EsResultList<T> targetList = new EsResultList<T>();
         final SearchRequestBuilder builder = getClient().prepareSearch(index).setTypes(type);
         callback.accept(builder);
         final SearchResponse response = builder.execute().actionGet();
         final SearchHits hits = response.getHits();
+        targetList.setTotalHits(hits.getTotalHits());
+        targetList.setTookInMillis(response.getTookInMillis());
         if (hits.getTotalHits() != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {

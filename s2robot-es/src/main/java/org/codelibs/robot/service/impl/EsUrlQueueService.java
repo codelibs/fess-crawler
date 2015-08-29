@@ -13,8 +13,19 @@ import org.codelibs.robot.Constants;
 import org.codelibs.robot.entity.AccessResult;
 import org.codelibs.robot.entity.EsUrlQueue;
 import org.codelibs.robot.entity.UrlQueue;
+import org.codelibs.robot.exception.EsAccessException;
 import org.codelibs.robot.service.UrlQueueService;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.update.UpdateRequestBuilder;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -41,8 +52,31 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
 
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
-        // TODO Script Query
-        throw new UnsupportedOperationException("Not supported.");
+        SearchResponse response =
+                getClient().prepareSearch(index).setTypes(type)
+                        .setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout)).setQuery(QueryBuilders
+                                .filteredQuery(QueryBuilders.matchAllQuery(), FilterBuilders.termFilter(SESSION_ID, oldSessionId)))
+                .setSize(scrollSize).execute().actionGet();
+        while (true) {
+            response =
+                    getClient().prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute().actionGet();
+
+            final SearchHits searchHits = response.getHits();
+            if (searchHits.hits().length == 0) {
+                break;
+            }
+
+            BulkRequestBuilder builder = getClient().prepareBulk();
+            for (final SearchHit searchHit : searchHits) {
+                UpdateRequestBuilder updateRequest =
+                        getClient().prepareUpdate(index, type, searchHit.getId()).setDoc(SESSION_ID, newSessionId);
+                builder.add(updateRequest);
+            }
+            BulkResponse bulkResponse = builder.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                throw new EsAccessException(bulkResponse.buildFailureMessage());
+            }
+        }
     }
 
     @Override

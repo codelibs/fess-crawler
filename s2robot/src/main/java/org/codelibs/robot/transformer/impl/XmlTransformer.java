@@ -99,7 +99,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @return XML content of String.
      */
     @Override
-    public Object getData(final AccessResultData accessResultData) {
+    public Object getData(final AccessResultData<?> accessResultData) {
         if (dataClass == null) {
             // check transformer name
             if (!getName().equals(accessResultData.getTransformerName())) {

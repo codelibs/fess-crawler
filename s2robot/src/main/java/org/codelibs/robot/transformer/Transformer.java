@@ -27,7 +27,7 @@ public interface Transformer {
 
     ResultData transform(ResponseData responseData);
 
-    Object getData(AccessResultData accessResultData);
+    Object getData(AccessResultData<?> accessResultData);
 
     String getName();
 

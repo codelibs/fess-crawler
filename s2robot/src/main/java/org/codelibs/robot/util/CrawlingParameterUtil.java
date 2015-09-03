@@ -26,25 +26,25 @@ import org.codelibs.robot.service.UrlQueueService;
  *
  */
 public final class CrawlingParameterUtil {
-    private static final ThreadLocal<UrlQueue> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<UrlQueue>();
+    private static final ThreadLocal<UrlQueue<?>> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<>();
 
     private static final ThreadLocal<S2RobotContext> ROBOT_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
 
-    private static final ThreadLocal<UrlQueueService<UrlQueue>> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<>();
+    private static final ThreadLocal<UrlQueueService<UrlQueue<?>>> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<>();
 
-    private static final ThreadLocal<DataService<AccessResult>> DATA_SERVICE_THREAD_LOCAL = new ThreadLocal<>();
+    private static final ThreadLocal<DataService<AccessResult<?>>> DATA_SERVICE_THREAD_LOCAL = new ThreadLocal<>();
 
     private CrawlingParameterUtil() {
     }
 
-    public static UrlQueue getUrlQueue() {
+    public static UrlQueue<?> getUrlQueue() {
         if (URL_QUEUE_THREAD_LOCAL != null) {
             return URL_QUEUE_THREAD_LOCAL.get();
         }
         return null;
     }
 
-    public static void setUrlQueue(final UrlQueue urlQueue) {
+    public static void setUrlQueue(final UrlQueue<?> urlQueue) {
         if (URL_QUEUE_THREAD_LOCAL != null) {
             if (urlQueue == null) {
                 URL_QUEUE_THREAD_LOCAL.remove();
@@ -71,14 +71,14 @@ public final class CrawlingParameterUtil {
         }
     }
 
-    public static UrlQueueService<UrlQueue> getUrlQueueService() {
+    public static UrlQueueService<UrlQueue<?>> getUrlQueueService() {
         if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
             return URL_QUEUE_SERVICE_THREAD_LOCAL.get();
         }
         return null;
     }
 
-    public static void setUrlQueueService(final UrlQueueService<UrlQueue> urlQueueService) {
+    public static void setUrlQueueService(final UrlQueueService<UrlQueue<?>> urlQueueService) {
         if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
             if (urlQueueService == null) {
                 URL_QUEUE_SERVICE_THREAD_LOCAL.remove();
@@ -88,14 +88,14 @@ public final class CrawlingParameterUtil {
         }
     }
 
-    public static DataService<AccessResult> getDataService() {
+    public static DataService<AccessResult<?>> getDataService() {
         if (DATA_SERVICE_THREAD_LOCAL != null) {
             return DATA_SERVICE_THREAD_LOCAL.get();
         }
         return null;
     }
 
-    public static void setDataService(final DataService<AccessResult> dataService) {
+    public static void setDataService(final DataService<AccessResult<?>> dataService) {
         if (DATA_SERVICE_THREAD_LOCAL != null) {
             if (dataService == null) {
                 DATA_SERVICE_THREAD_LOCAL.remove();

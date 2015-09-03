@@ -261,7 +261,7 @@ public class HcHttpClient extends AbstractS2RobotClient {
             httpClientBuilder.setUserAgent(userAgent);
         }
 
-        HttpRoutePlanner planner = buildRoutePlanner();
+        final HttpRoutePlanner planner = buildRoutePlanner();
         if (planner != null) {
             httpClientBuilder.setRoutePlanner(planner);
         }
@@ -935,15 +935,15 @@ public class HcHttpClient extends AbstractS2RobotClient {
         this.useRobotsTxtAllows = useRobotsTxtAllows;
     }
 
-    public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
+    public void setCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
     }
 
-    public void setAuthCache(AuthCache authCache) {
+    public void setAuthCache(final AuthCache authCache) {
         this.authCache = authCache;
     }
 
-    public void setRoutePlanner(HttpRoutePlanner routePlanner) {
+    public void setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
     }
 }

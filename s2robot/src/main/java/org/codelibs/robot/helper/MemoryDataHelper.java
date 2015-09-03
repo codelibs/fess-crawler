@@ -31,9 +31,9 @@ import org.codelibs.robot.entity.UrlQueueImpl;
  *
  */
 public class MemoryDataHelper {
-    protected volatile Map<String, Queue<UrlQueueImpl>> urlQueueMap = new HashMap<>();
+    protected volatile Map<String, Queue<UrlQueueImpl<Long>>> urlQueueMap = new HashMap<>();
 
-    protected volatile Map<String, Map<String, AccessResultImpl>> sessionMap = new HashMap<>();
+    protected volatile Map<String, Map<String, AccessResultImpl<Long>>> sessionMap = new HashMap<>();
 
     protected volatile Map<String, List<Pattern>> includeUrlPatternMap = new HashMap<>();
 
@@ -44,8 +44,8 @@ public class MemoryDataHelper {
         sessionMap.clear();
     }
 
-    public synchronized Queue<UrlQueueImpl> getUrlQueueList(final String sessionId) {
-        Queue<UrlQueueImpl> urlQueueList = urlQueueMap.get(sessionId);
+    public synchronized Queue<UrlQueueImpl<Long>> getUrlQueueList(final String sessionId) {
+        Queue<UrlQueueImpl<Long>> urlQueueList = urlQueueMap.get(sessionId);
         if (urlQueueList == null) {
             urlQueueList = new LinkedList<>();
             urlQueueMap.put(sessionId, urlQueueList);
@@ -54,8 +54,8 @@ public class MemoryDataHelper {
     }
 
     public synchronized void addUrlQueueList(final String sessionId,
-            final Queue<UrlQueueImpl> urlQueueList) {
-        final Queue<UrlQueueImpl> uqList = getUrlQueueList(sessionId);
+            final Queue<UrlQueueImpl<Long>> urlQueueList) {
+        final Queue<UrlQueueImpl<Long>> uqList = getUrlQueueList(sessionId);
         uqList.addAll(urlQueueList);
         urlQueueMap.put(sessionId, uqList);
     }
@@ -68,9 +68,9 @@ public class MemoryDataHelper {
         urlQueueMap.clear();
     }
 
-    public synchronized Map<String, AccessResultImpl> getAccessResultMap(
+    public synchronized Map<String, AccessResultImpl<Long>> getAccessResultMap(
             final String sessionId) {
-        Map<String, AccessResultImpl> arMap = sessionMap.get(sessionId);
+        Map<String, AccessResultImpl<Long>> arMap = sessionMap.get(sessionId);
         if (arMap == null) {
             arMap = new HashMap<>();
             sessionMap.put(sessionId, arMap);
@@ -86,12 +86,12 @@ public class MemoryDataHelper {
         sessionMap.clear();
     }
 
-    public synchronized List<AccessResultImpl> getAccessResultList(final String url) {
-        final List<AccessResultImpl> acList = new ArrayList<>();
-        for (final Map.Entry<String, Map<String, AccessResultImpl>> entry : sessionMap
+    public synchronized List<AccessResultImpl<Long>> getAccessResultList(final String url) {
+        final List<AccessResultImpl<Long>> acList = new ArrayList<>();
+        for (final Map.Entry<String, Map<String, AccessResultImpl<Long>>> entry : sessionMap
                 .entrySet()) {
             if (entry.getValue() != null) {
-                final AccessResultImpl ar = entry.getValue().get(url);
+                final AccessResultImpl<Long> ar = entry.getValue().get(url);
                 if (ar != null) {
                     acList.add(ar);
                 }

@@ -19,12 +19,12 @@ package org.codelibs.robot.entity;
  * @author shinsuke
  *
  */
-public interface AccessResult {
+public interface AccessResult<IDTYPE> {
     void init(ResponseData responseData, ResultData resultData);
 
-    Long getId();
+    IDTYPE getId();
 
-    void setId(Long id);
+    void setId(IDTYPE id);
 
     String getSessionId();
 
@@ -66,9 +66,9 @@ public interface AccessResult {
 
     void setExecutionTime(Integer executionTime);
 
-    AccessResultData getAccessResultData();
+    AccessResultData<IDTYPE> getAccessResultData();
 
-    void setAccessResultData(AccessResultData accessResultData);
+    void setAccessResultData(AccessResultData<IDTYPE> accessResultData);
 
     Long getContentLength();
 

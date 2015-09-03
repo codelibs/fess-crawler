@@ -45,10 +45,10 @@ public class S2Robot implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(S2Robot.class); // NOPMD
 
     @Resource
-    protected UrlQueueService<UrlQueue> urlQueueService;
+    protected UrlQueueService<UrlQueue<?>> urlQueueService;
 
     @Resource
-    protected DataService<AccessResult> dataService;
+    protected DataService<AccessResult<?>> dataService;
 
     @Resource
     protected UrlFilter urlFilter;

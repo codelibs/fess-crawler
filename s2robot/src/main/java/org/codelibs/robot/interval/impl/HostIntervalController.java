@@ -47,7 +47,7 @@ public class HostIntervalController extends DefaultIntervalController {
      */
     @Override
     protected void delayBeforeProcessing() {
-        final UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
+        final UrlQueue<?> urlQueue = CrawlingParameterUtil.getUrlQueue();
         if (urlQueue == null) {
             return;
         }

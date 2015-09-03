@@ -19,11 +19,11 @@ package org.codelibs.robot.entity;
  * @author shinsuke
  *
  */
-public interface UrlQueue {
+public interface UrlQueue<IDTYPE> {
 
-    Long getId();
+    IDTYPE getId();
 
-    void setId(Long id);
+    void setId(IDTYPE id);
 
     String getSessionId();
 

@@ -32,7 +32,7 @@ import org.dbflute.optional.OptionalEntity;
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResult extends BsAccessResult implements
-        org.codelibs.robot.entity.AccessResult {
+        org.codelibs.robot.entity.AccessResult<Long> {
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;
@@ -66,7 +66,7 @@ public class AccessResult extends BsAccessResult implements
      */
     @Override
     public void setAccessResultData(
-            final org.codelibs.robot.entity.AccessResultData accessResultData) {
+            final org.codelibs.robot.entity.AccessResultData<Long> accessResultData) {
         setAccessResultDataAsOne(OptionalEntity
                 .of((AccessResultData) accessResultData));
     }

@@ -37,7 +37,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     @Resource
     protected EsDataService dataService;
 
-    protected Queue<UrlQueue> crawlingUrlQueue = new ConcurrentLinkedQueue<UrlQueue>();
+    protected Queue<UrlQueue<String>> crawlingUrlQueue = new ConcurrentLinkedQueue<>();
 
     public int pollingFetchSize = 20;
 
@@ -66,13 +66,13 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
                 break;
             }
 
-            BulkRequestBuilder builder = getClient().prepareBulk();
+            final BulkRequestBuilder builder = getClient().prepareBulk();
             for (final SearchHit searchHit : searchHits) {
-                UpdateRequestBuilder updateRequest =
+                final UpdateRequestBuilder updateRequest =
                         getClient().prepareUpdate(index, type, searchHit.getId()).setDoc(SESSION_ID, newSessionId);
                 builder.add(updateRequest);
             }
-            BulkResponse bulkResponse = builder.execute().actionGet();
+            final BulkResponse bulkResponse = builder.execute().actionGet();
             if (bulkResponse.hasFailures()) {
                 throw new EsAccessException(bulkResponse.buildFailureMessage());
             }
@@ -93,7 +93,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
 
     @Override
     public void insert(final EsUrlQueue urlQueue) {
-        urlQueue.setId(hashCodeAsLong(super.insert(urlQueue, urlQueue.getId() == null ? OpType.CREATE : OpType.INDEX)));
+        super.insert(urlQueue, urlQueue.getId() == null ? OpType.CREATE : OpType.INDEX);
     }
 
     @Override
@@ -106,8 +106,8 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
         if (logger.isDebugEnabled()) {
             logger.debug("Offering URL: Session ID: {}, UrlQueue: {}", sessionId, urlQueueList);
         }
-        final List<UrlQueue> targetList = new ArrayList<UrlQueue>(urlQueueList.size());
-        for (final UrlQueue urlQueue : urlQueueList) {
+        final List<UrlQueue<String>> targetList = new ArrayList<>(urlQueueList.size());
+        for (final UrlQueue<String> urlQueue : urlQueueList) {
             if (!exists(sessionId, urlQueue.getUrl()) && !dataService.exists(sessionId, urlQueue.getUrl())) {
                 urlQueue.setSessionId(sessionId);
                 targetList.add(urlQueue);
@@ -168,7 +168,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
             return true;
         }
 
-        final AccessResult accessResult = dataService.getAccessResult(sessionId, url);
+        final AccessResult<String> accessResult = dataService.getAccessResult(sessionId, url);
         if (accessResult != null) {
             return true;
         }
@@ -180,7 +180,7 @@ public class EsUrlQueueService extends AbstractRobotService implements UrlQueueS
     protected boolean exists(final String sessionId, final String url) {
         final boolean ret = super.exists(sessionId, url);
         if (!ret) {
-            for (final UrlQueue urlQueue : crawlingUrlQueue) {
+            for (final UrlQueue<String> urlQueue : crawlingUrlQueue) {
                 if (sessionId.equals(urlQueue.getSessionId()) && url.equals(urlQueue.getUrl())) {
                     return true;
                 }

@@ -22,8 +22,8 @@ import org.codelibs.robot.Constants;
  * @author shinsuke
  *
  */
-public class AccessResultImpl implements AccessResult {
-    protected Long id;
+public class AccessResultImpl<IDTYPE> implements AccessResult<IDTYPE> {
+    protected IDTYPE id;
 
     protected String sessionId;
 
@@ -49,7 +49,7 @@ public class AccessResultImpl implements AccessResult {
 
     protected Long lastModified;
 
-    protected AccessResultData accessResultData;
+    protected AccessResultData<IDTYPE> accessResultData;
 
     @Override
     public void init(final ResponseData responseData,
@@ -60,7 +60,7 @@ public class AccessResultImpl implements AccessResult {
             BeanUtil.copyBeanToBean(responseData, this);
         }
 
-        final AccessResultData accessResultData = new AccessResultDataImpl();
+        final AccessResultData<IDTYPE> accessResultData = new AccessResultDataImpl<>();
         if (resultData != null) {
             BeanUtil.copyBeanToBean(resultData, accessResultData);
         }
@@ -73,17 +73,17 @@ public class AccessResultImpl implements AccessResult {
      * @see org.codelibs.robot.entity.AccessResult#getId()
      */
     @Override
-    public Long getId() {
+    public IDTYPE getId() {
         return id;
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see org.codelibs.robot.entity.AccessResult#setId(java.lang.Long)
+     * @see org.codelibs.robot.entity.AccessResult#setId(IDTYPE)
      */
     @Override
-    public void setId(final Long id) {
+    public void setId(final IDTYPE id) {
         this.id = id;
     }
 
@@ -275,7 +275,7 @@ public class AccessResultImpl implements AccessResult {
      * @see org.codelibs.robot.entity.AccessResult#getAccessResultDataAsOne()
      */
     @Override
-    public AccessResultData getAccessResultData() {
+    public AccessResultData<IDTYPE> getAccessResultData() {
         return accessResultData;
     }
 
@@ -287,7 +287,7 @@ public class AccessResultImpl implements AccessResult {
      * .robot.db.exentity.AccessResultData)
      */
     @Override
-    public void setAccessResultData(final AccessResultData accessResultDataAsOne) {
+    public void setAccessResultData(final AccessResultData<IDTYPE> accessResultDataAsOne) {
         accessResultData = accessResultDataAsOne;
     }
 

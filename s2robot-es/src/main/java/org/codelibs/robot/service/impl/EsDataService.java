@@ -1,12 +1,14 @@
 package org.codelibs.robot.service.impl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.entity.EsAccessResult;
+import org.codelibs.robot.entity.EsAccessResultData;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
 import org.elasticsearch.action.index.IndexRequest.OpType;
@@ -30,20 +32,17 @@ public class EsDataService extends AbstractRobotService implements DataService<E
 
     @Override
     public void store(final EsAccessResult accessResult) {
-        accessResult.setId(hashCodeAsLong(super.insert(accessResult, accessResult.getId() == null ? OpType.CREATE : OpType.INDEX)));
+        super.insert(accessResult, accessResult.getId() == null ? OpType.CREATE : OpType.INDEX);
     }
 
     @Override
     public void update(final EsAccessResult accessResult) {
-        accessResult.setId(hashCodeAsLong(super.insert(accessResult, OpType.INDEX)));
+        super.insert(accessResult, OpType.INDEX);
     }
 
     @Override
     public void update(final List<EsAccessResult> accessResultList) {
-        final List<String> idList = insertAll(accessResultList, OpType.INDEX);
-        for (int i = 0; i < idList.size(); i++) {
-            accessResultList.get(i).setId(hashCodeAsLong(idList.get(i)));
-        }
+        insertAll(accessResultList, OpType.INDEX);
     }
 
     @Override
@@ -87,9 +86,16 @@ public class EsDataService extends AbstractRobotService implements DataService<E
             }
 
             for (final SearchHit searchHit : searchHits) {
-                final EsAccessResult accessResult = BeanUtil.copyMapToNewBean(searchHit.getSource(), EsAccessResult.class, option -> {
+                final Map<String, Object> source = searchHit.getSource();
+                final EsAccessResult accessResult = BeanUtil.copyMapToNewBean(source, EsAccessResult.class, option -> {
                     option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
+                    option.exclude(EsAccessResult.ACCESS_RESULT_DATA);
                 });
+                @SuppressWarnings("unchecked")
+                final Map<String, Object> data = (Map<String, Object>) source.get(EsAccessResult.ACCESS_RESULT_DATA);
+                if (data != null) {
+                    accessResult.setAccessResultData(new EsAccessResultData(data));
+                }
                 callback.iterate(accessResult);
             }
         }

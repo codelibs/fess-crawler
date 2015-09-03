@@ -23,7 +23,7 @@ import org.codelibs.robot.entity.UrlQueue;
  * @author shinsuke
  *
  */
-public interface UrlQueueService<QUEUE extends UrlQueue> {
+public interface UrlQueueService<QUEUE extends UrlQueue<?>> {
 
     void updateSessionId(String oldSessionId, String newSessionId);
 

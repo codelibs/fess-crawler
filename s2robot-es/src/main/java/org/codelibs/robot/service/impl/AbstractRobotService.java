@@ -7,7 +7,6 @@ import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -25,7 +24,7 @@ import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.robot.client.EsClient;
-import org.codelibs.robot.entity.AccessResult;
+import org.codelibs.robot.entity.EsAccessResult;
 import org.codelibs.robot.entity.EsAccessResultData;
 import org.codelibs.robot.exception.EsAccessException;
 import org.codelibs.robot.exception.RobotSystemException;
@@ -43,7 +42,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.base.Charsets;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.hash.HashFunction;
 import org.elasticsearch.common.hash.Hashing;
@@ -68,6 +66,8 @@ public abstract class AbstractRobotService {
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
+    protected static final String ID = "id";
+
     protected static final String SESSION_ID = "sessionId";
 
     protected static final String URL = "url";
@@ -90,10 +90,6 @@ public abstract class AbstractRobotService {
 
     @Resource
     protected EsClient esClient;
-
-    protected long hashCodeAsLong(final String value) {
-        return murmur3Hash.hashString(value, Charsets.UTF_8).asLong();
-    }
 
     protected EsClient getClient() {
         if (!esClient.connected()) {
@@ -175,27 +171,25 @@ public abstract class AbstractRobotService {
         getClient().admin().indices().prepareRefresh(index).execute().actionGet();
     }
 
-    protected String insert(final Object target, final OpType opType) {
+    protected void insert(final Object target, final OpType opType) {
         final String id = getId(getSessionId(target), getUrl(target));
         final XContentBuilder source = getXContentBuilder(target);
         getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setRefresh(true).execute().actionGet();
-        return id;
+        setId(target, id);
     }
 
-    protected <T> List<String> insertAll(final List<T> list, final OpType opType) {
-        final List<String> idList = new ArrayList<>();
+    protected <T> void insertAll(final List<T> list, final OpType opType) {
         final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
         for (final T target : list) {
             final String id = getId(getSessionId(target), getUrl(target));
             final XContentBuilder source = getXContentBuilder(target);
             bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setRefresh(true));
-            idList.add(id);
+            setId(target, id);
         }
         final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet();
         if (bulkResponse.hasFailures()) {
             throw new RobotSystemException(bulkResponse.buildFailureMessage());
         }
-        return idList;
     }
 
     protected boolean exists(final String sessionId, final String url) {
@@ -217,12 +211,14 @@ public abstract class AbstractRobotService {
             final Map<String, Object> source = response.getSource();
             final T bean = BeanUtil.copyMapToNewBean(source, clazz, option -> {
                 option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
+                option.exclude(EsAccessResult.ACCESS_RESULT_DATA);
             });
-            if (source.containsKey("accessResultData")) {
-                @SuppressWarnings("unchecked")
-                final Map<String, Object> src = (Map<String, Object>) source.get("accessResultData");
-                ((AccessResult) bean).setAccessResultData(new EsAccessResultData(src));
+            @SuppressWarnings("unchecked")
+            final Map<String, Object> data = (Map<String, Object>) source.get(EsAccessResult.ACCESS_RESULT_DATA);
+            if (data != null) {
+                ((EsAccessResult) bean).setAccessResultData(new EsAccessResultData(data));
             }
+            setId(bean, id);
             return bean;
         }
         return null;
@@ -268,9 +264,18 @@ public abstract class AbstractRobotService {
         if (hits.getTotalHits() != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
-                    targetList.add(BeanUtil.copyMapToNewBean(searchHit.getSource(), clazz, option -> {
+                    final Map<String, Object> source = searchHit.getSource();
+                    final T target = BeanUtil.copyMapToNewBean(source, clazz, option -> {
                         option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
-                    }));
+                        option.exclude(EsAccessResult.ACCESS_RESULT_DATA);
+                    });
+                    @SuppressWarnings("unchecked")
+                    final Map<String, Object> data = (Map<String, Object>) source.get(EsAccessResult.ACCESS_RESULT_DATA);
+                    if (data != null) {
+                        ((EsAccessResult) target).setAccessResultData(new EsAccessResultData(data));
+                    }
+                    setId(target, searchHit.getId());
+                    targetList.add(target);
                 }
             } catch (final Exception e) {
                 throw new RobotSystemException("response: " + response, e);
@@ -338,6 +343,12 @@ public abstract class AbstractRobotService {
         final PropertyDesc sessionIdProp = beanDesc.getPropertyDesc(SESSION_ID);
         final Object sessionId = sessionIdProp.getValue(target);
         return sessionId == null ? null : sessionId.toString();
+    }
+
+    private void setId(final Object target, final String id) {
+        final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(target.getClass());
+        final PropertyDesc idProp = beanDesc.getPropertyDesc(ID);
+        idProp.setValue(target, id);
     }
 
     public String getIndex() {

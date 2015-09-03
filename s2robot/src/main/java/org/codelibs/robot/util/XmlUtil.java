@@ -75,7 +75,7 @@ public final class XmlUtil {
     }
 
     public static Map<String, Object> getDataMap(
-            final AccessResultData accessResultData) {
+            final AccessResultData<?> accessResultData) {
         // create input source
         final InputSource is = new InputSource(new ByteArrayInputStream(
                 accessResultData.getData()));

@@ -24,7 +24,7 @@ import org.codelibs.robot.util.AccessResultCallback;
  * @author shinsuke
  *
  */
-public interface DataService<RESULT extends AccessResult> {
+public  interface DataService<RESULT extends AccessResult<?>> {
 
     void store(RESULT accessResult);
 

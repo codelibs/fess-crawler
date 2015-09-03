@@ -27,7 +27,7 @@ import org.codelibs.robot.db.bsentity.BsUrlQueue;
  * @author DBFlute(AutoGenerator)
  */
 public class UrlQueue extends BsUrlQueue implements
-        org.codelibs.robot.entity.UrlQueue {
+        org.codelibs.robot.entity.UrlQueue<Long> {
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;

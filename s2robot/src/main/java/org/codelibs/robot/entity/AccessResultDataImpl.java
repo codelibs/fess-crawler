@@ -24,8 +24,8 @@ import org.codelibs.robot.Constants;
  * @author shinsuke
  *
  */
-public class AccessResultDataImpl implements AccessResultData {
-    protected Long id;
+public class AccessResultDataImpl<IDTYPE> implements AccessResultData<IDTYPE> {
+    protected IDTYPE id;
 
     protected String transformerName;
 
@@ -39,17 +39,17 @@ public class AccessResultDataImpl implements AccessResultData {
      * @see org.codelibs.robot.entity.AccessResultData#getId()
      */
     @Override
-    public Long getId() {
+    public IDTYPE getId() {
         return id;
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see org.codelibs.robot.entity.AccessResultData#setId(java.lang.Long)
+     * @see org.codelibs.robot.entity.AccessResultData#setId(IDTYPE)
      */
     @Override
-    public void setId(final Long id) {
+    public void setId(final IDTYPE id) {
         this.id = id;
     }
 

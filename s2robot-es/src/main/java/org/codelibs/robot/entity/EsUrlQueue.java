@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
-public class EsUrlQueue extends UrlQueueImpl implements ToXContent {
+public class EsUrlQueue extends UrlQueueImpl<String>implements ToXContent {
 
     public static final String ID = "id";
 
@@ -26,9 +26,6 @@ public class EsUrlQueue extends UrlQueueImpl implements ToXContent {
     @Override
     public XContentBuilder toXContent(final XContentBuilder builder, final Params params) throws IOException {
         builder.startObject();
-        if (id != null) {
-            builder.field(ID, id);
-        }
         if (sessionId != null) {
             builder.field(SESSION_ID, sessionId);
         }

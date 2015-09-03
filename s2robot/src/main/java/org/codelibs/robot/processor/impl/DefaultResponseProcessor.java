@@ -57,7 +57,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
     @Override
     public void process(final ResponseData responseData) {
         if (isNotModified(responseData)) {
-            final UrlQueue urlQueue = CrawlingParameterUtil.getUrlQueue();
+            final UrlQueue<?> urlQueue = CrawlingParameterUtil.getUrlQueue();
             final ResultData resultData = new ResultData();
             resultData.setData(new byte[0]);
             resultData.setEncoding(Constants.UTF_8);
@@ -76,7 +76,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     logger.warn("No data for (" + responseData.getUrl() + ", "
                             + responseData.getMimeType() + ")");
                 } else {
-                    final UrlQueue urlQueue = CrawlingParameterUtil
+                    final UrlQueue<?> urlQueue = CrawlingParameterUtil
                             .getUrlQueue();
                     processResult(urlQueue, responseData, resultData);
                 }
@@ -113,15 +113,15 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         return false;
     }
 
-    protected void processResult(final UrlQueue urlQueue,
+    protected void processResult(final UrlQueue<?> urlQueue,
             final ResponseData responseData, final ResultData resultData) {
-        final AccessResult accessResult = robotContainer
+        final AccessResult<?> accessResult = robotContainer
                 .getComponent("accessResult");
         accessResult.init(responseData, resultData);
 
         final S2RobotContext robotContext = CrawlingParameterUtil
                 .getRobotContext();
-        final UrlQueueService<UrlQueue> urlQueueService = CrawlingParameterUtil
+        final UrlQueueService<UrlQueue<?>> urlQueueService = CrawlingParameterUtil
                 .getUrlQueueService();
         synchronized (robotContext.getAccessCountLock()) {
             if (!urlQueueService.visited(urlQueue)) {
@@ -143,7 +143,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 } else if (robotContext.getMaxDepth() < 0
                         || urlQueue.getDepth() <= robotContext.getMaxDepth()) {
                     // cancel crawling
-                    final List<UrlQueue> newUrlQueueList = new ArrayList<UrlQueue>();
+                    final List<UrlQueue<?>> newUrlQueueList = new ArrayList< >();
                     newUrlQueueList.add(urlQueue);
                     urlQueueService.offerAll(robotContext.getSessionId(),
                             newUrlQueueList);
@@ -170,10 +170,10 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         }
 
         // add url and filter
-        final List<UrlQueue> childList = new ArrayList<>();
+        final List<UrlQueue<?>> childList = new ArrayList<>();
         for (final RequestData childUrl : childUrlList) {
             if (robotContext.getUrlFilter().match(childUrl.getUrl())) {
-                final UrlQueue uq = robotContainer.getComponent("urlQueue");
+                final UrlQueue<?> uq = robotContainer.getComponent("urlQueue");
                 uq.setCreateTime(SystemUtil.currentTimeMillis());
                 uq.setDepth(depth);
                 uq.setMethod(childUrl.getMethod().name());

@@ -115,7 +115,8 @@ public class EsClient implements Client {
 
     public EsClient() {
         clusterName = System.getProperty(CLUSTER_NAME, "elasticsearch");
-        addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "localhost:9300").split(",")).map(v -> v.trim()).toArray(n -> new String[n]);
+        addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "localhost:9300").split(",")).map(v -> v.trim())
+                .toArray(n -> new String[n]);
     }
 
     public void setClusterName(final String clusterName) {
@@ -134,7 +135,6 @@ public class EsClient implements Client {
         return connected;
     }
 
-    @SuppressWarnings("resource")
     public void connect() {
         destroy();
         final Settings settings = ImmutableSettings.settingsBuilder()

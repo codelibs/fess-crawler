@@ -31,7 +31,7 @@ import org.codelibs.robot.db.bsentity.BsAccessResultData;
  * @author DBFlute(AutoGenerator)
  */
 public class AccessResultData extends BsAccessResultData implements
-        org.codelibs.robot.entity.AccessResultData {
+        org.codelibs.robot.entity.AccessResultData<Long> {
 
     /** Serial version UID. (Default) */
     private static final long serialVersionUID = 1L;

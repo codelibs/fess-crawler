@@ -109,7 +109,7 @@ public class TextTransformer extends AbstractTransformer {
      * .AccessResultData)
      */
     @Override
-    public Object getData(final AccessResultData accessResultData) {
+    public Object getData(final AccessResultData<?> accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
             throw new RobotSystemException("Transformer is invalid. Use "

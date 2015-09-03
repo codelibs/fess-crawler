@@ -1,13 +1,12 @@
 package org.codelibs.robot.entity;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.codelibs.core.beans.util.BeanUtil;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
-public class EsAccessResult extends AccessResultImpl implements ToXContent {
+public class EsAccessResult extends AccessResultImpl<String>implements ToXContent {
 
     public static final String ID = "id";
 
@@ -37,10 +36,6 @@ public class EsAccessResult extends AccessResultImpl implements ToXContent {
 
     public static final String ACCESS_RESULT_DATA = "accessResultData";
 
-    public EsAccessResult() {
-        super();
-    }
-
     @Override
     public void init(final ResponseData responseData, final ResultData resultData) {
 
@@ -49,7 +44,7 @@ public class EsAccessResult extends AccessResultImpl implements ToXContent {
             BeanUtil.copyBeanToBean(responseData, this);
         }
 
-        final AccessResultData accessResultData = new EsAccessResultData();
+        final EsAccessResultData accessResultData = new EsAccessResultData();
         if (resultData != null) {
             BeanUtil.copyBeanToBean(resultData, accessResultData);
         }
@@ -59,9 +54,6 @@ public class EsAccessResult extends AccessResultImpl implements ToXContent {
     @Override
     public XContentBuilder toXContent(final XContentBuilder builder, final Params params) throws IOException {
         builder.startObject();
-        if (id != null) {
-            builder.field(ID, id);
-        }
         if (sessionId != null) {
             builder.field(SESSION_ID, sessionId);
         }
@@ -105,9 +97,4 @@ public class EsAccessResult extends AccessResultImpl implements ToXContent {
         builder.endObject();
         return builder;
     }
-
-    public void setAccessResultData(final Map<String, Object> map) {
-        accessResultData = new EsAccessResultData(map);
-    }
-
 }

@@ -33,7 +33,7 @@ import org.codelibs.robot.util.AccessResultCallback;
  * @author shinsuke
  *
  */
-public class DataServiceImpl implements DataService<AccessResultImpl> {
+public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
 
     protected static volatile long idCount = 0L; // NOPMD
 
@@ -49,7 +49,7 @@ public class DataServiceImpl implements DataService<AccessResultImpl> {
      * AccessResult)
      */
     @Override
-    public void store(final AccessResultImpl accessResult) {
+    public void store(final AccessResultImpl<Long> accessResult) {
         if (accessResult == null) {
             throw new RobotSystemException("AccessResult is null.");
         }
@@ -57,16 +57,16 @@ public class DataServiceImpl implements DataService<AccessResultImpl> {
         synchronized (idCountLock) {
             idCount++;
             accessResult.setId(idCount);
-            AccessResultData accessResultData = accessResult
+            AccessResultData<Long> accessResultData = accessResult
                     .getAccessResultData();
             if (accessResultData == null) {
-                accessResultData = new AccessResultDataImpl();
+                accessResultData = new AccessResultDataImpl<Long>();
                 accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
                 accessResult.setAccessResultData(accessResultData);
             }
             accessResultData.setId(accessResult.getId());
 
-            final Map<String, AccessResultImpl> arMap = dataHelper
+            final Map<String, AccessResultImpl<Long>> arMap = dataHelper
                     .getAccessResultMap(accessResult.getSessionId());
             if (arMap.containsKey(accessResult.getUrl())) {
                 throw new RobotSystemException(accessResult.getUrl()
@@ -115,7 +115,7 @@ public class DataServiceImpl implements DataService<AccessResultImpl> {
      * java.lang.String)
      */
     @Override
-    public AccessResultImpl getAccessResult(final String sessionId, final String url) {
+    public AccessResultImpl<Long> getAccessResult(final String sessionId, final String url) {
         return dataHelper.getAccessResultMap(sessionId).get(url);
     }
 
@@ -127,7 +127,7 @@ public class DataServiceImpl implements DataService<AccessResultImpl> {
      * , boolean)
      */
     @Override
-    public List<AccessResultImpl> getAccessResultList(final String url,
+    public List<AccessResultImpl<Long>> getAccessResultList(final String url,
             final boolean hasData) {
         return dataHelper.getAccessResultList(url);
     }
@@ -140,10 +140,10 @@ public class DataServiceImpl implements DataService<AccessResultImpl> {
      */
     @Override
     public void iterate(final String sessionId,
-            final AccessResultCallback<AccessResultImpl> accessResultCallback) {
-        final Map<String, AccessResultImpl> arMap = dataHelper
+            final AccessResultCallback<AccessResultImpl<Long>> accessResultCallback) {
+        final Map<String, AccessResultImpl<Long>> arMap = dataHelper
                 .getAccessResultMap(sessionId);
-        for (final Map.Entry<String, AccessResultImpl> entry : arMap.entrySet()) {
+        for (final Map.Entry<String, AccessResultImpl<Long>> entry : arMap.entrySet()) {
             accessResultCallback.iterate(entry.getValue());
         }
     }
@@ -155,8 +155,8 @@ public class DataServiceImpl implements DataService<AccessResultImpl> {
      * AccessResult)
      */
     @Override
-    public void update(final AccessResultImpl accessResult) {
-        final Map<String, AccessResultImpl> arMap = dataHelper
+    public void update(final AccessResultImpl<Long> accessResult) {
+        final Map<String, AccessResultImpl<Long>> arMap = dataHelper
                 .getAccessResultMap(accessResult.getSessionId());
         if (!arMap.containsKey(accessResult.getUrl())) {
             throw new RobotSystemException(accessResult.getUrl()
@@ -171,8 +171,8 @@ public class DataServiceImpl implements DataService<AccessResultImpl> {
      * @see org.codelibs.robot.service.DataService#update(java.util.List)
      */
     @Override
-    public void update(final List<AccessResultImpl> accessResultList) {
-        for (final AccessResultImpl accessResult : accessResultList) {
+    public void update(final List<AccessResultImpl<Long>> accessResultList) {
+        for (final AccessResultImpl<Long> accessResult : accessResultList) {
             update(accessResult);
         }
     }

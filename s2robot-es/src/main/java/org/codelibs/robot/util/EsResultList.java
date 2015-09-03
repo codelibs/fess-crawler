@@ -10,7 +10,7 @@ public class EsResultList<E> extends ArrayList<E> {
 
     private long tookInMillis;
 
-    public void setTotalHits(long totalHits) {
+    public void setTotalHits(final long totalHits) {
         this.totalHits = totalHits;
     }
 
@@ -18,7 +18,7 @@ public class EsResultList<E> extends ArrayList<E> {
         return totalHits;
     }
 
-    public void setTookInMillis(long tookInMillis) {
+    public void setTookInMillis(final long tookInMillis) {
         this.tookInMillis = tookInMillis;
     }
 

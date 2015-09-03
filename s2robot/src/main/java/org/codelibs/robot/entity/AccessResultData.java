@@ -19,11 +19,11 @@ package org.codelibs.robot.entity;
  * @author shinsuke
  *
  */
-public interface AccessResultData {
+public interface AccessResultData<IDTYPE> {
 
-    Long getId();
+    IDTYPE getId();
 
-    void setId(Long id);
+    void setId(IDTYPE id);
 
     String getTransformerName();
 

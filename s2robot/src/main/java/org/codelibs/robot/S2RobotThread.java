@@ -50,10 +50,10 @@ import org.codelibs.robot.util.CrawlingParameterUtil;
 public class S2RobotThread implements Runnable {
 
     @Resource
-    protected UrlQueueService<UrlQueue> urlQueueService;
+    protected UrlQueueService<UrlQueue<?>> urlQueueService;
 
     @Resource
-    protected DataService<AccessResult> dataService;
+    protected DataService<AccessResult<?>> dataService;
 
     @Resource
     protected RobotContainer robotContainer;
@@ -124,7 +124,7 @@ public class S2RobotThread implements Runnable {
         CrawlingParameterUtil.setDataService(dataService);
         try {
             while (robotContext.running && isContinue(threadCheckCount)) {
-                final UrlQueue urlQueue = urlQueueService
+                final UrlQueue<?> urlQueue = urlQueueService
                         .poll(robotContext.sessionId);
                 if (isValid(urlQueue)) {
                     ResponseData responseData = null;
@@ -259,7 +259,7 @@ public class S2RobotThread implements Runnable {
         log(logHelper, LogType.FINISHED_THREAD, robotContext);
     }
 
-    protected void addSitemapsFromRobotsTxt(final UrlQueue urlQueue) {
+    protected void addSitemapsFromRobotsTxt(final UrlQueue<?> urlQueue) {
         final String[] sitemaps = robotContext.removeSitemaps();
         if (sitemaps != null) {
             for (final String childUrl : sitemaps) {
@@ -283,7 +283,7 @@ public class S2RobotThread implements Runnable {
     }
 
     protected boolean isContentUpdated(final S2RobotClient client,
-            final UrlQueue urlQueue) {
+            final UrlQueue<?> urlQueue) {
         if (urlQueue.getLastModified() != null) {
             log(logHelper, LogType.CHECK_LAST_MODIFIED, robotContext, urlQueue);
             final long startTime = SystemUtil.currentTimeMillis();
@@ -320,7 +320,7 @@ public class S2RobotThread implements Runnable {
         return true;
     }
 
-    protected void processResponse(final UrlQueue urlQueue,
+    protected void processResponse(final UrlQueue<?> urlQueue,
             final ResponseData responseData) {
         // get a rule
         final Rule rule = robotContext.ruleManager.getRule(responseData);
@@ -349,10 +349,10 @@ public class S2RobotThread implements Runnable {
         }
 
         // add url and filter
-        final List<UrlQueue> childList = new ArrayList<UrlQueue>();
+        final List<UrlQueue<?>> childList = new ArrayList< >();
         for (final RequestData requestData : childUrlList) {
             if (robotContext.urlFilter.match(requestData.getUrl())) {
-                final UrlQueue uq = robotContainer.getComponent("urlQueue");
+                final UrlQueue<?> uq = robotContainer.getComponent("urlQueue");
                 uq.setCreateTime(SystemUtil.currentTimeMillis());
                 uq.setDepth(depth);
                 uq.setMethod(Constants.GET_METHOD);
@@ -375,8 +375,8 @@ public class S2RobotThread implements Runnable {
 
         // add url and filter
         if (robotContext.urlFilter.match(childUrl)) {
-            final List<UrlQueue> childList = new ArrayList<UrlQueue>(1);
-            final UrlQueue uq = robotContainer.getComponent("urlQueue");
+            final List<UrlQueue<?>> childList = new ArrayList< >(1);
+            final UrlQueue<?> uq = robotContainer.getComponent("urlQueue");
             uq.setCreateTime(SystemUtil.currentTimeMillis());
             uq.setDepth(depth);
             uq.setMethod(Constants.GET_METHOD);
@@ -389,7 +389,7 @@ public class S2RobotThread implements Runnable {
         }
     }
 
-    protected boolean isValid(final UrlQueue urlQueue) {
+    protected boolean isValid(final UrlQueue<?> urlQueue) {
         if (urlQueue == null) {
             return false;
         }

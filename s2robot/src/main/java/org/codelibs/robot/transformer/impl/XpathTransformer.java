@@ -214,7 +214,7 @@ public class XpathTransformer extends HtmlTransformer {
      * @return XML content of String.
      */
     @Override
-    public Object getData(final AccessResultData accessResultData) {
+    public Object getData(final AccessResultData<?> accessResultData) {
         if (dataClass == null) {
             return super.getData(accessResultData);
         }

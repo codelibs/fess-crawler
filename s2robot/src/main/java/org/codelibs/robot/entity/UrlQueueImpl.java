@@ -19,8 +19,8 @@ package org.codelibs.robot.entity;
  * @author shinsuke
  *
  */
-public class UrlQueueImpl implements UrlQueue {
-    protected Long id;
+public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
+    protected IDTYPE id;
 
     protected String sessionId;
 
@@ -46,17 +46,17 @@ public class UrlQueueImpl implements UrlQueue {
      * @see org.codelibs.robot.entity.UrlQueue#getId()
      */
     @Override
-    public Long getId() {
+    public IDTYPE getId() {
         return id;
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see org.codelibs.robot.entity.UrlQueue#setId(java.lang.Long)
+     * @see org.codelibs.robot.entity.UrlQueue#setId(IDTYPE)
      */
     @Override
-    public void setId(final Long id) {
+    public void setId(final IDTYPE id) {
         this.id = id;
     }
 

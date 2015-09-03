@@ -13,11 +13,21 @@ public class EsUrlFilter implements ToXContent {
 
     public static final String URL = "url";
 
+    private String id;
+
     private String sessionId;
 
     private String filterType;
 
     private String url;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(final String id) {
+        this.id = id;
+    }
 
     public String getSessionId() {
         return sessionId;
@@ -58,4 +68,5 @@ public class EsUrlFilter implements ToXContent {
         builder.endObject();
         return builder;
     }
+
 }

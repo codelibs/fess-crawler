@@ -1,11 +1,13 @@
 package org.codelibs.robot.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.PreDestroy;
 
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.robot.exception.RobotSystemException;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionFuture;
@@ -95,21 +97,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EsClient implements Client {
-    public static final String TCP_PORT = "robot.es.tcp_port";
-
-    public static final String TCP_HOST = "robot.es.tcp_host";
+    public static final String TRANSPORT_ADDRESSES = "robot.es.transport_addresses";
 
     public static final String CLUSTER_NAME = "robot.es.cluster_name";
 
     private static final Logger logger = LoggerFactory.getLogger(EsClient.class);
 
-    protected Client client;
+    protected TransportClient client;
 
     protected String clusterName;
 
-    protected String hostname = "localhost";
-
-    protected int port;
+    protected String[] addresses;
 
     protected List<OnConnectListener> onConnectListenerList = new ArrayList<>();
 
@@ -117,20 +115,15 @@ public class EsClient implements Client {
 
     public EsClient() {
         clusterName = System.getProperty(CLUSTER_NAME, "elasticsearch");
-        hostname = System.getProperty(TCP_HOST, "localhost");
-        port = Integer.parseInt(System.getProperty(TCP_PORT, "9300"));
+        addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "localhost:9300").split(",")).map(v -> v.trim()).toArray(n -> new String[n]);
     }
 
     public void setClusterName(final String clusterName) {
         this.clusterName = clusterName;
     }
 
-    public void setHostname(final String hostname) {
-        this.hostname = hostname;
-    }
-
-    public void setPort(final int port) {
-        this.port = port;
+    public void setAddresses(final String[] addresses) {
+        this.addresses = addresses;
     }
 
     public void addOnConnectListener(final OnConnectListener listener) {
@@ -146,7 +139,22 @@ public class EsClient implements Client {
         destroy();
         final Settings settings = ImmutableSettings.settingsBuilder()
                 .put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
-        client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(hostname, port));
+        client = new TransportClient(settings);
+        Arrays.stream(addresses).forEach(address -> {
+            final String[] values = address.split(":");
+            String hostname;
+            int port = 9300;
+            if (values.length == 1) {
+                hostname = values[0];
+            } else if (values.length == 2) {
+                hostname = values[0];
+                port = Integer.parseInt(values[1]);
+            } else {
+                throw new RobotSystemException("Invalid address: " + address);
+            }
+            client.addTransportAddress(new InetSocketTransportAddress(hostname, port));
+            logger.info("Connected to " + hostname + ":" + port);
+        });
 
         final ClusterHealthResponse healthResponse =
                 client.admin().cluster().prepareHealth().setWaitForYellowStatus().execute().actionGet();
@@ -160,9 +168,8 @@ public class EsClient implements Client {
             });
 
             connected = true;
-            logger.info("Connected to " + hostname + ":" + port + " for " + clusterName);
         } else {
-            logger.warn("Could not connect to " + hostname + ":" + port + " for " + clusterName);
+            logger.warn("Could not connect to " + clusterName + ":" + String.join(",", addresses));
         }
     }
 
@@ -176,7 +183,7 @@ public class EsClient implements Client {
             }
         }
         connected = false;
-        logger.info("Disconnected to " + hostname + ":" + port + " for " + clusterName);
+        logger.info("Disconnected to " + clusterName + ":" + String.join(",", addresses));
     }
 
     @Override

@@ -216,7 +216,7 @@ public abstract class AbstractRobotService {
         if (response.isExists()) {
             final Map<String, Object> source = response.getSource();
             final T bean = BeanUtil.copyMapToNewBean(source, clazz, option -> {
-                option.exclude("accessResultData").converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
+                option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
             });
             if (source.containsKey("accessResultData")) {
                 @SuppressWarnings("unchecked")

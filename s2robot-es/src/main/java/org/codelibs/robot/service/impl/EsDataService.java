@@ -1,14 +1,12 @@
 package org.codelibs.robot.service.impl;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.robot.entity.EsAccessResult;
-import org.codelibs.robot.entity.EsAccessResultData;
 import org.codelibs.robot.service.DataService;
 import org.codelibs.robot.util.AccessResultCallback;
 import org.elasticsearch.action.index.IndexRequest.OpType;
@@ -91,13 +89,7 @@ public class EsDataService extends AbstractRobotService implements DataService<E
             for (final SearchHit searchHit : searchHits) {
                 final EsAccessResult accessResult = BeanUtil.copyMapToNewBean(searchHit.getSource(), EsAccessResult.class, option -> {
                     option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
-                    option.exclude("accessResultData");
                 });
-                if (searchHit.getSource().containsKey("accessResultData")) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> src = (Map<String, Object>) searchHit.getSource().get("accessResultData");
-                    accessResult.setAccessResultData(new EsAccessResultData(src));
-                }
                 callback.iterate(accessResult);
             }
         }

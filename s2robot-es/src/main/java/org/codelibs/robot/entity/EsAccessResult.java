@@ -1,6 +1,7 @@
 package org.codelibs.robot.entity;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.codelibs.core.beans.util.BeanUtil;
 import org.elasticsearch.common.xcontent.ToXContent;
@@ -35,6 +36,10 @@ public class EsAccessResult extends AccessResultImpl implements ToXContent {
     public static final String LAST_MODIFIED = "lastModified";
 
     public static final String ACCESS_RESULT_DATA = "accessResultData";
+
+    public EsAccessResult() {
+        super();
+    }
 
     @Override
     public void init(final ResponseData responseData, final ResultData resultData) {
@@ -99,6 +104,10 @@ public class EsAccessResult extends AccessResultImpl implements ToXContent {
         }
         builder.endObject();
         return builder;
+    }
+
+    public void setAccessResultData(final Map<String, Object> map) {
+        accessResultData = new EsAccessResultData(map);
     }
 
 }

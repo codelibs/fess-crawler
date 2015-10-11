@@ -67,7 +67,7 @@ public class UrlFilterDbm extends AbstractDBMeta {
     // ===================================================================================
     //                                                                         Column Info
     //                                                                         ===========
-    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, Long.class, "id", null, true, true, true, "BIGINT", 19, 0, "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_6D6689B7_3C56_48EC_AADB_40B51B4F6C9E", false, null, null, null, null, null, false);
+    protected final ColumnInfo _columnId = cci("ID", "ID", null, null, Long.class, "id", null, true, true, true, "BIGINT", 19, 0, "NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0BC25E56_224A_403F_82E0_64932A407792", false, null, null, null, null, null, false);
     protected final ColumnInfo _columnSessionId = cci("SESSION_ID", "SESSION_ID", null, null, String.class, "sessionId", null, false, false, true, "VARCHAR", 20, 0, null, false, null, null, null, null, null, false);
     protected final ColumnInfo _columnUrl = cci("URL", "URL", null, null, String.class, "url", null, false, false, true, "VARCHAR", 65536, 0, null, false, null, null, null, null, null, false);
     protected final ColumnInfo _columnFilterType = cci("FILTER_TYPE", "FILTER_TYPE", null, null, String.class, "filterType", null, false, false, true, "VARCHAR", 1, 0, null, false, null, null, null, null, null, false);

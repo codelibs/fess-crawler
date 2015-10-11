@@ -7,7 +7,7 @@
 /fess-crawler*/.classpath
 /fess-crawler*/.settings/
 /fess-crawler*/dependency-reduced-pom.xml
-/fess-crawler*/dbflute_robot/log/*.log
-/fess-crawler*/dbflute_robot/schema/project-schema-robot.xml
+/fess-crawler*/dbflute_crawler/log/*.log
+/fess-crawler*/dbflute_crawler/schema/project-schema-robot.xml
 /fess-crawler/phantomjsdriver.log
 .project

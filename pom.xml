@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.codelibs.robot</groupId>
-  <artifactId>s2robot-parent</artifactId>
+  <groupId>org.codelibs.fess</groupId>
+  <artifactId>fess-crawler-parent</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>S2Robot Project</name>
-  <description>S2Robot is Crawler Framework.</description>
-  <url>https://github.com/codelibs/s2robot</url>
+  <name>Fess Crawler Project</name>
+  <description>Fess Crawler is Crawler Framework.</description>
+  <url>https://github.com/codelibs/fess-crawler</url>
   <inceptionYear>2009</inceptionYear>
   <licenses>
     <license>
@@ -22,12 +22,12 @@
   </organization>
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/codelibs/s2robot/issues</url>
+    <url>https://github.com/codelibs/fess-crawler/issues</url>
   </issueManagement>
   <scm>
-    <connection>scm:git:git@github.com:codelibs/s2robot.git</connection>
-    <developerConnection>scm:git:git@github.com:codelibs/s2robot.git</developerConnection>
-    <url>git@github.com:codelibs/s2robot.git</url>
+    <connection>scm:git:git@github.com:codelibs/fess-crawler.git</connection>
+    <developerConnection>scm:git:git@github.com:codelibs/fess-crawler.git</developerConnection>
+    <url>git@github.com:codelibs/fess-crawler.git</url>
   </scm>
   <parent>
     <groupId>org.sonatype.oss</groupId>
@@ -35,22 +35,22 @@
     <version>9</version>
   </parent>
   <modules>
-    <module>s2robot</module>
-    <module>s2robot-lasta</module>
-    <module>s2robot-es</module>
-    <module>s2robot-db-h2</module>
-    <module>s2robot-db-mysql</module>
-    <module>s2robot-db</module>
+    <module>fess-crawler</module>
+    <module>fess-crawler-lasta</module>
+    <module>fess-crawler-es</module>
+    <module>fess-crawler-db-h2</module>
+    <module>fess-crawler-db-mysql</module>
+    <module>fess-crawler-db</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jta.version>1.2</jta.version>
     <h2.version>1.4.181</h2.version>
     <mysql.version>5.1.32</mysql.version>
-    <dbflute.version>1.1.0-sp3-RC2</dbflute.version>
-    <lastadi.version>0.6.3-RC1</lastadi.version>
-    <utflute.version>0.5.0-sp7</utflute.version>
-    <corelib.version>0.3.0</corelib.version>
+    <dbflute.version>1.1.0-sp8</dbflute.version>
+    <lastadi.version>0.6.4</lastadi.version>
+    <utflute.version>0.5.2</utflute.version>
+    <corelib.version>0.3.1-SNAPSHOT</corelib.version>
     <slf4j.version>1.7.12</slf4j.version>
     <httpcomponents.version>4.3.6</httpcomponents.version>
     <tika.version>1.6</tika.version>
@@ -58,7 +58,7 @@
     <pdfbox.version>1.8.8</pdfbox.version>
     <bouncycastle.version>1.51</bouncycastle.version>
     <nekohtml.version>1.9.21</nekohtml.version>
-    <elasticsearch.version>1.7.1</elasticsearch.version>
+    <elasticsearch.version>1.7.2</elasticsearch.version>
   </properties>
   <build>
     <pluginManagement>
@@ -171,7 +171,7 @@
                 <relocations>
                   <relocation>
                     <pattern>org.dbflute</pattern>
-                    <shadedPattern>org.codelibs.robot.dbflute</shadedPattern>
+                    <shadedPattern>org.codelibs.fess.crawler.dbflute</shadedPattern>
                   </relocation>
                 </relocations>
               </configuration>

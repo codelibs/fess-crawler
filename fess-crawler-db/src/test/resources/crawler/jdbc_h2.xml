@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN"
+	"http://dbflute.org/meta/lastadi10.dtd">
+<components namespace="fessCrawler">
+	<include path="jta.xml"/>
+	
+	<!-- H2 -->
+	<component name="xaDataSource"
+		class="org.lastaflute.jta.dbcp.SimpleXADataSource">
+		<property name="driverClassName">
+			"org.h2.Driver"
+		</property>
+		<property name="URL">
+			"jdbc:h2:file:"
+				+ org.codelibs.core.io.ResourceUtil.getBuildDir(org.codelibs.fess.crawler.CrawlerTest.class).getCanonicalPath()
+				+ "/db/crawler;DB_CLOSE_ON_EXIT=FALSE;LOG=2;MVCC=true"
+		</property>
+		<property name="user">"sa"</property>
+		<property name="password"></property>
+	</component>
+
+	<component name="connectionPool"
+		class="org.lastaflute.jta.dbcp.SimpleConnectionPool">
+		<property name="timeout">600</property>
+		<property name="maxPoolSize">10</property>
+		<property name="allowLocalTx">true</property>
+		<preDestroy name="close"/>
+	</component>
+
+	<component name="DataSource"
+		class="org.lastaflute.jta.dbcp.PooledDataSource"
+	/>
+</components>

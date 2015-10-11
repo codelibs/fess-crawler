@@ -1,0 +1,33 @@
+User-agent: FessCrawler
+Disallow:           # allows all 
+
+User-agent: BruteBot
+Disallow: /
+Allow: /foo/bar/
+Crawl-delay: 1314000
+
+# welcome!
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: *
+Disallow: /private/
+Disallow: /help        # disallows /help.html, /help/index.html, etc.
+Allow: /help/faq.html
+Crawl-delay: 3
+
+User-agent: Crawler
+Disallow: /aaa
+
+User-agent: Crawler/1.0
+Disallow: /bbb
+
+User-agent: Crawler/2.0
+Disallow: /ccc
+
+User-agent: Hoge Crawler
+Disallow: /ddd
+
+sitemap: http://www.example.com/sitmap.xml
+sitemap: http://www.example.net/sitmap.xml
+

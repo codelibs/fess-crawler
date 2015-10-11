@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN" 
+	"http://dbflute.org/meta/lastadi10.dtd">
+<components namespace="fessCrawler">
+	<include path="crawler/jdbc_h2.xml"
+		condition="#exists('org/h2/Driver.class')"/>
+	<include path="crawler/jdbc_mysql.xml"
+		condition="#exists('com/mysql/jdbc/Driver.class')"/>
+</components>

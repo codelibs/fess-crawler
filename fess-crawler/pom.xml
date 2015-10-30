@@ -117,6 +117,12 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${httpcomponents.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -127,6 +133,12 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient-cache</artifactId>
       <version>${httpcomponents.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.nekohtml</groupId>
@@ -149,13 +161,6 @@
       <version>${slf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.2</version>
-      <scope>provided</scope>
-      <!-- remove this jar -->
-    </dependency>
-    <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-parsers</artifactId>
       <version>${tika.version}</version>
@@ -173,16 +178,20 @@
           <artifactId>commons-httpclient</artifactId>
         </exclusion>
         <exclusion>
-        	<artifactId>commons-logging-api</artifactId>
-        	<groupId>commons-logging</groupId>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging-api</artifactId>
         </exclusion>
         <exclusion>
-        	<artifactId>maven-scm-api</artifactId>
-        	<groupId>org.apache.maven.scm</groupId>
+          <groupId>org.apache.maven.scm</groupId>
+          <artifactId>maven-scm-api</artifactId>
         </exclusion>
         <exclusion>
-        	<artifactId>maven-scm-provider-svnexe</artifactId>
-        	<groupId>org.apache.maven.scm</groupId>
+          <groupId>org.apache.maven.scm</groupId>
+          <artifactId>maven-scm-provider-svnexe</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -205,6 +214,12 @@
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
       <version>${pdfbox.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
@@ -243,6 +258,12 @@
       <artifactId>phantomjsdriver</artifactId>
       <version>1.2.0</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

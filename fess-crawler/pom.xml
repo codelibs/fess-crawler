@@ -193,6 +193,10 @@
           <groupId>commons-logging</groupId>
           <artifactId>commons-logging</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>de.l3s.boilerpipe</groupId>
+          <artifactId>boilerpipe</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

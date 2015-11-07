@@ -41,8 +41,8 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.client.EsClient;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
-import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.util.EsResultList;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
@@ -58,21 +58,21 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.hash.HashFunction;
-import org.elasticsearch.common.hash.Hashing;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.IndexNotFoundException;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
-import org.elasticsearch.indices.IndexMissingException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 
 public abstract class AbstractCrawlerService {
     private static final Logger logger = LoggerFactory.getLogger(AbstractCrawlerService.class);
@@ -122,7 +122,7 @@ public abstract class AbstractCrawlerService {
         try {
             esClient.prepareExists(index).execute().actionGet();
             exists = true;
-        } catch (final IndexMissingException e) {
+        } catch (final IndexNotFoundException e) {
             // ignore
         }
         if (!exists) {
@@ -243,12 +243,11 @@ public abstract class AbstractCrawlerService {
             final Integer size, final SortBuilder sortBuilder) {
         return getList(clazz, builder -> {
             if (StringUtil.isNotBlank(sessionId)) {
-                final FilterBuilder filterBuilder = FilterBuilders.queryFilter(QueryBuilders.termQuery(SESSION_ID, sessionId));
+                BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
                 if (queryBuilder != null) {
-                    builder.setQuery(QueryBuilders.filteredQuery(queryBuilder, filterBuilder));
-                } else {
-                    builder.setQuery(QueryBuilders.filteredQuery(QueryBuilders.matchAllQuery(), filterBuilder));
+                    boolQuery.must(queryBuilder);
                 }
+                builder.setQuery(boolQuery);
             } else {
                 if (queryBuilder != null) {
                     builder.setQuery(queryBuilder);

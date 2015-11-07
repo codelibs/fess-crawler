@@ -38,8 +38,7 @@
             "index": "not_analyzed"
           },
           "data": {
-            "type": "binary",
-            "compress": "true"
+            "type": "binary"
           }
         }
       },

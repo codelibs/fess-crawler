@@ -56,7 +56,7 @@ public class EsDataServiceTest extends LastaDiTestCase {
         // create ES nodes
         final String clusterName = UUID.randomUUID().toString();
         runner.onBuild((number, settingsBuilder) -> settingsBuilder.put("http.cors.enabled", true))
-                .build(newConfigs().clusterName(clusterName).ramIndexStore().numOfNode(1));
+                .build(newConfigs().clusterName(clusterName).numOfNode(1));
 
         // wait for yellow status
         runner.ensureYellow();

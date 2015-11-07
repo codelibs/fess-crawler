@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.client;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,9 +41,6 @@ import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryRequest;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryRequestBuilder;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
 import org.elasticsearch.action.exists.ExistsRequest;
 import org.elasticsearch.action.exists.ExistsRequestBuilder;
 import org.elasticsearch.action.exists.ExistsResponse;
@@ -70,8 +68,6 @@ import org.elasticsearch.action.indexedscripts.get.GetIndexedScriptResponse;
 import org.elasticsearch.action.indexedscripts.put.PutIndexedScriptRequest;
 import org.elasticsearch.action.indexedscripts.put.PutIndexedScriptRequestBuilder;
 import org.elasticsearch.action.indexedscripts.put.PutIndexedScriptResponse;
-import org.elasticsearch.action.mlt.MoreLikeThisRequest;
-import org.elasticsearch.action.mlt.MoreLikeThisRequestBuilder;
 import org.elasticsearch.action.percolate.MultiPercolateRequest;
 import org.elasticsearch.action.percolate.MultiPercolateRequestBuilder;
 import org.elasticsearch.action.percolate.MultiPercolateResponse;
@@ -92,19 +88,19 @@ import org.elasticsearch.action.search.SearchScrollRequestBuilder;
 import org.elasticsearch.action.suggest.SuggestRequest;
 import org.elasticsearch.action.suggest.SuggestRequestBuilder;
 import org.elasticsearch.action.suggest.SuggestResponse;
-import org.elasticsearch.action.termvector.MultiTermVectorsRequest;
-import org.elasticsearch.action.termvector.MultiTermVectorsRequestBuilder;
-import org.elasticsearch.action.termvector.MultiTermVectorsResponse;
-import org.elasticsearch.action.termvector.TermVectorRequest;
-import org.elasticsearch.action.termvector.TermVectorRequestBuilder;
-import org.elasticsearch.action.termvector.TermVectorResponse;
+import org.elasticsearch.action.termvectors.MultiTermVectorsRequest;
+import org.elasticsearch.action.termvectors.MultiTermVectorsRequestBuilder;
+import org.elasticsearch.action.termvectors.MultiTermVectorsResponse;
+import org.elasticsearch.action.termvectors.TermVectorsRequest;
+import org.elasticsearch.action.termvectors.TermVectorsRequestBuilder;
+import org.elasticsearch.action.termvectors.TermVectorsResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.support.Headers;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.threadpool.ThreadPool;
@@ -152,9 +148,9 @@ public class EsClient implements Client {
 
     public void connect() {
         destroy();
-        final Settings settings = ImmutableSettings.settingsBuilder()
+        final Settings settings = Settings.settingsBuilder()
                 .put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
-        client = new TransportClient(settings);
+        client = TransportClient.builder().settings(settings).build();
         Arrays.stream(addresses).forEach(address -> {
             final String[] values = address.split(":");
             String hostname;
@@ -167,7 +163,11 @@ public class EsClient implements Client {
             } else {
                 throw new CrawlerSystemException("Invalid address: " + address);
             }
-            client.addTransportAddress(new InetSocketTransportAddress(hostname, port));
+            try {
+                client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
+            } catch (Exception e) {
+                throw new CrawlerSystemException("Unknown host: " + address);
+            }
             logger.info("Connected to " + hostname + ":" + port);
         });
 
@@ -199,30 +199,6 @@ public class EsClient implements Client {
         }
         connected = false;
         logger.info("Disconnected to " + clusterName + ":" + String.join(",", addresses));
-    }
-
-    @Override
-    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder, Client>> ActionFuture<Response> execute(
-            final Action<Request, Response, RequestBuilder, Client> action, final Request request) {
-        return client.execute(action, request);
-    }
-
-    @Override
-    public void close() throws ElasticsearchException {
-        client.close();
-    }
-
-    @Override
-    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder, Client>> void execute(
-            final Action<Request, Response, RequestBuilder, Client> action, final Request request,
-            final ActionListener<Response> listener) {
-        client.execute(action, request, listener);
-    }
-
-    @Override
-    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder, Client>> RequestBuilder prepareExecute(
-            final Action<Request, Response, RequestBuilder, Client> action) {
-        return client.prepareExecute(action);
     }
 
     @Override
@@ -313,24 +289,6 @@ public class EsClient implements Client {
     @Override
     public BulkRequestBuilder prepareBulk() {
         return client.prepareBulk();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public ActionFuture<DeleteByQueryResponse> deleteByQuery(final DeleteByQueryRequest request) {
-        return client.deleteByQuery(request);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void deleteByQuery(final DeleteByQueryRequest request, final ActionListener<DeleteByQueryResponse> listener) {
-        client.deleteByQuery(request, listener);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public DeleteByQueryRequestBuilder prepareDeleteByQuery(final String... indices) {
-        return client.prepareDeleteByQuery(indices);
     }
 
     @Override
@@ -518,59 +476,6 @@ public class EsClient implements Client {
         return client.prepareMultiSearch();
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public ActionFuture<SearchResponse> moreLikeThis(final MoreLikeThisRequest request) {
-        return client.moreLikeThis(request);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void moreLikeThis(final MoreLikeThisRequest request, final ActionListener<SearchResponse> listener) {
-        client.moreLikeThis(request, listener);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public MoreLikeThisRequestBuilder prepareMoreLikeThis(final String index, final String type, final String id) {
-        return client.prepareMoreLikeThis(index, type, id);
-    }
-
-    @Override
-    public ActionFuture<TermVectorResponse> termVector(final TermVectorRequest request) {
-        return client.termVector(request);
-    }
-
-    @Override
-    public void termVector(final TermVectorRequest request, final ActionListener<TermVectorResponse> listener) {
-        client.termVector(request, listener);
-    }
-
-    @Override
-    public TermVectorRequestBuilder prepareTermVector() {
-        return client.prepareTermVector();
-    }
-
-    @Override
-    public TermVectorRequestBuilder prepareTermVector(final String index, final String type, final String id) {
-        return client.prepareTermVector(index, type, id);
-    }
-
-    @Override
-    public ActionFuture<MultiTermVectorsResponse> multiTermVectors(final MultiTermVectorsRequest request) {
-        return client.multiTermVectors(request);
-    }
-
-    @Override
-    public void multiTermVectors(final MultiTermVectorsRequest request, final ActionListener<MultiTermVectorsResponse> listener) {
-        client.multiTermVectors(request, listener);
-    }
-
-    @Override
-    public MultiTermVectorsRequestBuilder prepareMultiTermVectors() {
-        return client.prepareMultiTermVectors();
-    }
-
     @Override
     public ActionFuture<PercolateResponse> percolate(final PercolateRequest request) {
         return client.percolate(request);
@@ -649,6 +554,95 @@ public class EsClient implements Client {
     @Override
     public void fieldStats(final FieldStatsRequest request, final ActionListener<FieldStatsResponse> listener) {
         client.fieldStats(request, listener);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> ActionFuture<Response> execute(
+            Action<Request, Response, RequestBuilder> action, Request request) {
+        return client.execute(action, request);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> void execute(
+            Action<Request, Response, RequestBuilder> action, Request request, ActionListener<Response> listener) {
+        client.execute(action, request, listener);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> RequestBuilder prepareExecute(
+            Action<Request, Response, RequestBuilder> action) {
+        return client.prepareExecute(action);
+    }
+
+    @Override
+    public void close() {
+        client.close();
+    }
+
+    @Override
+    public ActionFuture<TermVectorsResponse> termVectors(TermVectorsRequest request) {
+        return client.termVectors(request);
+    }
+
+    @Override
+    public void termVectors(TermVectorsRequest request, ActionListener<TermVectorsResponse> listener) {
+        client.termVectors(request, listener);
+    }
+
+    @Override
+    public TermVectorsRequestBuilder prepareTermVectors() {
+        return client.prepareTermVectors();
+    }
+
+    @Override
+    public TermVectorsRequestBuilder prepareTermVectors(String index, String type, String id) {
+        return client.prepareTermVectors(index, type, id);
+    }
+
+    @Override
+    @Deprecated
+    public ActionFuture<TermVectorsResponse> termVector(TermVectorsRequest request) {
+        return client.termVector(request);
+    }
+
+    @Override
+    @Deprecated
+    public void termVector(TermVectorsRequest request, ActionListener<TermVectorsResponse> listener) {
+        client.termVector(request, listener);
+    }
+
+    @Override
+    @Deprecated
+    public TermVectorsRequestBuilder prepareTermVector() {
+        return client.prepareTermVector();
+    }
+
+    @Override
+    public TermVectorsRequestBuilder prepareTermVector(String index, String type, String id) {
+        return client.prepareTermVectors(index, type, id);
+    }
+
+    @Override
+    public ActionFuture<MultiTermVectorsResponse> multiTermVectors(MultiTermVectorsRequest request) {
+        return client.multiTermVectors(request);
+    }
+
+    @Override
+    public void multiTermVectors(MultiTermVectorsRequest request, ActionListener<MultiTermVectorsResponse> listener) {
+        client.multiTermVectors(request, listener);
+    }
+
+    @Override
+    public MultiTermVectorsRequestBuilder prepareMultiTermVectors() {
+        return client.prepareMultiTermVectors();
+    }
+
+    @Override
+    public Headers headers() {
+        return client.headers();
     }
 
     public interface OnConnectListener {

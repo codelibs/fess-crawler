@@ -64,8 +64,11 @@ public class CrawlerTest extends LastaDiTestCase {
         runner = new ElasticsearchClusterRunner();
         // create ES nodes
         final String clusterName = UUID.randomUUID().toString();
-        runner.onBuild((number, settingsBuilder) -> settingsBuilder.put("http.cors.enabled", true))
-                .build(newConfigs().clusterName(clusterName).ramIndexStore().numOfNode(1));
+        runner.onBuild((number, settingsBuilder) -> {
+            settingsBuilder.put("http.cors.enabled", true);
+            settingsBuilder.put("http.cors.allow-origin", "*");
+            settingsBuilder.putArray("discovery.zen.ping.unicast.hosts", "localhost:9301-9399");
+        }).build(newConfigs().clusterName(clusterName).numOfNode(1));
 
         // wait for yellow status
         runner.ensureYellow();

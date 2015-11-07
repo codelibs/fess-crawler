@@ -31,7 +31,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -89,7 +88,7 @@ public class EsDataService extends AbstractCrawlerService implements DataService
         SearchResponse response =
                 getClient().prepareSearch(index).setTypes(type)
                         .setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout)).setQuery(QueryBuilders
-                                .filteredQuery(QueryBuilders.matchAllQuery(), FilterBuilders.termFilter(SESSION_ID, sessionId)))
+                                .boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
                 .setSize(scrollSize).execute().actionGet();
         while (true) {
             response =

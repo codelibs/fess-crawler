@@ -150,7 +150,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         for (final EsUrlQueue urlQueue : urlQueueList) {
             final String url = urlQueue.getUrl();
             if (crawlingUrlQueue.size() > maxCrawlingQueueSize) {
-                return null;
+                crawlingUrlQueue.poll();
             }
             if (super.delete(sessionId, url)) {
                 crawlingUrlQueue.add(urlQueue);

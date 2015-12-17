@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -102,6 +103,8 @@ public abstract class AbstractCrawlerService {
     protected int scrollTimeout = 60000;
 
     protected int scrollSize = 100;
+
+    protected int bulkBufferSize = 10;
 
     @Resource
     protected EsClient esClient;
@@ -194,6 +197,20 @@ public abstract class AbstractCrawlerService {
     }
 
     protected <T> void insertAll(final List<T> list, final OpType opType) {
+        final List<T> bufferedList = new ArrayList<>(bulkBufferSize);
+        list.stream().forEach(target -> {
+            bufferedList.add(target);
+            if (bufferedList.size() >= bulkBufferSize) {
+                doInsertAll(bufferedList, opType);
+                bufferedList.clear();
+            }
+        });
+        if (!bufferedList.isEmpty()) {
+            doInsertAll(bufferedList, opType);
+        }
+    }
+
+    protected <T> void doInsertAll(final List<T> list, final OpType opType) {
         final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
         for (final T target : list) {
             final String id = getId(getSessionId(target), getUrl(target));
@@ -420,5 +437,13 @@ public abstract class AbstractCrawlerService {
             return clazz == Date.class;
         }
 
+    }
+
+    public int getBulkBufferSize() {
+        return bulkBufferSize;
+    }
+
+    public void setBulkBufferSize(int bulkBufferSize) {
+        this.bulkBufferSize = bulkBufferSize;
     }
 }

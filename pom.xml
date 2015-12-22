@@ -58,7 +58,7 @@
     <pdfbox.version>1.8.10</pdfbox.version>
     <bouncycastle.version>1.53</bouncycastle.version>
     <nekohtml.version>1.9.22</nekohtml.version>
-    <elasticsearch.version>2.0.0</elasticsearch.version>
+    <elasticsearch.version>2.1.1</elasticsearch.version>
   </properties>
   <build>
     <pluginManagement>

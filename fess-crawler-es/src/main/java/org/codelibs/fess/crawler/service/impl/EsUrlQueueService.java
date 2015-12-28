@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -133,7 +134,8 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             logger.debug("Offered URL: Session ID: {}, UrlQueue: {}", sessionId, targetList);
         }
         if (!targetList.isEmpty()) {
-            insertAll(targetList, OpType.CREATE);
+            insertAll(targetList.stream().filter(urlQueue -> urlQueue.getSessionId() != null && urlQueue.getUrl() != null)
+                    .collect(Collectors.toList()), OpType.CREATE);
         }
     }
 

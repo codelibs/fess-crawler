@@ -134,7 +134,8 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             logger.debug("Offered URL: Session ID: {}, UrlQueue: {}", sessionId, targetList);
         }
         if (!targetList.isEmpty()) {
-            insertAll(targetList.stream().filter(urlQueue -> urlQueue.getSessionId() != null && urlQueue.getUrl() != null)
+            insertAll(targetList.stream()
+                    .filter(urlQueue -> StringUtil.isNotBlank(urlQueue.getSessionId()) && StringUtil.isNotBlank(urlQueue.getUrl()))
                     .collect(Collectors.toList()), OpType.CREATE);
         }
     }

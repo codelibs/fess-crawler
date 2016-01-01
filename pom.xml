@@ -47,9 +47,9 @@
     <jta.version>1.2</jta.version>
     <h2.version>1.4.181</h2.version>
     <mysql.version>5.1.32</mysql.version>
-    <dbflute.version>1.1.0-sp8</dbflute.version>
-    <lastadi.version>0.6.4</lastadi.version>
-    <utflute.version>0.5.3</utflute.version>
+    <dbflute.version>1.1.1</dbflute.version>
+    <lastadi.version>0.6.8</lastadi.version>
+    <utflute.version>0.6.0B</utflute.version>
     <corelib.version>0.3.1</corelib.version>
     <slf4j.version>1.7.12</slf4j.version>
     <httpcomponents.version>4.5.1</httpcomponents.version>

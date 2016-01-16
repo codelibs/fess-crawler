@@ -35,6 +35,8 @@
 			<arg>"false"</arg>
 		</postConstruct>
 	</component>
+	<component name="emlExtractor"
+		class="org.codelibs.fess.crawler.extractor.impl.EmlExtractor"/>
 	<!-- <component name="officeManagerConfiguration" class="org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration"> 
 		</component> <component name="jodExtractor" class="org.codelibs.fess.crawler.extractor.impl.JodExtractor"> 
 		<property name="officeManager"> officeManagerConfiguration.buildOfficeManager() 
@@ -71,6 +73,12 @@
 				"application/x-lharc"
 				]</arg>
 			<arg>lhaExtractor</arg>
+		</postConstruct>
+		<postConstruct name="addExtractor">
+			<arg>[
+				"message/rfc822"
+				]</arg>
+			<arg>emlExtractor</arg>
 		</postConstruct>
 		<postConstruct name="addExtractor">
 			<arg>[
@@ -1266,7 +1274,6 @@
 				"message/imdn+xml",
 				"message/news",
 				"message/partial",
-				"message/rfc822",
 				"message/s-http",
 				"message/sip",
 				"message/sipfrag",

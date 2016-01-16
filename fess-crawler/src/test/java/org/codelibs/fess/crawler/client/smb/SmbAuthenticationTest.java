@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.client.smb;
 
-import org.codelibs.fess.crawler.client.smb.SmbAuthentication;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

@@ -25,7 +25,6 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
-import org.codelibs.fess.crawler.transformer.impl.TextTransformer;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

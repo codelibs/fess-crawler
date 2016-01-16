@@ -20,7 +20,6 @@ import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.DataService;
-import org.codelibs.fess.crawler.service.impl.DataServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

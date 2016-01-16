@@ -22,7 +22,6 @@ import java.util.Set;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
-import org.codelibs.fess.crawler.client.fs.FileSystemClient;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;

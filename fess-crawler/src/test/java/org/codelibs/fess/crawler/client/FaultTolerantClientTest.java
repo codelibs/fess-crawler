@@ -21,13 +21,11 @@ import java.util.Map;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
-import org.codelibs.fess.crawler.client.FaultTolerantClient;
-import org.codelibs.fess.crawler.client.CrawlerClient;
 import org.codelibs.fess.crawler.client.FaultTolerantClient.RequestListener;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
-import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

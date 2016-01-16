@@ -25,7 +25,6 @@ import java.util.concurrent.Future;
 
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
-import org.codelibs.fess.crawler.interval.impl.HostIntervalController;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -71,7 +70,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
         }
 
          // 時間取得
-        final long time = System.currentTimeMillis();
+        final long time = System.nanoTime();
 
         // Callableタスク(複数)を実行する
         final ExecutorService executor = Executors.newFixedThreadPool(numTasks);
@@ -86,6 +85,8 @@ public class HostIntervalControllerTest extends PlainTestCase {
             // no thing to do
         }
 
-        assertTrue(System.currentTimeMillis() - time > waittime * (numTasks - 1));
+        long elapsed = (System.nanoTime() - time) / 1000000;
+        long wait = waittime * (numTasks - 1);
+        assertTrue(elapsed + " >= " + wait, elapsed >= wait);
     }
 }

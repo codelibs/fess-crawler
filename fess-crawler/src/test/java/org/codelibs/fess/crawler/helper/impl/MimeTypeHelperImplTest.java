@@ -21,7 +21,6 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.MimeTypeException;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -70,6 +69,8 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test.pdf");
         final InputStream freeMindStream = ResourceUtil
                 .getResourceAsStream("extractor/test.mm");
+        final InputStream emlStream = ResourceUtil
+                .getResourceAsStream("extractor/eml/sample1.eml");
 
         assertEquals("text/plain",
                 mimeTypeHelper.getContentType(is, "hoge.txt"));
@@ -126,6 +127,9 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
 
         assertEquals("application/xml",
                 mimeTypeHelper.getContentType(freeMindStream, "hoge.mm"));
+
+        assertEquals("message/rfc822",
+                mimeTypeHelper.getContentType(emlStream, "sample1.eml"));
 
         assertEquals("application/octet-stream",
                 mimeTypeHelper.getContentType(null, "hoge"));

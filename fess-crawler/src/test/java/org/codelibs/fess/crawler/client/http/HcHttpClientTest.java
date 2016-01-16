@@ -18,7 +18,6 @@ package org.codelibs.fess.crawler.client.http;
 import java.util.Date;
 
 import org.codelibs.fess.crawler.CrawlerContext;
-import org.codelibs.fess.crawler.client.http.HcHttpClient;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.filter.UrlFilter;
@@ -27,8 +26,8 @@ import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
-import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
+import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

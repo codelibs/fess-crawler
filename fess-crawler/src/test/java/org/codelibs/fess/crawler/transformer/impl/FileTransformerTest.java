@@ -26,7 +26,6 @@ import org.codelibs.fess.crawler.entity.AccessResultDataImpl;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
-import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

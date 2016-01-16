@@ -24,7 +24,6 @@ import org.codelibs.fess.crawler.entity.Sitemap;
 import org.codelibs.fess.crawler.entity.SitemapSet;
 import org.codelibs.fess.crawler.entity.SitemapUrl;
 import org.codelibs.fess.crawler.exception.SitemapsException;
-import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

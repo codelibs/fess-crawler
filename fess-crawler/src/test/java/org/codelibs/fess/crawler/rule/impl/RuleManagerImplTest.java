@@ -25,9 +25,6 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
-import org.codelibs.fess.crawler.rule.impl.RegexRule;
-import org.codelibs.fess.crawler.rule.impl.RuleManagerImpl;
-import org.codelibs.fess.crawler.rule.impl.SitemapsRule;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

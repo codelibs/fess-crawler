@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.container;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
@@ -30,7 +31,6 @@ import org.codelibs.core.beans.factory.BeanDescFactory;
 import org.codelibs.core.lang.ClassUtil;
 import org.codelibs.core.lang.FieldUtil;
 import org.codelibs.core.lang.MethodUtil;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

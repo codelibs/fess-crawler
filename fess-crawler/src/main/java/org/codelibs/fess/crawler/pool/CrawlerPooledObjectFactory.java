@@ -28,7 +28,7 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
  *
  * @author shinsuke
  */
-public class S2PooledObjectFactory<T> extends BasePooledObjectFactory<T> {
+public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     @Resource
     protected CrawlerContainer crawlerContainer;
 

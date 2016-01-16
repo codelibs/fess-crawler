@@ -24,8 +24,6 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
-import org.codelibs.fess.crawler.extractor.impl.TarExtractor;
-import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;

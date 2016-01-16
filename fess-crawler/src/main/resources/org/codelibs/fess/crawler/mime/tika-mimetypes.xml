@@ -3230,13 +3230,19 @@
   </mime-type>
 
   <mime-type type="application/x-hwp">
+    <_comment>Hangul Word Processor File</_comment>
     <magic priority="50">
       <!--
         TIKA-330: Detection pattern based on signature strings from
         the hwpfilter/source/hwpfile.cpp file in OpenOffice.org.
+        This is for HWP before v5, v5 onwards use OLE2
       -->
       <match value="HWP Document File V" type="string" offset="0"/>
     </magic>
+  </mime-type>
+  <mime-type type="application/x-hwp-v5">
+    <_comment>Hangul Word Processor File v5</_comment>
+    <sub-class-of type="application/x-tika-msoffice"/>
   </mime-type>
 
   <mime-type type="application/x-ibooks+zip">
@@ -3719,6 +3725,14 @@
     <glob pattern="*.xap"/>
   </mime-type>
 
+  <mime-type type="application/x-snappy-framed">
+    <_comment>Snappy Framed</_comment>
+    <magic priority="50">
+      <match value="sNaPpY" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.sz"/>
+  </mime-type>
+
   <mime-type type="application/x-sqlite3">
     <magic priority="50">
       <match value="SQLite format 3\x00" type="string" offset="0"/>
@@ -3926,7 +3940,9 @@
   </mime-type>
 
   <mime-type type="application/xhtml+xml">
-    <magic priority="50">
+    <!-- The magic priority for xhtml+xml needs to be lower than that of -->
+    <!--  files that contain HTML within them, e.g. mime emails -->
+    <magic priority="40">
       <match value="&lt;html xmlns=" type="string" offset="0:8192"/>
     </magic>
     <root-XML namespaceURI="http://www.w3.org/1999/xhtml" localName="html"/>
@@ -5531,6 +5547,17 @@
   <mime-type type="text/vnd.wap.wmlscript">
     <_comment>WML Script</_comment>
     <glob pattern="*.wmls"/>
+  </mime-type>
+
+  <mime-type type="text/vtt">
+    <_comment>Web Video Text Tracks Format</_comment>
+    <acronym>WebVTT</acronym>
+    <magic priority="40">
+      <match value="WEBVTT FILE\r" type="string" offset="0"/>
+      <match value="WEBVTT FILE\n" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.vtt"/>
+    <sub-class-of type="text/plain"/>
   </mime-type>
 
   <mime-type type="text/x-awk">

@@ -28,12 +28,12 @@ import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.client.http.WebDriverClient;
 import org.codelibs.fess.crawler.client.http.action.AOnClickAction;
 import org.codelibs.fess.crawler.client.http.action.FormAction;
-import org.codelibs.fess.crawler.client.http.webdriver.S2WebDriver;
+import org.codelibs.fess.crawler.client.http.webdriver.CrawlerWebDriver;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
-import org.codelibs.fess.crawler.pool.S2PooledObjectFactory;
+import org.codelibs.fess.crawler.pool.CrawlerPooledObjectFactory;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -48,16 +48,16 @@ public class WebDriverClientTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
 
-        S2PooledObjectFactory<S2WebDriver> pooledObjectFactory = new S2PooledObjectFactory<>();
+        CrawlerPooledObjectFactory<CrawlerWebDriver> pooledObjectFactory = new CrawlerPooledObjectFactory<>();
         pooledObjectFactory.setComponentName("webDriver");
         pooledObjectFactory.setOnDestroyListener(p -> {
-            final S2WebDriver driver = p.getObject();
+            final CrawlerWebDriver driver = p.getObject();
             driver.quit();
         });
 
         final StandardCrawlerContainer container = new StandardCrawlerContainer();
         container
-                .prototype("webDriver", S2WebDriver.class)
+                .prototype("webDriver", CrawlerWebDriver.class)
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
                 .singleton("pooledObjectFactory", pooledObjectFactory)
                 .singleton("webDriverPool",

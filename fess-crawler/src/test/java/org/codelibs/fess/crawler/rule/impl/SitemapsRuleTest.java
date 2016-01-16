@@ -25,7 +25,6 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
-import org.codelibs.fess.crawler.rule.impl.SitemapsRule;
 import org.codelibs.fess.crawler.util.TemporaryFileInputStream;
 import org.dbflute.utflute.core.PlainTestCase;
 

@@ -20,7 +20,6 @@ import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
-import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class RobotsTxtHelperTest extends PlainTestCase {

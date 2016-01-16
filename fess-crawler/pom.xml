@@ -23,7 +23,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>**/WebDriverClientTest.java</exclude>
             <exclude>**/JodExtractorTest.java</exclude>
           </excludes>
         </configuration>
@@ -111,7 +110,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>19.0-rc2</version>
+      <version>19.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -197,6 +196,10 @@
           <groupId>de.l3s.boilerpipe</groupId>
           <artifactId>boilerpipe</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.quartz-scheduler</groupId>
+          <artifactId>quartz</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -264,16 +267,19 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.detro</groupId>
-      <artifactId>phantomjsdriver</artifactId>
-      <version>1.2.0</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>com.sun.mail</groupId>
+        <artifactId>javax.mail</artifactId>
+        <version>1.5.4</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-net</groupId>
+      <artifactId>commons-net</artifactId>
+      <version>3.3</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -297,6 +303,12 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ftpserver</groupId>
+      <artifactId>ftpserver-core</artifactId>
+      <version>1.0.6</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -16,7 +16,6 @@
 package org.codelibs.fess.crawler.filter.impl;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
-import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;

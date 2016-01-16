@@ -41,22 +41,23 @@
     <module>fess-crawler-db-h2</module>
     <module>fess-crawler-db-mysql</module>
     <module>fess-crawler-db</module>
+    <module>fess-crawler-webdriver</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jta.version>1.2</jta.version>
-    <h2.version>1.4.181</h2.version>
-    <mysql.version>5.1.32</mysql.version>
+    <h2.version>1.4.190</h2.version>
+    <mysql.version>5.1.38</mysql.version>
     <dbflute.version>1.1.1</dbflute.version>
-    <lastadi.version>0.6.8</lastadi.version>
-    <utflute.version>0.6.0B</utflute.version>
+    <lastadi.version>0.7.0-RC1</lastadi.version>
+    <utflute.version>0.6.0E</utflute.version>
     <corelib.version>0.3.1</corelib.version>
-    <slf4j.version>1.7.12</slf4j.version>
+    <slf4j.version>1.7.13</slf4j.version>
     <httpcomponents.version>4.5.1</httpcomponents.version>
-    <tika.version>1.10</tika.version>
-    <poi.version>3.13-beta1</poi.version>
-    <pdfbox.version>1.8.10</pdfbox.version>
-    <bouncycastle.version>1.53</bouncycastle.version>
+    <tika.version>1.11</tika.version>
+    <poi.version>3.13</poi.version>
+    <pdfbox.version>2.0.0-RC2</pdfbox.version>
+    <bouncycastle.version>1.54</bouncycastle.version>
     <nekohtml.version>1.9.22</nekohtml.version>
     <elasticsearch.version>2.1.1</elasticsearch.version>
   </properties>

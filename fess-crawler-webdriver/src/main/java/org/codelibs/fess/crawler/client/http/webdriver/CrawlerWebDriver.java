@@ -49,7 +49,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
  * @author shinsuke
  *
  */
-public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
+public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsById,
         FindsByClassName, FindsByLinkText, FindsByName, FindsByCssSelector,
         FindsByTagName, FindsByXPath, HasInputDevices, HasCapabilities,
         TakesScreenshot {
@@ -113,10 +113,10 @@ public class S2WebDriver implements WebDriver, JavascriptExecutor, FindsById,
 
     public static class OnDestroyListener
             implements
-            org.codelibs.fess.crawler.pool.S2PooledObjectFactory.OnDestroyListener<S2WebDriver> {
+            org.codelibs.fess.crawler.pool.CrawlerPooledObjectFactory.OnDestroyListener<CrawlerWebDriver> {
         @Override
-        public void onDestroy(final PooledObject<S2WebDriver> p) {
-            final S2WebDriver driver = p.getObject();
+        public void onDestroy(final PooledObject<CrawlerWebDriver> p) {
+            final CrawlerWebDriver driver = p.getObject();
             driver.quit();
         }
     }

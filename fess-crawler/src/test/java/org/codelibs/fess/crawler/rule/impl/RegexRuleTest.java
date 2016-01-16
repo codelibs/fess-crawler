@@ -18,7 +18,6 @@ package org.codelibs.fess.crawler.rule.impl;
 import java.util.regex.Pattern;
 
 import org.codelibs.fess.crawler.entity.ResponseData;
-import org.codelibs.fess.crawler.rule.impl.RegexRule;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

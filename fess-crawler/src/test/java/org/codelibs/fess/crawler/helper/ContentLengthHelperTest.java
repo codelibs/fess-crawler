@@ -16,7 +16,6 @@
 package org.codelibs.fess.crawler.helper;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
-import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**

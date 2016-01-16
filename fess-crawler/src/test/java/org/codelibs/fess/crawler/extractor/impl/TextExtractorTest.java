@@ -21,7 +21,6 @@ import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
-import org.codelibs.fess.crawler.extractor.impl.TextExtractor;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -22,8 +22,6 @@ import java.util.Map;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.extractor.Extractor;
-import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.extractor.impl.LhaExtractor;
 import org.codelibs.fess.crawler.extractor.impl.PdfExtractor;
 import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;

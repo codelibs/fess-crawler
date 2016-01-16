@@ -18,9 +18,6 @@ package org.codelibs.fess.crawler.client;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codelibs.fess.crawler.client.FaultTolerantClient;
-import org.codelibs.fess.crawler.client.CrawlerClient;
-import org.codelibs.fess.crawler.client.CrawlerClientFactory;
 import org.codelibs.fess.crawler.client.fs.FileSystemClient;
 import org.codelibs.fess.crawler.client.http.HcHttpClient;
 import org.codelibs.fess.crawler.client.smb.SmbClient;

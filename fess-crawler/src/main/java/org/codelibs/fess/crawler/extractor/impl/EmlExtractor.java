@@ -60,30 +60,31 @@ public class EmlExtractor implements Extractor {
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
      */
     @Override
-    public ExtractData getText(InputStream in, Map<String, String> params) {
-        Properties props = new Properties(mailProperties);
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
+        final Properties props = new Properties(mailProperties);
         if (params != null) {
-            for (Map.Entry<String, String> entry : params.entrySet()) {
+            for (final Map.Entry<String, String> entry : params.entrySet()) {
                 props.put(entry.getKey(), entry.getValue());
             }
         }
         try {
-            Session mailSession = Session.getDefaultInstance(props, null);
-            MimeMessage message = new MimeMessage(mailSession, in);
+            final Session mailSession = Session.getDefaultInstance(props, null);
+            final MimeMessage message = new MimeMessage(mailSession, in);
             //            Object content = message.getContent();
-            String content = getBodyText(message);
-            ExtractData data =
+            final String content = getBodyText(message);
+            final ExtractData data =
                 new ExtractData(content != null ? content.toString()
                     : StringUtil.EMPTY);
             @SuppressWarnings("unchecked")
+            final
             Enumeration<Header> headers = message.getAllHeaders();
             while (headers.hasMoreElements()) {
-                Header header = headers.nextElement();
+                final Header header = headers.nextElement();
                 data.putValue(header.getName(), header.getValue());
             }
             try {
                 putValue(data, "Content-ID", message.getContentID());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
@@ -91,87 +92,87 @@ public class EmlExtractor implements Extractor {
                     data,
                     "Content-Language",
                     message.getContentLanguage());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Content-MD5", message.getContentMD5());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Description", message.getDescription());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Disposition", message.getDisposition());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Encoding", message.getEncoding());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "File-Name", message.getFileName());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "From", message.getFrom());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Line-Count", message.getLineCount());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Message-ID", message.getMessageID());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Message-Number", message.getMessageNumber());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Received-Date", getReceivedDate(message));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Reply-To", message.getReplyTo());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Sender", message.getSender());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Sent-Date", message.getSentDate());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Size", message.getSize());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Subject", message.getSubject());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
                 putValue(data, "Receipients", message.getAllRecipients());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
@@ -179,7 +180,7 @@ public class EmlExtractor implements Extractor {
                     data,
                     "To",
                     message.getRecipients(Message.RecipientType.TO));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
@@ -187,7 +188,7 @@ public class EmlExtractor implements Extractor {
                     data,
                     "Cc",
                     message.getRecipients(Message.RecipientType.CC));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             try {
@@ -195,11 +196,11 @@ public class EmlExtractor implements Extractor {
                     data,
                     "Bcc",
                     message.getRecipients(Message.RecipientType.BCC));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 //ignore
             }
             return data;
-        } catch (MessagingException e) {
+        } catch (final MessagingException e) {
             throw new ExtractException(e);
 
         }
@@ -210,7 +211,7 @@ public class EmlExtractor implements Extractor {
      * @param string
      * @param contentID
      */
-    private void putValue(ExtractData data, String key, Object value) {
+    private void putValue(final ExtractData data, final String key, final Object value) {
         if (value instanceof String) {
             if ("Subject".equals(key)) {
                 data.putValue(key, getDecodeText(value.toString()));
@@ -222,10 +223,10 @@ public class EmlExtractor implements Extractor {
         } else if (value instanceof Integer) {
             data.putValue(key, ((Integer) value).toString());
         } else if (value instanceof Address[]) {
-            int size = ((Address[]) value).length;
-            String[] values = new String[size];
+            final int size = ((Address[]) value).length;
+            final String[] values = new String[size];
             for (int i = 0; i < size; i++) {
-                Address address = ((Address[]) value)[i];
+                final Address address = ((Address[]) value)[i];
                 values[i] = getDecodeText(address.toString());
             }
             data.putValues(key, values);
@@ -237,13 +238,13 @@ public class EmlExtractor implements Extractor {
         }
     }
 
-    String getDecodeText(String value) {
+    String getDecodeText(final String value) {
         if (value == null) {
             return StringUtil.EMPTY;
         }
         try {
             return MimeUtility.decodeText(value);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             logger.warn("Invalid encoding.", e);
             return StringUtil.EMPTY;
         }
@@ -253,22 +254,22 @@ public class EmlExtractor implements Extractor {
         return mailProperties;
     }
 
-    public void setMailProperties(Properties mailProperties) {
+    public void setMailProperties(final Properties mailProperties) {
         this.mailProperties = mailProperties;
     }
 
-    private String getBodyText(MimeMessage message) {
+    private String getBodyText(final MimeMessage message) {
         String result = null;
         try {
-            Object content = message.getContent();
+            final Object content = message.getContent();
             if (content instanceof Multipart) {
                 BodyPart textPlain = null;
                 BodyPart textHtml = null;
-                Multipart multipart = (Multipart) content;
-                int count = multipart.getCount();
+                final Multipart multipart = (Multipart) content;
+                final int count = multipart.getCount();
                 for (int i = 0; i < count; i++) {
-                    BodyPart bodyPart = multipart.getBodyPart(i);
-                    String disposition = bodyPart.getDisposition();
+                    final BodyPart bodyPart = multipart.getBodyPart(i);
+                    final String disposition = bodyPart.getDisposition();
                     if (disposition != null
                         && (disposition.equalsIgnoreCase("ATTACHMENT"))) {
                         // TODO: ignore attachments
@@ -295,9 +296,9 @@ public class EmlExtractor implements Extractor {
         return result;
     }
 
-    private static Date getReceivedDate(javax.mail.Message message)
+    private static Date getReceivedDate(final javax.mail.Message message)
             throws MessagingException {
-        Date today = new Date();
+        final Date today = new Date();
         final String[] received = message.getHeader("received");
         if (received != null) {
             for (final String v : received) {
@@ -309,7 +310,7 @@ public class EmlExtractor implements Extractor {
                     if (!receivedDate.after(today)) {
                         return receivedDate;
                     }
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     // ignore
                 }
             }
@@ -317,8 +318,8 @@ public class EmlExtractor implements Extractor {
         return null;
     }
 
-    private static String getDateString(String text) {
-        String[] dayOfWeek =
+    private static String getDateString(final String text) {
+        final String[] dayOfWeek =
             { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
         for (final String dow : dayOfWeek) {
             final int i = text.lastIndexOf(dow);

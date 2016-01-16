@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.fess.crawler.Constants;
 
 public class RobotsTxt {
     private static final String ALL_BOTS = "*";

@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
-import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
@@ -70,10 +69,10 @@ public class PdfExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
 
-        String password = getPassword(params);
+        final String password = getPassword(params);
         synchronized (pdfBoxLockObj) {
             try (PDDocument document = PDDocument.load(in, password)) {
-                AccessPermission ap = document.getCurrentAccessPermission();
+                final AccessPermission ap = document.getCurrentAccessPermission();
                 if (!ap.canExtractContent()) {
                     throw new IOException("You do not have permission to extract text.");
                 }
@@ -151,10 +150,10 @@ public class PdfExtractor implements Extractor {
         if (params == null || params.isEmpty()) {
             return StringUtil.EMPTY;
         }
-        String password = params.get(ExtractData.PDF_PASSWORD);
+        final String password = params.get(ExtractData.PDF_PASSWORD);
         if (password == null && !passwordMap.isEmpty()) {
-            String url = params.get(ExtractData.URL);
-            String resourceName = params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
+            final String url = params.get(ExtractData.URL);
+            final String resourceName = params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
 
             String value = null;
             if (StringUtil.isNotEmpty(url)) {
@@ -186,7 +185,7 @@ public class PdfExtractor implements Extractor {
         return shouldSeparateByBeads;
     }
 
-    public void setShouldSeparateByBeads(boolean shouldSeparateByBeads) {
+    public void setShouldSeparateByBeads(final boolean shouldSeparateByBeads) {
         this.shouldSeparateByBeads = shouldSeparateByBeads;
     }
 
@@ -194,7 +193,7 @@ public class PdfExtractor implements Extractor {
         return sortByPosition;
     }
 
-    public void setSortByPosition(boolean sortByPosition) {
+    public void setSortByPosition(final boolean sortByPosition) {
         this.sortByPosition = sortByPosition;
     }
 }

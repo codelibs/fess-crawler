@@ -105,7 +105,7 @@ public class SitemapsHelper {
         final byte[] bytes = new byte[preloadSize];
         try {
             if (bis.read(bytes) == -1) {
-                throw new SitemapsException("No sitemaps data.");
+                throw new CrawlingAccessException("No sitemaps data.");
             }
 
             preloadDate = new String(bytes, Constants.UTF_8);

@@ -29,7 +29,6 @@ import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.SitemapFile;
 import org.codelibs.fess.crawler.entity.SitemapSet;
 import org.codelibs.fess.crawler.entity.SitemapUrl;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.SitemapsException;
 import org.slf4j.Logger;
@@ -127,7 +126,7 @@ public class SitemapsHelper {
                 bis.reset();
                 return parse(new GZIPInputStream(bis), false);
             }
-        } catch (final CrawlerSystemException e) {
+        } catch (final CrawlingAccessException e) {
             throw e;
         } catch (final Exception e) {
             throw new CrawlingAccessException("Could not parse Sitemaps: " + preloadDate, e);

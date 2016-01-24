@@ -23,7 +23,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.Sitemap;
 import org.codelibs.fess.crawler.entity.SitemapSet;
 import org.codelibs.fess.crawler.entity.SitemapUrl;
-import org.codelibs.fess.crawler.exception.SitemapsException;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -215,7 +215,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (final SitemapsException e) {
+        } catch (final CrawlingAccessException e) {
             // NOP
         }
     }
@@ -227,7 +227,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (final SitemapsException e) {
+        } catch (final CrawlingAccessException e) {
             // NOP
         }
     }
@@ -239,7 +239,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (final SitemapsException e) {
+        } catch (final CrawlingAccessException e) {
             // NOP
         }
     }
@@ -251,7 +251,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         try {
             sitemapsHelper.parse(in);
             fail();
-        } catch (final SitemapsException e) {
+        } catch (final CrawlingAccessException e) {
             // NOP
         }
     }

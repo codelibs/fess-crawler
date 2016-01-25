@@ -203,12 +203,9 @@ public class TikaExtractor implements Extractor {
                                     initialBufferSize);
                             String line;
                             while ((line = br.readLine()) != null) {
-                                writer4.write(line
-                                        .replaceAll("\\p{Cntrl}", " ")
-                                        .replaceAll("\\s+", " ").trim());
-                                writer4.write(' ');
+                                writer4.write(line);
                             }
-                            content = writer4.toString().trim();
+                            content = normalizeContent(writer4);
                         } catch (final Exception e) {
                             logger.warn(
                                     "Could not read "
@@ -281,7 +278,9 @@ public class TikaExtractor implements Extractor {
     }
 
     private String normalizeContent(final StringWriter writer) {
-        return writer.toString().replaceAll("\\s+", " ").trim();
+        final int[] charArray = writer.toString().chars().map(c -> Character.isISOControl(c) || c == 65533 ? ' ' : c).toArray();
+        final String text = new String(charArray, 0, charArray.length);
+        return text.replaceAll("\\s+", " ").trim();
     }
 
     String getPdfPassword(final String url, final String resourceName) {

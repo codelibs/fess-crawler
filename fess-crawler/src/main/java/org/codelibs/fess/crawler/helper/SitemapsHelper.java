@@ -29,7 +29,7 @@ import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.SitemapFile;
 import org.codelibs.fess.crawler.entity.SitemapSet;
 import org.codelibs.fess.crawler.entity.SitemapUrl;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.SitemapsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,13 +100,14 @@ public class SitemapsHelper {
         final BufferedInputStream bis = new BufferedInputStream(in);
         bis.mark(preloadSize);
 
+        String preloadDate = StringUtil.EMPTY;
         final byte[] bytes = new byte[preloadSize];
         try {
             if (bis.read(bytes) == -1) {
-                throw new SitemapsException("No sitemaps data.");
+                throw new CrawlingAccessException("No sitemaps data.");
             }
 
-            final String preloadDate = new String(bytes, Constants.UTF_8);
+            preloadDate = new String(bytes, Constants.UTF_8);
             if (preloadDate.indexOf("<urlset") >= 0) {
                 // XML Sitemaps
                 bis.reset();
@@ -125,10 +126,10 @@ public class SitemapsHelper {
                 bis.reset();
                 return parse(new GZIPInputStream(bis), false);
             }
-        } catch (final CrawlerSystemException e) {
+        } catch (final CrawlingAccessException e) {
             throw e;
         } catch (final Exception e) {
-            throw new SitemapsException("Could not parse Sitemaps.", e);
+            throw new CrawlingAccessException("Could not parse Sitemaps: " + preloadDate, e);
         }
     }
 

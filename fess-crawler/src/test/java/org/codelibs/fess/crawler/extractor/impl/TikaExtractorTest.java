@@ -571,6 +571,36 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    public void test_getTika_gif() {
+        final InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/image/test.gif");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Test"));
+    }
+
+    public void test_getTika_jpg() {
+        final InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/image/test.jpg");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Test"));
+    }
+
+    public void test_getTika_png() {
+        final InputStream in = ResourceUtil
+                .getResourceAsStream("extractor/image/test.png");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Test"));
+    }
+
     public void test_getTika_null() {
         try {
             tikaExtractor.getText(null, null);

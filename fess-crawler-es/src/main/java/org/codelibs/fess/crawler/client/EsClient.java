@@ -23,6 +23,8 @@ import java.util.List;
 import javax.annotation.PreDestroy;
 
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.fess.crawler.action.deletebyquery.DeleteByQueryAction;
+import org.codelibs.fess.crawler.action.deletebyquery.DeleteByQueryRequestBuilder;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.Action;
@@ -648,4 +650,9 @@ public class EsClient implements Client {
     public interface OnConnectListener {
         void onConnect();
     }
+
+    public DeleteByQueryRequestBuilder prepareDeleteByQuery(String... indices) {
+        return new DeleteByQueryRequestBuilder(client, DeleteByQueryAction.INSTANCE).setIndices(indices);
+    }
+
 }

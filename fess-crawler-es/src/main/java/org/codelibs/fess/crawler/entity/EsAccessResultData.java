@@ -19,11 +19,10 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.codelibs.core.misc.Base64Util;
-import org.codelibs.fess.crawler.entity.AccessResultDataImpl;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
-public class EsAccessResultData extends AccessResultDataImpl<String>implements ToXContent {
+public class EsAccessResultData extends AccessResultDataImpl<String> implements ToXContent {
 
     public static final String ID = "id";
 

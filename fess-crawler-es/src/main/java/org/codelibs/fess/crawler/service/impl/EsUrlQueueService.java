@@ -68,10 +68,9 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
         SearchResponse response =
-                getClient().prepareSearch(index).setTypes(type)
-                        .setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout)).setQuery(QueryBuilders
-                                .boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
-                .setSize(scrollSize).execute().actionGet();
+                getClient().prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout))
+                        .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
+                        .execute().actionGet();
         while (true) {
             response =
                     getClient().prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute().actionGet();

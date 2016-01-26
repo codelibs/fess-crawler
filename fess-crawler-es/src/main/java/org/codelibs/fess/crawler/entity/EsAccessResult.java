@@ -18,13 +18,10 @@ package org.codelibs.fess.crawler.entity;
 import java.io.IOException;
 
 import org.codelibs.core.beans.util.BeanUtil;
-import org.codelibs.fess.crawler.entity.AccessResultImpl;
-import org.codelibs.fess.crawler.entity.ResponseData;
-import org.codelibs.fess.crawler.entity.ResultData;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
-public class EsAccessResult extends AccessResultImpl<String>implements ToXContent {
+public class EsAccessResult extends AccessResultImpl<String> implements ToXContent {
 
     public static final String ID = "id";
 

@@ -260,7 +260,7 @@ public abstract class AbstractCrawlerService {
             final Integer size, final SortBuilder sortBuilder) {
         return getList(clazz, builder -> {
             if (StringUtil.isNotBlank(sessionId)) {
-                BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
+                final BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
                 if (queryBuilder != null) {
                     boolQuery.must(queryBuilder);
                 }

@@ -17,11 +17,10 @@ package org.codelibs.fess.crawler.entity;
 
 import java.io.IOException;
 
-import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
-public class EsUrlQueue extends UrlQueueImpl<String>implements ToXContent {
+public class EsUrlQueue extends UrlQueueImpl<String> implements ToXContent {
 
     public static final String ID = "id";
 

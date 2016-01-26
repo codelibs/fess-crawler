@@ -23,9 +23,8 @@ import java.util.List;
 import javax.annotation.PreDestroy;
 
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.fess.crawler.action.deletebyquery.DeleteByQueryAction;
-import org.codelibs.fess.crawler.action.deletebyquery.DeleteByQueryRequestBuilder;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.dbflute.exception.IllegalBehaviorStateException;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionFuture;
@@ -105,6 +104,10 @@ import org.elasticsearch.client.support.Headers;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.Scroll;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,6 +128,10 @@ public class EsClient implements Client {
     protected List<OnConnectListener> onConnectListenerList = new ArrayList<>();
 
     private volatile boolean connected;
+
+    protected final Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
+
+    protected final int sizeForDelete = 10;
 
     public EsClient() {
         clusterName = System.getProperty(CLUSTER_NAME, "elasticsearch");
@@ -150,8 +157,8 @@ public class EsClient implements Client {
 
     public void connect() {
         destroy();
-        final Settings settings = Settings.settingsBuilder()
-                .put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
+        final Settings settings =
+                Settings.settingsBuilder().put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
         client = TransportClient.builder().settings(settings).build();
         Arrays.stream(addresses).forEach(address -> {
             final String[] values = address.split(":");
@@ -167,7 +174,7 @@ public class EsClient implements Client {
             }
             try {
                 client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new CrawlerSystemException("Unknown host: " + address);
             }
             logger.info("Connected to " + hostname + ":" + port);
@@ -647,12 +654,40 @@ public class EsClient implements Client {
         return client.headers();
     }
 
+    public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
+        boolean scrolling = true;
+        int count = 0;
+        String scrollId = null;
+        while (scrolling) {
+            final SearchResponse scrollResponse;
+            if (scrollId == null) {
+                scrollResponse = client.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete)
+                        .setQuery(queryBuilder).execute().actionGet();
+            } else {
+                scrollResponse = client.prepareSearchScroll(scrollId).setScroll(scrollForDelete).execute().actionGet();
+            }
+            final SearchHit[] hits = scrollResponse.getHits().getHits();
+            if (hits.length == 0) {
+                scrolling = false;
+                break;
+            }
+
+            scrollId = scrollResponse.getScrollId();
+
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
+            for (final SearchHit hit : hits) {
+                bulkRequest.add(client.prepareDelete(hit.getIndex(), hit.getType(), hit.getId()));
+            }
+            count += hits.length;
+            final BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            if (bulkResponse.hasFailures()) {
+                throw new IllegalBehaviorStateException(bulkResponse.buildFailureMessage());
+            }
+        }
+        return count;
+    }
+
     public interface OnConnectListener {
         void onConnect();
     }
-
-    public DeleteByQueryRequestBuilder prepareDeleteByQuery(String... indices) {
-        return new DeleteByQueryRequestBuilder(client, DeleteByQueryAction.INSTANCE).setIndices(indices);
-    }
-
 }

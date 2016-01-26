@@ -24,7 +24,7 @@ import javax.annotation.PreDestroy;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
-import org.dbflute.exception.IllegalBehaviorStateException;
+import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionFuture;
@@ -681,7 +681,7 @@ public class EsClient implements Client {
             count += hits.length;
             final BulkResponse bulkResponse = bulkRequest.execute().actionGet();
             if (bulkResponse.hasFailures()) {
-                throw new IllegalBehaviorStateException(bulkResponse.buildFailureMessage());
+                throw new EsAccessException(bulkResponse.buildFailureMessage());
             }
         }
         return count;

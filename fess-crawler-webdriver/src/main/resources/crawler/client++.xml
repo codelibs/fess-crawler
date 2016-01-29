@@ -9,7 +9,7 @@
 		<property name="webDriverPool">webDriverPool</property>
 		<postConstruct name="addUrlAction">
 			<arg>
-				<component class="org.codelibs.robot.client.http.action.AOnClickAction">
+				<component class="org.codelibs.fess.crawler.client.http.action.AOnClickAction">
 					<property name="name">"aOnClick"</property>
 					<property name="cssQuery">"a"</property>
 				</component>
@@ -17,7 +17,7 @@
 		</postConstruct>
 		<postConstruct name="addUrlAction">
 			<arg>
-				<component class="org.codelibs.robot.client.http.action.FormAction">
+				<component class="org.codelibs.fess.crawler.client.http.action.FormAction">
 					<property name="name">"form"</property>
 					<property name="cssQuery">"form"</property>
 				</component>

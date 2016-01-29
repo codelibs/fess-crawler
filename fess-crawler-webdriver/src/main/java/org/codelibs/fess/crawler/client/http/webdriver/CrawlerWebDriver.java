@@ -77,36 +77,37 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
         }
         if (capabilities instanceof DesiredCapabilities) {
             if (phantomjsBinaryPath == null) {
-                phantomjsBinaryPath = System.getProperty("PHANTOM_JS_BINARY_PATH");
+                phantomjsBinaryPath = System.getProperty("phantomjs.binary.path");
             }
             if (phantomjsBinaryPath != null) {
-                ((DesiredCapabilities) capabilities).setCapability(
-                        "phantomjs.binary.path", phantomjsBinaryPath);
+                ((DesiredCapabilities) capabilities).setCapability("phantomjs.binary.path", phantomjsBinaryPath);
             }
 
             if (phantomjsGhostdriverPath == null) {
-                phantomjsGhostdriverPath = System.getProperty("PHANTOM_JS_GHOST_DRIVER_PATH");
+                phantomjsGhostdriverPath = System.getProperty("phantomjs.ghostdriver.path");
             }
             if (phantomjsGhostdriverPath != null) {
-                ((DesiredCapabilities) capabilities).setCapability(
-                        "phantomjs.ghostdriver.path", phantomjsGhostdriverPath);
+                ((DesiredCapabilities) capabilities).setCapability("phantomjs.ghostdriver.path", phantomjsGhostdriverPath);
             }
 
             if (phantomjsCliArgs == null) {
-                phantomjsCliArgs = System.getProperty("PHANTOM_JS_CLI_ARGS").split(" ");
+                final String value = System.getProperty("phantomjs.cli.args");
+                if (value != null) {
+                    phantomjsCliArgs = value.split(" ");
+                }
             }
             if (phantomjsCliArgs != null) {
-                ((DesiredCapabilities) capabilities).setCapability(
-                        "phantomjs.cli.args", phantomjsCliArgs);
+                ((DesiredCapabilities) capabilities).setCapability("phantomjs.cli.args", phantomjsCliArgs);
             }
 
             if (phantomjsGhostdriverCliArgs == null) {
-                phantomjsGhostdriverCliArgs = System.getProperty("PHANTOM_JS_GHOST_DRIVER_CLI_ARGS").split(" ");
+                final String value = System.getProperty("phantomjs.ghostdriver.cli.args");
+                if (value != null) {
+                    phantomjsGhostdriverCliArgs = value.split(" ");
+                }
             }
             if (phantomjsGhostdriverCliArgs != null) {
-                ((DesiredCapabilities) capabilities).setCapability(
-                        "phantomjs.ghostdriver.cli.args",
-                        phantomjsGhostdriverCliArgs);
+                ((DesiredCapabilities) capabilities).setCapability("phantomjs.ghostdriver.cli.args", phantomjsGhostdriverCliArgs);
             }
         }
         webDriver = new PhantomJSDriver(capabilities);

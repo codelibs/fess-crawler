@@ -110,6 +110,8 @@ public abstract class AbstractCrawlerService {
     @Resource
     protected EsClient esClient;
 
+    protected WriteConsistencyLevel writeConsistencyLevel = WriteConsistencyLevel.ALL;
+
     protected EsClient getClient() {
         if (!esClient.connected()) {
             synchronized (esClient) {
@@ -193,7 +195,7 @@ public abstract class AbstractCrawlerService {
     protected void insert(final Object target, final OpType opType) {
         final String id = getId(getSessionId(target), getUrl(target));
         final XContentBuilder source = getXContentBuilder(target);
-        getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setConsistencyLevel(WriteConsistencyLevel.ALL)
+        getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setConsistencyLevel(writeConsistencyLevel)
                 .setRefresh(true).execute().actionGet();
         setId(target, id);
     }
@@ -218,10 +220,10 @@ public abstract class AbstractCrawlerService {
             final String id = getId(getSessionId(target), getUrl(target));
             final XContentBuilder source = getXContentBuilder(target);
             bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType)
-                    .setConsistencyLevel(WriteConsistencyLevel.ALL).setRefresh(true));
+                    .setConsistencyLevel(writeConsistencyLevel).setRefresh(true));
             setId(target, id);
         }
-        final BulkResponse bulkResponse = bulkRequest.setConsistencyLevel(WriteConsistencyLevel.ALL).setRefresh(true).execute().actionGet();
+        final BulkResponse bulkResponse = bulkRequest.setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute().actionGet();
         if (bulkResponse.hasFailures()) {
             throw new EsAccessException(bulkResponse.buildFailureMessage());
         }
@@ -320,7 +322,7 @@ public abstract class AbstractCrawlerService {
 
     protected boolean delete(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
-        final DeleteResponse response = getClient().prepareDelete(index, type, id).setConsistencyLevel(WriteConsistencyLevel.ALL)
+        final DeleteResponse response = getClient().prepareDelete(index, type, id).setConsistencyLevel(writeConsistencyLevel)
                 .setRefresh(true).execute().actionGet();
         return response.isFound();
     }
@@ -449,5 +451,13 @@ public abstract class AbstractCrawlerService {
 
     public void setBulkBufferSize(int bulkBufferSize) {
         this.bulkBufferSize = bulkBufferSize;
+    }
+
+    public WriteConsistencyLevel getWriteConsistencyLevel() {
+        return writeConsistencyLevel;
+    }
+
+    public void setWriteConsistencyLevel(WriteConsistencyLevel writeConsistencyLevel) {
+        this.writeConsistencyLevel = writeConsistencyLevel;
     }
 }

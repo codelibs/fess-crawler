@@ -66,7 +66,7 @@ import org.xml.sax.SAXException;
  *
  */
 public class TikaExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(TikaExtractor.class);
 
     @Resource

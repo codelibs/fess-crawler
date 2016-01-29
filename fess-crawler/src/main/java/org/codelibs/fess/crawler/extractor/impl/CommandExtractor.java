@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class CommandExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(CommandExtractor.class);
 
     public String outputEncoding = Constants.UTF_8;

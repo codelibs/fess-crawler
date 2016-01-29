@@ -45,6 +45,7 @@ import org.codelibs.fess.crawler.entity.EsAccessResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.util.EsResultList;
+import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
@@ -192,7 +193,8 @@ public abstract class AbstractCrawlerService {
     protected void insert(final Object target, final OpType opType) {
         final String id = getId(getSessionId(target), getUrl(target));
         final XContentBuilder source = getXContentBuilder(target);
-        getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setRefresh(true).execute().actionGet();
+        getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setConsistencyLevel(WriteConsistencyLevel.ALL)
+                .setRefresh(true).execute().actionGet();
         setId(target, id);
     }
 
@@ -215,12 +217,13 @@ public abstract class AbstractCrawlerService {
         for (final T target : list) {
             final String id = getId(getSessionId(target), getUrl(target));
             final XContentBuilder source = getXContentBuilder(target);
-            bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setRefresh(true));
+            bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType)
+                    .setConsistencyLevel(WriteConsistencyLevel.ALL).setRefresh(true));
             setId(target, id);
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet();
+        final BulkResponse bulkResponse = bulkRequest.setConsistencyLevel(WriteConsistencyLevel.ALL).setRefresh(true).execute().actionGet();
         if (bulkResponse.hasFailures()) {
-            throw new CrawlerSystemException(bulkResponse.buildFailureMessage());
+            throw new EsAccessException(bulkResponse.buildFailureMessage());
         }
     }
 
@@ -309,7 +312,7 @@ public abstract class AbstractCrawlerService {
                     targetList.add(target);
                 }
             } catch (final Exception e) {
-                throw new CrawlerSystemException("response: " + response, e);
+                throw new EsAccessException("response: " + response, e);
             }
         }
         return targetList;
@@ -317,7 +320,8 @@ public abstract class AbstractCrawlerService {
 
     protected boolean delete(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
-        final DeleteResponse response = getClient().prepareDelete(index, type, id).setRefresh(true).execute().actionGet();
+        final DeleteResponse response = getClient().prepareDelete(index, type, id).setConsistencyLevel(WriteConsistencyLevel.ALL)
+                .setRefresh(true).execute().actionGet();
         return response.isFound();
     }
 

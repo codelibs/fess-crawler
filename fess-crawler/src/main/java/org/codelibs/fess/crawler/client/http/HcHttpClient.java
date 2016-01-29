@@ -126,7 +126,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
 
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(HcHttpClient.class);
 
     @Resource

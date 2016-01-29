@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FileSystemClient extends AbstractCrawlerClient {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(FileSystemClient.class);
 
     protected String charset = Constants.UTF_8;

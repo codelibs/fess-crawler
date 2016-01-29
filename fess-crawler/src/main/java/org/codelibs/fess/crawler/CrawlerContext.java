@@ -33,11 +33,11 @@ public class CrawlerContext {
 
     protected Object activeThreadCountLock = new Object();
 
-    protected volatile Long accessCount = 0L; // NOPMD
+    protected volatile Long accessCount = 0L;
 
     protected Object accessCountLock = new Object();
 
-    protected volatile boolean running = false; // NOPMD
+    protected volatile boolean running = false;
 
     protected UrlFilter urlFilter;
 

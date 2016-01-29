@@ -16,8 +16,10 @@
 package org.codelibs.fess.crawler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -248,7 +250,7 @@ public class CrawlerThread implements Runnable {
                             .delay(IntervalController.WAIT_NEW_URL);
                 }
             }
-        } catch (final Throwable t) { // NOPMD
+        } catch (final Throwable t) {
             log(logHelper, LogType.SYSTEM_ERROR, t);
         } finally {
             // remove crawlerContext from thread
@@ -349,20 +351,20 @@ public class CrawlerThread implements Runnable {
         }
 
         // add url and filter
-        final List<UrlQueue<?>> childList = new ArrayList< >();
-        for (final RequestData requestData : childUrlList) {
-            if (crawlerContext.urlFilter.match(requestData.getUrl())) {
-                final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
-                uq.setCreateTime(SystemUtil.currentTimeMillis());
-                uq.setDepth(depth);
-                uq.setMethod(Constants.GET_METHOD);
-                uq.setParentUrl(url);
-                uq.setSessionId(crawlerContext.sessionId);
-                uq.setUrl(requestData.getUrl());
-                uq.setMetaData(requestData.getMetaData());
-                childList.add(uq);
-            }
-        }
+        final Set<String> urlSet = new HashSet<>();
+        final List<UrlQueue<?>> childList = childUrlList.stream()
+                .filter(d -> StringUtil.isNotBlank(d.getUrl()) && urlSet.add(d.getUrl()) && crawlerContext.urlFilter.match(d.getUrl()))
+                .map(d -> {
+                    final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
+                    uq.setCreateTime(SystemUtil.currentTimeMillis());
+                    uq.setDepth(depth);
+                    uq.setMethod(Constants.GET_METHOD);
+                    uq.setParentUrl(url);
+                    uq.setSessionId(crawlerContext.sessionId);
+                    uq.setUrl(d.getUrl());
+                    uq.setMetaData(d.getMetaData());
+                    return uq;
+                }).collect(Collectors.toList());
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 
@@ -374,7 +376,7 @@ public class CrawlerThread implements Runnable {
         }
 
         // add url and filter
-        if (crawlerContext.urlFilter.match(childUrl)) {
+        if (StringUtil.isNotBlank(childUrl) && crawlerContext.urlFilter.match(childUrl)) {
             final List<UrlQueue<?>> childList = new ArrayList< >(1);
             final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
             uq.setCreateTime(SystemUtil.currentTimeMillis());

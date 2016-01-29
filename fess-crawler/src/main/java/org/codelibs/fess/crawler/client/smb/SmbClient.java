@@ -60,7 +60,7 @@ import jcifs.smb.SmbFileInputStream;
  *
  */
 public class SmbClient extends AbstractCrawlerClient {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(SmbClient.class);
 
     public static final String SMB_AUTHENTICATIONS_PROPERTY = "smbAuthentications";

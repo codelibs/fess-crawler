@@ -35,7 +35,7 @@ import org.codelibs.fess.crawler.util.AccessResultCallback;
  */
 public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
 
-    protected static volatile long idCount = 0L; // NOPMD
+    protected static volatile long idCount = 0L;
 
     private static Object idCountLock = new Object();
 

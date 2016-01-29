@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class LogHelperImpl implements LogHelper {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(LogHelperImpl.class);
 
     /*

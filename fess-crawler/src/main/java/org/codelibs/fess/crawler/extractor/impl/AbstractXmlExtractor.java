@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractXmlExtractor {
 
-    protected static final Logger logger = LoggerFactory // NOPMD
+    protected static final Logger logger = LoggerFactory
             .getLogger(AbstractXmlExtractor.class);
 
     protected static final CharSequenceTranslator UNESCAPE_HTML4 = new AggregateTranslator(new LookupTranslator(

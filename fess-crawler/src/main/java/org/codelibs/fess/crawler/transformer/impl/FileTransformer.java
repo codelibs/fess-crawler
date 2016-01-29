@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FileTransformer extends HtmlTransformer {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(FileTransformer.class);
 
     /**

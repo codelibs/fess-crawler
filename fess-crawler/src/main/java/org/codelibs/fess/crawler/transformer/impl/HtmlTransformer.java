@@ -69,7 +69,7 @@ import org.xml.sax.InputSource;
  */
 public class HtmlTransformer extends AbstractTransformer {
 
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(HtmlTransformer.class);
 
     protected static final String LOCATION_HEADER = "Location";

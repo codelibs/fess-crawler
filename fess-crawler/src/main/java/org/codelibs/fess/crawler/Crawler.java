@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Crawler implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(Crawler.class); // NOPMD
+    private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
 
     @Resource
     protected UrlQueueService<UrlQueue<?>> urlQueueService;
@@ -85,7 +85,12 @@ public class Crawler implements Runnable {
     }
 
     public void addUrl(final String url) {
-        urlQueueService.add(crawlerContext.sessionId, url);
+        try {
+            urlQueueService.add(crawlerContext.sessionId, url);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         urlFilter.processUrl(url);
     }
 

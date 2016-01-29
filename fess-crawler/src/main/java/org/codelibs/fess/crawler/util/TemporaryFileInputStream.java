@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TemporaryFileInputStream extends InputStream {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(TemporaryFileInputStream.class);
 
     private final File tempFile;

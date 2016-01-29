@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class JodExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(JodExtractor.class);
 
     public OfficeManager officeManager;

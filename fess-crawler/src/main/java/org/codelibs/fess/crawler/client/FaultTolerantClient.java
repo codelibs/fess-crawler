@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FaultTolerantClient implements CrawlerClient {
 
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(FaultTolerantClient.class);
 
     protected CrawlerClient client;

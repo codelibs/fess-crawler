@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TextTransformer extends AbstractTransformer {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(TextTransformer.class);
 
     @Resource

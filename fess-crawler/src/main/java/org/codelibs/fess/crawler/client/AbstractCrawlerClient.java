@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     private static final Logger logger = LoggerFactory
-            .getLogger(AbstractCrawlerClient.class); // NOPMD
+            .getLogger(AbstractCrawlerClient.class);
 
     private Map<String, Object> initParamMap;
 

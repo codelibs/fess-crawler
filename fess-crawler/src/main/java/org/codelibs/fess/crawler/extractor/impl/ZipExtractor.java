@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ZipExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(ZipExtractor.class);
 
     @Resource

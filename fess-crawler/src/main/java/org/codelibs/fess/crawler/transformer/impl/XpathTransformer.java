@@ -49,7 +49,7 @@ import org.xml.sax.InputSource;
  *
  */
 public class XpathTransformer extends HtmlTransformer {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(XpathTransformer.class);
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",

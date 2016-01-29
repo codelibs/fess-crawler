@@ -49,7 +49,7 @@ import jp.gr.java_conf.dangan.util.lha.LhaHeader;
  *
  */
 public class LhaExtractor implements Extractor {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(LhaExtractor.class);
 
     @Resource

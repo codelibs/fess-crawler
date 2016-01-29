@@ -54,7 +54,7 @@ import org.w3c.dom.NodeList;
  *
  */
 public class XmlTransformer extends AbstractTransformer {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(XmlTransformer.class);
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",

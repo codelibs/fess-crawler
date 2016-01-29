@@ -23,4 +23,8 @@ public class EsAccessException extends CrawlerSystemException {
         super(message);
     }
 
+    public EsAccessException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

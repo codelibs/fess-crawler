@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class HcConnectionMonitorTarget implements TimeoutTarget {
-    private static final Logger logger = LoggerFactory // NOPMD
+    private static final Logger logger = LoggerFactory
             .getLogger(HcConnectionMonitorTarget.class);
 
     private final HttpClientConnectionManager clientConnectionManager;

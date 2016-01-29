@@ -35,8 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UrlFilterImpl implements UrlFilter {
 
-    private static final Logger logger = LoggerFactory // NOPMD
-            .getLogger(UrlFilterImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UrlFilterImpl.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;
@@ -122,13 +121,19 @@ public class UrlFilterImpl implements UrlFilter {
     public void init(final String sessionId) {
         this.sessionId = sessionId;
         if (!cachedIncludeList.isEmpty()) {
-            getUrlFilterService().addIncludeUrlFilter(sessionId,
-                    cachedIncludeList);
+            try {
+                getUrlFilterService().addIncludeUrlFilter(sessionId, cachedIncludeList);
+            } catch (Exception e) {
+                logger.warn("Failed to add include_urls on " + sessionId, e);
+            }
             cachedIncludeList.clear();
         }
         if (!cachedExcludeList.isEmpty()) {
-            getUrlFilterService().addExcludeUrlFilter(sessionId,
-                    cachedExcludeList);
+            try {
+                getUrlFilterService().addExcludeUrlFilter(sessionId, cachedExcludeList);
+            } catch (Exception e) {
+                logger.warn("Failed to add exclude_urls on " + sessionId, e);
+            }
             cachedExcludeList.clear();
         }
     }

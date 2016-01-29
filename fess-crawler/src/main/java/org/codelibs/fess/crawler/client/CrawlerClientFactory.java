@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.client;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,17 +50,19 @@ public class CrawlerClientFactory {
         }
         int current = 0;
         boolean added = false;
+        Map<Pattern, CrawlerClient> newClientMap = new LinkedHashMap<Pattern, CrawlerClient>();
         for (Map.Entry<Pattern, CrawlerClient> entry : clientMap.entrySet()) {
             if (pos == current) {
-                clientMap.put(Pattern.compile(regex), client);
+                newClientMap.put(Pattern.compile(regex), client);
                 added = true;
             }
-            clientMap.put(entry.getKey(), entry.getValue());
+            newClientMap.put(entry.getKey(), entry.getValue());
             current++;
         }
-        if(!added){
-            clientMap.put(Pattern.compile(regex), client);
+        if (!added) {
+            newClientMap.put(Pattern.compile(regex), client);
         }
+        clientMap = newClientMap;
     }
 
     public void addClient(final List<String> regexList,

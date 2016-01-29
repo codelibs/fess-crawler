@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.client;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -29,7 +30,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
  *
  */
 public class CrawlerClientFactory {
-    protected Map<Pattern, CrawlerClient> clientMap = new HashMap<Pattern, CrawlerClient>();
+    protected Map<Pattern, CrawlerClient> clientMap = new LinkedHashMap<Pattern, CrawlerClient>();
 
     public void addClient(final String regex, final CrawlerClient client) {
         if (StringUtil.isBlank(regex)) {
@@ -39,6 +40,28 @@ public class CrawlerClientFactory {
             throw new CrawlerSystemException("CrawlerClient is null.");
         }
         clientMap.put(Pattern.compile(regex), client);
+    }
+
+    public void addClient(final String regex, final CrawlerClient client, final int pos) {
+        if (StringUtil.isBlank(regex)) {
+            throw new CrawlerSystemException("A regular expression is null.");
+        }
+        if (client == null) {
+            throw new CrawlerSystemException("CrawlerClient is null.");
+        }
+        int current = 0;
+        boolean added = false;
+        for (Map.Entry<Pattern, CrawlerClient> entry : clientMap.entrySet()) {
+            if (pos == current) {
+                clientMap.put(Pattern.compile(regex), client);
+                added = true;
+            }
+            clientMap.put(entry.getKey(), entry.getValue());
+            current++;
+        }
+        if(!added){
+            clientMap.put(Pattern.compile(regex), client);
+        }
     }
 
     public void addClient(final List<String> regexList,

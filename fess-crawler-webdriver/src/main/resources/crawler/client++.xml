@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN"
+	"http://dbflute.org/meta/lastadi10.dtd">
+<components namespace="fessCrawler">
+	<include path="crawler/webdriver.xml" />
+
+	<component name="webDriverClient" class="org.codelibs.fess.crawler.client.http.WebDriverClient"
+		instance="prototype">
+		<property name="webDriverPool">webDriverPool</property>
+		<postConstruct name="addUrlAction">
+			<arg>
+				<component class="org.codelibs.robot.client.http.action.AOnClickAction">
+					<property name="name">"aOnClick"</property>
+					<property name="cssQuery">"a"</property>
+				</component>
+			</arg>
+		</postConstruct>
+		<postConstruct name="addUrlAction">
+			<arg>
+				<component class="org.codelibs.robot.client.http.action.FormAction">
+					<property name="name">"form"</property>
+					<property name="cssQuery">"form"</property>
+				</component>
+			</arg>
+		</postConstruct>
+	</component>
+</components>

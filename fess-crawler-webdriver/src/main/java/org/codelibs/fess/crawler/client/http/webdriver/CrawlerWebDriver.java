@@ -76,17 +76,32 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
             capabilities = DesiredCapabilities.phantomjs();
         }
         if (capabilities instanceof DesiredCapabilities) {
+            if (phantomjsBinaryPath == null) {
+                phantomjsBinaryPath = System.getProperty("PHANTOM_JS_BINARY_PATH");
+            }
             if (phantomjsBinaryPath != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
                         "phantomjs.binary.path", phantomjsBinaryPath);
+            }
+
+            if (phantomjsGhostdriverPath == null) {
+                phantomjsGhostdriverPath = System.getProperty("PHANTOM_JS_GHOST_DRIVER_PATH");
             }
             if (phantomjsGhostdriverPath != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
                         "phantomjs.ghostdriver.path", phantomjsGhostdriverPath);
             }
+
+            if (phantomjsCliArgs == null) {
+                phantomjsCliArgs = System.getProperty("PHANTOM_JS_CLI_ARGS").split(" ");
+            }
             if (phantomjsCliArgs != null) {
                 ((DesiredCapabilities) capabilities).setCapability(
                         "phantomjs.cli.args", phantomjsCliArgs);
+            }
+
+            if (phantomjsGhostdriverCliArgs == null) {
+                phantomjsGhostdriverCliArgs = System.getProperty("PHANTOM_JS_GHOST_DRIVER_CLI_ARGS").split(" ");
             }
             if (phantomjsGhostdriverCliArgs != null) {
                 ((DesiredCapabilities) capabilities).setCapability(

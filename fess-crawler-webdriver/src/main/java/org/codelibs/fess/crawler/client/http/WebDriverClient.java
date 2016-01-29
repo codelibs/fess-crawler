@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class WebDriverClient extends AbstractCrawlerClient {
 
     private static final Logger logger = LoggerFactory
-            .getLogger(WebDriverClient.class); // NOPMD
+            .getLogger(WebDriverClient.class);
 
     @Resource
     protected ObjectPool<WebDriver> webDriverPool;

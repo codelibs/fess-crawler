@@ -110,7 +110,7 @@ public abstract class AbstractCrawlerService {
     @Resource
     protected EsClient esClient;
 
-    protected WriteConsistencyLevel writeConsistencyLevel = WriteConsistencyLevel.ALL;
+    protected WriteConsistencyLevel writeConsistencyLevel = WriteConsistencyLevel.DEFAULT;
 
     protected EsClient getClient() {
         if (!esClient.connected()) {

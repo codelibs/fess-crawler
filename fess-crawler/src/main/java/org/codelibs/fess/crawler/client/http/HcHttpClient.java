@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.client.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
@@ -86,6 +87,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
+import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.codelibs.fess.crawler.util.TemporaryFileInputStream;
@@ -97,6 +99,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class HcHttpClient extends AbstractCrawlerClient {
+
+    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
 
     public static final String ACCESS_TIMEOUT_PROPERTY = "accessTimeout";
 
@@ -135,6 +139,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
+    @Resource
+    protected MimeTypeHelper mimeTypeHelper;
+
     protected volatile CloseableHttpClient httpClient;
 
     private final List<Header> requestHeaderList = new ArrayList<Header>();
@@ -171,7 +178,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
-    protected String defaultMimeType = "application/octet-stream";
+    protected String defaultMimeType = APPLICATION_OCTET_STREAM;
 
     protected CookieStore cookieStore = new BasicCookieStore();
 
@@ -605,10 +612,27 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
             }
 
+            String contentType = null;
+            final Header contentTypeHeader = response
+                    .getFirstHeader("Content-Type");
+            if (contentTypeHeader != null) {
+                contentType = contentTypeHeader.getValue();
+                final int idx = contentType.indexOf(';');
+                if (idx > 0) {
+                    contentType = contentType.substring(0, idx);
+                    if(APPLICATION_OCTET_STREAM.equals(contentType)){
+                        contentType=null;
+                    }
+                }
+            }
+
             long contentLength = 0;
             String contentEncoding = Constants.UTF_8;
             if (httpEntity == null) {
                 inputStream = new ByteArrayInputStream(new byte[0]);
+                if (contentType == null) {
+                    contentType = defaultMimeType;
+                }
             } else {
                 final InputStream responseBodyStream = httpEntity.getContent();
                 final File outputFile = File.createTempFile(
@@ -638,26 +662,27 @@ public class HcHttpClient extends AbstractCrawlerClient {
                         logger.warn("Could not delete "
                                 + outputFile.getAbsolutePath());
                     }
+                    try (InputStream is = new ByteArrayInputStream(dfos.getData())) {
+                        contentType = mimeTypeHelper.getContentType(is, url);
+                    } catch (Exception e) {
+                        logger.debug("Failed to detect mime-type.", e);
+                        contentType = defaultMimeType;
+                    }
                 } else {
                     inputStream = new TemporaryFileInputStream(outputFile);
                     contentLength = outputFile.length();
+                    try (InputStream is = new FileInputStream(outputFile)) {
+                        contentType = mimeTypeHelper.getContentType(is, url);
+                    } catch (Exception e) {
+                        logger.debug("Failed to detect mime-type.", e);
+                        contentType = defaultMimeType;
+                    }
                 }
 
                 final Header contentEncodingHeader = httpEntity
                         .getContentEncoding();
                 if (contentEncodingHeader != null) {
                     contentEncoding = contentEncodingHeader.getValue();
-                }
-            }
-
-            String contentType = null;
-            final Header contentTypeHeader = response
-                    .getFirstHeader("Content-Type");
-            if (contentTypeHeader != null) {
-                contentType = contentTypeHeader.getValue();
-                final int idx = contentType.indexOf(';');
-                if (idx > 0) {
-                    contentType = contentType.substring(0, idx);
                 }
             }
 
@@ -685,11 +710,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             for (final Header header : response.getAllHeaders()) {
                 responseData.addMetaData(header.getName(), header.getValue());
             }
-            if (contentType == null) {
-                responseData.setMimeType(defaultMimeType);
-            } else {
-                responseData.setMimeType(contentType);
-            }
+            responseData.setMimeType(contentType);
             final Header contentLengthHeader = response
                     .getFirstHeader("Content-Length");
             if (contentLengthHeader == null) {

@@ -5,6 +5,7 @@
 	<include path="crawler/container.xml" />
 	<include path="crawler/robotstxt.xml" />
 	<include path="crawler/contentlength.xml" />
+	<include path="crawler/mimetype.xml" />
 
 	<component name="internalHttpClient" class="org.codelibs.fess.crawler.client.http.HcHttpClient"
 		instance="prototype">

@@ -352,9 +352,8 @@ public class CrawlerThread implements Runnable {
 
         // add url and filter
         final Set<String> urlSet = new HashSet<>();
-        final List<UrlQueue<?>> childList = childUrlList.stream()
-                .filter(d -> StringUtil.isNotBlank(d.getUrl()) && urlSet.add(d.getUrl()) && crawlerContext.urlFilter.match(d.getUrl()))
-                .map(d -> {
+        final List<UrlQueue<?>> childList = childUrlList.stream().filter(d -> StringUtil.isNotBlank(d.getUrl())
+                && urlSet.add(d.getUrl() + "\n" + d.getMetaData()) && crawlerContext.urlFilter.match(d.getUrl())).map(d -> {
                     final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
                     uq.setCreateTime(SystemUtil.currentTimeMillis());
                     uq.setDepth(depth);

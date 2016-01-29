@@ -16,11 +16,14 @@
 package org.codelibs.fess.crawler.processor.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
@@ -170,24 +173,23 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         }
 
         // add url and filter
-        final List<UrlQueue<?>> childList = new ArrayList<>();
-        for (final RequestData childUrl : childUrlList) {
-            if (crawlerContext.getUrlFilter().match(childUrl.getUrl())) {
-                final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
-                uq.setCreateTime(SystemUtil.currentTimeMillis());
-                uq.setDepth(depth);
-                uq.setMethod(childUrl.getMethod().name());
-                uq.setEncoding(encoding);
-                uq.setParentUrl(url);
-                uq.setSessionId(crawlerContext.getSessionId());
-                uq.setUrl(childUrl.getUrl());
-                uq.setMetaData(childUrl.getMetaData());
-                childList.add(uq);
-            }
-        }
+        final Set<String> urlSet = new HashSet<>();
+        final List<UrlQueue<?>> childList = childUrlList.stream().filter(d -> StringUtil.isNotBlank(d.getUrl())
+                && urlSet.add(d.getUrl() + "\n" + d.getMetaData()) && crawlerContext.getUrlFilter().match(d.getUrl())).map(d -> {
+                    final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
+                    uq.setCreateTime(SystemUtil.currentTimeMillis());
+                    uq.setDepth(depth);
+                    uq.setMethod(d.getMethod().name());
+                    uq.setEncoding(encoding);
+                    uq.setParentUrl(url);
+                    uq.setSessionId(crawlerContext.getSessionId());
+                    uq.setUrl(d.getUrl());
+                    uq.setMetaData(d.getMetaData());
+                    return uq;
+                }).collect(Collectors.toList());
+
         if (!childList.isEmpty()) {
-            CrawlingParameterUtil.getUrlQueueService().offerAll(
-                    crawlerContext.getSessionId(), childList);
+            CrawlingParameterUtil.getUrlQueueService().offerAll(crawlerContext.getSessionId(), childList);
         }
     }
 

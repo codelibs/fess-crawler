@@ -620,8 +620,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 final int idx = contentType.indexOf(';');
                 if (idx > 0) {
                     contentType = contentType.substring(0, idx);
-                    if(APPLICATION_OCTET_STREAM.equals(contentType)){
-                        contentType=null;
+                    if (APPLICATION_OCTET_STREAM.equals(contentType)) {
+                        contentType = null;
                     }
                 }
             }
@@ -662,20 +662,24 @@ public class HcHttpClient extends AbstractCrawlerClient {
                         logger.warn("Could not delete "
                                 + outputFile.getAbsolutePath());
                     }
-                    try (InputStream is = new ByteArrayInputStream(dfos.getData())) {
-                        contentType = mimeTypeHelper.getContentType(is, url);
-                    } catch (Exception e) {
-                        logger.debug("Failed to detect mime-type.", e);
-                        contentType = defaultMimeType;
+                    if (contentType == null) {
+                        try (InputStream is = new ByteArrayInputStream(dfos.getData())) {
+                            contentType = mimeTypeHelper.getContentType(is, url);
+                        } catch (Exception e) {
+                            logger.debug("Failed to detect mime-type.", e);
+                            contentType = defaultMimeType;
+                        }
                     }
                 } else {
                     inputStream = new TemporaryFileInputStream(outputFile);
                     contentLength = outputFile.length();
-                    try (InputStream is = new FileInputStream(outputFile)) {
-                        contentType = mimeTypeHelper.getContentType(is, url);
-                    } catch (Exception e) {
-                        logger.debug("Failed to detect mime-type.", e);
-                        contentType = defaultMimeType;
+                    if (contentType == null) {
+                        try (InputStream is = new FileInputStream(outputFile)) {
+                            contentType = mimeTypeHelper.getContentType(is, url);
+                        } catch (Exception e) {
+                            logger.debug("Failed to detect mime-type.", e);
+                            contentType = defaultMimeType;
+                        }
                     }
                 }
 

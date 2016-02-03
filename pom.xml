@@ -56,10 +56,10 @@
     <httpcomponents.version>4.5.1</httpcomponents.version>
     <tika.version>1.11</tika.version>
     <poi.version>3.13</poi.version>
-    <pdfbox.version>2.0.0-RC2</pdfbox.version>
+    <pdfbox.version>1.8.11</pdfbox.version>
     <bouncycastle.version>1.54</bouncycastle.version>
     <nekohtml.version>1.9.22</nekohtml.version>
-    <elasticsearch.version>2.1.1</elasticsearch.version>
+    <elasticsearch.version>2.1.2</elasticsearch.version>
   </properties>
   <build>
     <pluginManagement>

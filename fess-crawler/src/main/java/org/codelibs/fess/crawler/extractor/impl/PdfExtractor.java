@@ -30,7 +30,8 @@ import java.util.regex.Pattern;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
-import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
+import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -53,9 +54,7 @@ public class PdfExtractor implements Extractor {
 
     protected long timeout = 30000; // 30sec
 
-    protected boolean shouldSeparateByBeads = true;
-
-    protected boolean sortByPosition = false;
+    protected boolean force = false;
 
     /*
      * (non-Javadoc)
@@ -69,19 +68,28 @@ public class PdfExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
 
-        final String password = getPassword(params);
         synchronized (pdfBoxLockObj) {
-            try (PDDocument document = PDDocument.load(in, password)) {
-                final AccessPermission ap = document.getCurrentAccessPermission();
-                if (!ap.canExtractContent()) {
-                    throw new IOException("You do not have permission to extract text.");
+            try (PDDocument document = PDDocument.load(in, null, force)) {
+                if (document.isEncrypted() && params != null) {
+                    final String password = getPassword(params);
+                    if (password != null) {
+                        final StandardDecryptionMaterial sdm = new StandardDecryptionMaterial(
+                                password);
+                        document.openProtection(sdm);
+                        final AccessPermission ap = document
+                                .getCurrentAccessPermission();
+
+                        if (!ap.canExtractContent()) {
+                            throw new IOException(
+                                    "You do not have permission to extract text.");
+                        }
+                    }
                 }
 
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 final Writer output = new OutputStreamWriter(baos, encoding);
-                final PDFTextStripper stripper = new PDFTextStripper();
-                stripper.setShouldSeparateByBeads(shouldSeparateByBeads);
-                stripper.setSortByPosition(sortByPosition);
+                final PDFTextStripper stripper = new PDFTextStripper(encoding);
+                stripper.setForceParsing(force);
                 final AtomicBoolean done = new AtomicBoolean(false);
                 final PDDocument doc = document;
                 final Set<Exception> exceptionSet = new HashSet<>();
@@ -181,19 +189,11 @@ public class PdfExtractor implements Extractor {
         this.timeout = timeout;
     }
 
-    public boolean isShouldSeparateByBeads() {
-        return shouldSeparateByBeads;
+    public boolean isForce() {
+        return force;
     }
 
-    public void setShouldSeparateByBeads(final boolean shouldSeparateByBeads) {
-        this.shouldSeparateByBeads = shouldSeparateByBeads;
-    }
-
-    public boolean isSortByPosition() {
-        return sortByPosition;
-    }
-
-    public void setSortByPosition(final boolean sortByPosition) {
-        this.sortByPosition = sortByPosition;
+    public void setForce(final boolean force) {
+        this.force = force;
     }
 }

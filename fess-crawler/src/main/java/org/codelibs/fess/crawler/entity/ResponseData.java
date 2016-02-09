@@ -82,7 +82,7 @@ public class ResponseData implements Closeable {
     }
 
     public boolean hasResponseBody() {
-        return responseBodyBytes == null && responseBodyFile == null;
+        return responseBodyBytes != null || responseBodyFile != null;
     }
 
     public InputStream getResponseBody() {

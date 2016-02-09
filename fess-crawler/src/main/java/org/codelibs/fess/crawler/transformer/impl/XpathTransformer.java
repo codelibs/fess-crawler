@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.transformer.impl;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,9 +73,8 @@ public class XpathTransformer extends HtmlTransformer {
     protected void storeData(final ResponseData responseData,
             final ResultData resultData) {
         final DOMParser parser = getDomParser();
-        try {
-            final InputSource is = new InputSource(
-                    responseData.getResponseBody());
+        try (final InputStream in = responseData.getResponseBody()) {
+            final InputSource is = new InputSource(in);
             if (responseData.getCharSet() != null) {
                 is.setEncoding(responseData.getCharSet());
             }

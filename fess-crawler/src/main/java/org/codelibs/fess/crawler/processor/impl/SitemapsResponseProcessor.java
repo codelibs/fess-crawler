@@ -15,12 +15,14 @@
  */
 package org.codelibs.fess.crawler.processor.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
@@ -41,16 +43,17 @@ public class SitemapsResponseProcessor implements ResponseProcessor {
 
     @Override
     public void process(final ResponseData responseData) {
-        final SitemapsHelper sitemapsHelper = crawlerContainer
-                .getComponent("sitemapsHelper");
-        final InputStream responseBody = responseData.getResponseBody();
-        final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
-        final Set<RequestData> requestDataSet = new LinkedHashSet<>();
-        for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
-            requestDataSet.add(RequestDataBuilder.newRequestData().get()
-                    .url(sitemap.getLoc()).build());
+        final SitemapsHelper sitemapsHelper = crawlerContainer.getComponent("sitemapsHelper");
+        try (final InputStream responseBody = responseData.getResponseBody()) {
+            final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
+            final Set<RequestData> requestDataSet = new LinkedHashSet<>();
+            for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
+                requestDataSet.add(RequestDataBuilder.newRequestData().get().url(sitemap.getLoc()).build());
+            }
+            throw new ChildUrlsException(requestDataSet);
+        } catch (IOException e) {
+            throw new IORuntimeException(e);
         }
-        throw new ChildUrlsException(requestDataSet);
     }
 
 }

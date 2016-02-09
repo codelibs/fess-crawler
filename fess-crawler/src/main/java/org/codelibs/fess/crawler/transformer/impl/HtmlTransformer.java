@@ -105,7 +105,7 @@ public class HtmlTransformer extends AbstractTransformer {
 
     @Override
     public ResultData transform(final ResponseData responseData) {
-        if (responseData == null || responseData.getResponseBody() == null) {
+        if (responseData == null || !responseData.hasResponseBody()) {
             throw new CrawlingAccessException("No response body.");
         }
 
@@ -158,9 +158,9 @@ public class HtmlTransformer extends AbstractTransformer {
 
     protected void storeChildUrls(final ResponseData responseData, final ResultData resultData) {
         List<RequestData> requestDataList = new ArrayList<RequestData>();
-        try (InputStream is = responseData.getResponseBody()) {
+        try (final InputStream is = responseData.getResponseBody()) {
             final DOMParser parser = getDomParser();
-            parser.parse(new InputSource(responseData.getResponseBody()));
+            parser.parse(new InputSource(is));
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
@@ -210,8 +210,8 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected void storeData(final ResponseData responseData, final ResultData resultData) {
-        try (InputStream is = responseData.getResponseBody()) {
-            final byte[] data = InputStreamUtil.getBytes(responseData.getResponseBody());
+        try (final InputStream is = responseData.getResponseBody()) {
+            final byte[] data = InputStreamUtil.getBytes(is);
             resultData.setData(data);
             resultData.setEncoding(responseData.getCharSet());
         } catch (final CrawlerSystemException e) {
@@ -222,7 +222,7 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected void updateCharset(final ResponseData responseData) {
-        try (InputStream is = responseData.getResponseBody()) {
+        try (final InputStream is = responseData.getResponseBody()) {
             final String encoding = loadCharset(is);
             if (encoding == null) {
                 if (defaultEncoding == null) {

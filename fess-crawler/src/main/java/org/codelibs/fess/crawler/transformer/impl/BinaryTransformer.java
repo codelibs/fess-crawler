@@ -43,24 +43,19 @@ public class BinaryTransformer extends AbstractTransformer {
      */
     @Override
     public ResultData transform(final ResponseData responseData) {
-        if (responseData == null || responseData.getResponseBody() == null) {
+        if (responseData == null || !responseData.hasResponseBody()) {
             throw new CrawlingAccessException("No response body.");
         }
 
         final ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
-        BufferedInputStream bis = null;
 
-        try {
-            bis = new BufferedInputStream(responseData.getResponseBody());
+        try (BufferedInputStream bis = new BufferedInputStream(responseData.getResponseBody())) {
             resultData.setData(IOUtils.toByteArray(bis));
             resultData.setEncoding(responseData.getCharSet());
             return resultData;
         } catch (final IOException e) {
-            throw new CrawlerSystemException(
-                    "Could not convert the input stream.", e);
-        } finally {
-            IOUtils.closeQuietly(bis);
+            throw new CrawlerSystemException("Could not convert the input stream.", e);
         }
 
     }

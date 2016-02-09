@@ -137,8 +137,7 @@ public class FileTransformer extends HtmlTransformer {
 
             final File file = createFile(path);
 
-            try (InputStream is = responseData.getResponseBody();
-                    OutputStream os = new FileOutputStream(file);) {
+            try (final InputStream is = responseData.getResponseBody(); final OutputStream os = new FileOutputStream(file);) {
                 CopyUtil.copy(is, os);
             } catch (final IOException e) {
                 throw new CrawlerSystemException("Could not store "

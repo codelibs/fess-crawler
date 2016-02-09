@@ -45,7 +45,7 @@ public class SitemapsRule extends RegexRule {
     @Override
     public boolean match(final ResponseData responseData) {
         if (super.match(responseData)) {
-            try (InputStream is = responseData.getResponseBody()) {
+            try (final InputStream is = responseData.getResponseBody()) {
                 final SitemapsHelper sitemapsHelper = crawlerContainer.getComponent("sitemapsHelper");
                 return sitemapsHelper.isValid(is);
             } catch (final CrawlingAccessException e) {

@@ -59,7 +59,7 @@ public class TextTransformer extends AbstractTransformer {
      */
     @Override
     public ResultData transform(final ResponseData responseData) {
-        if (responseData == null || responseData.getResponseBody() == null) {
+        if (responseData == null || !responseData.hasResponseBody()) {
             throw new CrawlingAccessException("No response body.");
         }
 
@@ -70,18 +70,15 @@ public class TextTransformer extends AbstractTransformer {
         }
         final Extractor extractor = extractorFactory.getExtractor(responseData
                 .getMimeType());
-        final InputStream in = responseData.getResponseBody();
         final Map<String, String> params = new HashMap<String, String>();
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
                 getResourceName(responseData));
         params.put(HttpHeaders.CONTENT_TYPE, responseData.getMimeType());
         String content = null;
-        try {
+        try (final InputStream in = responseData.getResponseBody()) {
             content = extractor.getText(in, params).getContent();
         } catch (final Exception e) {
             throw new CrawlingAccessException("Could not extract data.", e);
-        } finally {
-            IOUtils.closeQuietly(in);
         }
 
         final ResultData resultData = new ResultData();

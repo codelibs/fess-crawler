@@ -145,11 +145,11 @@ public class XmlTransformer extends AbstractTransformer {
      */
     @Override
     public ResultData transform(final ResponseData responseData) {
-        if (responseData == null || responseData.getResponseBody() == null) {
+        if (responseData == null || !responseData.hasResponseBody()) {
             throw new CrawlingAccessException("No response body.");
         }
 
-        try (InputStream is = responseData.getResponseBody()) {
+        try (final InputStream is = responseData.getResponseBody()) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory
                     .newInstance();
 

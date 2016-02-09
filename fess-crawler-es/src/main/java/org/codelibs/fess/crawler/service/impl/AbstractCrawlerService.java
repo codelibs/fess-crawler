@@ -265,11 +265,15 @@ public abstract class AbstractCrawlerService {
             final Integer size, final SortBuilder sortBuilder) {
         return getList(clazz, builder -> {
             if (StringUtil.isNotBlank(sessionId)) {
-                final BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
-                if (queryBuilder != null) {
-                    boolQuery.must(queryBuilder);
+                if (queryBuilder instanceof BoolQueryBuilder) {
+                    ((BoolQueryBuilder) queryBuilder).filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
+                } else {
+                    final BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
+                    if (queryBuilder != null) {
+                        boolQuery.must(queryBuilder);
+                    }
+                    builder.setQuery(boolQuery);
                 }
-                builder.setQuery(boolQuery);
             } else {
                 if (queryBuilder != null) {
                     builder.setQuery(queryBuilder);

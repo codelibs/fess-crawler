@@ -127,7 +127,7 @@ public class XpathTransformerTest extends PlainTestCase {
 
         final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
-                .getResourceAsStream("html/test1.html"));
+                .getResourceAsFile("html/test1.html"), false);
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = new ResultData();
         xpathTransformer.storeData(responseData, resultData);

@@ -33,6 +33,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.exception.IORuntimeException;
+import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
@@ -46,7 +47,6 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.codelibs.fess.crawler.util.TemporaryFileInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,21 +187,25 @@ public class SmbClient extends AbstractCrawlerClient {
 
                 if (file.canRead()) {
                     if (includeContent) {
-                        File outputFile = null;
-                        try {
-                            outputFile = File.createTempFile(
-                                    "crawler-SmbClient-", ".out");
-                            copy(file, outputFile);
-                            responseData
-                                    .setResponseBody(new TemporaryFileInputStream(
-                                            outputFile));
-                        } catch (final Exception e) {
-                            logger.warn("I/O Exception.", e);
-                            responseData
-                                    .setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
-                            if (outputFile != null && !outputFile.delete()) {
-                                logger.warn("Could not delete "
-                                        + outputFile.getAbsolutePath());
+                        if (file.getContentLength() < maxCachedContentSize) {
+                            try (InputStream contentStream = new BufferedInputStream(new SmbFileInputStream(file))) {
+                                responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
+                            } catch (final Exception e) {
+                                logger.warn("I/O Exception.", e);
+                                responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                            }
+                        } else {
+                            File outputFile = null;
+                            try {
+                                outputFile = File.createTempFile("crawler-SmbClient-", ".out");
+                                copy(file, outputFile);
+                                responseData.setResponseBody(outputFile, true);
+                            } catch (final Exception e) {
+                                logger.warn("I/O Exception.", e);
+                                responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                                if (outputFile != null && !outputFile.delete()) {
+                                    logger.warn("Could not delete " + outputFile.getAbsolutePath());
+                                }
                             }
                         }
                     }

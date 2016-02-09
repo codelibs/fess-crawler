@@ -15,7 +15,7 @@
  */
 package org.codelibs.fess.crawler.rule.impl;
 
-import java.io.InputStream;
+import java.io.File;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
@@ -66,77 +66,68 @@ public class RuleManagerImplTest extends PlainTestCase {
     public void test_getRule_sitemaps1() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml");
+        responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(is);
-        IOUtils.closeQuietly(responseData.getResponseBody());
+        IOUtils.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps2() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml.gz");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml.gz");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml.gz");
+        responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(is);
-        IOUtils.closeQuietly(responseData.getResponseBody());
+        IOUtils.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps3() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.txt");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.txt");
+        responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(is);
-        IOUtils.closeQuietly(responseData.getResponseBody());
+        IOUtils.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps4() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt.gz");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml.gz");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml.gz");
+        responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(is);
-        IOUtils.closeQuietly(responseData.getResponseBody());
+        IOUtils.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps5() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap/");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml");
+        responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(is);
-        IOUtils.closeQuietly(responseData.getResponseBody());
+        IOUtils.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps1_nocontent() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
-        try {
-            ruleManager.getRule(responseData);
-            fail();
-        } catch (CrawlingAccessException e) {
-            // ok
-        }
+        responseData.setResponseBody(new byte[0]);
+        ruleManager.getRule(responseData);
     }
 
     public void test_checkRule() {

@@ -90,7 +90,6 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
-import org.codelibs.fess.crawler.util.TemporaryFileInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,8 +174,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
     protected AuthScheme proxyAuthScheme = new BasicScheme();
 
     protected Credentials proxyCredentials;
-
-    protected int responseBodyInMemoryThresholdSize = 1 * 1024 * 1024; // 1M
 
     protected String defaultMimeType = APPLICATION_OCTET_STREAM;
 
@@ -590,8 +587,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             httpRequest.addHeader(header);
         }
 
-        ResponseData responseData = null;
-        InputStream inputStream = null;
+        ResponseData responseData = new ResponseData();
         HttpEntity httpEntity = null;
         try {
             // get a content
@@ -629,7 +625,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             long contentLength = 0;
             String contentEncoding = Constants.UTF_8;
             if (httpEntity == null) {
-                inputStream = new ByteArrayInputStream(new byte[0]);
+                responseData.setResponseBody(new byte[0]);
                 if (contentType == null) {
                     contentType = defaultMimeType;
                 }
@@ -640,8 +636,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 DeferredFileOutputStream dfos = null;
                 try {
                     try {
-                        dfos = new DeferredFileOutputStream(
-                                responseBodyInMemoryThresholdSize, outputFile);
+                        dfos = new DeferredFileOutputStream((int) maxCachedContentSize, outputFile);
                         CopyUtil.copy(responseBodyStream, dfos);
                         dfos.flush();
                     } finally {
@@ -656,7 +651,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
 
                 if (dfos.isInMemory()) {
-                    inputStream = new ByteArrayInputStream(dfos.getData());
+                    responseData.setResponseBody(dfos.getData());
                     contentLength = dfos.getData().length;
                     if (!outputFile.delete()) {
                         logger.warn("Could not delete "
@@ -671,7 +666,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                         }
                     }
                 } else {
-                    inputStream = new TemporaryFileInputStream(outputFile);
+                    responseData.setResponseBody(outputFile, true);
                     contentLength = outputFile.length();
                     if (contentType == null) {
                         try (InputStream is = new FileInputStream(outputFile)) {
@@ -701,7 +696,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
             }
 
-            responseData = new ResponseData();
             responseData.setUrl(url);
             responseData.setCharSet(contentEncoding);
             if (httpRequest instanceof HttpHead) {
@@ -709,7 +703,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
             } else {
                 responseData.setMethod(Constants.GET_METHOD);
             }
-            responseData.setResponseBody(inputStream);
             responseData.setHttpStatusCode(httpStatusCode);
             for (final Header header : response.getAllHeaders()) {
                 responseData.addMetaData(header.getName(), header.getValue());
@@ -742,36 +735,29 @@ public class HcHttpClient extends AbstractCrawlerClient {
             return responseData;
         } catch (final UnknownHostException e) {
             httpRequest.abort();
-            IOUtils.closeQuietly(inputStream);
             throw new CrawlingAccessException("Unknown host("
                     + e.getMessage() + "): " + url, e);
         } catch (final NoRouteToHostException e) {
             httpRequest.abort();
-            IOUtils.closeQuietly(inputStream);
             throw new CrawlingAccessException("No route to host("
                     + e.getMessage() + "): " + url, e);
         } catch (final ConnectException e) {
             httpRequest.abort();
-            IOUtils.closeQuietly(inputStream);
             throw new CrawlingAccessException("Connection time out("
                     + e.getMessage() + "): " + url, e);
         } catch (final SocketException e) {
             httpRequest.abort();
-            IOUtils.closeQuietly(inputStream);
             throw new CrawlingAccessException("Socket exception("
                     + e.getMessage() + "): " + url, e);
         } catch (final IOException e) {
             httpRequest.abort();
-            IOUtils.closeQuietly(inputStream);
             throw new CrawlingAccessException("I/O exception("
                     + e.getMessage() + "): " + url, e);
         } catch (final CrawlerSystemException e) {
             httpRequest.abort();
-            IOUtils.closeQuietly(inputStream);
             throw e;
         } catch (final Exception e) {
             httpRequest.abort();
-            IOUtils.closeQuietly(inputStream);
             throw new CrawlerSystemException("Failed to access " + url, e);
         } finally {
             EntityUtils.consumeQuietly(httpEntity);
@@ -910,11 +896,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public void setProxyCredentials(final Credentials proxyCredentials) {
         this.proxyCredentials = proxyCredentials;
-    }
-
-    public void setResponseBodyInMemoryThresholdSize(
-            final int responseBodyInMemoryThresholdSize) {
-        this.responseBodyInMemoryThresholdSize = responseBodyInMemoryThresholdSize;
     }
 
     public void setDefaultMimeType(final String defaultMimeType) {

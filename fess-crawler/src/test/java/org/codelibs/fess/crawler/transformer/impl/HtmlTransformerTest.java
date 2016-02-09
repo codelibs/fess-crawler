@@ -60,10 +60,9 @@ public class HtmlTransformerTest extends PlainTestCase {
 
     public void test_transform() {
         final byte[] data = new String("xyz").getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://hoge/");
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         responseData.setCharSet("ISO-8859-1");
         final ResultData resultData = htmlTransformer.transform(responseData);
         assertEquals("xyz", new String(resultData.getData()));
@@ -72,10 +71,9 @@ public class HtmlTransformerTest extends PlainTestCase {
     public void test_transform_filelink() {
         String content = "<a href=\"test2.html\">test</a>";
         final byte[] data = new String(content).getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://hoge/test.html");
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         responseData.setCharSet("ISO-8859-1");
         responseData.setMimeType("text/html");
         final ResultData resultData = htmlTransformer.transform(responseData);
@@ -88,10 +86,9 @@ public class HtmlTransformerTest extends PlainTestCase {
     public void test_transform_urllink() {
         String content = "<a href=\"http://fuga/test.html\">test</a>";
         final byte[] data = new String(content).getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://hoge/test.html");
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         responseData.setCharSet("ISO-8859-1");
         responseData.setMimeType("text/html");
         final ResultData resultData = htmlTransformer.transform(responseData);
@@ -104,10 +101,9 @@ public class HtmlTransformerTest extends PlainTestCase {
     public void test_transform_queryparam() {
         String content = "<a href=\"?q=hoge\">test</a>";
         final byte[] data = new String(content).getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://hoge/test.html");
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         responseData.setCharSet("ISO-8859-1");
         responseData.setMimeType("text/html");
         final ResultData resultData = htmlTransformer.transform(responseData);

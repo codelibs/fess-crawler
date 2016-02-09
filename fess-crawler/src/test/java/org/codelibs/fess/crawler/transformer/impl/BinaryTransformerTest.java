@@ -45,9 +45,8 @@ public class BinaryTransformerTest extends PlainTestCase {
 
     public void test_transform() {
         final byte[] data = new String("xyz").getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         final ResultData resultData = binaryTransformer.transform(responseData);
         assertEquals("xyz", new String(resultData.getData()));
     }

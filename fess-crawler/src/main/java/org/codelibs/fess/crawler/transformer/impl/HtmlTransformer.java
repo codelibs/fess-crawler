@@ -16,8 +16,6 @@
 package org.codelibs.fess.crawler.transformer.impl;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -36,7 +34,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.xpath.CachedXPathAPI;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -52,7 +49,6 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.EncodingHelper;
 import org.codelibs.fess.crawler.helper.UrlConvertHelper;
 import org.codelibs.fess.crawler.util.CharUtil;
-import org.codelibs.fess.crawler.util.ResponseDataUtil;
 import org.cyberneko.html.parsers.DOMParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,99 +98,24 @@ public class HtmlTransformer extends AbstractTransformer {
             throw new CrawlingAccessException("No response body.");
         }
 
-        final File tempFile = ResponseDataUtil
-                .createResponseBodyFile(responseData);
-
-        FileInputStream fis = null;
-
         // encoding
-        try {
-            fis = new FileInputStream(tempFile);
-            responseData.setResponseBody(fis);
-            updateCharset(responseData);
-        } catch (final CrawlerSystemException e) {
-            IOUtils.closeQuietly(fis);
-            // clean up
-            if (!tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
-            throw e;
-        } catch (final Exception e) {
-            IOUtils.closeQuietly(fis);
-            // clean up
-            if (!tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
-            throw new CrawlerSystemException("Could not load response data: "
-                    + responseData.getUrl(), e);
-        } finally {
-            IOUtils.closeQuietly(fis);
-        }
+        updateCharset(responseData);
 
         final ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
 
         // data
-        try {
-            fis = new FileInputStream(tempFile);
-            responseData.setResponseBody(fis);
-            storeData(responseData, resultData);
-        } catch (final CrawlerSystemException e) {
-            IOUtils.closeQuietly(fis);
-            // clean up
-            if (!tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
-            throw e;
-        } catch (final Exception e) {
-            IOUtils.closeQuietly(fis);
-            // clean up
-            if (!tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
-            throw new CrawlerSystemException("Could not store data.", e);
-        } finally {
-            IOUtils.closeQuietly(fis);
-        }
+        storeData(responseData, resultData);
 
         if (isHtml(responseData)) {
             // urls
-            try {
-                fis = new FileInputStream(tempFile);
-                responseData.setResponseBody(fis);
-                storeChildUrls(responseData, resultData);
-            } catch (final CrawlerSystemException e) {
-                IOUtils.closeQuietly(fis);
-                // clean up
-                if (!tempFile.delete()) {
-                    logger.warn("Could not delete a temp file: " + tempFile);
-                }
-                throw e;
-            } catch (final Exception e) {
-                IOUtils.closeQuietly(fis);
-                // clean up
-                if (!tempFile.delete()) {
-                    logger.warn("Could not delete a temp file: " + tempFile);
-                }
-                throw new CrawlerSystemException("Could not store data.", e);
-            } finally {
-                IOUtils.closeQuietly(fis);
-            }
+            storeChildUrls(responseData, resultData);
         }
 
-        final Object redirectUrlObj = responseData.getMetaDataMap().get(
-                LOCATION_HEADER);
+        final Object redirectUrlObj = responseData.getMetaDataMap().get(LOCATION_HEADER);
         if (redirectUrlObj instanceof String) {
-            final UrlConvertHelper urlConvertHelper = crawlerContainer
-                    .getComponent("urlConvertHelper");
-            resultData.addUrl(RequestDataBuilder.newRequestData().get()
-                    .url(urlConvertHelper.convert(redirectUrlObj.toString()))
-                    .build());
-        }
-
-        // clean up
-        if (!tempFile.delete()) {
-            logger.warn("Could not delete a temp file: " + tempFile);
+            final UrlConvertHelper urlConvertHelper = crawlerContainer.getComponent("urlConvertHelper");
+            resultData.addUrl(RequestDataBuilder.newRequestData().get().url(urlConvertHelper.convert(redirectUrlObj.toString())).build());
         }
 
         return resultData;
@@ -224,39 +145,36 @@ public class HtmlTransformer extends AbstractTransformer {
         return cachedXPathAPI;
     }
 
-    protected void storeChildUrls(final ResponseData responseData,
-            final ResultData resultData) {
+    protected void storeChildUrls(final ResponseData responseData, final ResultData resultData) {
         List<RequestData> requestDataList = new ArrayList<RequestData>();
-        try {
+        try (InputStream is = responseData.getResponseBody()) {
             final DOMParser parser = getDomParser();
             parser.parse(new InputSource(responseData.getResponseBody()));
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            final URL url = new URL(baseHref == null ? responseData.getUrl()
-                    : baseHref);
-            for (final Map.Entry<String, String> entry : childUrlRuleMap
-                    .entrySet()) {
-                for (final String childUrl : getUrlFromTagAttribute(url,
-                        document, entry.getKey(), entry.getValue(),
+            final URL url = new URL(baseHref == null ? responseData.getUrl() : baseHref);
+            for (final Map.Entry<String, String> entry : childUrlRuleMap.entrySet()) {
+                for (final String childUrl : getUrlFromTagAttribute(url, document, entry.getKey(), entry.getValue(),
                         responseData.getCharSet())) {
-                    requestDataList.add(RequestDataBuilder.newRequestData()
-                            .get().url(childUrl).build());
+                    requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
                 }
             }
             requestDataList = convertChildUrlList(requestDataList);
+            resultData.addAllUrl(requestDataList);
+
+            resultData.addAllUrl(responseData.getChildUrlSet());
+
+            final RequestData requestData = responseData.getRequestData();
+            resultData.removeUrl(requestData);
+            resultData.removeUrl(getDuplicateUrl(requestData));
+        } catch (final CrawlerSystemException e) {
+            throw e;
         } catch (final Exception e) {
-            logger.warn("Could not create child urls.", e);
+            throw new CrawlerSystemException("Could not store data.", e);
         } finally {
             xpathAPI.remove();
         }
-        resultData.addAllUrl(requestDataList);
-
-        resultData.addAllUrl(responseData.getChildUrlSet());
-
-        final RequestData requestData = responseData.getRequestData();
-        resultData.removeUrl(requestData);
-        resultData.removeUrl(getDuplicateUrl(requestData));
     }
 
     protected List<RequestData> convertChildUrlList(
@@ -275,28 +193,38 @@ public class HtmlTransformer extends AbstractTransformer {
         return requestDataList;
     }
 
-    protected void storeData(final ResponseData responseData,
-            final ResultData resultData) {
-        final byte[] data = InputStreamUtil.getBytes(responseData
-                .getResponseBody());
-        resultData.setData(data);
-        resultData.setEncoding(responseData.getCharSet());
+    protected void storeData(final ResponseData responseData, final ResultData resultData) {
+        try (InputStream is = responseData.getResponseBody()) {
+            final byte[] data = InputStreamUtil.getBytes(responseData.getResponseBody());
+            resultData.setData(data);
+            resultData.setEncoding(responseData.getCharSet());
+        } catch (final CrawlerSystemException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new CrawlerSystemException("Could not store data.", e);
+        }
     }
 
     protected void updateCharset(final ResponseData responseData) {
-        final String encoding = loadCharset(responseData.getResponseBody());
-        if (encoding == null) {
-            if (defaultEncoding == null) {
-                responseData.setCharSet(Constants.UTF_8);
-            } else if (responseData.getCharSet() == null) {
-                responseData.setCharSet(defaultEncoding);
+        try (InputStream is = responseData.getResponseBody()) {
+            final String encoding = loadCharset(is);
+            if (encoding == null) {
+                if (defaultEncoding == null) {
+                    responseData.setCharSet(Constants.UTF_8);
+                } else if (responseData.getCharSet() == null) {
+                    responseData.setCharSet(defaultEncoding);
+                }
+            } else {
+                responseData.setCharSet(encoding.trim());
             }
-        } else {
-            responseData.setCharSet(encoding.trim());
-        }
 
-        if (!isSupportedCharset(responseData.getCharSet())) {
-            responseData.setCharSet(Constants.UTF_8);
+            if (!isSupportedCharset(responseData.getCharSet())) {
+                responseData.setCharSet(Constants.UTF_8);
+            }
+        } catch (final CrawlerSystemException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new CrawlerSystemException("Could not load response data: " + responseData.getUrl(), e);
         }
     }
 

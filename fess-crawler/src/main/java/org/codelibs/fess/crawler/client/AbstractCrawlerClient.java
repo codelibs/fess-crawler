@@ -34,6 +34,8 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     private Map<String, Object> initParamMap;
 
+    protected long maxCachedContentSize = 1024 * 1024 * 10;//10mb
+
     protected <T> T getInitParameter(final String key, final T defaultValue) {
         if (initParamMap != null) {
             try {
@@ -80,6 +82,10 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     protected ResponseData doPost(final String url) {
         throw new CrawlerSystemException("POST method is not supported.");
+    }
+
+    public void setMaxCachedContentSize(long maxCachedContentSize) {
+        this.maxCachedContentSize = maxCachedContentSize;
     }
 
 }

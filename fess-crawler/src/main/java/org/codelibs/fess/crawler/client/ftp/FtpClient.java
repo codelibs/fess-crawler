@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.client.ftp;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +40,7 @@ import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilters;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
@@ -51,7 +53,6 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.codelibs.fess.crawler.util.TemporaryFileInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -261,9 +262,15 @@ public class FtpClient extends AbstractCrawlerClient {
 
                         responseData.setCharSet(geCharSet(tempFile));
 
-                        outputFile = File.createTempFile("s2robot-FileSystemClient-", ".out");
-                        CopyUtil.copy(tempFile, outputFile);
-                        responseData.setResponseBody(new TemporaryFileInputStream(outputFile));
+                        if (tempFile.length() < maxCachedContentSize) {
+                            try (InputStream contentStream = new BufferedInputStream(new FileInputStream(tempFile))) {
+                                responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
+                            }
+                        } else {
+                            outputFile = File.createTempFile("s2robot-FileSystemClient-", ".out");
+                            CopyUtil.copy(tempFile, outputFile);
+                            responseData.setResponseBody(outputFile, true);
+                        }
                     } catch (final Exception e) {
                         logger.warn("I/O Exception.", e);
                         responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);

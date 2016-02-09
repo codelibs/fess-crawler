@@ -123,7 +123,7 @@ public class XmlTransformerTest extends PlainTestCase {
 
         final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
-                .getResourceAsStream("extractor/test.xml"));
+                .getResourceAsFile("extractor/test.xml"), false);
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = xmlTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
@@ -142,7 +142,7 @@ public class XmlTransformerTest extends PlainTestCase {
 
         final ResponseData responseData = new ResponseData();
         responseData.setResponseBody(ResourceUtil
-                .getResourceAsStream("extractor/test_ns.xml"));
+                .getResourceAsFile("extractor/test_ns.xml"), false);
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = xmlNsTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));

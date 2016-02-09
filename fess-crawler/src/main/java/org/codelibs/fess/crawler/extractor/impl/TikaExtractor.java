@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -107,18 +108,27 @@ public class TikaExtractor implements Extractor {
         }
 
         File tempFile = null;
-        try {
-            tempFile = File.createTempFile("tikaExtractor-", ".out");
-        } catch (final IOException e) {
-            throw new ExtractException("Could not create a temp file.", e);
+        boolean isByteStream = inputStream instanceof ByteArrayInputStream;
+        if (isByteStream) {
+            inputStream.mark(0);
+        } else {
+            try {
+                tempFile = File.createTempFile("tikaExtractor-", ".out");
+            } catch (final IOException e) {
+                throw new ExtractException("Could not create a temp file.", e);
+            }
         }
 
         try {
-            try (OutputStream out = new FileOutputStream(tempFile)) {
-                CopyUtil.copy(inputStream, out);
+            InputStream in = null;
+            if (!isByteStream) {
+                try (OutputStream out = new FileOutputStream(tempFile)) {
+                    CopyUtil.copy(inputStream, out);
+                }
+                in = new FileInputStream(tempFile);
+            } else {
+                in = inputStream;
             }
-
-            InputStream in = new FileInputStream(tempFile);
 
             final PrintStream originalOutStream = System.out;
             final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -161,7 +171,12 @@ public class TikaExtractor implements Extractor {
                             logger.debug("retry without a resource name: {}",
                                     resourceName);
                         }
-                        in = new FileInputStream(tempFile);
+                        if (isByteStream) {
+                            inputStream.reset();
+                            in = inputStream;
+                        } else {
+                            in = new FileInputStream(tempFile);
+                        }
                         final Metadata metadata2 = createMetadata(null,
                                 contentType, contentEncoding, pdfPassword);
                         final StringWriter writer2 = new StringWriter(
@@ -176,7 +191,12 @@ public class TikaExtractor implements Extractor {
                             logger.debug("retry without a content type: {}",
                                     contentType);
                         }
-                        in = new FileInputStream(tempFile);
+                        if (isByteStream) {
+                            inputStream.reset();
+                            in = inputStream;
+                        } else {
+                            in = new FileInputStream(tempFile);
+                        }
                         final Metadata metadata3 = createMetadata(null, null,
                                 contentEncoding, pdfPassword);
                         final StringWriter writer3 = new StringWriter(
@@ -196,9 +216,12 @@ public class TikaExtractor implements Extractor {
                         }
                         BufferedReader br = null;
                         try {
-                            br = new BufferedReader(new InputStreamReader(
-                                    new FileInputStream(tempFile),
-                                    contentEncoding));
+                            if (isByteStream) {
+                                inputStream.reset();
+                                br = new BufferedReader(new InputStreamReader(inputStream, contentEncoding));
+                            } else {
+                                br = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile), contentEncoding));
+                            }
                             final StringWriter writer4 = new StringWriter(
                                     initialBufferSize);
                             String line;
@@ -207,9 +230,7 @@ public class TikaExtractor implements Extractor {
                             }
                             content = normalizeContent(writer4);
                         } catch (final Exception e) {
-                            logger.warn(
-                                    "Could not read "
-                                            + tempFile.getAbsolutePath(), e);
+                            logger.warn("Could not read " + (tempFile != null ? tempFile.getAbsolutePath() : "a byte stream"), e);
                         } finally {
                             IOUtils.closeQuietly(br);
                         }
@@ -238,7 +259,12 @@ public class TikaExtractor implements Extractor {
                             .getComponent("xmlExtractor");
                     if (xmlExtractor != null) {
                         IOUtils.closeQuietly(in);
-                        in = new FileInputStream(tempFile);
+                        if (isByteStream) {
+                            inputStream.reset();
+                            in = inputStream;
+                        } else {
+                            in = new FileInputStream(tempFile);
+                        }
                         return xmlExtractor.getText(in, params);
                     }
                 }

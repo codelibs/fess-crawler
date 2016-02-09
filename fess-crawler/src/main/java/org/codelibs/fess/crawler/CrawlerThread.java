@@ -221,7 +221,7 @@ public class CrawlerThread implements Runnable {
                         addSitemapsFromRobotsTxt(urlQueue);
 
                         if (responseData != null) {
-                            IOUtils.closeQuietly(responseData.getResponseBody());
+                            IOUtils.closeQuietly(responseData);
                         }
                         if (crawlerContext.intervalController != null) {
                             crawlerContext.intervalController

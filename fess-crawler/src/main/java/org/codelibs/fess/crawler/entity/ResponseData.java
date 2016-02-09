@@ -81,6 +81,10 @@ public class ResponseData implements Closeable {
         httpStatusCode = statusCode;
     }
 
+    public boolean hasResponseBody() {
+        return responseBodyBytes == null && responseBodyFile == null;
+    }
+
     public InputStream getResponseBody() {
         if (responseBodyBytes != null) {
             return new ByteArrayInputStream(responseBodyBytes);

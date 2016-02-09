@@ -56,11 +56,10 @@ public class TextTransformerTest extends PlainTestCase {
 
     public void test_transform_text() throws Exception {
         final byte[] data = new String("xyz").getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("file:/test.txt");
         responseData.setCharSet(Constants.UTF_8);
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         responseData.setMimeType("text/plain");
         final ResultData resultData = textTransformer.transform(responseData);
         assertEquals("xyz",
@@ -70,11 +69,10 @@ public class TextTransformerTest extends PlainTestCase {
     public void test_transform_html() throws Exception {
         final byte[] data = new String("<html><body>xyz</body></html>")
                 .getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("file:/test.html");
         responseData.setCharSet(Constants.UTF_8);
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         responseData.setMimeType("text/html");
         final ResultData resultData = textTransformer.transform(responseData);
         assertEquals("xyz",

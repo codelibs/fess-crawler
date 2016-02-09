@@ -15,8 +15,7 @@
  */
 package org.codelibs.fess.crawler.transformer.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +29,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.xml.utils.PrefixResolverDefault;
 import org.apache.xpath.CachedXPathAPI;
 import org.codelibs.core.beans.util.BeanUtil;
@@ -41,7 +39,6 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
-import org.codelibs.fess.crawler.util.ResponseDataUtil;
 import org.codelibs.fess.crawler.util.XmlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,13 +149,7 @@ public class XmlTransformer extends AbstractTransformer {
             throw new CrawlingAccessException("No response body.");
         }
 
-        final File tempFile = ResponseDataUtil
-                .createResponseBodyFile(responseData);
-
-        FileInputStream fis = null;
-
-        try {
-            fis = new FileInputStream(tempFile);
+        try (InputStream is = responseData.getResponseBody()) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory
                     .newInstance();
 
@@ -182,7 +173,7 @@ public class XmlTransformer extends AbstractTransformer {
 
             final DocumentBuilder builder = factory.newDocumentBuilder();
 
-            final Document doc = builder.parse(fis);
+            final Document doc = builder.parse(is);
 
             final StringBuilder buf = new StringBuilder(1000);
             buf.append(getResultDataHeader());
@@ -230,12 +221,6 @@ public class XmlTransformer extends AbstractTransformer {
             throw e;
         } catch (final Exception e) {
             throw new CrawlerSystemException("Could not store data.", e);
-        } finally {
-            IOUtils.closeQuietly(fis);
-            // clean up
-            if (!tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
         }
     }
 

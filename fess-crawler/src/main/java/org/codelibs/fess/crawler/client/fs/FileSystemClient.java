@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.client.fs;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -29,7 +30,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
-import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
@@ -42,7 +43,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.codelibs.fess.crawler.util.TemporaryFileInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,25 +124,16 @@ public class FileSystemClient extends AbstractCrawlerClient {
             responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
             responseData.setCharSet(geCharSet(file));
             responseData.setLastModified(new Date(file.lastModified()));
-            if (file.canRead()) {
-                if (includeContent) {
-                    File outputFile = null;
-                    try {
-                        outputFile = File.createTempFile(
-                                "crawler-FileSystemClient-", ".out");
-                        CopyUtil.copy(file, outputFile);
-                        responseData
-                                .setResponseBody(new TemporaryFileInputStream(
-                                        outputFile));
+            if (file.canRead() && includeContent) {
+                if (file.length() < maxCachedContentSize) {
+                    try (InputStream contentStream = new BufferedInputStream(new FileInputStream(file))) {
+                        responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
                     } catch (final Exception e) {
                         logger.warn("I/O Exception.", e);
-                        responseData
-                                .setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
-                        if (outputFile != null && !outputFile.delete()) {
-                            logger.warn("Could not delete "
-                                    + outputFile.getAbsolutePath());
-                        }
+                        responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                     }
+                } else {
+                    responseData.setResponseBody(file, false);
                 }
             } else {
                 // Forbidden

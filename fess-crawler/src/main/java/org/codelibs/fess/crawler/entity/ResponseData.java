@@ -15,6 +15,12 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -22,19 +28,18 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.fess.crawler.Constants;
 
 /**
  * @author shinsuke
  *
  */
-public class ResponseData {
+public class ResponseData implements Closeable {
 
     private String url;
 
     private int httpStatusCode;
-
-    private InputStream responseBody;
 
     private String charSet;
 
@@ -62,6 +67,12 @@ public class ResponseData {
 
     private final Set<RequestData> childUrlSet = new LinkedHashSet<RequestData>();
 
+    private byte[] responseBodyBytes;
+
+    private File responseBodyFile;
+
+    private boolean isTemporaryFile;
+
     public int getHttpStatusCode() {
         return httpStatusCode;
     }
@@ -71,11 +82,25 @@ public class ResponseData {
     }
 
     public InputStream getResponseBody() {
-        return responseBody;
+        if (responseBodyBytes != null) {
+            return new ByteArrayInputStream(responseBodyBytes);
+        } else if (responseBodyFile != null) {
+            try {
+                return new FileInputStream(responseBodyFile);
+            } catch (FileNotFoundException e) {
+                throw new IORuntimeException(e);
+            }
+        }
+        return null;
     }
 
-    public void setResponseBody(final InputStream responseBody) {
-        this.responseBody = responseBody;
+    public void setResponseBody(final byte[] responseBody) {
+        this.responseBodyBytes = responseBody;
+    }
+
+    public void setResponseBody(final File responseBody, final boolean isTemporary) {
+        this.responseBodyFile = responseBody;
+        this.isTemporaryFile = isTemporary;
     }
 
     public String getCharSet() {
@@ -202,16 +227,10 @@ public class ResponseData {
     }
 
     @Override
-    public String toString() {
-        return "ResponseData [url=" + url + ", httpStatusCode="
-                + httpStatusCode + ", responseBody=" + responseBody
-                + ", charSet=" + charSet + ", contentLength=" + contentLength
-                + ", mimeType=" + mimeType + ", method=" + method
-                + ", parentUrl=" + parentUrl + ", ruleId=" + ruleId
-                + ", sessionId=" + sessionId + ", executionTime="
-                + executionTime + ", lastModified=" + lastModified
-                + ", redirectLocation=" + redirectLocation + ", status="
-                + status + ", metaDataMap=" + metaDataMap + ", childUrlSet="
-                + childUrlSet + "]";
+    public void close() throws IOException {
+        if (isTemporaryFile && responseBodyFile != null) {
+            responseBodyFile.delete();
+        }
     }
+
 }

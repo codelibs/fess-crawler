@@ -85,10 +85,9 @@ public class FileTransformerTest extends PlainTestCase {
 
     public void test_transform() throws Exception {
         final byte[] data = new String("xyz").getBytes();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(data);
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/submit?a=1&b=2");
-        responseData.setResponseBody(bais);
+        responseData.setResponseBody(data);
         responseData.setCharSet("UTF-8");
         setBaseDir();
         final ResultData resultData = fileTransformer.transform(responseData);

@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.rule.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.regex.Pattern;
@@ -57,11 +56,8 @@ public class SitemapsRuleTest extends PlainTestCase {
         sitemapsRule.addRule("url", Pattern.compile(".*sitemap.*"));
         assertTrue(sitemapsRule.match(responseData));
         InputStream is = responseData.getResponseBody();
-        assertTrue(is instanceof TemporaryFileInputStream);
-        File temporaryFile = ((TemporaryFileInputStream) is).getTemporaryFile();
-        assertTrue(temporaryFile.exists());
-        IOUtils.closeQuietly(is);
-        assertFalse(temporaryFile.exists());
+        assertTrue(is instanceof InputStream);
+        IOUtils.closeQuietly(responseData);
     }
 
     private void assertMatchFalse(ResponseData responseData) {
@@ -82,52 +78,52 @@ public class SitemapsRuleTest extends PlainTestCase {
     private ResponseData getTestData1_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.xml");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml");
+        responseData.setResponseBody(file, false);
         return responseData;
     }
 
     private ResponseData getTestData2_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.xml.gz");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml.gz");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml.gz");
+        responseData.setResponseBody(file, false);
         return responseData;
     }
 
     private ResponseData getTestData3_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.txt");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.txt");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.txt");
+        responseData.setResponseBody(file, false);
         return responseData;
     }
 
     private ResponseData getTestData4_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap/");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml");
+        responseData.setResponseBody(file, false);
         return responseData;
     }
 
     private ResponseData getTestData1_FAIL() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/test.xml");
-        InputStream is = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml");
-        responseData.setResponseBody(is);
+        File file = ResourceUtil
+                .getResourceAsFile("sitemaps/sitemap1.xml");
+        responseData.setResponseBody(file, false);
         return responseData;
     }
 
     private ResponseData getTestData2_FAIL() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.xml");
-        responseData.setResponseBody(new ByteArrayInputStream(new byte[0]));
+        responseData.setResponseBody(new byte[0]);
         return responseData;
     }
 }

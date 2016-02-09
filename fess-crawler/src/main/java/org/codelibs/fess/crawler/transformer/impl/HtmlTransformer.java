@@ -164,7 +164,12 @@ public class HtmlTransformer extends AbstractTransformer {
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            final URL url = new URL(baseHref == null ? responseData.getUrl() : baseHref);
+            URL url;
+            try {
+                url = new URL(baseHref == null ? responseData.getUrl() : baseHref);
+            } catch (final MalformedURLException e) {
+                url = new URL(responseData.getUrl());
+            }
             for (final Map.Entry<String, String> entry : childUrlRuleMap.entrySet()) {
                 for (final String childUrl : getUrlFromTagAttribute(url, document, entry.getKey(), entry.getValue(),
                         responseData.getCharSet())) {

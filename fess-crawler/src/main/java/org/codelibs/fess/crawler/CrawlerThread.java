@@ -315,7 +315,7 @@ public class CrawlerThread implements Runnable {
                 }
             } finally {
                 if (responseData != null) {
-                    IOUtils.closeQuietly(responseData.getResponseBody());
+                    IOUtils.closeQuietly(responseData);
                 }
             }
         }

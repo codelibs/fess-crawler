@@ -205,9 +205,9 @@ public class EsClient implements Client {
             } catch (final ElasticsearchException e) {
                 logger.warn("Failed to close client.", e);
             }
+            logger.info("Disconnected to " + clusterName + ":" + String.join(",", addresses));
         }
         connected = false;
-        logger.info("Disconnected to " + clusterName + ":" + String.join(",", addresses));
     }
 
     @Override

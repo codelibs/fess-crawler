@@ -126,12 +126,8 @@ public class RuleManagerImplTest extends PlainTestCase {
     public void test_getRule_sitemaps1_nocontent() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
-        try {
-            ruleManager.getRule(responseData);
-            fail();
-        } catch (CrawlingAccessException e) {
-            // ok
-        }
+        responseData.setResponseBody(new byte[0]);
+        ruleManager.getRule(responseData);
     }
 
     public void test_checkRule() {

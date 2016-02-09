@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
-import java.io.ByteArrayInputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -100,8 +99,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
             responseData.setLastModified(getLastModified(webDriver));
             responseData.setMimeType(getContentType(webDriver));
 
-            responseData.setResponseBody(new ByteArrayInputStream(source
-                    .getBytes(charSet)));
+            responseData.setResponseBody(source.getBytes(charSet));
 
             for (final UrlAction urlAction : urlActionMap.values()) {
                 urlAction.collect(url, webDriver, responseData);

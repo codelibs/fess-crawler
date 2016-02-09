@@ -23,7 +23,6 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

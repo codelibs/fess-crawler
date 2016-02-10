@@ -17,14 +17,22 @@ package org.codelibs.fess.crawler.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import org.codelibs.fess.crawler.entity.EsUrlFilter;
+import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.service.UrlFilterService;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.index.query.QueryBuilders;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 public class EsUrlFilterService extends AbstractCrawlerService implements UrlFilterService {
 
@@ -34,11 +42,31 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     private static final String EXCLUDE = "exclude";
 
+    protected LoadingCache<String, List<Pattern>> includeFilterCache;
+
+    protected LoadingCache<String, List<Pattern>> excludeFilterCache;
+
+    protected int filterCacheExpireAfterWrite = 5; // 5sec
+
     @PostConstruct
     public void init() {
         esClient.addOnConnectListener(() -> {
             createMapping("filter");
         });
+
+        includeFilterCache = createFilterCache(INCLUDE);
+        excludeFilterCache = createFilterCache(EXCLUDE);
+    }
+
+    protected LoadingCache<String, List<Pattern>> createFilterCache(final String type) {
+        return CacheBuilder.newBuilder()//
+                .expireAfterWrite(filterCacheExpireAfterWrite, TimeUnit.SECONDS)//
+                .build(new CacheLoader<String, List<Pattern>>() {
+                    public List<Pattern> load(String key) {
+                        return getList(EsUrlFilter.class, key, QueryBuilders.termQuery(FILTER_TYPE, type), null, null, null).stream()
+                                .map(f -> Pattern.compile(f.getUrl())).collect(Collectors.toList());
+                    }
+                });
     }
 
     @Override
@@ -92,26 +120,24 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     @Override
     public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
-        // TODO cache
-        final List<EsUrlFilter> urlFilterList =
-                getList(EsUrlFilter.class, sessionId, QueryBuilders.termQuery(FILTER_TYPE, INCLUDE), null, null, null);
-        final List<Pattern> urlPatternList = new ArrayList<Pattern>();
-        for (final EsUrlFilter esUrlFilter : urlFilterList) {
-            urlPatternList.add(Pattern.compile(esUrlFilter.getUrl()));
+        try {
+            return includeFilterCache.get(sessionId);
+        } catch (ExecutionException e) {
+            throw new CrawlerSystemException(e);
         }
-        return urlPatternList;
     }
 
     @Override
     public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
-        // TODO cache
-        final List<EsUrlFilter> urlFilterList =
-                getList(EsUrlFilter.class, sessionId, QueryBuilders.termQuery(FILTER_TYPE, EXCLUDE), null, null, null);
-        final List<Pattern> urlPatternList = new ArrayList<Pattern>();
-        for (final EsUrlFilter esUrlFilter : urlFilterList) {
-            urlPatternList.add(Pattern.compile(esUrlFilter.getUrl()));
+        try {
+            return excludeFilterCache.get(sessionId);
+        } catch (ExecutionException e) {
+            throw new CrawlerSystemException(e);
         }
-        return urlPatternList;
+    }
+
+    public void setFilterCacheExpireAfterWrite(int filterCacheExpireAfterWrite) {
+        this.filterCacheExpireAfterWrite = filterCacheExpireAfterWrite;
     }
 
 }

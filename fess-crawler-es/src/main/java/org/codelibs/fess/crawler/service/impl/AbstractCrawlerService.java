@@ -220,7 +220,7 @@ public abstract class AbstractCrawlerService {
             final String id = getId(getSessionId(target), getUrl(target));
             final XContentBuilder source = getXContentBuilder(target);
             bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType)
-                    .setConsistencyLevel(writeConsistencyLevel).setRefresh(true));
+                    .setConsistencyLevel(writeConsistencyLevel));
             setId(target, id);
         }
         final BulkResponse bulkResponse = bulkRequest.setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute().actionGet();

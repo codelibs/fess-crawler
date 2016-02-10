@@ -16,7 +16,9 @@
 package org.codelibs.fess.crawler.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -76,10 +78,12 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
         esUrlFilter.setFilterType(INCLUDE);
         esUrlFilter.setUrl(url);
         insert(esUrlFilter, OpType.CREATE);
+        includeFilterCache.invalidate(sessionId);
     }
 
     @Override
     public void addIncludeUrlFilter(final String sessionId, final List<String> urlList) {
+        final Set<String> invalidateSet = new HashSet<>();
         final List<EsUrlFilter> urlFilterList = new ArrayList<EsUrlFilter>(urlList.size());
         for (final String url : urlList) {
             final EsUrlFilter esUrlFilter = new EsUrlFilter();
@@ -87,8 +91,10 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
             esUrlFilter.setFilterType(INCLUDE);
             esUrlFilter.setUrl(url);
             urlFilterList.add(esUrlFilter);
+            invalidateSet.add(sessionId);
         }
         insertAll(urlFilterList, OpType.CREATE);
+        invalidateSet.forEach(s -> includeFilterCache.invalidate(s));
     }
 
     @Override
@@ -98,10 +104,12 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
         esUrlFilter.setFilterType(EXCLUDE);
         esUrlFilter.setUrl(url);
         insert(esUrlFilter, OpType.CREATE);
+        excludeFilterCache.invalidate(sessionId);
     }
 
     @Override
     public void addExcludeUrlFilter(final String sessionId, final List<String> urlList) {
+        final Set<String> invalidateSet = new HashSet<>();
         final List<EsUrlFilter> urlFilterList = new ArrayList<EsUrlFilter>(urlList.size());
         for (final String url : urlList) {
             final EsUrlFilter esUrlFilter = new EsUrlFilter();
@@ -111,11 +119,14 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
             urlFilterList.add(esUrlFilter);
         }
         insertAll(urlFilterList, OpType.CREATE);
+        invalidateSet.forEach(s -> excludeFilterCache.invalidate(s));
     }
 
     @Override
     public void delete(final String sessionId) {
         deleteBySessionId(sessionId);
+        includeFilterCache.invalidate(sessionId);
+        excludeFilterCache.invalidate(sessionId);
     }
 
     @Override

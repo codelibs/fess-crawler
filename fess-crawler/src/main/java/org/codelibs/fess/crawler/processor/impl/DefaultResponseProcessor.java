@@ -129,9 +129,15 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         synchronized (crawlerContext.getAccessCountLock()) {
             if (!urlQueueService.visited(urlQueue)) {
                 if (checkAccessCount(crawlerContext)) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Storing accessResult: " + accessResult);
+                    }
                     // store
                     CrawlingParameterUtil.getDataService().store(accessResult);
 
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Storing child urls: " + resultData.getChildUrlSet());
+                    }
                     // add and filter urls
                     storeChildUrls(crawlerContext, resultData.getChildUrlSet(),
                             urlQueue.getUrl(), urlQueue.getDepth() == null ? 1

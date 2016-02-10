@@ -48,7 +48,9 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     protected LoadingCache<String, List<Pattern>> excludeFilterCache;
 
-    protected int filterCacheExpireAfterWrite = 5; // 5sec
+    protected int filterCacheExpireAfterWrite = 10; // 10sec
+
+    protected int maxLoadSize = 1000000;
 
     @PostConstruct
     public void init() {
@@ -64,8 +66,9 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
         return CacheBuilder.newBuilder()//
                 .expireAfterWrite(filterCacheExpireAfterWrite, TimeUnit.SECONDS)//
                 .build(new CacheLoader<String, List<Pattern>>() {
+
                     public List<Pattern> load(String key) {
-                        return getList(EsUrlFilter.class, key, QueryBuilders.termQuery(FILTER_TYPE, type), null, null, null).stream()
+                        return getList(EsUrlFilter.class, key, QueryBuilders.termQuery(FILTER_TYPE, type), null, maxLoadSize, null).stream()
                                 .map(f -> Pattern.compile(f.getUrl())).collect(Collectors.toList());
                     }
                 });
@@ -149,6 +152,10 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     public void setFilterCacheExpireAfterWrite(int filterCacheExpireAfterWrite) {
         this.filterCacheExpireAfterWrite = filterCacheExpireAfterWrite;
+    }
+
+    public void setMaxLoadSize(int maxLoadSize) {
+        this.maxLoadSize = maxLoadSize;
     }
 
 }

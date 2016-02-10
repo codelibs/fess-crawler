@@ -50,7 +50,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     protected int filterCacheExpireAfterWrite = 10; // 10sec
 
-    protected int maxLoadSize = 1000000;
+    protected int maxLoadSize = 10000;
 
     @PostConstruct
     public void init() {

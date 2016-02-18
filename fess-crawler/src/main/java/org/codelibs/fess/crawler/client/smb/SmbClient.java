@@ -68,6 +68,8 @@ public class SmbClient extends AbstractCrawlerClient {
 
     public static final String SMB_ACCESS_CONTROL_ENTRIES = "smbAccessControlEntries";
 
+    public static final String SMB_CREATE_TIME = "smbCreateTime";;
+
     public static final String SMB_OWNER_ATTRIBUTES = "smbOwnerAttributes";
 
     @Resource
@@ -175,8 +177,8 @@ public class SmbClient extends AbstractCrawlerClient {
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(geCharSet(file));
-                responseData.setCreateTime(new Date(file.createTime()));
                 responseData.setLastModified(new Date(file.lastModified()));
+                responseData.addMetaData(SMB_CREATE_TIME, new Date(file.createTime()));
                 try {
                     SID ownerUser = file.getOwnerUser();
                     if (ownerUser != null) {

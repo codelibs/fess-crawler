@@ -57,8 +57,6 @@ public class ResponseData implements Closeable {
 
     private long executionTime;
 
-    private Date createTime;
-
     private Date lastModified;
 
     private String redirectLocation;
@@ -187,14 +185,6 @@ public class ResponseData implements Closeable {
 
     public void setRedirectLocation(final String redirectLocation) {
         this.redirectLocation = redirectLocation;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(final Date createTime) {
-        this.createTime = createTime;
     }
 
     public Date getLastModified() {

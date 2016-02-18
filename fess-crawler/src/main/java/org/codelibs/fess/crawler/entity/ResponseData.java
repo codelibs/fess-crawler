@@ -31,6 +31,8 @@ import java.util.Set;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.fess.crawler.Constants;
 
+import jcifs.smb.SID;
+
 /**
  * @author shinsuke
  *
@@ -57,11 +59,15 @@ public class ResponseData implements Closeable {
 
     private long executionTime;
 
+    private Date createTime;
+
     private Date lastModified;
 
     private String redirectLocation;
 
     private int status = Constants.OK_STATUS;
+
+    private SID owner;
 
     private final Map<String, Object> metaDataMap = new LinkedHashMap<String, Object>();
 
@@ -187,6 +193,14 @@ public class ResponseData implements Closeable {
         this.redirectLocation = redirectLocation;
     }
 
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(final Date createTime) {
+        this.createTime = createTime;
+    }
+
     public Date getLastModified() {
         return lastModified;
     }
@@ -221,6 +235,14 @@ public class ResponseData implements Closeable {
 
     public Set<RequestData> getChildUrlSet() {
         return childUrlSet;
+    }
+
+    public SID getOwner() {
+        return owner;
+    }
+
+    public void setOwner(SID owner) {
+        this.owner = owner;
     }
 
     public RequestData getRequestData() {

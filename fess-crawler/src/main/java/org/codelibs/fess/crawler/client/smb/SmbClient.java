@@ -172,7 +172,13 @@ public class SmbClient extends AbstractCrawlerClient {
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(geCharSet(file));
+                responseData.setCreateTime(new Date(file.createTime()));
                 responseData.setLastModified(new Date(file.lastModified()));
+                try {
+                    responseData.setOwner(file.getOwnerUser());
+                } catch (IOException e) {
+                    logger.warn("Cannot get owner of the file: " + filePath);
+                }
 
                 processAccessControlEntries(responseData, file);
                 final Map<String, List<String>> headerFieldMap = file

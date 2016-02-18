@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jcifs.smb.ACE;
+import jcifs.smb.SID;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
@@ -66,6 +67,8 @@ public class SmbClient extends AbstractCrawlerClient {
     public static final String SMB_AUTHENTICATIONS_PROPERTY = "smbAuthentications";
 
     public static final String SMB_ACCESS_CONTROL_ENTRIES = "smbAccessControlEntries";
+
+    public static final String SMB_OWNER_ATTRIBUTES = "smbOwnerAttributes";
 
     @Resource
     protected CrawlerContainer crawlerContainer;
@@ -175,7 +178,11 @@ public class SmbClient extends AbstractCrawlerClient {
                 responseData.setCreateTime(new Date(file.createTime()));
                 responseData.setLastModified(new Date(file.lastModified()));
                 try {
-                    responseData.setOwner(file.getOwnerUser());
+                    SID ownerUser = file.getOwnerUser();
+                    if (ownerUser != null) {
+                        String[] ownerAttributes = {ownerUser.getAccountName(), ownerUser.getDomainName()};
+                        responseData.addMetaData(SMB_OWNER_ATTRIBUTES, ownerAttributes);
+                    }
                 } catch (IOException e) {
                     logger.warn("Cannot get owner of the file: " + filePath);
                 }

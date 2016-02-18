@@ -31,8 +31,6 @@ import java.util.Set;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.fess.crawler.Constants;
 
-import jcifs.smb.SID;
-
 /**
  * @author shinsuke
  *
@@ -66,8 +64,6 @@ public class ResponseData implements Closeable {
     private String redirectLocation;
 
     private int status = Constants.OK_STATUS;
-
-    private SID owner;
 
     private final Map<String, Object> metaDataMap = new LinkedHashMap<String, Object>();
 
@@ -235,14 +231,6 @@ public class ResponseData implements Closeable {
 
     public Set<RequestData> getChildUrlSet() {
         return childUrlSet;
-    }
-
-    public SID getOwner() {
-        return owner;
-    }
-
-    public void setOwner(SID owner) {
-        this.owner = owner;
     }
 
     public RequestData getRequestData() {

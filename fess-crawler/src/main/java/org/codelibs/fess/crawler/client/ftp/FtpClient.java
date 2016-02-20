@@ -267,7 +267,7 @@ public class FtpClient extends AbstractCrawlerClient {
                                 responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
                             }
                         } else {
-                            outputFile = File.createTempFile("s2robot-FileSystemClient-", ".out");
+                            outputFile = File.createTempFile("crawler-FileSystemClient-", ".out");
                             CopyUtil.copy(tempFile, outputFile);
                             responseData.setResponseBody(outputFile, true);
                         }

@@ -99,8 +99,6 @@ import org.slf4j.LoggerFactory;
  */
 public class HcHttpClient extends AbstractCrawlerClient {
 
-    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
-
     public static final String ACCESS_TIMEOUT_PROPERTY = "accessTimeout";
 
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";

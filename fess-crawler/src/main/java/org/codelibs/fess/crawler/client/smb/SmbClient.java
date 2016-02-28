@@ -31,7 +31,6 @@ import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -89,6 +88,10 @@ public class SmbClient extends AbstractCrawlerClient {
             return;
         }
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Initializing SmbClient...");
+        }
+
         // user agent
         final SmbAuthentication[] smbAuthentications = getInitParameter(
                 SMB_AUTHENTICATIONS_PROPERTY, new SmbAuthentication[0]);
@@ -130,6 +133,9 @@ public class SmbClient extends AbstractCrawlerClient {
         SmbFile file = null;
         final SmbAuthentication smbAuthentication = smbAuthenticationHolder
                 .get(filePath);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating SmbFile: " + filePath);
+        }
         try {
             if (smbAuthentication == null) {
                 file = new SmbFile(filePath);
@@ -141,27 +147,19 @@ public class SmbClient extends AbstractCrawlerClient {
             logger.warn("Could not parse url: " + filePath, e);
         }
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Processing SmbFile: " + filePath);
+        }
+
         try {
             if (file == null) {
                 responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
             } else if (file.isFile()) {
-                final MimeTypeHelper mimeTypeHelper = crawlerContainer
-                        .getComponent("mimeTypeHelper");
-                InputStream is = null;
-                try {
-                    is = new SmbFileInputStream(file);
-                    responseData.setMimeType(mimeTypeHelper.getContentType(is,
-                            file.getName()));
-                } catch (final Exception e) {
-                    responseData.setMimeType(mimeTypeHelper.getContentType(
-                            null, file.getName()));
-                } finally {
-                    IOUtils.closeQuietly(is);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Checking SmbFile Size: " + filePath);
                 }
-
-                // check file size
                 responseData.setContentLength(file.length());
                 if (contentLengthHelper != null) {
                     final long maxLength = contentLengthHelper
@@ -180,6 +178,9 @@ public class SmbClient extends AbstractCrawlerClient {
                 responseData.setLastModified(new Date(file.lastModified()));
                 responseData.addMetaData(SMB_CREATE_TIME, new Date(file.createTime()));
                 try {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Parsing SmbFile Owner: " + filePath);
+                    }
                     SID ownerUser = file.getOwnerUser();
                     if (ownerUser != null) {
                         String[] ownerAttributes = {ownerUser.getAccountName(), ownerUser.getDomainName()};
@@ -189,6 +190,9 @@ public class SmbClient extends AbstractCrawlerClient {
                     logger.warn("Cannot get owner of the file: " + filePath);
                 }
 
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Parsing SmbFile ACL: " + filePath);
+                }
                 processAccessControlEntries(responseData, file);
                 final Map<String, List<String>> headerFieldMap = file
                         .getHeaderFields();
@@ -201,7 +205,11 @@ public class SmbClient extends AbstractCrawlerClient {
                 }
 
                 if (file.canRead()) {
+                    final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
                     if (includeContent) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Parsing SmbFile Content: " + filePath);
+                        }
                         if (file.getContentLength() < maxCachedContentSize) {
                             try (InputStream contentStream = new BufferedInputStream(new SmbFileInputStream(file))) {
                                 responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
@@ -223,14 +231,34 @@ public class SmbClient extends AbstractCrawlerClient {
                                 }
                             }
                         }
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Parsing SmbFile MIME Type: " + filePath);
+                        }
+                        try (final InputStream is = responseData.getResponseBody()) {
+                            responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
+                        } catch (final Exception e) {
+                            responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
+                        }
+                    } else {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Parsing SmbFile MIME Type: " + filePath);
+                        }
+                        try (final InputStream is = new SmbFileInputStream(file)) {
+                            responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
+                        } catch (final Exception e) {
+                            responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
+                        }
                     }
                 } else {
                     // Forbidden
-                    responseData
-                            .setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
+                    responseData.setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
+                    responseData.setMimeType(APPLICATION_OCTET_STREAM);
                 }
             } else if (file.isDirectory()) {
-                final Set<RequestData> requestDataSet = new HashSet<>();
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Parsing SmbFile Directory: " + filePath);
+                }
+                final Set<RequestData> requestDataSet = new HashSet<>(100);
                 if (includeContent) {
                     final SmbFile[] files = file.listFiles();
                     if (files != null) {

@@ -32,6 +32,8 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     private static final Logger logger = LoggerFactory
             .getLogger(AbstractCrawlerClient.class);
 
+    protected static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
+
     private Map<String, Object> initParamMap;
 
     protected long maxCachedContentSize = 1024 * 1024 * 10;//10mb

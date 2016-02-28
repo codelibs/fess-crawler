@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.entity.UrlQueue;
+import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.transformer.Transformer;
@@ -126,46 +127,51 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 .getCrawlerContext();
         final UrlQueueService<UrlQueue<?>> urlQueueService = CrawlingParameterUtil
                 .getUrlQueueService();
-        synchronized (crawlerContext.getAccessCountLock()) {
-            if (!urlQueueService.visited(urlQueue)) {
-                if (checkAccessCount(crawlerContext)) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Storing accessResult: " + accessResult);
-                    }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Processing accessResult: " + accessResult);
+        }
+        if (!urlQueueService.visited(urlQueue)) {
+            if (checkAccessCount(crawlerContext)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Storing accessResult: " + accessResult);
+                }
+                try {
                     // store
                     CrawlingParameterUtil.getDataService().store(accessResult);
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Storing child urls: " + resultData.getChildUrlSet());
+                } catch (RuntimeException e) {
+                    crawlerContext.decrementAndGetAccessCount();
+                    if (urlQueueService.visited(urlQueue)) {
+                        // document already exists
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(urlQueue.getUrl() + " exists.", e);
+                        }
+                        return;
                     }
-                    // add and filter urls
-                    storeChildUrls(crawlerContext, resultData.getChildUrlSet(),
-                            urlQueue.getUrl(), urlQueue.getDepth() == null ? 1
-                                    : urlQueue.getDepth() + 1,
-                            resultData.getEncoding());
-
-                    // count up
-                    if (crawlerContext.getMaxAccessCount() > 0) {
-                        crawlerContext.setAccessCount(crawlerContext
-                                .getAccessCount() + 1);
-                    }
-                } else if (crawlerContext.getMaxDepth() < 0
-                        || urlQueue.getDepth() <= crawlerContext.getMaxDepth()) {
-                    // cancel crawling
-                    final List<UrlQueue<?>> newUrlQueueList = new ArrayList< >();
-                    newUrlQueueList.add(urlQueue);
-                    urlQueueService.offerAll(crawlerContext.getSessionId(),
-                            newUrlQueueList);
+                    throw e;
                 }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Storing child urls: " + resultData.getChildUrlSet());
+                }
+                // add and filter urls
+                try {
+                    storeChildUrls(crawlerContext, resultData.getChildUrlSet(), urlQueue.getUrl(),
+                            urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1, resultData.getEncoding());
+                } catch (CrawlerSystemException e) {
+                    logger.warn("Failed to store urls at " + urlQueue.getUrl(), e);
+                }
+            } else if (crawlerContext.getMaxDepth() < 0 || urlQueue.getDepth() <= crawlerContext.getMaxDepth()) {
+                // cancel crawling
+                crawlerContext.decrementAndGetAccessCount();
+                final List<UrlQueue<?>> newUrlQueueList = new ArrayList<>();
+                newUrlQueueList.add(urlQueue);
+                urlQueueService.offerAll(crawlerContext.getSessionId(), newUrlQueueList);
             }
         }
-
     }
 
     private boolean checkAccessCount(final CrawlerContext crawlerContext) {
         if (crawlerContext.getMaxAccessCount() > 0) {
-            return crawlerContext.getAccessCount() < crawlerContext
-                    .getMaxAccessCount();
+            return crawlerContext.incrementAndGetAccessCount() <= crawlerContext.getMaxAccessCount();
         }
         return true;
     }

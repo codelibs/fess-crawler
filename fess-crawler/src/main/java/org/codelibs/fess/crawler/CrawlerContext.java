@@ -15,9 +15,13 @@
  */
 package org.codelibs.fess.crawler;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.codelibs.core.collection.LruHashMap;
 import org.codelibs.core.collection.LruHashSet;
+import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.rule.RuleManager;
@@ -33,9 +37,7 @@ public class CrawlerContext {
 
     protected Object activeThreadCountLock = new Object();
 
-    protected volatile Long accessCount = 0L;
-
-    protected Object accessCountLock = new Object();
+    protected AtomicLong accessCount = new AtomicLong(0);
 
     protected volatile boolean running = false;
 
@@ -76,12 +78,16 @@ public class CrawlerContext {
         this.activeThreadCount = activeThreadCount;
     }
 
-    public Long getAccessCount() {
-        return accessCount;
+    public long getAccessCount() {
+        return accessCount.get();
     }
 
-    public void setAccessCount(final Long accessCount) {
-        this.accessCount = accessCount;
+    public long incrementAndGetAccessCount() {
+        return this.accessCount.incrementAndGet();
+    }
+
+    public long decrementAndGetAccessCount() {
+        return this.accessCount.decrementAndGet();
     }
 
     public boolean isRunning() {
@@ -127,10 +133,6 @@ public class CrawlerContext {
 
     public Object getActiveThreadCountLock() {
         return activeThreadCountLock;
-    }
-
-    public Object getAccessCountLock() {
-        return accessCountLock;
     }
 
     public int getNumOfThread() {

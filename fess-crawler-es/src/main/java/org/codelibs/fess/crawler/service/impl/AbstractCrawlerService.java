@@ -247,11 +247,10 @@ public abstract class AbstractCrawlerService {
     }
 
     protected String buildFailureMessage(final BulkResponse bulkResponse, final boolean ignoreAlreadyExists) {
-        StringBuilder sb = new StringBuilder(100);
-        sb.append("failure in bulk execution:");
-        BulkItemResponse[] responses = bulkResponse.getItems();
+        final StringBuilder sb = new StringBuilder(100);
+        final BulkItemResponse[] responses = bulkResponse.getItems();
         for (int i = 0; i < responses.length; i++) {
-            BulkItemResponse response = responses[i];
+            final BulkItemResponse response = responses[i];
             if (response.isFailed()) {
                 if (ignoreAlreadyExists && response.getFailure().getCause() instanceof DocumentAlreadyExistsException) {
                     continue;
@@ -260,7 +259,10 @@ public abstract class AbstractCrawlerService {
                         .append("], id [").append(response.getId()).append("], message [").append(response.getFailureMessage()).append("]");
             }
         }
-        return sb.toString();
+        if (sb.length() > 0) {
+            return "failure in bulk execution:" + sb.toString();
+        }
+        return StringUtil.EMPTY;
     }
 
     protected <T> BulkResponse doInsertAll(final List<T> list, final OpType opType) {

@@ -49,6 +49,7 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.count.CountRequestBuilder;
@@ -64,6 +65,7 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.IndexNotFoundException;
+import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -211,6 +213,10 @@ public abstract class AbstractCrawlerService {
     }
 
     protected <T> void insertAll(final List<T> list, final OpType opType) {
+        insertAll(list, opType, false);
+    }
+
+    protected <T> void insertAll(final List<T> list, final OpType opType, final boolean ignoreAlreadyExists) {
         final List<T> bufferedList = new ArrayList<>(bulkBufferSize);
         final StringBuilder failureBuf = new StringBuilder(100);
         list.stream().forEach(target -> {
@@ -218,7 +224,10 @@ public abstract class AbstractCrawlerService {
             if (bufferedList.size() >= bulkBufferSize) {
                 final BulkResponse response = doInsertAll(bufferedList, opType);
                 if (response.hasFailures()) {
-                    failureBuf.append( response.buildFailureMessage()).append('\n');
+                    final String failureMessage = buildFailureMessage(response, ignoreAlreadyExists);
+                    if (failureMessage.length() > 0) {
+                        failureBuf.append(response.buildFailureMessage()).append('\n');
+                    }
                 }
                 bufferedList.clear();
             }
@@ -226,12 +235,32 @@ public abstract class AbstractCrawlerService {
         if (!bufferedList.isEmpty()) {
             final BulkResponse response = doInsertAll(bufferedList, opType);
             if (response.hasFailures()) {
-                failureBuf.append(response.buildFailureMessage()).append('\n');
+                final String failureMessage = buildFailureMessage(response, ignoreAlreadyExists);
+                if (failureMessage.length() > 0) {
+                    failureBuf.append(response.buildFailureMessage()).append('\n');
+                }
             }
         }
         if (failureBuf.length() > 0) {
             throw new EsAccessException(failureBuf.toString());
         }
+    }
+
+    protected String buildFailureMessage(final BulkResponse bulkResponse, final boolean ignoreAlreadyExists) {
+        StringBuilder sb = new StringBuilder(100);
+        sb.append("failure in bulk execution:");
+        BulkItemResponse[] responses = bulkResponse.getItems();
+        for (int i = 0; i < responses.length; i++) {
+            BulkItemResponse response = responses[i];
+            if (response.isFailed()) {
+                if (ignoreAlreadyExists && response.getFailure().getCause() instanceof DocumentAlreadyExistsException) {
+                    continue;
+                }
+                sb.append("\n[").append(i).append("]: index [").append(response.getIndex()).append("], type [").append(response.getType())
+                        .append("], id [").append(response.getId()).append("], message [").append(response.getFailureMessage()).append("]");
+            }
+        }
+        return sb.toString();
     }
 
     protected <T> BulkResponse doInsertAll(final List<T> list, final OpType opType) {

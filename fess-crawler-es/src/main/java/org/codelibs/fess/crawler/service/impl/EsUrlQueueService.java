@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.entity.EsUrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.UrlQueueService;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
@@ -57,7 +58,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     protected Queue<EsUrlQueue> urlQueueCache = new ConcurrentLinkedQueue<>();
 
-    public int pollingFetchSize = 100;
+    public int pollingFetchSize = 1000;
 
     public int maxCrawlingQueueSize = 100;
 
@@ -144,7 +145,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         if (!targetList.isEmpty()) {
             insertAll(targetList.stream()
                     .filter(urlQueue -> StringUtil.isNotBlank(urlQueue.getSessionId()) && StringUtil.isNotBlank(urlQueue.getUrl()))
-                    .collect(Collectors.toList()), OpType.CREATE);
+                    .collect(Collectors.toList()), OpType.CREATE, true);
             if (logger.isDebugEnabled()) {
                 logger.debug("Offered URL: Session ID: {}, UrlQueue: {}", sessionId, targetList);
             }

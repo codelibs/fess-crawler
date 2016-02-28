@@ -153,12 +153,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     logger.debug("Storing child urls: " + resultData.getChildUrlSet());
                 }
                 // add and filter urls
-                try {
-                    storeChildUrls(crawlerContext, resultData.getChildUrlSet(), urlQueue.getUrl(),
-                            urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1, resultData.getEncoding());
-                } catch (CrawlerSystemException e) {
-                    logger.warn("Failed to store urls at " + urlQueue.getUrl(), e);
-                }
+                storeChildUrls(crawlerContext, resultData.getChildUrlSet(), urlQueue.getUrl(),
+                        urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1, resultData.getEncoding());
             } else if (crawlerContext.getMaxDepth() < 0 || urlQueue.getDepth() <= crawlerContext.getMaxDepth()) {
                 // cancel crawling
                 crawlerContext.decrementAndGetAccessCount();

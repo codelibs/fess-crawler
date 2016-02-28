@@ -89,8 +89,8 @@ public class CrawlerThread implements Runnable {
 
         boolean isContinue = false;
         if (tcCount < crawlerContext.maxThreadCheckCount) {
-            if (crawlerContext.maxAccessCount > 0
-                    && crawlerContext.accessCount >= crawlerContext.maxAccessCount) {
+            final long maxAccessCount = crawlerContext.getMaxAccessCount();
+            if (maxAccessCount > 0 && crawlerContext.getAccessCount() >= maxAccessCount) {
                 return false;
             }
             isContinue = true;
@@ -178,14 +178,8 @@ public class CrawlerThread implements Runnable {
                                 log(logHelper, LogType.REDIRECT_LOCATION,
                                         crawlerContext, urlQueue, responseData);
                                 // redirect
-                                synchronized (crawlerContext.accessCountLock) {
-                                    // add an url
-                                    storeChildUrl(
-                                            responseData.getRedirectLocation(),
-                                            urlQueue.getUrl(), null,
-                                            urlQueue.getDepth() == null ? 1
-                                                    : urlQueue.getDepth() + 1);
-                                }
+                                storeChildUrl(responseData.getRedirectLocation(), urlQueue.getUrl(), null,
+                                        urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                             }
                         }
 
@@ -198,12 +192,8 @@ public class CrawlerThread implements Runnable {
                             log(logHelper,
                                     LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
                                     crawlerContext, urlQueue, childUrlSet);
-                            synchronized (crawlerContext.accessCountLock) {
-                                // add an url
-                                storeChildUrls(childUrlSet, urlQueue.getUrl(),
-                                        urlQueue.getDepth() == null ? 1
-                                                : urlQueue.getDepth() + 1);
-                            }
+                            // add an url
+                            storeChildUrls(childUrlSet, urlQueue.getUrl(), urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                         } catch (final Exception e1) {
                             log(logHelper, LogType.CRAWLING_EXCETPION,
                                     crawlerContext, urlQueue, e1);

@@ -42,19 +42,20 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.client.EsClient;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.util.EsResultList;
 import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -184,37 +185,56 @@ public abstract class AbstractCrawlerService {
         try {
             return jsonBuilder().value(target);
         } catch (final IOException e) {
-            throw new CrawlerSystemException("Failed to convert " + target + " to JSON.", e);
+            throw new EsAccessException("Failed to convert " + target + " to JSON.", e);
         }
     }
 
-    protected void refresh() {
-        getClient().admin().indices().prepareRefresh(index).execute().actionGet();
+    protected RefreshResponse refresh() {
+        try {
+            return getClient().admin().indices().prepareRefresh(index).execute().actionGet();
+        } catch (Exception e) {
+            throw new EsAccessException("Failed to refresh.", e);
+        }
     }
 
-    protected void insert(final Object target, final OpType opType) {
+    protected IndexResponse insert(final Object target, final OpType opType) {
         final String id = getId(getSessionId(target), getUrl(target));
         final XContentBuilder source = getXContentBuilder(target);
-        getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setConsistencyLevel(writeConsistencyLevel)
-                .setRefresh(true).execute().actionGet();
-        setId(target, id);
+        try {
+            final IndexResponse response = getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setConsistencyLevel(writeConsistencyLevel)
+                    .setRefresh(true).execute().actionGet();
+            setId(target, id);
+            return response;
+        } catch (Exception e) {
+            throw new EsAccessException("Failed to insert " + id, e);
+        }
     }
 
     protected <T> void insertAll(final List<T> list, final OpType opType) {
         final List<T> bufferedList = new ArrayList<>(bulkBufferSize);
+        final StringBuilder failureBuf = new StringBuilder(100);
         list.stream().forEach(target -> {
             bufferedList.add(target);
             if (bufferedList.size() >= bulkBufferSize) {
-                doInsertAll(bufferedList, opType);
+                final BulkResponse response = doInsertAll(bufferedList, opType);
+                if (response.hasFailures()) {
+                    failureBuf.append( response.buildFailureMessage()).append('\n');
+                }
                 bufferedList.clear();
             }
         });
         if (!bufferedList.isEmpty()) {
-            doInsertAll(bufferedList, opType);
+            final BulkResponse response = doInsertAll(bufferedList, opType);
+            if (response.hasFailures()) {
+                failureBuf.append(response.buildFailureMessage()).append('\n');
+            }
+        }
+        if (failureBuf.length() > 0) {
+            throw new EsAccessException(failureBuf.toString());
         }
     }
 
-    protected <T> void doInsertAll(final List<T> list, final OpType opType) {
+    protected <T> BulkResponse doInsertAll(final List<T> list, final OpType opType) {
         final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
         for (final T target : list) {
             final String id = getId(getSessionId(target), getUrl(target));
@@ -223,16 +243,21 @@ public abstract class AbstractCrawlerService {
                     .setConsistencyLevel(writeConsistencyLevel));
             setId(target, id);
         }
-        final BulkResponse bulkResponse = bulkRequest.setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute().actionGet();
-        if (bulkResponse.hasFailures()) {
-            throw new EsAccessException(bulkResponse.buildFailureMessage());
+        try {
+            return bulkRequest.setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute().actionGet();
+        } catch (Exception e) {
+            throw new EsAccessException("Failed to insert " + list, e);
         }
     }
 
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
-        final GetResponse response = getClient().prepareGet(index, type, id).setRefresh(true).execute().actionGet();
-        return response.isExists();
+        try {
+            final GetResponse response = getClient().prepareGet(index, type, id).setRefresh(true).execute().actionGet();
+            return response.isExists();
+        } catch (Exception e) {
+            throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);
+        }
     }
 
     public int getCount(final Consumer<CountRequestBuilder> callback) {
@@ -326,9 +351,13 @@ public abstract class AbstractCrawlerService {
 
     protected boolean delete(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
-        final DeleteResponse response = getClient().prepareDelete(index, type, id).setConsistencyLevel(writeConsistencyLevel)
-                .setRefresh(true).execute().actionGet();
-        return response.isFound();
+        try {
+            final DeleteResponse response = getClient().prepareDelete(index, type, id).setConsistencyLevel(writeConsistencyLevel)
+                    .setRefresh(true).execute().actionGet();
+            return response.isFound();
+        } catch (Exception e) {
+            throw new EsAccessException("Failed to delete " + sessionId + ":" + url, e);
+        }
     }
 
     protected void deleteBySessionId(final String sessionId) {

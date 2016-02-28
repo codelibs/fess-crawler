@@ -32,7 +32,7 @@ public class ChildUrlsException extends CrawlerSystemException {
     private final Set<RequestData> childUrlList;
 
     public ChildUrlsException(final Set<RequestData> childUrlList) {
-        super("Threw child urls(" + childUrlList.size() + ").");
+        super("Threw child urls(" + childUrlList.size() + ").", false, false);
         this.childUrlList = childUrlList;
     }
 

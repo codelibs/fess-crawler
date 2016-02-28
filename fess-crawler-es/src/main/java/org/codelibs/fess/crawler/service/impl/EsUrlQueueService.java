@@ -32,7 +32,6 @@ import org.codelibs.fess.crawler.entity.EsUrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.UrlQueueService;
-import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
@@ -176,25 +175,19 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                 }
                 urlQueueCache.addAll(urlQueueList);
 
-                // delete from es
-                final BulkRequestBuilder bulkBuilder = getClient().prepareBulk();
-                for (final EsUrlQueue uq : urlQueueList) {
-                    bulkBuilder.add(getClient().prepareDelete(index, type, uq.getId()));
+                try {
+                    // delete from es
+                    final BulkRequestBuilder bulkBuilder = getClient().prepareBulk();
+                    for (final EsUrlQueue uq : urlQueueList) {
+                        bulkBuilder.add(getClient().prepareDelete(index, type, uq.getId()));
+                    }
+                    BulkResponse response = bulkBuilder.setRefresh(true).execute().actionGet();
+                    if (response.hasFailures()) {
+                        logger.warn(response.buildFailureMessage());
+                    }
+                } catch (Exception e) {
+                    throw new EsAccessException("Failed to delete " + urlQueueList, e);
                 }
-                bulkBuilder.execute(new ActionListener<BulkResponse>() {
-
-                    @Override
-                    public void onResponse(BulkResponse response) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Deleted: " + urlQueueList);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Throwable e) {
-                        logger.warn("Failed to delete " + urlQueueList, e);
-                    }
-                });
 
                 urlQueue = urlQueueCache.poll();
                 if (urlQueue == null) {
@@ -203,6 +196,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             }
 
         }
+
         if (crawlingUrlQueue.size() > maxCrawlingQueueSize) {
             crawlingUrlQueue.poll();
         }

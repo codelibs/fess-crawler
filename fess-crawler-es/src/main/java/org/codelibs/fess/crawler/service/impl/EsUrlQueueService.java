@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.codelibs.core.lang.StringUtil;
@@ -31,6 +32,7 @@ import org.codelibs.fess.crawler.entity.EsUrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.UrlQueueService;
+import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
@@ -54,7 +56,9 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     protected Queue<UrlQueue<String>> crawlingUrlQueue = new ConcurrentLinkedQueue<>();
 
-    public int pollingFetchSize = 20;
+    protected Queue<EsUrlQueue> urlQueueCache = new ConcurrentLinkedQueue<>();
+
+    public int pollingFetchSize = 100;
 
     public int maxCrawlingQueueSize = 100;
 
@@ -63,6 +67,15 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         esClient.addOnConnectListener(() -> {
             createMapping("queue");
         });
+    }
+
+    @PreDestroy
+    public void destroy() {
+        try {
+            urlQueueCache.forEach(urlQueue -> insert(urlQueue));
+        } catch (Exception e) {
+            logger.warn("Failed to restore " + urlQueueCache, e);
+        }
     }
 
     @Override
@@ -141,27 +154,60 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     @Override
     public EsUrlQueue poll(final String sessionId) {
-        final List<EsUrlQueue> urlQueueList =
-                getList(EsUrlQueue.class, sessionId, null, 0, pollingFetchSize, SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
-        if (urlQueueList.isEmpty()) {
-            return null;
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Queued URL: {}", urlQueueList);
-        }
-        for (final EsUrlQueue urlQueue : urlQueueList) {
-            final String url = urlQueue.getUrl();
+        EsUrlQueue urlQueue = urlQueueCache.poll();
+        if (urlQueue != null) {
             if (crawlingUrlQueue.size() > maxCrawlingQueueSize) {
                 crawlingUrlQueue.poll();
             }
-            if (super.delete(sessionId, url)) {
-                crawlingUrlQueue.add(urlQueue);
-                return urlQueue;
-            } else if (logger.isDebugEnabled()) {
-                logger.debug("Already Deleted: {}", urlQueue);
-            }
+            crawlingUrlQueue.add(urlQueue);
+            return urlQueue;
         }
-        return null;
+
+        synchronized (this) {
+            urlQueue = urlQueueCache.poll();
+            if (urlQueue == null) {
+                final List<EsUrlQueue> urlQueueList = getList(EsUrlQueue.class, sessionId, null, 0, pollingFetchSize,
+                        SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
+                if (urlQueueList.isEmpty()) {
+                    return null;
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Queued URL: {}", urlQueueList);
+                }
+                urlQueueCache.addAll(urlQueueList);
+
+                // delete from es
+                final BulkRequestBuilder bulkBuilder = getClient().prepareBulk();
+                for (final EsUrlQueue uq : urlQueueList) {
+                    bulkBuilder.add(getClient().prepareDelete(index, type, uq.getId()));
+                }
+                bulkBuilder.execute(new ActionListener<BulkResponse>() {
+
+                    @Override
+                    public void onResponse(BulkResponse response) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Deleted: " + urlQueueList);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable e) {
+                        logger.warn("Failed to delete " + urlQueueList, e);
+                    }
+                });
+
+                urlQueue = urlQueueCache.poll();
+                if (urlQueue == null) {
+                    return null;
+                }
+            }
+
+        }
+        if (crawlingUrlQueue.size() > maxCrawlingQueueSize) {
+            crawlingUrlQueue.poll();
+        }
+        crawlingUrlQueue.add(urlQueue);
+        return urlQueue;
     }
 
     @Override
@@ -197,6 +243,11 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         final boolean ret = super.exists(sessionId, url);
         if (!ret) {
             for (final UrlQueue<String> urlQueue : crawlingUrlQueue) {
+                if (sessionId.equals(urlQueue.getSessionId()) && url.equals(urlQueue.getUrl())) {
+                    return true;
+                }
+            }
+            for (final UrlQueue<String> urlQueue : urlQueueCache) {
                 if (sessionId.equals(urlQueue.getSessionId()) && url.equals(urlQueue.getUrl())) {
                     return true;
                 }

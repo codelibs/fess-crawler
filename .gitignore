@@ -11,3 +11,5 @@
 /fess-crawler*/dbflute_crawler/schema/project-schema-robot.xml
 /fess-crawler/phantomjsdriver.log
 .project
+.idea
+*.iml

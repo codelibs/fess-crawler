@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.entity.EsUrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.UrlQueueService;
+import org.codelibs.fess.crawler.util.ActionGetUtil;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
@@ -68,12 +69,12 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
         SearchResponse response =
-                getClient().prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout))
-                        .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
-                        .execute().actionGet();
+            ActionGetUtil.actionGet(getClient().prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout))
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
+                .execute());
         while (true) {
             response =
-                    getClient().prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute().actionGet();
+                ActionGetUtil.actionGet(getClient().prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute());
 
             final SearchHits searchHits = response.getHits();
             if (searchHits.hits().length == 0) {
@@ -86,7 +87,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                         getClient().prepareUpdate(index, type, searchHit.getId()).setDoc(SESSION_ID, newSessionId);
                 builder.add(updateRequest);
             }
-            final BulkResponse bulkResponse = builder.execute().actionGet();
+            final BulkResponse bulkResponse = ActionGetUtil.actionGet(builder.execute());
             if (bulkResponse.hasFailures()) {
                 throw new EsAccessException(bulkResponse.buildFailureMessage());
             }

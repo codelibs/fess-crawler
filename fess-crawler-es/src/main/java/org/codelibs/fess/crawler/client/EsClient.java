@@ -25,6 +25,7 @@ import javax.annotation.PreDestroy;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.EsAccessException;
+import org.codelibs.fess.crawler.util.ActionGetUtil;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionFuture;
@@ -181,7 +182,7 @@ public class EsClient implements Client {
         });
 
         final ClusterHealthResponse healthResponse =
-                client.admin().cluster().prepareHealth().setWaitForYellowStatus().execute().actionGet();
+            ActionGetUtil.actionGet(client.admin().cluster().prepareHealth().setWaitForYellowStatus().execute());
         if (!healthResponse.isTimedOut()) {
             onConnectListenerList.forEach(l -> {
                 try {
@@ -661,10 +662,10 @@ public class EsClient implements Client {
         while (scrolling) {
             final SearchResponse scrollResponse;
             if (scrollId == null) {
-                scrollResponse = client.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete)
-                        .setQuery(queryBuilder).execute().actionGet();
+                scrollResponse = ActionGetUtil.actionGet(client.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete)
+                        .setQuery(queryBuilder).execute());
             } else {
-                scrollResponse = client.prepareSearchScroll(scrollId).setScroll(scrollForDelete).execute().actionGet();
+                scrollResponse = ActionGetUtil.actionGet(client.prepareSearchScroll(scrollId).setScroll(scrollForDelete).execute());
             }
             final SearchHit[] hits = scrollResponse.getHits().getHits();
             if (hits.length == 0) {
@@ -679,7 +680,7 @@ public class EsClient implements Client {
                 bulkRequest.add(client.prepareDelete(hit.getIndex(), hit.getType(), hit.getId()));
             }
             count += hits.length;
-            final BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+            final BulkResponse bulkResponse = ActionGetUtil.actionGet(bulkRequest.execute());
             if (bulkResponse.hasFailures()) {
                 throw new EsAccessException(bulkResponse.buildFailureMessage());
             }

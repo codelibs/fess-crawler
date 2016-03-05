@@ -26,7 +26,6 @@ import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
-import org.codelibs.fess.crawler.util.ActionGetUtil;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -86,13 +85,13 @@ public class EsDataService extends AbstractCrawlerService implements DataService
 
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<EsAccessResult> callback) {
-        SearchResponse response =
-            ActionGetUtil.actionGet(getClient().prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout))
-                        .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId))).setSize(scrollSize)
-                        .execute());
+        SearchResponse response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN)
+                .setScroll(new TimeValue(scrollTimeout))
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId))).setSize(scrollSize).execute());
         while (true) {
-            response =
-                    ActionGetUtil.actionGet(getClient().prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute());
+            final SearchResponse prevResponse = response;
+            response = getClient()
+                    .get(c -> c.prepareSearchScroll(prevResponse.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute());
 
             final SearchHits searchHits = response.getHits();
             if (searchHits.hits().length == 0) {

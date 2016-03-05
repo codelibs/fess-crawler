@@ -177,10 +177,10 @@ public class CrawlerTest extends LastaDiTestCase {
 
             UrlQueue urlQueue;
             while ((urlQueue = urlQueueService.poll(sessionId1)) != null) {
-                assertTrue(urlQueue.getUrl().startsWith(url1));
+                assertTrue(urlQueue.getUrl() + "=>" + url1, urlQueue.getUrl().startsWith(url1));
             }
             while ((urlQueue = urlQueueService.poll(sessionId2)) != null) {
-                assertTrue(urlQueue.getUrl().startsWith(url2));
+                assertTrue(urlQueue.getUrl() + "=>" + url2, urlQueue.getUrl().startsWith(url2));
             }
 
             dataService.iterate(sessionId1, accessResult -> assertTrue(accessResult.getUrl().startsWith(url1)));

@@ -19,13 +19,14 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import javax.annotation.PreDestroy;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.EsAccessException;
-import org.codelibs.fess.crawler.util.ActionGetUtil;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionFuture;
@@ -33,6 +34,7 @@ import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -106,6 +108,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
@@ -130,9 +133,15 @@ public class EsClient implements Client {
 
     private volatile boolean connected;
 
-    protected final Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
+    protected Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
 
-    protected final int sizeForDelete = 10;
+    protected int sizeForDelete = 10;
+
+    protected long retryInterval = 60 * 1000;
+
+    protected int maxRetryCount = 10;
+
+    protected long connTimeout = 180 * 1000;
 
     public EsClient() {
         clusterName = System.getProperty(CLUSTER_NAME, "elasticsearch");
@@ -181,8 +190,7 @@ public class EsClient implements Client {
             logger.info("Connected to " + hostname + ":" + port);
         });
 
-        final ClusterHealthResponse healthResponse =
-            ActionGetUtil.actionGet(client.admin().cluster().prepareHealth().setWaitForYellowStatus().execute());
+        final ClusterHealthResponse healthResponse = get(c -> c.admin().cluster().prepareHealth().setWaitForYellowStatus().execute());
         if (!healthResponse.isTimedOut()) {
             onConnectListenerList.forEach(l -> {
                 try {
@@ -195,6 +203,35 @@ public class EsClient implements Client {
             connected = true;
         } else {
             logger.warn("Could not connect to " + clusterName + ":" + String.join(",", addresses));
+        }
+    }
+
+    public <T> T get(Function<EsClient, ListenableActionFuture<T>> func) {
+        int retryCount = 0;
+        while (true) {
+            try {
+                return func.apply(this).actionGet(connTimeout, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                if (e instanceof IndexNotFoundException) {
+                    logger.debug("IndexNotFoundException.");
+                    throw e;
+                }
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to actionGet. count:" + retryCount, e);
+                }
+                if (retryCount > maxRetryCount) {
+                    logger.info("Failed to actionGet. All retry failure.", e);
+                    throw e;
+                }
+
+                retryCount++;
+                try {
+                    Thread.sleep(retryInterval);
+                } catch (InterruptedException ie) {
+                    throw e;
+                }
+            }
         }
     }
 
@@ -662,10 +699,11 @@ public class EsClient implements Client {
         while (scrolling) {
             final SearchResponse scrollResponse;
             if (scrollId == null) {
-                scrollResponse = ActionGetUtil.actionGet(client.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete)
+                scrollResponse = get(c -> c.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete)
                         .setQuery(queryBuilder).execute());
             } else {
-                scrollResponse = ActionGetUtil.actionGet(client.prepareSearchScroll(scrollId).setScroll(scrollForDelete).execute());
+                final String sid = scrollId;
+                scrollResponse = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
             }
             final SearchHit[] hits = scrollResponse.getHits().getHits();
             if (hits.length == 0) {
@@ -675,12 +713,14 @@ public class EsClient implements Client {
 
             scrollId = scrollResponse.getScrollId();
 
-            final BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (final SearchHit hit : hits) {
-                bulkRequest.add(client.prepareDelete(hit.getIndex(), hit.getType(), hit.getId()));
-            }
             count += hits.length;
-            final BulkResponse bulkResponse = ActionGetUtil.actionGet(bulkRequest.execute());
+            final BulkResponse bulkResponse = get(c -> {
+                final BulkRequestBuilder bulkRequest = client.prepareBulk();
+                for (final SearchHit hit : hits) {
+                    bulkRequest.add(client.prepareDelete(hit.getIndex(), hit.getType(), hit.getId()));
+                }
+                return bulkRequest.execute();
+            });
             if (bulkResponse.hasFailures()) {
                 throw new EsAccessException(bulkResponse.buildFailureMessage());
             }
@@ -690,5 +730,25 @@ public class EsClient implements Client {
 
     public interface OnConnectListener {
         void onConnect();
+    }
+
+    public void setScrollForDelete(Scroll scrollForDelete) {
+        this.scrollForDelete = scrollForDelete;
+    }
+
+    public void setSizeForDelete(int sizeForDelete) {
+        this.sizeForDelete = sizeForDelete;
+    }
+
+    public void setRetryInterval(long retryInterval) {
+        this.retryInterval = retryInterval;
+    }
+
+    public void setMaxRetryCount(int maxRetryCount) {
+        this.maxRetryCount = maxRetryCount;
+    }
+
+    public void setConnTimeout(long connTimeout) {
+        this.connTimeout = connTimeout;
     }
 }

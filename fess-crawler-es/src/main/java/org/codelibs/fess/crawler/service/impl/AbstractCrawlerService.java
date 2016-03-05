@@ -43,7 +43,6 @@ import org.codelibs.fess.crawler.client.EsClient;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
 import org.codelibs.fess.crawler.exception.EsAccessException;
-import org.codelibs.fess.crawler.util.ActionGetUtil;
 import org.codelibs.fess.crawler.util.EsResultList;
 import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
@@ -130,14 +129,14 @@ public abstract class AbstractCrawlerService {
     protected void createMapping(final String mappingName) {
         boolean exists = false;
         try {
-            ActionGetUtil.actionGet(esClient.prepareExists(index).execute());
+            esClient.get(c -> c.prepareExists(index).execute());
             exists = true;
         } catch (final IndexNotFoundException e) {
             // ignore
         }
         if (!exists) {
             try {
-                final CreateIndexResponse indexResponse = ActionGetUtil.actionGet(esClient.admin().indices().prepareCreate(index).execute());
+                final CreateIndexResponse indexResponse = esClient.get(c -> c.admin().indices().prepareCreate(index).execute());
                 if (indexResponse.isAcknowledged()) {
                     logger.info("Created " + index + " index.");
                 } else if (logger.isDebugEnabled()) {
@@ -149,11 +148,11 @@ public abstract class AbstractCrawlerService {
         }
 
         final GetMappingsResponse getMappingsResponse =
-                ActionGetUtil.actionGet(esClient.admin().indices().prepareGetMappings(index).setTypes(type).execute());
+                esClient.get(c -> c.admin().indices().prepareGetMappings(index).setTypes(type).execute());
         final ImmutableOpenMap<String, MappingMetaData> indexMappings = getMappingsResponse.mappings().get(index);
         if (indexMappings == null || !indexMappings.containsKey(type)) {
-            final PutMappingResponse putMappingResponse = ActionGetUtil.actionGet(esClient.admin().indices().preparePutMapping(index).setType(type)
-                .setSource(FileUtil.readText("mapping/" + mappingName + ".json")).execute());
+            final PutMappingResponse putMappingResponse = esClient.get(c -> c.admin().indices().preparePutMapping(index).setType(type)
+                    .setSource(FileUtil.readText("mapping/" + mappingName + ".json")).execute());
             if (putMappingResponse.isAcknowledged()) {
                 logger.info("Created " + index + "/" + type + " mapping.");
             } else {
@@ -194,7 +193,7 @@ public abstract class AbstractCrawlerService {
 
     protected RefreshResponse refresh() {
         try {
-            return ActionGetUtil.actionGet(getClient().admin().indices().prepareRefresh(index).execute());
+            return getClient().get(c -> c.admin().indices().prepareRefresh(index).execute());
         } catch (Exception e) {
             throw new EsAccessException("Failed to refresh.", e);
         }
@@ -204,8 +203,8 @@ public abstract class AbstractCrawlerService {
         final String id = getId(getSessionId(target), getUrl(target));
         final XContentBuilder source = getXContentBuilder(target);
         try {
-            final IndexResponse response = ActionGetUtil.actionGet(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType).setConsistencyLevel(writeConsistencyLevel)
-                .setRefresh(true).execute());
+            final IndexResponse response = getClient().get(c -> c.prepareIndex(index, type, id).setSource(source).setOpType(opType)
+                    .setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute());
             setId(target, id);
             return response;
         } catch (Exception e) {
@@ -267,16 +266,19 @@ public abstract class AbstractCrawlerService {
     }
 
     protected <T> BulkResponse doInsertAll(final List<T> list, final OpType opType) {
-        final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
-        for (final T target : list) {
-            final String id = getId(getSessionId(target), getUrl(target));
-            final XContentBuilder source = getXContentBuilder(target);
-            bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType)
-                    .setConsistencyLevel(writeConsistencyLevel));
-            setId(target, id);
-        }
         try {
-            return ActionGetUtil.actionGet(bulkRequest.setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute());
+            return getClient().get(c -> {
+                final BulkRequestBuilder bulkRequest = c.prepareBulk();
+                for (final T target : list) {
+                    final String id = getId(getSessionId(target), getUrl(target));
+                    final XContentBuilder source = getXContentBuilder(target);
+                    bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType)
+                            .setConsistencyLevel(writeConsistencyLevel));
+                    setId(target, id);
+                }
+
+                return bulkRequest.setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute();
+            });
         } catch (Exception e) {
             throw new EsAccessException("Failed to insert " + list, e);
         }
@@ -285,7 +287,7 @@ public abstract class AbstractCrawlerService {
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final GetResponse response = ActionGetUtil.actionGet(getClient().prepareGet(index, type, id).setRefresh(true).execute());
+            final GetResponse response = getClient().get(c -> c.prepareGet(index, type, id).setRefresh(true).execute());
             return response.isExists();
         } catch (Exception e) {
             throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);
@@ -293,14 +295,16 @@ public abstract class AbstractCrawlerService {
     }
 
     public int getCount(final Consumer<CountRequestBuilder> callback) {
-        final CountRequestBuilder builder = getClient().prepareCount(index).setTypes(type);
-        callback.accept(builder);
-        return (int) ActionGetUtil.actionGet(builder.execute()).getCount();
+        return (int) getClient().get(c -> {
+            final CountRequestBuilder builder = c.prepareCount(index).setTypes(type);
+            callback.accept(builder);
+            return builder.execute();
+        }).getCount();
     }
 
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
         final String id = getId(sessionId, url);
-        final GetResponse response = ActionGetUtil.actionGet(getClient().prepareGet(index, type, id).execute());
+        final GetResponse response = getClient().get(c -> c.prepareGet(index, type, id).execute());
         if (response.isExists()) {
             final Map<String, Object> source = response.getSource();
             final T bean = BeanUtil.copyMapToNewBean(source, clazz, option -> {
@@ -351,10 +355,12 @@ public abstract class AbstractCrawlerService {
     }
 
     protected <T> List<T> getList(final Class<T> clazz, final Consumer<SearchRequestBuilder> callback) {
+        final SearchResponse response = getClient().get(c -> {
+            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type);
+            callback.accept(builder);
+            return builder.execute();
+        });
         final EsResultList<T> targetList = new EsResultList<T>();
-        final SearchRequestBuilder builder = getClient().prepareSearch(index).setTypes(type);
-        callback.accept(builder);
-        final SearchResponse response = ActionGetUtil.actionGet(builder.execute());
         final SearchHits hits = response.getHits();
         targetList.setTotalHits(hits.getTotalHits());
         targetList.setTookInMillis(response.getTookInMillis());
@@ -384,8 +390,8 @@ public abstract class AbstractCrawlerService {
     protected boolean delete(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final DeleteResponse response = ActionGetUtil.actionGet(getClient().prepareDelete(index, type, id).setConsistencyLevel(writeConsistencyLevel)
-                .setRefresh(true).execute());
+            final DeleteResponse response = getClient()
+                    .get(c -> c.prepareDelete(index, type, id).setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute());
             return response.isFound();
         } catch (Exception e) {
             throw new EsAccessException("Failed to delete " + sessionId + ":" + url, e);
@@ -401,26 +407,32 @@ public abstract class AbstractCrawlerService {
     }
 
     public void delete(final Consumer<SearchRequestBuilder> callback) {
-        final SearchRequestBuilder builder = getClient().prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN)
-                .setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
-        callback.accept(builder);
-        SearchResponse response = ActionGetUtil.actionGet(builder.execute());
+        SearchResponse response = getClient().get(c -> {
+            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN)
+                    .setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
+            callback.accept(builder);
+            return builder.execute();
+        });
 
         while (true) {
-            response =
-                    ActionGetUtil.actionGet(getClient().prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute());
+            final SearchResponse prevResponse = response;
+            response = getClient()
+                    .get(c -> c.prepareSearchScroll(prevResponse.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute());
 
             final SearchHits searchHits = response.getHits();
             if (searchHits.hits().length == 0) {
                 break;
             }
 
-            final BulkRequestBuilder bulkBuilder = getClient().prepareBulk();
-            for (final SearchHit searchHit : searchHits) {
-                bulkBuilder.add(getClient().prepareDelete(index, type, searchHit.getId()));
-            }
 
-            final BulkResponse bulkResponse = ActionGetUtil.actionGet(bulkBuilder.execute());
+            final BulkResponse bulkResponse = getClient().get(c -> {
+                final BulkRequestBuilder bulkBuilder = c.prepareBulk();
+                for (final SearchHit searchHit : searchHits) {
+                    bulkBuilder.add(getClient().prepareDelete(index, type, searchHit.getId()));
+                }
+
+                return bulkBuilder.execute();
+            });
             if (bulkResponse.hasFailures()) {
                 throw new EsAccessException(bulkResponse.buildFailureMessage());
             }

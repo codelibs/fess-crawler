@@ -52,14 +52,12 @@ import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.unit.TimeValue;
@@ -111,7 +109,7 @@ public abstract class AbstractCrawlerService {
     protected int bulkBufferSize = 10;
 
     @Resource
-    protected EsClient esClient;
+    protected volatile EsClient esClient;
 
     protected WriteConsistencyLevel writeConsistencyLevel = WriteConsistencyLevel.DEFAULT;
 
@@ -272,7 +270,7 @@ public abstract class AbstractCrawlerService {
                 for (final T target : list) {
                     final String id = getId(getSessionId(target), getUrl(target));
                     final XContentBuilder source = getXContentBuilder(target);
-                    bulkRequest.add(getClient().prepareIndex(index, type, id).setSource(source).setOpType(opType)
+                    bulkRequest.add(c.prepareIndex(index, type, id).setSource(source).setOpType(opType)
                             .setConsistencyLevel(writeConsistencyLevel));
                     setId(target, id);
                 }
@@ -287,19 +285,20 @@ public abstract class AbstractCrawlerService {
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final GetResponse response = getClient().get(c -> c.prepareGet(index, type, id).setRefresh(true).execute());
-            return response.isExists();
+            final SearchResponse response = getClient().get(
+                    c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery(type).ids(id)).setSize(0).setTerminateAfter(1).execute());
+            return response.getHits().getTotalHits() > 0;
         } catch (Exception e) {
             throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);
         }
     }
 
-    public int getCount(final Consumer<CountRequestBuilder> callback) {
+    public int getCount(final Consumer<SearchRequestBuilder> callback) {
         return (int) getClient().get(c -> {
-            final CountRequestBuilder builder = c.prepareCount(index).setTypes(type);
+            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type).setSize(0);
             callback.accept(builder);
             return builder.execute();
-        }).getCount();
+        }).getHits().getTotalHits();
     }
 
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
@@ -407,28 +406,28 @@ public abstract class AbstractCrawlerService {
     }
 
     public void delete(final Consumer<SearchRequestBuilder> callback) {
-        SearchResponse response = getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN)
-                    .setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
-            callback.accept(builder);
-            return builder.execute();
-        });
-
+        SearchResponse response = null;
         while (true) {
-            final SearchResponse prevResponse = response;
-            response = getClient()
-                    .get(c -> c.prepareSearchScroll(prevResponse.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute());
-
+            if (response == null) {
+                response = getClient().get(c -> {
+                    final SearchRequestBuilder builder =
+                            c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
+                    callback.accept(builder);
+                    return builder.execute();
+                });
+            } else {
+                final String scrollId = response.getScrollId();
+                response = getClient().get(c -> c.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeout)).execute());
+            }
             final SearchHits searchHits = response.getHits();
             if (searchHits.hits().length == 0) {
                 break;
             }
 
-
             final BulkResponse bulkResponse = getClient().get(c -> {
                 final BulkRequestBuilder bulkBuilder = c.prepareBulk();
                 for (final SearchHit searchHit : searchHits) {
-                    bulkBuilder.add(getClient().prepareDelete(index, type, searchHit.getId()));
+                    bulkBuilder.add(c.prepareDelete(index, type, searchHit.getId()));
                 }
 
                 return bulkBuilder.execute();

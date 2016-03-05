@@ -433,31 +433,37 @@ public class EsClient implements Client {
         return client.prepareMultiGet();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionFuture<CountResponse> count(final CountRequest request) {
         return client.count(request);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void count(final CountRequest request, final ActionListener<CountResponse> listener) {
         client.count(request, listener);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public CountRequestBuilder prepareCount(final String... indices) {
         return client.prepareCount(indices);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionFuture<ExistsResponse> exists(final ExistsRequest request) {
         return client.exists(request);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void exists(final ExistsRequest request, final ActionListener<ExistsResponse> listener) {
         client.exists(request, listener);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ExistsRequestBuilder prepareExists(final String... indices) {
         return client.prepareExists(indices);

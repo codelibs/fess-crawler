@@ -56,9 +56,9 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     protected Map<String, QueueHolder> sessionCache = new ConcurrentHashMap<>();
 
-    public int pollingFetchSize = 1000;
+    protected int pollingFetchSize = 1000;
 
-    public int maxCrawlingQueueSize = 100;
+    protected int maxCrawlingQueueSize = 100;
 
     @PostConstruct
     public void init() {
@@ -76,6 +76,10 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                 logger.warn("Failed to restore " + urlQueue, e);
             }
         }));
+    }
+
+    public void clearCache() {
+        sessionCache.clear();
     }
 
     @Override
@@ -302,5 +306,13 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         protected Queue<EsUrlQueue> waitingQueue = new ConcurrentLinkedQueue<>();
 
         protected Queue<EsUrlQueue> crawlingQueue = new ConcurrentLinkedQueue<>();
+    }
+
+    public void setPollingFetchSize(int pollingFetchSize) {
+        this.pollingFetchSize = pollingFetchSize;
+    }
+
+    public void setMaxCrawlingQueueSize(int maxCrawlingQueueSize) {
+        this.maxCrawlingQueueSize = maxCrawlingQueueSize;
     }
 }

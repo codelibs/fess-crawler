@@ -185,21 +185,23 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                 }
                 waitingQueue.addAll(urlQueueList);
 
-                try {
-                    // delete from es
-                    BulkResponse response = getClient().get(c -> {
-                        final BulkRequestBuilder bulkBuilder = c.prepareBulk();
-                        for (final EsUrlQueue uq : urlQueueList) {
-                            bulkBuilder.add(c.prepareDelete(index, type, uq.getId()));
-                        }
+                if (!urlQueueList.isEmpty()) {
+                    try {
+                        // delete from es
+                        BulkResponse response = getClient().get(c -> {
+                            final BulkRequestBuilder bulkBuilder = c.prepareBulk();
+                            for (final EsUrlQueue uq : urlQueueList) {
+                                bulkBuilder.add(c.prepareDelete(index, type, uq.getId()));
+                            }
 
-                        return bulkBuilder.setRefresh(true).execute();
-                    });
-                    if (response.hasFailures()) {
-                        logger.warn(response.buildFailureMessage());
+                            return bulkBuilder.setRefresh(true).execute();
+                        });
+                        if (response.hasFailures()) {
+                            logger.warn(response.buildFailureMessage());
+                        }
+                    } catch (Exception e) {
+                        throw new EsAccessException("Failed to delete " + urlQueueList, e);
                     }
-                } catch (Exception e) {
-                    throw new EsAccessException("Failed to delete " + urlQueueList, e);
                 }
 
                 urlQueue = waitingQueue.poll();

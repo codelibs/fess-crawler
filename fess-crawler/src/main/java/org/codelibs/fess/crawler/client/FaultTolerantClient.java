@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -89,9 +90,9 @@ public class FaultTolerantClient implements CrawlerClient {
                 }
                 count++;
             }
-            throw new MultipleCrawlingAccessException("Failed to access to "
-                    + request.getUrl(),
-                    exceptionList.toArray(new Throwable[exceptionList.size()]));
+            final String message = "Failed to access to " + request.getUrl()
+                    + exceptionList.stream().map(e -> "; " + e.getMessage()).collect(Collectors.joining());
+            throw new MultipleCrawlingAccessException(message, exceptionList.toArray(new Throwable[exceptionList.size()]));
         } finally {
             if (listener != null) {
                 listener.onRequestEnd(this, request, exceptionList);

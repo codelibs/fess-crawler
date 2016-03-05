@@ -17,7 +17,9 @@ package org.codelibs.fess.crawler.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
@@ -36,7 +38,6 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -53,9 +54,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
     @Resource
     protected EsDataService dataService;
 
-    protected Queue<UrlQueue<String>> crawlingUrlQueue = new ConcurrentLinkedQueue<>();
-
-    protected Queue<EsUrlQueue> urlQueueCache = new ConcurrentLinkedQueue<>();
+    protected Map<String, QueueHolder> sessionCache = new ConcurrentHashMap<>();
 
     public int pollingFetchSize = 1000;
 
@@ -70,23 +69,27 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     @PreDestroy
     public void destroy() {
-        try {
-            urlQueueCache.forEach(urlQueue -> insert(urlQueue));
-        } catch (Exception e) {
-            logger.warn("Failed to restore " + urlQueueCache, e);
-        }
+        sessionCache.entrySet().stream().map(e->e.getValue().waitingQueue).forEach(q -> q.forEach(urlQueue -> {
+            try {
+                insert(urlQueue);
+            } catch (Exception e) {
+                logger.warn("Failed to restore " + urlQueue, e);
+            }
+        }));
     }
 
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
-        SearchResponse response = getClient()
-                .get(c -> c.prepareSearch(index).setTypes(type).setSearchType(SearchType.SCAN).setScroll(new TimeValue(scrollTimeout))
+        SearchResponse response = null;
+        while (true) {
+            if (response == null) {
+                response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout))
                         .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
                         .execute());
-        while (true) {
-            final SearchResponse prevResponse = response;
-            response = getClient()
-                    .get(c -> c.prepareSearchScroll(prevResponse.getScrollId()).setScroll(new TimeValue(scrollTimeout)).execute());
+            } else {
+                final String scrollId = response.getScrollId();
+                response = getClient().get(c -> c.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeout)).execute());
+            }
 
             final SearchHits searchHits = response.getHits();
             if (searchHits.hits().length == 0) {
@@ -94,10 +97,10 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             }
 
             final BulkResponse bulkResponse = getClient().get(c -> {
-                final BulkRequestBuilder builder = getClient().prepareBulk();
+                final BulkRequestBuilder builder = c.prepareBulk();
                 for (final SearchHit searchHit : searchHits) {
                     final UpdateRequestBuilder updateRequest =
-                            getClient().prepareUpdate(index, type, searchHit.getId()).setDoc(SESSION_ID, newSessionId);
+                            c.prepareUpdate(index, type, searchHit.getId()).setDoc(SESSION_ID, newSessionId);
                     builder.add(updateRequest);
                 }
 
@@ -157,17 +160,20 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     @Override
     public EsUrlQueue poll(final String sessionId) {
-        EsUrlQueue urlQueue = urlQueueCache.poll();
+        final QueueHolder queueHolder = getQueueHolder(sessionId);
+        final Queue<EsUrlQueue> waitingQueue = queueHolder.waitingQueue;
+        final Queue<EsUrlQueue> crawlingQueue = queueHolder.crawlingQueue;
+        EsUrlQueue urlQueue = waitingQueue.poll();
         if (urlQueue != null) {
-            if (crawlingUrlQueue.size() > maxCrawlingQueueSize) {
-                crawlingUrlQueue.poll();
+            if (crawlingQueue.size() > maxCrawlingQueueSize) {
+                crawlingQueue.poll();
             }
-            crawlingUrlQueue.add(urlQueue);
+            crawlingQueue.add(urlQueue);
             return urlQueue;
         }
 
         synchronized (this) {
-            urlQueue = urlQueueCache.poll();
+            urlQueue = waitingQueue.poll();
             if (urlQueue == null) {
                 final List<EsUrlQueue> urlQueueList = getList(EsUrlQueue.class, sessionId, null, 0, pollingFetchSize,
                         SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
@@ -177,14 +183,14 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                 if (logger.isDebugEnabled()) {
                     logger.debug("Queued URL: {}", urlQueueList);
                 }
-                urlQueueCache.addAll(urlQueueList);
+                waitingQueue.addAll(urlQueueList);
 
                 try {
                     // delete from es
                     BulkResponse response = getClient().get(c -> {
                         final BulkRequestBuilder bulkBuilder = c.prepareBulk();
                         for (final EsUrlQueue uq : urlQueueList) {
-                            bulkBuilder.add(getClient().prepareDelete(index, type, uq.getId()));
+                            bulkBuilder.add(c.prepareDelete(index, type, uq.getId()));
                         }
 
                         return bulkBuilder.setRefresh(true).execute();
@@ -196,7 +202,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                     throw new EsAccessException("Failed to delete " + urlQueueList, e);
                 }
 
-                urlQueue = urlQueueCache.poll();
+                urlQueue = waitingQueue.poll();
                 if (urlQueue == null) {
                     return null;
                 }
@@ -204,10 +210,10 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
         }
 
-        if (crawlingUrlQueue.size() > maxCrawlingQueueSize) {
-            crawlingUrlQueue.poll();
+        if (crawlingQueue.size() > maxCrawlingQueueSize) {
+            crawlingQueue.poll();
         }
-        crawlingUrlQueue.add(urlQueue);
+        crawlingQueue.add(urlQueue);
         return urlQueue;
     }
 
@@ -243,12 +249,16 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
     protected boolean exists(final String sessionId, final String url) {
         final boolean ret = super.exists(sessionId, url);
         if (!ret) {
-            for (final UrlQueue<String> urlQueue : crawlingUrlQueue) {
+            final QueueHolder queueHolder = getQueueHolder(sessionId);
+            final Queue<EsUrlQueue> waitingQueue = queueHolder.waitingQueue;
+            final Queue<EsUrlQueue> crawlingQueue = queueHolder.crawlingQueue;
+
+            for (final UrlQueue<String> urlQueue : crawlingQueue) {
                 if (sessionId.equals(urlQueue.getSessionId()) && url.equals(urlQueue.getUrl())) {
                     return true;
                 }
             }
-            for (final UrlQueue<String> urlQueue : urlQueueCache) {
+            for (final UrlQueue<String> urlQueue : waitingQueue) {
                 if (sessionId.equals(urlQueue.getSessionId()) && url.equals(urlQueue.getUrl())) {
                     return true;
                 }
@@ -272,4 +282,23 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         });
     }
 
+    protected QueueHolder getQueueHolder(final String sessionId) {
+        QueueHolder queueHolder = sessionCache.get(sessionId);
+        if (queueHolder == null) {
+            synchronized (this) {
+                queueHolder = sessionCache.get(sessionId);
+                if (queueHolder == null) {
+                    queueHolder = new QueueHolder();
+                    sessionCache.put(sessionId, queueHolder);
+                }
+            }
+        }
+        return queueHolder;
+    }
+
+    protected static class QueueHolder {
+        protected Queue<EsUrlQueue> waitingQueue = new ConcurrentLinkedQueue<>();
+
+        protected Queue<EsUrlQueue> crawlingQueue = new ConcurrentLinkedQueue<>();
+    }
 }

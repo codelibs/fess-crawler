@@ -111,14 +111,14 @@ public class CommandExtractorTest extends PlainTestCase {
         final File scriptFile = createScriptTempFile(3);
         final String content = "TEST";
         final File contentFile = createContentFile(".txt", content.getBytes());
-
+        sleep(1000);
         final CommandExtractor extractor = new CommandExtractor();
         extractor.executionTimeout = 1000L;
         extractor.command = getCommand(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
         try {
             final ExtractData data = extractor.getText(new FileInputStream(contentFile), params);
-            fail(data.getContent());
+            fail(data.toString());
         } catch (final ExecutionTimeoutException e) {
         }
     }

@@ -203,6 +203,9 @@ public class CommandExtractor implements Extractor {
                 logger.info("Exit Code: " + exitValue + " - Process Output:\n"
                         + it.getOutput());
             }
+            if (exitValue == 143 && mt != null && mt.isTeminated()) {
+                throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
+            }
         } catch (final CrawlerSystemException e) {
             throw e;
         } catch (final InterruptedException e) {

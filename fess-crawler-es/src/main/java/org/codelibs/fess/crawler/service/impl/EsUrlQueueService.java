@@ -176,7 +176,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             return urlQueue;
         }
 
-        synchronized (this) {
+        synchronized (queueHolder) {
             urlQueue = waitingQueue.poll();
             if (urlQueue == null) {
                 final List<EsUrlQueue> urlQueueList = getList(EsUrlQueue.class, sessionId, null, 0, pollingFetchSize,
@@ -291,13 +291,9 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
     protected QueueHolder getQueueHolder(final String sessionId) {
         QueueHolder queueHolder = sessionCache.get(sessionId);
         if (queueHolder == null) {
-            synchronized (this) {
-                queueHolder = sessionCache.get(sessionId);
-                if (queueHolder == null) {
-                    queueHolder = new QueueHolder();
-                    sessionCache.put(sessionId, queueHolder);
-                }
-            }
+            queueHolder = new QueueHolder();
+            final QueueHolder prevQueueHolder = sessionCache.putIfAbsent(sessionId, queueHolder);
+            return prevQueueHolder == null ? queueHolder : prevQueueHolder;
         }
         return queueHolder;
     }

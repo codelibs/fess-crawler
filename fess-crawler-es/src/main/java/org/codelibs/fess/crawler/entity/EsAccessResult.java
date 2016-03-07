@@ -18,8 +18,10 @@ package org.codelibs.fess.crawler.entity;
 import java.io.IOException;
 
 import org.codelibs.core.beans.util.BeanUtil;
+import org.codelibs.fess.crawler.service.impl.EsDataService;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.lastaflute.di.core.SingletonLaContainer;
 
 public class EsAccessResult extends AccessResultImpl<String> implements ToXContent {
 
@@ -51,6 +53,8 @@ public class EsAccessResult extends AccessResultImpl<String> implements ToXConte
 
     public static final String ACCESS_RESULT_DATA = "accessResultData";
 
+    private boolean initializedData = false;
+
     @Override
     public void init(final ResponseData responseData, final ResultData resultData) {
 
@@ -64,6 +68,26 @@ public class EsAccessResult extends AccessResultImpl<String> implements ToXConte
             BeanUtil.copyBeanToBean(resultData, accessResultData);
         }
         setAccessResultData(accessResultData);
+    }
+
+    @Override
+    public AccessResultData<String> getAccessResultData() {
+        if (!initializedData) {
+            EsDataService dataService = SingletonLaContainer.getComponent(EsDataService.class);
+            EsAccessResult accessResult = dataService.getAccessResult(getSessionId(), getUrl());
+            if (accessResult != null && accessResult.getAccessResultData() != null) {
+                setAccessResultData(accessResult.getAccessResultData());
+            } else {
+                setAccessResultData(null);
+            }
+        }
+        return accessResultData;
+    }
+
+    @Override
+    public void setAccessResultData(final AccessResultData<String> accessResultDataAsOne) {
+        accessResultData = accessResultDataAsOne;
+        initializedData = true;
     }
 
     @Override

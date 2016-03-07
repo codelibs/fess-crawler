@@ -24,14 +24,17 @@ import javax.annotation.PostConstruct;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
+import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
+import org.codelibs.fess.crawler.util.EsResultList;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 
 public class EsDataService extends AbstractCrawlerService implements DataService<EsAccessResult> {
@@ -79,7 +82,66 @@ public class EsDataService extends AbstractCrawlerService implements DataService
     }
 
     public List<EsAccessResult> getAccessResultList(final Consumer<SearchRequestBuilder> callback) {
-        return getList(EsAccessResult.class, callback);
+        final SearchResponse response = getClient().get(c -> {
+            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type);
+            callback.accept(builder);
+            builder.addFields(new String[] { "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime", "createTime",
+                    "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" });
+            return builder.execute();
+        });
+        final EsResultList<EsAccessResult> targetList = new EsResultList<>();
+        final SearchHits hits = response.getHits();
+        targetList.setTotalHits(hits.getTotalHits());
+        targetList.setTookInMillis(response.getTookInMillis());
+        if (hits.getTotalHits() != 0) {
+            try {
+                for (final SearchHit searchHit : hits.getHits()) {
+                    final EsAccessResult target = new EsAccessResult();
+                    final Map<String, SearchHitField> fields = searchHit.getFields();
+                    target.setParentUrl(getFieldValue(fields.get("parentUrl"), String.class));
+                    target.setMethod(getFieldValue(fields.get("method"), String.class));
+                    target.setMimeType(getFieldValue(fields.get("mimeType"), String.class));
+                    target.setSessionId(getFieldValue(fields.get("sessionId"), String.class));
+                    target.setUrl(getFieldValue(fields.get("url"), String.class));
+                    target.setExecutionTime(getFieldValue(fields.get("executionTime"), Integer.class));
+                    target.setContentLength(getFieldValue(fields.get("contentLength"), Long.class));
+                    target.setRuleId(getFieldValue(fields.get("ruleId"), String.class));
+                    target.setHttpStatusCode(getFieldValue(fields.get("httpStatusCode"), Integer.class));
+                    target.setStatus(getFieldValue(fields.get("status"), Integer.class));
+                    target.setCreateTime(getFieldValue(fields.get("createTime"), Long.class));
+                    target.setLastModified(getFieldValue(fields.get("lastModified"), Long.class));
+
+                    setId(target, searchHit.getId());
+                    targetList.add(target);
+                }
+            } catch (final Exception e) {
+                throw new EsAccessException("response: " + response, e);
+            }
+        }
+        return targetList;
+    }
+
+    private <T> T getFieldValue(SearchHitField field, Class<T> clazz) {
+        if (clazz.equals(Integer.class)) {
+            Number value = field.getValue();
+            if (value == null) {
+                return null;
+            } else {
+                @SuppressWarnings("unchecked")
+                T v = (T) Integer.valueOf(value.intValue());
+                return v;
+            }
+        } else if (clazz.equals(Long.class)) {
+            Number value = field.getValue();
+            if (value == null) {
+                return null;
+            } else {
+                @SuppressWarnings("unchecked")
+                T v = (T) Long.valueOf(value.longValue());
+                return v;
+            }
+        }
+        return field.getValue();
     }
 
     @Override

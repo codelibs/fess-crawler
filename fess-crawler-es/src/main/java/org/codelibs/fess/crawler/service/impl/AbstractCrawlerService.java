@@ -458,7 +458,7 @@ public abstract class AbstractCrawlerService {
         return sessionId == null ? null : sessionId.toString();
     }
 
-    private void setId(final Object target, final String id) {
+    protected void setId(final Object target, final String id) {
         final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(target.getClass());
         final PropertyDesc idProp = beanDesc.getPropertyDesc(ID);
         idProp.setValue(target, id);

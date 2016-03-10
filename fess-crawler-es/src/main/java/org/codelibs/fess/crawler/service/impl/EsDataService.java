@@ -122,7 +122,9 @@ public class EsDataService extends AbstractCrawlerService implements DataService
     }
 
     private <T> T getFieldValue(SearchHitField field, Class<T> clazz) {
-        if (clazz.equals(Integer.class)) {
+        if (field == null) {
+            return null;
+        } else if (clazz.equals(Integer.class)) {
             Number value = field.getValue();
             if (value == null) {
                 return null;

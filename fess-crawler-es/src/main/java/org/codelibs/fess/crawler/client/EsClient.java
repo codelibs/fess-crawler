@@ -143,6 +143,8 @@ public class EsClient implements Client {
 
     protected long connTimeout = 180 * 1000;
 
+    protected String searchPreference;
+
     public EsClient() {
         clusterName = System.getProperty(CLUSTER_NAME, "elasticsearch");
         addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "localhost:9300").split(",")).map(v -> v.trim())
@@ -496,7 +498,11 @@ public class EsClient implements Client {
 
     @Override
     public SearchRequestBuilder prepareSearch(final String... indices) {
-        return client.prepareSearch(indices);
+        SearchRequestBuilder builder = client.prepareSearch(indices);
+        if (searchPreference != null) {
+            builder.setPreference(searchPreference);
+        }
+        return builder;
     }
 
     @Override
@@ -756,5 +762,9 @@ public class EsClient implements Client {
 
     public void setConnTimeout(long connTimeout) {
         this.connTimeout = connTimeout;
+    }
+
+    public void setSearchPreference(String searchPreference) {
+        this.searchPreference = searchPreference;
     }
 }

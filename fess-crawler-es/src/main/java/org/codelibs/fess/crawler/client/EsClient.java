@@ -121,6 +121,8 @@ public class EsClient implements Client {
 
     public static final String CLUSTER_NAME = "crawler.es.cluster_name";
 
+    public static final String TARGET_INDICES = "crawler.es.target_indices";
+
     private static final Logger logger = LoggerFactory.getLogger(EsClient.class);
 
     protected TransportClient client;
@@ -145,10 +147,16 @@ public class EsClient implements Client {
 
     protected String searchPreference;
 
+    protected String[] targetIndices;
+
     public EsClient() {
         clusterName = System.getProperty(CLUSTER_NAME, "elasticsearch");
         addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "localhost:9300").split(",")).map(v -> v.trim())
                 .toArray(n -> new String[n]);
+        final String targets = System.getProperty(TARGET_INDICES);
+        if (StringUtil.isNotBlank(targets)) {
+            targetIndices = Arrays.stream(targets.split(",")).map(v -> v.trim()).toArray(n -> new String[n]);
+        }
     }
 
     public void setClusterName(final String clusterName) {
@@ -192,7 +200,7 @@ public class EsClient implements Client {
             logger.info("Connected to " + hostname + ":" + port);
         });
 
-        final ClusterHealthResponse healthResponse = get(c -> c.admin().cluster().prepareHealth().setWaitForYellowStatus().execute());
+        final ClusterHealthResponse healthResponse = get(c -> c.admin().cluster().prepareHealth(targetIndices).setWaitForYellowStatus().execute());
         if (!healthResponse.isTimedOut()) {
             onConnectListenerList.forEach(l -> {
                 try {

@@ -27,7 +27,7 @@ public class LastaCrawlerContainer implements CrawlerContainer {
 
     @Override
     public boolean available() {
-        return SingletonLaContainerFactory.getContainer().getClassLoader() != null;
+        return SingletonLaContainerFactory.hasContainer();
     }
 
     @Override

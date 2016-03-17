@@ -36,7 +36,7 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     private Map<String, Object> initParamMap;
 
-    protected long maxCachedContentSize = 1024 * 1024 * 10;//10mb
+    protected long maxCachedContentSize = 1024 * 1024;//1mb
 
     protected <T> T getInitParameter(final String key, final T defaultValue) {
         if (initParamMap != null) {

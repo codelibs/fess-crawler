@@ -161,18 +161,6 @@ public class SmbClient extends AbstractCrawlerClient {
                     logger.debug("Checking SmbFile Size: " + filePath);
                 }
                 responseData.setContentLength(file.length());
-                if (contentLengthHelper != null) {
-                    final long maxLength = contentLengthHelper
-                            .getMaxLength(responseData.getMimeType());
-                    if (responseData.getContentLength() > maxLength) {
-                        throw new MaxLengthExceededException(
-                                "The content length ("
-                                        + responseData.getContentLength()
-                                        + " byte) is over " + maxLength
-                                        + " byte. The url is " + filePath);
-                    }
-                }
-
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(geCharSet(file));
                 responseData.setLastModified(new Date(file.lastModified()));
@@ -247,6 +235,13 @@ public class SmbClient extends AbstractCrawlerClient {
                             responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
                         } catch (final Exception e) {
                             responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
+                        }
+                    }
+                    if (contentLengthHelper != null) {
+                        final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
+                        if (responseData.getContentLength() > maxLength) {
+                            throw new MaxLengthExceededException("The content length (" + responseData.getContentLength()
+                                    + " byte) is over " + maxLength + " byte. The url is " + filePath);
                         }
                     }
                 } else {

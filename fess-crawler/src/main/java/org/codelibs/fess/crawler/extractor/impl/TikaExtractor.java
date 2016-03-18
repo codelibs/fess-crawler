@@ -15,7 +15,9 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,8 +26,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.StringWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +39,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.exception.TikaException;
@@ -83,9 +88,14 @@ public class TikaExtractor implements Extractor {
 
     public int initialBufferSize = 10000;
 
+    public int memorySize = 1024 * 1024; //1mb
+
+    public int maxAlphanumTermSize = -1;
+
     public TikaConfig tikaConfig;
 
     protected Map<String, String> pdfPasswordMap = new HashMap<String, String>();
+
 
     @PostConstruct
     public void init() {
@@ -107,10 +117,11 @@ public class TikaExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
 
-        File tempFile = null;
-        boolean isByteStream = inputStream instanceof ByteArrayInputStream;
+        final File tempFile;
+        final boolean isByteStream = inputStream instanceof ByteArrayInputStream;
         if (isByteStream) {
             inputStream.mark(0);
+            tempFile = null;
         } else {
             try {
                 tempFile = File.createTempFile("tikaExtractor-", ".out");
@@ -120,16 +131,6 @@ public class TikaExtractor implements Extractor {
         }
 
         try {
-            InputStream in = null;
-            if (!isByteStream) {
-                try (OutputStream out = new FileOutputStream(tempFile)) {
-                    CopyUtil.copy(inputStream, out);
-                }
-                in = new FileInputStream(tempFile);
-            } else {
-                in = inputStream;
-            }
-
             final PrintStream originalOutStream = System.out;
             final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
             System.setOut(new PrintStream(outStream, true));
@@ -159,81 +160,93 @@ public class TikaExtractor implements Extractor {
                 final ParseContext parseContext = new ParseContext();
                 parseContext.set(Parser.class, parser);
 
-                final StringWriter writer = new StringWriter(initialBufferSize);
-                parser.parse(in, new BodyContentHandler(writer), metadata,
-                        parseContext);
-
-                String content = normalizeContent(writer);
+                String content = getContent(writer -> {
+                    InputStream in = null;
+                    try {
+                        if (!isByteStream) {
+                            try (OutputStream out = new FileOutputStream(tempFile)) {
+                                CopyUtil.copy(inputStream, out);
+                            }
+                            in = new FileInputStream(tempFile);
+                        } else {
+                            in = inputStream;
+                        }
+                        parser.parse(in, new BodyContentHandler(writer), metadata, parseContext);
+                    } finally {
+                        IOUtils.closeQuietly(in);
+                    }
+                }, contentEncoding);
                 if (StringUtil.isBlank(content)) {
                     if (resourceName != null) {
-                        IOUtils.closeQuietly(in);
                         if (logger.isDebugEnabled()) {
-                            logger.debug("retry without a resource name: {}",
-                                    resourceName);
-                        }
-                        if (isByteStream) {
-                            inputStream.reset();
-                            in = inputStream;
-                        } else {
-                            in = new FileInputStream(tempFile);
+                            logger.debug("retry without a resource name: {}", resourceName);
                         }
                         final Metadata metadata2 = createMetadata(null,
                                 contentType, contentEncoding, pdfPassword);
-                        final StringWriter writer2 = new StringWriter(
-                                initialBufferSize);
-                        parser.parse(in, new BodyContentHandler(writer2),
-                                metadata2, parseContext);
-                        content = normalizeContent(writer2);
+                        content = getContent(writer -> {
+                            InputStream in = null;
+                            try {
+                                if (isByteStream) {
+                                    inputStream.reset();
+                                    in = inputStream;
+                                } else {
+                                    in = new FileInputStream(tempFile);
+                                }
+                                parser.parse(in, new BodyContentHandler(writer), metadata2, parseContext);
+                            } finally {
+                                IOUtils.closeQuietly(in);
+                            }
+                        }, contentEncoding);
                     }
                     if (StringUtil.isBlank(content) && contentType != null) {
-                        IOUtils.closeQuietly(in);
                         if (logger.isDebugEnabled()) {
-                            logger.debug("retry without a content type: {}",
-                                    contentType);
-                        }
-                        if (isByteStream) {
-                            inputStream.reset();
-                            in = inputStream;
-                        } else {
-                            in = new FileInputStream(tempFile);
+                            logger.debug("retry without a content type: {}", contentType);
                         }
                         final Metadata metadata3 = createMetadata(null, null,
                                 contentEncoding, pdfPassword);
-                        final StringWriter writer3 = new StringWriter(
-                                initialBufferSize);
-                        parser.parse(in, new BodyContentHandler(writer3),
-                                metadata3, parseContext);
-                        content = normalizeContent(writer3);
+                        content = getContent(writer -> {
+                            InputStream in = null;
+                            try {
+                                if (isByteStream) {
+                                    inputStream.reset();
+                                    in = inputStream;
+                                } else {
+                                    in = new FileInputStream(tempFile);
+                                }
+                                parser.parse(in, new BodyContentHandler(writer), metadata3, parseContext);
+                            } finally {
+                                IOUtils.closeQuietly(in);
+                            }
+                        }, contentEncoding);
                     }
 
                     if (readAsTextIfFailed && StringUtil.isBlank(content)) {
-                        IOUtils.closeQuietly(in);
                         if (logger.isDebugEnabled()) {
                             logger.debug("read the content as a text.");
                         }
                         if (contentEncoding == null) {
                             contentEncoding = Constants.UTF_8;
                         }
-                        BufferedReader br = null;
-                        try {
-                            if (isByteStream) {
-                                inputStream.reset();
-                                br = new BufferedReader(new InputStreamReader(inputStream, contentEncoding));
-                            } else {
-                                br = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile), contentEncoding));
+                        final String enc = contentEncoding;
+                        content = getContent(writer -> {
+                            BufferedReader br = null;
+                            try {
+                                if (isByteStream) {
+                                    inputStream.reset();
+                                    br = new BufferedReader(new InputStreamReader(inputStream, enc));
+                                } else {
+                                    br = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile), enc));
+                                }
+                                String line;
+                                while ((line = br.readLine()) != null) {
+                                    writer.write(line);
+                                }
+                            } catch (final Exception e) {
+                                logger.warn("Could not read " + (tempFile != null ? tempFile.getAbsolutePath() : "a byte stream"), e);
+                            } finally {
+                                IOUtils.closeQuietly(br);
                             }
-                            final StringWriter writer4 = new StringWriter(
-                                    initialBufferSize);
-                            String line;
-                            while ((line = br.readLine()) != null) {
-                                writer4.write(line);
-                            }
-                            content = normalizeContent(writer4);
-                        } catch (final Exception e) {
-                            logger.warn("Could not read " + (tempFile != null ? tempFile.getAbsolutePath() : "a byte stream"), e);
-                        } finally {
-                            IOUtils.closeQuietly(br);
-                        }
+                        }, contentEncoding);
                     }
                 }
                 final ExtractData extractData = new ExtractData(content);
@@ -258,19 +271,22 @@ public class TikaExtractor implements Extractor {
                     final Extractor xmlExtractor = crawlerContainer
                             .getComponent("xmlExtractor");
                     if (xmlExtractor != null) {
-                        IOUtils.closeQuietly(in);
-                        if (isByteStream) {
-                            inputStream.reset();
-                            in = inputStream;
-                        } else {
-                            in = new FileInputStream(tempFile);
+                        InputStream in = null;
+                        try {
+                            if (isByteStream) {
+                                inputStream.reset();
+                                in = inputStream;
+                            } else {
+                                in = new FileInputStream(tempFile);
+                            }
+                            return xmlExtractor.getText(in, params);
+                        } finally {
+                            IOUtils.closeQuietly(in);
                         }
-                        return xmlExtractor.getText(in, params);
                     }
                 }
                 throw e;
             } finally {
-                IOUtils.closeQuietly(in);
                 if (originalOutStream != null) {
                     System.setOut(originalOutStream);
                 }
@@ -303,10 +319,69 @@ public class TikaExtractor implements Extractor {
         }
     }
 
-    private String normalizeContent(final StringWriter writer) {
-        final int[] charArray = writer.toString().chars().map(c -> Character.isISOControl(c) || c == 65533 ? ' ' : c).toArray();
-        final String text = new String(charArray, 0, charArray.length);
-        return text.replaceAll("\\s+", " ").trim();
+    protected InputStream getContentStream(DeferredFileOutputStream dfos) throws IOException {
+        if (dfos.isInMemory()) {
+            return new ByteArrayInputStream(dfos.getData());
+        } else {
+            return new BufferedInputStream(new FileInputStream(dfos.getFile()));
+        }
+    }
+
+    protected String getContent(final ContentWriter out, String encoding) throws TikaException {
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("tika", ".tmp");
+        } catch (IOException e) {
+            throw new CrawlerSystemException("Failed to create a temp file.", e);
+        }
+
+        try (DeferredFileOutputStream dfos = new DeferredFileOutputStream(memorySize, tempFile)) {
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dfos));
+            out.accept(writer);
+            writer.flush();
+
+            try (Reader reader = new InputStreamReader(getContentStream(dfos), encoding == null ? Constants.UTF_8 : encoding)) {
+                final StringBuilder buf = new StringBuilder(initialBufferSize);
+                boolean isSpace = false;
+                int alphanumSize = 0;
+                int c;
+                while ((c = reader.read()) != -1) {
+                    if (Character.isISOControl(c) || c == '\u0020' || c == '\u3000' || c == 65533) {
+                        // space
+                        if (!isSpace) {
+                            buf.append(' ');
+                            isSpace = true;
+                        }
+                        alphanumSize = 0;
+                    } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+                        // alphanum
+                        if (maxAlphanumTermSize >= 0) {
+                            if (alphanumSize < maxAlphanumTermSize) {
+                                buf.appendCodePoint(c);
+                            }
+                            alphanumSize++;
+                        } else {
+                            buf.appendCodePoint(c);
+                        }
+                        isSpace = false;
+                    } else {
+                        buf.appendCodePoint(c);
+                        isSpace = false;
+                        alphanumSize = 0;
+                    }
+                }
+
+                return buf.toString().trim();
+            }
+        } catch (TikaException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExtractException("Failed to read a content.", e);
+        } finally {
+            if (tempFile.exists() && !tempFile.delete()) {
+                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
+            }
+        }
     }
 
     String getPdfPassword(final String url, final String resourceName) {
@@ -363,10 +438,6 @@ public class TikaExtractor implements Extractor {
 
     // workaround: Tika does not have extention points.
     protected class DetectParser extends CompositeParser {
-
-        /**
-         *
-         */
         private static final long serialVersionUID = 1L;
 
         /**
@@ -440,4 +511,8 @@ public class TikaExtractor implements Extractor {
 
     }
 
+    @FunctionalInterface
+    protected interface ContentWriter {
+        void accept(Writer writer) throws Exception;
+    }
 }

@@ -125,7 +125,7 @@ public abstract class AbstractXmlExtractor {
         while (matcher.find()) {
             final String tagStr = matcher.group();
             final Matcher attrMatcher = attrPattern.matcher(tagStr);
-            final StringBuilder buf = new StringBuilder();
+            final StringBuilder buf = new StringBuilder(100);
             while (attrMatcher.find()) {
                 buf.append(attrMatcher.group(1)).append(' ');
             }

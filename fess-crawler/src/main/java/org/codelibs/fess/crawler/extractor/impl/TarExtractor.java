@@ -35,6 +35,7 @@ import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
+import org.codelibs.fess.crawler.util.UnsafeStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +82,7 @@ public class TarExtractor implements Extractor {
             final MimeTypeHelper mimeTypeHelper,
             final ExtractorFactory extractorFactory) {
 
-        final StringBuilder buf = new StringBuilder(1000);
+        final UnsafeStringBuilder buf = new UnsafeStringBuilder(1000);
 
         ArchiveInputStream ais = null;
 
@@ -129,7 +130,7 @@ public class TarExtractor implements Extractor {
             IOUtils.closeQuietly(ais);
         }
 
-        return buf.toString();
+        return buf.toUnsafeString().trim();
     }
 
     public void setMaxContentSize(long maxContentSize) {

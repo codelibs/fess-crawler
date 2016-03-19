@@ -34,6 +34,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.util.UnsafeStringBuilder;
 import org.codelibs.fess.crawler.util.XmlUtil;
 import org.cyberneko.html.parsers.DOMParser;
 import org.slf4j.Logger;
@@ -85,7 +86,7 @@ public class XpathTransformer extends HtmlTransformer {
         }
         final Document document = parser.getDocument();
 
-        final StringBuilder buf = new StringBuilder(1000);
+        final UnsafeStringBuilder buf = new UnsafeStringBuilder(1000);
         buf.append(getResultDataHeader());
         for (final Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
             final String path = entry.getValue();
@@ -141,8 +142,9 @@ public class XpathTransformer extends HtmlTransformer {
         buf.append(getAdditionalData(responseData, document));
         buf.append(getResultDataFooter());
 
+        final String data = buf.toUnsafeString().trim();
         try {
-            resultData.setData(buf.toString().getBytes(charsetName));
+            resultData.setData(data.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName
@@ -150,7 +152,7 @@ public class XpathTransformer extends HtmlTransformer {
             }
             charsetName = Constants.UTF_8_CHARSET.name();
             resultData
-                    .setData(buf.toString().getBytes(Constants.UTF_8_CHARSET));
+                    .setData(data.getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
     }
@@ -170,7 +172,7 @@ public class XpathTransformer extends HtmlTransformer {
 
     protected String getResultDataBody(final String name,
             final List<String> values) {
-        final StringBuilder buf = new StringBuilder();
+        final UnsafeStringBuilder buf = new UnsafeStringBuilder();
         buf.append("<list>");
         if (values != null && !values.isEmpty()) {
             for (final String value : values) {
@@ -183,7 +185,7 @@ public class XpathTransformer extends HtmlTransformer {
         // TODO support other type
         // TODO trim(default)
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
-                + buf.toString() + "</field>\n";
+                + buf.toUnsafeString().trim() + "</field>\n";
     }
 
     protected String getAdditionalData(final ResponseData responseData,

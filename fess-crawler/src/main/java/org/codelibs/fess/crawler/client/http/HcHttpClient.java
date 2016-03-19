@@ -569,7 +569,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             processRobotsTxt(url);
         } catch (final CrawlingAccessException e) {
             if (logger.isInfoEnabled()) {
-                final StringBuilder buf = new StringBuilder();
+                final StringBuilder buf = new StringBuilder(100);
                 buf.append(e.getMessage());
                 if (e.getCause() != null) {
                     buf.append(e.getCause().getMessage());

@@ -61,7 +61,7 @@ public final class XmlUtil {
             return in;
         }
 
-        final StringBuilder buf = new StringBuilder();
+        final UnsafeStringBuilder buf = new UnsafeStringBuilder();
         char c;
         for (int i = 0; i < in.length(); i++) {
             c = in.charAt(i);
@@ -71,7 +71,7 @@ public final class XmlUtil {
                 buf.append(c);
             }
         }
-        return buf.toString();
+        return buf.toUnsafeString().trim();
     }
 
     public static Map<String, Object> getDataMap(

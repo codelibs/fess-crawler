@@ -83,7 +83,7 @@ public class CommandExtractor implements Extractor {
         if (StringUtil.isNotBlank(resourceName)) {
             final String name = getFileName(resourceName);
             final String[] strings = name.split("\\.");
-            final StringBuilder buf = new StringBuilder();
+            final StringBuilder buf = new StringBuilder(100);
             if (strings.length > 1) {
                 for (int i = 0; i < strings.length - 1; i++) {
                     if (buf.length() != 0) {
@@ -244,7 +244,7 @@ public class CommandExtractor implements Extractor {
             final Map<String, String> params) {
         final String cmd = command.trim();
         final List<String> cmdList = new ArrayList<String>();
-        final StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder(100);
         boolean singleQuote = false;
         boolean doubleQuote = false;
         char prevChar = ' ';
@@ -387,7 +387,7 @@ public class CommandExtractor implements Extractor {
         }
 
         public String getOutput() {
-            final StringBuilder buf = new StringBuilder();
+            final StringBuilder buf = new StringBuilder(100);
             for (final String value : list) {
                 buf.append(value).append("\n");
             }

@@ -62,6 +62,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
+import org.codelibs.fess.crawler.util.UnsafeStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
@@ -341,7 +342,7 @@ public class TikaExtractor implements Extractor {
             writer.flush();
 
             try (Reader reader = new InputStreamReader(getContentStream(dfos), encoding == null ? Constants.UTF_8 : encoding)) {
-                final StringBuilder buf = new StringBuilder(initialBufferSize);
+                final UnsafeStringBuilder buf = new UnsafeStringBuilder(initialBufferSize);
                 boolean isSpace = false;
                 int alphanumSize = 0;
                 int c;
@@ -371,7 +372,7 @@ public class TikaExtractor implements Extractor {
                     }
                 }
 
-                return buf.toString().trim();
+                return buf.toUnsafeString().trim();
             }
         } catch (TikaException e) {
             throw e;

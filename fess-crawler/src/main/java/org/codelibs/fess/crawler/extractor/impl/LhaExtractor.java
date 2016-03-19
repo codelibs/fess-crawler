@@ -37,6 +37,7 @@ import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
+import org.codelibs.fess.crawler.util.UnsafeStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +78,7 @@ public class LhaExtractor implements Extractor {
             throw new CrawlerSystemException("ExtractorFactory is unavailable.");
         }
 
-        final StringBuilder buf = new StringBuilder(1000);
+        final UnsafeStringBuilder buf = new UnsafeStringBuilder(1000);
 
         File tempFile = null;
         LhaFile lhaFile = null;
@@ -143,7 +144,7 @@ public class LhaExtractor implements Extractor {
             }
         }
 
-        return new ExtractData(buf.toString());
+        return new ExtractData(buf.toUnsafeString().trim());
     }
 
     public void setMaxContentSize(long maxContentSize) {

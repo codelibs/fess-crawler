@@ -33,7 +33,7 @@ public class SmbAuthentication {
     private String domain;
 
     public String getPathPrefix() {
-        final StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder(100);
         buf.append("smb://");
         if (server != null) {
             buf.append(server);

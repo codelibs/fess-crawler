@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
@@ -54,6 +55,8 @@ public class LhaExtractor implements Extractor {
 
     @Resource
     protected CrawlerContainer crawlerContainer;
+
+    protected long maxContentSize = -1;
 
     @Override
     public ExtractData getText(final InputStream in,
@@ -87,8 +90,13 @@ public class LhaExtractor implements Extractor {
             lhaFile = new LhaFile(tempFile);
             @SuppressWarnings("unchecked")
             final Enumeration<LhaHeader> entries = lhaFile.entries();
+            long contentSize = 0;
             while (entries.hasMoreElements()) {
                 final LhaHeader head = entries.nextElement();
+                contentSize += head.getOriginalSize();
+                if (maxContentSize != -1 && contentSize > maxContentSize) {
+                    throw new MaxLengthExceededException("Extracted size is " + contentSize + " > " + maxContentSize);
+                }
                 final String filename = head.getPath();
                 final String mimeType = mimeTypeHelper.getContentType(null,
                         filename);
@@ -118,6 +126,8 @@ public class LhaExtractor implements Extractor {
                     }
                 }
             }
+        } catch (final MaxLengthExceededException e) {
+            throw e;
         } catch (final Exception e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
@@ -135,4 +145,7 @@ public class LhaExtractor implements Extractor {
 
         return new ExtractData(buf.toString());
     }
-}
+
+    public void setMaxContentSize(long maxContentSize) {
+        this.maxContentSize = maxContentSize;
+    }}

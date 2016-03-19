@@ -30,6 +30,7 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
@@ -50,6 +51,8 @@ public class ZipExtractor implements Extractor {
 
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;
+
+    protected long maxContentSize = -1;
 
     @Override
     public ExtractData getText(final InputStream in,
@@ -77,7 +80,12 @@ public class ZipExtractor implements Extractor {
         try {
             ais = archiveStreamFactory.createArchiveInputStream(in);
             ZipArchiveEntry entry = null;
+            long contentSize = 0;
             while ((entry = (ZipArchiveEntry) ais.getNextEntry()) != null) {
+                contentSize += entry.getSize();
+                if (maxContentSize != -1 && contentSize > maxContentSize) {
+                    throw new MaxLengthExceededException("Extracted size is " + contentSize + " > " + maxContentSize);
+                }
                 final String filename = entry.getName();
                 final String mimeType = mimeTypeHelper.getContentType(null,
                         filename);
@@ -103,6 +111,8 @@ public class ZipExtractor implements Extractor {
                     }
                 }
             }
+        } catch (final MaxLengthExceededException e) {
+            throw e;
         } catch (final Exception e) {
             if (buf.length() == 0) {
                 throw new ExtractException("Could not extract a content.", e);
@@ -112,5 +122,9 @@ public class ZipExtractor implements Extractor {
         }
 
         return new ExtractData(buf.toString());
+    }
+
+    public void setMaxContentSize(long maxContentSize) {
+        this.maxContentSize = maxContentSize;
     }
 }

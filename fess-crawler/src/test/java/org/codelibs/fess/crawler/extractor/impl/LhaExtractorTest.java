@@ -15,12 +15,14 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -73,6 +75,17 @@ public class LhaExtractorTest extends PlainTestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));
+    }
+
+    public void test_getText_maxSize() throws IOException {
+        try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/lha/test.lzh")) {
+            lhaExtractor.setMaxContentSize(100);
+            lhaExtractor.getText(in, null);
+            fail();
+        } catch (MaxLengthExceededException e) {
+            // pass
+        }
+        lhaExtractor.setMaxContentSize(-1);
     }
 
     public void test_getText_null() {

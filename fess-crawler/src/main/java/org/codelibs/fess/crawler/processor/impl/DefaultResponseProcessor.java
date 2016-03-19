@@ -33,7 +33,6 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.entity.UrlQueue;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.transformer.Transformer;

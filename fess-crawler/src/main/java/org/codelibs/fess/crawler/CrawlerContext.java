@@ -15,13 +15,10 @@
  */
 package org.codelibs.fess.crawler;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.codelibs.core.collection.LruHashMap;
 import org.codelibs.core.collection.LruHashSet;
-import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.rule.RuleManager;

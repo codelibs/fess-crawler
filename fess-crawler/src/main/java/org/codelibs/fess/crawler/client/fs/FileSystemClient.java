@@ -94,20 +94,6 @@ public class FileSystemClient extends AbstractCrawlerClient {
             responseData.setCharSet(charset);
             responseData.setContentLength(0);
         } else if (file.isFile()) {
-            final MimeTypeHelper mimeTypeHelper = crawlerContainer
-                    .getComponent("mimeTypeHelper");
-            InputStream is = null;
-            try {
-                is = new FileInputStream(file);
-                responseData.setMimeType(mimeTypeHelper.getContentType(is,
-                        file.getName()));
-            } catch (final Exception e) {
-                responseData.setMimeType(mimeTypeHelper.getContentType(null,
-                        file.getName()));
-            } finally {
-                IOUtils.closeQuietly(is);
-            }
-
             // check file size
             responseData.setContentLength(file.length());
             if (contentLengthHelper != null) {
@@ -124,20 +110,29 @@ public class FileSystemClient extends AbstractCrawlerClient {
             responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
             responseData.setCharSet(geCharSet(file));
             responseData.setLastModified(new Date(file.lastModified()));
-            if (file.canRead() && includeContent) {
-                if (file.length() < maxCachedContentSize) {
-                    try (InputStream contentStream = new BufferedInputStream(new FileInputStream(file))) {
-                        responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
-                    } catch (final Exception e) {
-                        logger.warn("I/O Exception.", e);
-                        responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+            if (file.canRead()) {
+                final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
+                try (final InputStream is = new BufferedInputStream(new FileInputStream(file))) {
+                    responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
+                } catch (final Exception e) {
+                    responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
+                }
+                if (includeContent) {
+                    if (file.length() < maxCachedContentSize) {
+                        try (InputStream contentStream = new BufferedInputStream(new FileInputStream(file))) {
+                            responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
+                        } catch (final Exception e) {
+                            logger.warn("I/O Exception.", e);
+                            responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                        }
+                    } else {
+                        responseData.setResponseBody(file, false);
                     }
-                } else {
-                    responseData.setResponseBody(file, false);
                 }
             } else {
                 // Forbidden
                 responseData.setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
+                responseData.setMimeType(APPLICATION_OCTET_STREAM);
             }
         } else if (file.isDirectory()) {
             final Set<RequestData> requestDataSet = new HashSet<>();

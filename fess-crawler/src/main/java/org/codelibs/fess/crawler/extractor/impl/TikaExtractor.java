@@ -93,10 +93,11 @@ public class TikaExtractor implements Extractor {
 
     public int maxAlphanumTermSize = -1;
 
+    public int maxSymbolTermSize = -1;
+
     public TikaConfig tikaConfig;
 
     protected Map<String, String> pdfPasswordMap = new HashMap<String, String>();
-
 
     @PostConstruct
     public void init() {
@@ -345,6 +346,7 @@ public class TikaExtractor implements Extractor {
                 final UnsafeStringBuilder buf = new UnsafeStringBuilder(initialBufferSize);
                 boolean isSpace = false;
                 int alphanumSize = 0;
+                int symbolSize = 0;
                 int c;
                 while ((c = reader.read()) != -1) {
                     if (Character.isISOControl(c) || c == '\u0020' || c == '\u3000' || c == 65533) {
@@ -354,6 +356,7 @@ public class TikaExtractor implements Extractor {
                             isSpace = true;
                         }
                         alphanumSize = 0;
+                        symbolSize = 0;
                     } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
                         // alphanum
                         if (maxAlphanumTermSize >= 0) {
@@ -365,10 +368,24 @@ public class TikaExtractor implements Extractor {
                             buf.appendCodePoint(c);
                         }
                         isSpace = false;
+                        symbolSize = 0;
+                    } else if ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) {
+                        // symbol
+                        if (maxSymbolTermSize >= 0) {
+                            if (symbolSize < maxSymbolTermSize) {
+                                buf.append(c);
+                            }
+                            symbolSize++;
+                        } else {
+                            buf.append(c);
+                        }
+                        isSpace = false;
+                        alphanumSize = 0;
                     } else {
                         buf.appendCodePoint(c);
                         isSpace = false;
                         alphanumSize = 0;
+                        symbolSize = 0;
                     }
                 }
 

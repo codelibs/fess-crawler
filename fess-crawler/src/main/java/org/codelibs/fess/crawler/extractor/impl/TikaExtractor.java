@@ -62,7 +62,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
-import org.codelibs.fess.crawler.util.UnsafeStringBuilder;
+import org.codelibs.fess.crawler.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
@@ -343,53 +343,7 @@ public class TikaExtractor implements Extractor {
             writer.flush();
 
             try (Reader reader = new InputStreamReader(getContentStream(dfos), encoding == null ? Constants.UTF_8 : encoding)) {
-                final UnsafeStringBuilder buf = new UnsafeStringBuilder(initialBufferSize);
-                boolean isSpace = false;
-                int alphanumSize = 0;
-                int symbolSize = 0;
-                int c;
-                while ((c = reader.read()) != -1) {
-                    if (Character.isISOControl(c) || c == '\u0020' || c == '\u3000' || c == 65533) {
-                        // space
-                        if (!isSpace) {
-                            buf.append(' ');
-                            isSpace = true;
-                        }
-                        alphanumSize = 0;
-                        symbolSize = 0;
-                    } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
-                        // alphanum
-                        if (maxAlphanumTermSize >= 0) {
-                            if (alphanumSize < maxAlphanumTermSize) {
-                                buf.appendCodePoint(c);
-                            }
-                            alphanumSize++;
-                        } else {
-                            buf.appendCodePoint(c);
-                        }
-                        isSpace = false;
-                        symbolSize = 0;
-                    } else if ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) {
-                        // symbol
-                        if (maxSymbolTermSize >= 0) {
-                            if (symbolSize < maxSymbolTermSize) {
-                                buf.append(c);
-                            }
-                            symbolSize++;
-                        } else {
-                            buf.append(c);
-                        }
-                        isSpace = false;
-                        alphanumSize = 0;
-                    } else {
-                        buf.appendCodePoint(c);
-                        isSpace = false;
-                        alphanumSize = 0;
-                        symbolSize = 0;
-                    }
-                }
-
-                return buf.toUnsafeString().trim();
+                return TextUtil.normalizeText(reader, initialBufferSize, maxAlphanumTermSize, maxSymbolTermSize);
             }
         } catch (TikaException e) {
             throw e;

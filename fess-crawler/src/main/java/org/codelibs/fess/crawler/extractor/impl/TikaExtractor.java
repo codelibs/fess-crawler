@@ -337,12 +337,13 @@ public class TikaExtractor implements Extractor {
             throw new CrawlerSystemException("Failed to create a temp file.", e);
         }
 
+        final String enc = encoding == null ? Constants.UTF_8 : encoding;
         try (DeferredFileOutputStream dfos = new DeferredFileOutputStream(memorySize, tempFile)) {
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dfos));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dfos, enc));
             out.accept(writer);
             writer.flush();
 
-            try (Reader reader = new InputStreamReader(getContentStream(dfos), encoding == null ? Constants.UTF_8 : encoding)) {
+            try (Reader reader = new InputStreamReader(getContentStream(dfos), enc)) {
                 return TextUtil.normalizeText(reader, initialBufferSize, maxAlphanumTermSize, maxSymbolTermSize);
             }
         } catch (TikaException e) {

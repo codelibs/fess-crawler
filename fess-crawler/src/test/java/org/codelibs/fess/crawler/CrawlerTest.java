@@ -378,7 +378,7 @@ public class CrawlerTest extends PlainTestCase {
             crawler.getCrawlerContext().setNumOfThread(numOfThread);
             final String sessionId = crawler.execute();
             Thread.sleep(3000);
-            assertTrue(crawler.crawlerContext.running);
+            assertEquals(CrawlerStatus.RUNNING, crawler.crawlerContext.getStatus());
             crawler.awaitTermination();
             assertEquals(maxCount, dataService.getCount(sessionId));
             dataService.delete(sessionId);
@@ -431,8 +431,8 @@ public class CrawlerTest extends PlainTestCase {
 
             Thread.sleep(1000);
 
-            assertTrue(crawler1.crawlerContext.running);
-            assertTrue(crawler2.crawlerContext.running);
+            assertEquals(CrawlerStatus.RUNNING, crawler1.crawlerContext.getStatus());
+            assertEquals(CrawlerStatus.RUNNING, crawler2.crawlerContext.getStatus());
 
             crawler1.awaitTermination();
             crawler2.awaitTermination();

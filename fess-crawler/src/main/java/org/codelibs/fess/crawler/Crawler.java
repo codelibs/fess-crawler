@@ -150,7 +150,7 @@ public class Crawler implements Runnable {
     }
 
     public void stop() {
-        crawlerContext.running = false;
+        crawlerContext.setStatus(CrawlerStatus.DONE);
         try {
             if (crawlerThreadGroup != null) {
                 crawlerThreadGroup.interrupt();
@@ -233,7 +233,7 @@ public class Crawler implements Runnable {
         }
 
         // run
-        crawlerContext.running = true;
+        crawlerContext.setStatus(CrawlerStatus.RUNNING);
         for (int i = 0; i < crawlerContext.numOfThread; i++) {
             threads[i].start();
         }
@@ -246,7 +246,7 @@ public class Crawler implements Runnable {
                 logger.warn("Interrupted job at " + threads[i].getName());
             }
         }
-        crawlerContext.running = false;
+        crawlerContext.setStatus(CrawlerStatus.DONE);
 
         urlQueueService.saveSession(crawlerContext.sessionId);
     }

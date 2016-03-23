@@ -36,7 +36,7 @@ public class CrawlerContext {
 
     protected AtomicLong accessCount = new AtomicLong(0);
 
-    protected volatile boolean running = false;
+    protected volatile CrawlerStatus status = CrawlerStatus.INITIALIZING;
 
     protected UrlFilter urlFilter;
 
@@ -87,12 +87,12 @@ public class CrawlerContext {
         return this.accessCount.decrementAndGet();
     }
 
-    public boolean isRunning() {
-        return running;
+    public CrawlerStatus getStatus() {
+        return status;
     }
 
-    public void setRunning(final boolean running) {
-        this.running = running;
+    public void setStatus(final CrawlerStatus status) {
+        this.status = status;
     }
 
     public UrlFilter getUrlFilter() {
@@ -115,8 +115,7 @@ public class CrawlerContext {
         return intervalController;
     }
 
-    public void setIntervalController(
-            final IntervalController intervalController) {
+    public void setIntervalController(final IntervalController intervalController) {
         this.intervalController = intervalController;
     }
 

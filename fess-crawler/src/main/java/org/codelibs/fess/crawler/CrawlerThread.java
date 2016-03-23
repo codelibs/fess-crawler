@@ -125,7 +125,7 @@ public class CrawlerThread implements Runnable {
         CrawlingParameterUtil.setUrlQueueService(urlQueueService);
         CrawlingParameterUtil.setDataService(dataService);
         try {
-            while (crawlerContext.running && isContinue(threadCheckCount)) {
+            while (crawlerContext.getStatus() != CrawlerStatus.DONE && isContinue(threadCheckCount)) {
                 final UrlQueue<?> urlQueue = urlQueueService
                         .poll(crawlerContext.sessionId);
                 if (isValid(urlQueue)) {

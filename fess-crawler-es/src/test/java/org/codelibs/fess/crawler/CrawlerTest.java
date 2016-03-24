@@ -155,14 +155,14 @@ public class CrawlerTest extends LastaDiTestCase {
             assertNotSame(crawler1.crawlerContext, crawler2.crawlerContext);
 
             for (int i = 0; i < 10; i++) {
-                if (crawler1.crawlerContext.getStatus() != CrawlerStatus.DONE) {
+                if (crawler1.crawlerContext.getStatus() == CrawlerStatus.RUNNING) {
                     break;
                 }
                 Thread.sleep(500);
             }
             assertEquals(CrawlerStatus.RUNNING, crawler1.crawlerContext.getStatus());
             for (int i = 0; i < 10; i++) {
-                if (crawler2.crawlerContext.getStatus() != CrawlerStatus.DONE) {
+                if (crawler2.crawlerContext.getStatus() == CrawlerStatus.DONE) {
                     break;
                 }
                 Thread.sleep(500);

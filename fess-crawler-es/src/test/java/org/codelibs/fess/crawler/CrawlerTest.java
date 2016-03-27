@@ -162,7 +162,7 @@ public class CrawlerTest extends LastaDiTestCase {
             }
             assertEquals(CrawlerStatus.RUNNING, crawler1.crawlerContext.getStatus());
             for (int i = 0; i < 10; i++) {
-                if (crawler2.crawlerContext.getStatus() == CrawlerStatus.DONE) {
+                if (crawler2.crawlerContext.getStatus() == CrawlerStatus.RUNNING) {
                     break;
                 }
                 Thread.sleep(500);

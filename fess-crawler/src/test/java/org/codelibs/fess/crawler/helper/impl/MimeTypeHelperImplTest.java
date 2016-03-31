@@ -134,6 +134,16 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         assertEquals("application/octet-stream",
                 mimeTypeHelper.getContentType(null, "hoge"));
 
+        assertEquals("application/vnd.ms-powerpoint",
+                mimeTypeHelper.getContentType(msPowerPointStream, "h&oge.ppt"));
+        assertEquals("application/vnd.ms-powerpoint",
+                mimeTypeHelper.getContentType(msPowerPointStream, "h?oge.ppt"));
+        assertEquals("application/vnd.ms-powerpoint",
+                mimeTypeHelper.getContentType(msPowerPointStream, "h@oge.ppt"));
+        assertEquals("application/vnd.ms-powerpoint",
+                mimeTypeHelper.getContentType(msPowerPointStream, "h:oge.ppt"));
+        assertEquals("application/vnd.ms-powerpoint",
+                mimeTypeHelper.getContentType(msPowerPointStream, "h/oge.ppt"));
     }
 
     public void test_getContentType_null() {

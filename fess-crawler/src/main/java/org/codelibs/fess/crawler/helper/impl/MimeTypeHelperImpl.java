@@ -69,7 +69,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         }
 
         final Metadata metadata = new Metadata();
-        metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
+        metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, normalizeFilename(filename));
 
         try {
             final MediaType mediaType = mimeTypes.detect(
@@ -79,5 +79,36 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         } catch (final IOException e) {
             throw new MimeTypeException("Could not detect a content type.", e);
         }
+    }
+
+    protected String normalizeFilename(final String filename) {
+        if (StringUtil.isBlank(filename)) {
+            return filename;
+        }
+        final StringBuilder buf = new StringBuilder(filename.length() + 10);
+        for (int i = 0; i < filename.length(); i++) {
+            final char c = filename.charAt(i);
+            switch (c) {
+            case '?':
+                buf.append("%3f");
+                break;
+            case '#':
+                buf.append("%23");
+                break;
+            case '@':
+                buf.append("%40");
+                break;
+            case ':':
+                buf.append("%3a");
+                break;
+            case '/':
+                buf.append("%2f");
+                break;
+            default:
+                buf.append(c);
+                break;
+            }
+        }
+        return buf.toString();
     }
 }

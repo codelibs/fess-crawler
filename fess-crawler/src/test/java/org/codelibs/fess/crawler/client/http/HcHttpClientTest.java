@@ -17,9 +17,11 @@ package org.codelibs.fess.crawler.client.http;
 
 import java.util.Date;
 
+import org.apache.http.client.methods.HttpUriRequest;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
@@ -126,6 +128,48 @@ public class HcHttpClientTest extends PlainTestCase {
                     .getTime());
         } finally {
             server.stop();
+        }
+    }
+
+    public void test_doGet_accessTimeoutTarget() {
+        HcHttpClient client = new HcHttpClient() {
+            @Override
+            protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new CrawlingAccessException(e);
+                }
+                return null;
+            }
+        };
+        client.setAccessTimeout(1);
+        try {
+            client.doGet("http://localhost/");
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertTrue(e.getCause() instanceof InterruptedException);
+        }
+    }
+
+    public void test_doHead_accessTimeoutTarget() {
+        HcHttpClient client = new HcHttpClient() {
+            @Override
+            protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new CrawlingAccessException(e);
+                }
+                return null;
+            }
+        };
+        client.setAccessTimeout(1);
+        try {
+            client.doHead("http://localhost/");
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertTrue(e.getCause() instanceof InterruptedException);
         }
     }
 

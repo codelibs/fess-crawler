@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -170,5 +171,47 @@ public class FileSystemClientTest extends PlainTestCase {
         }
         final ResponseData responseData = fsClient.doHead("file:" + path);
         assertNull(responseData);
+    }
+
+    public void test_doGet_accessTimeoutTarget() {
+        FileSystemClient client = new FileSystemClient() {
+            @Override
+            protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new CrawlingAccessException(e);
+                }
+                return null;
+            }
+        };
+        client.setAccessTimeout(1);
+        try {
+            client.doGet("file:/tmp/test.txt");
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertTrue(e.getCause() instanceof InterruptedException);
+        }
+    }
+
+    public void test_doHead_accessTimeoutTarget() {
+        FileSystemClient client = new FileSystemClient() {
+            @Override
+            protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new CrawlingAccessException(e);
+                }
+                return null;
+            }
+        };
+        client.setAccessTimeout(1);
+        try {
+            client.doHead("file:/tmp/test.txt");
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertTrue(e.getCause() instanceof InterruptedException);
+        }
     }
 }

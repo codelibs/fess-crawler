@@ -342,4 +342,46 @@ public class FtpClientTest extends PlainTestCase {
             }
         }
     }
+
+    public void test_doGet_accessTimeoutTarget() {
+        FtpClient client = new FtpClient() {
+            @Override
+            protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new CrawlingAccessException(e);
+                }
+                return null;
+            }
+        };
+        client.setAccessTimeout(1);
+        try {
+            client.doGet("ftp://localhost/test.txt");
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertTrue(e.getCause() instanceof InterruptedException);
+        }
+    }
+
+    public void test_doHead_accessTimeoutTarget() {
+        FtpClient client = new FtpClient() {
+            @Override
+            protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new CrawlingAccessException(e);
+                }
+                return null;
+            }
+        };
+        client.setAccessTimeout(1);
+        try {
+            client.doHead("ftp://localhost/test.txt");
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertTrue(e.getCause() instanceof InterruptedException);
+        }
+    }
 }

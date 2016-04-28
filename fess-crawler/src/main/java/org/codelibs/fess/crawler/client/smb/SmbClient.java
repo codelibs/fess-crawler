@@ -34,9 +34,12 @@ import javax.annotation.Resource;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.timer.TimeoutManager;
+import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
+import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -92,16 +95,18 @@ public class SmbClient extends AbstractCrawlerClient {
             logger.debug("Initializing SmbClient...");
         }
 
-        // user agent
+        super.init();
+
+        // smb auth
+        final SmbAuthenticationHolder holder = new SmbAuthenticationHolder();
         final SmbAuthentication[] smbAuthentications = getInitParameter(
                 SMB_AUTHENTICATIONS_PROPERTY, new SmbAuthentication[0]);
         if (smbAuthentications != null) {
-            final SmbAuthenticationHolder holder = new SmbAuthenticationHolder();
             for (final SmbAuthentication smbAuthentication : smbAuthentications) {
                 holder.add(smbAuthentication);
             }
-            smbAuthenticationHolder = holder;
         }
+        smbAuthenticationHolder = holder;
     }
 
     @PreDestroy
@@ -116,15 +121,36 @@ public class SmbClient extends AbstractCrawlerClient {
      */
     @Override
     public ResponseData doGet(final String uri) {
-        return getResponseData(uri, true);
+        return processRequest(uri, true);
     }
 
-    protected ResponseData getResponseData(final String uri,
-            final boolean includeContent) {
+    protected ResponseData processRequest(final String uri, final boolean includeContent) {
         if (smbAuthenticationHolder == null) {
             init();
         }
 
+        // start
+        AccessTimeoutTarget accessTimeoutTarget = null;
+        TimeoutTask accessTimeoutTask = null;
+        if (accessTimeout != null) {
+            accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
+        }
+
+        try {
+            return getResponseData(uri, includeContent);
+        } finally {
+            if (accessTimeout != null) {
+                accessTimeoutTarget.stop();
+                if (!accessTimeoutTask.isCanceled()) {
+                    accessTimeoutTask.cancel();
+                }
+            }
+        }
+    }
+
+    protected ResponseData getResponseData(final String uri,
+            final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
         final String filePath = preprocessUri(uri);
@@ -311,7 +337,7 @@ public class SmbClient extends AbstractCrawlerClient {
     @Override
     public ResponseData doHead(final String url) {
         try {
-            final ResponseData responseData = getResponseData(url, false);
+            final ResponseData responseData = processRequest(url, false);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
         } catch (final ChildUrlsException e) {

@@ -41,9 +41,12 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilters;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.InputStreamUtil;
+import org.codelibs.core.timer.TimeoutManager;
+import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
+import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -108,15 +111,7 @@ public class FtpClient extends AbstractCrawlerClient {
             return;
         }
 
-        // user agent
-        final FtpAuthentication[] ftpAuthentications = getInitParameter(FTP_AUTHENTICATIONS_PROPERTY, new FtpAuthentication[0]);
-        if (ftpAuthentications != null) {
-            final FtpAuthenticationHolder holder = new FtpAuthenticationHolder();
-            for (final FtpAuthentication ftpAuthentication : ftpAuthentications) {
-                holder.add(ftpAuthentication);
-            }
-            ftpAuthenticationHolder = holder;
-        }
+        super.init();
 
         final String systemKey = getInitParameter("ftpConfigSystemKey", FTPClientConfig.SYST_UNIX);
         ftpClientConfig = new FTPClientConfig(systemKey);
@@ -130,28 +125,27 @@ public class FtpClient extends AbstractCrawlerClient {
         }
 
         activeExternalHost = getInitParameter("activeExternalHost", null);
-
         activeMinPort = getInitParameter("activeMinPort", -1);
-
         activeMaxPort = getInitParameter("activeMaxPort", -1);
-
         autodetectEncoding = getInitParameter("autodetectEncoding", true);
-
         connectTimeout = getInitParameter("connectTimeout", 0);
-
         dataTimeout = getInitParameter("dataTimeout", -1);
-
         controlEncoding = getInitParameter("controlEncoding", Constants.UTF_8);
-
         bufferSize = getInitParameter("bufferSize", 0);
-
         passiveLocalHost = getInitParameter("passiveLocalHost", null);
-
         passiveNatWorkaround = getInitParameter("passiveNatWorkaround", true);
-
         reportActiveExternalHost = getInitParameter("reportActiveExternalHost", null);
-
         useEPSVwithIPv4 = getInitParameter("useEPSVwithIPv4", false);
+
+        // ftp auth
+        final FtpAuthenticationHolder holder = new FtpAuthenticationHolder();
+        final FtpAuthentication[] ftpAuthentications = getInitParameter(FTP_AUTHENTICATIONS_PROPERTY, new FtpAuthentication[0]);
+        if (ftpAuthentications != null) {
+            for (final FtpAuthentication ftpAuthentication : ftpAuthentications) {
+                holder.add(ftpAuthentication);
+            }
+        }
+        ftpAuthenticationHolder = holder;
     }
 
     @PreDestroy
@@ -173,14 +167,35 @@ public class FtpClient extends AbstractCrawlerClient {
      */
     @Override
     public ResponseData doGet(final String uri) {
-        return getResponseData(uri, true);
+        return processRequest(uri, true);
     }
 
-    protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+    protected ResponseData processRequest(final String uri, final boolean includeContent) {
         if (ftpAuthenticationHolder == null) {
             init();
         }
 
+        // start
+        AccessTimeoutTarget accessTimeoutTarget = null;
+        TimeoutTask accessTimeoutTask = null;
+        if (accessTimeout != null) {
+            accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
+        }
+
+        try {
+            return getResponseData(uri, includeContent);
+        } finally {
+            if (accessTimeout != null) {
+                accessTimeoutTarget.stop();
+                if (!accessTimeoutTask.isCanceled()) {
+                    accessTimeoutTask.cancel();
+                }
+            }
+        }
+    }
+
+    protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
 
@@ -345,7 +360,7 @@ public class FtpClient extends AbstractCrawlerClient {
     @Override
     public ResponseData doHead(final String url) {
         try {
-            final ResponseData responseData = getResponseData(url, false);
+            final ResponseData responseData = processRequest(url, false);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
         } catch (final ChildUrlsException e) {

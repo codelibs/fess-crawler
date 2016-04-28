@@ -26,15 +26,18 @@ import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.timer.TimeoutManager;
+import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
+import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -65,6 +68,8 @@ public class FileSystemClient extends AbstractCrawlerClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
+    protected AtomicBoolean isInit = new AtomicBoolean(false);
+
     /*
      * (non-Javadoc)
      *
@@ -72,7 +77,37 @@ public class FileSystemClient extends AbstractCrawlerClient {
      */
     @Override
     public ResponseData doGet(final String uri) {
-        return getResponseData(uri, true);
+        return processRequest(uri, true);
+    }
+
+    protected ResponseData processRequest(final String uri, final boolean includeContent) {
+        if (!isInit.get()) {
+            synchronized (isInit) {
+                if (!isInit.get()) {
+                    init();
+                    isInit.set(true);
+                }
+            }
+        }
+
+        // start
+        AccessTimeoutTarget accessTimeoutTarget = null;
+        TimeoutTask accessTimeoutTask = null;
+        if (accessTimeout != null) {
+            accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
+        }
+
+        try {
+            return getResponseData(uri, includeContent);
+        } finally {
+            if (accessTimeout != null) {
+                accessTimeoutTarget.stop();
+                if (!accessTimeoutTask.isCanceled()) {
+                    accessTimeoutTask.cancel();
+                }
+            }
+        }
     }
 
     protected ResponseData getResponseData(final String uri,
@@ -206,7 +241,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
     @Override
     public ResponseData doHead(final String url) {
         try {
-            final ResponseData responseData = getResponseData(url, false);
+            final ResponseData responseData = processRequest(url, false);
             responseData.setMethod(Constants.HEAD_METHOD);
             return responseData;
         } catch (final ChildUrlsException e) {

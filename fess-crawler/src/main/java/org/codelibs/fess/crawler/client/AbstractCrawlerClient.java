@@ -34,9 +34,29 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     protected static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
 
+    public static final String ACCESS_TIMEOUT_PROPERTY = "accessTimeout";
+
+    public static final String MAX_CACHED_CONTENT_SIZE = "maxCachedContentSize";
+
     private Map<String, Object> initParamMap;
 
-    protected long maxCachedContentSize = 1024 * 1024;//1mb
+    protected long maxCachedContentSize = 1024 * 1024; //1mb
+
+    protected Integer accessTimeout; // sec
+
+    public void init() {
+        // access timeout
+        final Number accessTimeoutParam = getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout);
+        if (accessTimeoutParam != null) {
+            accessTimeout = accessTimeoutParam.intValue();
+        }
+
+        // max cached content size
+        final Number maxCachedContentSizeParam = getInitParameter(MAX_CACHED_CONTENT_SIZE, null);
+        if (maxCachedContentSizeParam != null) {
+            maxCachedContentSize = maxCachedContentSizeParam.longValue();
+        }
+    }
 
     protected <T> T getInitParameter(final String key, final T defaultValue) {
         if (initParamMap != null) {
@@ -90,4 +110,7 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
         this.maxCachedContentSize = maxCachedContentSize;
     }
 
+    public void setAccessTimeout(Integer accessTimeout) {
+        this.accessTimeout = accessTimeout;
+    }
 }

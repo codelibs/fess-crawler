@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import javax.annotation.PreDestroy;
@@ -76,11 +75,11 @@ import org.codelibs.core.beans.factory.BeanDescFactory;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.timer.TimeoutManager;
-import org.codelibs.core.timer.TimeoutTarget;
 import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
+import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -98,8 +97,6 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class HcHttpClient extends AbstractCrawlerClient {
-
-    public static final String ACCESS_TIMEOUT_PROPERTY = "accessTimeout";
 
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
@@ -207,12 +204,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             logger.debug("Initializing " + HcHttpClient.class.getName());
         }
 
-        // access timeout
-        final Integer accessTimeoutParam = getInitParameter(
-                ACCESS_TIMEOUT_PROPERTY, accessTimeout);
-        if (accessTimeoutParam != null) {
-            accessTimeout = accessTimeoutParam;
-        }
+        super.init();
 
         // robots.txt parser
         final Boolean robotsTxtEnabled = getInitParameter(
@@ -806,46 +798,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
             return defaultRoutePlanner;
         }
         return null;
-    }
-
-    protected static class AccessTimeoutTarget implements TimeoutTarget {
-
-        private static final int MAX_LOOP_COUNT = 10;
-
-        protected Thread runninThread;
-
-        protected AtomicBoolean running = new AtomicBoolean();
-
-        protected AccessTimeoutTarget(final Thread thread) {
-            runninThread = thread;
-            running.set(true);
-        }
-
-        /*
-         * (non-Javadoc)
-         *
-         * @see org.seasar.extension.timer.TimeoutTarget#expired()
-         */
-        @Override
-        public void expired() {
-            int count = 0;
-            while (running.get() && count < MAX_LOOP_COUNT) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Interrupt " + runninThread);
-                }
-                runninThread.interrupt();
-                try {
-                    Thread.sleep(1000);
-                } catch (final InterruptedException e) {
-                    // ignore
-                }
-                count++;
-            }
-        }
-
-        public void stop() {
-            running.set(false);
-        }
     }
 
     public void setAccessTimeout(final Integer accessTimeout) {

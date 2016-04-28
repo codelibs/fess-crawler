@@ -187,6 +187,7 @@ public class SmbClient extends AbstractCrawlerClient {
                     logger.debug("Checking SmbFile Size: " + filePath);
                 }
                 responseData.setContentLength(file.length());
+                checkMaxContentLength(responseData);
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(geCharSet(file));
                 responseData.setLastModified(new Date(file.lastModified()));

@@ -249,13 +249,7 @@ public class FtpClient extends AbstractCrawlerClient {
 
                 // check file size
                 responseData.setContentLength(file.getSize());
-                if (contentLengthHelper != null) {
-                    final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
-                    if (responseData.getContentLength() > maxLength) {
-                        throw new MaxLengthExceededException("The content length (" + responseData.getContentLength() + " byte) is over "
-                                + maxLength + " byte. The url is " + uri);
-                    }
-                }
+                checkMaxContentLength(responseData);
 
                 if (includeContent) {
                     File tempFile = null;
@@ -273,6 +267,14 @@ public class FtpClient extends AbstractCrawlerClient {
                             responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
                         } catch (final Exception e) {
                             responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
+                        }
+
+                        if (contentLengthHelper != null) {
+                            final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
+                            if (responseData.getContentLength() > maxLength) {
+                                throw new MaxLengthExceededException("The content length (" + responseData.getContentLength() + " byte) is over "
+                                        + maxLength + " byte. The url is " + uri);
+                            }
                         }
 
                         responseData.setCharSet(geCharSet(tempFile));

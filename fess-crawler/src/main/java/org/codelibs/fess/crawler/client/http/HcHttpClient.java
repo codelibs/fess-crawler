@@ -710,6 +710,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     responseData.setContentLength(contentLength);
                 }
             }
+            checkMaxContentLength(responseData);
             final Header lastModifiedHeader = response
                     .getFirstHeader("Last-Modified");
             if (lastModifiedHeader != null) {

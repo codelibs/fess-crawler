@@ -131,16 +131,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
         } else if (file.isFile()) {
             // check file size
             responseData.setContentLength(file.length());
-            if (contentLengthHelper != null) {
-                final long maxLength = contentLengthHelper
-                        .getMaxLength(responseData.getMimeType());
-                if (responseData.getContentLength() > maxLength) {
-                    throw new MaxLengthExceededException("The content length ("
-                            + responseData.getContentLength()
-                            + " byte) is over " + maxLength
-                            + " byte. The url is " + filePath);
-                }
-            }
+            checkMaxContentLength(responseData);
 
             responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
             responseData.setCharSet(geCharSet(file));
@@ -152,6 +143,18 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 } catch (final Exception e) {
                     responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
                 }
+
+                if (contentLengthHelper != null) {
+                    final long maxLength = contentLengthHelper
+                            .getMaxLength(responseData.getMimeType());
+                    if (responseData.getContentLength() > maxLength) {
+                        throw new MaxLengthExceededException("The content length ("
+                                + responseData.getContentLength()
+                                + " byte) is over " + maxLength
+                                + " byte. The url is " + filePath);
+                    }
+                }
+
                 if (includeContent) {
                     if (file.length() < maxCachedContentSize) {
                         try (InputStream contentStream = new BufferedInputStream(new FileInputStream(file))) {

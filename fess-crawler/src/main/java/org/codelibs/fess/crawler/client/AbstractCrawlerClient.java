@@ -20,6 +20,7 @@ import java.util.Map;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,15 +37,25 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     public static final String ACCESS_TIMEOUT_PROPERTY = "accessTimeout";
 
+    public static final String MAX_CONTENT_LENGTH = "maxContentLength";
+
     public static final String MAX_CACHED_CONTENT_SIZE = "maxCachedContentSize";
 
     private Map<String, Object> initParamMap;
 
     protected long maxCachedContentSize = 1024 * 1024; //1mb
 
-    protected Integer accessTimeout; // sec
+    protected Integer accessTimeout = null; // sec
+
+    protected Long maxContentLength = null;
 
     public void init() {
+        // max content length
+        final Number maxContentLengthParam = getInitParameter(MAX_CONTENT_LENGTH, maxContentLength);
+        if (maxContentLengthParam != null) {
+            maxContentLength = maxContentLengthParam.longValue();
+        }
+
         // access timeout
         final Number accessTimeoutParam = getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout);
         if (accessTimeoutParam != null) {
@@ -94,6 +105,13 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
         }
     }
 
+    protected void checkMaxContentLength(final ResponseData responseData) {
+        if (maxContentLength != null && responseData.getContentLength() > maxContentLength.longValue()) {
+            throw new MaxLengthExceededException("The content length (" + responseData.getContentLength() + " byte) is over "
+                    + maxContentLength.longValue() + " byte. The url is " + responseData.getUrl());
+        }
+    }
+
     protected ResponseData doGet(final String url) {
         throw new CrawlerSystemException("GET method is not supported.");
     }
@@ -112,5 +130,9 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     public void setAccessTimeout(Integer accessTimeout) {
         this.accessTimeout = accessTimeout;
+    }
+
+    public void setMaxContentLength(Long maxContentLength) {
+        this.maxContentLength = maxContentLength;
     }
 }

@@ -207,8 +207,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         super.init();
 
         // robots.txt parser
-        final Boolean robotsTxtEnabled = getInitParameter(
-                ROBOTS_TXT_ENABLED_PROPERTY, Boolean.TRUE);
+        final Boolean robotsTxtEnabled = getInitParameter(ROBOTS_TXT_ENABLED_PROPERTY, Boolean.TRUE, Boolean.class);
         if (robotsTxtHelper != null) {
             robotsTxtHelper.setEnabled(robotsTxtEnabled.booleanValue());
         }
@@ -218,20 +217,17 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 .custom();
         final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
-        final Integer connectionTimeoutParam = getInitParameter(
-                CONNECTION_TIMEOUT_PROPERTY, connectionTimeout);
+        final Integer connectionTimeoutParam = getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout, Integer.class);
         if (connectionTimeoutParam != null) {
             requestConfigBuilder.setConnectTimeout(connectionTimeoutParam);
 
         }
-        final Boolean staleCheckingEnabledParam = getInitParameter(
-                STALE_CHECKING_ENABLED_PROPERTY, staleCheckingEnabled);
+        final Boolean staleCheckingEnabledParam = getInitParameter(STALE_CHECKING_ENABLED_PROPERTY, staleCheckingEnabled, Boolean.class);
         if (staleCheckingEnabledParam != null) {
             requestConfigBuilder
                     .setStaleConnectionCheckEnabled(staleCheckingEnabledParam);
         }
-        final Integer soTimeoutParam = getInitParameter(SO_TIMEOUT_PROPERTY,
-                soTimeout);
+        final Integer soTimeoutParam = getInitParameter(SO_TIMEOUT_PROPERTY, soTimeout, Integer.class);
         if (soTimeoutParam != null) {
             requestConfigBuilder.setSocketTimeout(soTimeoutParam);
         }
@@ -239,8 +235,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
         // AuthSchemeFactory
         final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder = RegistryBuilder
                 .create();
-        final Map<String, AuthSchemeProvider> factoryMap = getInitParameter(
-                AUTH_SCHEME_PROVIDERS_PROPERTY, authSchemeProviderMap);
+        @SuppressWarnings("unchecked")
+        final Map<String, AuthSchemeProvider> factoryMap =
+                getInitParameter(AUTH_SCHEME_PROVIDERS_PROPERTY, authSchemeProviderMap, Map.class);
         if (factoryMap != null) {
             for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap
                     .entrySet()) {
@@ -250,7 +247,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // user agent
-        userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent);
+        userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent, String.class);
         if (StringUtil.isNotBlank(userAgent)) {
             httpClientBuilder.setUserAgent(userAgent);
         }
@@ -261,8 +258,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // Authentication
-        final Authentication[] siteCredentialList = getInitParameter(
-                BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0]);
+        final Authentication[] siteCredentialList =
+                getInitParameter(BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0], Authentication[].class);
         for (final Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
             credentialsProvider.setCredentials(authScope,
@@ -279,8 +276,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         httpClientContext.setCredentialsProvider(credentialsProvider);
 
         // Request Header
-        final RequestHeader[] requestHeaders = getInitParameter(
-                REQUERT_HEADERS_PROPERTY, new RequestHeader[0]);
+        final RequestHeader[] requestHeaders = getInitParameter(REQUERT_HEADERS_PROPERTY, new RequestHeader[0], RequestHeader[].class);
         for (final RequestHeader requestHeader : requestHeaders) {
             if (requestHeader.isValid()) {
                 requestHeaderList.add(new BasicHeader(requestHeader.getName(),
@@ -299,8 +295,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         // cookie store
         httpClientBuilder.setDefaultCookieStore(cookieStore);
         if (cookieStore != null) {
-            final Cookie[] cookies = getInitParameter(COOKIES_PROPERTY,
-                    new Cookie[0]);
+            final Cookie[] cookies = getInitParameter(COOKIES_PROPERTY, new Cookie[0], Cookie[].class);
             for (final Cookie cookie : cookies) {
                 cookieStore.addCookie(cookie);
             }
@@ -782,16 +777,16 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // proxy
-        final String proxyHost = getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost);
-        final Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort);
+        final String proxyHost = getInitParameter(PROXY_HOST_PROPERTY, this.proxyHost, String.class);
+        final Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort, Integer.class);
         if (proxyHost != null && proxyPort != null) {
             final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
             final DefaultProxyRoutePlanner defaultRoutePlanner = new DefaultProxyRoutePlanner(proxy);
 
-            final Credentials credentials = getInitParameter(PROXY_CREDENTIALS_PROPERTY, proxyCredentials);
+            final Credentials credentials = getInitParameter(PROXY_CREDENTIALS_PROPERTY, proxyCredentials, Credentials.class);
             if (credentials != null) {
                 credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), credentials);
-                final AuthScheme authScheme = getInitParameter(PROXY_AUTH_SCHEME_PROPERTY, proxyAuthScheme);
+                final AuthScheme authScheme = getInitParameter(PROXY_AUTH_SCHEME_PROPERTY, proxyAuthScheme, AuthScheme.class);
                 if (authScheme != null) {
                     authCache.put(proxy, authScheme);
                 }

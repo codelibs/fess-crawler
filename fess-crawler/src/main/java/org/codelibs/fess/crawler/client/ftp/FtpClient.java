@@ -113,33 +113,34 @@ public class FtpClient extends AbstractCrawlerClient {
 
         super.init();
 
-        final String systemKey = getInitParameter("ftpConfigSystemKey", FTPClientConfig.SYST_UNIX);
+        final String systemKey = getInitParameter("ftpConfigSystemKey", FTPClientConfig.SYST_UNIX, String.class);
         ftpClientConfig = new FTPClientConfig(systemKey);
 
-        final String serverLanguageCode = getInitParameter("ftpConfigServerLanguageCode", "en");
+        final String serverLanguageCode = getInitParameter("ftpConfigServerLanguageCode", "en", String.class);
         ftpClientConfig.setServerLanguageCode(serverLanguageCode);
 
-        final String serverTimeZoneId = getInitParameter("ftpConfigServerTimeZoneId", null);
+        final String serverTimeZoneId = getInitParameter("ftpConfigServerTimeZoneId", null, String.class);
         if (serverTimeZoneId != null) {
             ftpClientConfig.setServerTimeZoneId(serverTimeZoneId);
         }
 
-        activeExternalHost = getInitParameter("activeExternalHost", null);
-        activeMinPort = getInitParameter("activeMinPort", -1);
-        activeMaxPort = getInitParameter("activeMaxPort", -1);
-        autodetectEncoding = getInitParameter("autodetectEncoding", true);
-        connectTimeout = getInitParameter("connectTimeout", 0);
-        dataTimeout = getInitParameter("dataTimeout", -1);
-        controlEncoding = getInitParameter("controlEncoding", Constants.UTF_8);
-        bufferSize = getInitParameter("bufferSize", 0);
-        passiveLocalHost = getInitParameter("passiveLocalHost", null);
-        passiveNatWorkaround = getInitParameter("passiveNatWorkaround", true);
-        reportActiveExternalHost = getInitParameter("reportActiveExternalHost", null);
-        useEPSVwithIPv4 = getInitParameter("useEPSVwithIPv4", false);
+        activeExternalHost = getInitParameter("activeExternalHost", null, String.class);
+        activeMinPort = getInitParameter("activeMinPort", -1, Integer.class);
+        activeMaxPort = getInitParameter("activeMaxPort", -1, Integer.class);
+        autodetectEncoding = getInitParameter("autodetectEncoding", true, Boolean.class);
+        connectTimeout = getInitParameter("connectTimeout", 0, Integer.class);
+        dataTimeout = getInitParameter("dataTimeout", -1, Integer.class);
+        controlEncoding = getInitParameter("controlEncoding", Constants.UTF_8, String.class);
+        bufferSize = getInitParameter("bufferSize", 0, Integer.class);
+        passiveLocalHost = getInitParameter("passiveLocalHost", null, String.class);
+        passiveNatWorkaround = getInitParameter("passiveNatWorkaround", true, Boolean.class);
+        reportActiveExternalHost = getInitParameter("reportActiveExternalHost", null, String.class);
+        useEPSVwithIPv4 = getInitParameter("useEPSVwithIPv4", false, Boolean.class);
 
         // ftp auth
         final FtpAuthenticationHolder holder = new FtpAuthenticationHolder();
-        final FtpAuthentication[] ftpAuthentications = getInitParameter(FTP_AUTHENTICATIONS_PROPERTY, new FtpAuthentication[0]);
+        final FtpAuthentication[] ftpAuthentications =
+                getInitParameter(FTP_AUTHENTICATIONS_PROPERTY, new FtpAuthentication[0], FtpAuthentication[].class);
         if (ftpAuthentications != null) {
             for (final FtpAuthentication ftpAuthentication : ftpAuthentications) {
                 holder.add(ftpAuthentication);

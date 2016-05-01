@@ -99,8 +99,8 @@ public class SmbClient extends AbstractCrawlerClient {
 
         // smb auth
         final SmbAuthenticationHolder holder = new SmbAuthenticationHolder();
-        final SmbAuthentication[] smbAuthentications = getInitParameter(
-                SMB_AUTHENTICATIONS_PROPERTY, new SmbAuthentication[0]);
+        final SmbAuthentication[] smbAuthentications =
+                getInitParameter(SMB_AUTHENTICATIONS_PROPERTY, new SmbAuthentication[0], SmbAuthentication[].class);
         if (smbAuthentications != null) {
             for (final SmbAuthentication smbAuthentication : smbAuthentications) {
                 holder.add(smbAuthentication);

@@ -51,38 +51,76 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     public void init() {
         // max content length
-        final Number maxContentLengthParam = getInitParameter(MAX_CONTENT_LENGTH, maxContentLength);
+        final Long maxContentLengthParam = getInitParameter(MAX_CONTENT_LENGTH, maxContentLength, Long.class);
         if (maxContentLengthParam != null) {
             maxContentLength = maxContentLengthParam.longValue();
         }
 
         // access timeout
-        final Number accessTimeoutParam = getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout);
+        final Integer accessTimeoutParam = getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout, Integer.class);
         if (accessTimeoutParam != null) {
             accessTimeout = accessTimeoutParam.intValue();
         }
 
         // max cached content size
-        final Number maxCachedContentSizeParam = getInitParameter(MAX_CACHED_CONTENT_SIZE, null);
+        final Long maxCachedContentSizeParam = getInitParameter(MAX_CACHED_CONTENT_SIZE, null, Long.class);
         if (maxCachedContentSizeParam != null) {
             maxCachedContentSize = maxCachedContentSizeParam.longValue();
         }
     }
 
-    protected <T> T getInitParameter(final String key, final T defaultValue) {
+    protected <T> T getInitParameter(final String key, final T defaultValue, final Class<T> clazz) {
         if (initParamMap != null) {
             try {
-                @SuppressWarnings("unchecked")
-                final T value = (T) initParamMap.get(key);
-                if (value != null) {
-                    return value;
+                final Object paramValue = initParamMap.get(key);
+                if (paramValue == null) {
+                    return defaultValue;
                 }
+
+                return convertObj(paramValue, clazz);
             } catch (final Exception e) {
-                logger.warn("Could not load init parameters: " + key + " from "
-                        + initParamMap, e);
+                logger.warn("Could not load init parameters: " + key + " from " + initParamMap, e);
             }
         }
         return defaultValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T> T convertObj(final Object value, Class<T> clazz) {
+        if (clazz.isAssignableFrom(String.class)) {
+            return (T) value.toString();
+        } else if (clazz.isAssignableFrom(Long.class)) {
+            if (value instanceof Long) {
+                return (T) value;
+            } else {
+                return (T) Long.valueOf(value.toString());
+            }
+        } else if (clazz.isAssignableFrom(Integer.class)) {
+            if (value instanceof Integer) {
+                return (T) value;
+            } else {
+                return (T) Integer.valueOf(value.toString());
+            }
+        } else if (clazz.isAssignableFrom(Double.class)) {
+            if (value instanceof Double) {
+                return (T) value;
+            } else {
+                return (T) Double.valueOf(value.toString());
+            }
+        } else if (clazz.isAssignableFrom(Float.class)) {
+            if (value instanceof Float) {
+                return (T) value;
+            } else {
+                return (T) Float.valueOf(value.toString());
+            }
+        } else if (clazz.isAssignableFrom(Boolean.class)) {
+            if (value instanceof Boolean) {
+                return (T) value;
+            } else {
+                return (T) Boolean.valueOf(value.toString());
+            }
+        }
+        return (T) value;
     }
 
     @Override

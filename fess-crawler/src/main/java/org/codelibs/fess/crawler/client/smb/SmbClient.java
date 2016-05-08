@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashSet;
@@ -57,6 +59,7 @@ import jcifs.smb.SID;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
+import jcifs.util.LogStream;
 
 /**
  * @author shinsuke
@@ -73,6 +76,38 @@ public class SmbClient extends AbstractCrawlerClient {
     public static final String SMB_CREATE_TIME = "smbCreateTime";;
 
     public static final String SMB_OWNER_ATTRIBUTES = "smbOwnerAttributes";
+
+    static {
+        if (logger.isDebugEnabled()) {
+            LogStream.setLevel(3);
+        } else if (logger.isWarnEnabled()) {
+            LogStream.setLevel(2);
+        } else if (logger.isErrorEnabled()) {
+            LogStream.setLevel(1);
+        } else {
+            LogStream.setLevel(0);
+        }
+
+        LogStream.setInstance(new PrintStream(new OutputStream() {
+            private StringBuilder buf = new StringBuilder(1000);
+
+            @Override
+            public void write(int b) throws IOException {
+                if (b == '\n') {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(buf.toString());
+                    } else if (logger.isWarnEnabled()) {
+                        logger.warn(buf.toString());
+                    } else if (logger.isErrorEnabled()) {
+                        logger.error(buf.toString());
+                    }
+                    buf.setLength(0);
+                } else {
+                    buf.appendCodePoint(b);
+                }
+            }
+        }));
+    }
 
     @Resource
     protected CrawlerContainer crawlerContainer;

@@ -54,6 +54,7 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jcifs.Config;
 import jcifs.smb.ACE;
 import jcifs.smb.SID;
 import jcifs.smb.SmbException;
@@ -78,28 +79,39 @@ public class SmbClient extends AbstractCrawlerClient {
     public static final String SMB_OWNER_ATTRIBUTES = "smbOwnerAttributes";
 
     static {
-        if (logger.isDebugEnabled()) {
-            LogStream.setLevel(3);
-        } else if (logger.isWarnEnabled()) {
-            LogStream.setLevel(2);
-        } else if (logger.isErrorEnabled()) {
-            LogStream.setLevel(1);
-        } else {
-            LogStream.setLevel(0);
+        if (Config.getInt("jcifs.util.loglevel", -1) == -1) {
+            if (logger.isTraceEnabled()) {
+                LogStream.setLevel(4);
+            } else if (logger.isDebugEnabled()) {
+                LogStream.setLevel(3);
+            } else if (logger.isWarnEnabled()) {
+                LogStream.setLevel(2);
+            } else if (logger.isErrorEnabled()) {
+                LogStream.setLevel(1);
+            } else {
+                LogStream.setLevel(0);
+            }
         }
 
         LogStream.setInstance(new PrintStream(new OutputStream() {
-            private StringBuilder buf = new StringBuilder(1000);
+            private static final int MAX_LEN = 1000;
+
+            private StringBuilder buf = new StringBuilder(MAX_LEN);
 
             @Override
             public void write(int b) throws IOException {
-                if (b == '\n') {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(buf.toString());
-                    } else if (logger.isWarnEnabled()) {
-                        logger.warn(buf.toString());
-                    } else if (logger.isErrorEnabled()) {
-                        logger.error(buf.toString());
+                if (b == '\n' || b == '\r' || buf.length() >= MAX_LEN) {
+                    final String msg = buf.toString();
+                    if (StringUtil.isNotBlank(msg)) {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace(msg);
+                        } else if (logger.isDebugEnabled()) {
+                            logger.debug(msg);
+                        } else if (logger.isWarnEnabled()) {
+                            logger.warn(msg);
+                        } else if (logger.isErrorEnabled()) {
+                            logger.error(msg);
+                        }
                     }
                     buf.setLength(0);
                 } else {

@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.client.smb;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -96,26 +97,30 @@ public class SmbClient extends AbstractCrawlerClient {
         LogStream.setInstance(new PrintStream(new OutputStream() {
             private static final int MAX_LEN = 1000;
 
-            private StringBuilder buf = new StringBuilder(MAX_LEN);
+            private ByteArrayOutputStream buf = new ByteArrayOutputStream(MAX_LEN);
 
             @Override
             public void write(int b) throws IOException {
-                if (b == '\n' || b == '\r' || buf.length() >= MAX_LEN) {
-                    final String msg = buf.toString();
-                    if (StringUtil.isNotBlank(msg)) {
-                        if (logger.isTraceEnabled()) {
-                            logger.trace(msg);
-                        } else if (logger.isDebugEnabled()) {
-                            logger.debug(msg);
-                        } else if (logger.isWarnEnabled()) {
-                            logger.warn(msg);
-                        } else if (logger.isErrorEnabled()) {
-                            logger.error(msg);
+                if (b == '\n' || b == '\r' || buf.size() >= MAX_LEN) {
+                    try {
+                        final String msg = buf.toString(Constants.UTF_8);
+                        if (StringUtil.isNotBlank(msg)) {
+                            if (logger.isTraceEnabled()) {
+                                logger.trace(msg);
+                            } else if (logger.isDebugEnabled()) {
+                                logger.debug(msg);
+                            } else if (logger.isWarnEnabled()) {
+                                logger.warn(msg);
+                            } else if (logger.isErrorEnabled()) {
+                                logger.error(msg);
+                            }
                         }
+                    } catch (Exception e) {
+                        logger.warn(e.getLocalizedMessage());
                     }
-                    buf.setLength(0);
+                    buf.reset();
                 } else {
-                    buf.appendCodePoint(b);
+                    buf.write(b);
                 }
             }
         }));

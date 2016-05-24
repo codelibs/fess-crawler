@@ -18,6 +18,8 @@ package org.codelibs.fess.crawler.util;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.codelibs.core.lang.StringUtil;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
+ * @author kaorufuzita
  *
  */
 public final class TextUtil {
@@ -34,12 +37,12 @@ public final class TextUtil {
     }
 
     public static String normalizeText(final String str, final int initialCapacity, final int maxAlphanumTermSize,
-            final int maxSymbolTermSize) {
+            final int maxSymbolTermSize, final boolean removeDuplication) {
         if (str == null) {
             return StringUtil.EMPTY;
         }
         try (final Reader reader = new StringReader(str)) {
-            return normalizeText(reader, initialCapacity, maxAlphanumTermSize, maxSymbolTermSize);
+            return normalizeText(reader, initialCapacity, maxAlphanumTermSize, maxSymbolTermSize, removeDuplication);
         } catch (IOException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to close reader.", e);
@@ -49,11 +52,12 @@ public final class TextUtil {
     }
 
     public static String normalizeText(final Reader reader, final int initialCapacity, final int maxAlphanumTermSize,
-            final int maxSymbolTermSize) {
+            final int maxSymbolTermSize, final boolean removeDuplication) {
         if (reader == null) {
             return StringUtil.EMPTY;
         }
         final UnsafeStringBuilder buf = new UnsafeStringBuilder(initialCapacity);
+        final UnsafeStringBuilder term = new UnsafeStringBuilder(100);
         boolean isSpace = false;
         int alphanumSize = 0;
         int symbolSize = 0;
@@ -63,20 +67,29 @@ public final class TextUtil {
                 if (Character.isISOControl(c) || c == '\u0020' || c == '\u00a0' || c == '\u3000' || c == 65533) {
                     // space
                     if (!isSpace) {
-                        buf.appendCodePoint(' ');
+                        if (removeDuplication) {
+                            if (!isContain(buf, term)) {
+                                buf.appendCodePoint(' ');
+                                buf.append(term);
+                            }
+                        } else {
+                            buf.appendCodePoint(' ');
+                            buf.append(term);
+                        }
                         isSpace = true;
                     }
+                    term.clear();
                     alphanumSize = 0;
                     symbolSize = 0;
                 } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
                     // alphanum
                     if (maxAlphanumTermSize >= 0) {
                         if (alphanumSize < maxAlphanumTermSize) {
-                            buf.appendCodePoint(c);
+                            term.appendCodePoint(c);
                         }
                         alphanumSize++;
                     } else {
-                        buf.appendCodePoint(c);
+                        term.appendCodePoint(c);
                     }
                     isSpace = false;
                     symbolSize = 0;
@@ -84,19 +97,25 @@ public final class TextUtil {
                     // symbol
                     if (maxSymbolTermSize >= 0) {
                         if (symbolSize < maxSymbolTermSize) {
-                            buf.appendCodePoint(c);
+                            term.appendCodePoint(c);
                         }
                         symbolSize++;
                     } else {
-                        buf.appendCodePoint(c);
+                        term.appendCodePoint(c);
                     }
                     isSpace = false;
                     alphanumSize = 0;
                 } else {
-                    buf.appendCodePoint(c);
+                    term.appendCodePoint(c);
                     isSpace = false;
                     alphanumSize = 0;
                     symbolSize = 0;
+                }
+            }
+            if (term.length() > 0) {
+                if (!isContain(buf, term)) {
+                    buf.appendCodePoint(' ');
+                    buf.append(term);
                 }
             }
         } catch (IOException e) {
@@ -108,5 +127,11 @@ public final class TextUtil {
 
         return buf.toUnsafeString().trim();
     }
+
+    private static boolean isContain(final UnsafeStringBuilder source, final UnsafeStringBuilder target){
+        final Pattern p = Pattern.compile("(^|\\s)" + Pattern.quote(target.toString()) + "(\\s|$)");
+        final Matcher m = p.matcher(source);
+        return m.find();
+   }
 
 }

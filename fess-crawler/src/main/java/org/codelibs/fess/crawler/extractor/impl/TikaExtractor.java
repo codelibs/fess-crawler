@@ -89,6 +89,8 @@ public class TikaExtractor implements Extractor {
 
     public int initialBufferSize = 10000;
 
+    public boolean replaceDuplication = false;
+
     public int memorySize = 1024 * 1024; //1mb
 
     public int maxAlphanumTermSize = -1;
@@ -344,7 +346,9 @@ public class TikaExtractor implements Extractor {
             writer.flush();
 
             try (Reader reader = new InputStreamReader(getContentStream(dfos), enc)) {
-                return TextUtil.normalizeText(reader, initialBufferSize, maxAlphanumTermSize, maxSymbolTermSize);
+                return TextUtil.normalizeText(reader, initialBufferSize,
+                        maxAlphanumTermSize, maxSymbolTermSize,
+                        replaceDuplication);
             }
         } catch (TikaException e) {
             throw e;

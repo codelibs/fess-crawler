@@ -35,6 +35,7 @@ public class TextUtilTest extends PlainTestCase {
         assertEquals("123 abc", TextUtil.normalizeText(" 123 abc ", 100, -1, -1, false));
         assertEquals("１２３ あいう", TextUtil.normalizeText("　１２３　あいう　", 100, -1, -1, false));
         assertEquals("123 abc", TextUtil.normalizeText(" 123\nabc ", 100, -1, -1, false));
+        assertEquals("1234567890 1234567890", TextUtil.normalizeText("1234567890 1234567890", 100, -1, -1, false));
     }
 
     public void test_getContent_maxAlphanum() {

@@ -112,10 +112,14 @@ public final class TextUtil {
                 }
             }
             if (term.length() > 0) {
-                if (buf.indexOf(term.toString()) == -1) {
-                    if (buf.length() > 0 && buf.charAt(buf.length() -1) != ' ') {
-                        buf.appendCodePoint(' ');
+                if (buf.length() > 0 && buf.charAt(buf.length() - 1) != ' ') {
+                    buf.appendCodePoint(' ');
+                }
+                if (removeDuplication) {
+                    if (buf.indexOf(term.toString()) == -1) {
+                        buf.append(term);
                     }
+                } else {
                     buf.append(term);
                 }
             }

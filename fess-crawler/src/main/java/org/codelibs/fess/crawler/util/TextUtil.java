@@ -55,7 +55,6 @@ public final class TextUtil {
             return StringUtil.EMPTY;
         }
         final UnsafeStringBuilder buf = new UnsafeStringBuilder(initialCapacity);
-        final StringBuilder term = new StringBuilder(100);
         boolean isSpace = false;
         int alphanumSize = 0;
         int symbolSize = 0;
@@ -63,64 +62,71 @@ public final class TextUtil {
         try {
             while ((c = reader.read()) != -1) {
                 if (Character.isISOControl(c) || c == '\u0020' || c == '\u00a0' || c == '\u3000' || c == 65533) {
+                    if (removeDuplication) {
+                        if (alphanumSize > 0) {
+                            isSpace = removeLastDuplication(buf, alphanumSize, isSpace);
+                        } else if (symbolSize > 0) {
+                            isSpace = removeLastDuplication(buf, symbolSize, isSpace);
+                        }
+                    }
                     // space
-                    if (!isSpace) {
-                        if (buf.length() > 0 && buf.charAt(buf.length() -1) != ' ') {
-                            buf.appendCodePoint(' ');
-                        }
-                        if (removeDuplication) {
-                            if (buf.indexOf(term.toString()) == -1) {
-                                buf.append(term);
-                            }
-                        } else {
-                            buf.append(term);
-                        }
+                    if (!isSpace && buf.lastIndexOf(' ') != buf.length() - 1) {
+                        buf.appendCodePoint(' ');
                         isSpace = true;
                     }
-                    term.delete(0, term.length());
                     alphanumSize = 0;
                     symbolSize = 0;
                 } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+                    if (removeDuplication && symbolSize > 0) {
+                        isSpace = removeLastDuplication(buf, symbolSize, isSpace);
+                    }
                     // alphanum
                     if (maxAlphanumTermSize >= 0) {
                         if (alphanumSize < maxAlphanumTermSize) {
-                            term.appendCodePoint(c);
+                            buf.appendCodePoint(c);
+                            alphanumSize++;
                         }
-                        alphanumSize++;
                     } else {
-                        term.appendCodePoint(c);
+                        buf.appendCodePoint(c);
+                        alphanumSize++;
                     }
                     isSpace = false;
                     symbolSize = 0;
                 } else if ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) {
+                    if (removeDuplication && alphanumSize > 0) {
+                        isSpace = removeLastDuplication(buf, alphanumSize, isSpace);
+                    }
                     // symbol
                     if (maxSymbolTermSize >= 0) {
                         if (symbolSize < maxSymbolTermSize) {
-                            term.appendCodePoint(c);
+                            buf.appendCodePoint(c);
+                            symbolSize++;
                         }
-                        symbolSize++;
                     } else {
-                        term.appendCodePoint(c);
+                        buf.appendCodePoint(c);
+                        symbolSize++;
                     }
                     isSpace = false;
                     alphanumSize = 0;
                 } else {
+                    if (removeDuplication) {
+                        if (alphanumSize > 0) {
+                            isSpace = removeLastDuplication(buf, alphanumSize, isSpace);
+                        } else if (symbolSize > 0) {
+                            isSpace = removeLastDuplication(buf, symbolSize, isSpace);
+                        }
+                    }
                     buf.appendCodePoint(c);
                     isSpace = false;
                     alphanumSize = 0;
                     symbolSize = 0;
                 }
             }
-            if (term.length() > 0) {
-                if (buf.length() > 0 && buf.charAt(buf.length() - 1) != ' ') {
-                    buf.appendCodePoint(' ');
-                }
-                if (removeDuplication) {
-                    if (buf.indexOf(term.toString()) == -1) {
-                        buf.append(term);
-                    }
-                } else {
-                    buf.append(term);
+            if (removeDuplication) {
+                if (alphanumSize > 0) {
+                    removeLastDuplication(buf, alphanumSize, isSpace);
+                } else if (symbolSize > 0) {
+                    removeLastDuplication(buf, symbolSize, isSpace);
                 }
             }
         } catch (IOException e) {
@@ -132,4 +138,18 @@ public final class TextUtil {
 
         return buf.toUnsafeString().trim();
     }
+
+    private static boolean removeLastDuplication(final UnsafeStringBuilder buf, int size, boolean isSpace) {
+        final String target = buf.rightString(size);
+        final int pos = buf.indexOf(target);
+        if (pos >= 0 && pos < buf.length() - size) {
+            buf.setLength(buf.length() - size);
+            if (!isSpace && buf.lastIndexOf(' ') != buf.length() - 1) {
+                buf.appendCodePoint(' ');
+                return true;
+            }
+        }
+        return isSpace;
+    }
+
 }

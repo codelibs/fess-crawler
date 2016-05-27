@@ -18,6 +18,8 @@ package org.codelibs.fess.crawler.util;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.codelibs.core.lang.StringUtil;
 import org.slf4j.Logger;
@@ -41,7 +43,7 @@ public final class TextUtil {
         }
         try (final Reader reader = new StringReader(str)) {
             return normalizeText(reader, initialCapacity, maxAlphanumTermSize, maxSymbolTermSize, removeDuplication);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to close reader.", e);
             }
@@ -59,18 +61,19 @@ public final class TextUtil {
         int alphanumSize = 0;
         int symbolSize = 0;
         int c;
+        final Set<String> termCache = new HashSet<>(1000);
         try {
             while ((c = reader.read()) != -1) {
                 if (Character.isISOControl(c) || c == '\u0020' || c == '\u00a0' || c == '\u3000' || c == 65533) {
                     if (removeDuplication) {
                         if (alphanumSize > 0) {
-                            isSpace = removeLastDuplication(buf, alphanumSize, isSpace);
+                            isSpace = removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                         } else if (symbolSize > 0) {
-                            isSpace = removeLastDuplication(buf, symbolSize, isSpace);
+                            isSpace = removeLastDuplication(buf, symbolSize, isSpace, termCache);
                         }
                     }
                     // space
-                    if (!isSpace && buf.lastIndexOf(' ') != buf.length() - 1) {
+                    if (!isSpace && !isLastSpaceChar(buf)) {
                         buf.appendCodePoint(' ');
                         isSpace = true;
                     }
@@ -78,7 +81,7 @@ public final class TextUtil {
                     symbolSize = 0;
                 } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
                     if (removeDuplication && symbolSize > 0) {
-                        isSpace = removeLastDuplication(buf, symbolSize, isSpace);
+                        isSpace = removeLastDuplication(buf, symbolSize, isSpace, termCache);
                     }
                     // alphanum
                     if (maxAlphanumTermSize >= 0) {
@@ -94,7 +97,7 @@ public final class TextUtil {
                     symbolSize = 0;
                 } else if ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) {
                     if (removeDuplication && alphanumSize > 0) {
-                        isSpace = removeLastDuplication(buf, alphanumSize, isSpace);
+                        isSpace = removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                     }
                     // symbol
                     if (maxSymbolTermSize >= 0) {
@@ -111,9 +114,9 @@ public final class TextUtil {
                 } else {
                     if (removeDuplication) {
                         if (alphanumSize > 0) {
-                            isSpace = removeLastDuplication(buf, alphanumSize, isSpace);
+                            isSpace = removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                         } else if (symbolSize > 0) {
-                            isSpace = removeLastDuplication(buf, symbolSize, isSpace);
+                            isSpace = removeLastDuplication(buf, symbolSize, isSpace, termCache);
                         }
                     }
                     buf.appendCodePoint(c);
@@ -124,12 +127,12 @@ public final class TextUtil {
             }
             if (removeDuplication) {
                 if (alphanumSize > 0) {
-                    removeLastDuplication(buf, alphanumSize, isSpace);
+                    removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                 } else if (symbolSize > 0) {
-                    removeLastDuplication(buf, symbolSize, isSpace);
+                    removeLastDuplication(buf, symbolSize, isSpace, termCache);
                 }
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to read data.", e);
             }
@@ -139,17 +142,25 @@ public final class TextUtil {
         return buf.toUnsafeString().trim();
     }
 
-    private static boolean removeLastDuplication(final UnsafeStringBuilder buf, int size, boolean isSpace) {
+    private static boolean isLastSpaceChar(final UnsafeStringBuilder buf) {
+        if (buf.length() == 0) {
+            return false;
+        }
+        return buf.charAt(buf.length() - 1) == ' ';
+    }
+
+    private static boolean removeLastDuplication(final UnsafeStringBuilder buf, final int size, final boolean isSpace,
+            final Set<String> termCache) {
         final String target = buf.rightString(size);
-        final int pos = buf.indexOf(target);
-        if (pos >= 0 && pos < buf.length() - size) {
-            buf.setLength(buf.length() - size);
-            if (!isSpace && buf.lastIndexOf(' ') != buf.length() - 1) {
-                buf.appendCodePoint(' ');
-                return true;
-            }
+        if (!termCache.contains(target)) {
+            termCache.add(target);
+            return isSpace;
+        }
+        buf.setLength(buf.length() - size);
+        if (!isSpace && !isLastSpaceChar(buf)) {
+            buf.appendCodePoint(' ');
+            return true;
         }
         return isSpace;
     }
-
 }

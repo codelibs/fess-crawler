@@ -121,6 +121,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
 
+    private static final String REDIRECTS_ENABLED = "redirectsEnabled";
+
     public static final String COOKIES_PROPERTY = "cookies";
 
     public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
@@ -284,7 +286,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // do not redirect
-        requestConfigBuilder.setRedirectsEnabled(redirectsEnabled);
+        requestConfigBuilder.setRedirectsEnabled(getInitParameter(REDIRECTS_ENABLED, redirectsEnabled, Boolean.class));
 
         // cookie
         if (cookieSpec != null) {

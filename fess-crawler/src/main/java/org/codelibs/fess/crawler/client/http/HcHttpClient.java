@@ -121,7 +121,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
 
-    private static final String REDIRECTS_ENABLED = "redirectsEnabled";
+    public static final String REDIRECTS_ENABLED = "redirectsEnabled";
 
     public static final String COOKIES_PROPERTY = "cookies";
 

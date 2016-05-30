@@ -100,6 +100,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
+    @Deprecated
     public static final String STALE_CHECKING_ENABLED_PROPERTY = "staleCheckingEnabled";
 
     public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
@@ -152,6 +153,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected Integer maxConnectionsPerRoute;
 
+    @Deprecated
     protected Boolean staleCheckingEnabled;
 
     protected Integer soTimeout;
@@ -195,6 +197,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected HttpRoutePlanner routePlanner;
 
+    protected boolean redirectsEnabled = false;
+
     public synchronized void init() {
         if (httpClient != null) {
             return;
@@ -221,11 +225,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
         if (connectionTimeoutParam != null) {
             requestConfigBuilder.setConnectTimeout(connectionTimeoutParam);
 
-        }
-        final Boolean staleCheckingEnabledParam = getInitParameter(STALE_CHECKING_ENABLED_PROPERTY, staleCheckingEnabled, Boolean.class);
-        if (staleCheckingEnabledParam != null) {
-            requestConfigBuilder
-                    .setStaleConnectionCheckEnabled(staleCheckingEnabledParam);
         }
         final Integer soTimeoutParam = getInitParameter(SO_TIMEOUT_PROPERTY, soTimeout, Integer.class);
         if (soTimeoutParam != null) {
@@ -285,7 +284,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // do not redirect
-        requestConfigBuilder.setRedirectsEnabled(false);
+        requestConfigBuilder.setRedirectsEnabled(redirectsEnabled);
 
         // cookie
         if (cookieSpec != null) {
@@ -897,5 +896,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public void setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
+    }
+
+    public void setRedirectsEnabled(boolean redirectsEnabled) {
+        this.redirectsEnabled = redirectsEnabled;
     }
 }

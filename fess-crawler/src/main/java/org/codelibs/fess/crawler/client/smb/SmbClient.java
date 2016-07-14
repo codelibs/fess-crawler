@@ -34,6 +34,7 @@ import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
+import org.apache.commons.io.IOUtils;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -350,7 +351,11 @@ public class SmbClient extends AbstractCrawlerClient {
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
             }
+        } catch (final CrawlerSystemException e) {
+            IOUtils.closeQuietly(responseData);
+            throw e;
         } catch (final SmbException e) {
+            IOUtils.closeQuietly(responseData);
             throw new CrawlingAccessException("Could not access " + uri, e);
         }
 

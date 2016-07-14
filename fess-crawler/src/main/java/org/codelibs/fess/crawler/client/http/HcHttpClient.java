@@ -721,34 +721,39 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
             return responseData;
         } catch (final UnknownHostException e) {
-            httpRequest.abort();
+            closeResources(httpRequest, responseData);
             throw new CrawlingAccessException("Unknown host("
                     + e.getMessage() + "): " + url, e);
         } catch (final NoRouteToHostException e) {
-            httpRequest.abort();
+            closeResources(httpRequest, responseData);
             throw new CrawlingAccessException("No route to host("
                     + e.getMessage() + "): " + url, e);
         } catch (final ConnectException e) {
-            httpRequest.abort();
+            closeResources(httpRequest, responseData);
             throw new CrawlingAccessException("Connection time out("
                     + e.getMessage() + "): " + url, e);
         } catch (final SocketException e) {
-            httpRequest.abort();
+            closeResources(httpRequest, responseData);
             throw new CrawlingAccessException("Socket exception("
                     + e.getMessage() + "): " + url, e);
         } catch (final IOException e) {
-            httpRequest.abort();
+            closeResources(httpRequest, responseData);
             throw new CrawlingAccessException("I/O exception("
                     + e.getMessage() + "): " + url, e);
         } catch (final CrawlerSystemException e) {
-            httpRequest.abort();
+            closeResources(httpRequest, responseData);
             throw e;
         } catch (final Exception e) {
-            httpRequest.abort();
+            closeResources(httpRequest, responseData);
             throw new CrawlerSystemException("Failed to access " + url, e);
         } finally {
             EntityUtils.consumeQuietly(httpEntity);
         }
+    }
+
+    protected void closeResources(final HttpUriRequest httpRequest, ResponseData responseData) {
+        IOUtils.closeQuietly(responseData);
+        httpRequest.abort();
     }
 
     protected boolean isRedirectHttpStatus(final int httpStatusCode) {

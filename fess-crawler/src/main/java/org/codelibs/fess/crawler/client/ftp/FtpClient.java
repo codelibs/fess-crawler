@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -52,6 +53,7 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlerLoginFailureException;
+import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
@@ -198,13 +200,13 @@ public class FtpClient extends AbstractCrawlerClient {
 
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
-        responseData.setMethod(Constants.GET_METHOD);
-
-        final FtpInfo ftpInfo = new FtpInfo(uri);
-        responseData.setUrl(ftpInfo.toUrl());
-
         FTPClient client = null;
         try {
+            responseData.setMethod(Constants.GET_METHOD);
+
+            final FtpInfo ftpInfo = new FtpInfo(uri);
+            responseData.setUrl(ftpInfo.toUrl());
+
             client = getClient(ftpInfo);
 
             FTPFile file = null;
@@ -323,9 +325,11 @@ public class FtpClient extends AbstractCrawlerClient {
                 responseData.setContentLength(0);
             }
             ftpClientQueue.offer(client);
-        } catch (final ChildUrlsException e) {
+        } catch (final CrawlerSystemException e) {
+            IOUtils.closeQuietly(responseData);
             throw e;
         } catch (final Exception e) {
+            IOUtils.closeQuietly(responseData);
             throw new CrawlingAccessException("Could not access " + uri, e);
         }
 

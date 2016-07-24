@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Exctract a text by running a command.
+ * Extract a text by running a command.
  *
  * @author shinsuke
  *

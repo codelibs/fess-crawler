@@ -19,7 +19,6 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -44,6 +43,7 @@ import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
 import org.codelibs.fess.crawler.client.http.Authentication;
 import org.codelibs.fess.crawler.client.http.RequestHeader;
 import org.codelibs.fess.crawler.entity.ExtractData;
+import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,11 +58,9 @@ import com.google.common.base.Charsets;
  */
 public class ApiExtractor implements Extractor {
 
-    public String url;
+    private static final Logger logger = LoggerFactory.getLogger(ApiExtractor.class);
 
-    public void setAccessTimeout(Integer accessTimeout) {
-        this.accessTimeout = accessTimeout;
-    }
+    protected String url;
 
     protected Integer accessTimeout; // sec
 
@@ -86,66 +84,49 @@ public class ApiExtractor implements Extractor {
 
     private final List<Header> requestHeaderList = new ArrayList<Header>();
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(ApiExtractor.class);
-
-
     @PostConstruct
     public void init() {
-        if (httpClient != null) {
-            return;
-        }
-
         if (logger.isDebugEnabled()) {
             logger.debug("Initializing " + ApiExtractor.class.getName());
         }
 
         // httpclient
-        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder = RequestConfig
-                .custom();
+        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
         final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
-        final Integer connectionTimeoutParam = connectionTimeout;//getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout, Integer.class);
+        final Integer connectionTimeoutParam = connectionTimeout;
         if (connectionTimeoutParam != null) {
             requestConfigBuilder.setConnectTimeout(connectionTimeoutParam);
 
         }
-        final Integer soTimeoutParam = soTimeout;//getInitParameter(SO_TIMEOUT_PROPERTY, soTimeout, Integer.class);
+        final Integer soTimeoutParam = soTimeout;
         if (soTimeoutParam != null) {
             requestConfigBuilder.setSocketTimeout(soTimeoutParam);
         }
 
         // AuthSchemeFactory
-        final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder = RegistryBuilder
-                .create();
+        final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder = RegistryBuilder.create();
         // @SuppressWarnings("unchecked")
         final Map<String, AuthSchemeProvider> factoryMap = authSchemeProviderMap;
-                //getInitParameter(AUTH_SCHEME_PROVIDERS_PROPERTY, authSchemeProviderMap, Map.class);
         if (factoryMap != null) {
-            for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap
-                    .entrySet()) {
-                authSchemeProviderBuilder.register(entry.getKey(),
-                        entry.getValue());
+            for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap.entrySet()) {
+                authSchemeProviderBuilder.register(entry.getKey(), entry.getValue());
             }
         }
 
         // user agent
-        // userAgent = getInitParameter(USER_AGENT_PROPERTY, userAgent, String.class);
         if (StringUtil.isNotBlank(userAgent)) {
             httpClientBuilder.setUserAgent(userAgent);
         }
 
         // Authentication
         final Authentication[] siteCredentialList = new Authentication[0];
-                // getInitParameter(BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0], Authentication[].class);
         for (final Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
-            credentialsProvider.setCredentials(authScope,
-                    authentication.getCredentials());
+            credentialsProvider.setCredentials(authScope, authentication.getCredentials());
             final AuthScheme authScheme = authentication.getAuthScheme();
             if (authScope.getHost() != null && authScheme != null) {
-                final HttpHost targetHost = new HttpHost(authScope.getHost(),
-                        authScope.getPort());
+                final HttpHost targetHost = new HttpHost(authScope.getHost(), authScope.getPort());
                 authCache.put(targetHost, authScheme);
             }
         }
@@ -154,30 +135,23 @@ public class ApiExtractor implements Extractor {
         httpClientContext.setCredentialsProvider(credentialsProvider);
 
         // Request Header
-        final RequestHeader[] requestHeaders = {new RequestHeader("enctype", "multipart/form-data")};
+        final RequestHeader[] requestHeaders = { new RequestHeader("enctype", "multipart/form-data") };
         for (final RequestHeader requestHeader : requestHeaders) {
             if (requestHeader.isValid()) {
-                requestHeaderList.add(new BasicHeader(requestHeader.getName(),
-                        requestHeader.getValue()));
+                requestHeaderList.add(new BasicHeader(requestHeader.getName(), requestHeader.getValue()));
             }
         }
 
-        final CloseableHttpClient closeableHttpClient = httpClientBuilder
-                .setDefaultRequestConfig(requestConfigBuilder.build()).build();
+        final CloseableHttpClient closeableHttpClient = httpClientBuilder.setDefaultRequestConfig(requestConfigBuilder.build()).build();
         if (!httpClientPropertyMap.isEmpty()) {
-            final BeanDesc beanDesc = BeanDescFactory
-                    .getBeanDesc(closeableHttpClient.getClass());
-            for (final Map.Entry<String, Object> entry : httpClientPropertyMap
-                    .entrySet()) {
+            final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(closeableHttpClient.getClass());
+            for (final Map.Entry<String, Object> entry : httpClientPropertyMap.entrySet()) {
                 final String propertyName = entry.getKey();
                 if (beanDesc.hasPropertyDesc(propertyName)) {
-                    final PropertyDesc propertyDesc = beanDesc
-                            .getPropertyDesc(propertyName);
-                    propertyDesc
-                            .setValue(closeableHttpClient, entry.getValue());
+                    final PropertyDesc propertyDesc = beanDesc.getPropertyDesc(propertyName);
+                    propertyDesc.setValue(closeableHttpClient, entry.getValue());
                 } else {
-                    logger.warn("DefaultHttpClient does not have "
-                            + propertyName + ".");
+                    logger.warn("DefaultHttpClient does not have " + propertyName + ".");
                 }
             }
         }
@@ -186,7 +160,7 @@ public class ApiExtractor implements Extractor {
     }
 
     @PreDestroy
-    public void destroy(){
+    public void destroy() {
         if (httpClient != null) {
             try {
                 httpClient.close();
@@ -198,10 +172,6 @@ public class ApiExtractor implements Extractor {
 
     @Override
     public ExtractData getText(InputStream in, Map<String, String> params) {
-        if (httpClient == null) {
-            init();
-        }
-
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing " + url);
         }
@@ -210,38 +180,29 @@ public class ApiExtractor implements Extractor {
         AccessTimeoutTarget accessTimeoutTarget = null;
         TimeoutTask accessTimeoutTask = null;
         if (accessTimeout != null) {
-            accessTimeoutTarget = new AccessTimeoutTarget(
-                    Thread.currentThread());
-            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(
-                    accessTimeoutTarget, accessTimeout.intValue(), false);
+            accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
         }
 
         ExtractData data = new ExtractData();
         HttpPost httpPost = new HttpPost(url);
-        HttpEntity postEntity = MultipartEntityBuilder
-                .create()
-                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .setCharset(Charset.forName("UTF-8"))
-                .addBinaryBody("filedata", in)
-                .build();
+        HttpEntity postEntity = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                .setCharset(Charset.forName("UTF-8")).addBinaryBody("filedata", in).build();
         httpPost.setEntity(postEntity);
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
             if (response.getStatusLine().getStatusCode() != HttpServletResponse.SC_OK) {
-                logger.error("Failed to access " + url + ", code: " + 
-                        response.getStatusLine().getStatusCode() + ".");
+                logger.error("Failed to access " + url + ", code: " + response.getStatusLine().getStatusCode() + ".");
                 return null;
             }
 
             data.setContent(EntityUtils.toString(response.getEntity(), Charsets.UTF_8));
             Header[] headers = response.getAllHeaders();
-            for(final Header header : headers) {
+            for (final Header header : headers) {
                 data.putValue(header.getName(), header.getValue());
             }
-        } catch (ClientProtocolException e) {
-            logger.error(e.getMessage());
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            throw new ExtractException(e);
         } finally {
             if (accessTimeout != null) {
                 accessTimeoutTarget.stop();
@@ -283,6 +244,10 @@ public class ApiExtractor implements Extractor {
 
     public void setHttpClientContext(HttpClientContext httpClientContext) {
         this.httpClientContext = httpClientContext;
+    }
+
+    public void setAccessTimeout(Integer accessTimeout) {
+        this.accessTimeout = accessTimeout;
     }
 
 }

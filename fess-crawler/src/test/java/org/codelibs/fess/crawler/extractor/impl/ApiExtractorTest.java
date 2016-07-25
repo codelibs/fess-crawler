@@ -16,11 +16,14 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.dbflute.utflute.core.PlainTestCase;
+
 
 /**
  * @author shinsuke
@@ -38,6 +41,7 @@ public class ApiExtractorTest extends PlainTestCase {
 
         extractor = new ApiExtractor();
         // TODO set parameters
+        extractor.setUrl("http://172.24.231.10:8000/post");
         extractor.init();
     }
 
@@ -51,10 +55,16 @@ public class ApiExtractorTest extends PlainTestCase {
     }
 
     public void test_getText() throws Exception {
-        final String content = "TEST";
+        final String content = "./src/test/resources/extractor/image/test.jpg";
         final Map<String, String> params = new HashMap<String, String>();
-        final ExtractData text = extractor.getText(new ByteArrayInputStream(content.getBytes("UTF-8")), params);
+        final ExtractData text = extractor.getText(new ByteArrayInputStream(FileUtils.readFileToByteArray(new File(content))), params);
         //        assertEquals(content, text.getContent());
+        for (String key : text.getKeySet()) {
+            for (String s : text.getValues(key)) {
+                System.out.println(key + "," + s);
+            }
+        }
+        System.out.println(text.getContent());
     }
 
     // TODO other tests

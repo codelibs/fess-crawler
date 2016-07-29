@@ -10,7 +10,6 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -39,6 +38,7 @@ import org.codelibs.core.beans.factory.BeanDescFactory;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.timer.TimeoutManager;
 import org.codelibs.core.timer.TimeoutTask;
+import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
 import org.codelibs.fess.crawler.client.http.Authentication;
 import org.codelibs.fess.crawler.client.http.RequestHeader;
@@ -191,7 +191,7 @@ public class ApiExtractor implements Extractor {
         httpPost.setEntity(postEntity);
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-            if (response.getStatusLine().getStatusCode() != HttpServletResponse.SC_OK) {
+            if (response.getStatusLine().getStatusCode() != Constants.OK_STATUS_CODE) {
                 logger.error("Failed to access " + url + ", code: " + response.getStatusLine().getStatusCode() + ".");
                 return null;
             }

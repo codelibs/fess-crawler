@@ -50,7 +50,7 @@ public class SitemapsResponseProcessor implements ResponseProcessor {
             for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
                 requestDataSet.add(RequestDataBuilder.newRequestData().get().url(sitemap.getLoc()).build());
             }
-            throw new ChildUrlsException(requestDataSet);
+            throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#process(ResponseData)");
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }

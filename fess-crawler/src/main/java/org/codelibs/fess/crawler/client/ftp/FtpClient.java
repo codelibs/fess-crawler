@@ -229,7 +229,7 @@ public class FtpClient extends AbstractCrawlerClient {
                     }
                 }
                 ftpClientQueue.offer(client);
-                throw new ChildUrlsException(requestDataSet);
+                throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData(String, boolean)");
             }
 
             final FTPFile[] files = client.listFiles(null, FTPFileFilters.NON_NULL);
@@ -318,7 +318,7 @@ public class FtpClient extends AbstractCrawlerClient {
                     }
                 }
                 ftpClientQueue.offer(client);
-                throw new ChildUrlsException(requestDataSet);
+                throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData(String, boolean)");
             } else {
                 responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
                 responseData.setCharSet(charset);

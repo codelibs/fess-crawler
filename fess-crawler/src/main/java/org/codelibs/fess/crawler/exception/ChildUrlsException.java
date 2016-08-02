@@ -31,8 +31,13 @@ public class ChildUrlsException extends CrawlerSystemException {
 
     private final Set<RequestData> childUrlList;
 
+    @Deprecated
     public ChildUrlsException(final Set<RequestData> childUrlList) {
-        super("Threw child urls(" + childUrlList.size() + ").", false, false);
+        this(childUrlList, "");
+    }
+
+    public ChildUrlsException(final Set<RequestData> childUrlList, final String description) {
+        super("Threw child urls(" + childUrlList.size() + "). " + description, false, false);
         this.childUrlList = childUrlList;
     }
 

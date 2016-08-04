@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -29,9 +28,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
-import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
-import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
-import org.apache.pdfbox.util.PDFTextStripper;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -54,8 +51,6 @@ public class PdfExtractor implements Extractor {
 
     protected long timeout = 30000; // 30sec
 
-    protected boolean force = false;
-
     /*
      * (non-Javadoc)
      *
@@ -69,27 +64,11 @@ public class PdfExtractor implements Extractor {
         }
 
         synchronized (pdfBoxLockObj) {
-            try (PDDocument document = PDDocument.load(in, null, force)) {
-                if (document.isEncrypted() && params != null) {
-                    final String password = getPassword(params);
-                    if (password != null) {
-                        final StandardDecryptionMaterial sdm = new StandardDecryptionMaterial(
-                                password);
-                        document.openProtection(sdm);
-                        final AccessPermission ap = document
-                                .getCurrentAccessPermission();
-
-                        if (!ap.canExtractContent()) {
-                            throw new IOException(
-                                    "You do not have permission to extract text.");
-                        }
-                    }
-                }
-
+            final String password = getPassword(params);
+            try (PDDocument document = PDDocument.load(in, password)) {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 final Writer output = new OutputStreamWriter(baos, encoding);
-                final PDFTextStripper stripper = new PDFTextStripper(encoding);
-                stripper.setForceParsing(force);
+                final PDFTextStripper stripper = new PDFTextStripper();
                 final AtomicBoolean done = new AtomicBoolean(false);
                 final PDDocument doc = document;
                 final Set<Exception> exceptionSet = new HashSet<>();
@@ -187,13 +166,5 @@ public class PdfExtractor implements Extractor {
 
     public void setTimeout(final long timeout) {
         this.timeout = timeout;
-    }
-
-    public boolean isForce() {
-        return force;
-    }
-
-    public void setForce(final boolean force) {
-        this.force = force;
     }
 }

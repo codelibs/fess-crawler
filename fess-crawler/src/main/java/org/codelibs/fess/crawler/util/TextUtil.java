@@ -46,7 +46,7 @@ public final class TextUtil {
 
         private int maxSymbolTermSize = -1;
 
-        private boolean removeDuplication = false;
+        private boolean duplicateTermRemoved = false;
 
         private int[] spaceChars = new int[] { '\u0020', '\u00a0', '\u3000', '\ufffd' };
 
@@ -67,7 +67,7 @@ public final class TextUtil {
             try {
                 while ((c = reader.read()) != -1) {
                     if (Character.isISOControl(c) || isSpaceChar(c)) {
-                        if (removeDuplication) {
+                        if (duplicateTermRemoved) {
                             if (alphanumSize > 0) {
                                 isSpace = removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                             } else if (symbolSize > 0) {
@@ -82,7 +82,7 @@ public final class TextUtil {
                         alphanumSize = 0;
                         symbolSize = 0;
                     } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
-                        if (removeDuplication && symbolSize > 0) {
+                        if (duplicateTermRemoved && symbolSize > 0) {
                             isSpace = removeLastDuplication(buf, symbolSize, isSpace, termCache);
                         }
                         // alphanum
@@ -98,7 +98,7 @@ public final class TextUtil {
                         isSpace = false;
                         symbolSize = 0;
                     } else if ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) {
-                        if (removeDuplication && alphanumSize > 0) {
+                        if (duplicateTermRemoved && alphanumSize > 0) {
                             isSpace = removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                         }
                         // symbol
@@ -114,7 +114,7 @@ public final class TextUtil {
                         isSpace = false;
                         alphanumSize = 0;
                     } else {
-                        if (removeDuplication) {
+                        if (duplicateTermRemoved) {
                             if (alphanumSize > 0) {
                                 isSpace = removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                             } else if (symbolSize > 0) {
@@ -127,7 +127,7 @@ public final class TextUtil {
                         symbolSize = 0;
                     }
                 }
-                if (removeDuplication) {
+                if (duplicateTermRemoved) {
                     if (alphanumSize > 0) {
                         removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                     } else if (symbolSize > 0) {
@@ -168,8 +168,8 @@ public final class TextUtil {
             return this;
         }
 
-        public TextNormalizeContext removeDuplication(boolean removeDuplication) {
-            this.removeDuplication = removeDuplication;
+        public TextNormalizeContext duplicateTermRemoved(boolean duplicateTermRemoved) {
+            this.duplicateTermRemoved = duplicateTermRemoved;
             return this;
         }
 
@@ -203,7 +203,7 @@ public final class TextUtil {
     public static String normalizeText(final Reader reader, final int initialCapacity, final int maxAlphanumTermSize,
             final int maxSymbolTermSize, final boolean removeDuplication) {
         return new TextNormalizeContext(reader).initialCapacity(initialCapacity).maxAlphanumTermSize(maxAlphanumTermSize)
-                .maxSymbolTermSize(maxSymbolTermSize).removeDuplication(removeDuplication).execute();
+                .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(removeDuplication).execute();
     }
 
     private static boolean isLastSpaceChar(final UnsafeStringBuilder buf) {

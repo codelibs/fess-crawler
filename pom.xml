@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codelibs.fess</groupId>
   <artifactId>fess-crawler-parent</artifactId>
-  <version>1.0.10-SNAPSHOT</version>
+  <version>1.0.10-CUSTOM</version>
   <packaging>pom</packaging>
   <name>Fess Crawler Project</name>
   <description>Fess Crawler is Crawler Framework.</description>
@@ -193,6 +193,16 @@
       <id>codelibs.org</id>
       <name>CodeLibs Repository</name>
       <url>http://maven.codelibs.org/</url>
+    </repository>
+    <repository>
+      <id>elasticsearch-releases</id>
+      <url>https://maven.elasticsearch.org/releases</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
   </repositories>
 </project>

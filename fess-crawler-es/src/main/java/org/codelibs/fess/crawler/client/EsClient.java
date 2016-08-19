@@ -86,9 +86,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class EsClient implements Client {
-    public static final String TRANSPORT_ADDRESSES = "crawler.es.transport_addresses";
+
+
+    public static final String TRANSPORT_ADDRESSES = "fess.es.transport_addresses";
 
     public static final String CLUSTER_NAME = "crawler.es.cluster_name";
+
+    public static final String SHIELD_USER = "elasticsearch.shield.username";
+
+    public static final String SHIELD_PASSWORD = "elasticsearch.shield.password";
 
     public static final String TARGET_INDICES = "crawler.es.target_indices";
 
@@ -120,15 +126,12 @@ public class EsClient implements Client {
 
     public EsClient() {
         clusterName = System.getProperty(CLUSTER_NAME, "liteshell-data");
-        addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "do.litehsell.io:9300").split(",")).map(v -> v.trim())
+        addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "do.data.liteshell.io:9300").split(",")).map(v -> v.trim())
                 .toArray(n -> new String[n]);
         final String targets = System.getProperty(TARGET_INDICES);
         if (StringUtil.isNotBlank(targets)) {
             targetIndices = Arrays.stream(targets.split(",")).map(v -> v.trim()).toArray(n -> new String[n]);
         }
-
-        logger.info("XXXXXX=>"+System.getProperty(CLUSTER_NAME));
-        logger.info("XXXXXX=>"+System.getProperty(TRANSPORT_ADDRESSES));
     }
 
     public void setClusterName(final String clusterName) {
@@ -149,15 +152,16 @@ public class EsClient implements Client {
 
     public void connect() {
         destroy();
+
+        logger.info("SHIIIELS to " + System.getProperty(SHIELD_USER));
         final Settings.Builder settingsBuilder =
                 Settings.settingsBuilder()
                         .put("cluster.name", StringUtil.isBlank(clusterName) ? "liteshell-data" : clusterName)
                         .put("transport.sniff", false)
                         .put("action.bulk.compress", false).put("shield.transport.ssl", false)
-                        .put("request.headers.X-Found-Cluster", "liteshell-data").put("shield.user", "vlad:Lapt3s1mls");
+                        .put("request.headers.X-Found-Cluster", "liteshell-data").put("shield.user", System.getProperty(SHIELD_USER, "admin2")+":"+System.getProperty(SHIELD_PASSWORD, "admin"));
         final Settings settings = settingsBuilder.build();
         client =TransportClient.builder().addPlugin(ShieldPlugin.class).settings(settings).build();
-        // TODO adding shield
         Arrays.stream(addresses).forEach(address -> {
             final String[] values = address.split(":");
             String hostname;

@@ -33,7 +33,7 @@ public class ResultData implements Serializable {
 
     private String encoding;
 
-    private Set<RequestData> childUrlSet = new LinkedHashSet<RequestData>();
+    private Set<RequestData> childUrlSet = new LinkedHashSet<>();
 
     public byte[] getData() {
         return data;

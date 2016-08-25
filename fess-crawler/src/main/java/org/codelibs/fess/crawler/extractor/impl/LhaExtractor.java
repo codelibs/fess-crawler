@@ -108,7 +108,7 @@ public class LhaExtractor implements Extractor {
                         InputStream is = null;
                         try {
                             is = lhaFile.getInputStream(head);
-                            final Map<String, String> map = new HashMap<String, String>();
+                            final Map<String, String> map = new HashMap<>();
                             map.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
                                     filename);
                             buf.append(extractor.getText(
@@ -147,6 +147,6 @@ public class LhaExtractor implements Extractor {
         return new ExtractData(buf.toUnsafeString().trim());
     }
 
-    public void setMaxContentSize(long maxContentSize) {
+    public void setMaxContentSize(final long maxContentSize) {
         this.maxContentSize = maxContentSize;
     }}

@@ -27,7 +27,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
  *
  */
 public class ExtractorFactory {
-    protected Map<String, Extractor> extractorMap = new HashMap<String, Extractor>();
+    protected Map<String, Extractor> extractorMap = new HashMap<>();
 
     public void addExtractor(final String key, final Extractor extractor) {
         if (StringUtil.isBlank(key)) {

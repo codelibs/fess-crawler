@@ -160,7 +160,7 @@ public class CommandExtractor implements Extractor {
             throw new CrawlerSystemException("command is empty.");
         }
 
-        final Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<>();
         params.put("$INPUT_FILE", inputFile.getAbsolutePath());
         params.put("$OUTPUT_FILE", outputFile.getAbsolutePath());
 
@@ -203,7 +203,7 @@ public class CommandExtractor implements Extractor {
                 logger.info("Exit Code: " + exitValue + " - Process Output:\n"
                         + it.getOutput());
             }
-            if (exitValue == 143 && mt != null && mt.isTeminated()) {
+            if (exitValue == 143 && mt.isTeminated()) {
                 throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
             }
         } catch (final CrawlerSystemException e) {
@@ -243,7 +243,7 @@ public class CommandExtractor implements Extractor {
     List<String> parseCommand(final String command,
             final Map<String, String> params) {
         final String cmd = command.trim();
-        final List<String> cmdList = new ArrayList<String>();
+        final List<String> cmdList = new ArrayList<>();
         final StringBuilder buf = new StringBuilder(100);
         boolean singleQuote = false;
         boolean doubleQuote = false;
@@ -349,7 +349,7 @@ public class CommandExtractor implements Extractor {
 
         private BufferedReader br;
 
-        private final List<String> list = new LinkedList<String>();
+        private final List<String> list = new LinkedList<>();
 
         private final int maxLineBuffer;
 

@@ -28,7 +28,7 @@ public class EncodingHelper {
 
     protected String defaultEncoding = null;
 
-    protected Map<String, String> encodingMap = new HashMap<String, String>();
+    protected Map<String, String> encodingMap = new HashMap<>();
 
     public String normalize(final String enc) {
         if (StringUtil.isBlank(enc)) {

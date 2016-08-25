@@ -103,7 +103,7 @@ public class TarExtractor implements Extractor {
                             .getExtractor(mimeType);
                     if (extractor != null) {
                         try {
-                            final Map<String, String> map = new HashMap<String, String>();
+                            final Map<String, String> map = new HashMap<>();
                             map.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
                                     filename);
                             buf.append(extractor.getText(
@@ -133,7 +133,7 @@ public class TarExtractor implements Extractor {
         return buf.toUnsafeString().trim();
     }
 
-    public void setMaxContentSize(long maxContentSize) {
+    public void setMaxContentSize(final long maxContentSize) {
         this.maxContentSize = maxContentSize;
     }
 }

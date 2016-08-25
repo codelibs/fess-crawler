@@ -16,8 +16,7 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -47,8 +45,6 @@ public class PdfExtractor implements Extractor {
 
     protected Map<Pattern, String> passwordMap = new HashMap<>();
 
-    protected String encoding = "UTF-8";
-
     protected long timeout = 30000; // 30sec
 
     /*
@@ -66,8 +62,7 @@ public class PdfExtractor implements Extractor {
         synchronized (pdfBoxLockObj) {
             final String password = getPassword(params);
             try (PDDocument document = PDDocument.load(in, password)) {
-                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                final Writer output = new OutputStreamWriter(baos, encoding);
+                final StringWriter output = new StringWriter();
                 final PDFTextStripper stripper = new PDFTextStripper();
                 final AtomicBoolean done = new AtomicBoolean(false);
                 final PDDocument doc = document;
@@ -94,7 +89,7 @@ public class PdfExtractor implements Extractor {
                     throw exceptionSet.iterator().next();
                 }
                 output.flush();
-                final ExtractData extractData = new ExtractData(baos.toString(encoding));
+                final ExtractData extractData = new ExtractData(output.toString());
                 extractMetadata(document, extractData);
                 return extractData;
             } catch (final Exception e) {
@@ -119,14 +114,6 @@ public class PdfExtractor implements Extractor {
         if (value != null) {
             extractData.putValue(name, value);
         }
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(final String encoding) {
-        this.encoding = encoding;
     }
 
     public void addPassword(final String regex, final String password) {

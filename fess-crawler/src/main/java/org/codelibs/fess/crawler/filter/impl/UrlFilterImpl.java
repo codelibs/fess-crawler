@@ -46,9 +46,9 @@ public class UrlFilterImpl implements UrlFilter {
 
     protected String excludeFilteringPattern;
 
-    protected List<String> cachedIncludeList = new ArrayList<String>();
+    protected List<String> cachedIncludeList = new ArrayList<>();
 
-    protected List<String> cachedExcludeList = new ArrayList<String>();
+    protected List<String> cachedExcludeList = new ArrayList<>();
 
     protected String sessionId;
 
@@ -123,7 +123,7 @@ public class UrlFilterImpl implements UrlFilter {
         if (!cachedIncludeList.isEmpty()) {
             try {
                 getUrlFilterService().addIncludeUrlFilter(sessionId, cachedIncludeList);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.warn("Failed to add include_urls on " + sessionId, e);
             }
             cachedIncludeList.clear();
@@ -131,7 +131,7 @@ public class UrlFilterImpl implements UrlFilter {
         if (!cachedExcludeList.isEmpty()) {
             try {
                 getUrlFilterService().addExcludeUrlFilter(sessionId, cachedExcludeList);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.warn("Failed to add exclude_urls on " + sessionId, e);
             }
             cachedExcludeList.clear();

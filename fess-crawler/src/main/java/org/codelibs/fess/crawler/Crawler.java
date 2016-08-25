@@ -87,9 +87,8 @@ public class Crawler implements Runnable {
     public void addUrl(final String url) {
         try {
             urlQueueService.add(crawlerContext.sessionId, url);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (final Exception e) {
+            logger.warn("Failed to add url: " + url, e);
         }
         urlFilter.processUrl(url);
     }

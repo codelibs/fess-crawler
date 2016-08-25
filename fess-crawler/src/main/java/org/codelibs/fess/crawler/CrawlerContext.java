@@ -44,9 +44,9 @@ public class CrawlerContext {
 
     protected IntervalController intervalController;
 
-    protected Set<String> robotsTxtUrlSet = new LruHashSet<String>(10000);
+    protected Set<String> robotsTxtUrlSet = new LruHashSet<>(10000);
 
-    protected ThreadLocal<String[]> sitemapsLocal = new ThreadLocal<String[]>();
+    protected ThreadLocal<String[]> sitemapsLocal = new ThreadLocal<>();
 
     /** The number of a thread */
     protected int numOfThread = 10;

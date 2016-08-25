@@ -153,27 +153,27 @@ public final class TextUtil {
             return false;
         }
 
-        public TextNormalizeContext initialCapacity(int initialCapacity) {
+        public TextNormalizeContext initialCapacity(final int initialCapacity) {
             this.initialCapacity = initialCapacity;
             return this;
         }
 
-        public TextNormalizeContext maxAlphanumTermSize(int maxAlphanumTermSize) {
+        public TextNormalizeContext maxAlphanumTermSize(final int maxAlphanumTermSize) {
             this.maxAlphanumTermSize = maxAlphanumTermSize;
             return this;
         }
 
-        public TextNormalizeContext maxSymbolTermSize(int maxSymbolTermSize) {
+        public TextNormalizeContext maxSymbolTermSize(final int maxSymbolTermSize) {
             this.maxSymbolTermSize = maxSymbolTermSize;
             return this;
         }
 
-        public TextNormalizeContext duplicateTermRemoved(boolean duplicateTermRemoved) {
+        public TextNormalizeContext duplicateTermRemoved(final boolean duplicateTermRemoved) {
             this.duplicateTermRemoved = duplicateTermRemoved;
             return this;
         }
 
-        public TextNormalizeContext spaceChars(int[] spaceChars) {
+        public TextNormalizeContext spaceChars(final int[] spaceChars) {
             this.spaceChars = spaceChars;
             return this;
         }

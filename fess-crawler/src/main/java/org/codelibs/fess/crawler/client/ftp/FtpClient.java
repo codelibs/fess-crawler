@@ -108,6 +108,7 @@ public class FtpClient extends AbstractCrawlerClient {
 
     private boolean useEPSVwithIPv4;
 
+    @Override
     public synchronized void init() {
         if (ftpAuthenticationHolder != null) {
             return;

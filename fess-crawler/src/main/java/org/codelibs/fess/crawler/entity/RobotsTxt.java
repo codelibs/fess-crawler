@@ -26,9 +26,9 @@ import org.codelibs.core.lang.StringUtil;
 public class RobotsTxt {
     private static final String ALL_BOTS = "*";
 
-    protected final Map<Pattern, Directive> directiveMap = new LinkedHashMap<Pattern, Directive>();
+    protected final Map<Pattern, Directive> directiveMap = new LinkedHashMap<>();
 
-    private final List<String> sitemapList = new ArrayList<String>();
+    private final List<String> sitemapList = new ArrayList<>();
 
     public boolean allows(final String path, final String userAgent) {
         final Directive directive = getMatchedDirective(userAgent);
@@ -106,9 +106,9 @@ public class RobotsTxt {
 
         private int crawlDelay;
 
-        private final List<String> allowedPaths = new ArrayList<String>();
+        private final List<String> allowedPaths = new ArrayList<>();
 
-        private final List<String> disallowedPaths = new ArrayList<String>();
+        private final List<String> disallowedPaths = new ArrayList<>();
 
         public Directive(final String userAgent) {
             this.userAgent = userAgent;

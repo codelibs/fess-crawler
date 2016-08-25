@@ -139,11 +139,11 @@ public class EsClient implements Client {
 
     protected int sizeForDelete = 10;
 
-    protected long retryInterval = 60 * 1000;
+    protected long retryInterval = 60 * 1000L;
 
     protected int maxRetryCount = 10;
 
-    protected long connTimeout = 180 * 1000;
+    protected long connTimeout = 180 * 1000L;
 
     protected String searchPreference;
 
@@ -713,10 +713,9 @@ public class EsClient implements Client {
     }
 
     public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
-        boolean scrolling = true;
         int count = 0;
         String scrollId = null;
-        while (scrolling) {
+        while (true) {
             final SearchResponse scrollResponse;
             if (scrollId == null) {
                 scrollResponse = get(c -> c.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete)
@@ -727,7 +726,6 @@ public class EsClient implements Client {
             }
             final SearchHit[] hits = scrollResponse.getHits().getHits();
             if (hits.length == 0) {
-                scrolling = false;
                 break;
             }
 

@@ -110,7 +110,7 @@ public class MemoryDataHelper {
     public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
         List<Pattern> patternList = includeUrlPatternMap.get(sessionId);
         if (patternList == null) {
-            patternList = new ArrayList<Pattern>();
+            patternList = new ArrayList<>();
             includeUrlPatternMap.put(sessionId, patternList);
         }
         return patternList;
@@ -125,7 +125,7 @@ public class MemoryDataHelper {
     public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
         List<Pattern> patternList = excludeUrlPatternMap.get(sessionId);
         if (patternList == null) {
-            patternList = new ArrayList<Pattern>();
+            patternList = new ArrayList<>();
             excludeUrlPatternMap.put(sessionId, patternList);
         }
         return patternList;

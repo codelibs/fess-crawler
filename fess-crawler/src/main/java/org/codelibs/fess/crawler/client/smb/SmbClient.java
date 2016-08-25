@@ -98,10 +98,10 @@ public class SmbClient extends AbstractCrawlerClient {
         LogStream.setInstance(new PrintStream(new OutputStream() {
             private static final int MAX_LEN = 1000;
 
-            private ByteArrayOutputStream buf = new ByteArrayOutputStream(MAX_LEN);
+            private final ByteArrayOutputStream buf = new ByteArrayOutputStream(MAX_LEN);
 
             @Override
-            public void write(int b) throws IOException {
+            public void write(final int b) throws IOException {
                 if (b == '\n' || b == '\r' || buf.size() >= MAX_LEN) {
                     try {
                         final String msg = buf.toString(Constants.UTF_8);
@@ -116,7 +116,7 @@ public class SmbClient extends AbstractCrawlerClient {
                                 logger.error(msg);
                             }
                         }
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         logger.warn(e.getLocalizedMessage());
                     }
                     buf.reset();
@@ -139,6 +139,7 @@ public class SmbClient extends AbstractCrawlerClient {
 
     public volatile SmbAuthenticationHolder smbAuthenticationHolder;
 
+    @Override
     public synchronized void init() {
         if (smbAuthenticationHolder != null) {
             return;
@@ -249,12 +250,12 @@ public class SmbClient extends AbstractCrawlerClient {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Parsing SmbFile Owner: " + filePath);
                     }
-                    SID ownerUser = file.getOwnerUser();
+                    final SID ownerUser = file.getOwnerUser();
                     if (ownerUser != null) {
-                        String[] ownerAttributes = {ownerUser.getAccountName(), ownerUser.getDomainName()};
+                        final String[] ownerAttributes = {ownerUser.getAccountName(), ownerUser.getDomainName()};
                         responseData.addMetaData(SMB_OWNER_ATTRIBUTES, ownerAttributes);
                     }
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     logger.warn("Cannot get owner of the file: " + filePath);
                 }
 

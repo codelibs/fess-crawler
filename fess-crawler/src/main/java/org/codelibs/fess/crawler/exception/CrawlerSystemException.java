@@ -35,7 +35,7 @@ public class CrawlerSystemException extends RuntimeException {
         super(cause);
     }
 
-    protected CrawlerSystemException(String message, boolean enableSuppression, boolean writableStackTrace) {
+    protected CrawlerSystemException(final String message, final boolean enableSuppression, final boolean writableStackTrace) {
         super(message, null, enableSuppression, writableStackTrace);
     }
 }

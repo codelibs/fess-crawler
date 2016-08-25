@@ -56,7 +56,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
      */
     @Override
     public PooledObject<T> wrap(final T obj) {
-        return new DefaultPooledObject<T>(obj);
+        return new DefaultPooledObject<>(obj);
     }
 
     @Override

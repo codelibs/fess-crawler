@@ -29,7 +29,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
  *
  */
 public class CrawlerClientFactory {
-    protected Map<Pattern, CrawlerClient> clientMap = new LinkedHashMap<Pattern, CrawlerClient>();
+    protected Map<Pattern, CrawlerClient> clientMap = new LinkedHashMap<>();
 
     public void addClient(final String regex, final CrawlerClient client) {
         if (StringUtil.isBlank(regex)) {
@@ -50,8 +50,8 @@ public class CrawlerClientFactory {
         }
         int current = 0;
         boolean added = false;
-        Map<Pattern, CrawlerClient> newClientMap = new LinkedHashMap<Pattern, CrawlerClient>();
-        for (Map.Entry<Pattern, CrawlerClient> entry : clientMap.entrySet()) {
+        final Map<Pattern, CrawlerClient> newClientMap = new LinkedHashMap<>();
+        for (final Map.Entry<Pattern, CrawlerClient> entry : clientMap.entrySet()) {
             if (pos == current) {
                 newClientMap.put(Pattern.compile(regex), client);
                 added = true;

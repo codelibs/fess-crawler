@@ -102,7 +102,7 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         final ComponentDef<T> componentDef = new ComponentDef<>(cls,
                 initializer, this);
         final T instance = componentDef.get();
-        singletonMap.put(name, new ComponentHolder<T>(instance, destroyer));
+        singletonMap.put(name, new ComponentHolder<>(instance, destroyer));
         return this;
     }
 
@@ -121,7 +121,7 @@ public class StandardCrawlerContainer implements CrawlerContainer {
             final Consumer<T> destroyer) {
         final ComponentDef<T> componentDef = new ComponentDef<>(instance,
                 initializer, this);
-        singletonMap.put(name, new ComponentHolder<T>(componentDef.get(),
+        singletonMap.put(name, new ComponentHolder<>(componentDef.get(),
                 destroyer));
         return this;
     }

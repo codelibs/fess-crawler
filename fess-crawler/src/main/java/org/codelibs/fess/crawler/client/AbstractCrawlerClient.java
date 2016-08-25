@@ -43,7 +43,7 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     private Map<String, Object> initParamMap;
 
-    protected long maxCachedContentSize = 1024 * 1024; //1mb
+    protected long maxCachedContentSize = 1024L * 1024L; //1mb
 
     protected Integer accessTimeout = null; // sec
 
@@ -86,7 +86,7 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> T convertObj(final Object value, Class<T> clazz) {
+    protected <T> T convertObj(final Object value, final Class<T> clazz) {
         if (clazz.isAssignableFrom(String.class)) {
             return (T) value.toString();
         } else if (clazz.isAssignableFrom(Long.class)) {
@@ -162,15 +162,15 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
         throw new CrawlerSystemException("POST method is not supported.");
     }
 
-    public void setMaxCachedContentSize(long maxCachedContentSize) {
+    public void setMaxCachedContentSize(final long maxCachedContentSize) {
         this.maxCachedContentSize = maxCachedContentSize;
     }
 
-    public void setAccessTimeout(Integer accessTimeout) {
+    public void setAccessTimeout(final Integer accessTimeout) {
         this.accessTimeout = accessTimeout;
     }
 
-    public void setMaxContentLength(Long maxContentLength) {
+    public void setMaxContentLength(final Long maxContentLength) {
         this.maxContentLength = maxContentLength;
     }
 }

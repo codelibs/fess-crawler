@@ -69,7 +69,7 @@ public class TextTransformer extends AbstractTransformer {
         }
         final Extractor extractor = extractorFactory.getExtractor(responseData
                 .getMimeType());
-        final Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<>();
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
                 getResourceName(responseData));
         params.put(HttpHeaders.CONTENT_TYPE, responseData.getMimeType());

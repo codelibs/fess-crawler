@@ -42,7 +42,7 @@ public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders,
     @SuppressWarnings("deprecation")
     public static final String PDF_PASSWORD = PDFParser.PASSWORD;
 
-    protected Map<String, String[]> metadata = new HashMap<String, String[]>();
+    protected Map<String, String[]> metadata = new HashMap<>();
 
     protected String content;
 

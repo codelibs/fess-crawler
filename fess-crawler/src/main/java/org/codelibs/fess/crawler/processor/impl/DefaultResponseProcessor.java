@@ -137,7 +137,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 try {
                     // store
                     CrawlingParameterUtil.getDataService().store(accessResult);
-                } catch (RuntimeException e) {
+                } catch (final RuntimeException e) {
                     crawlerContext.decrementAndGetAccessCount();
                     if (urlQueueService.visited(urlQueue)) {
                         // document already exists

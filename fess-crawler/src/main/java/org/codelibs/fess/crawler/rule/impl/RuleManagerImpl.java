@@ -31,7 +31,7 @@ public class RuleManagerImpl implements RuleManager {
     protected List<Rule> ruleList;
 
     public RuleManagerImpl() {
-        ruleList = new ArrayList<Rule>();
+        ruleList = new ArrayList<>();
     }
 
     /*

@@ -56,9 +56,9 @@ public class JodExtractor implements Extractor {
 
     public String outputEncoding = Constants.UTF_8;
 
-    private final Map<String, String> extensionMap = new HashMap<String, String>();
+    private final Map<String, String> extensionMap = new HashMap<>();
 
-    private final Map<String, Extractor> extractorMap = new HashMap<String, Extractor>();
+    private final Map<String, Extractor> extractorMap = new HashMap<>();
 
     public JodExtractor() {
         extensionMap.put("", "txt");
@@ -184,7 +184,7 @@ public class JodExtractor implements Extractor {
     protected String getOutputContent(final File outputFile, final String outExt) {
         final Extractor extractor = getExtractor(outExt);
         if (extractor != null) {
-            final Map<String, String> params = new HashMap<String, String>();
+            final Map<String, String> params = new HashMap<>();
             params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, outputFile.getName());
             FileInputStream in = null;
             try {

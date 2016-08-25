@@ -57,7 +57,7 @@ public class XpathTransformer extends HtmlTransformer {
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",
             Pattern.MULTILINE);
 
-    protected Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 
     /** a flag to trim a space characters. */
     protected boolean trimSpace = true;
@@ -110,7 +110,7 @@ public class XpathTransformer extends HtmlTransformer {
                         break;
                     case XObject.CLASS_NODESET:
                         final NodeList nodeList = xObj.nodelist();
-                        final List<String> strList = new ArrayList<String>();
+                        final List<String> strList = new ArrayList<>();
                         for (int i = 0; i < nodeList.getLength(); i++) {
                             final Node node = nodeList.item(i);
                             strList.add(node.getTextContent());

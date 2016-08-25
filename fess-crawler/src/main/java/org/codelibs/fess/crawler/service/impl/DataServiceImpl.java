@@ -60,7 +60,7 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
             AccessResultData<Long> accessResultData = accessResult
                     .getAccessResultData();
             if (accessResultData == null) {
-                accessResultData = new AccessResultDataImpl<Long>();
+                accessResultData = new AccessResultDataImpl<>();
                 accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
                 accessResult.setAccessResultData(accessResultData);
             }

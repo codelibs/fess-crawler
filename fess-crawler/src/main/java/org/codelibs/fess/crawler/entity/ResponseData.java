@@ -63,9 +63,9 @@ public class ResponseData implements Closeable {
 
     private int status = Constants.OK_STATUS;
 
-    private final Map<String, Object> metaDataMap = new LinkedHashMap<String, Object>();
+    private final Map<String, Object> metaDataMap = new LinkedHashMap<>();
 
-    private final Set<RequestData> childUrlSet = new LinkedHashSet<RequestData>();
+    private final Set<RequestData> childUrlSet = new LinkedHashSet<>();
 
     private byte[] responseBodyBytes;
 
@@ -91,7 +91,7 @@ public class ResponseData implements Closeable {
         } else if (responseBodyFile != null) {
             try {
                 return new FileInputStream(responseBodyFile);
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 throw new IORuntimeException(e);
             }
         }

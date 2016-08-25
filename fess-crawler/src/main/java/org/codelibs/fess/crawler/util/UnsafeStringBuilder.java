@@ -26,11 +26,11 @@ public class UnsafeStringBuilder extends StrBuilder {
         super();
     }
 
-    public UnsafeStringBuilder(int initialCapacity) {
+    public UnsafeStringBuilder(final int initialCapacity) {
         super(initialCapacity);
     }
 
-    public UnsafeStringBuilder(String str) {
+    public UnsafeStringBuilder(final String str) {
         super(str);
     }
 
@@ -41,7 +41,7 @@ public class UnsafeStringBuilder extends StrBuilder {
         return StringUtil.newStringUnsafe(buffer);
     }
 
-    public StrBuilder appendCodePoint(int codePoint) {
+    public StrBuilder appendCodePoint(final int codePoint) {
         if (Character.isBmpCodePoint(codePoint)) {
             append((char) codePoint);
         } else if (Character.isValidCodePoint(codePoint)) {

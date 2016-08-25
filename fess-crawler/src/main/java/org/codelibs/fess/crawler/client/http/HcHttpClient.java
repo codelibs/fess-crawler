@@ -141,9 +141,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected volatile CloseableHttpClient httpClient;
 
-    private final List<Header> requestHeaderList = new ArrayList<Header>();
+    private final List<Header> requestHeaderList = new ArrayList<>();
 
-    private final Map<String, Object> httpClientPropertyMap = new HashMap<String, Object>();
+    private final Map<String, Object> httpClientPropertyMap = new HashMap<>();
 
     private TimeoutTask connectionMonitorTask;
 
@@ -184,7 +184,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected int connectionCheckInterval = 5; // sec
 
-    protected long idleConnectionTimeout = 60 * 1000; // 1min
+    protected long idleConnectionTimeout = 60 * 1000L; // 1min
 
     protected Pattern redirectHttpStatusPattern = Pattern
             .compile("[3][0-9][0-9]");
@@ -201,6 +201,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected boolean redirectsEnabled = false;
 
+    @Override
     public synchronized void init() {
         if (httpClient != null) {
             return;
@@ -646,7 +647,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     if (contentType == null) {
                         try (InputStream is = new ByteArrayInputStream(dfos.getData())) {
                             contentType = mimeTypeHelper.getContentType(is, url);
-                        } catch (Exception e) {
+                        } catch (final Exception e) {
                             logger.debug("Failed to detect mime-type.", e);
                             contentType = defaultMimeType;
                         }
@@ -657,7 +658,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     if (contentType == null) {
                         try (InputStream is = new FileInputStream(outputFile)) {
                             contentType = mimeTypeHelper.getContentType(is, url);
-                        } catch (Exception e) {
+                        } catch (final Exception e) {
                             logger.debug("Failed to detect mime-type.", e);
                             contentType = defaultMimeType;
                         }
@@ -751,7 +752,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
-    protected void closeResources(final HttpUriRequest httpRequest, ResponseData responseData) {
+    protected void closeResources(final HttpUriRequest httpRequest, final ResponseData responseData) {
         IOUtils.closeQuietly(responseData);
         httpRequest.abort();
     }
@@ -802,6 +803,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return null;
     }
 
+    @Override
     public void setAccessTimeout(final Integer accessTimeout) {
         this.accessTimeout = accessTimeout;
     }
@@ -905,7 +907,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         this.routePlanner = routePlanner;
     }
 
-    public void setRedirectsEnabled(boolean redirectsEnabled) {
+    public void setRedirectsEnabled(final boolean redirectsEnabled) {
         this.redirectsEnabled = redirectsEnabled;
     }
 }

@@ -72,11 +72,11 @@ public class XmlTransformer extends AbstractTransformer {
 
     private boolean includeAware;
 
-    private final Map<String, Object> attributeMap = new HashMap<String, Object>();
+    private final Map<String, Object> attributeMap = new HashMap<>();
 
-    private final Map<String, String> featureMap = new HashMap<String, String>();
+    private final Map<String, String> featureMap = new HashMap<>();
 
-    protected Map<String, String> fieldRuleMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 
     /** a flag to trim a space characters. */
     protected boolean trimSpace = true;
@@ -89,7 +89,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     protected Class<?> dataClass = null;
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
+    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<>();
 
     /**
      * Returns data as XML content of String.
@@ -180,7 +180,7 @@ public class XmlTransformer extends AbstractTransformer {
             buf.append(getResultDataHeader());
             for (final Map.Entry<String, String> entry : fieldRuleMap
                     .entrySet()) {
-                final List<String> nodeStrList = new ArrayList<String>();
+                final List<String> nodeStrList = new ArrayList<>();
                 try {
                     final NodeList nodeList = getNodeList(doc, entry.getValue());
                     for (int i = 0; i < nodeList.getLength(); i++) {

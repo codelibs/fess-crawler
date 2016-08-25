@@ -54,7 +54,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         if (StringUtil.isEmpty(filename)) {
             throw new MimeTypeException("The filename is empty.");
         }
-        final Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<>();
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
         return getContentType(is, params);
     }

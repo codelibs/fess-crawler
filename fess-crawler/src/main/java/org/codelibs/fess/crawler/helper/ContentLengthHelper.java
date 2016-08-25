@@ -29,7 +29,7 @@ public class ContentLengthHelper {
 
     protected long defaultMaxLength = 10L * 1024L * 1024L;// 10M
 
-    protected Map<String, Long> maxLengthMap = new HashMap<String, Long>();
+    protected Map<String, Long> maxLengthMap = new HashMap<>();
 
     public void addMaxLength(final String mimeType, final long maxLength) {
         if (StringUtil.isBlank(mimeType)) {

@@ -78,7 +78,7 @@ public class FaultTolerantClient implements CrawlerClient {
                     }
 
                     if (exceptionList == null) {
-                        exceptionList = new ArrayList<Exception>();
+                        exceptionList = new ArrayList<>();
                     }
                     exceptionList.add(e);
                 }

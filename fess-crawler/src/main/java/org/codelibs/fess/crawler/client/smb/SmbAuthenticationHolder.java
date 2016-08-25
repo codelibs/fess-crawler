@@ -23,7 +23,7 @@ import java.util.Map;
  *
  */
 public class SmbAuthenticationHolder {
-    private final Map<String, SmbAuthentication> authMap = new HashMap<String, SmbAuthentication>();
+    private final Map<String, SmbAuthentication> authMap = new HashMap<>();
 
     public void add(final SmbAuthentication auth) {
         authMap.put(auth.getPathPrefix(), auth);

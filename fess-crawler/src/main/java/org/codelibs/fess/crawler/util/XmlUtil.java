@@ -102,7 +102,7 @@ public final class XmlUtil {
     }
 
     private static class DocHandler extends DefaultHandler {
-        private final Map<String, Object> dataMap = new HashMap<String, Object>();
+        private final Map<String, Object> dataMap = new HashMap<>();
 
         private String fieldName;
 

@@ -99,7 +99,7 @@ public class TikaExtractor implements Extractor {
 
     public TikaConfig tikaConfig;
 
-    protected Map<String, String> pdfPasswordMap = new HashMap<String, String>();
+    protected Map<String, String> pdfPasswordMap = new HashMap<>();
 
     @PostConstruct
     public void init() {
@@ -323,7 +323,7 @@ public class TikaExtractor implements Extractor {
         }
     }
 
-    protected InputStream getContentStream(DeferredFileOutputStream dfos) throws IOException {
+    protected InputStream getContentStream(final DeferredFileOutputStream dfos) throws IOException {
         if (dfos.isInMemory()) {
             return new ByteArrayInputStream(dfos.getData());
         } else {
@@ -331,17 +331,17 @@ public class TikaExtractor implements Extractor {
         }
     }
 
-    protected String getContent(final ContentWriter out, String encoding) throws TikaException {
+    protected String getContent(final ContentWriter out, final String encoding) throws TikaException {
         File tempFile = null;
         try {
             tempFile = File.createTempFile("tika", ".tmp");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new CrawlerSystemException("Failed to create a temp file.", e);
         }
 
         final String enc = encoding == null ? Constants.UTF_8 : encoding;
         try (DeferredFileOutputStream dfos = new DeferredFileOutputStream(memorySize, tempFile)) {
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dfos, enc));
+            final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dfos, enc));
             out.accept(writer);
             writer.flush();
 
@@ -350,9 +350,9 @@ public class TikaExtractor implements Extractor {
                         maxAlphanumTermSize, maxSymbolTermSize,
                         replaceDuplication);
             }
-        } catch (TikaException e) {
+        } catch (final TikaException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ExtractException("Failed to read a content.", e);
         } finally {
             if (tempFile.exists() && !tempFile.delete()) {

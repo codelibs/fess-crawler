@@ -73,11 +73,11 @@ public class HtmlTransformer extends AbstractTransformer {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
-    protected Map<String, String> featureMap = new HashMap<String, String>();
+    protected Map<String, String> featureMap = new HashMap<>();
 
-    protected Map<String, String> propertyMap = new HashMap<String, String>();
+    protected Map<String, String> propertyMap = new HashMap<>();
 
-    protected Map<String, String> childUrlRuleMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> childUrlRuleMap = new LinkedHashMap<>();
 
     protected String defaultEncoding;
 
@@ -101,7 +101,7 @@ public class HtmlTransformer extends AbstractTransformer {
             + "^\\s*callto:",
             Pattern.CASE_INSENSITIVE);
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
+    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<>();
 
     @Override
     public ResultData transform(final ResponseData responseData) {
@@ -157,7 +157,7 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected void storeChildUrls(final ResponseData responseData, final ResultData resultData) {
-        List<RequestData> requestDataList = new ArrayList<RequestData>();
+        List<RequestData> requestDataList = new ArrayList<>();
         try (final InputStream is = responseData.getResponseBody()) {
             final DOMParser parser = getDomParser();
             parser.parse(new InputSource(is));
@@ -350,7 +350,7 @@ public class HtmlTransformer extends AbstractTransformer {
         if (logger.isDebugEnabled()) {
             logger.debug("Base URL: " + url);
         }
-        final List<String> urlList = new ArrayList<String>();
+        final List<String> urlList = new ArrayList<>();
         try {
             final NodeList list = getXPathAPI().selectNodeList(document, xpath);
             for (int i = 0; i < list.getLength(); i++) {

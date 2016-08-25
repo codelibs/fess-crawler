@@ -95,9 +95,9 @@ public class ApiExtractor implements Extractor {
 
     protected HttpClientContext httpClientContext = HttpClientContext.create();
 
-    private final Map<String, Object> httpClientPropertyMap = new HashMap<String, Object>();
+    private final Map<String, Object> httpClientPropertyMap = new HashMap<>();
 
-    private final List<Header> requestHeaderList = new ArrayList<Header>();
+    private final List<Header> requestHeaderList = new ArrayList<>();
 
     @PostConstruct
     public void init() {
@@ -186,7 +186,7 @@ public class ApiExtractor implements Extractor {
     }
 
     @Override
-    public ExtractData getText(InputStream in, Map<String, String> params) {
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing " + url);
         }
@@ -199,9 +199,9 @@ public class ApiExtractor implements Extractor {
             accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
         }
 
-        ExtractData data = new ExtractData();
-        HttpPost httpPost = new HttpPost(url);
-        HttpEntity postEntity = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+        final ExtractData data = new ExtractData();
+        final HttpPost httpPost = new HttpPost(url);
+        final HttpEntity postEntity = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
                 .setCharset(Charset.forName("UTF-8")).addBinaryBody("filedata", in).build();
         httpPost.setEntity(postEntity);
 
@@ -212,11 +212,11 @@ public class ApiExtractor implements Extractor {
             }
 
             data.setContent(EntityUtils.toString(response.getEntity(), Charsets.UTF_8));
-            Header[] headers = response.getAllHeaders();
+            final Header[] headers = response.getAllHeaders();
             for (final Header header : headers) {
                 data.putValue(header.getName(), header.getValue());
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ExtractException(e);
         } finally {
             if (accessTimeout != null) {
@@ -229,39 +229,39 @@ public class ApiExtractor implements Extractor {
         return data;
     }
 
-    public void setUrl(String url) {
+    public void setUrl(final String url) {
         this.url = url;
     }
 
-    public void setConnectionTimeout(Integer connectionTimeout) {
+    public void setConnectionTimeout(final Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
     }
 
-    public void setSoTimeout(Integer soTimeout) {
+    public void setSoTimeout(final Integer soTimeout) {
         this.soTimeout = soTimeout;
     }
 
-    public void setAuthSchemeProviderMap(Map<String, AuthSchemeProvider> authSchemeProviderMap) {
+    public void setAuthSchemeProviderMap(final Map<String, AuthSchemeProvider> authSchemeProviderMap) {
         this.authSchemeProviderMap = authSchemeProviderMap;
     }
 
-    public void setUserAgent(String userAgent) {
+    public void setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
     }
 
-    public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
+    public void setCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
     }
 
-    public void setAuthCache(AuthCache authCache) {
+    public void setAuthCache(final AuthCache authCache) {
         this.authCache = authCache;
     }
 
-    public void setHttpClientContext(HttpClientContext httpClientContext) {
+    public void setHttpClientContext(final HttpClientContext httpClientContext) {
         this.httpClientContext = httpClientContext;
     }
 
-    public void setAccessTimeout(Integer accessTimeout) {
+    public void setAccessTimeout(final Integer accessTimeout) {
         this.accessTimeout = accessTimeout;
     }
 

@@ -31,7 +31,7 @@ public class SitemapSet implements Serializable {
 
     public static final String INDEX = "Index";
 
-    private final List<Sitemap> sitemapList = new ArrayList<Sitemap>();
+    private final List<Sitemap> sitemapList = new ArrayList<>();
 
     private String type = URLSET;
 

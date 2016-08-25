@@ -44,13 +44,13 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor implements
                     "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
                     Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
-    protected Map<String, String> featureMap = new HashMap<String, String>();
+    protected Map<String, String> featureMap = new HashMap<>();
 
-    protected Map<String, String> propertyMap = new HashMap<String, String>();
+    protected Map<String, String> propertyMap = new HashMap<>();
 
     protected String targetNodePath = "//HTML/BODY | //@alt | //@title";
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<CachedXPathAPI>();
+    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<>();
 
     /*
      * (non-Javadoc)

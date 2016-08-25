@@ -35,7 +35,7 @@ public class RegexRule extends AbstractRule {
 
     protected boolean allRequired = true;
 
-    protected Map<String, Pattern> regexMap = new HashMap<String, Pattern>();
+    protected Map<String, Pattern> regexMap = new HashMap<>();
 
     /*
      * (non-Javadoc)
@@ -48,7 +48,7 @@ public class RegexRule extends AbstractRule {
             return true;
         }
 
-        final Map<String, Object> map = new HashMap<String, Object>();
+        final Map<String, Object> map = new HashMap<>();
         BeanUtil.copyBeanToMap(responseData, map,
                 option -> option.excludeWhitespace());
         for (final Map.Entry<String, Pattern> entry : regexMap.entrySet()) {

@@ -26,7 +26,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
  */
 public class UrlConvertHelper {
 
-    protected Map<String, String> convertMap = new LinkedHashMap<String, String>();
+    protected Map<String, String> convertMap = new LinkedHashMap<>();
 
     public String convert(final String url) {
         if (url == null) {

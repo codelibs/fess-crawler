@@ -81,7 +81,7 @@ public class RobotsTxtHelper {
 
             String line;
             final RobotsTxt robotsTxt = new RobotsTxt();
-            final List<Directive> currentDirectiveList = new ArrayList<Directive>();
+            final List<Directive> currentDirectiveList = new ArrayList<>();
             boolean isGroupRecodeStarted = false;
             while ((line = reader.readLine()) != null) {
                 line = stripComment(line).trim();

@@ -29,7 +29,7 @@ import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 
 public class HostIntervalController extends DefaultIntervalController {
 
-    private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<String, AtomicLong>();
+    private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<>();
 
     public HostIntervalController() {
         super();

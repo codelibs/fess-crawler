@@ -74,12 +74,14 @@ import org.codelibs.core.beans.PropertyDesc;
 import org.codelibs.core.beans.factory.BeanDescFactory;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.misc.Pair;
 import org.codelibs.core.timer.TimeoutManager;
 import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
 import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
+import org.codelibs.fess.crawler.client.http.form.FormScheme;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -262,15 +264,18 @@ public class HcHttpClient extends AbstractCrawlerClient {
         // Authentication
         final Authentication[] siteCredentialList =
                 getInitParameter(BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0], Authentication[].class);
+        final List<Pair<FormScheme, Credentials>> formSchemeList = new ArrayList<>();
         for (final Authentication authentication : siteCredentialList) {
-            final AuthScope authScope = authentication.getAuthScope();
-            credentialsProvider.setCredentials(authScope,
-                    authentication.getCredentials());
             final AuthScheme authScheme = authentication.getAuthScheme();
-            if (authScope.getHost() != null && authScheme != null) {
-                final HttpHost targetHost = new HttpHost(authScope.getHost(),
-                        authScope.getPort());
-                authCache.put(targetHost, authScheme);
+            if (authScheme instanceof FormScheme) {
+                formSchemeList.add(new Pair<>((FormScheme) authScheme, authentication.getCredentials()));
+            } else {
+                final AuthScope authScope = authentication.getAuthScope();
+                credentialsProvider.setCredentials(authScope, authentication.getCredentials());
+                if (authScope.getHost() != null && authScheme != null) {
+                    final HttpHost targetHost = new HttpHost(authScope.getHost(), authScope.getPort());
+                    authCache.put(targetHost, authScheme);
+                }
             }
         }
 
@@ -327,6 +332,30 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
             }
         }
+
+        formSchemeList.forEach(p -> {
+            FormScheme scheme = p.getFirst();
+            Credentials credentials = p.getSecond();
+            scheme.authenticate(credentials, (request, consumer) -> {
+
+                // request header
+                for (final Header header : requestHeaderList) {
+                    request.addHeader(header);
+                }
+
+                HttpEntity httpEntity = null;
+                try {
+                    final HttpResponse response = closeableHttpClient.execute(request, new BasicHttpContext(httpClientContext));
+                    httpEntity = response.getEntity();
+                    consumer.accept(response, httpEntity);
+                } catch (final Exception e) {
+                    request.abort();
+                    logger.warn("Failed to authenticate on " + scheme, e);
+                } finally {
+                    EntityUtils.consumeQuietly(httpEntity);
+                }
+            });
+        });
 
         httpClient = closeableHttpClient;
     }

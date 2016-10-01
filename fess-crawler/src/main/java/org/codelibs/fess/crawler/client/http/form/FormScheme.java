@@ -148,10 +148,16 @@ public class FormScheme implements AuthScheme {
 
             executor.accept(httpRequest, (response, entity) -> {
                 final int httpStatusCode = response.getStatusLine().getStatusCode();
-                if (httpStatusCode >= 400) {
-                    logger.warn("Failed to access to " + tokenUrl + ". The http status is " + httpStatusCode);
-                } else {
+                if (httpStatusCode < 400 || httpStatusCode == 401) {
                     parseTokenPage(tokenPattern, responseParams, entity);
+                } else {
+                    String content;
+                    try {
+                        content = new String(InputStreamUtil.getBytes(entity.getContent()), Constants.UTF_8_CHARSET);
+                    } catch (IOException e) {
+                        content = e.getMessage();
+                    }
+                    logger.warn("Failed to access to " + tokenUrl + ". The http status is " + httpStatusCode + ".\n" + content);
                 }
             });
         }
@@ -204,15 +210,13 @@ public class FormScheme implements AuthScheme {
         executor.accept(httpRequest, (response, entity) -> {
             final int httpStatusCode = response.getStatusLine().getStatusCode();
             if (httpStatusCode >= 400) {
-                logger.warn("Failed to login on " + originalLoginUrl + ". The http status is " + httpStatusCode);
-                if (logger.isDebugEnabled()) {
-                    try {
-                        final String content = new String(InputStreamUtil.getBytes(entity.getContent()), Constants.UTF_8_CHARSET);
-                        logger.debug("Response:\n" + content);
-                    } catch (IOException e) {
-                        throw new IORuntimeException(e);
-                    }
+                String content;
+                try {
+                    content = new String(InputStreamUtil.getBytes(entity.getContent()), Constants.UTF_8_CHARSET);
+                } catch (IOException e) {
+                    content = e.getMessage();
                 }
+                logger.warn("Failed to login on " + originalLoginUrl + ". The http status is " + httpStatusCode + ".\n" + content);
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Logged in " + originalLoginUrl);
             }

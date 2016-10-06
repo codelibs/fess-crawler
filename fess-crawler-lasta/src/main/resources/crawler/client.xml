@@ -9,7 +9,6 @@
 
 	<component name="internalHttpClient" class="org.codelibs.fess.crawler.client.http.HcHttpClient"
 		instance="prototype">
-		<property name="cookieSpec">org.apache.http.client.params.CookiePolicy.BEST_MATCH</property>
 		<property name="clientConnectionManager">clientConnectionManager</property>
 	</component>
 	<component name="httpClient"

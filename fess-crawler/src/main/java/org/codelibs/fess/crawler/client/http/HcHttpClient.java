@@ -50,15 +50,21 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.DateUtils;
+import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.util.PublicSuffixMatcher;
+import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -66,6 +72,11 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
+import org.apache.http.impl.cookie.DefaultCookieSpecProvider.CompatibilityLevel;
+import org.apache.http.impl.cookie.IgnoreSpecProvider;
+import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
@@ -203,6 +214,15 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected boolean redirectsEnabled = false;
 
+    protected Lookup<CookieSpecProvider> cookieSpecRegistry;
+
+    protected String[] cookieDatePatterns = { //
+            DateUtils.PATTERN_RFC1123, //
+            DateUtils.PATTERN_RFC1036, //
+            DateUtils.PATTERN_ASCTIME, //
+            StringUtil.EMPTY//
+    };
+
     @Override
     public synchronized void init() {
         if (httpClient != null) {
@@ -308,6 +328,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
             }
         }
 
+        // cookie registry
+        final Lookup<CookieSpecProvider> cookieSpecRegistry = buildCookieSpecRegistry();
+        if (cookieSpecRegistry != null) {
+            httpClientBuilder.setDefaultCookieSpecRegistry(cookieSpecRegistry);
+        }
+
         connectionMonitorTask = TimeoutManager.getInstance().addTimeoutTarget(
                 new HcConnectionMonitorTarget(clientConnectionManager,
                         idleConnectionTimeout), connectionCheckInterval, true);
@@ -358,6 +384,29 @@ public class HcHttpClient extends AbstractCrawlerClient {
         });
 
         httpClient = closeableHttpClient;
+    }
+
+    protected Lookup<CookieSpecProvider> buildCookieSpecRegistry() {
+        if (cookieSpecRegistry != null) {
+            return cookieSpecRegistry;
+        }
+
+        final PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
+        final CookieSpecProvider defaultProvider =
+                new DefaultCookieSpecProvider(CompatibilityLevel.DEFAULT, publicSuffixMatcher, cookieDatePatterns, false);
+        final CookieSpecProvider laxStandardProvider =
+                new RFC6265CookieSpecProvider(RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher);
+        final CookieSpecProvider strictStandardProvider =
+                new RFC6265CookieSpecProvider(RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher);
+        return RegistryBuilder.<CookieSpecProvider> create()//
+                .register(CookieSpecs.DEFAULT, defaultProvider)//
+                .register("best-match", defaultProvider)//
+                .register("compatibility", defaultProvider)//
+                .register(CookieSpecs.STANDARD, laxStandardProvider)//
+                .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)//
+                .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())//
+                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())//
+                .build();
     }
 
     @PreDestroy
@@ -938,5 +987,13 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public void setRedirectsEnabled(final boolean redirectsEnabled) {
         this.redirectsEnabled = redirectsEnabled;
+    }
+
+    public void setCookieSpecRegistry(final Lookup<CookieSpecProvider> cookieSpecRegistry) {
+        this.cookieSpecRegistry = cookieSpecRegistry;
+    }
+
+    public void setCookieDatePatterns(final String[] cookieDatePatterns) {
+        this.cookieDatePatterns = cookieDatePatterns;
     }
 }

@@ -118,7 +118,7 @@ public class HtmlTransformer extends AbstractTransformer {
         // data
         storeData(responseData, resultData);
 
-        if (isHtml(responseData)) {
+        if (isHtml(responseData) && !responseData.isNoFollow()) {
             // urls
             storeChildUrls(responseData, resultData);
         }

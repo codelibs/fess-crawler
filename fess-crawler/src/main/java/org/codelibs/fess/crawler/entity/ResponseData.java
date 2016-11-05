@@ -73,6 +73,8 @@ public class ResponseData implements Closeable {
 
     private boolean isTemporaryFile;
 
+    private boolean noFollow = false;
+
     public int getHttpStatusCode() {
         return httpStatusCode;
     }
@@ -203,6 +205,14 @@ public class ResponseData implements Closeable {
         this.status = status;
     }
 
+    public void setNoFollow(final boolean value) {
+        noFollow = value;
+    }
+
+    public boolean isNoFollow() {
+        return noFollow;
+    }
+
     public void addMetaData(final String name, final Object value) {
         metaDataMap.put(name, value);
     }
@@ -236,5 +246,4 @@ public class ResponseData implements Closeable {
             responseBodyFile.delete();
         }
     }
-
 }

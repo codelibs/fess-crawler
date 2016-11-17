@@ -24,6 +24,7 @@ import java.util.function.Function;
 
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.EsAccessException;
@@ -140,9 +141,9 @@ public class EsClient implements Client {
 
     protected int sizeForDelete = 10;
 
-    protected long retryInterval = 60 * 1000L;
+    protected long retryInterval = 3 * 1000L;
 
-    protected int maxRetryCount = 10;
+    protected int maxRetryCount = 30;
 
     protected long connTimeout = 180 * 1000L;
 
@@ -240,12 +241,12 @@ public class EsClient implements Client {
                     logger.debug("Failed to invoke actionGet. count:" + retryCount, e);
                 }
 
-                retryCount++;
                 try {
-                    Thread.sleep(retryInterval);
+                    Thread.sleep(RandomUtils.nextLong(retryInterval + retryCount * 1000L, retryInterval + retryCount * 1000L * 2L));
                 } catch (InterruptedException ie) {
                     throw e;
                 }
+                retryCount++;
             }
         }
     }

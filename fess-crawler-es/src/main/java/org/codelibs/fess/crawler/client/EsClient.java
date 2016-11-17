@@ -109,6 +109,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.IndexNotFoundException;
+import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
@@ -227,12 +228,16 @@ public class EsClient implements Client {
                     throw e;
                 }
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to actionGet. count:" + retryCount, e);
-                }
                 if (retryCount > maxRetryCount) {
-                    logger.info("Failed to actionGet. All retry failure.", e);
+                    if (e instanceof DocumentAlreadyExistsException) {
+                        logger.debug("Failed to invoke actionGet.", e);
+                    } else {
+                        logger.info("Failed to invoke actionGet.", e);
+                    }
                     throw e;
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to invoke actionGet. count:" + retryCount, e);
                 }
 
                 retryCount++;

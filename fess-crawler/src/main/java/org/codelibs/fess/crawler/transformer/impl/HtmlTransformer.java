@@ -115,12 +115,16 @@ public class HtmlTransformer extends AbstractTransformer {
         final ResultData resultData = new ResultData();
         resultData.setTransformerName(getName());
 
-        // data
-        storeData(responseData, resultData);
+        try {
+            // data
+            storeData(responseData, resultData);
 
-        if (isHtml(responseData) && !responseData.isNoFollow()) {
-            // urls
-            storeChildUrls(responseData, resultData);
+            if (isHtml(responseData) && !responseData.isNoFollow()) {
+                // urls
+                storeChildUrls(responseData, resultData);
+            }
+        } finally {
+            xpathAPI.remove();
         }
 
         final Object redirectUrlObj = responseData.getMetaDataMap().get(LOCATION_HEADER);
@@ -188,8 +192,6 @@ public class HtmlTransformer extends AbstractTransformer {
             throw e;
         } catch (final Exception e) {
             throw new CrawlerSystemException("Could not store data.", e);
-        } finally {
-            xpathAPI.remove();
         }
     }
 

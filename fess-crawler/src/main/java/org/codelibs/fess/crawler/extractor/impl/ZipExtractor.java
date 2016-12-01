@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +25,6 @@ import javax.annotation.Resource;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -76,10 +76,8 @@ public class ZipExtractor implements Extractor {
 
         final UnsafeStringBuilder buf = new UnsafeStringBuilder(1000);
 
-        ArchiveInputStream ais = null;
-
-        try {
-            ais = archiveStreamFactory.createArchiveInputStream(in);
+        try (final ArchiveInputStream ais =
+                archiveStreamFactory.createArchiveInputStream(in.markSupported() ? in : new BufferedInputStream(in))) {
             ZipArchiveEntry entry = null;
             long contentSize = 0;
             while ((entry = (ZipArchiveEntry) ais.getNextEntry()) != null) {
@@ -118,8 +116,6 @@ public class ZipExtractor implements Extractor {
             if (buf.length() == 0) {
                 throw new ExtractException("Could not extract a content.", e);
             }
-        } finally {
-            IOUtils.closeQuietly(ais);
         }
 
         return new ExtractData(buf.toUnsafeString().trim());

@@ -44,8 +44,9 @@ import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.util.EsResultList;
-import org.elasticsearch.action.WriteConsistencyLevel;
+import org.elasticsearch.action.DocWriteResponse.Result;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
@@ -58,12 +59,12 @@ import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -111,8 +112,6 @@ public abstract class AbstractCrawlerService {
     @Resource
     protected volatile EsClient esClient;
 
-    protected WriteConsistencyLevel writeConsistencyLevel = WriteConsistencyLevel.DEFAULT;
-
     protected EsClient getClient() {
         if (!esClient.connected()) {
             synchronized (esClient) {
@@ -127,8 +126,8 @@ public abstract class AbstractCrawlerService {
     protected void createMapping(final String mappingName) {
         boolean exists = false;
         try {
-            esClient.get(c -> c.prepareExists(index).execute());
-            exists = true;
+            IndicesExistsResponse response = esClient.get(c -> c.admin().indices().prepareExists(index).execute());
+            exists = response.isExists();
         } catch (final IndexNotFoundException e) {
             // ignore
         }
@@ -202,7 +201,7 @@ public abstract class AbstractCrawlerService {
         final XContentBuilder source = getXContentBuilder(target);
         try {
             final IndexResponse response = getClient().get(c -> c.prepareIndex(index, type, id).setSource(source).setOpType(opType)
-                    .setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute());
+                    .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
             setId(target, id);
             return response;
         } catch (Exception e) {
@@ -250,7 +249,7 @@ public abstract class AbstractCrawlerService {
         for (int i = 0; i < responses.length; i++) {
             final BulkItemResponse response = responses[i];
             if (response.isFailed()) {
-                if (ignoreAlreadyExists && response.getFailure().getCause() instanceof DocumentAlreadyExistsException) {
+                if (ignoreAlreadyExists) {
                     continue;
                 }
                 sb.append("\n[").append(i).append("]: index [").append(response.getIndex()).append("], type [").append(response.getType())
@@ -270,12 +269,11 @@ public abstract class AbstractCrawlerService {
                 for (final T target : list) {
                     final String id = getId(getSessionId(target), getUrl(target));
                     final XContentBuilder source = getXContentBuilder(target);
-                    bulkRequest.add(c.prepareIndex(index, type, id).setSource(source).setOpType(opType)
-                            .setConsistencyLevel(writeConsistencyLevel));
+                    bulkRequest.add(c.prepareIndex(index, type, id).setSource(source).setOpType(opType));
                     setId(target, id);
                 }
 
-                return bulkRequest.setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute();
+                return bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute();
             });
         } catch (Exception e) {
             throw new EsAccessException("Failed to insert " + list, e);
@@ -285,8 +283,8 @@ public abstract class AbstractCrawlerService {
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final SearchResponse response = getClient().get(
-                    c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery(type).ids(id)).setSize(0).setTerminateAfter(1).execute());
+            final SearchResponse response = getClient().get(c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery(type).addIds(id))
+                    .setSize(0).setTerminateAfter(1).execute());
             return response.getHits().getTotalHits() > 0;
         } catch (Exception e) {
             throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);
@@ -389,9 +387,9 @@ public abstract class AbstractCrawlerService {
     protected boolean delete(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final DeleteResponse response = getClient()
-                    .get(c -> c.prepareDelete(index, type, id).setConsistencyLevel(writeConsistencyLevel).setRefresh(true).execute());
-            return response.isFound();
+            final DeleteResponse response =
+                    getClient().get(c -> c.prepareDelete(index, type, id).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
+            return response.getResult() == Result.DELETED;
         } catch (Exception e) {
             throw new EsAccessException("Failed to delete " + sessionId + ":" + url, e);
         }
@@ -501,7 +499,7 @@ public abstract class AbstractCrawlerService {
         @Override
         public String getAsString(final Object value) {
             if (value instanceof Date) {
-                return XContentBuilder.defaultDatePrinter.print(((Date) value).getTime());
+                return XContentBuilder.DEFAULT_DATE_PRINTER.print(((Date) value).getTime());
             }
             return null;
         }
@@ -511,7 +509,7 @@ public abstract class AbstractCrawlerService {
             if (StringUtil.isEmpty(value)) {
                 return null;
             }
-            return new Timestamp(XContentBuilder.defaultDatePrinter.parseMillis(value));
+            return new Timestamp(XContentBuilder.DEFAULT_DATE_PRINTER.parseMillis(value));
         }
 
         @Override
@@ -529,11 +527,4 @@ public abstract class AbstractCrawlerService {
         this.bulkBufferSize = bulkBufferSize;
     }
 
-    public WriteConsistencyLevel getWriteConsistencyLevel() {
-        return writeConsistencyLevel;
-    }
-
-    public void setWriteConsistencyLevel(WriteConsistencyLevel writeConsistencyLevel) {
-        this.writeConsistencyLevel = writeConsistencyLevel;
-    }
 }

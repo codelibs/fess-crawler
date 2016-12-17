@@ -85,12 +85,12 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
         urlQueue.setUrl("http://www.example.com/");
 
         urlQueueService.insert(urlQueue);
-        assertTrue(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId")).execute()
-                .actionGet().exists());
+        assertTrue(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId"))
+                .setSize(0).execute().actionGet().getHits().getTotalHits() > 0);
 
         urlQueueService.delete("sessionId");
-        assertFalse(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId")).execute()
-                .actionGet().exists());
+        assertFalse(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId"))
+                .setSize(0).execute().actionGet().getHits().getTotalHits() > 0);
 
     }
 
@@ -112,21 +112,21 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
         urlQueue2.setUrl("http://www.id2.com/");
 
         urlQueueService.insert(urlQueue2);
-        assertTrue(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().exists());
-        assertTrue(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().exists());
+        assertTrue(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
+                .actionGet().getHits().getTotalHits() > 0);
+        assertTrue(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
+                .actionGet().getHits().getTotalHits() > 0);
 
         urlQueueService.delete("id1");
-        assertFalse(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().exists());
-        assertTrue(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().exists());
+        assertFalse(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
+                .actionGet().getHits().getTotalHits() > 0);
+        assertTrue(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
+                .actionGet().getHits().getTotalHits() > 0);
 
         urlQueueService.deleteAll();
-        assertFalse(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().exists());
-        assertFalse(esClient.prepareExists(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().exists());
+        assertFalse(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
+                .actionGet().getHits().getTotalHits() > 0);
+        assertFalse(esClient.prepareSearch(".crawler").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
+                .actionGet().getHits().getTotalHits() > 0);
     }
 }

@@ -85,8 +85,8 @@ public class EsDataService extends AbstractCrawlerService implements DataService
         final SearchResponse response = getClient().get(c -> {
             final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type);
             callback.accept(builder);
-            builder.addFields(new String[] { "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime", "createTime",
-                    "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" });
+            builder.setFetchSource(new String[] { "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime", "createTime",
+                    "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" },null);
             return builder.execute();
         });
         final EsResultList<EsAccessResult> targetList = new EsResultList<>();

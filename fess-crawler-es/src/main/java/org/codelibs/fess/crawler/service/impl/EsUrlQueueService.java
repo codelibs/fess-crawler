@@ -38,6 +38,7 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -198,7 +199,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                                 bulkBuilder.add(c.prepareDelete(index, type, uq.getId()));
                             }
 
-                            return bulkBuilder.setRefresh(true).execute();
+                            return bulkBuilder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute();
                         });
                         if (response.hasFailures()) {
                             logger.warn(response.buildFailureMessage());

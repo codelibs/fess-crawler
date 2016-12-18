@@ -55,7 +55,6 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
         final String clusterName = UUID.randomUUID().toString();
         runner.onBuild((number, settingsBuilder) -> {
             settingsBuilder.put("http.cors.enabled", true);
-            settingsBuilder.put("index.number_of_replicas", 0);
         }).build(newConfigs().clusterName(clusterName).numOfNode(1));
 
         // wait for yellow status

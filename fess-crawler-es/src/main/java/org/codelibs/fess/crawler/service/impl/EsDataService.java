@@ -34,7 +34,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 
 public class EsDataService extends AbstractCrawlerService implements DataService<EsAccessResult> {
@@ -97,7 +96,7 @@ public class EsDataService extends AbstractCrawlerService implements DataService
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
                     final EsAccessResult target = new EsAccessResult();
-                    final Map<String, SearchHitField> fields = searchHit.getFields();
+                    final Map<String, Object> fields = searchHit.getSource();
                     target.setParentUrl(getFieldValue(fields.get("parentUrl"), String.class));
                     target.setMethod(getFieldValue(fields.get("method"), String.class));
                     target.setMimeType(getFieldValue(fields.get("mimeType"), String.class));
@@ -121,29 +120,20 @@ public class EsDataService extends AbstractCrawlerService implements DataService
         return targetList;
     }
 
-    private <T> T getFieldValue(SearchHitField field, Class<T> clazz) {
+    @SuppressWarnings("unchecked")
+    private <T> T getFieldValue(Object field, Class<T> clazz) {
         if (field == null) {
             return null;
         } else if (clazz.equals(Integer.class)) {
-            Number value = field.getValue();
-            if (value == null) {
-                return null;
-            } else {
-                @SuppressWarnings("unchecked")
-                T v = (T) Integer.valueOf(value.intValue());
-                return v;
-            }
+            Number value = (Number) field;
+            T v = (T) Integer.valueOf(value.intValue());
+            return v;
         } else if (clazz.equals(Long.class)) {
-            Number value = field.getValue();
-            if (value == null) {
-                return null;
-            } else {
-                @SuppressWarnings("unchecked")
-                T v = (T) Long.valueOf(value.longValue());
-                return v;
-            }
+            Number value = (Number) field;
+            T v = (T) Long.valueOf(value.longValue());
+            return v;
         }
-        return field.getValue();
+        return (T) field;
     }
 
     @Override

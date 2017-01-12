@@ -525,19 +525,19 @@ public class EsClient implements Client {
     }
 
     @Override
-    public <Request extends ActionRequest<Request>, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> ActionFuture<Response> execute(
+    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> ActionFuture<Response> execute(
             Action<Request, Response, RequestBuilder> action, Request request) {
         return client.execute(action, request);
     }
 
     @Override
-    public <Request extends ActionRequest<Request>, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> void execute(
+    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> void execute(
             Action<Request, Response, RequestBuilder> action, Request request, ActionListener<Response> listener) {
         client.execute(action, request, listener);
     }
 
     @Override
-    public <Request extends ActionRequest<Request>, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> RequestBuilder prepareExecute(
+    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> RequestBuilder prepareExecute(
             Action<Request, Response, RequestBuilder> action) {
         // TODO Auto-generated method stub
         return null;

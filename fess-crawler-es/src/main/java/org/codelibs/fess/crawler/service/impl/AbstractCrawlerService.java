@@ -68,7 +68,6 @@ import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -132,15 +131,11 @@ public abstract class AbstractCrawlerService {
             // ignore
         }
         if (!exists) {
-            try {
-                final CreateIndexResponse indexResponse = esClient.get(c -> c.admin().indices().prepareCreate(index).execute());
-                if (indexResponse.isAcknowledged()) {
-                    logger.info("Created " + index + " index.");
-                } else if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to create " + index + " index.");
-                }
-            } catch (final IndexAlreadyExistsException e) {
-                // ignore
+            final CreateIndexResponse indexResponse = esClient.get(c -> c.admin().indices().prepareCreate(index).execute());
+            if (indexResponse.isAcknowledged()) {
+                logger.info("Created " + index + " index.");
+            } else if (logger.isDebugEnabled()) {
+                logger.debug("Failed to create " + index + " index.");
             }
         }
 

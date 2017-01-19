@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Resource;
+
 import org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner;
 import org.codelibs.fess.crawler.client.EsClient;
 import org.codelibs.fess.crawler.entity.AccessResult;
@@ -33,9 +35,11 @@ import org.dbflute.utflute.lastadi.LastaDiTestCase;
  * 
  */
 public class EsDataServiceTest extends LastaDiTestCase {
-    public EsDataService dataService;
+    @Resource
+    private EsDataService dataService;
 
-    public EsClient esClient;
+    @Resource
+    private  EsClient esClient;
 
     private ElasticsearchClusterRunner runner;
 

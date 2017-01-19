@@ -19,6 +19,8 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.io.ResourceUtil;
@@ -42,7 +44,8 @@ import org.dbflute.utflute.core.PlainTestCase;
  * 
  */
 public class WebDriverClientTest extends PlainTestCase {
-    public WebDriverClient webDriverClient;
+    @Resource
+    private WebDriverClient webDriverClient;
 
     @Override
     protected void setUp() throws Exception {

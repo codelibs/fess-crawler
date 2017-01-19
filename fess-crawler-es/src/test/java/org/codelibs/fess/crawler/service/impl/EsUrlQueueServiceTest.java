@@ -19,6 +19,8 @@ import static org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner.newCo
 
 import java.util.UUID;
 
+import javax.annotation.Resource;
+
 import org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner;
 import org.codelibs.fess.crawler.client.EsClient;
 import org.codelibs.fess.crawler.entity.EsUrlQueue;
@@ -31,9 +33,11 @@ import org.elasticsearch.index.query.QueryBuilders;
  * 
  */
 public class EsUrlQueueServiceTest extends LastaDiTestCase {
-    public EsUrlQueueService urlQueueService;
+    @Resource
+    private  EsUrlQueueService urlQueueService;
 
-    public EsClient esClient;
+    @Resource
+    private  EsClient esClient;
 
     private ElasticsearchClusterRunner runner;
 

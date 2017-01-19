@@ -38,34 +38,29 @@
     <module>fess-crawler</module>
     <module>fess-crawler-lasta</module>
     <module>fess-crawler-es</module>
-    <module>fess-crawler-db-h2</module>
-    <module>fess-crawler-db-mysql</module>
-    <module>fess-crawler-db</module>
     <module>fess-crawler-webdriver</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jta.version>1.2</jta.version>
-    <h2.version>1.4.192</h2.version>
-    <mysql.version>5.1.38</mysql.version>
-    <dbflute.version>1.1.1</dbflute.version>
-    <lastadi.version>0.7.0</lastadi.version>
-    <utflute.version>0.6.0F</utflute.version>
+    <dbflute.version>1.1.2</dbflute.version>
+    <lastadi.version>0.7.2</lastadi.version>
+    <utflute.version>0.6.6</utflute.version>
     <corelib.version>0.3.6</corelib.version>
-    <slf4j.version>1.7.21</slf4j.version>
+    <slf4j.version>1.7.22</slf4j.version>
     <httpcomponents.version>4.5.2</httpcomponents.version>
-    <tika.version>1.13</tika.version>
-    <poi.version>3.15-beta2</poi.version>
-    <pdfbox.version>2.0.2</pdfbox.version>
+    <tika.version>1.14</tika.version>
+    <poi.version>3.15</poi.version>
+    <pdfbox.version>2.0.4</pdfbox.version>
     <nekohtml.version>1.9.22</nekohtml.version>
-    <elasticsearch.version>5.1.1</elasticsearch.version>
+    <elasticsearch.version>5.1.2</elasticsearch.version>
   </properties>
   <build>
     <pluginManagement>
       <plugins>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.5.1</version>
+          <version>3.6.0</version>
           <configuration>
             <source>1.8</source>
             <target>1.8</target>

@@ -20,6 +20,8 @@ import static org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner.newCo
 import java.io.File;
 import java.util.UUID;
 
+import javax.annotation.Resource;
+
 import org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner;
 import org.codelibs.fess.crawler.Crawler;
 import org.codelibs.fess.crawler.client.EsClient;
@@ -34,17 +36,23 @@ import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
 public class CrawlerTest extends LastaDiTestCase {
 
-    public Crawler crawler;
+    @Resource
+    private Crawler crawler;
 
-    public DataService dataService;
+    @Resource
+    private DataService dataService;
 
-    public UrlQueueService urlQueueService;
+    @Resource
+    private UrlQueueService urlQueueService;
 
-    public UrlFilterService urlFilterService;
+    @Resource
+    private UrlFilterService urlFilterService;
 
-    public FileTransformer fileTransformer;
+    @Resource
+    private FileTransformer fileTransformer;
 
-    public EsClient esClient;
+    @Resource
+    private EsClient esClient;
 
     private ElasticsearchClusterRunner runner;
 

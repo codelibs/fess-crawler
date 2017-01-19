@@ -111,6 +111,10 @@ public abstract class AbstractCrawlerService {
     @Resource
     protected volatile EsClient esClient;
 
+    protected int numberOfShards = 5;
+
+    protected int numberOfReplicas = 0;
+
     protected EsClient getClient() {
         if (!esClient.connected()) {
             synchronized (esClient) {
@@ -131,7 +135,9 @@ public abstract class AbstractCrawlerService {
             // ignore
         }
         if (!exists) {
-            final CreateIndexResponse indexResponse = esClient.get(c -> c.admin().indices().prepareCreate(index).execute());
+            final CreateIndexResponse indexResponse =
+                    esClient.get(c -> c.admin().indices().prepareCreate(index).setSource("{\"settings\":{\"index\":{\"number_of_shards\":"
+                            + numberOfShards + ",\"number_of_replicas\":" + numberOfReplicas + "}}}").execute());
             if (indexResponse.isAcknowledged()) {
                 logger.info("Created " + index + " index.");
             } else if (logger.isDebugEnabled()) {
@@ -520,6 +526,14 @@ public abstract class AbstractCrawlerService {
 
     public void setBulkBufferSize(int bulkBufferSize) {
         this.bulkBufferSize = bulkBufferSize;
+    }
+
+    public void setNumberOfShards(int numberOfShards) {
+        this.numberOfShards = numberOfShards;
+    }
+
+    public void setNumberOfReplicas(int numberOfReplicas) {
+        this.numberOfReplicas = numberOfReplicas;
     }
 
 }

@@ -135,6 +135,10 @@
           <groupId>org.quartz-scheduler</groupId>
           <artifactId>quartz</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging-api</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

@@ -34,7 +34,6 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
-import org.codelibs.fess.crawler.util.UnsafeStringBuilder;
 import org.codelibs.fess.crawler.util.XmlUtil;
 import org.cyberneko.html.parsers.DOMParser;
 import org.slf4j.Logger;
@@ -86,7 +85,7 @@ public class XpathTransformer extends HtmlTransformer {
         }
         final Document document = parser.getDocument();
 
-        final UnsafeStringBuilder buf = new UnsafeStringBuilder(1000);
+        final StringBuilder buf = new StringBuilder(1000);
         buf.append(getResultDataHeader());
         for (final Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
             final String path = entry.getValue();
@@ -142,7 +141,7 @@ public class XpathTransformer extends HtmlTransformer {
         buf.append(getAdditionalData(responseData, document));
         buf.append(getResultDataFooter());
 
-        final String data = buf.toUnsafeString().trim();
+        final String data = buf.toString().trim();
         try {
             resultData.setData(data.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
@@ -172,7 +171,7 @@ public class XpathTransformer extends HtmlTransformer {
 
     protected String getResultDataBody(final String name,
             final List<String> values) {
-        final UnsafeStringBuilder buf = new UnsafeStringBuilder();
+        final StringBuilder buf = new StringBuilder();
         buf.append("<list>");
         if (values != null && !values.isEmpty()) {
             for (final String value : values) {
@@ -185,7 +184,7 @@ public class XpathTransformer extends HtmlTransformer {
         // TODO support other type
         // TODO trim(default)
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
-                + buf.toUnsafeString().trim() + "</field>\n";
+                + buf.toString().trim() + "</field>\n";
     }
 
     protected String getAdditionalData(final ResponseData responseData,

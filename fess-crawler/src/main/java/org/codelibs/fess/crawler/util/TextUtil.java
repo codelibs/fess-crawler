@@ -21,6 +21,7 @@ import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codelibs.core.lang.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public final class TextUtil {
             if (reader == null) {
                 return StringUtil.EMPTY;
             }
-            final UnsafeStringBuilder buf = new UnsafeStringBuilder(initialCapacity);
+            final StringBuilder buf = new StringBuilder(initialCapacity);
             boolean isSpace = false;
             int alphanumSize = 0;
             int symbolSize = 0;
@@ -141,7 +142,7 @@ public final class TextUtil {
                 return StringUtil.EMPTY;
             }
 
-            return buf.toUnsafeString().trim();
+            return buf.toString().trim();
         }
 
         private boolean isSpaceChar(final int c) {
@@ -206,16 +207,16 @@ public final class TextUtil {
                 .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(removeDuplication).execute();
     }
 
-    private static boolean isLastSpaceChar(final UnsafeStringBuilder buf) {
+    private static boolean isLastSpaceChar(final StringBuilder buf) {
         if (buf.length() == 0) {
             return false;
         }
         return buf.charAt(buf.length() - 1) == ' ';
     }
 
-    private static boolean removeLastDuplication(final UnsafeStringBuilder buf, final int size, final boolean isSpace,
+    private static boolean removeLastDuplication(final StringBuilder buf, final int size, final boolean isSpace,
             final Set<String> termCache) {
-        final String target = buf.rightString(size);
+        final String target = rightString(buf, size);
         if (!termCache.contains(target)) {
             termCache.add(target);
             return isSpace;
@@ -226,5 +227,15 @@ public final class TextUtil {
             return true;
         }
         return isSpace;
+    }
+
+    private static String rightString(final StringBuilder buf, final int length) {
+        if (length <= 0) {
+            return StringUtils.EMPTY;
+        } else if (length >= buf.length()) {
+            return buf.toString();
+        } else {
+            return buf.substring(buf.length() - length, buf.length());
+        }
     }
 }

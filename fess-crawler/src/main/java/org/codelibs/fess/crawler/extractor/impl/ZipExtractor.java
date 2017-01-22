@@ -35,7 +35,6 @@ import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
-import org.codelibs.fess.crawler.util.UnsafeStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,7 @@ public class ZipExtractor implements Extractor {
             throw new CrawlerSystemException("ExtractorFactory is unavailable.");
         }
 
-        final UnsafeStringBuilder buf = new UnsafeStringBuilder(1000);
+        final StringBuilder buf = new StringBuilder(1000);
 
         try (final ArchiveInputStream ais =
                 archiveStreamFactory.createArchiveInputStream(in.markSupported() ? in : new BufferedInputStream(in))) {
@@ -118,7 +117,7 @@ public class ZipExtractor implements Extractor {
             }
         }
 
-        return new ExtractData(buf.toUnsafeString().trim());
+        return new ExtractData(buf.toString().trim());
     }
 
     public void setMaxContentSize(final long maxContentSize) {

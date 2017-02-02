@@ -39,6 +39,7 @@ import org.codelibs.core.beans.factory.BeanDescFactory;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.security.MessageDigestUtil;
 import org.codelibs.fess.crawler.client.EsClient;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
@@ -98,6 +99,9 @@ public abstract class AbstractCrawlerService {
 
     protected static final HashFunction murmur3Hash = Hashing.murmur3_128(0);
 
+    @Resource
+    protected volatile EsClient esClient;
+
     protected String index;
 
     protected String type;
@@ -108,12 +112,11 @@ public abstract class AbstractCrawlerService {
 
     protected int bulkBufferSize = 10;
 
-    @Resource
-    protected volatile EsClient esClient;
-
     protected int numberOfShards = 5;
 
     protected int numberOfReplicas = 0;
+
+    protected int idPrefixLength = 445;
 
     protected EsClient getClient() {
         if (!esClient.connected()) {
@@ -440,7 +443,11 @@ public abstract class AbstractCrawlerService {
     }
 
     private String getId(final String sessionId, final String url) {
-        return sessionId + ID_SEPARATOR + new String(Base64.getUrlEncoder().withoutPadding().encode(url.getBytes(UTF_8)), UTF_8);
+        final String id = sessionId + ID_SEPARATOR + new String(Base64.getUrlEncoder().withoutPadding().encode(url.getBytes(UTF_8)), UTF_8);
+        if (id.length() <= idPrefixLength) {
+            return id;
+        }
+        return id.substring(0, idPrefixLength) + MessageDigestUtil.digest("SHA-256", id.substring(idPrefixLength));
     }
 
     private String getUrl(final Object target) {
@@ -534,6 +541,10 @@ public abstract class AbstractCrawlerService {
 
     public void setNumberOfReplicas(int numberOfReplicas) {
         this.numberOfReplicas = numberOfReplicas;
+    }
+
+    public void setIdPrefixLength(int idPrefixLength) {
+        this.idPrefixLength = idPrefixLength;
     }
 
 }

@@ -2,24 +2,19 @@
   "data": {
     "properties": {
       "parentUrl": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "method": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "mimeType": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "sessionId": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "url": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "executionTime": {
         "type": "long"
@@ -30,12 +25,10 @@
       "accessResultData": {
         "properties": {
           "transformerName": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "encoding": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "data": {
             "type": "binary"
@@ -49,8 +42,7 @@
         "type": "long"
       },
       "ruleId": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "httpStatusCode": {
         "type": "integer"

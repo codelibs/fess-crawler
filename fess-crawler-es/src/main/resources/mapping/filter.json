@@ -2,16 +2,13 @@
   "filter": {
     "properties": {
       "sessionId": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "filterType": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "url": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       }
     }
   }

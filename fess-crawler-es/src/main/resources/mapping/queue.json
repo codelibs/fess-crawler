@@ -5,12 +5,10 @@
         "type": "integer"
       },
       "parentUrl": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "method": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "createTime": {
         "type": "long"
@@ -19,12 +17,10 @@
         "type": "long"
       },
       "sessionId": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "url": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       }
     }
   }

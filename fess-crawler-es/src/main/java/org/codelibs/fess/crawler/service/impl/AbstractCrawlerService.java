@@ -132,7 +132,7 @@ public abstract class AbstractCrawlerService {
     protected void createMapping(final String mappingName) {
         boolean exists = false;
         try {
-            IndicesExistsResponse response = esClient.get(c -> c.admin().indices().prepareExists(index).execute());
+            final IndicesExistsResponse response = esClient.get(c -> c.admin().indices().prepareExists(index).execute());
             exists = response.isExists();
         } catch (final IndexNotFoundException e) {
             // ignore
@@ -195,7 +195,7 @@ public abstract class AbstractCrawlerService {
     protected RefreshResponse refresh() {
         try {
             return getClient().get(c -> c.admin().indices().prepareRefresh(index).execute());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new EsAccessException("Failed to refresh.", e);
         }
     }
@@ -208,7 +208,7 @@ public abstract class AbstractCrawlerService {
                     .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
             setId(target, id);
             return response;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new EsAccessException("Failed to insert " + id, e);
         }
     }
@@ -279,7 +279,7 @@ public abstract class AbstractCrawlerService {
 
                 return bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute();
             });
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new EsAccessException("Failed to insert " + list, e);
         }
     }
@@ -290,7 +290,7 @@ public abstract class AbstractCrawlerService {
             final SearchResponse response = getClient().get(c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery(type).addIds(id))
                     .setSize(0).setTerminateAfter(1).execute());
             return response.getHits().getTotalHits() > 0;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);
         }
     }
@@ -361,7 +361,7 @@ public abstract class AbstractCrawlerService {
             callback.accept(builder);
             return builder.execute();
         });
-        final EsResultList<T> targetList = new EsResultList<T>();
+        final EsResultList<T> targetList = new EsResultList<>();
         final SearchHits hits = response.getHits();
         targetList.setTotalHits(hits.getTotalHits());
         targetList.setTookInMillis(response.getTookInMillis());
@@ -394,7 +394,7 @@ public abstract class AbstractCrawlerService {
             final DeleteResponse response =
                     getClient().get(c -> c.prepareDelete(index, type, id).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
             return response.getResult() == Result.DELETED;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new EsAccessException("Failed to delete " + sessionId + ":" + url, e);
         }
     }
@@ -531,19 +531,19 @@ public abstract class AbstractCrawlerService {
         return bulkBufferSize;
     }
 
-    public void setBulkBufferSize(int bulkBufferSize) {
+    public void setBulkBufferSize(final int bulkBufferSize) {
         this.bulkBufferSize = bulkBufferSize;
     }
 
-    public void setNumberOfShards(int numberOfShards) {
+    public void setNumberOfShards(final int numberOfShards) {
         this.numberOfShards = numberOfShards;
     }
 
-    public void setNumberOfReplicas(int numberOfReplicas) {
+    public void setNumberOfReplicas(final int numberOfReplicas) {
         this.numberOfReplicas = numberOfReplicas;
     }
 
-    public void setIdPrefixLength(int idPrefixLength) {
+    public void setIdPrefixLength(final int idPrefixLength) {
         this.idPrefixLength = idPrefixLength;
     }
 

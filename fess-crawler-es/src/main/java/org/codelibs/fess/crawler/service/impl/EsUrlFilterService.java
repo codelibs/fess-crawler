@@ -67,7 +67,8 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
                 .expireAfterWrite(filterCacheExpireAfterWrite, TimeUnit.SECONDS)//
                 .build(new CacheLoader<String, List<Pattern>>() {
 
-                    public List<Pattern> load(String key) {
+                    @Override
+                    public List<Pattern> load(final String key) {
                         return getList(EsUrlFilter.class, key, QueryBuilders.termQuery(FILTER_TYPE, type), null, maxLoadSize, null).stream()
                                 .map(f -> Pattern.compile(f.getUrl())).collect(Collectors.toList());
                     }
@@ -87,7 +88,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
     @Override
     public void addIncludeUrlFilter(final String sessionId, final List<String> urlList) {
         final Set<String> invalidateSet = new HashSet<>();
-        final List<EsUrlFilter> urlFilterList = new ArrayList<EsUrlFilter>(urlList.size());
+        final List<EsUrlFilter> urlFilterList = new ArrayList<>(urlList.size());
         for (final String url : urlList) {
             final EsUrlFilter esUrlFilter = new EsUrlFilter();
             esUrlFilter.setSessionId(sessionId);
@@ -113,7 +114,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
     @Override
     public void addExcludeUrlFilter(final String sessionId, final List<String> urlList) {
         final Set<String> invalidateSet = new HashSet<>();
-        final List<EsUrlFilter> urlFilterList = new ArrayList<EsUrlFilter>(urlList.size());
+        final List<EsUrlFilter> urlFilterList = new ArrayList<>(urlList.size());
         for (final String url : urlList) {
             final EsUrlFilter esUrlFilter = new EsUrlFilter();
             esUrlFilter.setSessionId(sessionId);
@@ -136,7 +137,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
     public List<Pattern> getIncludeUrlPatternList(final String sessionId) {
         try {
             return includeFilterCache.get(sessionId);
-        } catch (ExecutionException e) {
+        } catch (final ExecutionException e) {
             throw new CrawlerSystemException(e);
         }
     }
@@ -145,16 +146,16 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
     public List<Pattern> getExcludeUrlPatternList(final String sessionId) {
         try {
             return excludeFilterCache.get(sessionId);
-        } catch (ExecutionException e) {
+        } catch (final ExecutionException e) {
             throw new CrawlerSystemException(e);
         }
     }
 
-    public void setFilterCacheExpireAfterWrite(int filterCacheExpireAfterWrite) {
+    public void setFilterCacheExpireAfterWrite(final int filterCacheExpireAfterWrite) {
         this.filterCacheExpireAfterWrite = filterCacheExpireAfterWrite;
     }
 
-    public void setMaxLoadSize(int maxLoadSize) {
+    public void setMaxLoadSize(final int maxLoadSize) {
         this.maxLoadSize = maxLoadSize;
     }
 

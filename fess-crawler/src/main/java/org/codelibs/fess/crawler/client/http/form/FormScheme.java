@@ -74,7 +74,7 @@ public class FormScheme implements AuthScheme {
 
     private static final String USERNAME = "${username}";
 
-    private Map<String, String> parameterMap;
+    private final Map<String, String> parameterMap;
 
     public FormScheme(final Map<String, String> parameterMap) {
         this.parameterMap = parameterMap;
@@ -115,7 +115,7 @@ public class FormScheme implements AuthScheme {
         return null;
     }
 
-    public void authenticate(Credentials credentials, final BiConsumer<HttpUriRequest, BiConsumer<HttpResponse, HttpEntity>> executor) {
+    public void authenticate(final Credentials credentials, final BiConsumer<HttpUriRequest, BiConsumer<HttpResponse, HttpEntity>> executor) {
         final String tokenUrl = getParameter(TOKEN_URL);
         final String tokenPattern = getParameter(TOKEN_PATTERN);
         final List<Pair<String, String>> responseParams = new ArrayList<>();
@@ -128,12 +128,12 @@ public class FormScheme implements AuthScheme {
             if (Constants.POST_METHOD.equalsIgnoreCase(tokenHttpMethod)) {
                 final HttpPost httpPost = new HttpPost(tokenUrl);
                 if (StringUtil.isNotBlank(tokenReqParams)) {
-                    HttpEntity httpEntity = parseRequestParameters(tokenReqParams, null, encoding);
+                    final HttpEntity httpEntity = parseRequestParameters(tokenReqParams, null, encoding);
                     httpPost.setEntity(httpEntity);
                 }
                 httpRequest = httpPost;
             } else {
-                StringBuilder buf = new StringBuilder(100);
+                final StringBuilder buf = new StringBuilder(100);
                 buf.append(tokenUrl);
                 if (StringUtil.isNotBlank(tokenReqParams)) {
                     if (tokenUrl.indexOf('?') >= 0) {
@@ -154,7 +154,7 @@ public class FormScheme implements AuthScheme {
                     String content;
                     try {
                         content = new String(InputStreamUtil.getBytes(entity.getContent()), Constants.UTF_8_CHARSET);
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         content = e.getMessage();
                     }
                     logger.warn("Failed to access to " + tokenUrl + ". The http status is " + httpStatusCode + ".\n" + content);
@@ -182,7 +182,7 @@ public class FormScheme implements AuthScheme {
             }
             httpRequest = httpPost;
         } else {
-            StringBuilder buf = new StringBuilder(100);
+            final StringBuilder buf = new StringBuilder(100);
             buf.append(loginUrl);
             if (loginReqParams.length() > 0) {
                 if (loginUrl.indexOf('?') >= 0) {
@@ -198,7 +198,7 @@ public class FormScheme implements AuthScheme {
                             buf.append(URLEncoder.encode(p.getFirst(), encoding));
                             buf.append('=');
                             buf.append(URLEncoder.encode(p.getSecond(), encoding));
-                        } catch (UnsupportedEncodingException e) {
+                        } catch (final UnsupportedEncodingException e) {
                             throw new IORuntimeException(e);
                         }
                     });
@@ -213,7 +213,7 @@ public class FormScheme implements AuthScheme {
                 String content;
                 try {
                     content = new String(InputStreamUtil.getBytes(entity.getContent()), Constants.UTF_8_CHARSET);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     content = e.getMessage();
                 }
                 logger.warn("Failed to login on " + originalLoginUrl + ". The http status is " + httpStatusCode + ".\n" + content);
@@ -224,7 +224,7 @@ public class FormScheme implements AuthScheme {
 
     }
 
-    protected void parseTokenPage(final String tokenPattern, final List<Pair<String, String>> responseParams, HttpEntity entity) {
+    protected void parseTokenPage(final String tokenPattern, final List<Pair<String, String>> responseParams, final HttpEntity entity) {
         try {
             final String tokenName = getParameter(TOKEN_NAME);
             final String content = new String(InputStreamUtil.getBytes(entity.getContent()), Constants.UTF_8_CHARSET);
@@ -237,7 +237,7 @@ public class FormScheme implements AuthScheme {
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Token is not found.\n" + content);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IORuntimeException(e);
         }
     }
@@ -263,13 +263,13 @@ public class FormScheme implements AuthScheme {
                         paramList.stream().map(p -> new BasicNameValuePair(p.getFirst(), p.getSecond())).collect(Collectors.toList()));
             }
             return new UrlEncodedFormEntity(parameters, encoding);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new IORuntimeException(e);
         }
     }
 
-    protected String getTokenValue(String tokenPattern, String content) {
-        Matcher matcher = Pattern.compile(tokenPattern).matcher(content);
+    protected String getTokenValue(final String tokenPattern, final String content) {
+        final Matcher matcher = Pattern.compile(tokenPattern).matcher(content);
         if (matcher.find()) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Matched: " + matcher.group());

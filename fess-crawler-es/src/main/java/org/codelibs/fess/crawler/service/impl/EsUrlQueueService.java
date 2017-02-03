@@ -73,7 +73,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         sessionCache.entrySet().stream().map(e->e.getValue().waitingQueue).forEach(q -> q.forEach(urlQueue -> {
             try {
                 insert(urlQueue);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.warn("Failed to restore " + urlQueue, e);
             }
         }));
@@ -193,7 +193,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                 if (!urlQueueList.isEmpty()) {
                     try {
                         // delete from es
-                        BulkResponse response = getClient().get(c -> {
+                        final BulkResponse response = getClient().get(c -> {
                             final BulkRequestBuilder bulkBuilder = c.prepareBulk();
                             for (final EsUrlQueue uq : urlQueueList) {
                                 bulkBuilder.add(c.prepareDelete(index, type, uq.getId()));
@@ -204,7 +204,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                         if (response.hasFailures()) {
                             logger.warn(response.buildFailureMessage());
                         }
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         throw new EsAccessException("Failed to delete " + urlQueueList, e);
                     }
                 }
@@ -305,11 +305,11 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         protected Queue<EsUrlQueue> crawlingQueue = new ConcurrentLinkedQueue<>();
     }
 
-    public void setPollingFetchSize(int pollingFetchSize) {
+    public void setPollingFetchSize(final int pollingFetchSize) {
         this.pollingFetchSize = pollingFetchSize;
     }
 
-    public void setMaxCrawlingQueueSize(int maxCrawlingQueueSize) {
+    public void setMaxCrawlingQueueSize(final int maxCrawlingQueueSize) {
         this.maxCrawlingQueueSize = maxCrawlingQueueSize;
     }
 }

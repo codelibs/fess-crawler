@@ -195,12 +195,12 @@ public class EsClient implements Client {
         }
     }
 
-    public <T> T get(Function<EsClient, ListenableActionFuture<T>> func) {
+    public <T> T get(final Function<EsClient, ListenableActionFuture<T>> func) {
         int retryCount = 0;
         while (true) {
             try {
                 return func.apply(this).actionGet(connTimeout, TimeUnit.MILLISECONDS);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (e instanceof IndexNotFoundException) {
                     logger.debug("IndexNotFoundException.");
                     throw e;
@@ -216,7 +216,7 @@ public class EsClient implements Client {
 
                 try {
                     Thread.sleep(RandomUtils.nextLong(retryInterval + retryCount * 1000L, retryInterval + retryCount * 1000L * 2L));
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throw e;
                 }
                 retryCount++;
@@ -374,7 +374,7 @@ public class EsClient implements Client {
 
     @Override
     public SearchRequestBuilder prepareSearch(final String... indices) {
-        SearchRequestBuilder builder = client.prepareSearch(indices);
+        final SearchRequestBuilder builder = client.prepareSearch(indices);
         if (searchPreference != null) {
             builder.setPreference(searchPreference);
         }
@@ -467,12 +467,12 @@ public class EsClient implements Client {
     }
 
     @Override
-    public ActionFuture<TermVectorsResponse> termVectors(TermVectorsRequest request) {
+    public ActionFuture<TermVectorsResponse> termVectors(final TermVectorsRequest request) {
         return client.termVectors(request);
     }
 
     @Override
-    public void termVectors(TermVectorsRequest request, ActionListener<TermVectorsResponse> listener) {
+    public void termVectors(final TermVectorsRequest request, final ActionListener<TermVectorsResponse> listener) {
         client.termVectors(request, listener);
     }
 
@@ -482,19 +482,19 @@ public class EsClient implements Client {
     }
 
     @Override
-    public TermVectorsRequestBuilder prepareTermVectors(String index, String type, String id) {
+    public TermVectorsRequestBuilder prepareTermVectors(final String index, final String type, final String id) {
         return client.prepareTermVectors(index, type, id);
     }
 
     @Override
     @Deprecated
-    public ActionFuture<TermVectorsResponse> termVector(TermVectorsRequest request) {
+    public ActionFuture<TermVectorsResponse> termVector(final TermVectorsRequest request) {
         return client.termVector(request);
     }
 
     @Override
     @Deprecated
-    public void termVector(TermVectorsRequest request, ActionListener<TermVectorsResponse> listener) {
+    public void termVector(final TermVectorsRequest request, final ActionListener<TermVectorsResponse> listener) {
         client.termVector(request, listener);
     }
 
@@ -505,17 +505,17 @@ public class EsClient implements Client {
     }
 
     @Override
-    public TermVectorsRequestBuilder prepareTermVector(String index, String type, String id) {
+    public TermVectorsRequestBuilder prepareTermVector(final String index, final String type, final String id) {
         return client.prepareTermVectors(index, type, id);
     }
 
     @Override
-    public ActionFuture<MultiTermVectorsResponse> multiTermVectors(MultiTermVectorsRequest request) {
+    public ActionFuture<MultiTermVectorsResponse> multiTermVectors(final MultiTermVectorsRequest request) {
         return client.multiTermVectors(request);
     }
 
     @Override
-    public void multiTermVectors(MultiTermVectorsRequest request, ActionListener<MultiTermVectorsResponse> listener) {
+    public void multiTermVectors(final MultiTermVectorsRequest request, final ActionListener<MultiTermVectorsResponse> listener) {
         client.multiTermVectors(request, listener);
     }
 
@@ -526,25 +526,25 @@ public class EsClient implements Client {
 
     @Override
     public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> ActionFuture<Response> execute(
-            Action<Request, Response, RequestBuilder> action, Request request) {
+            final Action<Request, Response, RequestBuilder> action, final Request request) {
         return client.execute(action, request);
     }
 
     @Override
     public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> void execute(
-            Action<Request, Response, RequestBuilder> action, Request request, ActionListener<Response> listener) {
+            final Action<Request, Response, RequestBuilder> action, final Request request, final ActionListener<Response> listener) {
         client.execute(action, request, listener);
     }
 
     @Override
     public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> RequestBuilder prepareExecute(
-            Action<Request, Response, RequestBuilder> action) {
+            final Action<Request, Response, RequestBuilder> action) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Client filterWithHeader(Map<String, String> headers) {
+    public Client filterWithHeader(final Map<String, String> headers) {
         client.filterWithHeader(headers);
         return this;
     }
@@ -587,27 +587,27 @@ public class EsClient implements Client {
         void onConnect();
     }
 
-    public void setScrollForDelete(Scroll scrollForDelete) {
+    public void setScrollForDelete(final Scroll scrollForDelete) {
         this.scrollForDelete = scrollForDelete;
     }
 
-    public void setSizeForDelete(int sizeForDelete) {
+    public void setSizeForDelete(final int sizeForDelete) {
         this.sizeForDelete = sizeForDelete;
     }
 
-    public void setRetryInterval(long retryInterval) {
+    public void setRetryInterval(final long retryInterval) {
         this.retryInterval = retryInterval;
     }
 
-    public void setMaxRetryCount(int maxRetryCount) {
+    public void setMaxRetryCount(final int maxRetryCount) {
         this.maxRetryCount = maxRetryCount;
     }
 
-    public void setConnTimeout(long connTimeout) {
+    public void setConnTimeout(final long connTimeout) {
         this.connTimeout = connTimeout;
     }
 
-    public void setSearchPreference(String searchPreference) {
+    public void setSearchPreference(final String searchPreference) {
         this.searchPreference = searchPreference;
     }
 

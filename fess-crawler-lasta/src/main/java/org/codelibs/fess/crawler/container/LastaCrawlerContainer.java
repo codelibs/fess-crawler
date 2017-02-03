@@ -15,13 +15,12 @@
  */
 package org.codelibs.fess.crawler.container;
 
-import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.lastaflute.di.core.factory.SingletonLaContainerFactory;
 
 public class LastaCrawlerContainer implements CrawlerContainer {
 
     @Override
-    public <T> T getComponent(String name) {
+    public <T> T getComponent(final String name) {
         return SingletonLaContainerFactory.getContainer().getComponent(name);
     }
 

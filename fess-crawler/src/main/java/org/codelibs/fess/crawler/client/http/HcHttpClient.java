@@ -360,8 +360,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         formSchemeList.forEach(p -> {
-            FormScheme scheme = p.getFirst();
-            Credentials credentials = p.getSecond();
+            final FormScheme scheme = p.getFirst();
+            final Credentials credentials = p.getSecond();
             scheme.authenticate(credentials, (request, consumer) -> {
 
                 // request header

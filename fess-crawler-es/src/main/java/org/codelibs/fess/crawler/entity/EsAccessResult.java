@@ -73,8 +73,8 @@ public class EsAccessResult extends AccessResultImpl<String> implements ToXConte
     @Override
     public AccessResultData<String> getAccessResultData() {
         if (!initializedData) {
-            EsDataService dataService = SingletonLaContainer.getComponent(EsDataService.class);
-            EsAccessResult accessResult = dataService.getAccessResult(getSessionId(), getUrl());
+            final EsDataService dataService = SingletonLaContainer.getComponent(EsDataService.class);
+            final EsAccessResult accessResult = dataService.getAccessResult(getSessionId(), getUrl());
             if (accessResult != null && accessResult.accessResultData != null) {
                 setAccessResultData(accessResult.accessResultData);
             } else {

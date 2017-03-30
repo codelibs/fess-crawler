@@ -28,7 +28,7 @@ import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
 import org.codelibs.fess.crawler.util.EsResultList;
-import org.elasticsearch.action.index.IndexRequest.OpType;
+import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;

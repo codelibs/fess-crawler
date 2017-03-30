@@ -29,7 +29,7 @@ import javax.annotation.PostConstruct;
 import org.codelibs.fess.crawler.entity.EsUrlFilter;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.service.UrlFilterService;
-import org.elasticsearch.action.index.IndexRequest.OpType;
+import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.index.query.QueryBuilders;
 
 import com.google.common.cache.CacheBuilder;

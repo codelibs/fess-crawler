@@ -437,11 +437,7 @@ public class HtmlTransformer extends AbstractTransformer {
         }
 
         if (url.indexOf(' ') >= 0) {
-            // invalid URL
-            if (logger.isDebugEnabled()) {
-                logger.debug("INVALID URL: " + url);
-            }
-            return null;
+            url = url.replace(" ", "%20");
         }
 
         String oldUrl = null;

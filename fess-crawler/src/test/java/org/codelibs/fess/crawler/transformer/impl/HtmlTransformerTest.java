@@ -167,6 +167,9 @@ public class HtmlTransformerTest extends PlainTestCase {
     public void test_normalizeUrl() {
         String url;
 
+        url = "http://hoge/index 123.html";
+        assertEquals("http://hoge/index%20123.html", htmlTransformer.normalizeUrl(url));
+
         url = "http://hoge/index.html";
         assertEquals(url, htmlTransformer.normalizeUrl(url));
 

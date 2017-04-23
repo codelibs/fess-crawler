@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.codelibs</groupId>
       <artifactId>elasticsearch-cluster-runner</artifactId>
-      <version>5.3.0.0</version>
+      <version>5.3.1.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

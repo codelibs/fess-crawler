@@ -149,7 +149,7 @@ public class EsDataService extends AbstractCrawlerService implements DataService
                 response = getClient().get(c -> c.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeout)).execute());
             }
             final SearchHits searchHits = response.getHits();
-            if (searchHits.hits().length == 0) {
+            if (searchHits.getHits().length == 0) {
                 break;
             }
 

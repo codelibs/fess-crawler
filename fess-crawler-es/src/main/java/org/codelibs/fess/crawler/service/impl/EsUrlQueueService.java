@@ -97,7 +97,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             }
 
             final SearchHits searchHits = response.getHits();
-            if (searchHits.hits().length == 0) {
+            if (searchHits.getHits().length == 0) {
                 break;
             }
 

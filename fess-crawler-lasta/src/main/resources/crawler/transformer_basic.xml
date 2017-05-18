@@ -68,6 +68,10 @@
 			<arg>"//IFRAME"</arg>
 			<arg>"src"</arg>
 		</postConstruct>
+		<postConstruct name="put">
+			<arg>"//LINK"</arg>
+			<arg>"href"</arg>
+		</postConstruct>
 	</component>
 
 	<component name="fileTransformer"

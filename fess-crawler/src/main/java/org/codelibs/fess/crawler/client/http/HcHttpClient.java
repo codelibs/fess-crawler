@@ -24,6 +24,8 @@ import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -667,8 +669,14 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 if (locationHeader == null) {
                     logger.warn("Invalid redirect location at " + url);
                 } else {
+                    final String redirectLocation;
+                    if (locationHeader.getValue().startsWith("/")) {
+                        redirectLocation = buildRedirectLocation(url, locationHeader.getValue());
+                    } else {
+                        redirectLocation = locationHeader.getValue();
+                    }
                     responseData = new ResponseData();
-                    responseData.setRedirectLocation(locationHeader.getValue());
+                    responseData.setRedirectLocation(redirectLocation);
                     return responseData;
                 }
             }
@@ -879,6 +887,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
             return defaultRoutePlanner;
         }
         return null;
+    }
+
+    protected static String buildRedirectLocation(final String url, final String location) throws MalformedURLException {
+        return new URL(new URL(url), location).toExternalForm();
     }
 
     @Override

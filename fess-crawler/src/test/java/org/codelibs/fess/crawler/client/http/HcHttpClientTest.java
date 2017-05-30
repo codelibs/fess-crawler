@@ -173,6 +173,11 @@ public class HcHttpClientTest extends PlainTestCase {
         }
     }
 
+    public void test_buildRedirectLocation() throws Exception {
+        assertEquals("http://localhost/login.html",
+            HcHttpClient.buildRedirectLocation("http://localhost/", "/login.html"));
+    }
+
     // public void test_doGet_mt() throws Exception {
     // ExecutorService executorService = Executors.newFixedThreadPool(1);
     //

@@ -115,9 +115,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
-    @Deprecated
-    public static final String STALE_CHECKING_ENABLED_PROPERTY = "staleCheckingEnabled";
-
     public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
 
     public static final String PROXY_HOST_PROPERTY = "proxyHost";
@@ -169,9 +166,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
     protected Integer maxTotalConnections;
 
     protected Integer maxConnectionsPerRoute;
-
-    @Deprecated
-    protected Boolean staleCheckingEnabled;
 
     protected Integer soTimeout;
 
@@ -908,10 +902,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public void setMaxConnectionsPerRoute(final Integer maxConnectionsPerRoute) {
         this.maxConnectionsPerRoute = maxConnectionsPerRoute;
-    }
-
-    public void setStaleCheckingEnabled(final Boolean staleCheckingEnabled) {
-        this.staleCheckingEnabled = staleCheckingEnabled;
     }
 
     public void setSoTimeout(final Integer soTimeout) {

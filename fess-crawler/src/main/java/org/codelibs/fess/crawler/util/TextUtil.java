@@ -184,29 +184,6 @@ public final class TextUtil {
         return new TextNormalizeContext(reader);
     }
 
-    @Deprecated
-    public static String normalizeText(final String str, final int initialCapacity, final int maxAlphanumTermSize,
-            final int maxSymbolTermSize, final boolean removeDuplication) {
-        if (str == null) {
-            return StringUtil.EMPTY;
-        }
-        try (final Reader reader = new StringReader(str)) {
-            return normalizeText(reader, initialCapacity, maxAlphanumTermSize, maxSymbolTermSize, removeDuplication);
-        } catch (final IOException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Failed to close reader.", e);
-            }
-            return StringUtil.EMPTY;
-        }
-    }
-
-    @Deprecated
-    public static String normalizeText(final Reader reader, final int initialCapacity, final int maxAlphanumTermSize,
-            final int maxSymbolTermSize, final boolean removeDuplication) {
-        return new TextNormalizeContext(reader).initialCapacity(initialCapacity).maxAlphanumTermSize(maxAlphanumTermSize)
-                .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(removeDuplication).execute();
-    }
-
     private static boolean isLastSpaceChar(final StringBuilder buf) {
         if (buf.length() == 0) {
             return false;

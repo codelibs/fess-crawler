@@ -346,9 +346,8 @@ public class TikaExtractor implements Extractor {
             writer.flush();
 
             try (Reader reader = new InputStreamReader(getContentStream(dfos), enc)) {
-                return TextUtil.normalizeText(reader, initialBufferSize,
-                        maxAlphanumTermSize, maxSymbolTermSize,
-                        replaceDuplication);
+                return TextUtil.normalizeText(reader).initialCapacity(initialBufferSize).maxAlphanumTermSize(maxAlphanumTermSize)
+                        .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(replaceDuplication).execute();
             }
         } catch (final TikaException e) {
             throw e;

@@ -25,7 +25,7 @@ public class AccessTimeoutTarget implements TimeoutTarget {
 
     private static final Logger logger = LoggerFactory
             .getLogger(AccessTimeoutTarget.class);
-    
+
     private static final int MAX_LOOP_COUNT = 10;
 
     protected Thread runningThread;

@@ -57,23 +57,23 @@ public class XmlTransformer extends AbstractTransformer {
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",
             Pattern.MULTILINE);
 
-    private boolean namespaceAware;
+    protected boolean namespaceAware;
 
-    private boolean coalescing;
+    protected boolean coalescing;
 
-    private boolean expandEntityRef = true;
+    protected boolean expandEntityRef = true;
 
-    private boolean ignoringComments;
+    protected boolean ignoringComments;
 
-    private boolean ignoringElementContentWhitespace;
+    protected boolean ignoringElementContentWhitespace;
 
-    private boolean validating;
+    protected boolean validating;
 
-    private boolean includeAware;
+    protected boolean includeAware;
 
-    private final Map<String, Object> attributeMap = new HashMap<>();
+    protected final Map<String, Object> attributeMap = new HashMap<>();
 
-    private final Map<String, String> featureMap = new HashMap<>();
+    protected final Map<String, String> featureMap = new HashMap<>();
 
     protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 

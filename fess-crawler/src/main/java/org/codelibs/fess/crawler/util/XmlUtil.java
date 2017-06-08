@@ -41,18 +41,13 @@ public final class XmlUtil {
     }
 
     public static String escapeXml(final String value) {
-        // return StringEscapeUtils.escapeXml(value);
         return stripInvalidXMLCharacters(//
-        value//
-        .replaceAll("&", "&amp;")
-        //
-                .replaceAll("<", "&lt;")
-                //
-                .replaceAll(">", "&gt;")
-                //
-                .replaceAll("\"", "&quot;")
-                //
-                .replaceAll("\'", "&apos;")//
+                value//
+                        .replaceAll("&", "&amp;") //
+                        .replaceAll("<", "&lt;")//
+                        .replaceAll(">", "&gt;")//
+                        .replaceAll("\"", "&quot;")//
+                        .replaceAll("\'", "&apos;")//
         );
     }
 
@@ -61,7 +56,7 @@ public final class XmlUtil {
             return in;
         }
 
-        final StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder(in.length());
         char c;
         for (int i = 0; i < in.length(); i++) {
             c = in.charAt(i);

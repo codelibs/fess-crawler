@@ -50,21 +50,21 @@ public class CommandExtractor implements Extractor {
     private static final Logger logger = LoggerFactory
             .getLogger(CommandExtractor.class);
 
-    public String outputEncoding = Constants.UTF_8;
+    protected String outputEncoding = Constants.UTF_8;
 
-    public String outputExtension = null;
+    protected String outputExtension = null;
 
-    public File tempDir = null;
+    protected File tempDir = null;
 
-    public String command;
+    protected String command;
 
-    public long executionTimeout = 30L * 1000L; // 30sec
+    protected long executionTimeout = 30L * 1000L; // 30sec
 
-    public File workingDirectory = null;
+    protected File workingDirectory = null;
 
-    public String commandOutputEncoding = System.getProperty("file.encoding");
+    protected String commandOutputEncoding = System.getProperty("file.encoding");
 
-    public int maxOutputLine = 1000;
+    protected int maxOutputLine = 1000;
 
     /*
      * (non-Javadoc)
@@ -394,5 +394,37 @@ public class CommandExtractor implements Extractor {
             return buf.toString();
         }
 
+    }
+
+    public void setOutputEncoding(String outputEncoding) {
+        this.outputEncoding = outputEncoding;
+    }
+
+    public void setOutputExtension(String outputExtension) {
+        this.outputExtension = outputExtension;
+    }
+
+    public void setTempDir(File tempDir) {
+        this.tempDir = tempDir;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
+    public void setExecutionTimeout(long executionTimeout) {
+        this.executionTimeout = executionTimeout;
+    }
+
+    public void setWorkingDirectory(File workingDirectory) {
+        this.workingDirectory = workingDirectory;
+    }
+
+    public void setCommandOutputEncoding(String commandOutputEncoding) {
+        this.commandOutputEncoding = commandOutputEncoding;
+    }
+
+    public void setMaxOutputLine(int maxOutputLine) {
+        this.maxOutputLine = maxOutputLine;
     }
 }

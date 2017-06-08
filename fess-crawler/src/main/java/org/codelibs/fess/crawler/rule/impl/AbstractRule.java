@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.rule.impl;
 
-import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.rule.Rule;
 
@@ -30,9 +29,6 @@ public abstract class AbstractRule implements Rule {
     protected String ruleId;
 
     protected ResponseProcessor responseProcessor;
-
-    @Override
-    public abstract boolean match(ResponseData responseData);
 
     @Override
     public String getRuleId() {

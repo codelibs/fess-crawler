@@ -79,25 +79,25 @@ public class TikaExtractor implements Extractor {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
-    public String outputEncoding = Constants.UTF_8;
+    protected String outputEncoding = Constants.UTF_8;
 
-    public boolean readAsTextIfFailed = true;
+    protected boolean readAsTextIfFailed = true;
 
-    public long maxCompressionRatio = 100;
+    protected long maxCompressionRatio = 100;
 
-    public long maxUncompressionSize = 1000000;
+    protected long maxUncompressionSize = 1000000;
 
-    public int initialBufferSize = 10000;
+    protected int initialBufferSize = 10000;
 
-    public boolean replaceDuplication = false;
+    protected boolean replaceDuplication = false;
 
-    public int memorySize = 1024 * 1024; //1mb
+    protected int memorySize = 1024 * 1024; //1mb
 
-    public int maxAlphanumTermSize = -1;
+    protected int maxAlphanumTermSize = -1;
 
-    public int maxSymbolTermSize = -1;
+    protected int maxSymbolTermSize = -1;
 
-    public TikaConfig tikaConfig;
+    protected TikaConfig tikaConfig;
 
     protected Map<String, String> pdfPasswordMap = new HashMap<>();
 
@@ -449,17 +449,14 @@ public class TikaExtractor implements Extractor {
                 metadata.set(HttpHeaders.CONTENT_TYPE, type.toString());
 
                 // TIKA-216: Zip bomb prevention
-                final SecureContentHandler sch = new SecureContentHandler(
-                        handler, tis);
+                final SecureContentHandler sch = new SecureContentHandler(handler, tis);
 
                 sch.setMaximumCompressionRatio(maxCompressionRatio);
                 sch.setOutputThreshold(maxUncompressionSize);
 
                 if (logger.isDebugEnabled()) {
-                    logger.debug(
-                            "type: {}, metadata: {}, maxCompressionRatio: {}, maxUncompressionSize: {}",
-                            type, metadata, maxCompressionRatio,
-                            maxUncompressionSize);
+                    logger.debug("type: {}, metadata: {}, maxCompressionRatio: {}, maxUncompressionSize: {}", type, metadata,
+                            maxCompressionRatio, maxUncompressionSize);
 
                 }
 
@@ -489,6 +486,46 @@ public class TikaExtractor implements Extractor {
 
     @FunctionalInterface
     protected interface ContentWriter {
-        void accept(Writer writer) throws Exception;
+        void accept(Writer writer) throws IOException, TikaException, SAXException;
+    }
+
+    public void setOutputEncoding(final String outputEncoding) {
+        this.outputEncoding = outputEncoding;
+    }
+
+    public void setReadAsTextIfFailed(final boolean readAsTextIfFailed) {
+        this.readAsTextIfFailed = readAsTextIfFailed;
+    }
+
+    public void setMaxCompressionRatio(final long maxCompressionRatio) {
+        this.maxCompressionRatio = maxCompressionRatio;
+    }
+
+    public void setMaxUncompressionSize(final long maxUncompressionSize) {
+        this.maxUncompressionSize = maxUncompressionSize;
+    }
+
+    public void setInitialBufferSize(final int initialBufferSize) {
+        this.initialBufferSize = initialBufferSize;
+    }
+
+    public void setReplaceDuplication(final boolean replaceDuplication) {
+        this.replaceDuplication = replaceDuplication;
+    }
+
+    public void setMemorySize(final int memorySize) {
+        this.memorySize = memorySize;
+    }
+
+    public void setMaxAlphanumTermSize(final int maxAlphanumTermSize) {
+        this.maxAlphanumTermSize = maxAlphanumTermSize;
+    }
+
+    public void setMaxSymbolTermSize(final int maxSymbolTermSize) {
+        this.maxSymbolTermSize = maxSymbolTermSize;
+    }
+
+    public void setTikaConfig(final TikaConfig tikaConfig) {
+        this.tikaConfig = tikaConfig;
     }
 }

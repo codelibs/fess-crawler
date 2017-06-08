@@ -50,11 +50,11 @@ public class JodExtractor implements Extractor {
     private static final Logger logger = LoggerFactory
             .getLogger(JodExtractor.class);
 
-    public OfficeManager officeManager;
+    protected OfficeManager officeManager;
 
-    public File tempDir = null;
+    protected File tempDir = null;
 
-    public String outputEncoding = Constants.UTF_8;
+    protected String outputEncoding = Constants.UTF_8;
 
     private final Map<String, String> extensionMap = new HashMap<>();
 
@@ -226,6 +226,18 @@ public class JodExtractor implements Extractor {
             return name.substring(pos + 1);
         }
         return name;
+    }
+
+    public void setOfficeManager(OfficeManager officeManager) {
+        this.officeManager = officeManager;
+    }
+
+    public void setTempDir(File tempDir) {
+        this.tempDir = tempDir;
+    }
+
+    public void setOutputEncoding(String outputEncoding) {
+        this.outputEncoding = outputEncoding;
     }
 
 }

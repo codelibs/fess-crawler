@@ -137,7 +137,7 @@ public class SmbClient extends AbstractCrawlerClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
-    public volatile SmbAuthenticationHolder smbAuthenticationHolder;
+    protected volatile SmbAuthenticationHolder smbAuthenticationHolder;
 
     @Override
     public synchronized void init() {
@@ -451,5 +451,9 @@ public class SmbClient extends AbstractCrawlerClient {
      */
     public void setCharset(final String charset) {
         this.charset = charset;
+    }
+
+    public void setSmbAuthenticationHolder(SmbAuthenticationHolder smbAuthenticationHolder) {
+        this.smbAuthenticationHolder = smbAuthenticationHolder;
     }
 }

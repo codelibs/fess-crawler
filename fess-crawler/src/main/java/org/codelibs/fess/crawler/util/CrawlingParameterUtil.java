@@ -38,72 +38,50 @@ public final class CrawlingParameterUtil {
     }
 
     public static UrlQueue<?> getUrlQueue() {
-        if (URL_QUEUE_THREAD_LOCAL != null) {
-            return URL_QUEUE_THREAD_LOCAL.get();
-        }
-        return null;
+        return URL_QUEUE_THREAD_LOCAL.get();
     }
 
     public static void setUrlQueue(final UrlQueue<?> urlQueue) {
-        if (URL_QUEUE_THREAD_LOCAL != null) {
-            if (urlQueue == null) {
-                URL_QUEUE_THREAD_LOCAL.remove();
-            } else {
-                URL_QUEUE_THREAD_LOCAL.set(urlQueue);
-            }
+        if (urlQueue == null) {
+            URL_QUEUE_THREAD_LOCAL.remove();
+        } else {
+            URL_QUEUE_THREAD_LOCAL.set(urlQueue);
         }
     }
 
     public static CrawlerContext getCrawlerContext() {
-        if (ROBOT_CONTEXT_THREAD_LOCAL != null) {
-            return ROBOT_CONTEXT_THREAD_LOCAL.get();
-        }
-        return null;
+        return ROBOT_CONTEXT_THREAD_LOCAL.get();
     }
 
     public static void setCrawlerContext(final CrawlerContext crawlerContext) {
-        if (ROBOT_CONTEXT_THREAD_LOCAL != null) {
-            if (crawlerContext == null) {
-                ROBOT_CONTEXT_THREAD_LOCAL.remove();
-            } else {
-                ROBOT_CONTEXT_THREAD_LOCAL.set(crawlerContext);
-            }
+        if (crawlerContext == null) {
+            ROBOT_CONTEXT_THREAD_LOCAL.remove();
+        } else {
+            ROBOT_CONTEXT_THREAD_LOCAL.set(crawlerContext);
         }
     }
 
     public static UrlQueueService<UrlQueue<?>> getUrlQueueService() {
-        if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
-            return URL_QUEUE_SERVICE_THREAD_LOCAL.get();
-        }
-        return null;
+        return URL_QUEUE_SERVICE_THREAD_LOCAL.get();
     }
 
     public static void setUrlQueueService(final UrlQueueService<UrlQueue<?>> urlQueueService) {
-        if (URL_QUEUE_SERVICE_THREAD_LOCAL != null) {
-            if (urlQueueService == null) {
-                URL_QUEUE_SERVICE_THREAD_LOCAL.remove();
-            } else {
-                URL_QUEUE_SERVICE_THREAD_LOCAL.set(urlQueueService);
-            }
+        if (urlQueueService == null) {
+            URL_QUEUE_SERVICE_THREAD_LOCAL.remove();
+        } else {
+            URL_QUEUE_SERVICE_THREAD_LOCAL.set(urlQueueService);
         }
     }
 
     public static DataService<AccessResult<?>> getDataService() {
-        if (DATA_SERVICE_THREAD_LOCAL != null) {
-            return DATA_SERVICE_THREAD_LOCAL.get();
-        }
-        return null;
+        return DATA_SERVICE_THREAD_LOCAL.get();
     }
 
     public static void setDataService(final DataService<AccessResult<?>> dataService) {
-        if (DATA_SERVICE_THREAD_LOCAL != null) {
-            if (dataService == null) {
-                DATA_SERVICE_THREAD_LOCAL.remove();
-            } else {
-                DATA_SERVICE_THREAD_LOCAL.set(dataService);
-            }
+        if (dataService == null) {
+            DATA_SERVICE_THREAD_LOCAL.remove();
+        } else {
+            DATA_SERVICE_THREAD_LOCAL.set(dataService);
         }
     }
-
-    // TODO others?
 }

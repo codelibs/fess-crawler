@@ -78,35 +78,35 @@ public class FtpClient extends AbstractCrawlerClient {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
-    public volatile FtpAuthenticationHolder ftpAuthenticationHolder;
+    protected volatile FtpAuthenticationHolder ftpAuthenticationHolder;
 
-    private FTPClientConfig ftpClientConfig;
+    protected FTPClientConfig ftpClientConfig;
 
-    private final Queue<FTPClient> ftpClientQueue = new ConcurrentLinkedQueue<>();
+    protected final Queue<FTPClient> ftpClientQueue = new ConcurrentLinkedQueue<>();
 
-    private String activeExternalHost;
+    protected String activeExternalHost;
 
-    private int activeMinPort;
+    protected int activeMinPort;
 
-    private int activeMaxPort;
+    protected int activeMaxPort;
 
-    private boolean autodetectEncoding;
+    protected boolean autodetectEncoding;
 
-    private int connectTimeout;
+    protected int connectTimeout;
 
-    private int dataTimeout;
+    protected int dataTimeout;
 
-    private String controlEncoding;
+    protected String controlEncoding;
 
-    private int bufferSize;
+    protected int bufferSize;
 
-    private String passiveLocalHost;
+    protected String passiveLocalHost;
 
-    private boolean passiveNatWorkaround;
+    protected boolean passiveNatWorkaround;
 
-    private String reportActiveExternalHost;
+    protected String reportActiveExternalHost;
 
-    private boolean useEPSVwithIPv4;
+    protected boolean useEPSVwithIPv4;
 
     @Override
     public synchronized void init() {
@@ -616,5 +616,9 @@ public class FtpClient extends AbstractCrawlerClient {
 
     public void setUseEPSVwithIPv4(final boolean useEPSVwithIPv4) {
         this.useEPSVwithIPv4 = useEPSVwithIPv4;
+    }
+
+    public void setFtpAuthenticationHolder(FtpAuthenticationHolder ftpAuthenticationHolder) {
+        this.ftpAuthenticationHolder = ftpAuthenticationHolder;
     }
 }

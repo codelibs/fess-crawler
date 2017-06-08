@@ -15,8 +15,6 @@
  */
 package org.codelibs.fess.crawler.transformer.impl;
 
-import org.codelibs.fess.crawler.entity.ResponseData;
-import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.transformer.Transformer;
 
 /**
@@ -35,8 +33,5 @@ public abstract class AbstractTransformer implements Transformer {
     public String getName() {
         return name;
     }
-
-    @Override
-    public abstract ResultData transform(ResponseData responseData);
 
 }

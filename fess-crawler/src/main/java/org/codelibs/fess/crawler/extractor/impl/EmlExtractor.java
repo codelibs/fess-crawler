@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Gets a text from .eml file.
- * 
+ *
  * @author shinsuke
  *
  */

@@ -34,5 +34,9 @@ public class IdnDnsResolverTest extends PlainTestCase {
         expected = "xn--zckzah.org";
         assertEquals(expected, resolver.toAscii(host));
 
+        host = "%E3%83%86%E3%82%B9%E3%83%88.org";
+        expected = "xn--zckzah.org";
+        assertEquals(expected, resolver.toAscii(host));
+
     }
 }

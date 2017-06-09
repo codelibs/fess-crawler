@@ -15,8 +15,10 @@
  */
 package org.codelibs.fess.crawler.client.http.conn;
 
+import java.io.UnsupportedEncodingException;
 import java.net.IDN;
 import java.net.InetAddress;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 
 import org.apache.http.conn.DnsResolver;
@@ -25,16 +27,34 @@ public class IdnDnsResolver implements DnsResolver {
 
     protected int flag = 0;
 
+    protected String encoding = "UTF-8";
+
     @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
         return InetAddress.getAllByName(toAscii(host));
     }
 
+    protected String decode(final String host) {
+        if (host.indexOf('%') == -1) {
+            return host;
+        } else {
+            try {
+                return URLDecoder.decode(host, encoding);
+            } catch (UnsupportedEncodingException e) {
+                return host;
+            }
+        }
+    }
+
     protected String toAscii(final String host) {
-        return IDN.toASCII(host, flag);
+        return IDN.toASCII(decode(host), flag);
     }
 
     public void setFlag(int flag) {
         this.flag = flag;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 }

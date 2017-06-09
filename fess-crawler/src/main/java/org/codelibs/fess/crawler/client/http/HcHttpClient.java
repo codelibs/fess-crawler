@@ -61,6 +61,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.util.PublicSuffixMatcher;
@@ -94,6 +95,7 @@ import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
 import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
+import org.codelibs.fess.crawler.client.http.conn.IdnDnsResolver;
 import org.codelibs.fess.crawler.client.http.form.FormScheme;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
@@ -188,6 +190,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
     protected CookieStore cookieStore = new BasicCookieStore();
 
     protected HttpClientConnectionManager clientConnectionManager;
+
+    protected DnsResolver dnsResolver = new IdnDnsResolver();
 
     protected Map<String, AuthSchemeProvider> authSchemeProviderMap;
 
@@ -335,6 +339,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                         idleConnectionTimeout), connectionCheckInterval, true);
 
         final CloseableHttpClient closeableHttpClient = httpClientBuilder
+                .setDnsResolver(dnsResolver)
                 .setConnectionManager(clientConnectionManager)
                 .setDefaultRequestConfig(requestConfigBuilder.build()).build();
         if (!httpClientPropertyMap.isEmpty()) {
@@ -997,5 +1002,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public void setCookieDatePatterns(final String[] cookieDatePatterns) {
         this.cookieDatePatterns = cookieDatePatterns;
+    }
+
+    public void setDnsResolver(DnsResolver dnsResolver) {
+        this.dnsResolver = dnsResolver;
     }
 }

@@ -89,6 +89,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.IndexNotFoundException;
+import org.elasticsearch.index.engine.VersionConflictEngineException;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
@@ -203,14 +204,12 @@ public class EsClient implements Client {
         while (true) {
             try {
                 return func.apply(this).actionGet(connTimeout, TimeUnit.MILLISECONDS);
+            } catch (final IndexNotFoundException | VersionConflictEngineException e) {
+                logger.debug(e.getClass().getName() + " occurs.", e);
+                throw e;
             } catch (final Exception e) {
-                if (e instanceof IndexNotFoundException) {
-                    logger.debug("IndexNotFoundException.");
-                    throw e;
-                }
-
                 if (retryCount > maxRetryCount) {
-                        logger.info("Failed to invoke actionGet.", e);
+                    logger.info("Failed to invoke actionGet.", e);
                     throw e;
                 }
                 if (logger.isDebugEnabled()) {

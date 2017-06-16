@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.helper;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.codelibs.core.lang.StringUtil;
@@ -35,10 +36,18 @@ public class EncodingHelper {
             return defaultEncoding;
         }
 
-        final String newEnc = encodingMap.get(enc);
+        final String newEnc = encodingMap.get(enc.toLowerCase(Locale.ROOT));
         if (StringUtil.isBlank(newEnc)) {
             return enc;
         }
         return newEnc;
+    }
+
+    public void setDefaultEncoding(final String defaultEncoding) {
+        this.defaultEncoding = defaultEncoding;
+    }
+
+    public void addEncodingMapping(final String source, final String target) {
+        encodingMap.put(source, target);
     }
 }

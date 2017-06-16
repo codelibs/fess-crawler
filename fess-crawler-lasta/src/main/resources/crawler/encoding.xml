@@ -5,5 +5,9 @@
 	<include path="crawler/container.xml" />
 
 	<component name="encodingHelper" class="org.codelibs.fess.crawler.helper.EncodingHelper">
+		<postConstruct name="addEncodingMapping">
+			<arg>"unicode"</arg>
+			<arg>"UTF-16LE"</arg>
+		</postConstruct>
 	</component>
 </components>

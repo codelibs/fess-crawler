@@ -273,14 +273,16 @@ public class HtmlTransformer extends AbstractTransformer {
             throw new CrawlingAccessException("Could not load a content.", e);
         }
 
+        return normalizeEncoding(encoding);
+    }
+
+    protected String normalizeEncoding(final String encoding) {
         try {
-            final EncodingHelper encodingHelper = crawlerContainer
-                    .getComponent("encodingHelper");
-            encoding = encodingHelper.normalize(encoding);
+            final EncodingHelper encodingHelper = crawlerContainer.getComponent("encodingHelper");
+            return encodingHelper.normalize(encoding);
         } catch (final Exception e) {
             // NOP
         }
-
         return encoding;
     }
 

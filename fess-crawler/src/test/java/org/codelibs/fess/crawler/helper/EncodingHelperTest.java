@@ -49,7 +49,7 @@ public class EncodingHelperTest extends PlainTestCase {
     public void test_normalize_map() {
         String enc;
 
-        encodingHelper.encodingMap.put("S-JIS", "Shift_JIS");
+        encodingHelper.addEncodingMapping("S-JIS", "Shift_JIS");
 
         enc = "UTF-8";
         assertEquals("UTF-8", encodingHelper.normalize(enc));

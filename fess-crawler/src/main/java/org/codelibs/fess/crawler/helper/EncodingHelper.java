@@ -36,7 +36,7 @@ public class EncodingHelper {
             return defaultEncoding;
         }
 
-        final String newEnc = encodingMap.get(enc.toLowerCase(Locale.ROOT));
+        final String newEnc = encodingMap.get(toLowerCase(enc));
         if (StringUtil.isBlank(newEnc)) {
             return enc;
         }
@@ -48,6 +48,10 @@ public class EncodingHelper {
     }
 
     public void addEncodingMapping(final String source, final String target) {
-        encodingMap.put(source, target);
+        encodingMap.put(toLowerCase(source), target);
+    }
+
+    protected String toLowerCase(final String enc) {
+        return enc.toLowerCase(Locale.ROOT);
     }
 }

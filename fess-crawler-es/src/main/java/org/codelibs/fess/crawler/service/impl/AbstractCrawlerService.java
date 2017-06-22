@@ -65,6 +65,7 @@ import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -139,8 +140,11 @@ public abstract class AbstractCrawlerService {
         }
         if (!exists) {
             final CreateIndexResponse indexResponse =
-                    esClient.get(c -> c.admin().indices().prepareCreate(index).setSource("{\"settings\":{\"index\":{\"number_of_shards\":"
-                            + numberOfShards + ",\"number_of_replicas\":" + numberOfReplicas + "}}}").execute());
+                    esClient.get(c -> {
+                        final String source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards
+                                + ",\"number_of_replicas\":" + numberOfReplicas + "}}}";
+                        return c.admin().indices().prepareCreate(index).setSource(source, XContentFactory.xContentType(source)).execute();
+                    });
             if (indexResponse.isAcknowledged()) {
                 logger.info("Created " + index + " index.");
             } else if (logger.isDebugEnabled()) {
@@ -152,8 +156,11 @@ public abstract class AbstractCrawlerService {
                 esClient.get(c -> c.admin().indices().prepareGetMappings(index).setTypes(type).execute());
         final ImmutableOpenMap<String, MappingMetaData> indexMappings = getMappingsResponse.mappings().get(index);
         if (indexMappings == null || !indexMappings.containsKey(type)) {
-            final PutMappingResponse putMappingResponse = esClient.get(c -> c.admin().indices().preparePutMapping(index).setType(type)
-                    .setSource(FileUtil.readText("mapping/" + mappingName + ".json")).execute());
+            final PutMappingResponse putMappingResponse = esClient.get(c -> {
+                final String source = FileUtil.readText("mapping/" + mappingName + ".json");
+                return c.admin().indices().preparePutMapping(index).setType(type).setSource(source, XContentFactory.xContentType(source))
+                        .execute();
+            });
             if (putMappingResponse.isAcknowledged()) {
                 logger.info("Created " + index + "/" + type + " mapping.");
             } else {
@@ -324,7 +331,7 @@ public abstract class AbstractCrawlerService {
     }
 
     protected <T> List<T> getList(final Class<T> clazz, final String sessionId, final QueryBuilder queryBuilder, final Integer from,
-            final Integer size, final SortBuilder sortBuilder) {
+            final Integer size, final SortBuilder<?> sortBuilder) {
         return getList(clazz, builder -> {
             if (StringUtil.isNotBlank(sessionId)) {
                 if (queryBuilder instanceof BoolQueryBuilder) {

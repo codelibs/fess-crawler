@@ -51,63 +51,63 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
     }
 
     public void test_include_processUrl() {
-        assertEquals(0, includeFilter.cachedIncludeList.size());
-        assertEquals(0, includeFilter.cachedExcludeList.size());
+        assertEquals(0, includeFilter.cachedIncludeSet.size());
+        assertEquals(0, includeFilter.cachedExcludeSet.size());
 
         includeFilter.processUrl("http://example.com/");
 
-        assertEquals(1, includeFilter.cachedIncludeList.size());
-        assertEquals(0, includeFilter.cachedExcludeList.size());
+        assertEquals(1, includeFilter.cachedIncludeSet.size());
+        assertEquals(0, includeFilter.cachedExcludeSet.size());
         assertEquals("http://example.com/.*",
-                includeFilter.cachedIncludeList.get(0));
+                includeFilter.cachedIncludeSet.toArray()[0]);
 
         includeFilter.processUrl("https://test.com");
 
-        assertEquals(2, includeFilter.cachedIncludeList.size());
-        assertEquals(0, includeFilter.cachedExcludeList.size());
+        assertEquals(2, includeFilter.cachedIncludeSet.size());
+        assertEquals(0, includeFilter.cachedExcludeSet.size());
         assertEquals("https://test.com.*",
-                includeFilter.cachedIncludeList.get(1));
+                includeFilter.cachedIncludeSet.toArray()[1]);
     }
 
     public void test_exclude_processUrl() {
-        assertEquals(0, excludeFilter.cachedIncludeList.size());
-        assertEquals(0, excludeFilter.cachedExcludeList.size());
+        assertEquals(0, excludeFilter.cachedIncludeSet.size());
+        assertEquals(0, excludeFilter.cachedExcludeSet.size());
 
         excludeFilter.processUrl("http://example.com/");
 
-        assertEquals(0, excludeFilter.cachedIncludeList.size());
-        assertEquals(1, excludeFilter.cachedExcludeList.size());
+        assertEquals(0, excludeFilter.cachedIncludeSet.size());
+        assertEquals(1, excludeFilter.cachedExcludeSet.size());
         assertEquals("http://example.com/.*",
-                excludeFilter.cachedExcludeList.get(0));
+                excludeFilter.cachedExcludeSet.toArray()[0]);
 
         excludeFilter.processUrl("https://test.com");
 
-        assertEquals(0, excludeFilter.cachedIncludeList.size());
-        assertEquals(2, excludeFilter.cachedExcludeList.size());
+        assertEquals(0, excludeFilter.cachedIncludeSet.size());
+        assertEquals(2, excludeFilter.cachedExcludeSet.size());
         assertEquals("https://test.com.*",
-                excludeFilter.cachedExcludeList.get(1));
+                excludeFilter.cachedExcludeSet.toArray()[1]);
     }
 
     public void test_domain_processUrl() {
-        assertEquals(0, domainFilter.cachedIncludeList.size());
-        assertEquals(0, domainFilter.cachedExcludeList.size());
+        assertEquals(0, domainFilter.cachedIncludeSet.size());
+        assertEquals(0, domainFilter.cachedExcludeSet.size());
 
         domainFilter.processUrl("http://example.com/");
 
-        assertEquals(1, domainFilter.cachedIncludeList.size());
-        assertEquals(1, domainFilter.cachedExcludeList.size());
+        assertEquals(1, domainFilter.cachedIncludeSet.size());
+        assertEquals(1, domainFilter.cachedExcludeSet.size());
         assertEquals("http://example.com/.*",
-                domainFilter.cachedIncludeList.get(0));
+                domainFilter.cachedIncludeSet.toArray()[0]);
         assertEquals("http://example.com/.*",
-                domainFilter.cachedExcludeList.get(0));
+                domainFilter.cachedExcludeSet.toArray()[0]);
 
         domainFilter.processUrl("https://test.com");
 
-        assertEquals(2, domainFilter.cachedIncludeList.size());
-        assertEquals(2, domainFilter.cachedExcludeList.size());
+        assertEquals(2, domainFilter.cachedIncludeSet.size());
+        assertEquals(2, domainFilter.cachedExcludeSet.size());
         assertEquals("http://test.com/.*",
-                domainFilter.cachedIncludeList.get(1));
+                domainFilter.cachedIncludeSet.toArray()[1]);
         assertEquals("http://test.com/.*",
-                domainFilter.cachedExcludeList.get(1));
+                domainFilter.cachedExcludeSet.toArray()[1]);
     }
 }

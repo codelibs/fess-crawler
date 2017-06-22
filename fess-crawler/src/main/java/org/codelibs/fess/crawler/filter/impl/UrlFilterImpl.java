@@ -15,10 +15,12 @@
  */
 package org.codelibs.fess.crawler.filter.impl;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -46,9 +48,9 @@ public class UrlFilterImpl implements UrlFilter {
 
     protected String excludeFilteringPattern;
 
-    protected List<String> cachedIncludeList = new ArrayList<>();
+    protected Set<String> cachedIncludeSet = new LinkedHashSet<>();
 
-    protected List<String> cachedExcludeList = new ArrayList<>();
+    protected Set<String> cachedExcludeSet = new LinkedHashSet<>();
 
     protected String sessionId;
 
@@ -70,7 +72,7 @@ public class UrlFilterImpl implements UrlFilter {
             return;
         }
         if (sessionId == null) {
-            cachedExcludeList.add(urlPattern);
+            cachedExcludeSet.add(urlPattern);
         } else {
             getUrlFilterService().addExcludeUrlFilter(sessionId, urlPattern);
         }
@@ -92,7 +94,7 @@ public class UrlFilterImpl implements UrlFilter {
             return;
         }
         if (sessionId == null) {
-            cachedIncludeList.add(urlPattern);
+            cachedIncludeSet.add(urlPattern);
         } else {
             getUrlFilterService().addIncludeUrlFilter(sessionId, urlPattern);
         }
@@ -105,8 +107,8 @@ public class UrlFilterImpl implements UrlFilter {
      */
     @Override
     public void clear() {
-        cachedIncludeList.clear();
-        cachedExcludeList.clear();
+        cachedIncludeSet.clear();
+        cachedExcludeSet.clear();
         if (sessionId != null) {
             getUrlFilterService().delete(sessionId);
         }
@@ -120,21 +122,21 @@ public class UrlFilterImpl implements UrlFilter {
     @Override
     public void init(final String sessionId) {
         this.sessionId = sessionId;
-        if (!cachedIncludeList.isEmpty()) {
+        if (!cachedIncludeSet.isEmpty()) {
             try {
-                getUrlFilterService().addIncludeUrlFilter(sessionId, cachedIncludeList);
+                getUrlFilterService().addIncludeUrlFilter(sessionId, cachedIncludeSet.stream().collect(Collectors.toList()));
             } catch (final Exception e) {
                 logger.warn("Failed to add include_urls on " + sessionId, e);
             }
-            cachedIncludeList.clear();
+            cachedIncludeSet.clear();
         }
-        if (!cachedExcludeList.isEmpty()) {
+        if (!cachedExcludeSet.isEmpty()) {
             try {
-                getUrlFilterService().addExcludeUrlFilter(sessionId, cachedExcludeList);
+                getUrlFilterService().addExcludeUrlFilter(sessionId, cachedExcludeSet.stream().collect(Collectors.toList()));
             } catch (final Exception e) {
                 logger.warn("Failed to add exclude_urls on " + sessionId, e);
             }
-            cachedExcludeList.clear();
+            cachedExcludeSet.clear();
         }
     }
 
@@ -233,8 +235,8 @@ public class UrlFilterImpl implements UrlFilter {
         return "UrlFilterImpl [urlPattern=" + urlPattern
                 + ", includeFilteringPattern=" + includeFilteringPattern
                 + ", excludeFilteringPattern=" + excludeFilteringPattern
-                + ", cachedIncludeList=" + cachedIncludeList
-                + ", cachedExcludeList=" + cachedExcludeList + ", sessionId="
+                + ", cachedIncludeSet=" + cachedIncludeSet
+                + ", cachedExcludeSet=" + cachedExcludeSet + ", sessionId="
                 + sessionId + ", urlFilterService=" + urlFilterService + "]";
     }
 

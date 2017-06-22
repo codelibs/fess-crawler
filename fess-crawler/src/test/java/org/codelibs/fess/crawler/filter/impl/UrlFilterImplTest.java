@@ -43,69 +43,69 @@ public class UrlFilterImplTest extends PlainTestCase {
     }
 
     public void test_addInclude1() {
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         urlFilter.addInclude(".*test.*");
 
-        assertEquals(1, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(1, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         final String sessionId = "id1";
         urlFilter.init(sessionId);
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
         assertEquals(1, dataHelper.getIncludeUrlPatternList(sessionId).size());
         assertEquals(0, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
 
     public void test_addInclude2() {
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         urlFilter.addInclude(".*[test.*");
 
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         final String sessionId = "id1";
         urlFilter.init(sessionId);
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
         assertEquals(0, dataHelper.getIncludeUrlPatternList(sessionId).size());
         assertEquals(0, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
 
     public void test_addExclude1() {
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         urlFilter.addExclude(".*test.*");
 
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(1, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(1, urlFilter.cachedExcludeSet.size());
 
         final String sessionId = "id1";
         urlFilter.init(sessionId);
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
         assertEquals(0, dataHelper.getIncludeUrlPatternList(sessionId).size());
         assertEquals(1, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
 
     public void test_addExclude2() {
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         urlFilter.addExclude(".*[test.*");
 
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         final String sessionId = "id1";
         urlFilter.init(sessionId);
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
         assertEquals(0, dataHelper.getIncludeUrlPatternList(sessionId).size());
         assertEquals(0, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
@@ -176,12 +176,12 @@ public class UrlFilterImplTest extends PlainTestCase {
     }
 
     public void test_processUrl() {
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
 
         urlFilter.processUrl("http://example.com/");
 
-        assertEquals(0, urlFilter.cachedIncludeList.size());
-        assertEquals(0, urlFilter.cachedExcludeList.size());
+        assertEquals(0, urlFilter.cachedIncludeSet.size());
+        assertEquals(0, urlFilter.cachedExcludeSet.size());
     }
 }

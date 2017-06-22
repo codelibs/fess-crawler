@@ -6,7 +6,8 @@
 
 	<component name="tikaExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.TikaExtractor">
-		<!-- <property name="maxCompressionRatio">1</property> <property name="maxUncompressionSize">10000000</property> -->
+		<property name="maxCompressionRatio">1</property>
+		<property name="maxUncompressionSize">10000000</property>
 	</component>
 	<component name="msWordExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.MsWordExtractor" />

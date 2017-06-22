@@ -35,18 +35,22 @@
 	<!-- Service -->
 	<component name="urlQueueService"
 		class="org.codelibs.fess.crawler.service.impl.EsUrlQueueService">
-		<property name="index">".crawler"</property>
+		<property name="index">crawlerIndexName</property>
 		<property name="type">"queue"</property>
 	</component>
 	<component name="dataService"
 		class="org.codelibs.fess.crawler.service.impl.EsDataService">
-		<property name="index">".crawler"</property>
+		<property name="index">crawlerIndexName</property>
 		<property name="type">"data"</property>
 	</component>
 	<component name="urlFilterService"
 		class="org.codelibs.fess.crawler.service.impl.EsUrlFilterService">
-		<property name="index">".crawler"</property>
+		<property name="index">crawlerIndexName</property>
 		<property name="type">"filter"</property>
+	</component>
+
+	<component name="crawlerIndexName" class="java.lang.String">
+		<arg>".crawler"</arg>
 	</component>
 
 </components>

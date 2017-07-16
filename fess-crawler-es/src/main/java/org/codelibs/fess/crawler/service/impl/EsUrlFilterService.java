@@ -81,7 +81,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
         esUrlFilter.setSessionId(sessionId);
         esUrlFilter.setFilterType(INCLUDE);
         esUrlFilter.setUrl(url);
-        insert(esUrlFilter, OpType.CREATE);
+        insert(esUrlFilter, OpType.INDEX);
         includeFilterCache.invalidate(sessionId);
     }
 
@@ -97,7 +97,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
             urlFilterList.add(esUrlFilter);
             invalidateSet.add(sessionId);
         }
-        insertAll(urlFilterList, OpType.CREATE);
+        insertAll(urlFilterList, OpType.INDEX);
         invalidateSet.forEach(s -> includeFilterCache.invalidate(s));
     }
 
@@ -107,7 +107,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
         esUrlFilter.setSessionId(sessionId);
         esUrlFilter.setFilterType(EXCLUDE);
         esUrlFilter.setUrl(url);
-        insert(esUrlFilter, OpType.CREATE);
+        insert(esUrlFilter, OpType.INDEX);
         excludeFilterCache.invalidate(sessionId);
     }
 
@@ -122,7 +122,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
             esUrlFilter.setUrl(url);
             urlFilterList.add(esUrlFilter);
         }
-        insertAll(urlFilterList, OpType.CREATE);
+        insertAll(urlFilterList, OpType.INDEX);
         invalidateSet.forEach(s -> excludeFilterCache.invalidate(s));
     }
 

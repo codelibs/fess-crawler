@@ -75,7 +75,7 @@ public class PdfExtractor implements Extractor {
                     } finally {
                         done.set(true);
                     }
-                });
+                }, Thread.currentThread().getName() + "-pdf");
                 task.setDaemon(true);
                 task.start();
                 task.join(timeout);

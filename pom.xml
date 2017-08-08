@@ -48,10 +48,10 @@
     <utflute.version>0.8.0</utflute.version>
     <corelib.version>0.3.6</corelib.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <httpcomponents.version>4.5.2</httpcomponents.version>
-    <tika.version>1.14</tika.version>
-    <poi.version>3.15</poi.version>
-    <pdfbox.version>2.0.6</pdfbox.version>
+    <httpcomponents.version>4.5.3</httpcomponents.version>
+    <tika.version>1.16</tika.version>
+    <poi.version>3.17-beta1</poi.version>
+    <pdfbox.version>2.0.7</pdfbox.version>
     <nekohtml.version>1.9.22</nekohtml.version>
     <elasticsearch.version>5.5.1</elasticsearch.version>
   </properties>

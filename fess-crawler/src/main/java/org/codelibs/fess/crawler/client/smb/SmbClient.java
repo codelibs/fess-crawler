@@ -453,7 +453,7 @@ public class SmbClient extends AbstractCrawlerClient {
         this.charset = charset;
     }
 
-    public void setSmbAuthenticationHolder(SmbAuthenticationHolder smbAuthenticationHolder) {
+    public void setSmbAuthenticationHolder(final SmbAuthenticationHolder smbAuthenticationHolder) {
         this.smbAuthenticationHolder = smbAuthenticationHolder;
     }
 }

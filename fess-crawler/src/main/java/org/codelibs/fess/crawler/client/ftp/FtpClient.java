@@ -618,7 +618,7 @@ public class FtpClient extends AbstractCrawlerClient {
         this.useEPSVwithIPv4 = useEPSVwithIPv4;
     }
 
-    public void setFtpAuthenticationHolder(FtpAuthenticationHolder ftpAuthenticationHolder) {
+    public void setFtpAuthenticationHolder(final FtpAuthenticationHolder ftpAuthenticationHolder) {
         this.ftpAuthenticationHolder = ftpAuthenticationHolder;
     }
 }

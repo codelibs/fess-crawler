@@ -40,7 +40,7 @@ public class IdnDnsResolver implements DnsResolver {
         } else {
             try {
                 return URLDecoder.decode(host, encoding);
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 return host;
             }
         }
@@ -50,11 +50,11 @@ public class IdnDnsResolver implements DnsResolver {
         return IDN.toASCII(decode(host), flag);
     }
 
-    public void setFlag(int flag) {
+    public void setFlag(final int flag) {
         this.flag = flag;
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 }

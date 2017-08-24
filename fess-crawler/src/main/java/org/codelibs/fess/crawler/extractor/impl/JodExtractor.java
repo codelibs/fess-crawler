@@ -228,15 +228,15 @@ public class JodExtractor implements Extractor {
         return name;
     }
 
-    public void setOfficeManager(OfficeManager officeManager) {
+    public void setOfficeManager(final OfficeManager officeManager) {
         this.officeManager = officeManager;
     }
 
-    public void setTempDir(File tempDir) {
+    public void setTempDir(final File tempDir) {
         this.tempDir = tempDir;
     }
 
-    public void setOutputEncoding(String outputEncoding) {
+    public void setOutputEncoding(final String outputEncoding) {
         this.outputEncoding = outputEncoding;
     }
 

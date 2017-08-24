@@ -33,6 +33,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -52,6 +53,7 @@ import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.CompositeParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
 import org.codelibs.core.io.CopyUtil;
@@ -73,6 +75,8 @@ import org.xml.sax.SAXException;
  *
  */
 public class TikaExtractor implements Extractor {
+    public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
+
     private static final Logger logger = LoggerFactory
             .getLogger(TikaExtractor.class);
 
@@ -100,6 +104,8 @@ public class TikaExtractor implements Extractor {
     protected TikaConfig tikaConfig;
 
     protected Map<String, String> pdfPasswordMap = new HashMap<>();
+
+    private Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -161,8 +167,7 @@ public class TikaExtractor implements Extractor {
                         contentType, contentEncoding, pdfPassword);
 
                 final Parser parser = new DetectParser();
-                final ParseContext parseContext = new ParseContext();
-                parseContext.set(Parser.class, parser);
+                final ParseContext parseContext = createParseContext(parser, params);
 
                 String content = getContent(writer -> {
                     InputStream in = null;
@@ -321,6 +326,28 @@ public class TikaExtractor implements Extractor {
                 logger.warn("Failed to delete " + tempFile.getAbsolutePath());
             }
         }
+    }
+
+    protected ParseContext createParseContext(final Parser parser, final Map<String, String> params) {
+        final ParseContext parseContext = new ParseContext();
+        parseContext.set(Parser.class, parser);
+
+        final String tesseractConfigPath = params.get(TIKA_TESSERACT_CONFIG);
+        if (StringUtil.isNotBlank(tesseractConfigPath)) {
+            TesseractOCRConfig tesseractOCRConfig = tesseractOCRConfigMap.get(tesseractConfigPath);
+            if (tesseractOCRConfig == null) {
+                try (final InputStream in = new FileInputStream(tesseractConfigPath)) {
+                    tesseractOCRConfig = new TesseractOCRConfig(in);
+                } catch (Exception e) {
+                    logger.warn("Could not load " + tesseractConfigPath, e);
+                    tesseractOCRConfig = new TesseractOCRConfig();
+                }
+                tesseractOCRConfigMap.put(tesseractConfigPath, tesseractOCRConfig);
+            }
+            parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
+        }
+
+        return parseContext;
     }
 
     protected InputStream getContentStream(final DeferredFileOutputStream dfos) throws IOException {

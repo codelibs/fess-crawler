@@ -1004,7 +1004,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         this.cookieDatePatterns = cookieDatePatterns;
     }
 
-    public void setDnsResolver(DnsResolver dnsResolver) {
+    public void setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
     }
 }

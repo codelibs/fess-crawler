@@ -396,35 +396,35 @@ public class CommandExtractor implements Extractor {
 
     }
 
-    public void setOutputEncoding(String outputEncoding) {
+    public void setOutputEncoding(final String outputEncoding) {
         this.outputEncoding = outputEncoding;
     }
 
-    public void setOutputExtension(String outputExtension) {
+    public void setOutputExtension(final String outputExtension) {
         this.outputExtension = outputExtension;
     }
 
-    public void setTempDir(File tempDir) {
+    public void setTempDir(final File tempDir) {
         this.tempDir = tempDir;
     }
 
-    public void setCommand(String command) {
+    public void setCommand(final String command) {
         this.command = command;
     }
 
-    public void setExecutionTimeout(long executionTimeout) {
+    public void setExecutionTimeout(final long executionTimeout) {
         this.executionTimeout = executionTimeout;
     }
 
-    public void setWorkingDirectory(File workingDirectory) {
+    public void setWorkingDirectory(final File workingDirectory) {
         this.workingDirectory = workingDirectory;
     }
 
-    public void setCommandOutputEncoding(String commandOutputEncoding) {
+    public void setCommandOutputEncoding(final String commandOutputEncoding) {
         this.commandOutputEncoding = commandOutputEncoding;
     }
 
-    public void setMaxOutputLine(int maxOutputLine) {
+    public void setMaxOutputLine(final int maxOutputLine) {
         this.maxOutputLine = maxOutputLine;
     }
 }

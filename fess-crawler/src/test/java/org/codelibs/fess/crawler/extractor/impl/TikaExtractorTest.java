@@ -76,6 +76,17 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    public void test_getTika_text_sjis() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.txt");
+        Map<String, String> params = new HashMap<>();
+        params.put("Content-Type", "text/plain");
+        final ExtractData extractData = tikaExtractor.getText(in, params);
+        final String content = extractData.getContent();
+        IOUtils.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("テスト"));
+    }
+
     // TODO tika needs to support pdfbox 2.0
 //    public void test_getTika_pdf() {
 //        final InputStream in = ResourceUtil

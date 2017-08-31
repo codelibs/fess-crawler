@@ -56,6 +56,7 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.PasswordProvider;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
+import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
 import org.codelibs.core.io.CopyUtil;
@@ -83,6 +84,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
 
+    public static final String TIKA_PDF_CONFIG = "tika.pdf.config";
+
     private static final String FILE_PASSWORD = "fess.file.password";
 
     @Resource
@@ -109,6 +112,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
     protected TikaConfig tikaConfig;
 
     private Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
+
+    private Map<String, PDFParserConfig> pdfParserConfigMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -343,7 +348,20 @@ public class TikaExtractor extends PasswordBasedExtractor {
             parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
         }
 
-        // TODO PDF
+        final String pdfParserConfigPath = params != null ? params.get(TIKA_PDF_CONFIG) : null;
+        if (StringUtil.isNotBlank(pdfParserConfigPath)) {
+            PDFParserConfig pdfParserConfig = pdfParserConfigMap.get(pdfParserConfigPath);
+            if (pdfParserConfig == null) {
+                try (final InputStream in = new FileInputStream(pdfParserConfigPath)) {
+                    pdfParserConfig = new PDFParserConfig(in);
+                } catch (Exception e) {
+                    logger.warn("Could not load " + pdfParserConfigPath, e);
+                    pdfParserConfig = new PDFParserConfig();
+                }
+                pdfParserConfigMap.put(pdfParserConfigPath, pdfParserConfig);
+            }
+            parseContext.set(PDFParserConfig.class, pdfParserConfig);
+        }
 
         parseContext.set(PasswordProvider.class, new PasswordProvider() {
             public String getPassword(Metadata metadata) {

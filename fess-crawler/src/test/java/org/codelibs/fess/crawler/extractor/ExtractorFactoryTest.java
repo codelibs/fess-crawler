@@ -23,6 +23,7 @@ import java.util.Map;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.extractor.impl.LhaExtractor;
+import org.codelibs.fess.crawler.extractor.impl.PasswordBasedExtractor;
 import org.codelibs.fess.crawler.extractor.impl.PdfExtractor;
 import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -45,7 +46,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
         extractorFactory = container.getComponent("extractorFactory");
         TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
         LhaExtractor lhaExtractor = container.getComponent("lhaExtractor");
-        PdfExtractor pdfExtractor = container.getComponent("pdfExtractor");
+        PasswordBasedExtractor pdfExtractor = container.getComponent("pdfExtractor");
         extractorFactory.addExtractor("application/msword", tikaExtractor);
         extractorFactory
                 .addExtractor("application/vnd.ms-excel", tikaExtractor);

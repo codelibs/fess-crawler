@@ -17,22 +17,17 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.tika.metadata.TikaMetadataKeys;
-import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 
 /**
  * Gets a text from .doc file.
@@ -40,10 +35,8 @@ import org.codelibs.fess.crawler.extractor.Extractor;
  * @author shinsuke
  *
  */
-public class PdfExtractor implements Extractor {
+public class PdfExtractor extends PasswordBasedExtractor {
     protected Object pdfBoxLockObj = new Object();
-
-    protected Map<Pattern, String> passwordMap = new HashMap<>();
 
     protected long timeout = 30000; // 30sec
 
@@ -61,7 +54,7 @@ public class PdfExtractor implements Extractor {
 
         synchronized (pdfBoxLockObj) {
             final String password = getPassword(params);
-            try (PDDocument document = PDDocument.load(in, password)) {
+            try (PDDocument document = PDDocument.load(in, password == null ? null : password)) {
                 final StringWriter output = new StringWriter();
                 final PDFTextStripper stripper = new PDFTextStripper();
                 final AtomicBoolean done = new AtomicBoolean(false);
@@ -114,37 +107,6 @@ public class PdfExtractor implements Extractor {
         if (value != null) {
             extractData.putValue(name, value);
         }
-    }
-
-    public void addPassword(final String regex, final String password) {
-        passwordMap.put(Pattern.compile(regex), password);
-    }
-
-    protected String getPassword(final Map<String, String> params) {
-        if (params == null || params.isEmpty()) {
-            return StringUtil.EMPTY;
-        }
-        final String password = params.get(ExtractData.PDF_PASSWORD);
-        if (password == null && !passwordMap.isEmpty()) {
-            final String url = params.get(ExtractData.URL);
-            final String resourceName = params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
-
-            String value = null;
-            if (StringUtil.isNotEmpty(url)) {
-                value = url;
-            } else if (StringUtil.isNotEmpty(resourceName)) {
-                value = resourceName;
-            }
-
-            if (value != null) {
-                for (final Map.Entry<Pattern, String> entry : passwordMap.entrySet()) {
-                    if (entry.getKey().matcher(value).matches()) {
-                        return entry.getValue();
-                    }
-                }
-            }
-        }
-        return password == null ? StringUtil.EMPTY : password;
     }
 
     public long getTimeout() {

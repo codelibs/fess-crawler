@@ -22,7 +22,6 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.ResourceUtil;
-import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -98,25 +97,25 @@ public class PdfExtractorTest extends PlainTestCase {
         resourceName = null;
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
-        assertEquals(StringUtil.EMPTY, pdfExtractor.getPassword(params));
+        assertNull(pdfExtractor.getPassword(params));
 
         url = "http://test.com/hoge1.pdf";
         resourceName = null;
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
-        assertEquals(StringUtil.EMPTY, pdfExtractor.getPassword(params));
+        assertNull(pdfExtractor.getPassword(params));
 
         url = "http://test.com/hoge1.pdf";
         resourceName = "hoge2.pdf";
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
-        assertEquals(StringUtil.EMPTY, pdfExtractor.getPassword(params));
+        assertNull(pdfExtractor.getPassword(params));
 
         url = null;
         resourceName = "hoge2.pdf";
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
-        assertEquals(StringUtil.EMPTY, pdfExtractor.getPassword(params));
+        assertNull(pdfExtractor.getPassword(params));
     }
 
     public void test_getPassword() {
@@ -130,7 +129,7 @@ public class PdfExtractorTest extends PlainTestCase {
         resourceName = null;
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
-        assertEquals(StringUtil.EMPTY, pdfExtractor.getPassword(params));
+        assertNull(pdfExtractor.getPassword(params));
 
         url = "http://test.com/hoge1.pdf";
         resourceName = null;
@@ -148,7 +147,7 @@ public class PdfExtractorTest extends PlainTestCase {
         resourceName = "hoge2.pdf";
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
-        assertEquals(StringUtil.EMPTY, pdfExtractor.getPassword(params));
+        assertNull(pdfExtractor.getPassword(params));
 
         url = null;
         resourceName = "hoge1.pdf";
@@ -160,12 +159,34 @@ public class PdfExtractorTest extends PlainTestCase {
         resourceName = null;
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
-        assertEquals(StringUtil.EMPTY, pdfExtractor.getPassword(params));
+        assertNull(pdfExtractor.getPassword(params));
 
         url = null;
         resourceName = "fuga.pdf";
         params.put(ExtractData.URL, url);
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
         assertEquals("PASSWORD", pdfExtractor.getPassword(params));
+    }
+
+    public void test_getPassword_json() {
+        String url;
+        Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.FILE_PASSWORDS, "{\".*hoge1.pdf\":\"password\",\"fuga.pdf\":\"PASSWORD\"}");
+
+        url = null;
+        params.put(ExtractData.URL, url);
+        assertNull(pdfExtractor.getPassword(params));
+
+        url = "http://test.com/hoge1.pdf";
+        params.put(ExtractData.URL, url);
+        assertEquals("password", pdfExtractor.getPassword(params));
+
+        url = "http://test.com/hoge1.pdf";
+        params.put(ExtractData.URL, url);
+        assertEquals("password", pdfExtractor.getPassword(params));
+
+        url = "http://test.com/fuga.pdf";
+        params.put(ExtractData.URL, url);
+        assertNull(pdfExtractor.getPassword(params));
     }
 }

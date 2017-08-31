@@ -31,7 +31,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,6 +43,8 @@ import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.extractor.EmbeddedDocumentExtractor;
+import org.apache.tika.extractor.ParsingEmbeddedDocumentExtractor;
 import org.apache.tika.io.TemporaryResources;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.HttpHeaders;
@@ -53,6 +54,7 @@ import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.CompositeParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.PasswordProvider;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
@@ -74,11 +76,14 @@ import org.xml.sax.SAXException;
  * @author shinsuke
  *
  */
-public class TikaExtractor implements Extractor {
-    public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
+public class TikaExtractor extends PasswordBasedExtractor {
 
     private static final Logger logger = LoggerFactory
             .getLogger(TikaExtractor.class);
+
+    public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
+
+    private static final String FILE_PASSWORD = "fess.file.password";
 
     @Resource
     protected CrawlerContainer crawlerContainer;
@@ -102,8 +107,6 @@ public class TikaExtractor implements Extractor {
     protected int maxSymbolTermSize = -1;
 
     protected TikaConfig tikaConfig;
-
-    protected Map<String, String> pdfPasswordMap = new HashMap<>();
 
     private Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
 
@@ -154,19 +157,12 @@ public class TikaExtractor implements Extractor {
                         .get(HttpHeaders.CONTENT_TYPE);
                 String contentEncoding = params == null ? null : params
                         .get(HttpHeaders.CONTENT_ENCODING);
-
-                // password for pdf
-                String pdfPassword = params == null ? null : params
-                        .get(ExtractData.PDF_PASSWORD);
-                if (pdfPassword == null && params != null) {
-                    pdfPassword = getPdfPassword(params.get(ExtractData.URL),
-                            resourceName);
-                }
+                String pdfPassword = getPassword(params);
 
                 final Metadata metadata = createMetadata(resourceName,
                         contentType, contentEncoding, pdfPassword);
 
-                final Parser parser = new DetectParser();
+                final Parser parser = new TikaDetectParser();
                 final ParseContext parseContext = createParseContext(parser, params);
 
                 String content = getContent(writer -> {
@@ -332,7 +328,7 @@ public class TikaExtractor implements Extractor {
         final ParseContext parseContext = new ParseContext();
         parseContext.set(Parser.class, parser);
 
-        final String tesseractConfigPath = params.get(TIKA_TESSERACT_CONFIG);
+        final String tesseractConfigPath = params != null ? params.get(TIKA_TESSERACT_CONFIG) : null;
         if (StringUtil.isNotBlank(tesseractConfigPath)) {
             TesseractOCRConfig tesseractOCRConfig = tesseractOCRConfigMap.get(tesseractConfigPath);
             if (tesseractOCRConfig == null) {
@@ -346,6 +342,14 @@ public class TikaExtractor implements Extractor {
             }
             parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
         }
+
+        // TODO PDF
+
+        parseContext.set(PasswordProvider.class, new PasswordProvider() {
+            public String getPassword(Metadata metadata) {
+                return metadata.get(FILE_PASSWORD);
+            }
+        });
 
         return parseContext;
     }
@@ -387,31 +391,7 @@ public class TikaExtractor implements Extractor {
         }
     }
 
-    String getPdfPassword(final String url, final String resourceName) {
-        if (pdfPasswordMap.isEmpty()) {
-            return null;
-        }
-
-        String value = null;
-        if (StringUtil.isNotEmpty(url)) {
-            value = url;
-        } else if (StringUtil.isNotEmpty(resourceName)) {
-            value = resourceName;
-        }
-
-        if (value != null) {
-            for (final Map.Entry<String, String> entry : pdfPasswordMap
-                    .entrySet()) {
-                if (value.matches(entry.getKey())) {
-                    return entry.getValue();
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private Metadata createMetadata(final String resourceName,
+    protected Metadata createMetadata(final String resourceName,
             final String contentType, final String contentEncoding,
             final String pdfPassword) {
         final Metadata metadata = new Metadata();
@@ -425,7 +405,7 @@ public class TikaExtractor implements Extractor {
             metadata.set(HttpHeaders.CONTENT_ENCODING, contentEncoding);
         }
         if (pdfPassword != null) {
-            metadata.add(ExtractData.PDF_PASSWORD, pdfPassword);
+            metadata.add(FILE_PASSWORD, pdfPassword);
         }
 
         if (logger.isDebugEnabled()) {
@@ -435,12 +415,8 @@ public class TikaExtractor implements Extractor {
         return metadata;
     }
 
-    public void addPdfPassword(final String regex, final String password) {
-        pdfPasswordMap.put(regex, password);
-    }
-
     // workaround: Tika does not have extention points.
-    protected class DetectParser extends CompositeParser {
+    protected class TikaDetectParser extends CompositeParser {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -453,11 +429,11 @@ public class TikaExtractor implements Extractor {
          * Creates an auto-detecting parser instance using the default Tika
          * configuration.
          */
-        public DetectParser() {
+        public TikaDetectParser() {
             this(tikaConfig);
         }
 
-        public DetectParser(final TikaConfig config) {
+        public TikaDetectParser(final TikaConfig config) {
             super(config.getMediaTypeRegistry(), config.getParser());
             detector = config.getDetector();
         }
@@ -481,10 +457,20 @@ public class TikaExtractor implements Extractor {
                 sch.setMaximumCompressionRatio(maxCompressionRatio);
                 sch.setOutputThreshold(maxUncompressionSize);
 
+                //pass self to handle embedded documents if
+                //the caller hasn't specified one.
+                if (context.get(EmbeddedDocumentExtractor.class) == null) {
+                    Parser p = context.get(Parser.class);
+                    if (p == null) {
+                        context.set(Parser.class, this);
+                    }
+                    context.set(EmbeddedDocumentExtractor.class,
+                            new ParsingEmbeddedDocumentExtractor(context));
+                }
+
                 if (logger.isDebugEnabled()) {
                     logger.debug("type: {}, metadata: {}, maxCompressionRatio: {}, maxUncompressionSize: {}", type, metadata,
                             maxCompressionRatio, maxUncompressionSize);
-
                 }
 
                 try {

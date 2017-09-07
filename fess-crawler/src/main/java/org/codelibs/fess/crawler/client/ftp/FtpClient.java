@@ -37,6 +37,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPClient.NatServerResolverImpl;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilters;
@@ -66,7 +67,12 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FtpClient extends AbstractCrawlerClient {
+
     private static final Logger logger = LoggerFactory.getLogger(FtpClient.class);
+
+    public static final String FTP_FILE_GROUP = "ftpFileGroup";
+
+    public static final String FTP_FILE_USER = "ftpFileUser";
 
     public static final String FTP_AUTHENTICATIONS_PROPERTY = "ftpAuthentications";
 
@@ -222,10 +228,11 @@ public class FtpClient extends AbstractCrawlerClient {
                         final FTPFile[] files = client.listFiles(ftpInfo.getParent(), FTPFileFilters.NON_NULL);
                         validateRequest(client);
                         for (final FTPFile f : files) {
-                            final String chileUri = ftpInfo.toUrl(f.getName());
+                            final String chileUri = ftpInfo.toChildUrl(f.getName());
                             requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
                         }
                     } catch (final IOException e) {
+                        disconnectInternalClient(client);
                         throw new CrawlingAccessException("Could not access " + uri, e);
                     }
                 }
@@ -242,90 +249,7 @@ public class FtpClient extends AbstractCrawlerClient {
                 }
             }
 
-            if (file == null) {
-                responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
-                responseData.setCharSet(charset);
-                responseData.setContentLength(0);
-            } else if (file.isFile()) {
-                responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
-                responseData.setCharSet(Constants.UTF_8);
-                responseData.setLastModified(file.getTimestamp().getTime());
-
-                // check file size
-                responseData.setContentLength(file.getSize());
-                checkMaxContentLength(responseData);
-
-                if (includeContent) {
-                    File tempFile = null;
-                    File outputFile = null;
-                    try {
-                        tempFile = File.createTempFile("ftp-", ".tmp");
-                        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(tempFile))) {
-                            if (!client.retrieveFile(ftpInfo.getName(), out)) {
-                                throw new CrawlingAccessException("Failed to retrieve: " + ftpInfo.toUrl());
-                            }
-                        }
-
-                        final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
-                        try (InputStream is = new FileInputStream(tempFile)) {
-                            responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
-                        } catch (final Exception e) {
-                            responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
-                        }
-
-                        if (contentLengthHelper != null) {
-                            final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
-                            if (responseData.getContentLength() > maxLength) {
-                                throw new MaxLengthExceededException("The content length (" + responseData.getContentLength() + " byte) is over "
-                                        + maxLength + " byte. The url is " + uri);
-                            }
-                        }
-
-                        responseData.setCharSet(geCharSet(tempFile));
-
-                        if (tempFile.length() < maxCachedContentSize) {
-                            try (InputStream contentStream = new BufferedInputStream(new FileInputStream(tempFile))) {
-                                responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
-                            }
-                        } else {
-                            outputFile = File.createTempFile("crawler-FileSystemClient-", ".out");
-                            CopyUtil.copy(tempFile, outputFile);
-                            responseData.setResponseBody(outputFile, true);
-                        }
-                    } catch (final Exception e) {
-                        logger.warn("I/O Exception.", e);
-                        responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
-                    } finally {
-                        if (tempFile != null && !tempFile.delete()) {
-                            logger.warn("Could not delete " + tempFile.getAbsolutePath());
-                        }
-                        if (outputFile != null && !outputFile.delete()) {
-                            logger.warn("Could not delete " + outputFile.getAbsolutePath());
-                        }
-                    }
-                }
-            } else if (file.isDirectory()) {
-                final Set<RequestData> requestDataSet = new HashSet<>();
-                if (includeContent) {
-                    try {
-                        final FTPFile[] ftpFiles = client.listFiles(ftpInfo.getName(), FTPFileFilters.NON_NULL);
-                        validateRequest(client);
-                        for (final FTPFile f : ftpFiles) {
-                            final String chileUri = ftpInfo.toUrl(f.getName());
-                            requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
-                        }
-                    } catch (final IOException e) {
-                        throw new CrawlingAccessException("Could not access " + uri, e);
-                    }
-                }
-                ftpClientQueue.offer(client);
-                throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData(String, boolean)");
-            } else {
-                responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
-                responseData.setCharSet(charset);
-                responseData.setContentLength(0);
-            }
-            ftpClientQueue.offer(client);
+            updateResponseData(uri, includeContent, responseData, client, ftpInfo, file);
         } catch (final CrawlerSystemException e) {
             IOUtils.closeQuietly(responseData);
             throw e;
@@ -335,6 +259,142 @@ public class FtpClient extends AbstractCrawlerClient {
         }
 
         return responseData;
+    }
+
+    protected void disconnectInternalClient(final FTPClient client) {
+        try {
+            client.disconnect();
+        } catch (IOException e) {
+            logger.warn("Failed to close FTPClient", e);
+        }
+    }
+
+    protected void updateResponseData(final String uri, final boolean includeContent, final ResponseData responseData, FTPClient client,
+            final FtpInfo ftpInfo, FTPFile file) {
+        if (file == null) {
+            responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
+            responseData.setCharSet(charset);
+            responseData.setContentLength(0);
+            ftpClientQueue.offer(client);
+            return;
+        }
+
+        if (file.isSymbolicLink()) {
+            final String link = file.getLink();
+            String redirect = null;
+            if (link == null) {
+                responseData.setHttpStatusCode(Constants.BAD_REQUEST_STATUS_CODE);
+                responseData.setCharSet(charset);
+                responseData.setContentLength(0);
+                ftpClientQueue.offer(client);
+                return;
+            } else if (link.startsWith("/")) {
+                redirect = ftpInfo.toUrl(file.getLink());
+            } else if (link.startsWith("../")) {
+                redirect = ftpInfo.toChildUrl(file.getLink());
+            } else {
+                redirect = ftpInfo.toChildUrl("../" + file.getLink());
+            }
+            if (!uri.equals(redirect)) {
+                responseData.setHttpStatusCode(Constants.OK_STATUS);
+                responseData.setCharSet(charset);
+                responseData.setContentLength(0);
+                responseData.setRedirectLocation(redirect);
+                ftpClientQueue.offer(client);
+                return;
+            }
+        }
+
+        if (file.isFile()) {
+            responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
+            responseData.setCharSet(Constants.UTF_8);
+            responseData.setLastModified(file.getTimestamp().getTime());
+
+            // check file size
+            responseData.setContentLength(file.getSize());
+            checkMaxContentLength(responseData);
+
+            if (file.getUser() != null) {
+                responseData.addMetaData(FTP_FILE_USER, file.getUser());
+            }
+            if (file.getGroup() != null) {
+                responseData.addMetaData(FTP_FILE_GROUP, file.getGroup());
+            }
+
+            if (includeContent) {
+                File tempFile = null;
+                File outputFile = null;
+                try {
+                    tempFile = File.createTempFile("ftp-", ".tmp");
+                    try (OutputStream out = new BufferedOutputStream(new FileOutputStream(tempFile))) {
+                        if (!client.retrieveFile(ftpInfo.getName(), out)) {
+                            throw new CrawlingAccessException("Failed to retrieve: " + ftpInfo.toUrl());
+                        }
+                    }
+
+                    final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
+                    try (InputStream is = new FileInputStream(tempFile)) {
+                        responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
+                    } catch (final Exception e) {
+                        responseData.setMimeType(mimeTypeHelper.getContentType(null, file.getName()));
+                    }
+
+                    if (contentLengthHelper != null) {
+                        final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
+                        if (responseData.getContentLength() > maxLength) {
+                            throw new MaxLengthExceededException("The content length (" + responseData.getContentLength()
+                                    + " byte) is over " + maxLength + " byte. The url is " + uri);
+                        }
+                    }
+
+                    responseData.setCharSet(geCharSet(tempFile));
+
+                    if (tempFile.length() < maxCachedContentSize) {
+                        try (InputStream contentStream = new BufferedInputStream(new FileInputStream(tempFile))) {
+                            responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
+                        }
+                    } else {
+                        outputFile = File.createTempFile("crawler-FtpClient-", ".out");
+                        CopyUtil.copy(tempFile, outputFile);
+                        responseData.setResponseBody(outputFile, true);
+                    }
+                    ftpClientQueue.offer(client);
+                } catch (final CrawlingAccessException e) {
+                    ftpClientQueue.offer(client);
+                    throw e;
+                } catch (final Exception e) {
+                    logger.warn("I/O Exception.", e);
+                    disconnectInternalClient(client);
+                    responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                } finally {
+                    if (tempFile != null && !tempFile.delete()) {
+                        logger.warn("Could not delete " + tempFile.getAbsolutePath());
+                    }
+                }
+            }
+        } else if (file.isDirectory() || file.isSymbolicLink()) {
+            final Set<RequestData> requestDataSet = new HashSet<>();
+            if (includeContent) {
+                try {
+                    final FTPFile[] ftpFiles = client.listFiles(ftpInfo.getName(), FTPFileFilters.NON_NULL);
+                    validateRequest(client);
+                    for (final FTPFile f : ftpFiles) {
+                        final String chileUri = ftpInfo.toChildUrl(f.getName());
+                        requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
+                    }
+                } catch (final IOException e) {
+                    disconnectInternalClient(client);
+                    throw new CrawlingAccessException("Could not access " + uri, e);
+                }
+            }
+            ftpClientQueue.offer(client);
+            throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData(String, boolean)");
+        } else {
+            responseData.setHttpStatusCode(Constants.BAD_REQUEST_STATUS_CODE);
+            responseData.setCharSet(charset);
+            responseData.setContentLength(0);
+            ftpClientQueue.offer(client);
+        }
     }
 
     /**
@@ -409,7 +469,9 @@ public class FtpClient extends AbstractCrawlerClient {
             ftpClient.setDataTimeout(dataTimeout);
             ftpClient.setControlEncoding(controlEncoding);
             ftpClient.setBufferSize(bufferSize);
-            ftpClient.setPassiveNatWorkaround(passiveNatWorkaround);
+            if (passiveNatWorkaround) {
+                ftpClient.setPassiveNatWorkaroundStrategy(new NatServerResolverImpl(ftpClient));
+            }
             ftpClient.setUseEPSVwithIPv4(useEPSVwithIPv4);
 
             ftpClient.configure(ftpClientConfig);
@@ -450,7 +512,7 @@ public class FtpClient extends AbstractCrawlerClient {
 
         public FtpInfo(final String s) {
             try {
-                uri = new URL(s);
+                uri = new URL(normalize(s));
             } catch (final MalformedURLException e) {
                 throw new CrawlingAccessException("Invalid URL: " + s, e);
             }
@@ -474,6 +536,17 @@ public class FtpClient extends AbstractCrawlerClient {
             }
         }
 
+        protected String normalize(final String s) {
+            if (s == null) {
+                return null;
+            }
+            String url = s.replaceAll("/+", "/").replace("ftp:/", "ftp://");
+            while (url.indexOf("/../") != -1) {
+                url = url.replaceFirst("/[^/]+/\\.\\./", "/");
+            }
+            return url;
+        }
+
         public String getCacheKey() {
             return getHost() + ":" + getPort();
         }
@@ -490,7 +563,7 @@ public class FtpClient extends AbstractCrawlerClient {
             return port;
         }
 
-        public String toUrl() {
+        public String toUrl(final String path) {
             final StringBuilder buf = new StringBuilder(100);
             buf.append("ftp://");
             buf.append(getHost());
@@ -498,19 +571,24 @@ public class FtpClient extends AbstractCrawlerClient {
             if (port != DEFAULT_FTP_PORT) {
                 buf.append(':').append(port);
             }
-            buf.append(uri.getPath());
-            if ("/".equals(uri.getPath())) {
-                return buf.toString();
+            buf.append(path);
+            final String url = normalize(buf.toString());
+            if ("/".equals(path)) {
+                return url;
             }
-            return buf.toString().replaceAll("/+$", "");
+            return url.replaceAll("/+$", "");
         }
 
-        public String toUrl(final String child) {
+        public String toUrl() {
+            return toUrl(uri.getPath());
+        }
+
+        public String toChildUrl(final String child) {
             final String url = toUrl();
             if (url.endsWith("/")) {
-                return toUrl() + child;
+                return normalize(toUrl() + child);
             }
-            return toUrl() + "/" + child;
+            return normalize(toUrl() + "/" + child);
         }
 
         public String getParent() {

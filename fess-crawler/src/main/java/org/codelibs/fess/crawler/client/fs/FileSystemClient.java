@@ -148,21 +148,35 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 responseData.setContentLength(file.length());
                 checkMaxContentLength(responseData);
 
-                FileOwnerAttributeView ownerAttrView = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
-                if (ownerAttrView != null) {
-                    responseData.addMetaData(FILE_ATTRIBUTE_VIEW, ownerAttrView);
-                    UserPrincipal owner = ownerAttrView.getOwner();
-                    if (owner != null) {
-                        responseData.addMetaData(FS_FILE_USER, owner.getName());
+                try {
+                    final FileOwnerAttributeView ownerAttrView = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
+                    if (ownerAttrView != null) {
+                        UserPrincipal owner = ownerAttrView.getOwner();
+                        if (owner != null) {
+                            responseData.addMetaData(FS_FILE_USER, owner.getName());
+                        }
                     }
-                    if (ownerAttrView instanceof AclFileAttributeView) {
-                        AclFileAttributeView aclView = (AclFileAttributeView) ownerAttrView;
+                } catch (Exception e) {
+                    logger.warn("Failed to parse FileOwnerAttributeView.", e);
+                }
+                try {
+                    final AclFileAttributeView aclView = Files.getFileAttributeView(file.toPath(), AclFileAttributeView.class);
+                    if (aclView != null) {
+                        responseData.addMetaData(FILE_ATTRIBUTE_VIEW, aclView);
                         responseData.addMetaData(FS_FILE_GROUPS,
                                 aclView.getAcl().stream().map(acl -> acl.principal().getName()).toArray(n -> new String[n]));
-                    } else if (ownerAttrView instanceof PosixFileAttributeView) {
-                        PosixFileAttributeView posixView = (PosixFileAttributeView) ownerAttrView;
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to parse AclFileAttributeView.", e);
+                }
+                try {
+                    final PosixFileAttributeView posixView = Files.getFileAttributeView(file.toPath(), PosixFileAttributeView.class);
+                    if (posixView != null) {
+                        responseData.addMetaData(FILE_ATTRIBUTE_VIEW, posixView);
                         responseData.addMetaData(FS_FILE_GROUPS, new String[] { posixView.readAttributes().group().getName() });
                     }
+                } catch (Exception e) {
+                    logger.warn("Failed to parse PosixFileAttributeView.", e);
                 }
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);

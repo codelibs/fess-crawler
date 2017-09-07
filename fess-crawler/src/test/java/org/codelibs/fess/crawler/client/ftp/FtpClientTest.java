@@ -240,6 +240,16 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("/", ftpInfo.getParent());
         assertEquals("test.txt", ftpInfo.getName());
 
+        value = "ftp://123.123.123.123/aaa/../test.txt";
+        ftpInfo = new FtpClient.FtpInfo(value);
+        assertEquals("ftp://123.123.123.123/test.txt", ftpInfo.toUrl());
+        assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
+        assertEquals("123.123.123.123", ftpInfo.getHost());
+        assertEquals(21, ftpInfo.getPort());
+        assertEquals("/", ftpInfo.getParent());
+        assertEquals("test.txt", ftpInfo.getName());
+        assertEquals("ftp://123.123.123.123/", ftpInfo.toUrl("/"));
+
         value = "ftp://123.123.123.123:21/test1/test.txt";
         ftpInfo = new FtpClient.FtpInfo(value);
         assertEquals("ftp://123.123.123.123/test1/test.txt", ftpInfo.toUrl());
@@ -248,6 +258,9 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals(21, ftpInfo.getPort());
         assertEquals("/test1", ftpInfo.getParent());
         assertEquals("test.txt", ftpInfo.getName());
+        assertEquals("ftp://123.123.123.123/", ftpInfo.toUrl("/"));
+        assertEquals("ftp://123.123.123.123/aaa/bbb/ccc.txt", ftpInfo.toUrl("/aaa//bbb/ccc.txt"));
+        assertEquals("ftp://123.123.123.123/ccc.txt", ftpInfo.toUrl("/aaa/../ccc.txt"));
 
         value = "ftp://123.123.123.123/test test.txt";
         ftpInfo = new FtpClient.FtpInfo(value);

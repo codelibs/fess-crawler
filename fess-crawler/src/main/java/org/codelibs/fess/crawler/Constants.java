@@ -36,6 +36,8 @@ public final class Constants {
 
     public static final int NOT_MODIFIED_STATUS_CODE = 304;
 
+    public static final int BAD_REQUEST_STATUS_CODE = 400;
+
     public static final int FORBIDDEN_STATUS_CODE = 403;
 
     public static final int NOT_FOUND_STATUS_CODE = 404;

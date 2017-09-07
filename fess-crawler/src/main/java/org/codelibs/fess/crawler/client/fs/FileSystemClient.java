@@ -23,6 +23,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.attribute.AclFileAttributeView;
+import java.nio.file.attribute.FileOwnerAttributeView;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,8 +64,15 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FileSystemClient extends AbstractCrawlerClient {
+
     private static final Logger logger = LoggerFactory
             .getLogger(FileSystemClient.class);
+
+    public static final String FILE_ATTRIBUTE_VIEW = "fileAttributeView";
+
+    public static final String FS_FILE_USER = "fsFileUser";
+
+    public static final String FS_FILE_GROUPS = "fsFileGroups";
 
     protected String charset = Constants.UTF_8;
 
@@ -135,6 +147,23 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 // check file size
                 responseData.setContentLength(file.length());
                 checkMaxContentLength(responseData);
+
+                FileOwnerAttributeView ownerAttrView = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
+                if (ownerAttrView != null) {
+                    responseData.addMetaData(FILE_ATTRIBUTE_VIEW, ownerAttrView);
+                    UserPrincipal owner = ownerAttrView.getOwner();
+                    if (owner != null) {
+                        responseData.addMetaData(FS_FILE_USER, owner.getName());
+                    }
+                    if (ownerAttrView instanceof AclFileAttributeView) {
+                        AclFileAttributeView aclView = (AclFileAttributeView) ownerAttrView;
+                        responseData.addMetaData(FS_FILE_GROUPS,
+                                aclView.getAcl().stream().map(acl -> acl.principal().getName()).toArray(n -> new String[n]));
+                    } else if (ownerAttrView instanceof PosixFileAttributeView) {
+                        PosixFileAttributeView posixView = (PosixFileAttributeView) ownerAttrView;
+                        responseData.addMetaData(FS_FILE_GROUPS, new String[] { posixView.readAttributes().group().getName() });
+                    }
+                }
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(geCharSet(file));

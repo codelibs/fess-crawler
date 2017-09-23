@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.mail.Address;
 import javax.mail.BodyPart;
@@ -51,6 +52,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class EmlExtractor implements Extractor {
+    private static final String[] DAY_OF_WEEK = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
     private static final Logger logger = LoggerFactory
         .getLogger(EmlExtractor.class);
 
@@ -70,139 +73,37 @@ public class EmlExtractor implements Extractor {
         try {
             final Session mailSession = Session.getDefaultInstance(props, null);
             final MimeMessage message = new MimeMessage(mailSession, in);
-            //            Object content = message.getContent();
             final String content = getBodyText(message);
-            final ExtractData data =
-                new ExtractData(content != null ? content.toString()
-                    : StringUtil.EMPTY);
-            @SuppressWarnings("unchecked")
-            final
-            Enumeration<Header> headers = message.getAllHeaders();
+            final ExtractData data = new ExtractData(content != null ? content : StringUtil.EMPTY);
+            final Enumeration<Header> headers = message.getAllHeaders();
             while (headers.hasMoreElements()) {
                 final Header header = headers.nextElement();
                 data.putValue(header.getName(), header.getValue());
             }
-            try {
-                putValue(data, "Content-ID", message.getContentID());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(
-                    data,
-                    "Content-Language",
-                    message.getContentLanguage());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Content-MD5", message.getContentMD5());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Description", message.getDescription());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Disposition", message.getDisposition());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Encoding", message.getEncoding());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "File-Name", message.getFileName());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "From", message.getFrom());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Line-Count", message.getLineCount());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Message-ID", message.getMessageID());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Message-Number", message.getMessageNumber());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Received-Date", getReceivedDate(message));
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Reply-To", message.getReplyTo());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Sender", message.getSender());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Sent-Date", message.getSentDate());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Size", message.getSize());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Subject", message.getSubject());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(data, "Receipients", message.getAllRecipients());
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(
-                    data,
-                    "To",
-                    message.getRecipients(Message.RecipientType.TO));
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(
-                    data,
-                    "Cc",
-                    message.getRecipients(Message.RecipientType.CC));
-            } catch (final Exception e) {
-                //ignore
-            }
-            try {
-                putValue(
-                    data,
-                    "Bcc",
-                    message.getRecipients(Message.RecipientType.BCC));
-            } catch (final Exception e) {
-                //ignore
-            }
+            putValue(data, "Content-ID", message.getContentID());
+            putValue(data, "Content-Language", message.getContentLanguage());
+            putValue(data, "Content-MD5", message.getContentMD5());
+            putValue(data, "Description", message.getDescription());
+            putValue(data, "Disposition", message.getDisposition());
+            putValue(data, "Encoding", message.getEncoding());
+            putValue(data, "File-Name", message.getFileName());
+            putValue(data, "From", message.getFrom());
+            putValue(data, "Line-Count", message.getLineCount());
+            putValue(data, "Message-ID", message.getMessageID());
+            putValue(data, "Message-Number", message.getMessageNumber());
+            putValue(data, "Received-Date", getReceivedDate(message));
+            putValue(data, "Reply-To", message.getReplyTo());
+            putValue(data, "Sender", message.getSender());
+            putValue(data, "Sent-Date", message.getSentDate());
+            putValue(data, "Size", message.getSize());
+            putValue(data, "Subject", message.getSubject());
+            putValue(data, "Receipients", message.getAllRecipients());
+            putValue(data, "To", message.getRecipients(Message.RecipientType.TO));
+            putValue(data, "Cc", message.getRecipients(Message.RecipientType.CC));
+            putValue(data, "Bcc", message.getRecipients(Message.RecipientType.BCC));
             return data;
         } catch (final MessagingException e) {
             throw new ExtractException(e);
-
         }
     }
 
@@ -212,29 +113,36 @@ public class EmlExtractor implements Extractor {
      * @param contentID
      */
     private void putValue(final ExtractData data, final String key, final Object value) {
-        if (value instanceof String) {
-            if ("Subject".equals(key)) {
-                data.putValue(key, getDecodeText(value.toString()));
-            } else {
+        try {
+            if (value instanceof String) {
+                if ("Subject".equals(key)) {
+                    data.putValue(key, getDecodeText(value.toString()));
+                } else {
+                    data.putValue(key, value.toString());
+                }
+            } else if (value instanceof String[]) {
+                data.putValues(key, (String[]) value);
+            } else if (value instanceof Integer) {
+                data.putValue(key, ((Integer) value).toString());
+            } else if (value instanceof Address[]) {
+                final int size = ((Address[]) value).length;
+                final String[] values = new String[size];
+                for (int i = 0; i < size; i++) {
+                    final Address address = ((Address[]) value)[i];
+                    values[i] = getDecodeText(address.toString());
+                }
+                data.putValues(key, values);
+            } else if (value instanceof Date) {
+                final SimpleDateFormat sdf = new SimpleDateFormat(Constants.ISO_DATETIME_FORMAT);
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                data.putValue(key, sdf.format(value));
+            } else if (value != null) {
                 data.putValue(key, value.toString());
             }
-        } else if (value instanceof String[]) {
-            data.putValues(key, (String[]) value);
-        } else if (value instanceof Integer) {
-            data.putValue(key, ((Integer) value).toString());
-        } else if (value instanceof Address[]) {
-            final int size = ((Address[]) value).length;
-            final String[] values = new String[size];
-            for (int i = 0; i < size; i++) {
-                final Address address = ((Address[]) value)[i];
-                values[i] = getDecodeText(address.toString());
+        } catch (Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to put " + key + ":" + value, e);
             }
-            data.putValues(key, values);
-        } else if (value instanceof Date) {
-            data.putValue(key, new SimpleDateFormat(
-                Constants.ISO_DATETIME_FORMAT).format(value));
-        } else if (value != null) {
-            data.putValue(key, value.toString());
         }
     }
 
@@ -319,9 +227,7 @@ public class EmlExtractor implements Extractor {
     }
 
     private static String getDateString(final String text) {
-        final String[] dayOfWeek =
-            { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
-        for (final String dow : dayOfWeek) {
+        for (final String dow : DAY_OF_WEEK) {
             final int i = text.lastIndexOf(dow);
             if (i != -1) {
                 return text.substring(i);

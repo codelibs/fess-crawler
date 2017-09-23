@@ -69,7 +69,7 @@ public class EmlExtractorTest extends PlainTestCase {
         IOUtils.closeQuietly(in);
         final String[] receivedDate = data.getValues("Received-Date");
         logger.info("Received-Date: " + receivedDate[0]);
-        assertEquals(receivedDate[0], "2012-11-11T11:39:59.000Z");
+        assertEquals(receivedDate[0], "2012-11-11T02:39:59.000Z");
     }
 
     public void test_getDecodeText() throws Exception {

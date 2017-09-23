@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.mail.Address;
 import javax.mail.BodyPart;
@@ -132,7 +133,9 @@ public class EmlExtractor implements Extractor {
                 }
                 data.putValues(key, values);
             } else if (value instanceof Date) {
-                data.putValue(key, new SimpleDateFormat(Constants.ISO_DATETIME_FORMAT).format(value));
+                final SimpleDateFormat sdf = new SimpleDateFormat(Constants.ISO_DATETIME_FORMAT);
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                data.putValue(key, sdf.format(value));
             } else if (value != null) {
                 data.putValue(key, value.toString());
             }

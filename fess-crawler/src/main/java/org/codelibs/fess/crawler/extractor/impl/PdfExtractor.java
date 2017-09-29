@@ -40,6 +40,8 @@ public class PdfExtractor extends PasswordBasedExtractor {
 
     protected long timeout = 30000; // 30sec
 
+    protected boolean isDaemonThread = false;
+
     /*
      * (non-Javadoc)
      *
@@ -52,7 +54,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
 
-        synchronized (pdfBoxLockObj) {
+        synchronized (pdfBoxLockObj) { // PDFBox is not a thread-safe library
             final String password = getPassword(params);
             try (PDDocument document = PDDocument.load(in, password == null ? null : password)) {
                 final StringWriter output = new StringWriter();
@@ -69,13 +71,13 @@ public class PdfExtractor extends PasswordBasedExtractor {
                         done.set(true);
                     }
                 }, Thread.currentThread().getName() + "-pdf");
-                task.setDaemon(true);
+                task.setDaemon(isDaemonThread);
                 task.start();
                 task.join(timeout);
                 if (!done.get()) {
                     for (int i = 0; i < 100 && !done.get(); i++) {
                         task.interrupt();
-                        Thread.sleep(50);
+                        Thread.sleep(100);
                     }
                     throw new ExtractException("PDFBox process cannot finish in " + timeout + " sec.");
                 } else if (!exceptionSet.isEmpty()) {
@@ -115,5 +117,9 @@ public class PdfExtractor extends PasswordBasedExtractor {
 
     public void setTimeout(final long timeout) {
         this.timeout = timeout;
+    }
+
+    public void setDaemonThread(boolean isDaemonThread) {
+        this.isDaemonThread = isDaemonThread;
     }
 }

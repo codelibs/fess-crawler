@@ -91,12 +91,12 @@ public class EsDataService extends AbstractCrawlerService implements DataService
         final EsResultList<EsAccessResult> targetList = new EsResultList<>();
         final SearchHits hits = response.getHits();
         targetList.setTotalHits(hits.getTotalHits());
-        targetList.setTookInMillis(response.getTookInMillis());
+        targetList.setTookInMillis(response.getTook().getMillis());
         if (hits.getTotalHits() != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
                     final EsAccessResult target = new EsAccessResult();
-                    final Map<String, Object> fields = searchHit.getSource();
+                    final Map<String, Object> fields = searchHit.getSourceAsMap();
                     target.setParentUrl(getFieldValue(fields.get("parentUrl"), String.class));
                     target.setMethod(getFieldValue(fields.get("method"), String.class));
                     target.setMimeType(getFieldValue(fields.get("mimeType"), String.class));
@@ -154,7 +154,7 @@ public class EsDataService extends AbstractCrawlerService implements DataService
             }
 
             for (final SearchHit searchHit : searchHits) {
-                final Map<String, Object> source = searchHit.getSource();
+                final Map<String, Object> source = searchHit.getSourceAsMap();
                 final EsAccessResult accessResult = BeanUtil.copyMapToNewBean(source, EsAccessResult.class, option -> {
                     option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
                     option.exclude(EsAccessResult.ACCESS_RESULT_DATA);

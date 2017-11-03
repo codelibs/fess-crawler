@@ -65,7 +65,7 @@ import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -143,7 +143,7 @@ public abstract class AbstractCrawlerService {
                     esClient.get(c -> {
                         final String source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards
                                 + ",\"number_of_replicas\":" + numberOfReplicas + "}}}";
-                        return c.admin().indices().prepareCreate(index).setSource(source, XContentFactory.xContentType(source)).execute();
+                        return c.admin().indices().prepareCreate(index).setSource(source, XContentType.JSON).execute();
                     });
             if (indexResponse.isAcknowledged()) {
                 logger.info("Created " + index + " index.");
@@ -158,7 +158,7 @@ public abstract class AbstractCrawlerService {
         if (indexMappings == null || !indexMappings.containsKey(type)) {
             final PutMappingResponse putMappingResponse = esClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");
-                return c.admin().indices().preparePutMapping(index).setType(type).setSource(source, XContentFactory.xContentType(source))
+                return c.admin().indices().preparePutMapping(index).setType(type).setSource(source, XContentType.JSON)
                         .execute();
             });
             if (putMappingResponse.isAcknowledged()) {
@@ -371,11 +371,11 @@ public abstract class AbstractCrawlerService {
         final EsResultList<T> targetList = new EsResultList<>();
         final SearchHits hits = response.getHits();
         targetList.setTotalHits(hits.getTotalHits());
-        targetList.setTookInMillis(response.getTookInMillis());
+        targetList.setTookInMillis(response.getTook().getMillis());
         if (hits.getTotalHits() != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
-                    final Map<String, Object> source = searchHit.getSource();
+                    final Map<String, Object> source = searchHit.getSourceAsMap();
                     final T target = BeanUtil.copyMapToNewBean(source, clazz, option -> {
                         option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
                         option.exclude(EsAccessResult.ACCESS_RESULT_DATA);

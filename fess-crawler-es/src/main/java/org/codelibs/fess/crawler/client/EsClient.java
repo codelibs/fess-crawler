@@ -36,7 +36,6 @@ import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -50,9 +49,6 @@ import org.elasticsearch.action.explain.ExplainResponse;
 import org.elasticsearch.action.fieldcaps.FieldCapabilitiesRequest;
 import org.elasticsearch.action.fieldcaps.FieldCapabilitiesRequestBuilder;
 import org.elasticsearch.action.fieldcaps.FieldCapabilitiesResponse;
-import org.elasticsearch.action.fieldstats.FieldStatsRequest;
-import org.elasticsearch.action.fieldstats.FieldStatsRequestBuilder;
-import org.elasticsearch.action.fieldstats.FieldStatsResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
@@ -86,7 +82,7 @@ import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.engine.VersionConflictEngineException;
@@ -175,7 +171,7 @@ public class EsClient implements Client {
                 throw new CrawlerSystemException("Invalid address: " + address);
             }
             try {
-                client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
+                client.addTransportAddress(new TransportAddress(InetAddress.getByName(hostname), port));
             } catch (final Exception e) {
                 throw new CrawlerSystemException("Unknown host: " + address);
             }
@@ -199,7 +195,7 @@ public class EsClient implements Client {
         }
     }
 
-    public <T> T get(final Function<EsClient, ListenableActionFuture<T>> func) {
+    public <T> T get(final Function<EsClient, ActionFuture<T>> func) {
         int retryCount = 0;
         while (true) {
             try {
@@ -446,21 +442,6 @@ public class EsClient implements Client {
     @Override
     public Settings settings() {
         return client.settings();
-    }
-
-    @Override
-    public FieldStatsRequestBuilder prepareFieldStats() {
-        return client.prepareFieldStats();
-    }
-
-    @Override
-    public ActionFuture<FieldStatsResponse> fieldStats(final FieldStatsRequest request) {
-        return client.fieldStats(request);
-    }
-
-    @Override
-    public void fieldStats(final FieldStatsRequest request, final ActionListener<FieldStatsResponse> listener) {
-        client.fieldStats(request, listener);
     }
 
     @Override

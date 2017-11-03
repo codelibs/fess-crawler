@@ -38,6 +38,14 @@ import org.elasticsearch.search.SearchHits;
 
 public class EsDataService extends AbstractCrawlerService implements DataService<EsAccessResult> {
 
+    public EsDataService() {
+    }
+
+    public EsDataService(final String index, final String type) {
+        this.index = index + "." + type;
+        this.type = type;
+    }
+
     @PostConstruct
     public void init() {
         esClient.addOnConnectListener(() -> {

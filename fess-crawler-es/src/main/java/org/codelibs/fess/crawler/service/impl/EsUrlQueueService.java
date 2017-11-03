@@ -61,6 +61,14 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     protected int maxCrawlingQueueSize = 100;
 
+    public EsUrlQueueService() {
+    }
+
+    public EsUrlQueueService(final String index, final String type) {
+        this.index = index + "." + type;
+        this.type = type;
+    }
+
     @PostConstruct
     public void init() {
         esClient.addOnConnectListener(() -> {

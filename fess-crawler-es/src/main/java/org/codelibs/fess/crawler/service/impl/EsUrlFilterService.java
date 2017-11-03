@@ -52,6 +52,14 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     protected int maxLoadSize = 10000;
 
+    public EsUrlFilterService() {
+    }
+
+    public EsUrlFilterService(final String index, final String type) {
+        this.index = index + "." + type;
+        this.type = type;
+    }
+
     @PostConstruct
     public void init() {
         esClient.addOnConnectListener(() -> {

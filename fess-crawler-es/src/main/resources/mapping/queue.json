@@ -1,5 +1,8 @@
 {
   "queue": {
+    "_all": {
+      "enabled": false
+    },
     "properties": {
       "depth": {
         "type": "integer"

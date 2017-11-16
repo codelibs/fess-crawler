@@ -1,5 +1,8 @@
 {
   "filter": {
+    "_all": {
+      "enabled": false
+    },
     "properties": {
       "sessionId": {
         "type": "keyword"

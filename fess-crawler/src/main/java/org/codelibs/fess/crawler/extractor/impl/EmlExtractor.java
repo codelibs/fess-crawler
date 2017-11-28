@@ -41,7 +41,6 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class EmlExtractor implements Extractor {
+public class EmlExtractor extends AbstractExtractor {
     private static final String[] DAY_OF_WEEK = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
     private static final Logger logger = LoggerFactory

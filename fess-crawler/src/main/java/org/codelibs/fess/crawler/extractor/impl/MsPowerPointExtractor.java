@@ -22,13 +22,12 @@ import java.util.Map;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 
 /**
  * @author shinsuke
  *
  */
-public class MsPowerPointExtractor implements Extractor {
+public class MsPowerPointExtractor extends AbstractExtractor {
 
     /*
      * (non-Javadoc)
@@ -43,9 +42,10 @@ public class MsPowerPointExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
         try {
-            return new ExtractData(
-                    new org.apache.poi.hslf.extractor.PowerPointExtractor(in)
-                            .getText());
+            @SuppressWarnings("resource")
+            final org.apache.poi.hslf.extractor.PowerPointExtractor powerPointExtractor =
+                    new org.apache.poi.hslf.extractor.PowerPointExtractor(in);
+            return new ExtractData(powerPointExtractor.getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

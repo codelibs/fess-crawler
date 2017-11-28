@@ -23,12 +23,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CopyUtil;
-import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -49,12 +46,9 @@ import jp.gr.java_conf.dangan.util.lha.LhaHeader;
  * @author shinsuke
  *
  */
-public class LhaExtractor implements Extractor {
+public class LhaExtractor extends AbstractExtractor {
     private static final Logger logger = LoggerFactory
             .getLogger(LhaExtractor.class);
-
-    @Resource
-    protected CrawlerContainer crawlerContainer;
 
     protected long maxContentSize = -1;
 

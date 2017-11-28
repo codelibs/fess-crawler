@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class JodExtractor implements Extractor {
+public class JodExtractor extends AbstractExtractor {
     private static final Logger logger = LoggerFactory
             .getLogger(JodExtractor.class);
 

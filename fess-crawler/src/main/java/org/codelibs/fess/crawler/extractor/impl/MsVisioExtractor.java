@@ -23,7 +23,6 @@ import org.apache.poi.hdgf.extractor.VisioTextExtractor;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 
 /**
  * Gets a text from . file.
@@ -31,7 +30,7 @@ import org.codelibs.fess.crawler.extractor.Extractor;
  * @author shinsuke
  *
  */
-public class MsVisioExtractor implements Extractor {
+public class MsVisioExtractor extends AbstractExtractor {
 
     /*
      * (non-Javadoc)
@@ -46,7 +45,9 @@ public class MsVisioExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
         try {
-            return new ExtractData(new VisioTextExtractor(in).getText());
+            @SuppressWarnings("resource")
+            final VisioTextExtractor visioTextExtractor = new VisioTextExtractor(in);
+            return new ExtractData(visioTextExtractor.getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

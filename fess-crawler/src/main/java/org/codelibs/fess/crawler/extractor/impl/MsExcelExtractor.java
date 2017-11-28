@@ -23,7 +23,6 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 
 /**
  * Gets a text from .xls file.
@@ -31,7 +30,7 @@ import org.codelibs.fess.crawler.extractor.Extractor;
  * @author shinsuke
  *
  */
-public class MsExcelExtractor implements Extractor {
+public class MsExcelExtractor extends AbstractExtractor {
     /*
      * (non-Javadoc)
      *
@@ -46,9 +45,10 @@ public class MsExcelExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
         try {
-            return new ExtractData(
-                    new org.apache.poi.hssf.extractor.ExcelExtractor(
-                            new HSSFWorkbook(in)).getText());
+            @SuppressWarnings("resource")
+            final org.apache.poi.hssf.extractor.ExcelExtractor excelExtractor =
+                    new org.apache.poi.hssf.extractor.ExcelExtractor(new HSSFWorkbook(in));
+            return new ExtractData(excelExtractor.getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

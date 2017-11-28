@@ -23,7 +23,6 @@ import org.apache.poi.hpbf.extractor.PublisherTextExtractor;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 
 /**
  * Gets a text from . file.
@@ -31,7 +30,7 @@ import org.codelibs.fess.crawler.extractor.Extractor;
  * @author shinsuke
  *
  */
-public class MsPublisherExtractor implements Extractor {
+public class MsPublisherExtractor extends AbstractExtractor {
 
     /*
      * (non-Javadoc)
@@ -46,7 +45,9 @@ public class MsPublisherExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
         try {
-            return new ExtractData(new PublisherTextExtractor(in).getText());
+            @SuppressWarnings("resource")
+            final PublisherTextExtractor publisherTextExtractor = new PublisherTextExtractor(in);
+            return new ExtractData(publisherTextExtractor.getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

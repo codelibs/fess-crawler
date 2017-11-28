@@ -17,13 +17,11 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.util.regex.Pattern;
 
-import org.codelibs.fess.crawler.extractor.Extractor;
-
 /**
  * @author shinsuke
  *
  */
-public class HtmlExtractor extends AbstractXmlExtractor implements Extractor {
+public class HtmlExtractor extends AbstractXmlExtractor {
 
     protected Pattern metaCharsetPattern = Pattern
             .compile(

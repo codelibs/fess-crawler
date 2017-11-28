@@ -28,14 +28,13 @@ import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.extractor.Extractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-public abstract class PasswordBasedExtractor implements Extractor {
+public abstract class PasswordBasedExtractor extends AbstractExtractor {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordBasedExtractor.class);
 

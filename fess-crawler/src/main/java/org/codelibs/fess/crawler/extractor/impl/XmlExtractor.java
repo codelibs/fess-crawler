@@ -17,13 +17,11 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.util.regex.Pattern;
 
-import org.codelibs.fess.crawler.extractor.Extractor;
-
 /**
  * @author shinsuke
  *
  */
-public class XmlExtractor extends AbstractXmlExtractor implements Extractor {
+public class XmlExtractor extends AbstractXmlExtractor {
     protected Pattern xmlEncodingPattern = Pattern.compile(
             "<\\?xml.*encoding\\s*=\\s*['\"]([\\w\\d\\-_]*)['\"]\\s*\\?>",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);

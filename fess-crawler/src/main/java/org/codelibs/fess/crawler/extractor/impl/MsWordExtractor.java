@@ -22,7 +22,6 @@ import java.util.Map;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 
 /**
  * Gets a text from .doc file.
@@ -30,7 +29,7 @@ import org.codelibs.fess.crawler.extractor.Extractor;
  * @author shinsuke
  *
  */
-public class MsWordExtractor implements Extractor {
+public class MsWordExtractor extends AbstractExtractor {
 
     /*
      * (non-Javadoc)
@@ -45,9 +44,9 @@ public class MsWordExtractor implements Extractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
         try {
-            return new ExtractData(
-                    new org.apache.poi.hwpf.extractor.WordExtractor(in)
-                            .getText());
+            @SuppressWarnings("resource")
+            final org.apache.poi.hwpf.extractor.WordExtractor wordExtractor = new org.apache.poi.hwpf.extractor.WordExtractor(in);
+            return new ExtractData(wordExtractor.getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

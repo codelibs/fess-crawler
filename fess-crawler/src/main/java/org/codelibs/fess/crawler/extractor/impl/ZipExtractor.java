@@ -26,7 +26,6 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.tika.metadata.TikaMetadataKeys;
-import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -42,12 +41,9 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class ZipExtractor implements Extractor {
+public class ZipExtractor extends AbstractExtractor {
     private static final Logger logger = LoggerFactory
             .getLogger(ZipExtractor.class);
-
-    @Resource
-    protected CrawlerContainer crawlerContainer;
 
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;

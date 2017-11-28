@@ -36,7 +36,6 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExecutionTimeoutException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class CommandExtractor implements Extractor {
+public class CommandExtractor extends AbstractExtractor {
     private static final Logger logger = LoggerFactory
             .getLogger(CommandExtractor.class);
 

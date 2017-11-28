@@ -15,8 +15,12 @@
  */
 package org.codelibs.fess.crawler.client;
 
+import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
+import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -40,6 +44,9 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     public static final String MAX_CONTENT_LENGTH = "maxContentLength";
 
     public static final String MAX_CACHED_CONTENT_SIZE = "maxCachedContentSize";
+
+    @Resource
+    protected CrawlerContainer crawlerContainer;
 
     private Map<String, Object> initParamMap;
 
@@ -172,5 +179,20 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     public void setMaxContentLength(final Long maxContentLength) {
         this.maxContentLength = maxContentLength;
+    }
+
+    public void register(final String regex) {
+        CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
+        clientFactory.addClient(regex, this);
+    }
+
+    public void register(final List<String> regexList) {
+        CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
+        clientFactory.addClient(regexList, this);
+    }
+
+    public void register(final String regex, final int pos) {
+        CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
+        clientFactory.addClient(regex, this, pos);
     }
 }

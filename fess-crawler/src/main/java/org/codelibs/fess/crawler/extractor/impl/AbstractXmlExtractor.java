@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public abstract class AbstractXmlExtractor {
+public abstract class AbstractXmlExtractor extends AbstractExtractor {
 
     protected static final Logger logger = LoggerFactory
             .getLogger(AbstractXmlExtractor.class);

@@ -59,7 +59,6 @@ import org.codelibs.fess.crawler.client.http.Authentication;
 import org.codelibs.fess.crawler.client.http.RequestHeader;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +70,7 @@ import com.google.common.base.Charsets;
  * @author shinsuke
  *
  */
-public class ApiExtractor implements Extractor {
+public class ApiExtractor extends AbstractExtractor {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiExtractor.class);
 

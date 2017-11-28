@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -62,7 +61,6 @@ import org.apache.tika.sax.SecureContentHandler;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
-import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -87,9 +85,6 @@ public class TikaExtractor extends PasswordBasedExtractor {
     public static final String TIKA_PDF_CONFIG = "tika.pdf.config";
 
     private static final String FILE_PASSWORD = "fess.file.password";
-
-    @Resource
-    protected CrawlerContainer crawlerContainer;
 
     protected String outputEncoding = Constants.UTF_8;
 

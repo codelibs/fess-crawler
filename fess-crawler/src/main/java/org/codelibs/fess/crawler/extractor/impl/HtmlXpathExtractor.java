@@ -26,7 +26,6 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 import org.cyberneko.html.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -37,8 +36,7 @@ import org.xml.sax.InputSource;
  * @author shinsuke
  *
  */
-public class HtmlXpathExtractor extends AbstractXmlExtractor implements
-        Extractor {
+public class HtmlXpathExtractor extends AbstractXmlExtractor {
     protected Pattern metaCharsetPattern = Pattern
             .compile(
                     "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",

@@ -23,13 +23,12 @@ import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.codelibs.fess.crawler.extractor.Extractor;
 
 /**
  * @author shinsuke
  *
  */
-public class TextExtractor implements Extractor {
+public class TextExtractor extends AbstractExtractor {
 
     protected String encoding = Constants.UTF_8;
 

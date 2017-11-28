@@ -21,7 +21,7 @@
 	<!-- Crawler Thread -->
 	<component name="crawlerThread" class="org.codelibs.fess.crawler.CrawlerThread" instance="prototype" >
 	</component>
-	
+
 	<!-- Entity -->
 	<component name="accessResult" class="org.codelibs.fess.crawler.entity.AccessResultImpl" instance="prototype" >
 	</component>

@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.helper.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.codelibs.core.io.ResourceUtil;
@@ -34,135 +35,91 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        container = new StandardCrawlerContainer().singleton("mimeTypeHelper",
-                MimeTypeHelperImpl.class);
+        container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
     }
 
-    public void test_getContentType() {
-        final MimeTypeHelper mimeTypeHelper = container
-                .getComponent("mimeTypeHelper");
-        final InputStream is = ResourceUtil
-                .getResourceAsStream("test/text1.txt");
-        final InputStream htmlStream = ResourceUtil
-                .getResourceAsStream("html/test1.html");
-        final InputStream shtmlStream = ResourceUtil
-                .getResourceAsStream("html/test1.shtml");
-        final InputStream msWordStream = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.doc");
-        final InputStream msExcelStream = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.xls");
-        final InputStream msPowerPointStream = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.ppt");
-        final InputStream msWordXStream = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.docx");
-        final InputStream msExcelXStream = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.xlsx");
-        final InputStream msPowerPointXStream = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.pptx");
-        final InputStream zipStream = ResourceUtil
-                .getResourceAsStream("extractor/zip/test.zip");
-        final InputStream lhaStream = ResourceUtil
-                .getResourceAsStream("extractor/lha/test.lzh");
-        final InputStream gzStream = ResourceUtil
-                .getResourceAsStream("extractor/gz/test.tar.gz");
-        final InputStream pdfStream = ResourceUtil
-                .getResourceAsStream("extractor/test.pdf");
-        final InputStream freeMindStream = ResourceUtil
-                .getResourceAsStream("extractor/test.mm");
-        final InputStream emlStream = ResourceUtil
-                .getResourceAsStream("extractor/eml/sample1.eml");
+    public void test_getContentType() throws IOException {
+        assertContentType("text/plain", "test/text1.txt", "hoge.txt");
+        assertContentType("text/html", "html/test1.html", "hoge.html");
+        assertContentType("text/html", "html/test1.html", "hoge.htm");
+        assertContentType("text/html", "html/test1.shtml", "hoge.shtml");
 
-        assertEquals("text/plain",
-                mimeTypeHelper.getContentType(is, "hoge.txt"));
-        assertEquals("text/html",
-                mimeTypeHelper.getContentType(htmlStream, "hoge.html"));
-        assertEquals("text/html",
-                mimeTypeHelper.getContentType(htmlStream, "hoge.htm"));
-        assertEquals("text/html",
-                mimeTypeHelper.getContentType(shtmlStream, "hoge.shtml"));
+        assertContentType("text/plain", "test/text1.txt", "hoge.doc");
+        assertContentType("application/msword", "extractor/msoffice/test.doc", "hoge.doc");
+        assertContentType("text/plain", "test/text1.txt", "hoge.xls");
+        assertContentType("application/vnd.ms-excel", "extractor/msoffice/test.xls", "hoge.xls");
+        assertContentType("text/plain", "test/text1.txt", "hoge.ppt");
+        assertContentType("application/vnd.ms-powerpoint", "extractor/msoffice/test.ppt", "hoge.ppt");
 
-        assertEquals("text/plain",
-                mimeTypeHelper.getContentType(is, "hoge.doc"));
-        assertEquals("application/msword",
-                mimeTypeHelper.getContentType(msWordStream, "hoge.doc"));
-        assertEquals("text/plain",
-                mimeTypeHelper.getContentType(is, "hoge.xls"));
-        assertEquals("application/vnd.ms-excel",
-                mimeTypeHelper.getContentType(msExcelStream, "hoge.xls"));
-        assertEquals("text/plain",
-                mimeTypeHelper.getContentType(is, "hoge.ppt"));
-        assertEquals("application/vnd.ms-powerpoint",
-                mimeTypeHelper.getContentType(msPowerPointStream, "hoge.ppt"));
+        assertContentType("text/plain", "test/text1.txt", "hoge.docx");
+        assertContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "extractor/msoffice/test.docx",
+                "hoge.docx");
+        assertContentType("text/plain", "test/text1.txt", "hoge.xlsx");
+        assertContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "extractor/msoffice/test.xlsx", "hoge.xlsx");
+        assertContentType("text/plain", "test/text1.txt", "hoge.pptx");
+        assertContentType("application/vnd.openxmlformats-officedocument.presentationml.presentation", "extractor/msoffice/test.pptx",
+                "hoge.pptx");
 
-        assertEquals("text/plain",
-                mimeTypeHelper.getContentType(is, "hoge.docx"));
-        assertEquals(
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                mimeTypeHelper.getContentType(msWordXStream, "hoge.docx"));
-        assertEquals("text/plain",
-                mimeTypeHelper.getContentType(is, "hoge.xlsx"));
-        assertEquals(
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                mimeTypeHelper.getContentType(msExcelXStream, "hoge.xlsx"));
-        assertEquals("text/plain",
-                mimeTypeHelper.getContentType(is, "hoge.pptx"));
-        assertEquals(
-                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                mimeTypeHelper.getContentType(msPowerPointXStream, "hoge.pptx"));
+        assertContentType("image/jpeg", null, "hoge.jpg");
+        assertContentType("image/gif", null, "hoge.gif");
 
-        assertEquals("image/jpeg",
-                mimeTypeHelper.getContentType(null, "hoge.jpg"));
-        assertEquals("image/gif",
-                mimeTypeHelper.getContentType(null, "hoge.gif"));
+        assertContentType("application/pdf", "extractor/test.pdf", "hoge.pdf");
 
-        assertEquals("application/pdf",
-                mimeTypeHelper.getContentType(pdfStream, "hoge.pdf"));
+        assertContentType("application/gzip", "extractor/gz/test.tar.gz", "hoge.tar.gz");
+        assertContentType("application/zip", "extractor/zip/test.zip", "hoge.zip");
+        assertContentType("application/x-lharc", "extractor/lha/test.lzh", "hoge.lzh"); // TODO is it correct?
 
-        assertEquals("application/gzip",
-                mimeTypeHelper.getContentType(gzStream, "hoge.tar.gz"));
-        assertEquals("application/zip",
-                mimeTypeHelper.getContentType(zipStream, "hoge.zip"));
-        assertEquals("application/x-lharc", // TODO is it correct?
-                mimeTypeHelper.getContentType(lhaStream, "hoge.lzh"));
+        assertContentType("application/xml", "extractor/test.mm", "hoge.mm");
 
-        assertEquals("application/xml",
-                mimeTypeHelper.getContentType(freeMindStream, "hoge.mm"));
+        assertContentType("message/rfc822", "extractor/eml/sample1.eml", "sample1.eml");
 
-        assertEquals("message/rfc822",
-                mimeTypeHelper.getContentType(emlStream, "sample1.eml"));
+        assertContentType("application/octet-stream", null, "hoge");
 
-        assertEquals("application/octet-stream",
-                mimeTypeHelper.getContentType(null, "hoge"));
+        assertContentType("application/vnd.ms-powerpoint", "extractor/msoffice/test.ppt", "h&oge.ppt");
+        assertContentType("application/vnd.ms-powerpoint", "extractor/msoffice/test.ppt", "h?oge.ppt");
+        assertContentType("application/vnd.ms-powerpoint", "extractor/msoffice/test.ppt", "h@oge.ppt");
+        assertContentType("application/vnd.ms-powerpoint", "extractor/msoffice/test.ppt", "h:oge.ppt");
+        assertContentType("application/vnd.ms-powerpoint", "extractor/msoffice/test.ppt", "h/oge.ppt");
 
-        assertEquals("application/vnd.ms-powerpoint",
-                mimeTypeHelper.getContentType(msPowerPointStream, "h&oge.ppt"));
-        assertEquals("application/vnd.ms-powerpoint",
-                mimeTypeHelper.getContentType(msPowerPointStream, "h?oge.ppt"));
-        assertEquals("application/vnd.ms-powerpoint",
-                mimeTypeHelper.getContentType(msPowerPointStream, "h@oge.ppt"));
-        assertEquals("application/vnd.ms-powerpoint",
-                mimeTypeHelper.getContentType(msPowerPointStream, "h:oge.ppt"));
-        assertEquals("application/vnd.ms-powerpoint",
-                mimeTypeHelper.getContentType(msPowerPointStream, "h/oge.ppt"));
+        assertContentType("image/vnd.dwg", "extractor/dwg/autocad_2000.dwg", "autocad_2000.dwg");
+        assertContentType("image/vnd.dwg", "extractor/dwg/autocad_2004.dwg", "autocad_2004.dwg");
+        assertContentType("image/vnd.dwg", "extractor/dwg/autocad_2007.dwg", "autocad_2007.dwg");
+        assertContentType("image/vnd.dwg", "extractor/dwg/autocad_2010.dwg", "autocad_2010.dwg");
+        assertContentType("image/vnd.dwg", "extractor/dwg/autocad_2013.dwg", "autocad_2013.dwg");
+        assertContentType("image/vnd.dwg", "extractor/dwg/autocad_97_98.dwg", "autocad_97_98.dwg");
+
+        assertContentType("image/vnd.dxf", "extractor/dxf/autocad_2000.dxf", "autocad_2000.dxf");
+        assertContentType("image/vnd.dxf", "extractor/dxf/autocad_2004.dxf", "autocad_2004.dxf");
+        assertContentType("image/vnd.dxf", "extractor/dxf/autocad_2007.dxf", "autocad_2007.dxf");
+        assertContentType("image/vnd.dxf", "extractor/dxf/autocad_2010.dxf", "autocad_2010.dxf");
+        assertContentType("image/vnd.dxf", "extractor/dxf/autocad_2013.dxf", "autocad_2013.dxf");
+        assertContentType("image/vnd.dxf", "extractor/dxf/autocad_R12_LT2.dxf", "autocad_R12_LT2.dxf");
+    }
+
+    private void assertContentType(final String expect, final String path, final String name) throws IOException {
+        final MimeTypeHelper mimeTypeHelper = container.getComponent("mimeTypeHelper");
+        if (path != null) {
+            try (final InputStream is = ResourceUtil.getResourceAsStream(path)) {
+                assertEquals(expect, mimeTypeHelper.getContentType(is, name));
+            }
+        } else {
+            assertEquals(expect, mimeTypeHelper.getContentType(null, name));
+        }
     }
 
     public void test_getContentType_null() {
-        final MimeTypeHelper mimeTypeHelper = container
-                .getComponent("mimeTypeHelper");
-        final InputStream is = ResourceUtil
-                .getResourceAsStream("test/text1.txt");
+        final MimeTypeHelper mimeTypeHelper = container.getComponent("mimeTypeHelper");
+        final InputStream is = ResourceUtil.getResourceAsStream("test/text1.txt");
 
         try {
             mimeTypeHelper.getContentType(null, "");
             fail();
-        } catch (final MimeTypeException e) {
-        }
+        } catch (final MimeTypeException e) {}
 
         try {
             mimeTypeHelper.getContentType(is, "");
             fail();
-        } catch (final MimeTypeException e) {
-        }
+        } catch (final MimeTypeException e) {}
 
         assertEquals("text/plain", mimeTypeHelper.getContentType(is, " "));
     }

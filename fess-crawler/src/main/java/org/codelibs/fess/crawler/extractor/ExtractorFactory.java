@@ -21,12 +21,16 @@ import java.util.Map;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class ExtractorFactory {
+    private static final Logger logger = LoggerFactory.getLogger(ExtractorFactory.class);
+
     protected Map<String, Extractor> extractorMap = new HashMap<>();
 
     public void addExtractor(final String key, final Extractor extractor) {
@@ -37,6 +41,9 @@ public class ExtractorFactory {
             throw new CrawlerSystemException("The extractor is null.");
         }
         extractorMap.put(key, extractor);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Loaded " + key + " : " + extractor.getClass().getName());
+        }
     }
 
     public void addExtractor(final List<String> keyList,

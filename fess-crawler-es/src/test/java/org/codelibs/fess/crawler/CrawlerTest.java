@@ -75,7 +75,7 @@ public class CrawlerTest extends LastaDiTestCase {
         runner.onBuild((number, settingsBuilder) -> {
             settingsBuilder.put("http.cors.enabled", true);
             settingsBuilder.put("http.cors.allow-origin", "*");
-            settingsBuilder.putArray("discovery.zen.ping.unicast.hosts", "localhost:9301-9399");
+            settingsBuilder.putList("discovery.zen.ping.unicast.hosts", "localhost:9301-9399");
         }).build(newConfigs().clusterName(clusterName).numOfNode(1));
 
         // wait for yellow status

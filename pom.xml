@@ -43,7 +43,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jta.version>1.2</jta.version>
-    <dbflute.version>1.1.6-RC6</dbflute.version>
+    <dbflute.version>1.1.6</dbflute.version>
     <lastadi.version>0.7.5</lastadi.version>
     <utflute.version>0.8.5</utflute.version>
     <corelib.version>0.3.6</corelib.version>

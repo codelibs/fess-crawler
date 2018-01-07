@@ -22,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -32,15 +33,20 @@ import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.MailDateFormat;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
 
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.extractor.Extractor;
+import org.codelibs.fess.crawler.extractor.ExtractorFactory;
+import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +117,7 @@ public class EmlExtractor extends AbstractExtractor {
      * @param string
      * @param contentID
      */
-    private void putValue(final ExtractData data, final String key, final Object value) {
+    protected void putValue(final ExtractData data, final String key, final Object value) {
         try {
             if (value instanceof String) {
                 if ("Subject".equals(key)) {
@@ -145,7 +151,7 @@ public class EmlExtractor extends AbstractExtractor {
         }
     }
 
-    String getDecodeText(final String value) {
+    protected String getDecodeText(final String value) {
         if (value == null) {
             return StringUtil.EMPTY;
         }
@@ -165,46 +171,70 @@ public class EmlExtractor extends AbstractExtractor {
         this.mailProperties = mailProperties;
     }
 
-    private String getBodyText(final MimeMessage message) {
-        String result = null;
+    protected String getBodyText(final MimeMessage message) {
+        StringBuilder buf = new StringBuilder(1000);
         try {
             final Object content = message.getContent();
             if (content instanceof Multipart) {
-                BodyPart textPlain = null;
-                BodyPart textHtml = null;
                 final Multipart multipart = (Multipart) content;
                 final int count = multipart.getCount();
                 for (int i = 0; i < count; i++) {
                     final BodyPart bodyPart = multipart.getBodyPart(i);
-                    final String disposition = bodyPart.getDisposition();
-                    if (disposition != null
-                        && (disposition.equalsIgnoreCase("ATTACHMENT"))) {
-                        // TODO: ignore attachments
-                    } else {
-                        if (bodyPart.isMimeType("text/plain")) {
-                            textPlain = bodyPart;
-                            break;
-                        } else if (bodyPart.isMimeType("text/html")) {
-                            textHtml = bodyPart;
+                    if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
+                        appendAttachment(buf, bodyPart);
+                    } else if (bodyPart.isMimeType("text/plain")) {
+                        buf.append(bodyPart.getContent().toString()).append(' ');
+                    } else if (bodyPart.isMimeType("text/html")) {
+                        buf.append(bodyPart.getContent().toString()).append(' ');
+                    } else if (bodyPart.isMimeType("multipart/alternative") && bodyPart.getContent() instanceof Multipart) {
+                        final Multipart alternativePart = (Multipart) bodyPart.getContent();
+                        for (int j = 0; j < alternativePart.getCount(); j++) {
+                            final BodyPart innerBodyPart = alternativePart.getBodyPart(j);
+                            if (innerBodyPart.isMimeType("text/plain")) {
+                                buf.append(innerBodyPart.getContent().toString()).append(' ');
+                                break;
+                            }
                         }
                     }
                 }
-                if (textPlain != null) {
-                    result = (String) textPlain.getContent();
-                } else if (textHtml != null) {
-                    result = (String) textHtml.getContent();
-                }
             } else if (content instanceof String) {
-                result = (String) content;
+                buf.append(content.toString());
             }
         } catch (MessagingException | IOException e) {
             throw new ExtractException(e);
         }
-        return result;
+        return buf.toString();
     }
 
-    private static Date getReceivedDate(final javax.mail.Message message)
-            throws MessagingException {
+    protected void appendAttachment(final StringBuilder buf, final BodyPart bodyPart) {
+        final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
+        final ExtractorFactory extractorFactory = getExtractorFactory();
+        try {
+            final String filename = getDecodeText(bodyPart.getFileName());
+            final String mimeType = mimeTypeHelper.getContentType(null, filename);
+            if (mimeType != null) {
+                final Extractor extractor = extractorFactory.getExtractor(mimeType);
+                if (extractor != null) {
+                    try (final InputStream in = bodyPart.getInputStream()) {
+                        final Map<String, String> map = new HashMap<>();
+                        map.put(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
+                        final String content = extractor.getText(in, map).getContent();
+                        buf.append(content).append(' ');
+                    } catch (final Exception e) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Exception in an internal extractor.", e);
+                        }
+                    }
+                }
+            }
+        } catch (MessagingException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Exception in parsing BodyPart.", e);
+            }
+        }
+    }
+
+    protected static Date getReceivedDate(final javax.mail.Message message) throws MessagingException {
         final Date today = new Date();
         final String[] received = message.getHeader("received");
         if (received != null) {

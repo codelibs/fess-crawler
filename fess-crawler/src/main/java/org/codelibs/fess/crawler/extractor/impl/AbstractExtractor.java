@@ -20,8 +20,10 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.codelibs.fess.crawler.container.CrawlerContainer;
+import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
+import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 
 public abstract class AbstractExtractor implements Extractor {
 
@@ -33,4 +35,19 @@ public abstract class AbstractExtractor implements Extractor {
         extractorFactory.addExtractor(keyList, this);
     }
 
+    protected MimeTypeHelper getMimeTypeHelper() {
+        final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
+        if (mimeTypeHelper == null) {
+            throw new CrawlerSystemException("MimeTypeHelper is unavailable.");
+        }
+        return mimeTypeHelper;
+    }
+
+    protected ExtractorFactory getExtractorFactory() {
+        final ExtractorFactory extractorFactory = crawlerContainer.getComponent("extractorFactory");
+        if (extractorFactory == null) {
+            throw new CrawlerSystemException("ExtractorFactory is unavailable.");
+        }
+        return extractorFactory;
+    }
 }

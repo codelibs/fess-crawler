@@ -112,11 +112,6 @@ public class EmlExtractor extends AbstractExtractor {
         }
     }
 
-    /**
-     * @param data
-     * @param string
-     * @param contentID
-     */
     protected void putValue(final ExtractData data, final String key, final Object value) {
         try {
             if (value instanceof String) {

@@ -57,18 +57,8 @@ public class ZipExtractor extends AbstractExtractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
 
-        final MimeTypeHelper mimeTypeHelper = crawlerContainer
-                .getComponent("mimeTypeHelper");
-        if (mimeTypeHelper == null) {
-            throw new CrawlerSystemException("MimeTypeHelper is unavailable.");
-        }
-
-        final ExtractorFactory extractorFactory = crawlerContainer
-                .getComponent("extractorFactory");
-        if (extractorFactory == null) {
-            throw new CrawlerSystemException("ExtractorFactory is unavailable.");
-        }
-
+        final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
+        final ExtractorFactory extractorFactory = getExtractorFactory();
         final StringBuilder buf = new StringBuilder(1000);
 
         try (final ArchiveInputStream ais =

@@ -2,3 +2,4 @@
 *.bat       eol=crlf
 *.cmd       eol=crlf
 *.dxf       eol=crlf
+*.eml       eol=crlf

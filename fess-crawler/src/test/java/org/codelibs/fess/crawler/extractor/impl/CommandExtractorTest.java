@@ -58,6 +58,29 @@ public class CommandExtractorTest extends PlainTestCase {
         }
     }
 
+    private File createScriptTempFileStdout(final int sleep) {
+        String extention;
+        String content;
+        if (File.separator.equals("/")) {
+            // Unix
+            extention = ".sh";
+            content = "#!/bin/bash\nsleep " + sleep + ";cat $1";
+        } else {
+            // Windows
+            extention = ".bat";
+            content = "ping localhost -n " + sleep + "\r\ntype %1";
+        }
+        File file;
+        try {
+            file = File.createTempFile("script", extention);
+            file.deleteOnExit();
+            FileUtil.writeBytes(file.getAbsolutePath(), content.getBytes());
+            return file;
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+    }
+
     private File createContentFile(final String extention, final byte[] data) {
         try {
             final File file = File.createTempFile("content", extention);
@@ -77,6 +100,17 @@ public class CommandExtractorTest extends PlainTestCase {
         } else {
             // Windows
             return scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        }
+    }
+
+    private String getCommandStdout(final File scriptFile) {
+        if (File.separator.equals("/")) {
+            // Unix
+            return "sh " + scriptFile.getAbsolutePath()
+                    + " $INPUT_FILE";
+        } else {
+            // Windows
+            return scriptFile.getAbsolutePath() + " $INPUT_FILE";
         }
     }
 
@@ -121,6 +155,20 @@ public class CommandExtractorTest extends PlainTestCase {
             fail(data.toString());
         } catch (final ExecutionTimeoutException e) {
         }
+    }
+
+    public void test_getText_fromStdin() throws IOException {
+        final File scriptFile = createScriptTempFileStdout(3);
+        final String content = "TEST";
+        final File contentFile = createContentFile(".txt", content.getBytes());
+
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.standardOutput = true;
+        extractor.command = getCommandStdout(scriptFile);
+        final Map<String, String> params = new HashMap<String, String>();
+        final ExtractData text = extractor.getText(new FileInputStream(
+                contentFile), params);
+        assertEquals(content, text.getContent());
     }
 
     public void test_parseCommand() {

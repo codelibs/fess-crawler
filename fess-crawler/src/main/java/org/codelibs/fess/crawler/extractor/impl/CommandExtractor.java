@@ -65,6 +65,8 @@ public class CommandExtractor extends AbstractExtractor {
 
     protected int maxOutputLine = 1000;
 
+    protected boolean standardOutput = false;
+
     /*
      * (non-Javadoc)
      *
@@ -172,7 +174,11 @@ public class CommandExtractor extends AbstractExtractor {
         if (workingDirectory != null) {
             pb.directory(workingDirectory);
         }
-        pb.redirectErrorStream(true);
+        if (standardOutput) {
+            pb.redirectOutput(outputFile);
+        } else {
+            pb.redirectErrorStream(true);
+        }
 
         Process currentProcess = null;
         MonitorThread mt = null;
@@ -199,8 +205,12 @@ public class CommandExtractor extends AbstractExtractor {
             final int exitValue = currentProcess.exitValue();
 
             if (logger.isInfoEnabled()) {
-                logger.info("Exit Code: " + exitValue + " - Process Output:\n"
-                        + it.getOutput());
+                if (standardOutput) {
+                    logger.info("Exit Code: " + exitValue);
+                } else {
+                    logger.info("Exit Code: " + exitValue + " - Process Output:\n"
+                            + it.getOutput());
+                }
             }
             if (exitValue == 143 && mt.isTeminated()) {
                 throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
@@ -425,5 +435,9 @@ public class CommandExtractor extends AbstractExtractor {
 
     public void setMaxOutputLine(final int maxOutputLine) {
         this.maxOutputLine = maxOutputLine;
+    }
+
+    public void setStandardOutput(final boolean standardOutput) {
+        this.standardOutput = standardOutput;
     }
 }

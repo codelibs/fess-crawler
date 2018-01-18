@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codelibs.fess</groupId>
   <artifactId>fess-crawler-parent</artifactId>
-  <version>1.5.6</version>
+  <version>1.5.7-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Fess Crawler Project</name>
   <description>Fess Crawler is Crawler Framework.</description>

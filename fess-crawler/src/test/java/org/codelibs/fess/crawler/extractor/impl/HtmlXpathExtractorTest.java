@@ -19,7 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -50,7 +50,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_utf8.html");
         final String content = htmlXpathExtractor.getText(in, null)
                 .getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -60,7 +60,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_sjis.html");
         final String content = htmlXpathExtractor.getText(in, null)
                 .getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -70,7 +70,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_attr.html");
         final String content = htmlXpathExtractor.getText(in, null)
                 .getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("本文1"));
         assertTrue(content.contains("本文2"));
@@ -85,7 +85,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         final InputStream in = new ByteArrayInputStream("".getBytes());
         final String content = htmlXpathExtractor.getText(in, null)
                 .getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);
     }
@@ -95,7 +95,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_utf8.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlXpathExtractor.getEncoding(bis);
-        IOUtils.closeQuietly(bis);
+        CloseableUtil.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
 
@@ -104,7 +104,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_sjis.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlXpathExtractor.getEncoding(bis);
-        IOUtils.closeQuietly(bis);
+        CloseableUtil.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
     }
 

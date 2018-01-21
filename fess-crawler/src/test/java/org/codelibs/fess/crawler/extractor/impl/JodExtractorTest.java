@@ -19,8 +19,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -60,7 +60,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.odt");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -72,7 +72,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test_as.odt");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -84,7 +84,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.ods");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -96,7 +96,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test_as.ods");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -108,7 +108,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.odp");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -120,7 +120,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.doc");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -132,7 +132,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test_as.doc");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -144,7 +144,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.docx");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -155,7 +155,7 @@ public class JodExtractorTest extends PlainTestCase {
      * Map<String, String> params = new HashMap<String, String>();
      * params.put("resourceName", "test_as.docx"); ExtractData extractData =
      * jodExtractor.getText(in, params); String content =
-     * extractData.getContent(); IOUtils.closeQuietly(in); logger.info(content);
+     * extractData.getContent(); CloseableUtil.closeQuietly(in); logger.info(content);
      * assertTrue(content.contains("テスト")); }
      */
 
@@ -166,7 +166,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.xls");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -178,7 +178,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test_as.xls");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -190,7 +190,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.xlsx");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -202,7 +202,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test_as.xlsx");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -214,7 +214,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.ppt");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -226,7 +226,7 @@ public class JodExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.pptx");
         ExtractData extractData = jodExtractor.getText(in, params);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -235,7 +235,7 @@ public class JodExtractorTest extends PlainTestCase {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/test.rtf");
         ExtractData extractData = jodExtractor.getText(in, null);
         String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }

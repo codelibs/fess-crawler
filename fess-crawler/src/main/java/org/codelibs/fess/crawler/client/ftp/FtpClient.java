@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -41,6 +40,7 @@ import org.apache.commons.net.ftp.FTPClient.NatServerResolverImpl;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilters;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.timer.TimeoutManager;
@@ -251,10 +251,10 @@ public class FtpClient extends AbstractCrawlerClient {
 
             updateResponseData(uri, includeContent, responseData, client, ftpInfo, file);
         } catch (final CrawlerSystemException e) {
-            IOUtils.closeQuietly(responseData);
+            CloseableUtil.closeQuietly(responseData);
             throw e;
         } catch (final Exception e) {
-            IOUtils.closeQuietly(responseData);
+            CloseableUtil.closeQuietly(responseData);
             throw new CrawlingAccessException("Could not access " + uri, e);
         }
 

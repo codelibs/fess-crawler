@@ -19,8 +19,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -58,7 +58,7 @@ public class PdfExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test.pdf");
         final ExtractData extractData = pdfExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertEquals("Writer", extractData.getValues("Creator")[0]);
@@ -74,7 +74,7 @@ public class PdfExtractorTest extends PlainTestCase {
         params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
         final String content = pdfExtractorForPdfPassword.getText(in, params)
                 .getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }

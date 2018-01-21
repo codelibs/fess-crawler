@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.timer.TimeoutManager;
@@ -233,10 +233,10 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 responseData.setContentLength(0);
             }
         } catch (final CrawlerSystemException e) {
-            IOUtils.closeQuietly(responseData);
+            CloseableUtil.closeQuietly(responseData);
             throw e;
         } catch (final Exception e) {
-            IOUtils.closeQuietly(responseData);
+            CloseableUtil.closeQuietly(responseData);
             throw new CrawlingAccessException("Could not access " + uri, e);
         }
 

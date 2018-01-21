@@ -17,7 +17,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -48,7 +48,7 @@ public class MsPowerPointExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/msoffice/test.ppt");
         final String content = msPowerPointExtractor.getText(in, null)
                 .getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }

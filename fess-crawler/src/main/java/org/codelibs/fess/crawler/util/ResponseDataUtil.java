@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
@@ -45,7 +45,7 @@ public final class ResponseDataUtil {
             fos = new FileOutputStream(tempFile);
             CopyUtil.copy(is, fos);
         } catch (final Exception e) {
-            IOUtils.closeQuietly(fos); // for deleting file
+            CloseableUtil.closeQuietly(fos); // for deleting file
             // clean up
             if (tempFile != null && !tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
@@ -54,7 +54,7 @@ public final class ResponseDataUtil {
                     "Could not read a response body: " + responseData.getUrl(),
                     e);
         } finally {
-            IOUtils.closeQuietly(fos);
+            CloseableUtil.closeQuietly(fos);
         }
         return tempFile;
     }

@@ -17,11 +17,10 @@ package org.codelibs.fess.crawler.rule.impl;
 
 import java.io.File;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
-import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
@@ -72,7 +71,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(responseData);
+        CloseableUtil.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps2() {
@@ -84,7 +83,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(responseData);
+        CloseableUtil.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps3() {
@@ -96,7 +95,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(responseData);
+        CloseableUtil.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps4() {
@@ -108,7 +107,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(responseData);
+        CloseableUtil.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps5() {
@@ -120,7 +119,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
         assertEquals("sitemapsRule", rule.getRuleId());
-        IOUtils.closeQuietly(responseData);
+        CloseableUtil.closeQuietly(responseData);
     }
 
     public void test_getRule_sitemaps1_nocontent() {

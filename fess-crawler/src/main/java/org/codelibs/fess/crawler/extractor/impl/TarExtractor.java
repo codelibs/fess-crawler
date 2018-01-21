@@ -24,8 +24,8 @@ import javax.annotation.Resource;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -112,7 +112,7 @@ public class TarExtractor extends AbstractExtractor {
                 throw new ExtractException("Could not extract a content.", e);
             }
         } finally {
-            IOUtils.closeQuietly(ais);
+            CloseableUtil.closeQuietly(ais);
         }
 
         return buf.toString().trim();

@@ -23,8 +23,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -105,7 +105,7 @@ public class LhaExtractor extends AbstractExtractor {
                                         e);
                             }
                         } finally {
-                            IOUtils.closeQuietly(is);
+                            CloseableUtil.closeQuietly(is);
                         }
                     }
                 }

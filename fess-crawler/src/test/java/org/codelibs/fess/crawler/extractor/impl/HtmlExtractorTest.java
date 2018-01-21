@@ -19,7 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -49,7 +49,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.html");
         final String content = htmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -58,7 +58,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.html");
         final String content = htmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -67,7 +67,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_attr.html");
         final String content = htmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("本文1"));
         assertTrue(content.contains("本文2"));
@@ -81,7 +81,7 @@ public class HtmlExtractorTest extends PlainTestCase {
     public void test_getHtml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());
         final String content = htmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);
     }
@@ -91,7 +91,7 @@ public class HtmlExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_utf8.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlExtractor.getEncoding(bis);
-        IOUtils.closeQuietly(bis);
+        CloseableUtil.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
 
@@ -100,7 +100,7 @@ public class HtmlExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_sjis.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlExtractor.getEncoding(bis);
-        IOUtils.closeQuietly(bis);
+        CloseableUtil.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
     }
 

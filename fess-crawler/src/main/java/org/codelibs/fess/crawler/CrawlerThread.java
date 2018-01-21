@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
@@ -211,7 +211,7 @@ public class CrawlerThread implements Runnable {
                         addSitemapsFromRobotsTxt(urlQueue);
 
                         if (responseData != null) {
-                            IOUtils.closeQuietly(responseData);
+                            CloseableUtil.closeQuietly(responseData);
                         }
                         if (crawlerContext.intervalController != null) {
                             crawlerContext.intervalController
@@ -305,7 +305,7 @@ public class CrawlerThread implements Runnable {
                 }
             } finally {
                 if (responseData != null) {
-                    IOUtils.closeQuietly(responseData);
+                    CloseableUtil.closeQuietly(responseData);
                 }
             }
         }

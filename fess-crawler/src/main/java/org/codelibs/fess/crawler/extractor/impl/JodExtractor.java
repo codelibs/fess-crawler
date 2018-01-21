@@ -27,10 +27,10 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.OfficeManager;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -195,7 +195,7 @@ public class JodExtractor extends AbstractExtractor {
                 throw new ExtractException("Could not open "
                         + outputFile.getAbsolutePath(), e);
             } finally {
-                IOUtils.closeQuietly(in);
+                CloseableUtil.closeQuietly(in);
             }
         }
         try {

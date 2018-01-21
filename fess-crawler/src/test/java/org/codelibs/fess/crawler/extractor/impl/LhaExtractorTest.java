@@ -18,7 +18,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -71,7 +71,7 @@ public class LhaExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/lha/test.lzh");
         final String content = lhaExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));

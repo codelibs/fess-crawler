@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -57,7 +57,7 @@ public class SitemapsRuleTest extends PlainTestCase {
         assertTrue(sitemapsRule.match(responseData));
         InputStream is = responseData.getResponseBody();
         assertTrue(is instanceof InputStream);
-        IOUtils.closeQuietly(responseData);
+        CloseableUtil.closeQuietly(responseData);
     }
 
     private void assertMatchFalse(ResponseData responseData) {
@@ -68,10 +68,10 @@ public class SitemapsRuleTest extends PlainTestCase {
             File temporaryFile = ((TemporaryFileInputStream) is)
                     .getTemporaryFile();
             assertTrue(temporaryFile.exists());
-            IOUtils.closeQuietly(is);
+            CloseableUtil.closeQuietly(is);
             assertFalse(temporaryFile.exists());
         } else {
-            IOUtils.closeQuietly(is);
+            CloseableUtil.closeQuietly(is);
         }
     }
 

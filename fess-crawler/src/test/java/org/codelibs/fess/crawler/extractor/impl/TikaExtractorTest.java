@@ -21,8 +21,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
@@ -72,7 +72,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test.txt");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -83,7 +83,7 @@ public class TikaExtractorTest extends PlainTestCase {
         params.put("Content-Type", "text/plain");
         final ExtractData extractData = tikaExtractor.getText(in, params);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -94,7 +94,7 @@ public class TikaExtractorTest extends PlainTestCase {
 //                .getResourceAsStream("extractor/test.pdf");
 //        final ExtractData extractData = tikaExtractor.getText(in, null);
 //        final String content = extractData.getContent();
-//        IOUtils.closeQuietly(in);
+//        CloseableUtil.closeQuietly(in);
 //        logger.info(content);
 //        assertTrue(content.contains("テスト"));
 //    }
@@ -109,7 +109,7 @@ public class TikaExtractorTest extends PlainTestCase {
     // params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
     // ExtractData extractData = extractor.getText(in, params);
     // String content = extractData.getContent();
-    // IOUtils.closeQuietly(in);
+    // CloseableUtil.closeQuietly(in);
     // logger.info(content);
     // assertTrue(content.contains("テスト"));
     // }
@@ -119,7 +119,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_utf8.html");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -129,7 +129,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_sjis.html");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -139,7 +139,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/msoffice/test.doc");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
@@ -171,7 +171,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/msoffice/test.docx");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
@@ -218,7 +218,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/msoffice/test.xls");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
@@ -249,7 +249,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/msoffice/test.xlsx");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
@@ -287,7 +287,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/msoffice/test.ppt");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
@@ -323,7 +323,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/msoffice/test.pptx");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
@@ -366,7 +366,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/zip/test.zip");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));
@@ -390,7 +390,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/tar/test.tar");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));
@@ -401,7 +401,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/gz/test.tar.gz");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));
@@ -412,7 +412,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_utf8.xml");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertEquals(extractData.getValues("title")[0], "タイトル");
         assertTrue(content.contains("テスト"));
@@ -425,7 +425,7 @@ public class TikaExtractorTest extends PlainTestCase {
         params.put("resourceName", "test_sjis.xml");
         final ExtractData extractData = tikaExtractor.getText(in, params);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -435,7 +435,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_entity.xml");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -446,7 +446,7 @@ public class TikaExtractorTest extends PlainTestCase {
                         .getBytes(Constants.UTF_8));
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -459,7 +459,7 @@ public class TikaExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.java");
         final ExtractData extractData = tikaExtractor.getText(in, params);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -471,7 +471,7 @@ public class TikaExtractorTest extends PlainTestCase {
         params.put("Content-Type", "text/plain");
         final ExtractData extractData = tikaExtractor.getText(in, params);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -483,7 +483,7 @@ public class TikaExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.java");
         final ExtractData extractData = tikaExtractor.getText(in, params);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -493,7 +493,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/program/test.java");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -505,7 +505,7 @@ public class TikaExtractorTest extends PlainTestCase {
         params.put("Content-Type", "text/x-java-source");
         final ExtractData extractData = tikaExtractor.getText(in, params);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -518,7 +518,7 @@ public class TikaExtractorTest extends PlainTestCase {
         params.put("resourceName", "test.js");
         final ExtractData extractData = tikaExtractor.getText(in, params);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -528,7 +528,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/program/test.c");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -538,7 +538,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/program/test.cpp");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -548,7 +548,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/program/test.h");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -558,7 +558,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/program/test.hpp");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -568,7 +568,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test.sh");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -578,7 +578,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test.rtf");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -588,7 +588,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/image/test.gif");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("Test"));
     }
@@ -598,7 +598,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/image/test.jpg");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("Test"));
     }
@@ -608,7 +608,7 @@ public class TikaExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/image/test.png");
         final ExtractData extractData = tikaExtractor.getText(in, null);
         final String content = extractData.getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("Test"));
     }

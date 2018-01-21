@@ -17,7 +17,7 @@ package org.codelibs.fess.crawler.helper;
 
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -40,7 +40,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         try {
             robotsTxt = robotsTxtHelper.parse(in);
         } finally {
-            IOUtils.closeQuietly(in);
+            CloseableUtil.closeQuietly(in);
         }
 
         for (String userAgent : new String[] { "FessCrawler", "FessCrawler/1.0",
@@ -125,7 +125,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
             assertNull(robotsTxtHelper.parse(in));
         } finally {
             robotsTxtHelper.setEnabled(true);
-            IOUtils.closeQuietly(in);
+            CloseableUtil.closeQuietly(in);
         }
     }
 }

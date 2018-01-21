@@ -20,7 +20,7 @@ import java.io.InputStream;
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -74,7 +74,7 @@ public class TarExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/tar/test.tar");
         final String content = tarExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("テキスト"));

@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.tika.config.TikaConfig;
@@ -58,6 +57,7 @@ import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -178,7 +178,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         }
                         parser.parse(in, new BodyContentHandler(writer), metadata, parseContext);
                     } finally {
-                        IOUtils.closeQuietly(in);
+                        CloseableUtil.closeQuietly(in);
                     }
                 }, contentEncoding);
                 if (StringUtil.isBlank(content)) {
@@ -199,7 +199,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                                 }
                                 parser.parse(in, new BodyContentHandler(writer), metadata2, parseContext);
                             } finally {
-                                IOUtils.closeQuietly(in);
+                                CloseableUtil.closeQuietly(in);
                             }
                         }, contentEncoding);
                     }
@@ -220,7 +220,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                                 }
                                 parser.parse(in, new BodyContentHandler(writer), metadata3, parseContext);
                             } finally {
-                                IOUtils.closeQuietly(in);
+                                CloseableUtil.closeQuietly(in);
                             }
                         }, contentEncoding);
                     }
@@ -249,7 +249,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             } catch (final Exception e) {
                                 logger.warn("Could not read " + (tempFile != null ? tempFile.getAbsolutePath() : "a byte stream"), e);
                             } finally {
-                                IOUtils.closeQuietly(br);
+                                CloseableUtil.closeQuietly(br);
                             }
                         }, contentEncoding);
                     }
@@ -286,7 +286,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             }
                             return xmlExtractor.getText(in, params);
                         } finally {
-                            IOUtils.closeQuietly(in);
+                            CloseableUtil.closeQuietly(in);
                         }
                     }
                 }

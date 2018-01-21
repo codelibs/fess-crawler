@@ -19,7 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -49,7 +49,7 @@ public class XmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_utf8.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("コメント"));
@@ -60,7 +60,7 @@ public class XmlExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_utf8.xml");
         xmlExtractor.setIgnoreCommentTag(true);
         final String content = xmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertFalse(content.contains("コメント"));
@@ -71,7 +71,7 @@ public class XmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_sjis.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -80,7 +80,7 @@ public class XmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test_entity.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -89,7 +89,7 @@ public class XmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test.mm");
         final String content = xmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
@@ -97,7 +97,7 @@ public class XmlExtractorTest extends PlainTestCase {
     public void test_getXml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());
         final String content = xmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);
     }
@@ -107,7 +107,7 @@ public class XmlExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_utf8.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = xmlExtractor.getEncoding(bis);
-        IOUtils.closeQuietly(bis);
+        CloseableUtil.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
 
@@ -116,7 +116,7 @@ public class XmlExtractorTest extends PlainTestCase {
                 .getResourceAsStream("extractor/test_sjis.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = xmlExtractor.getEncoding(bis);
-        IOUtils.closeQuietly(bis);
+        CloseableUtil.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
     }
 
@@ -125,7 +125,7 @@ public class XmlExtractorTest extends PlainTestCase {
                 "<hoge></hoge>".getBytes());
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = xmlExtractor.getEncoding(bis);
-        IOUtils.closeQuietly(bis);
+        CloseableUtil.closeQuietly(bis);
         assertEquals("UTF-8", encoding);
     }
 
@@ -133,7 +133,7 @@ public class XmlExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test.rdf");
         final String content = xmlExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
         assertTrue(content.contains("コメント"));

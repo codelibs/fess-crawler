@@ -17,7 +17,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.InputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -47,7 +47,7 @@ public class TextExtractorTest extends PlainTestCase {
         final InputStream in = ResourceUtil
                 .getResourceAsStream("extractor/test.txt");
         final String content = textExtractor.getText(in, null).getContent();
-        IOUtils.closeQuietly(in);
+        CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }

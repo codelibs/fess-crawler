@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -86,6 +85,7 @@ import org.apache.http.util.EntityUtils;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.PropertyDesc;
 import org.codelibs.core.beans.factory.BeanDescFactory;
+import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
@@ -712,7 +712,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                         CopyUtil.copy(responseBodyStream, dfos);
                         dfos.flush();
                     } finally {
-                        IOUtils.closeQuietly(dfos);
+                        CloseableUtil.closeQuietly(dfos);
                     }
                 } catch (final Exception e) {
                     if (!outputFile.delete()) {
@@ -838,7 +838,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
     }
 
     protected void closeResources(final HttpUriRequest httpRequest, final ResponseData responseData) {
-        IOUtils.closeQuietly(responseData);
+        CloseableUtil.closeQuietly(responseData);
         httpRequest.abort();
     }
 

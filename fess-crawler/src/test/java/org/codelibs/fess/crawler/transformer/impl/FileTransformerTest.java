@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.transformer.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;

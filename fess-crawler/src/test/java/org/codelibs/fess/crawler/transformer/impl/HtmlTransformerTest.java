@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.transformer.impl;
 
-import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 import org.codelibs.fess.crawler.Constants;

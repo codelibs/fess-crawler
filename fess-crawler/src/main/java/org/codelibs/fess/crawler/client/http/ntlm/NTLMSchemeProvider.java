@@ -30,7 +30,7 @@ public class NTLMSchemeProvider implements AuthSchemeProvider {
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new NTLMScheme(new JcifsEngine());
+        return new NTLMScheme(new SmbjEngine());
     }
 
 }

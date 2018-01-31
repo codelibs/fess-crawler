@@ -485,7 +485,7 @@ public class SmbClient extends AbstractCrawlerClient {
                     if (logger.isDebugEnabled()) {
                         logger.debug("SID: " + sids[0] + ", ACE: " + e);
                     }
-                    ace.setType(sids[0].getUse());
+                    ace.setType(sids[0].getType());
                     ace.setAccountName(accountNames[0]);
                     if (logger.isDebugEnabled()) {
                         logger.debug("ACE Type: " + ace.getType()

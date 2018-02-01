@@ -223,7 +223,9 @@ public class SitemapsHelper {
         public void endElement(final String uri, final String localName,
                 final String qName) {
             if (URL_ELEMENT.equals(qName)) {
-                sitemapSet.addSitemap(sitemapUrl);
+                if (sitemapUrl != null) {
+                    sitemapSet.addSitemap(sitemapUrl);
+                }
                 sitemapUrl = null;
             } else if (LOC_ELEMENT.equals(qName)) {
                 if (buf != null) {
@@ -310,7 +312,9 @@ public class SitemapsHelper {
         public void endElement(final String uri, final String localName,
                 final String qName) {
             if ("sitemap".equals(qName)) {
-                sitemapSet.addSitemap(sitemapFile);
+                if (sitemapFile != null) {
+                    sitemapSet.addSitemap(sitemapFile);
+                }
                 sitemapFile = null;
             } else if ("loc".equals(qName)) {
                 if (buf != null) {

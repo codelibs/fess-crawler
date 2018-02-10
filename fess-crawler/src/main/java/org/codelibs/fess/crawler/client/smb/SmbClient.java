@@ -346,7 +346,7 @@ public class SmbClient extends AbstractCrawlerClient {
                         }
                     }
                 }
-                throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData(String, boolean)");
+                throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData");
             } else {
                 responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
                 responseData.setCharSet(charset);

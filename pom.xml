@@ -112,18 +112,6 @@
           </executions>
         </plugin>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>cobertura-maven-plugin</artifactId>
-          <version>2.7</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>clean</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>3.0</version>

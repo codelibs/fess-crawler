@@ -107,7 +107,7 @@ public class EsClient implements Client {
 
     private static final Logger logger = LoggerFactory.getLogger(EsClient.class);
 
-    protected TransportClient client;
+    protected Client client;
 
     protected String clusterName;
 
@@ -160,25 +160,6 @@ public class EsClient implements Client {
     public void connect() {
         destroy();
         client = createTransportClient();
-        Arrays.stream(addresses).forEach(address -> {
-            final String[] values = address.split(":");
-            String hostname;
-            int port = 9300;
-            if (values.length == 1) {
-                hostname = values[0];
-            } else if (values.length == 2) {
-                hostname = values[0];
-                port = Integer.parseInt(values[1]);
-            } else {
-                throw new CrawlerSystemException("Invalid address: " + address);
-            }
-            try {
-                client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
-            } catch (final Exception e) {
-                throw new CrawlerSystemException("Unknown host: " + address);
-            }
-            logger.info("Connected to " + hostname + ":" + port);
-        });
 
         final ClusterHealthResponse healthResponse =
                 get(c -> c.admin().cluster().prepareHealth(targetIndices).setWaitForYellowStatus().execute());
@@ -200,7 +181,27 @@ public class EsClient implements Client {
     protected TransportClient createTransportClient() {
         final Settings settings =
                 Settings.builder().put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
-        return new PreBuiltTransportClient(settings);
+        final TransportClient transportClient = new PreBuiltTransportClient(settings);
+        Arrays.stream(addresses).forEach(address -> {
+            final String[] values = address.split(":");
+            String hostname;
+            int port = 9300;
+            if (values.length == 1) {
+                hostname = values[0];
+            } else if (values.length == 2) {
+                hostname = values[0];
+                port = Integer.parseInt(values[1]);
+            } else {
+                throw new CrawlerSystemException("Invalid address: " + address);
+            }
+            try {
+                transportClient.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
+            } catch (final Exception e) {
+                throw new CrawlerSystemException("Unknown host: " + address);
+            }
+            logger.info("Connected to " + hostname + ":" + port);
+        });
+        return transportClient;
     }
 
     public <T> T get(final Function<EsClient, ListenableActionFuture<T>> func) {

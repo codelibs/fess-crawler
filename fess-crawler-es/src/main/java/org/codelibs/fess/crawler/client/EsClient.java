@@ -155,9 +155,7 @@ public class EsClient implements Client {
 
     public void connect() {
         destroy();
-        final Settings settings =
-                Settings.builder().put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
-        client = new PreBuiltTransportClient(settings);
+        client = createTransportClient();
         Arrays.stream(addresses).forEach(address -> {
             final String[] values = address.split(":");
             String hostname;
@@ -193,6 +191,12 @@ public class EsClient implements Client {
         } else {
             logger.warn("Could not connect to " + clusterName + ":" + String.join(",", addresses));
         }
+    }
+
+    protected TransportClient createTransportClient() {
+        final Settings settings =
+                Settings.builder().put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
+        return new PreBuiltTransportClient(settings);
     }
 
     public <T> T get(final Function<EsClient, ActionFuture<T>> func) {
@@ -522,8 +526,7 @@ public class EsClient implements Client {
     @Override
     public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> RequestBuilder prepareExecute(
             final Action<Request, Response, RequestBuilder> action) {
-        // TODO Auto-generated method stub
-        return null;
+        return client.prepareExecute(action);
     }
 
     @Override

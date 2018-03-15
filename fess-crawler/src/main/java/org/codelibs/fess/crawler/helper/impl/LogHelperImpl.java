@@ -91,10 +91,10 @@ public class LogHelperImpl implements LogHelper {
             }
             case REDIRECT_LOCATION: {
                 // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-                final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-                // ResponseData responseData = (ResponseData) objs[2];
+                // final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+                final ResponseData responseData = (ResponseData) objs[2];
                 if (logger.isInfoEnabled()) {
-                    logger.info("Redirect to URL: " + urlQueue.getUrl());
+                    logger.info("Redirect to URL: " + responseData.getRedirectLocation());
                 }
                 break;
             }

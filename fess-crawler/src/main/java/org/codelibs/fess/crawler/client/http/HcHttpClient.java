@@ -63,6 +63,9 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.Cookie;
@@ -81,6 +84,7 @@ import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.PropertyDesc;
@@ -140,6 +144,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
     public static final String COOKIES_PROPERTY = "cookies";
 
     public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
+
+    public static final String IGNORE_SSL_CERTIFICATE_PROPERTY = "ignoreSslCertificate";
 
     private static final Logger logger = LoggerFactory
             .getLogger(HcHttpClient.class);
@@ -222,6 +228,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
             DateUtils.PATTERN_ASCTIME, //
             StringUtil.EMPTY//
     };
+
+    protected LayeredConnectionSocketFactory sslSocketFactory;
 
     @Override
     public synchronized void init() {
@@ -334,6 +342,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
             httpClientBuilder.setDefaultCookieSpecRegistry(cookieSpecRegistry);
         }
 
+        // SSL
+        final LayeredConnectionSocketFactory sslSocketFactory = buildSSLSocketFactory();
+        if (sslSocketFactory != null) {
+            httpClientBuilder.setSSLSocketFactory(sslSocketFactory);
+        }
+
         connectionMonitorTask = TimeoutManager.getInstance().addTimeoutTarget(
                 new HcConnectionMonitorTarget(clientConnectionManager,
                         idleConnectionTimeout), connectionCheckInterval, true);
@@ -385,6 +399,21 @@ public class HcHttpClient extends AbstractCrawlerClient {
         });
 
         httpClient = closeableHttpClient;
+    }
+
+    protected LayeredConnectionSocketFactory buildSSLSocketFactory() {
+        if (sslSocketFactory != null) {
+            return sslSocketFactory;
+        } else if (getInitParameter(IGNORE_SSL_CERTIFICATE_PROPERTY, false, Boolean.class)) {
+            try {
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                return new SSLConnectionSocketFactory(builder.build());
+            } catch (Exception e) {
+                logger.warn("Failed to create TrustSelfSignedStrategy.", e);
+            }
+        }
+        return null;
     }
 
     protected Lookup<CookieSpecProvider> buildCookieSpecRegistry() {
@@ -1006,5 +1035,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public void setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
+    }
+
+    public void setSslSocketFactory(LayeredConnectionSocketFactory sslSocketFactory) {
+        this.sslSocketFactory = sslSocketFactory;
     }
 }

@@ -19,29 +19,31 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.codelibs.fess.crawler.client.smb.SmbAuthentication;
+
 /**
  * @author shinsuke
  * @author kaorufuzita
  *
  */
-public class SmbAuthenticationHolder implements Iterable<SmbAuthentication> {
-    private final Map<String, SmbAuthentication> authMap = new HashMap<>();
+public class SmbSessionHolder implements Iterable<SmbSession> {
+    private final Map<String, SmbSession> sessionMap = new HashMap<>();
 
     @Override
-    public Iterator<SmbAuthentication> iterator() {
-        return authMap.values().iterator();
+    public Iterator<SmbSession> iterator() {
+        return sessionMap.values().iterator();
     }
 
-    public void add(final SmbAuthentication auth) {
-        authMap.put(auth.getPathPrefix(), auth);
+    public void add(final SmbAuthentication smbAuthentication) {
+        sessionMap.put(smbAuthentication.getPathPrefix(), new SmbSession(smbAuthentication));
     }
 
-    public SmbAuthentication get(final String path) {
+    public SmbSession get(final String path) {
         if (path == null) {
             return null;
         }
 
-        for (final Map.Entry<String, SmbAuthentication> entry : authMap
+        for (final Map.Entry<String, SmbSession> entry : sessionMap
                 .entrySet()) {
             if (path.startsWith(entry.getKey())) {
                 return entry.getValue();

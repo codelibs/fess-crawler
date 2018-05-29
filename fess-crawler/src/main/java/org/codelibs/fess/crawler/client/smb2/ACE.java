@@ -17,12 +17,12 @@ package org.codelibs.fess.crawler.client.smb2;
 
 public class ACE {
     private com.hierynomus.msdtyp.ace.ACE ace;
-    
+
     private int type;
-    
+
     private String accountName;
-    
-    ACE(com.hierynomus.msdtyp.ace.ACE ace) {
+
+    public ACE(final com.hierynomus.msdtyp.ace.ACE ace) {
         this.setAce(ace);
     }
 
@@ -30,7 +30,7 @@ public class ACE {
         return ace;
     }
 
-    public void setAce(com.hierynomus.msdtyp.ace.ACE ace) {
+    public void setAce(final com.hierynomus.msdtyp.ace.ACE ace) {
         this.ace = ace;
     }
 
@@ -38,7 +38,7 @@ public class ACE {
         return this.type;
     }
 
-    public void setType(int type) {
+    public void setType(final int type) {
         this.type = type;
     }
 
@@ -46,7 +46,7 @@ public class ACE {
         return this.accountName;
     }
 
-    public void setAccountName(String accountName) {
+    public void setAccountName(final String accountName) {
         this.accountName = accountName;
     }
 }

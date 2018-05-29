@@ -15,8 +15,6 @@
  */
 package org.codelibs.fess.crawler.client.smb;
 
-import jcifs.smb.NtlmPasswordAuthentication;
-
 /**
  * @author shinsuke
  *
@@ -44,11 +42,6 @@ public class SmbAuthentication {
             buf.append('/');
         }
         return buf.toString();
-    }
-
-    public NtlmPasswordAuthentication getAuthentication() {
-        return new NtlmPasswordAuthentication(domain == null ? "" : domain,
-                username, password);
     }
 
     public String getServer() {

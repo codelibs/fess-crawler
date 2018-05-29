@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import jcifs.Config;
 import jcifs.smb.ACE;
+import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SID;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
@@ -203,6 +204,11 @@ public class SmbClient extends AbstractCrawlerClient {
         }
     }
 
+    protected NtlmPasswordAuthentication getAuthentication(final SmbAuthentication smbAuthentication) {
+        return new NtlmPasswordAuthentication(smbAuthentication.getDomain() == null ? "" : smbAuthentication.getDomain(),
+                smbAuthentication.getUsername(), smbAuthentication.getPassword());
+    }
+
     protected ResponseData getResponseData(final String uri,
             final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
@@ -221,7 +227,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 file = new SmbFile(filePath);
             } else {
                 file = new SmbFile(filePath,
-                        smbAuthentication.getAuthentication());
+                        getAuthentication(smbAuthentication));
             }
         } catch (final MalformedURLException e) {
             logger.warn("Could not parse url: " + filePath, e);

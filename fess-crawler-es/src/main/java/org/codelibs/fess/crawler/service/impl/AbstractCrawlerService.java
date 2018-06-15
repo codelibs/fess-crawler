@@ -73,6 +73,9 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -510,11 +513,12 @@ public abstract class AbstractCrawlerService {
     }
 
     protected static class EsTimestampConverter implements Converter {
+        public static final DateTimeFormatter DEFAULT_DATE_PRINTER = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
 
         @Override
         public String getAsString(final Object value) {
             if (value instanceof Date) {
-                return XContentBuilder.DEFAULT_DATE_PRINTER.print(((Date) value).getTime());
+                return DEFAULT_DATE_PRINTER.print(((Date) value).getTime());
             }
             return null;
         }
@@ -524,7 +528,7 @@ public abstract class AbstractCrawlerService {
             if (StringUtil.isEmpty(value)) {
                 return null;
             }
-            return new Timestamp(XContentBuilder.DEFAULT_DATE_PRINTER.parseMillis(value));
+            return new Timestamp(DEFAULT_DATE_PRINTER.parseMillis(value));
         }
 
         @Override

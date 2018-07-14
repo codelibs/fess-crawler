@@ -43,15 +43,15 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jta.version>1.2</jta.version>
-    <dbflute.version>1.1.7</dbflute.version>
+    <dbflute.version>1.1.8</dbflute.version>
     <lastadi.version>0.7.6</lastadi.version>
-    <utflute.version>0.8.5</utflute.version>
+    <utflute.version>0.8.7</utflute.version>
     <corelib.version>0.4.0-SNAPSHOT</corelib.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <httpcomponents.version>4.5.5</httpcomponents.version>
-    <tika.version>1.17</tika.version>
+    <httpcomponents.version>4.5.6</httpcomponents.version>
+    <tika.version>1.18</tika.version>
     <poi.version>3.17-patch1</poi.version>
-    <pdfbox.version>2.0.9</pdfbox.version>
+    <pdfbox.version>2.0.11</pdfbox.version>
     <nekohtml.version>1.9.22</nekohtml.version>
     <elasticsearch.version>6.3.1</elasticsearch.version>
   </properties>

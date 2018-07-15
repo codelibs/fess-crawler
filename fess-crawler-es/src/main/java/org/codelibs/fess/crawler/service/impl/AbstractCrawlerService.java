@@ -118,7 +118,7 @@ public abstract class AbstractCrawlerService {
 
     protected int numberOfShards = 5;
 
-    protected int numberOfReplicas = 0;
+    protected int numberOfReplicas = 1;
 
     protected int idPrefixLength = 445;
 
@@ -144,8 +144,14 @@ public abstract class AbstractCrawlerService {
         if (!exists) {
             final CreateIndexResponse indexResponse =
                     esClient.get(c -> {
-                        final String source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards
-                                + ",\"number_of_replicas\":" + numberOfReplicas + "}}}";
+                        final String source;
+                        if (numberOfReplicas > 0) {
+                            source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards
+                                    + ",\"number_of_replicas\":0,\"auto_expand_replicas\":\"0-" + numberOfReplicas + "\"}}}";
+                        } else {
+                            source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards + ",\"number_of_replicas\":"
+                                    + numberOfReplicas + "}}}";
+                        }
                         return c.admin().indices().prepareCreate(index).setSource(source, XContentType.JSON).execute();
                     });
             if (indexResponse.isAcknowledged()) {

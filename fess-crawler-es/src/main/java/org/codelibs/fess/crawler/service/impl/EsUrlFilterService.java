@@ -29,6 +29,7 @@ import javax.annotation.PostConstruct;
 import org.codelibs.fess.crawler.entity.EsUrlFilter;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.service.UrlFilterService;
+import org.codelibs.fess.crawler.util.EsCrawlerConfig;
 import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.index.query.QueryBuilders;
 
@@ -52,19 +53,21 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     protected int maxLoadSize = 10000;
 
-    public EsUrlFilterService() {
+    public EsUrlFilterService(final EsCrawlerConfig crawlerConfig) {
+        this.index = crawlerConfig.getFilterIndex();
+        this.type = "filter";
+        setNumberOfShards(crawlerConfig.getFilterShards());
+        setNumberOfReplicas(crawlerConfig.getFilterReplicas());
     }
 
-    public EsUrlFilterService(final String index, final String type) {
-        this.index = index + "." + type;
+    public EsUrlFilterService(final String name, final String type) {
+        this.index = name + "." + type;
         this.type = type;
     }
 
     @PostConstruct
     public void init() {
-        esClient.addOnConnectListener(() -> {
-            createMapping("filter");
-        });
+        esClient.addOnConnectListener(() -> createMapping("filter"));
 
         includeFilterCache = createFilterCache(INCLUDE);
         excludeFilterCache = createFilterCache(EXCLUDE);

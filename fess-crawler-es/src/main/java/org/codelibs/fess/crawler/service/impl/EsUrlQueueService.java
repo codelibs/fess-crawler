@@ -34,6 +34,7 @@ import org.codelibs.fess.crawler.entity.EsUrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.UrlQueueService;
+import org.codelibs.fess.crawler.util.EsCrawlerConfig;
 import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -61,24 +62,26 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     protected int maxCrawlingQueueSize = 100;
 
-    public EsUrlQueueService() {
+    public EsUrlQueueService(final EsCrawlerConfig crawlerConfig) {
+        this.index = crawlerConfig.getQueueIndex();
+        this.type = "queue";
+        setNumberOfShards(crawlerConfig.getQueueShards());
+        setNumberOfReplicas(crawlerConfig.getQueueReplicas());
     }
 
-    public EsUrlQueueService(final String index, final String type) {
-        this.index = index + "." + type;
+    public EsUrlQueueService(final String name, final String type) {
+        this.index = name + "." + type;
         this.type = type;
     }
 
     @PostConstruct
     public void init() {
-        esClient.addOnConnectListener(() -> {
-            createMapping("queue");
-        });
+        esClient.addOnConnectListener(() -> createMapping("queue"));
     }
 
     @PreDestroy
     public void destroy() {
-        sessionCache.entrySet().stream().map(e->e.getValue().waitingQueue).forEach(q -> q.forEach(urlQueue -> {
+        sessionCache.entrySet().stream().map(e -> e.getValue().waitingQueue).forEach(q -> q.forEach(urlQueue -> {
             try {
                 insert(urlQueue);
             } catch (final Exception e) {
@@ -264,11 +267,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         }
 
         final AccessResult<String> accessResult = dataService.getAccessResult(sessionId, url);
-        if (accessResult != null) {
-            return true;
-        }
-
-        return false;
+        return accessResult != null;
     }
 
     @Override

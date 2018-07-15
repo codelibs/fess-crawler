@@ -35,22 +35,27 @@
 	<!-- Service -->
 	<component name="urlQueueService"
 		class="org.codelibs.fess.crawler.service.impl.EsUrlQueueService">
-		<arg>crawlerIndexName</arg>
-		<arg>"queue"</arg>
+		<arg>crawlerConfig</arg>
 	</component>
 	<component name="dataService"
 		class="org.codelibs.fess.crawler.service.impl.EsDataService">
-		<arg>crawlerIndexName</arg>
-		<arg>"data"</arg>
+		<arg>crawlerConfig</arg>
 	</component>
 	<component name="urlFilterService"
 		class="org.codelibs.fess.crawler.service.impl.EsUrlFilterService">
-		<arg>crawlerIndexName</arg>
-		<arg>"filter"</arg>
+		<arg>crawlerConfig</arg>
 	</component>
 
-	<component name="crawlerIndexName" class="java.lang.String">
-		<arg>".crawler"</arg>
+	<component name="crawlerConfig" class="org.codelibs.fess.crawler.util.EsCrawlerConfig">
+		<property name="queueIndex">".crawler.queue"</property>
+		<property name="queueShards">5</property>
+		<property name="queueReplicas">1</property>
+		<property name="dataIndex">".crawler.data"</property>
+		<property name="dataShards">5</property>
+		<property name="dataReplicas">1</property>
+		<property name="filterIndex">".crawler.filter"</property>
+		<property name="filterShards">5</property>
+		<property name="filterReplicas">1</property>
 	</component>
 
 </components>

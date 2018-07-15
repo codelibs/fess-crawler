@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.entity.EsAccessResultData;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
+import org.codelibs.fess.crawler.util.EsCrawlerConfig;
 import org.codelibs.fess.crawler.util.EsResultList;
 import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -38,19 +39,21 @@ import org.elasticsearch.search.SearchHits;
 
 public class EsDataService extends AbstractCrawlerService implements DataService<EsAccessResult> {
 
-    public EsDataService() {
+    public EsDataService(final EsCrawlerConfig crawlerConfig) {
+        this.index = crawlerConfig.getDataIndex();
+        this.type = "data";
+        setNumberOfShards(crawlerConfig.getDataShards());
+        setNumberOfReplicas(crawlerConfig.getDataReplicas());
     }
 
-    public EsDataService(final String index, final String type) {
-        this.index = index + "." + type;
+    public EsDataService(final String name, final String type) {
+        this.index = name + "." + type;
         this.type = type;
     }
 
     @PostConstruct
     public void init() {
-        esClient.addOnConnectListener(() -> {
-            createMapping("data");
-        });
+        esClient.addOnConnectListener(() -> createMapping("data"));
     }
 
     @Override
@@ -93,7 +96,7 @@ public class EsDataService extends AbstractCrawlerService implements DataService
             final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type);
             callback.accept(builder);
             builder.setFetchSource(new String[] { "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime", "createTime",
-                    "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" },null);
+                    "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" }, null);
             return builder.execute();
         });
         final EsResultList<EsAccessResult> targetList = new EsResultList<>();
@@ -134,12 +137,10 @@ public class EsDataService extends AbstractCrawlerService implements DataService
             return null;
         } else if (clazz.equals(Integer.class)) {
             final Number value = (Number) field;
-            final T v = (T) Integer.valueOf(value.intValue());
-            return v;
+            return (T) Integer.valueOf(value.intValue());
         } else if (clazz.equals(Long.class)) {
             final Number value = (Number) field;
-            final T v = (T) Long.valueOf(value.longValue());
-            return v;
+            return (T) Long.valueOf(value.longValue());
         }
         return (T) field;
     }

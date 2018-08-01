@@ -1,0 +1,18 @@
+﻿<address xmlns:hoge="http://www.example.com/hoge">
+        <item sex="male" custid="A12345">
+                <name>鈴木太郎</name>
+                <access kind="email"></access>
+                <access kind="url">http://www.taro.com/</access>
+                <image file="taro.png" />
+        </item>
+        <item sex="male" custid="B23456">
+                <name>佐藤二朗</name>
+                <access kind="email">jiro@hoge.foo.bar</access>
+                <image file="jiro.png" />
+        </item>
+        <item sex="female" custid="C34567">
+                <name>田中花子</name>
+                <access kind="tel">090-xxxx-xxxx</access>
+                <image file="hanako.png" />
+        </item>
+</address>

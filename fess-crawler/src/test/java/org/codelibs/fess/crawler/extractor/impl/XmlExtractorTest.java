@@ -120,6 +120,30 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("Shift_JIS", encoding);
     }
 
+    public void test_getEncoding_utf8bom() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf8bom.xml");
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = xmlExtractor.getEncoding(bis);
+        CloseableUtil.closeQuietly(bis);
+        assertEquals("UTF-8", encoding);
+    }
+
+    public void test_getEncoding_utf16lebom() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf16lebom.xml");
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = xmlExtractor.getEncoding(bis);
+        CloseableUtil.closeQuietly(bis);
+        assertEquals("UTF-16LE", encoding);
+    }
+
+    public void test_getEncoding_utf16bebom() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf16bebom.xml");
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final String encoding = xmlExtractor.getEncoding(bis);
+        CloseableUtil.closeQuietly(bis);
+        assertEquals("UTF-16BE", encoding);
+    }
+
     public void test_getEncoding_none() {
         final InputStream in = new ByteArrayInputStream(
                 "<hoge></hoge>".getBytes());

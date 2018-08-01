@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.text.translate.AggregateTranslator;
 import org.apache.commons.text.translate.CharSequenceTranslator;
 import org.apache.commons.text.translate.EntityArrays;
@@ -45,6 +47,8 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
 
     protected static final Logger logger = LoggerFactory
             .getLogger(AbstractXmlExtractor.class);
+
+    protected static final ByteOrderMark BOM_UTF_7 = new ByteOrderMark("UTF-7", 0x2B, 0x2F, 0x76);
 
     protected static final CharSequenceTranslator UNESCAPE_HTML4 = new AggregateTranslator(new LookupTranslator(
             EntityArrays.BASIC_UNESCAPE), new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE), new LookupTranslator(
@@ -80,7 +84,16 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
         final byte[] b = new byte[preloadSizeForCharset];
         try {
             bis.mark(preloadSizeForCharset);
-            final int c = bis.read(b);
+            @SuppressWarnings("resource")
+            final BOMInputStream bomIn = new BOMInputStream(bis, false, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE,
+                    ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE, BOM_UTF_7);
+            if (bomIn.hasBOM()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("BOM: " + bomIn.getBOMCharsetName());
+                }
+                return bomIn.getBOMCharsetName();
+            }
+            final int c = bomIn.read(b);
 
             if (c == -1) {
                 return encoding;

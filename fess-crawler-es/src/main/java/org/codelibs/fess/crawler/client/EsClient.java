@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.client;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +26,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.elasticsearch.client.HttpClient;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.Action;
@@ -80,9 +79,7 @@ import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.engine.VersionConflictEngineException;
@@ -90,14 +87,11 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.threadpool.ThreadPool;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EsClient implements Client {
-    public static final String TRANSPORT_ADDRESSES = "crawler.es.transport_addresses";
-
-    public static final String CLUSTER_NAME = "crawler.es.cluster_name";
+    public static final String HTTP_ADDRESS = "crawler.es.http_address";
 
     public static final String TARGET_INDICES = "crawler.es.target_indices";
 
@@ -105,9 +99,7 @@ public class EsClient implements Client {
 
     protected Client client;
 
-    protected String clusterName;
-
-    protected String[] addresses;
+    protected String address;
 
     protected List<OnConnectListener> onConnectListenerList = new ArrayList<>();
 
@@ -128,21 +120,15 @@ public class EsClient implements Client {
     protected String[] targetIndices;
 
     public EsClient() {
-        clusterName = System.getProperty(CLUSTER_NAME, "elasticsearch");
-        addresses = Arrays.stream(System.getProperty(TRANSPORT_ADDRESSES, "localhost:9300").split(",")).map(v -> v.trim())
-                .toArray(n -> new String[n]);
+        address = System.getProperty(HTTP_ADDRESS, "localhost:9200").trim();
         final String targets = System.getProperty(TARGET_INDICES);
         if (StringUtil.isNotBlank(targets)) {
             targetIndices = Arrays.stream(targets.split(",")).map(v -> v.trim()).toArray(n -> new String[n]);
         }
     }
 
-    public void setClusterName(final String clusterName) {
-        this.clusterName = clusterName;
-    }
-
-    public void setAddresses(final String[] addresses) {
-        this.addresses = addresses;
+    public void setAddress(final String address) {
+        this.address = address;
     }
 
     public void addOnConnectListener(final OnConnectListener listener) {
@@ -155,7 +141,7 @@ public class EsClient implements Client {
 
     public void connect() {
         destroy();
-        client = createTransportClient();
+        client = createClient();
 
         final ClusterHealthResponse healthResponse =
                 get(c -> c.admin().cluster().prepareHealth(targetIndices).setWaitForYellowStatus().execute());
@@ -170,34 +156,13 @@ public class EsClient implements Client {
 
             connected = true;
         } else {
-            logger.warn("Could not connect to " + clusterName + ":" + String.join(",", addresses));
+            logger.warn("Could not connect to " +   address);
         }
     }
 
-    protected TransportClient createTransportClient() {
-        final Settings settings =
-                Settings.builder().put("cluster.name", StringUtil.isBlank(clusterName) ? "elasticsearch" : clusterName).build();
-        final TransportClient transportClient = new PreBuiltTransportClient(settings);
-        Arrays.stream(addresses).forEach(address -> {
-            final String[] values = address.split(":");
-            String hostname;
-            int port = 9300;
-            if (values.length == 1) {
-                hostname = values[0];
-            } else if (values.length == 2) {
-                hostname = values[0];
-                port = Integer.parseInt(values[1]);
-            } else {
-                throw new CrawlerSystemException("Invalid address: " + address);
-            }
-            try {
-                transportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(hostname), port));
-            } catch (final Exception e) {
-                throw new CrawlerSystemException("Unknown host: " + address);
-            }
-            logger.info("Connected to " + hostname + ":" + port);
-        });
-        return transportClient;
+    protected Client createClient() {
+        final Settings settings = Settings.builder().putList("http.hosts", address).build();
+        return new HttpClient(settings, null);
     }
 
     public <T> T get(final Function<EsClient, ActionFuture<T>> func) {
@@ -235,7 +200,7 @@ public class EsClient implements Client {
             } catch (final ElasticsearchException e) {
                 logger.warn("Failed to close client.", e);
             }
-            logger.info("Disconnected to " + clusterName + ":" + String.join(",", addresses));
+            logger.info("Disconnected to " + address);
         }
         connected = false;
     }

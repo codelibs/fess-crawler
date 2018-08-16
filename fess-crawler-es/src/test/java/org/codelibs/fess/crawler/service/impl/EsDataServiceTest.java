@@ -66,8 +66,7 @@ public class EsDataServiceTest extends LastaDiTestCase {
         // wait for yellow status
         runner.ensureYellow();
 
-        System.setProperty(EsClient.CLUSTER_NAME, clusterName);
-        System.setProperty(EsClient.TRANSPORT_ADDRESSES, "localhost:" + runner.node().settings().get("transport.tcp.port", "9301"));
+        System.setProperty(EsClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
 
         super.setUp();
     }

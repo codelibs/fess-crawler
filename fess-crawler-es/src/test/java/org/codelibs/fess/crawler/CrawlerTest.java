@@ -19,6 +19,10 @@ import static org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner.newCo
 
 import java.io.File;
 import java.util.UUID;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import javax.annotation.Resource;
 
@@ -84,6 +88,15 @@ public class CrawlerTest extends LastaDiTestCase {
         System.setProperty(EsClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
 
         super.setUp();
+
+        // logging
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %2$s %5$s%6$s%n");
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(Level.ALL);
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new SimpleFormatter());
+        handler.setLevel(Level.ALL);
+        rootLogger.addHandler(handler);
     }
 
     @Override

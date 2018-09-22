@@ -38,6 +38,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.exception.TikaException;
@@ -377,17 +378,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     protected String getContent(final ContentWriter out, final String encoding) throws TikaException {
         File tempFile = null;
-        try {
-            tempFile = File.createTempFile("tika", ".tmp");
-        } catch (final IOException e) {
-            throw new CrawlerSystemException("Failed to create a temp file.", e);
-        }
-
         final String enc = encoding == null ? Constants.UTF_8 : encoding;
-        try (DeferredFileOutputStream dfos = new DeferredFileOutputStream(memorySize, tempFile)) {
+        try (DeferredFileOutputStream dfos = new DeferredFileOutputStream(memorySize, "tika", ".tmp", SystemUtils.getJavaIoTmpDir())) {
             final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dfos, enc));
             out.accept(writer);
             writer.flush();
+
+            if (!dfos.isInMemory()) {
+                tempFile = dfos.getFile();
+            }
 
             try (Reader reader = new InputStreamReader(getContentStream(dfos), enc)) {
                 return TextUtil.normalizeText(reader).initialCapacity(initialBufferSize).maxAlphanumTermSize(maxAlphanumTermSize)
@@ -398,7 +397,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         } catch (final Exception e) {
             throw new ExtractException("Failed to read a content.", e);
         } finally {
-            if (tempFile.exists() && !tempFile.delete()) {
+            if (tempFile != null && tempFile.exists() && !tempFile.delete()) {
                 logger.warn("Failed to delete " + tempFile.getAbsolutePath());
             }
         }

@@ -40,6 +40,7 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -732,49 +733,33 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
             } else {
                 final InputStream responseBodyStream = httpEntity.getContent();
-                final File outputFile = File.createTempFile(
-                        "crawler-HcHttpClient-", ".out");
-                DeferredFileOutputStream dfos = null;
-                try {
-                    try {
-                        dfos = new DeferredFileOutputStream((int) maxCachedContentSize, outputFile);
-                        CopyUtil.copy(responseBodyStream, dfos);
-                        dfos.flush();
-                    } finally {
-                        CloseableUtil.closeQuietly(dfos);
-                    }
-                } catch (final Exception e) {
-                    if (!outputFile.delete()) {
-                        logger.warn("Could not delete "
-                                + outputFile.getAbsolutePath());
-                    }
-                    throw e;
-                }
+                try (final DeferredFileOutputStream dfos = new DeferredFileOutputStream((int) maxCachedContentSize, "crawler-HcHttpClient-",
+                        ".out", SystemUtils.getJavaIoTmpDir())) {
+                    CopyUtil.copy(responseBodyStream, dfos);
+                    dfos.flush();
 
-                if (dfos.isInMemory()) {
-                    responseData.setResponseBody(dfos.getData());
-                    contentLength = dfos.getData().length;
-                    if (!outputFile.delete()) {
-                        logger.warn("Could not delete "
-                                + outputFile.getAbsolutePath());
-                    }
-                    if (contentType == null) {
-                        try (InputStream is = new ByteArrayInputStream(dfos.getData())) {
-                            contentType = mimeTypeHelper.getContentType(is, url);
-                        } catch (final Exception e) {
-                            logger.debug("Failed to detect mime-type.", e);
-                            contentType = defaultMimeType;
+                    if (dfos.isInMemory()) {
+                        responseData.setResponseBody(dfos.getData());
+                        contentLength = dfos.getData().length;
+                        if (contentType == null) {
+                            try (InputStream is = new ByteArrayInputStream(dfos.getData())) {
+                                contentType = mimeTypeHelper.getContentType(is, url);
+                            } catch (final Exception e) {
+                                logger.debug("Failed to detect mime-type.", e);
+                                contentType = defaultMimeType;
+                            }
                         }
-                    }
-                } else {
-                    responseData.setResponseBody(outputFile, true);
-                    contentLength = outputFile.length();
-                    if (contentType == null) {
-                        try (InputStream is = new FileInputStream(outputFile)) {
-                            contentType = mimeTypeHelper.getContentType(is, url);
-                        } catch (final Exception e) {
-                            logger.debug("Failed to detect mime-type.", e);
-                            contentType = defaultMimeType;
+                    } else {
+                        final File outputFile = dfos.getFile();
+                        responseData.setResponseBody(outputFile, true);
+                        contentLength = outputFile.length();
+                        if (contentType == null) {
+                            try (InputStream is = new FileInputStream(outputFile)) {
+                                contentType = mimeTypeHelper.getContentType(is, url);
+                            } catch (final Exception e) {
+                                logger.debug("Failed to detect mime-type.", e);
+                                contentType = defaultMimeType;
+                            }
                         }
                     }
                 }

@@ -15,6 +15,10 @@
 			<arg>"http://xml.org/sax/features/namespaces"</arg>
 			<arg>"false"</arg>
 		</postConstruct>
+		<postConstruct name="put">
+			<arg>"http://javax.xml.XMLConstants/feature/secure-processing"</arg>
+			<arg>"true"</arg>
+		</postConstruct>
 	</component>
 
 	<component name="defaultPropertyMap" class="java.util.LinkedHashMap">

@@ -135,7 +135,7 @@ public class XpathTransformer extends HtmlTransformer {
                 }
             } catch (final TransformerException e) {
                 logger.warn("Could not parse a value of " + entry.getKey()
-                        + ":" + entry.getValue());
+                        + ":" + entry.getValue(), e);
             }
         }
         buf.append(getAdditionalData(responseData, document));

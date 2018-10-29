@@ -115,7 +115,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
         try {
             return getResponseData(uri, includeContent);
         } finally {
-            if (accessTimeout != null) {
+            if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
                 if (!accessTimeoutTask.isCanceled()) {
                     accessTimeoutTask.cancel();

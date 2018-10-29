@@ -159,7 +159,7 @@ public class SmbClient extends AbstractCrawlerClient {
         try {
             return getResponseData(uri, includeContent);
         } finally {
-            if (accessTimeout != null) {
+            if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
                 if (!accessTimeoutTask.isCanceled()) {
                     accessTimeoutTask.cancel();
@@ -223,7 +223,7 @@ public class SmbClient extends AbstractCrawlerClient {
                         responseData.addMetaData(SMB_OWNER_ATTRIBUTES, ownerAttributes);
                     }
                 } catch (final IOException e) {
-                    logger.warn("Cannot get owner of the file: " + filePath);
+                    logger.warn("Cannot get owner of the file: " + filePath, e);
                 }
 
                 if (logger.isDebugEnabled()) {

@@ -652,7 +652,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         try {
             return processHttpMethod(url, httpRequest);
         } finally {
-            if (accessTimeout != null) {
+            if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
                 if (!accessTimeoutTask.isCanceled()) {
                     accessTimeoutTask.cancel();

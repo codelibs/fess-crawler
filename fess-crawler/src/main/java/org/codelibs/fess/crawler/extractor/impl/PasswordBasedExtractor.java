@@ -68,7 +68,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
         }
 
         if (params != null && url != null) {
-            final String value = params != null ? params.get(ExtractData.FILE_PASSWORDS) : null;
+            final String value = params.get(ExtractData.FILE_PASSWORDS);
             if (StringUtil.isNotBlank(value)) {
                 List<Pair<Pattern, String>> list = configPasswordMap.get(value);
                 if (list == null) {

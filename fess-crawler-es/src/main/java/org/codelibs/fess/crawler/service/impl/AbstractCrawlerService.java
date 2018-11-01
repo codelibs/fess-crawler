@@ -202,7 +202,9 @@ public abstract class AbstractCrawlerService {
 
     protected XContentBuilder getXContentBuilder(final Object target) {
         try {
-            return jsonBuilder().value(target);
+            final XContentBuilder builder = jsonBuilder().value(target);
+            builder.flush();
+            return builder;
         } catch (final IOException e) {
             throw new EsAccessException("Failed to convert " + target + " to JSON.", e);
         }
@@ -218,8 +220,7 @@ public abstract class AbstractCrawlerService {
 
     protected IndexResponse insert(final Object target, final OpType opType) {
         final String id = getId(getSessionId(target), getUrl(target));
-        final XContentBuilder source = getXContentBuilder(target);
-        try {
+        try (final XContentBuilder source = getXContentBuilder(target)) {
             final IndexResponse response = getClient().get(c -> c.prepareIndex(index, type, id).setSource(source).setOpType(opType)
                     .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
             setId(target, id);
@@ -288,8 +289,9 @@ public abstract class AbstractCrawlerService {
                 final BulkRequestBuilder bulkRequest = c.prepareBulk();
                 for (final T target : list) {
                     final String id = getId(getSessionId(target), getUrl(target));
-                    final XContentBuilder source = getXContentBuilder(target);
-                    bulkRequest.add(c.prepareIndex(index, type, id).setSource(source).setOpType(opType));
+                    try (final XContentBuilder source = getXContentBuilder(target)) {
+                        bulkRequest.add(c.prepareIndex(index, type, id).setSource(source).setOpType(opType));
+                    }
                     setId(target, id);
                 }
 

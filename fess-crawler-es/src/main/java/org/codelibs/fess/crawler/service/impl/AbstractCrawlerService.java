@@ -50,7 +50,6 @@ import org.elasticsearch.action.DocWriteResponse.Result;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -61,6 +60,7 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.unit.TimeValue;
@@ -165,7 +165,7 @@ public abstract class AbstractCrawlerService {
                 esClient.get(c -> c.admin().indices().prepareGetMappings(index).setTypes(type).execute());
         final ImmutableOpenMap<String, MappingMetaData> indexMappings = getMappingsResponse.mappings().get(index);
         if (indexMappings == null || !indexMappings.containsKey(type)) {
-            final PutMappingResponse putMappingResponse = esClient.get(c -> {
+            final AcknowledgedResponse putMappingResponse = esClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");
                 return c.admin().indices().preparePutMapping(index).setType(type).setSource(source, XContentType.JSON)
                         .execute();

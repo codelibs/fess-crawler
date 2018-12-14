@@ -148,34 +148,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 responseData.setContentLength(file.length());
                 checkMaxContentLength(responseData);
 
-                try {
-                    final FileOwnerAttributeView ownerAttrView = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
-                    if (ownerAttrView != null) {
-                        UserPrincipal owner = ownerAttrView.getOwner();
-                        if (owner != null) {
-                            responseData.addMetaData(FS_FILE_USER, owner.getName());
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.warn("Failed to parse FileOwnerAttributeView.", e);
-                }
-                try {
-                    final FileOwnerAttributeView fileOwnerAttr = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
-                    if (fileOwnerAttr != null) {
-                        responseData.addMetaData(FILE_ATTRIBUTE_VIEW, fileOwnerAttr);
-                        if (fileOwnerAttr instanceof AclFileAttributeView) {
-                            responseData.addMetaData(FS_FILE_GROUPS, ((AclFileAttributeView) fileOwnerAttr).getAcl().stream()
-                                    .map(acl -> acl.principal().getName()).toArray(n -> new String[n]));
-                        } else if (fileOwnerAttr instanceof PosixFileAttributeView) {
-                            responseData.addMetaData(FS_FILE_GROUPS,
-                                    new String[] { ((PosixFileAttributeView) fileOwnerAttr).readAttributes().group().getName() });
-                        } else {
-                            logger.warn("Unknown FileOwnerAttributeView: {}", fileOwnerAttr);
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new CrawlingAccessException("Failed to parse FileAttributeView.", e);
-                }
+                parseFileOwnerAttribute(responseData, file);
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(geCharSet(file));
@@ -239,6 +212,35 @@ public class FileSystemClient extends AbstractCrawlerClient {
         }
 
         return responseData;
+    }
+
+    protected FileOwnerAttributeView parseFileOwnerAttribute(final ResponseData responseData, File file) {
+        try {
+            final FileOwnerAttributeView ownerAttrView = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
+            if (ownerAttrView != null) {
+                UserPrincipal owner = ownerAttrView.getOwner();
+                if (owner != null) {
+                    responseData.addMetaData(FS_FILE_USER, owner.getName());
+                }
+            }
+
+            final AclFileAttributeView aclFileAttributeView = Files.getFileAttributeView(file.toPath(), AclFileAttributeView.class);
+            if (aclFileAttributeView != null) {
+                responseData.addMetaData(FILE_ATTRIBUTE_VIEW, aclFileAttributeView);
+                responseData.addMetaData(FS_FILE_GROUPS,
+                        aclFileAttributeView.getAcl().stream().map(acl -> acl.principal().getName()).toArray(n -> new String[n]));
+                return aclFileAttributeView;
+            }
+            final PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(file.toPath(), PosixFileAttributeView.class);
+            if (posixFileAttributeView != null) {
+                responseData.addMetaData(FILE_ATTRIBUTE_VIEW, posixFileAttributeView);
+                responseData.addMetaData(FS_FILE_GROUPS, new String[] { posixFileAttributeView.readAttributes().group().getName() });
+                return posixFileAttributeView;
+            }
+            return ownerAttrView;
+        } catch (Exception e) {
+            throw new CrawlingAccessException("Failed to parse FileAttributeView.", e);
+        }
     }
 
     protected String preprocessUri(final String uri) {

@@ -577,4 +577,9 @@ public class EsClient implements Client {
     public void fieldCaps(final FieldCapabilitiesRequest request, final ActionListener<FieldCapabilitiesResponse> listener) {
         client.fieldCaps(request, listener);
     }
+
+    @Override
+    public BulkRequestBuilder prepareBulk(String globalIndex, String globalType) {
+        return client.prepareBulk(globalIndex, globalType);
+    }
 }

@@ -13,5 +13,5 @@ before_script:
   - java -version
 
 script:
-  - mvn test
+  - mvn test | grep -v FINE
 

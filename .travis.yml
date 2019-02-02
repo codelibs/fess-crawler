@@ -14,5 +14,6 @@ before_script:
 
 script:
   - |
-    mvn test | grep -v FINE
+    mvn test > test.log 2>&1
+    tail -n1000 test.log
 

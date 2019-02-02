@@ -13,7 +13,5 @@ before_script:
   - java -version
 
 script:
-  - |
-    mvn test > test.log 2>&1
-    tail -n1000 test.log
+  - sh .travis/run.sh
 

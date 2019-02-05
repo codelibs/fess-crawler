@@ -25,6 +25,8 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.extractor.ExtractorFactory;
+import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +46,20 @@ public class PdfExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("pdfExtractor", PdfExtractor.class)//
-                .singleton("pdfExtractorForPdfPassword", PdfExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer();
+        container.singleton("pdfExtractor", PdfExtractor.class)//
+                .singleton("pdfExtractorForPdfPassword", PdfExtractor.class)//
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+                .singleton("tikaExtractor", TikaExtractor.class)//
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                    TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+                    PdfExtractor pdfExtractor = container.getComponent("pdfExtractor");
+                    factory.addExtractor("text/plain", tikaExtractor);
+                    factory.addExtractor("text/html", tikaExtractor);
+                    factory.addExtractor("application/pdf", pdfExtractor);
+                });
         pdfExtractor = container.getComponent("pdfExtractor");
-        pdfExtractorForPdfPassword = container
-                .getComponent("pdfExtractorForPdfPassword");
+        pdfExtractorForPdfPassword = container.getComponent("pdfExtractorForPdfPassword");
         pdfExtractorForPdfPassword.addPassword(".*test_.*.pdf", "word");
     }
 

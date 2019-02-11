@@ -177,7 +177,7 @@
     <repository>
       <id>codelibs.org</id>
       <name>CodeLibs Repository</name>
-      <url>http://maven.codelibs.org/</url>
+      <url>https://maven.codelibs.org/</url>
     </repository>
   </repositories>
 </project>

@@ -207,7 +207,6 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                 if (logger.isDebugEnabled()) {
                     logger.debug("Queued URL: {}", urlQueueList);
                 }
-                waitingQueue.addAll(urlQueueList);
 
                 if (!urlQueueList.isEmpty()) {
                     try {
@@ -227,6 +226,8 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                         throw new EsAccessException("Failed to delete " + urlQueueList, e);
                     }
                 }
+
+                waitingQueue.addAll(urlQueueList);
 
                 urlQueue = waitingQueue.poll();
                 if (urlQueue == null) {

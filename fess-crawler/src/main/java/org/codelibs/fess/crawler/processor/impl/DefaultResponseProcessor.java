@@ -161,6 +161,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 newUrlQueueList.add(urlQueue);
                 urlQueueService.offerAll(crawlerContext.getSessionId(), newUrlQueueList);
             }
+        } else if (logger.isDebugEnabled()) {
+            logger.debug("Visited urlQueue: " + urlQueue);
         }
     }
 

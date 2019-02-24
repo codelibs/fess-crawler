@@ -1,5 +1,4 @@
 {
-  "queue": {
     "properties": {
       "depth": {
         "type": "integer"
@@ -23,5 +22,4 @@
         "type": "keyword"
       }
     }
-  }
 }

@@ -41,14 +41,14 @@ public class EsDataService extends AbstractCrawlerService implements DataService
 
     public EsDataService(final EsCrawlerConfig crawlerConfig) {
         this.index = crawlerConfig.getDataIndex();
-        this.type = "data";
+        this.type = _DOC;
         setNumberOfShards(crawlerConfig.getDataShards());
         setNumberOfReplicas(crawlerConfig.getDataReplicas());
     }
 
     public EsDataService(final String name, final String type) {
         this.index = name + "." + type;
-        this.type = type;
+        this.type = _DOC;
     }
 
     @PostConstruct
@@ -101,9 +101,9 @@ public class EsDataService extends AbstractCrawlerService implements DataService
         });
         final EsResultList<EsAccessResult> targetList = new EsResultList<>();
         final SearchHits hits = response.getHits();
-        targetList.setTotalHits(hits.getTotalHits());
+        targetList.setTotalHits(hits.getTotalHits().value);
         targetList.setTookInMillis(response.getTook().getMillis());
-        if (hits.getTotalHits() != 0) {
+        if (hits.getTotalHits().value != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
                     final EsAccessResult target = new EsAccessResult();

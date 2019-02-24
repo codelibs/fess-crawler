@@ -33,7 +33,6 @@ import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
-import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -440,29 +439,6 @@ public class EsClient implements Client {
     }
 
     @Override
-    @Deprecated
-    public ActionFuture<TermVectorsResponse> termVector(final TermVectorsRequest request) {
-        return client.termVector(request);
-    }
-
-    @Override
-    @Deprecated
-    public void termVector(final TermVectorsRequest request, final ActionListener<TermVectorsResponse> listener) {
-        client.termVector(request, listener);
-    }
-
-    @Override
-    @Deprecated
-    public TermVectorsRequestBuilder prepareTermVector() {
-        return client.prepareTermVector();
-    }
-
-    @Override
-    public TermVectorsRequestBuilder prepareTermVector(final String index, final String type, final String id) {
-        return client.prepareTermVectors(index, type, id);
-    }
-
-    @Override
     public ActionFuture<MultiTermVectorsResponse> multiTermVectors(final MultiTermVectorsRequest request) {
         return client.multiTermVectors(request);
     }
@@ -478,21 +454,15 @@ public class EsClient implements Client {
     }
 
     @Override
-    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> ActionFuture<Response> execute(
-            final Action<Request, Response, RequestBuilder> action, final Request request) {
+    public <Request extends ActionRequest, Response extends ActionResponse> ActionFuture<Response> execute(Action<Response> action,
+            Request request) {
         return client.execute(action, request);
     }
 
     @Override
-    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> void execute(
-            final Action<Request, Response, RequestBuilder> action, final Request request, final ActionListener<Response> listener) {
+    public <Request extends ActionRequest, Response extends ActionResponse> void execute(Action<Response> action, Request request,
+            ActionListener<Response> listener) {
         client.execute(action, request, listener);
-    }
-
-    @Override
-    public <Request extends ActionRequest, Response extends ActionResponse, RequestBuilder extends ActionRequestBuilder<Request, Response, RequestBuilder>> RequestBuilder prepareExecute(
-            final Action<Request, Response, RequestBuilder> action) {
-        return client.prepareExecute(action);
     }
 
     @Override

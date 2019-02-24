@@ -59,6 +59,8 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
         final String clusterName = UUID.randomUUID().toString();
         runner.onBuild((number, settingsBuilder) -> {
             settingsBuilder.put("http.cors.enabled", true);
+            settingsBuilder.putList("discovery.seed_hosts", "127.0.0.1:9301");
+            settingsBuilder.putList("cluster.initial_master_nodes", "127.0.0.1:9301");
         }).build(newConfigs().clusterName(clusterName).numOfNode(1));
 
         // wait for yellow status
@@ -88,11 +90,11 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
 
         urlQueueService.insert(urlQueue);
         assertTrue(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId"))
-                .setSize(0).execute().actionGet().getHits().getTotalHits() > 0);
+                .setSize(0).execute().actionGet().getHits().getTotalHits().value > 0);
 
         urlQueueService.delete("sessionId");
         assertFalse(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId"))
-                .setSize(0).execute().actionGet().getHits().getTotalHits() > 0);
+                .setSize(0).execute().actionGet().getHits().getTotalHits().value > 0);
 
     }
 
@@ -115,20 +117,20 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
 
         urlQueueService.insert(urlQueue2);
         assertTrue(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().getHits().getTotalHits() > 0);
+                .actionGet().getHits().getTotalHits().value > 0);
         assertTrue(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().getHits().getTotalHits() > 0);
+                .actionGet().getHits().getTotalHits().value > 0);
 
         urlQueueService.delete("id1");
         assertFalse(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().getHits().getTotalHits() > 0);
+                .actionGet().getHits().getTotalHits().value > 0);
         assertTrue(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().getHits().getTotalHits() > 0);
+                .actionGet().getHits().getTotalHits().value > 0);
 
         urlQueueService.deleteAll();
         assertFalse(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().getHits().getTotalHits() > 0);
+                .actionGet().getHits().getTotalHits().value > 0);
         assertFalse(esClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().getHits().getTotalHits() > 0);
+                .actionGet().getHits().getTotalHits().value > 0);
     }
 }

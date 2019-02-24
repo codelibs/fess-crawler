@@ -99,6 +99,8 @@ public abstract class AbstractCrawlerService {
 
     protected static final String CREATE_TIME = "createTime";
 
+    protected static final String _DOC = "_doc";
+
     protected static final String[] timestampFields = new String[] { LAST_MODIFIED, CREATE_TIME };
 
     protected static final HashFunction murmur3Hash = Hashing.murmur3_128(0);
@@ -307,7 +309,7 @@ public abstract class AbstractCrawlerService {
         try {
             final SearchResponse response = getClient().get(c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery(type).addIds(id))
                     .setSize(0).setTerminateAfter(1).execute());
-            return response.getHits().getTotalHits() > 0;
+            return response.getHits().getTotalHits().value > 0;
         } catch (final Exception e) {
             throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);
         }
@@ -318,7 +320,7 @@ public abstract class AbstractCrawlerService {
             final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type).setSize(0);
             callback.accept(builder);
             return builder.execute();
-        }).getHits().getTotalHits();
+        }).getHits().getTotalHits().value;
     }
 
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
@@ -381,9 +383,9 @@ public abstract class AbstractCrawlerService {
         });
         final EsResultList<T> targetList = new EsResultList<>();
         final SearchHits hits = response.getHits();
-        targetList.setTotalHits(hits.getTotalHits());
+        targetList.setTotalHits(hits.getTotalHits().value);
         targetList.setTookInMillis(response.getTook().getMillis());
-        if (hits.getTotalHits() != 0) {
+        if (hits.getTotalHits().value != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
                     final Map<String, Object> source = searchHit.getSourceAsMap();
@@ -501,7 +503,7 @@ public abstract class AbstractCrawlerService {
     }
 
     public void setType(final String type) {
-        this.type = type;
+        throw new UnsupportedOperationException("type must be " + _DOC);
     }
 
     public int getScrollTimeout() {

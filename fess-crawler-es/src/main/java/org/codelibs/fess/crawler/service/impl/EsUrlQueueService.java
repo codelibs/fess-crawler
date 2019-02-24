@@ -64,14 +64,14 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     public EsUrlQueueService(final EsCrawlerConfig crawlerConfig) {
         this.index = crawlerConfig.getQueueIndex();
-        this.type = "queue";
+        this.type = _DOC;
         setNumberOfShards(crawlerConfig.getQueueShards());
         setNumberOfReplicas(crawlerConfig.getQueueReplicas());
     }
 
     public EsUrlQueueService(final String name, final String type) {
         this.index = name + "." + type;
-        this.type = type;
+        this.type = _DOC;
     }
 
     @PostConstruct

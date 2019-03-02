@@ -110,8 +110,6 @@ public abstract class AbstractCrawlerService {
 
     protected String index;
 
-    protected String type;
-
     protected int scrollTimeout = 60000;
 
     protected int scrollSize = 100;
@@ -164,21 +162,21 @@ public abstract class AbstractCrawlerService {
         }
 
         final GetMappingsResponse getMappingsResponse =
-                esClient.get(c -> c.admin().indices().prepareGetMappings(index).setTypes(type).execute());
+                esClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
         final ImmutableOpenMap<String, MappingMetaData> indexMappings = getMappingsResponse.mappings().get(index);
-        if (indexMappings == null || !indexMappings.containsKey(type)) {
+        if (indexMappings == null || !indexMappings.containsKey("properties")) {
             final AcknowledgedResponse putMappingResponse = esClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");
-                return c.admin().indices().preparePutMapping(index).setType(type).setSource(source, XContentType.JSON)
+                return c.admin().indices().preparePutMapping(index).setSource(source, XContentType.JSON)
                         .execute();
             });
             if (putMappingResponse.isAcknowledged()) {
-                logger.info("Created " + index + "/" + type + " mapping.");
+                logger.info("Created " + index + " mapping.");
             } else {
-                logger.warn("Failed to create " + index + "/" + type + " mapping.");
+                logger.warn("Failed to create " + index + " mapping.");
             }
         } else if (logger.isDebugEnabled()) {
-            logger.debug(index + "/" + type + " mapping exists.");
+            logger.debug(index + " mapping exists.");
         }
     }
 
@@ -223,8 +221,8 @@ public abstract class AbstractCrawlerService {
     protected IndexResponse insert(final Object target, final OpType opType) {
         final String id = getId(getSessionId(target), getUrl(target));
         try (final XContentBuilder source = getXContentBuilder(target)) {
-            final IndexResponse response = getClient().get(c -> c.prepareIndex(index, type, id).setSource(source).setOpType(opType)
-                    .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
+            final IndexResponse response = getClient().get(c -> c.prepareIndex().setIndex(index).setId(id).setSource(source)
+                    .setOpType(opType).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
             setId(target, id);
             return response;
         } catch (final Exception e) {
@@ -292,7 +290,7 @@ public abstract class AbstractCrawlerService {
                 for (final T target : list) {
                     final String id = getId(getSessionId(target), getUrl(target));
                     try (final XContentBuilder source = getXContentBuilder(target)) {
-                        bulkRequest.add(c.prepareIndex(index, type, id).setSource(source).setOpType(opType));
+                        bulkRequest.add(c.prepareIndex().setIndex(index).setId(id).setSource(source).setOpType(opType));
                     }
                     setId(target, id);
                 }
@@ -307,7 +305,7 @@ public abstract class AbstractCrawlerService {
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final SearchResponse response = getClient().get(c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery(type).addIds(id))
+            final SearchResponse response = getClient().get(c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery().addIds(id))
                     .setSize(0).setTerminateAfter(1).execute());
             return response.getHits().getTotalHits().value > 0;
         } catch (final Exception e) {
@@ -317,7 +315,7 @@ public abstract class AbstractCrawlerService {
 
     public int getCount(final Consumer<SearchRequestBuilder> callback) {
         return (int) getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type).setSize(0);
+            final SearchRequestBuilder builder = c.prepareSearch(index).setSize(0).setTrackTotalHits(true);
             callback.accept(builder);
             return builder.execute();
         }).getHits().getTotalHits().value;
@@ -325,7 +323,7 @@ public abstract class AbstractCrawlerService {
 
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
         final String id = getId(sessionId, url);
-        final GetResponse response = getClient().get(c -> c.prepareGet(index, type, id).execute());
+        final GetResponse response = getClient().get(c -> c.prepareGet().setIndex(index).setId(id).execute());
         if (response.isExists()) {
             final Map<String, Object> source = response.getSource();
             final T bean = BeanUtil.copyMapToNewBean(source, clazz, option -> {
@@ -377,7 +375,7 @@ public abstract class AbstractCrawlerService {
 
     protected <T> List<T> getList(final Class<T> clazz, final Consumer<SearchRequestBuilder> callback) {
         final SearchResponse response = getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type);
+            final SearchRequestBuilder builder = c.prepareSearch(index);
             callback.accept(builder);
             return builder.execute();
         });
@@ -412,7 +410,7 @@ public abstract class AbstractCrawlerService {
         final String id = getId(sessionId, url);
         try {
             final DeleteResponse response =
-                    getClient().get(c -> c.prepareDelete(index, type, id).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
+                    getClient().get(c -> c.prepareDelete().setIndex(index).setId(id).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
             return response.getResult() == Result.DELETED;
         } catch (final Exception e) {
             throw new EsAccessException("Failed to delete " + sessionId + ":" + url, e);
@@ -433,7 +431,7 @@ public abstract class AbstractCrawlerService {
             if (response == null) {
                 response = getClient().get(c -> {
                     final SearchRequestBuilder builder =
-                            c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
+                            c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
                     callback.accept(builder);
                     return builder.execute();
                 });
@@ -449,7 +447,7 @@ public abstract class AbstractCrawlerService {
             final BulkResponse bulkResponse = getClient().get(c -> {
                 final BulkRequestBuilder bulkBuilder = c.prepareBulk();
                 for (final SearchHit searchHit : searchHits) {
-                    bulkBuilder.add(c.prepareDelete(index, type, searchHit.getId()));
+                    bulkBuilder.add(c.prepareDelete().setIndex(index).setId(searchHit.getId()));
                 }
 
                 return bulkBuilder.execute();
@@ -498,13 +496,7 @@ public abstract class AbstractCrawlerService {
         this.index = index;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(final String type) {
-        throw new UnsupportedOperationException("type must be " + _DOC);
-    }
+ 
 
     public int getScrollTimeout() {
         return scrollTimeout;

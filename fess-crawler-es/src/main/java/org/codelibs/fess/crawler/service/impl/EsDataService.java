@@ -41,14 +41,12 @@ public class EsDataService extends AbstractCrawlerService implements DataService
 
     public EsDataService(final EsCrawlerConfig crawlerConfig) {
         this.index = crawlerConfig.getDataIndex();
-        this.type = _DOC;
         setNumberOfShards(crawlerConfig.getDataShards());
         setNumberOfReplicas(crawlerConfig.getDataReplicas());
     }
 
     public EsDataService(final String name, final String type) {
         this.index = name + "." + type;
-        this.type = _DOC;
     }
 
     @PostConstruct
@@ -93,7 +91,7 @@ public class EsDataService extends AbstractCrawlerService implements DataService
 
     public List<EsAccessResult> getAccessResultList(final Consumer<SearchRequestBuilder> callback) {
         final SearchResponse response = getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setTypes(type);
+            final SearchRequestBuilder builder = c.prepareSearch(index);
             callback.accept(builder);
             builder.setFetchSource(new String[] { "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime", "createTime",
                     "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" }, null);
@@ -150,7 +148,7 @@ public class EsDataService extends AbstractCrawlerService implements DataService
         SearchResponse response = null;
         while (true) {
             if (response == null) {
-                response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout))
+                response = getClient().get(c -> c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout))
                         .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId))).setSize(scrollSize)
                         .execute());
             } else {

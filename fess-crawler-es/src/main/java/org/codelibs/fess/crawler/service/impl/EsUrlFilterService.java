@@ -55,14 +55,12 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     public EsUrlFilterService(final EsCrawlerConfig crawlerConfig) {
         this.index = crawlerConfig.getFilterIndex();
-        this.type = _DOC;
         setNumberOfShards(crawlerConfig.getFilterShards());
         setNumberOfReplicas(crawlerConfig.getFilterReplicas());
     }
 
     public EsUrlFilterService(final String name, final String type) {
         this.index = name + "." + type;
-        this.type = _DOC;
     }
 
     @PostConstruct

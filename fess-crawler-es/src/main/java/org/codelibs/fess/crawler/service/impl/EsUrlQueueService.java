@@ -64,14 +64,12 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     public EsUrlQueueService(final EsCrawlerConfig crawlerConfig) {
         this.index = crawlerConfig.getQueueIndex();
-        this.type = _DOC;
         setNumberOfShards(crawlerConfig.getQueueShards());
         setNumberOfReplicas(crawlerConfig.getQueueReplicas());
     }
 
     public EsUrlQueueService(final String name, final String type) {
         this.index = name + "." + type;
-        this.type = _DOC;
     }
 
     @PostConstruct
@@ -99,7 +97,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         SearchResponse response = null;
         while (true) {
             if (response == null) {
-                response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout))
+                response = getClient().get(c -> c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout))
                         .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
                         .execute());
             } else {
@@ -116,7 +114,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                 final BulkRequestBuilder builder = c.prepareBulk();
                 for (final SearchHit searchHit : searchHits) {
                     final UpdateRequestBuilder updateRequest =
-                            c.prepareUpdate(index, type, searchHit.getId()).setDoc(SESSION_ID, newSessionId);
+                            c.prepareUpdate().setIndex(index).setId(searchHit.getId()).setDoc(SESSION_ID, newSessionId);
                     builder.add(updateRequest);
                 }
 
@@ -217,7 +215,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
                         final BulkResponse response = getClient().get(c -> {
                             final BulkRequestBuilder bulkBuilder = c.prepareBulk();
                             for (final EsUrlQueue uq : urlQueueList) {
-                                bulkBuilder.add(c.prepareDelete(index, type, uq.getId()));
+                                bulkBuilder.add(c.prepareDelete().setIndex(index).setId(uq.getId()));
                             }
 
                             return bulkBuilder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute();

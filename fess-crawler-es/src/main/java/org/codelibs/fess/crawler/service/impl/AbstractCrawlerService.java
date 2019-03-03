@@ -426,35 +426,40 @@ public abstract class AbstractCrawlerService {
     }
 
     public void delete(final Consumer<SearchRequestBuilder> callback) {
-        SearchResponse response = null;
-        while (true) {
-            if (response == null) {
-                response = getClient().get(c -> {
-                    final SearchRequestBuilder builder =
-                            c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
-                    callback.accept(builder);
-                    return builder.execute();
-                });
-            } else {
-                final String scrollId = response.getScrollId();
-                response = getClient().get(c -> c.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeout)).execute());
-            }
-            final SearchHits searchHits = response.getHits();
-            if (searchHits.getHits().length == 0) {
-                break;
-            }
-
-            final BulkResponse bulkResponse = getClient().get(c -> {
-                final BulkRequestBuilder bulkBuilder = c.prepareBulk();
-                for (final SearchHit searchHit : searchHits) {
-                    bulkBuilder.add(c.prepareDelete().setIndex(index).setId(searchHit.getId()));
+        SearchResponse response = getClient().get(c -> {
+            final SearchRequestBuilder builder = c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
+            callback.accept(builder);
+            return builder.execute();
+        });
+        String scrollId = response.getScrollId();
+        try {
+            while (scrollId != null) {
+                final SearchHits searchHits = response.getHits();
+                if (searchHits.getHits().length == 0) {
+                    break;
                 }
 
-                return bulkBuilder.execute();
-            });
-            if (bulkResponse.hasFailures()) {
-                throw new EsAccessException(bulkResponse.buildFailureMessage());
+                final BulkResponse bulkResponse = getClient().get(c -> {
+                    final BulkRequestBuilder bulkBuilder = c.prepareBulk();
+                    for (final SearchHit searchHit : searchHits) {
+                        bulkBuilder.add(c.prepareDelete().setIndex(index).setId(searchHit.getId()));
+                    }
+
+                    return bulkBuilder.execute();
+                });
+                if (bulkResponse.hasFailures()) {
+                    throw new EsAccessException(bulkResponse.buildFailureMessage());
+                }
+
+                final String sid = scrollId;
+                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
+                if (!scrollId.equals(response.getScrollId())) {
+                    getClient().clearScroll(scrollId);
+                }
+                scrollId = response.getScrollId();
             }
+        } finally {
+            getClient().clearScroll(scrollId);
         }
 
         refresh();

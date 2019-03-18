@@ -96,35 +96,40 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
-        SearchResponse response = null;
-        while (true) {
-            if (response == null) {
-                response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout))
-                        .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
-                        .execute());
-            } else {
-                final String scrollId = response.getScrollId();
-                response = getClient().get(c -> c.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeout)).execute());
-            }
-
-            final SearchHits searchHits = response.getHits();
-            if (searchHits.getHits().length == 0) {
-                break;
-            }
-
-            final BulkResponse bulkResponse = getClient().get(c -> {
-                final BulkRequestBuilder builder = c.prepareBulk();
-                for (final SearchHit searchHit : searchHits) {
-                    final UpdateRequestBuilder updateRequest =
-                            c.prepareUpdate(index, type, searchHit.getId()).setDoc(SESSION_ID, newSessionId);
-                    builder.add(updateRequest);
+        SearchResponse response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout))
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
+                .execute());
+        String scrollId = response.getScrollId();
+        try {
+            while (scrollId != null) {
+                final SearchHits searchHits = response.getHits();
+                if (searchHits.getHits().length == 0) {
+                    break;
                 }
 
-                return builder.execute();
-            });
-            if (bulkResponse.hasFailures()) {
-                throw new EsAccessException(bulkResponse.buildFailureMessage());
+                final BulkResponse bulkResponse = getClient().get(c -> {
+                    final BulkRequestBuilder builder = c.prepareBulk();
+                    for (final SearchHit searchHit : searchHits) {
+                        final UpdateRequestBuilder updateRequest =
+                                c.prepareUpdate().setIndex(index).setType(type).setId(searchHit.getId()).setDoc(SESSION_ID, newSessionId);
+                        builder.add(updateRequest);
+                    }
+
+                    return builder.execute();
+                });
+                if (bulkResponse.hasFailures()) {
+                    throw new EsAccessException(bulkResponse.buildFailureMessage());
+                }
+
+                final String sid = scrollId;
+                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
+                if (!scrollId.equals(response.getScrollId())) {
+                    getClient().clearScroll(scrollId);
+                }
+                scrollId = response.getScrollId();
             }
+        } finally {
+            getClient().clearScroll(scrollId);
         }
     }
 

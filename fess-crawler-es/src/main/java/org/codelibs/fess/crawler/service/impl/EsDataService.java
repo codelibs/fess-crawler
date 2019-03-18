@@ -147,34 +147,39 @@ public class EsDataService extends AbstractCrawlerService implements DataService
 
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<EsAccessResult> callback) {
-        SearchResponse response = null;
-        while (true) {
-            if (response == null) {
-                response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout))
-                        .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId))).setSize(scrollSize)
-                        .execute());
-            } else {
-                final String scrollId = response.getScrollId();
-                response = getClient().get(c -> c.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeout)).execute());
-            }
-            final SearchHits searchHits = response.getHits();
-            if (searchHits.getHits().length == 0) {
-                break;
-            }
-
-            for (final SearchHit searchHit : searchHits) {
-                final Map<String, Object> source = searchHit.getSourceAsMap();
-                final EsAccessResult accessResult = BeanUtil.copyMapToNewBean(source, EsAccessResult.class, option -> {
-                    option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
-                    option.exclude(EsAccessResult.ACCESS_RESULT_DATA);
-                });
-                @SuppressWarnings("unchecked")
-                final Map<String, Object> data = (Map<String, Object>) source.get(EsAccessResult.ACCESS_RESULT_DATA);
-                if (data != null) {
-                    accessResult.setAccessResultData(new EsAccessResultData(data));
+        SearchResponse response = getClient().get(c -> c.prepareSearch(index).setTypes(type).setScroll(new TimeValue(scrollTimeout))
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId))).setSize(scrollSize).execute());
+        String scrollId = response.getScrollId();
+        try {
+            while (scrollId != null) {
+                final SearchHits searchHits = response.getHits();
+                if (searchHits.getHits().length == 0) {
+                    break;
                 }
-                callback.iterate(accessResult);
+
+                for (final SearchHit searchHit : searchHits) {
+                    final Map<String, Object> source = searchHit.getSourceAsMap();
+                    final EsAccessResult accessResult = BeanUtil.copyMapToNewBean(source, EsAccessResult.class, option -> {
+                        option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
+                        option.exclude(EsAccessResult.ACCESS_RESULT_DATA);
+                    });
+                    @SuppressWarnings("unchecked")
+                    final Map<String, Object> data = (Map<String, Object>) source.get(EsAccessResult.ACCESS_RESULT_DATA);
+                    if (data != null) {
+                        accessResult.setAccessResultData(new EsAccessResultData(data));
+                    }
+                    callback.iterate(accessResult);
+                }
+
+                final String sid = scrollId;
+                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
+                if (!scrollId.equals(response.getScrollId())) {
+                    getClient().clearScroll(scrollId);
+                }
+                scrollId = response.getScrollId();
             }
+        } finally {
+            getClient().clearScroll(scrollId);
         }
     }
 }

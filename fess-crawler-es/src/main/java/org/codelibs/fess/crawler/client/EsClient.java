@@ -537,37 +537,48 @@ public class EsClient implements Client {
     }
 
     public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
+        SearchResponse response =
+                get(c -> c.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
+        String scrollId = response.getScrollId();
         int count = 0;
-        String scrollId = null;
-        while (true) {
-            final SearchResponse scrollResponse;
-            if (scrollId == null) {
-                scrollResponse = get(c -> c.prepareSearch(index).setTypes(type).setScroll(scrollForDelete).setSize(sizeForDelete)
-                        .setQuery(queryBuilder).execute());
-            } else {
-                final String sid = scrollId;
-                scrollResponse = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
-            }
-            final SearchHit[] hits = scrollResponse.getHits().getHits();
-            if (hits.length == 0) {
-                break;
-            }
-
-            scrollId = scrollResponse.getScrollId();
-
-            count += hits.length;
-            final BulkResponse bulkResponse = get(c -> {
-                final BulkRequestBuilder bulkRequest = client.prepareBulk();
-                for (final SearchHit hit : hits) {
-                    bulkRequest.add(client.prepareDelete(hit.getIndex(), hit.getType(), hit.getId()));
+        try {
+            while (scrollId != null) {
+                final SearchHit[] hits = response.getHits().getHits();
+                if (hits.length == 0) {
+                    break;
                 }
-                return bulkRequest.execute();
-            });
-            if (bulkResponse.hasFailures()) {
-                throw new EsAccessException(bulkResponse.buildFailureMessage());
+
+                count += hits.length;
+                final BulkResponse bulkResponse = get(c -> {
+                    final BulkRequestBuilder bulkRequest = client.prepareBulk();
+                    for (final SearchHit hit : hits) {
+                        bulkRequest.add(client.prepareDelete().setIndex(hit.getIndex()).setType(hit.getType()).setId(hit.getId()));
+                    }
+                    return bulkRequest.execute();
+                });
+                if (bulkResponse.hasFailures()) {
+                    throw new EsAccessException(bulkResponse.buildFailureMessage());
+                }
+
+                final String sid = scrollId;
+                response = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
+                if (!scrollId.equals(response.getScrollId())) {
+                    clearScroll(scrollId);
+                }
+                scrollId = response.getScrollId();
             }
+        } finally {
+            clearScroll(scrollId);
         }
+
         return count;
+    }
+
+    public void clearScroll(final String scrollId) {
+        if (scrollId != null) {
+            prepareClearScroll().addScrollId(scrollId)
+                    .execute(ActionListener.wrap(res -> {}, e -> logger.warn("Failed to clear " + scrollId, e)));
+        }
     }
 
     public interface OnConnectListener {

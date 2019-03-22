@@ -40,6 +40,12 @@
 		<!-- ntlmPasswordAuthentication -->
 	</component>
 
+	<component name="smb1Client" class="org.codelibs.fess.crawler.client.smb1.SmbClient"
+		instance="prototype">
+		<property name="charset">"UTF-8"</property>
+		<!-- ntlmPasswordAuthentication -->
+	</component>
+
 	<component name="ftpClient"
 		class="org.codelibs.fess.crawler.client.ftp.FtpClient" instance="prototype">
 		<property name="charset">"UTF-8"</property>
@@ -58,6 +64,10 @@
 		<postConstruct name="addClient">
 			<arg>"smb:.*"</arg>
 			<arg>smbClient</arg>
+		</postConstruct>
+		<postConstruct name="addClient">
+			<arg>"smb1:.*"</arg>
+			<arg>smb1Client</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
 			<arg>"ftp:.*"</arg>

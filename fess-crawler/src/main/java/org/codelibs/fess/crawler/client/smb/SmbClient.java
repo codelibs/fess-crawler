@@ -76,6 +76,8 @@ public class SmbClient extends AbstractCrawlerClient {
 
     public static final String SMB_ALLOWED_SID_ENTRIES = "smbAllowedSidEntries";
 
+    public static final String SMB_DENIED_SID_ENTRIES = "smbDeniedSidEntries";
+
     public static final String SMB_CREATE_TIME = "smbCreateTime";
 
     public static final String SMB_OWNER_ATTRIBUTES = "smbOwnerAttributes";
@@ -329,14 +331,16 @@ public class SmbClient extends AbstractCrawlerClient {
         try {
             final ACE[] aces = file.getSecurity(resolveSids);
             if (aces != null) {
-                final Set<SID> sidSet = new HashSet<>();
+                final Set<SID> sidAllowSet = new HashSet<>();
+                final Set<SID> sidDenySet = new HashSet<>();
                 for (ACE ace : aces) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("ACE:" + ace);
                     }
-                    processAllowedSIDs(file, ace.getSID(), sidSet);
+                    processAllowedSIDs(file, ace.getSID(), ace.isAllow() ? sidAllowSet : sidDenySet);
                 }
-                responseData.addMetaData(SMB_ALLOWED_SID_ENTRIES, sidSet.toArray(new SID[sidSet.size()]));
+                responseData.addMetaData(SMB_ALLOWED_SID_ENTRIES, sidAllowSet.toArray(new SID[sidAllowSet.size()]));
+                responseData.addMetaData(SMB_DENIED_SID_ENTRIES, sidDenySet.toArray(new SID[sidDenySet.size()]));
             }
         } catch (final IOException e) {
             throw new CrawlingAccessException("Could not access " + file.getPath(), e);

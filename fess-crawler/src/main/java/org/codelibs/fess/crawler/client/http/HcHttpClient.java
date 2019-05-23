@@ -40,7 +40,7 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;

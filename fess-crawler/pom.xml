@@ -179,6 +179,10 @@
           <groupId>com.sun.xml.bind</groupId>
           <artifactId>jaxb-core</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.apache.cxf</groupId>
+          <artifactId>cxf-rt-rs-client</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

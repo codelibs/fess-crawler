@@ -104,6 +104,7 @@ public class HcHttpClientTest extends PlainTestCase {
     }
 
     public void test_convertRobotsTxtPathPattern() {
+        assertEquals("/.*\\?.*", httpClient.convertRobotsTxtPathPattern("/*?*"));
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/"));
         assertEquals("/index\\.html$",
                 httpClient.convertRobotsTxtPathPattern("/index.html$"));

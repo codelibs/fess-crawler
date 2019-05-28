@@ -584,15 +584,15 @@ public class HcHttpClient extends AbstractCrawlerClient {
     }
 
     protected String convertRobotsTxtPathPattern(final String path) {
-        String newPath = path.replaceAll("\\.", "\\\\.")
-                .replaceAll("\\*", ".*");
+        String newPath = path.replace(".", "\\.").replace("?", "\\?")
+                .replace("*", ".*");
         if (newPath.charAt(0) != '/') {
             newPath = ".*" + newPath;
         }
         if (!newPath.endsWith("$") && !newPath.endsWith(".*")) {
             newPath = newPath + ".*";
         }
-        return newPath.replaceAll("\\.\\*\\.\\*", ".*");
+        return newPath.replace(".*.*", ".*");
     }
 
     /*

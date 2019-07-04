@@ -174,7 +174,6 @@ public class EsClient implements Client {
                 throw e;
             } catch (final Exception e) {
                 if (retryCount > maxRetryCount) {
-                    logger.info("Failed to invoke actionGet.", e);
                     throw e;
                 }
                 if (logger.isDebugEnabled()) {

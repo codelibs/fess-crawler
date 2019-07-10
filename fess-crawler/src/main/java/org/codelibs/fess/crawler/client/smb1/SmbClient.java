@@ -199,9 +199,9 @@ public class SmbClient extends AbstractCrawlerClient {
         try {
             return getResponseData(uri, includeContent);
         } finally {
-            if (accessTimeout != null) {
+            if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
-                if (!accessTimeoutTask.isCanceled()) {
+                if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
                     accessTimeoutTask.cancel();
                 }
             }

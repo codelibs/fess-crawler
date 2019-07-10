@@ -219,7 +219,11 @@ public abstract class AbstractCrawlerService {
     }
 
     protected IndexResponse insert(final Object target, final OpType opType) {
-        final String id = getId(getSessionId(target), getUrl(target));
+        final String url = getUrl(target);
+        if (url == null) {
+            throw new EsAccessException("url is null.");
+        }
+        final String id = getId(getSessionId(target), url);
         try (final XContentBuilder source = getXContentBuilder(target)) {
             final IndexResponse response = getClient().get(c -> c.prepareIndex().setIndex(index).setId(id).setSource(source)
                     .setOpType(opType).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());

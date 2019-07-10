@@ -60,13 +60,13 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
         // max content length
         final Long maxContentLengthParam = getInitParameter(MAX_CONTENT_LENGTH, maxContentLength, Long.class);
         if (maxContentLengthParam != null) {
-            maxContentLength = maxContentLengthParam.longValue();
+            maxContentLength = maxContentLengthParam;
         }
 
         // access timeout
         final Integer accessTimeoutParam = getInitParameter(ACCESS_TIMEOUT_PROPERTY, accessTimeout, Integer.class);
         if (accessTimeoutParam != null) {
-            accessTimeout = accessTimeoutParam.intValue();
+            accessTimeout = accessTimeoutParam;
         }
 
         // max cached content size

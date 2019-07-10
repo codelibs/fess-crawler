@@ -53,7 +53,7 @@ public class IgnoreCloseInputStream extends InputStream {
     }
 
     @Override
-    public void mark(final int readlimit) {
+    public synchronized void mark(final int readlimit) {
         inputStream.mark(readlimit);
     }
 
@@ -79,7 +79,7 @@ public class IgnoreCloseInputStream extends InputStream {
     }
 
     @Override
-    public void reset() throws IOException {
+    public synchronized void reset() throws IOException {
         inputStream.reset();
     }
 

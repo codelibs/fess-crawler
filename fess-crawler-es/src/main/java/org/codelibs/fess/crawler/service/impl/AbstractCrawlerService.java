@@ -309,9 +309,8 @@ public abstract class AbstractCrawlerService {
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final SearchResponse response = getClient().get(c -> c.prepareSearch(index).setQuery(QueryBuilders.idsQuery().addIds(id))
-                    .setSize(0).setTerminateAfter(1).execute());
-            return response.getHits().getTotalHits().value > 0;
+            final GetResponse response = getClient().get(c -> c.prepareGet(index, null, id).execute());
+            return response.isExists();
         } catch (final Exception e) {
             throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);
         }

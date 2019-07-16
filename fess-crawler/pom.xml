@@ -96,15 +96,9 @@
       <version>${httpcomponents.version}</version>
     </dependency>
     <dependency>
-      <groupId>net.sourceforge.nekohtml</groupId>
+      <groupId>org.codelibs</groupId>
       <artifactId>nekohtml</artifactId>
       <version>${nekohtml.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>xml-apis</groupId>
-          <artifactId>xml-apis</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>xalan</groupId>
@@ -162,6 +156,10 @@
         <exclusion>
           <groupId>org.apache.cxf</groupId>
           <artifactId>cxf-rt-rs-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>xerces</groupId>
+          <artifactId>xercesImpl</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

@@ -26,7 +26,7 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.cyberneko.html.parsers.DOMParser;
+import org.codelibs.nekohtml.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

@@ -82,9 +82,6 @@ public class SmbClient extends AbstractCrawlerClient {
 
     public static final String SMB_OWNER_ATTRIBUTES = "smbOwnerAttributes";
 
-    @Resource
-    protected CrawlerContainer crawlerContainer;
-
     protected String charset = Constants.UTF_8;
 
     protected boolean resolveSids = true;

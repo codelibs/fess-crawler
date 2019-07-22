@@ -132,9 +132,6 @@ public class SmbClient extends AbstractCrawlerClient {
         }));
     }
 
-    @Resource
-    protected CrawlerContainer crawlerContainer;
-
     protected String charset = Constants.UTF_8;
 
     protected boolean resolveSids = true;

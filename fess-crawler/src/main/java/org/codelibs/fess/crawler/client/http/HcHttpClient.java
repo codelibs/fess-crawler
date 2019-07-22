@@ -168,8 +168,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     private TimeoutTask connectionMonitorTask;
 
-    protected Integer accessTimeout; // sec
-
     protected Integer connectionTimeout;
 
     protected Integer maxTotalConnections;
@@ -904,11 +902,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected static String buildRedirectLocation(final String url, final String location) throws MalformedURLException {
         return new URL(new URL(url), location).toExternalForm();
-    }
-
-    @Override
-    public void setAccessTimeout(final Integer accessTimeout) {
-        this.accessTimeout = accessTimeout;
     }
 
     public void setConnectionTimeout(final Integer connectionTimeout) {

@@ -81,9 +81,6 @@ public class FtpClient extends AbstractCrawlerClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
-    @Resource
-    protected CrawlerContainer crawlerContainer;
-
     protected volatile FtpAuthenticationHolder ftpAuthenticationHolder;
 
     protected FTPClientConfig ftpClientConfig;

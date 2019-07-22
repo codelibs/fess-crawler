@@ -77,9 +77,6 @@ public class FileSystemClient extends AbstractCrawlerClient {
     protected String charset = Constants.UTF_8;
 
     @Resource
-    protected CrawlerContainer crawlerContainer;
-
-    @Resource
     protected ContentLengthHelper contentLengthHelper;
 
     protected AtomicBoolean isInit = new AtomicBoolean(false);

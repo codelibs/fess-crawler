@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -44,7 +45,7 @@ public class SitemapsHelper {
     private static final Logger logger = LoggerFactory
             .getLogger(SitemapsHelper.class);
 
-    public int preloadSize = 512;
+    protected int preloadSize = 512;
 
     public boolean isValid(final InputStream in) {
         return isValid(in, true);
@@ -163,6 +164,7 @@ public class SitemapsHelper {
         final XmlSitemapsHandler handler = new XmlSitemapsHandler();
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
+            spfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
         } catch (final Exception e) {
@@ -265,6 +267,7 @@ public class SitemapsHelper {
         final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
+            spfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
         } catch (final Exception e) {
@@ -338,5 +341,9 @@ public class SitemapsHelper {
             return sitemapSet;
         }
 
+    }
+
+    public void setPreloadSize(int preloadSize) {
+        this.preloadSize = preloadSize;
     }
 }

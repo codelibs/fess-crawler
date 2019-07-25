@@ -19,6 +19,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.apache.poi.hslf.usermodel.HSLFShape;
+import org.apache.poi.hslf.usermodel.HSLFSlideShow;
+import org.apache.poi.hslf.usermodel.HSLFTextParagraph;
+import org.apache.poi.sl.extractor.SlideShowExtractor;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -43,9 +47,8 @@ public class MsPowerPointExtractor extends AbstractExtractor {
         }
         try {
             @SuppressWarnings("resource")
-            final org.apache.poi.hslf.extractor.PowerPointExtractor powerPointExtractor =
-                    new org.apache.poi.hslf.extractor.PowerPointExtractor(in);
-            return new ExtractData(powerPointExtractor.getText());
+            final SlideShowExtractor<HSLFShape, HSLFTextParagraph> extractor = new SlideShowExtractor<>(new HSLFSlideShow(in));
+            return new ExtractData(extractor.getText());
         } catch (final IOException e) {
             throw new ExtractException(e);
         }

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -84,6 +85,7 @@ public final class XmlUtil {
         // create a sax instance
         final SAXParserFactory spfactory = SAXParserFactory.newInstance();
         try {
+            spfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             // create a sax parser
             final SAXParser parser = spfactory.newSAXParser();
             // parse a content

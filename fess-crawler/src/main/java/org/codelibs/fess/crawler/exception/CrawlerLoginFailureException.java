@@ -20,6 +20,8 @@ package org.codelibs.fess.crawler.exception;
  *
  */
 public class CrawlerLoginFailureException extends CrawlerSystemException {
+    private static final long serialVersionUID = 1L;
+
     public CrawlerLoginFailureException(final String message) {
         super(message);
     }

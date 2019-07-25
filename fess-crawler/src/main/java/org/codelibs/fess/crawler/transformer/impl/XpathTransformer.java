@@ -227,7 +227,7 @@ public class XpathTransformer extends HtmlTransformer {
         }
 
         try {
-            final Object obj = dataClass.newInstance();
+            final Object obj = dataClass.getDeclaredConstructor().newInstance();
             BeanUtil.copyMapToBean(dataMap, obj);
             return obj;
         } catch (final Exception e) {

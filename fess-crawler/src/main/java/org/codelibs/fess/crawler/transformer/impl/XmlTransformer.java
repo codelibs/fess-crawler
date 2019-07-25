@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
@@ -61,7 +62,7 @@ public class XmlTransformer extends AbstractTransformer {
 
     protected boolean coalescing;
 
-    protected boolean expandEntityRef = true;
+    protected boolean expandEntityRef = false;
 
     protected boolean ignoringComments;
 
@@ -129,7 +130,7 @@ public class XmlTransformer extends AbstractTransformer {
         }
 
         try {
-            final Object obj = dataClass.newInstance();
+            final Object obj = dataClass.getDeclaredConstructor().newInstance();
             BeanUtil.copyMapToBean(dataMap, obj);
             return obj;
         } catch (final Exception e) {
@@ -152,6 +153,7 @@ public class XmlTransformer extends AbstractTransformer {
         try (final InputStream is = responseData.getResponseBody()) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory
                     .newInstance();
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 
             for (final Map.Entry<String, Object> entry : attributeMap
                     .entrySet()) {

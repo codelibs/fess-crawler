@@ -55,7 +55,7 @@ public class AccessResultImpl<IDTYPE> implements AccessResult<IDTYPE> {
     public void init(final ResponseData responseData,
             final ResultData resultData) {
 
-        setCreateTime(new Long(System.currentTimeMillis()));
+        setCreateTime(System.currentTimeMillis());
         if (responseData != null) {
             BeanUtil.copyBeanToBean(responseData, this);
         }

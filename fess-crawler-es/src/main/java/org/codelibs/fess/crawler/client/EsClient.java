@@ -29,11 +29,11 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.elasticsearch.client.HttpClient;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.ActionType;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -453,13 +453,13 @@ public class EsClient implements Client {
     }
 
     @Override
-    public <Request extends ActionRequest, Response extends ActionResponse> ActionFuture<Response> execute(Action<Response> action,
+    public <Request extends ActionRequest, Response extends ActionResponse> ActionFuture<Response> execute(ActionType<Response> action,
             Request request) {
         return client.execute(action, request);
     }
 
     @Override
-    public <Request extends ActionRequest, Response extends ActionResponse> void execute(Action<Response> action, Request request,
+    public <Request extends ActionRequest, Response extends ActionResponse> void execute(ActionType<Response> action, Request request,
             ActionListener<Response> listener) {
         client.execute(action, request, listener);
     }

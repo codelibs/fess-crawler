@@ -52,9 +52,9 @@
     <tika.version>1.22</tika.version>
     <poi.version>4.0.1</poi.version>
     <pdfbox.version>2.0.16</pdfbox.version>
-    <nekohtml.version>2.0.1-SNAPSHOT</nekohtml.version>
+    <nekohtml.version>2.0.1</nekohtml.version>
     <elasticsearch.version>7.3.0</elasticsearch.version>
-    <elasticsearch.httpclient.version>7.3.0-SNAPSHOT</elasticsearch.httpclient.version>
+    <elasticsearch.httpclient.version>7.3.0</elasticsearch.httpclient.version>
   </properties>
   <build>
     <pluginManagement>

@@ -60,6 +60,7 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.ReaderUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -84,6 +85,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
     public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
 
     public static final String TIKA_PDF_CONFIG = "tika.pdf.config";
+
+    public static final String NORMALIZE_TEXT = "normalize_text";
 
     private static final String FILE_PASSWORD = "fess.file.password";
 
@@ -158,6 +161,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         .get(HttpHeaders.CONTENT_TYPE);
                 String contentEncoding = params == null ? null : params
                         .get(HttpHeaders.CONTENT_ENCODING);
+                final boolean normalizeText = params == null ? true :
+                    !Constants.FALSE.equalsIgnoreCase(params.get(NORMALIZE_TEXT));
                 String pdfPassword = getPassword(params);
 
                 final Metadata metadata = createMetadata(resourceName,
@@ -181,7 +186,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                     } finally {
                         CloseableUtil.closeQuietly(in);
                     }
-                }, contentEncoding);
+                }, contentEncoding, normalizeText);
                 if (StringUtil.isBlank(content)) {
                     if (resourceName != null) {
                         if (logger.isDebugEnabled()) {
@@ -202,7 +207,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             } finally {
                                 CloseableUtil.closeQuietly(in);
                             }
-                        }, contentEncoding);
+                        }, contentEncoding, normalizeText);
                     }
                     if (StringUtil.isBlank(content) && contentType != null) {
                         if (logger.isDebugEnabled()) {
@@ -223,7 +228,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             } finally {
                                 CloseableUtil.closeQuietly(in);
                             }
-                        }, contentEncoding);
+                        }, contentEncoding, normalizeText);
                     }
 
                     if (readAsTextIfFailed && StringUtil.isBlank(content)) {
@@ -252,7 +257,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             } finally {
                                 CloseableUtil.closeQuietly(br);
                             }
-                        }, contentEncoding);
+                        }, contentEncoding, normalizeText);
                     }
                 }
                 final ExtractData extractData = new ExtractData(content);
@@ -376,7 +381,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
     }
 
-    protected String getContent(final ContentWriter out, final String encoding) throws TikaException {
+    protected String getContent(final ContentWriter out, final String encoding, final boolean normalizeText) throws TikaException {
         File tempFile = null;
         final String enc = encoding == null ? Constants.UTF_8 : encoding;
         try (DeferredFileOutputStream dfos = new DeferredFileOutputStream(memorySize, "tika", ".tmp", SystemUtils.getJavaIoTmpDir())) {
@@ -389,8 +394,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
             }
 
             try (Reader reader = new InputStreamReader(getContentStream(dfos), enc)) {
-                return TextUtil.normalizeText(reader).initialCapacity(initialBufferSize).maxAlphanumTermSize(maxAlphanumTermSize)
-                        .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(replaceDuplication).execute();
+                if (normalizeText) {
+                    return TextUtil.normalizeText(reader).initialCapacity(initialBufferSize).maxAlphanumTermSize(maxAlphanumTermSize)
+                            .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(replaceDuplication).execute();
+                } else {
+                    return ReaderUtil.readText(reader);
+                }
             }
         } catch (final TikaException e) {
             throw e;

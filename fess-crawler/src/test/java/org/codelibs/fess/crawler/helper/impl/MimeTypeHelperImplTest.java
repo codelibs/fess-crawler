@@ -94,6 +94,13 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         assertContentType("image/vnd.dxf", "extractor/dxf/autocad_2010.dxf", "autocad_2010.dxf");
         assertContentType("image/vnd.dxf", "extractor/dxf/autocad_2013.dxf", "autocad_2013.dxf");
         assertContentType("image/vnd.dxf", "extractor/dxf/autocad_R12_LT2.dxf", "autocad_R12_LT2.dxf");
+
+        assertContentType("text/x-csrc", "extractor/program/test.c", "test.c");
+        assertContentType("text/x-c++src", "extractor/program/test.cpp", "test.cpp");
+        assertContentType("text/x-chdr", "extractor/program/test.h", "test.h");
+        assertContentType("text/x-c++hdr", "extractor/program/test.hpp", "test.hpp");
+        assertContentType("text/x-java-source", "extractor/program/test.java", "test.java");
+        assertContentType("application/javascript", "extractor/program/test.js", "test.js");
     }
 
     private void assertContentType(final String expect, final String path, final String name) throws IOException {

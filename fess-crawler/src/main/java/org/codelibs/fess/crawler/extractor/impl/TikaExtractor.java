@@ -102,6 +102,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     protected boolean replaceDuplication = false;
 
+    protected int[] spaceChars = new int[] { '\u0020', '\u00a0', '\u3000', '\ufffd' };
+
     protected int memorySize = 1024 * 1024; //1mb
 
     protected int maxAlphanumTermSize = -1;
@@ -396,7 +398,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             try (Reader reader = new InputStreamReader(getContentStream(dfos), enc)) {
                 if (normalizeText) {
                     return TextUtil.normalizeText(reader).initialCapacity(initialBufferSize).maxAlphanumTermSize(maxAlphanumTermSize)
-                            .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(replaceDuplication).execute();
+                            .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(replaceDuplication).spaceChars(spaceChars).execute();
                 } else {
                     return ReaderUtil.readText(reader);
                 }
@@ -557,6 +559,10 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     public void setMaxSymbolTermSize(final int maxSymbolTermSize) {
         this.maxSymbolTermSize = maxSymbolTermSize;
+    }
+
+    public void setSpaceChars(int[] spaceChars) {
+        this.spaceChars = spaceChars;
     }
 
     public void setTikaConfig(final TikaConfig tikaConfig) {

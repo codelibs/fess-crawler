@@ -30,9 +30,13 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -92,7 +96,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     protected String outputEncoding = Constants.UTF_8;
 
-    protected boolean readAsTextIfFailed = true;
+    protected boolean readAsTextIfFailed = false;
 
     protected long maxCompressionRatio = 100;
 
@@ -231,6 +235,24 @@ public class TikaExtractor extends PasswordBasedExtractor {
                                 CloseableUtil.closeQuietly(in);
                             }
                         }, contentEncoding, normalizeText);
+                    }
+
+                    if (StringUtil.isBlank(content)) {
+                        final List<String> list = new ArrayList<>();
+                        for (final String name : metadata.names()) {
+                            final String lowerName = name.toLowerCase(Locale.ROOT);
+                            if (lowerName.contains("comment") || lowerName.contains("text")) {
+                                final String[] values = metadata.getValues(name);
+                                if (values != null) {
+                                    for (final String value : values) {
+                                        list.add(value);
+                                    }
+                                }
+                            }
+                        }
+                        if (!list.isEmpty()) {
+                            content = list.stream().filter(StringUtil::isNotBlank).collect(Collectors.joining(" "));
+                        }
                     }
 
                     if (readAsTextIfFailed && StringUtil.isBlank(content)) {

@@ -61,8 +61,7 @@ public class EsDataServiceTest extends LastaDiTestCase {
         final String clusterName = UUID.randomUUID().toString();
         runner.onBuild((number, settingsBuilder) -> {
             settingsBuilder.put("http.cors.enabled", true);
-            settingsBuilder.putList("discovery.seed_hosts", "127.0.0.1:9301");
-            settingsBuilder.putList("cluster.initial_master_nodes", "127.0.0.1:9301");
+            settingsBuilder.put("discovery.type", "single-node");
         }).build(newConfigs().clusterName(clusterName).numOfNode(1));
 
         // wait for yellow status

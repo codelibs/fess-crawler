@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.codelibs.fess</groupId>
     <artifactId>fess-crawler-parent</artifactId>
-    <version>3.3.3-SNAPSHOT</version>
+    <version>3.4.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <build>
@@ -93,7 +93,7 @@
     <dependency>
       <groupId>org.codelibs</groupId>
       <artifactId>elasticsearch-cluster-runner</artifactId>
-      <version>${elasticsearch.version}.1</version>
+      <version>${elasticsearch.version}.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

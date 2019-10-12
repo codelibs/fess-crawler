@@ -21,15 +21,40 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class CrawlerClientFactory {
+    private static final Logger logger = LoggerFactory.getLogger(CrawlerClientFactory.class);
+
+    @Resource
+    protected CrawlerContainer crawlerContainer;
+
     protected Map<Pattern, CrawlerClient> clientMap = new LinkedHashMap<>();
+
+    @PostConstruct
+    public void init() {
+        try {
+            final CrawlerClientCreator creator = crawlerContainer.getComponent("crawlerClientCreator");
+            if (creator != null) {
+                creator.initialize(this);
+            }
+        } catch (Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("CrawlerClientCreator is unavailable.", e);
+            }
+        }
+    }
 
     public void addClient(final String regex, final CrawlerClient client) {
         if (StringUtil.isBlank(regex)) {

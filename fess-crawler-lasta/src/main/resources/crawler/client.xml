@@ -51,6 +51,10 @@
 		<property name="charset">"UTF-8"</property>
 	</component>
 
+	<component name="crawlerClientCreator"
+		class="org.codelibs.fess.crawler.client.CrawlerClientCreator">
+	</component>
+
 	<component name="clientFactory"
 		class="org.codelibs.fess.crawler.client.CrawlerClientFactory" instance="prototype">
 		<postConstruct name="addClient">

@@ -48,7 +48,7 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
-    private Map<String, Object> initParamMap;
+    protected Map<String, Object> initParamMap;
 
     protected long maxCachedContentSize = 1024L * 1024L; //1mb
 

@@ -149,7 +149,7 @@ public class EsClient implements Client {
                 try {
                     l.onConnect();
                 } catch (final Exception e) {
-                    logger.warn("Failed to invoke " + l, e);
+                    logger.warn("Failed to invoke {}", l, e);
                 }
             });
 
@@ -198,7 +198,7 @@ public class EsClient implements Client {
             } catch (final ElasticsearchException e) {
                 logger.warn("Failed to close client.", e);
             }
-            logger.info("Disconnected to " + address);
+            logger.info("Disconnected to {}", address);
         }
         connected = false;
     }
@@ -510,7 +510,7 @@ public class EsClient implements Client {
     public void clearScroll(final String scrollId) {
         if (scrollId != null) {
             prepareClearScroll().addScrollId(scrollId)
-                    .execute(ActionListener.wrap(res -> {}, e -> logger.warn("Failed to clear " + scrollId, e)));
+                    .execute(ActionListener.wrap(res -> {}, e -> logger.warn("Failed to clear {}", scrollId, e)));
         }
     }
 

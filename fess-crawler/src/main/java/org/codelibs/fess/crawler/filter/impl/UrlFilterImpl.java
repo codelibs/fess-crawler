@@ -126,7 +126,7 @@ public class UrlFilterImpl implements UrlFilter {
             try {
                 getUrlFilterService().addIncludeUrlFilter(sessionId, cachedIncludeSet.stream().collect(Collectors.toList()));
             } catch (final Exception e) {
-                logger.warn("Failed to add include_urls on " + sessionId, e);
+                logger.warn("Failed to add include_urls on {}", sessionId, e);
             }
             cachedIncludeSet.clear();
         }
@@ -134,7 +134,7 @@ public class UrlFilterImpl implements UrlFilter {
             try {
                 getUrlFilterService().addExcludeUrlFilter(sessionId, cachedExcludeSet.stream().collect(Collectors.toList()));
             } catch (final Exception e) {
-                logger.warn("Failed to add exclude_urls on " + sessionId, e);
+                logger.warn("Failed to add exclude_urls on {}", sessionId, e);
             }
             cachedExcludeSet.clear();
         }

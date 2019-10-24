@@ -349,7 +349,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
             if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
+                logger.warn("Failed to delete {}", tempFile.getAbsolutePath());
             }
         }
     }
@@ -365,7 +365,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 try (final InputStream in = new FileInputStream(tesseractConfigPath)) {
                     tesseractOCRConfig = new TesseractOCRConfig(in);
                 } catch (Exception e) {
-                    logger.warn("Could not load " + tesseractConfigPath, e);
+                    logger.warn("Could not load {}", tesseractConfigPath, e);
                     tesseractOCRConfig = new TesseractOCRConfig();
                 }
                 tesseractOCRConfigMap.put(tesseractConfigPath, tesseractOCRConfig);
@@ -380,7 +380,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 try (final InputStream in = new FileInputStream(pdfParserConfigPath)) {
                     pdfParserConfig = new PDFParserConfig(in);
                 } catch (Exception e) {
-                    logger.warn("Could not load " + pdfParserConfigPath, e);
+                    logger.warn("Could not load {}", pdfParserConfigPath, e);
                     pdfParserConfig = new PDFParserConfig();
                 }
                 pdfParserConfigMap.put(pdfParserConfigPath, pdfParserConfig);
@@ -431,7 +431,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             throw new ExtractException("Failed to read a content.", e);
         } finally {
             if (tempFile != null && tempFile.exists() && !tempFile.delete()) {
-                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
+                logger.warn("Failed to delete {}", tempFile.getAbsolutePath());
             }
         }
     }

@@ -124,7 +124,7 @@ public class Crawler implements Runnable {
             try {
                 parentThread.join(millis);
             } catch (final InterruptedException e) {
-                logger.warn("Interrupted job at " + parentThread.getName());
+                logger.warn("Interrupted job at {}", parentThread.getName());
             }
         }
     }

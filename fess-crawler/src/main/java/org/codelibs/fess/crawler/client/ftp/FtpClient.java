@@ -364,7 +364,7 @@ public class FtpClient extends AbstractCrawlerClient {
                     responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                 } finally {
                     if (tempFile != null && !tempFile.delete()) {
-                        logger.warn("Could not delete " + tempFile.getAbsolutePath());
+                        logger.warn("Could not delete {}", tempFile.getAbsolutePath());
                     }
                 }
             }
@@ -441,7 +441,7 @@ public class FtpClient extends AbstractCrawlerClient {
             try {
                 ftpClient.disconnect();
             } catch (final Exception e) {
-                logger.debug("Failed to disconnect " + info.toUrl(), e);
+                logger.debug("Failed to disconnect {}", info.toUrl(), e);
             }
         }
 
@@ -489,7 +489,7 @@ public class FtpClient extends AbstractCrawlerClient {
                 try {
                     ftpClient.disconnect();
                 } catch (final Exception e1) {
-                    logger.debug("Failed to disconnect " + info.toUrl(), e);
+                    logger.debug("Failed to disconnect {}", info.toUrl(), e);
                 }
             }
             throw e;

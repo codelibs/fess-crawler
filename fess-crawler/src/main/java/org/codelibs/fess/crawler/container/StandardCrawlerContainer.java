@@ -80,7 +80,7 @@ public class StandardCrawlerContainer implements CrawlerContainer {
             try {
                 componentHolder.destroy();
             } catch (final Exception e) {
-                logger.warn("Failed to destroy " + componentHolder.get(), e);
+                logger.warn("Failed to destroy {}", componentHolder.get(), e);
             }
         }
     }

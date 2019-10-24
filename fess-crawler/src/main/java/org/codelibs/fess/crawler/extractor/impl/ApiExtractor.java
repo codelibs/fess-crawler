@@ -101,7 +101,7 @@ public class ApiExtractor extends AbstractExtractor {
     @PostConstruct
     public void init() {
         if (logger.isDebugEnabled()) {
-            logger.debug("Initializing " + ApiExtractor.class.getName());
+            logger.debug("Initializing {}", ApiExtractor.class.getName());
         }
 
         // httpclient
@@ -165,7 +165,7 @@ public class ApiExtractor extends AbstractExtractor {
                     final PropertyDesc propertyDesc = beanDesc.getPropertyDesc(propertyName);
                     propertyDesc.setValue(closeableHttpClient, entry.getValue());
                 } else {
-                    logger.warn("DefaultHttpClient does not have " + propertyName + ".");
+                    logger.warn("DefaultHttpClient does not have {}.", propertyName);
                 }
             }
         }
@@ -187,7 +187,7 @@ public class ApiExtractor extends AbstractExtractor {
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing " + url);
+            logger.debug("Accessing {}", url);
         }
 
         // start

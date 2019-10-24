@@ -113,7 +113,7 @@ public class LogHelperImpl implements LogHelper {
                 // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
                 final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Finished " + urlQueue.getUrl());
+                    logger.debug("Finished {}", urlQueue.getUrl());
                 }
                 break;
             }
@@ -167,7 +167,7 @@ public class LogHelperImpl implements LogHelper {
                 // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
                 final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
                 final Throwable e = (Throwable) objs[2];
-                logger.error("Crawling Exception at " + urlQueue.getUrl(), e);
+                logger.error("Crawling Exception at {}", urlQueue.getUrl(), e);
                 break;
             }
             case NO_URL_IN_QUEUE: {

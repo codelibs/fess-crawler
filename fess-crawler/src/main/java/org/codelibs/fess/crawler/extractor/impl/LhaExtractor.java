@@ -123,7 +123,7 @@ public class LhaExtractor extends AbstractExtractor {
                 }
             }
             if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Failed to delete {}", tempFile.getAbsolutePath());
+                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
             }
         }
 

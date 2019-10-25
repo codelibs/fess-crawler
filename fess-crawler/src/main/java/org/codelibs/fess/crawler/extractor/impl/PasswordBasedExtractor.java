@@ -80,7 +80,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                         list = passwordMap.entrySet().stream().map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (Exception e) {
-                        logger.warn("Failed to parse passwords for {}", url, e);
+                        logger.warn("Failed to parse passwords for " + url, e);
                         list = Collections.emptyList();
                     }
                     configPasswordMap.put(value, list);

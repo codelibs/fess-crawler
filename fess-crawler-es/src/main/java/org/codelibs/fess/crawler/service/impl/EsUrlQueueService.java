@@ -83,7 +83,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             try {
                 insert(urlQueue);
             } catch (final Exception e) {
-                logger.warn("Failed to restore {}", urlQueue, e);
+                logger.warn("Failed to restore " + urlQueue, e);
             }
         }));
     }
@@ -151,7 +151,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             final Throwable cause = e.getCause();
             if (cause != null && cause.getClass().getSimpleName().equals("VersionConflictEngineException")) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to insert {}", urlQueue, e);
+                    logger.debug("Failed to insert " + urlQueue, e);
                 }
                 return;
             }

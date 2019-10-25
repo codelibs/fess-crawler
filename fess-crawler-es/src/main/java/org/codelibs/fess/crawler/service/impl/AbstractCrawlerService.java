@@ -155,9 +155,9 @@ public abstract class AbstractCrawlerService {
                         return c.admin().indices().prepareCreate(index).setSource(source, XContentType.JSON).execute();
                     });
             if (indexResponse.isAcknowledged()) {
-                logger.info("Created {} index.", index);
+                logger.info("Created " + index + " index.");
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Failed to create {} index.", index);
+                logger.debug("Failed to create " + index + " index.");
             }
         }
 
@@ -171,9 +171,9 @@ public abstract class AbstractCrawlerService {
                         .execute();
             });
             if (putMappingResponse.isAcknowledged()) {
-                logger.info("Created {} mapping.", index);
+                logger.info("Created " + index + " mapping.");
             } else {
-                logger.warn("Failed to create {} mapping.", index);
+                logger.warn("Failed to create " + index + " mapping.");
             }
         } else if (logger.isDebugEnabled()) {
             logger.debug(index + " mapping exists.");
@@ -193,7 +193,7 @@ public abstract class AbstractCrawlerService {
                 return sdf.parse(obj.toString());
             } catch (final ParseException e) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to parse {}", obj, e);
+                    logger.debug("Failed to parse " + obj, e);
                 }
             }
         }

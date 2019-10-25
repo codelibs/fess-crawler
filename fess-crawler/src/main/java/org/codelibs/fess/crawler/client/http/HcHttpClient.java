@@ -237,7 +237,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Initializing {}", HcHttpClient.class.getName());
+            logger.debug("Initializing " + HcHttpClient.class.getName());
         }
 
         super.init();
@@ -390,7 +390,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     consumer.accept(response, httpEntity);
                 } catch (final Exception e) {
                     request.abort();
-                    logger.warn("Failed to authenticate on {}", scheme, e);
+                    logger.warn("Failed to authenticate on " + scheme, e);
                 } finally {
                     EntityUtils.consumeQuietly(httpEntity);
                 }
@@ -634,7 +634,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing {}", url);
+            logger.debug("Accessing " + url);
         }
 
         // start
@@ -672,7 +672,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
                 logger.info(buf.toString());
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Crawling Access Exception at {}", url, e);
+                logger.debug("Crawling Access Exception at " + url, e);
             }
         }
 
@@ -694,7 +694,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 final Header locationHeader = response
                         .getFirstHeader("location");
                 if (locationHeader == null) {
-                    logger.warn("Invalid redirect location at {}", url);
+                    logger.warn("Invalid redirect location at " + url);
                 } else {
                     final String redirectLocation;
                     if (locationHeader.getValue().startsWith("/")) {

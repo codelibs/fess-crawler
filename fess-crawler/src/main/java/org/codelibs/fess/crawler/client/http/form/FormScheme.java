@@ -218,7 +218,7 @@ public class FormScheme implements AuthScheme {
                 }
                 logger.warn("Failed to login on " + originalLoginUrl + ". The http status is " + httpStatusCode + ".\n" + content);
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Logged in {}", originalLoginUrl);
+                logger.debug("Logged in " + originalLoginUrl);
             }
         });
 
@@ -235,7 +235,7 @@ public class FormScheme implements AuthScheme {
                     logger.debug("Token: " + tokenValue);
                 }
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Token is not found.\n{}", content);
+                logger.debug("Token is not found.\n" + content);
             }
         } catch (final IOException e) {
             throw new IORuntimeException(e);

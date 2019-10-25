@@ -69,7 +69,7 @@ public class FaultTolerantClient implements CrawlerClient {
                     throw e;
                 } catch (final Exception e) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Failed to access to {}", request.getUrl(),
+                        logger.debug("Failed to access to " + request.getUrl(),
                                 e);
                     }
 

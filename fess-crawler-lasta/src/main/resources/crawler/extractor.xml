@@ -38,6 +38,8 @@
 	</component>
 	<component name="emlExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.EmlExtractor"/>
+	<component name="filenameExtractor"
+		class="org.codelibs.fess.crawler.extractor.impl.FilenameExtractor" />
 	<!-- <component name="officeManagerConfiguration" class="org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration"> 
 		</component> <component name="jodExtractor" class="org.codelibs.fess.crawler.extractor.impl.JodExtractor"> 
 		<property name="officeManager"> officeManagerConfiguration.buildOfficeManager() 

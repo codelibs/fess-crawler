@@ -36,9 +36,11 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
  *
  */
 public class MimeTypeHelperImpl implements MimeTypeHelper {
-    private static final String MIME_TYPES_RESOURCE_NAME = "/org/codelibs/fess/crawler/mime/tika-mimetypes.xml";
+    protected static final String MIME_TYPES_RESOURCE_NAME = "/org/codelibs/fess/crawler/mime/tika-mimetypes.xml";
 
-    private MimeTypes mimeTypes;
+    protected MimeTypes mimeTypes;
+
+    protected boolean useFilename = true;
 
     public MimeTypeHelperImpl() {
         try {
@@ -72,6 +74,13 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, normalizeFilename(filename));
 
         try {
+            if (useFilename) {
+                final MediaType mediaType = mimeTypes.detect(null, metadata);
+                if (!MediaType.OCTET_STREAM.equals(mediaType)) {
+                    return mediaType.getType() + "/" + mediaType.getSubtype();
+                }
+            }
+
             final MediaType mediaType = mimeTypes.detect(
                     is == null || is.markSupported() ? is
                             : new BufferedInputStream(is), metadata);
@@ -110,5 +119,9 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
             }
         }
         return buf.toString();
+    }
+
+    public void setUseFilename(boolean useFilename) {
+        this.useFilename = useFilename;
     }
 }

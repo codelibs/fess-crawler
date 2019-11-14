@@ -237,7 +237,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Initializing " + HcHttpClient.class.getName());
+            logger.debug("Initializing {}", HcHttpClient.class.getName());
         }
 
         super.init();
@@ -488,7 +488,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         // check url
         if (crawlerContext.getRobotsTxtUrlSet().contains(robotTxtUrl)) {
             if (logger.isDebugEnabled()) {
-                logger.debug(robotTxtUrl + " is already visited.");
+                logger.debug("{} is already visited.", robotTxtUrl);
             }
             return;
         }
@@ -634,7 +634,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing " + url);
+            logger.debug("Accessing {}", url);
         }
 
         // start
@@ -672,7 +672,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
                 logger.info(buf.toString());
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Crawling Access Exception at " + url, e);
+                logger.debug("Crawling Access Exception at {}", url, e);
             }
         }
 

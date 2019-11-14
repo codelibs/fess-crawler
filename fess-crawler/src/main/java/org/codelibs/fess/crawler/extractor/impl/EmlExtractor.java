@@ -141,7 +141,7 @@ public class EmlExtractor extends AbstractExtractor {
             }
         } catch (Exception e) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Failed to put " + key + ":" + value, e);
+                logger.debug("Failed to put {}:{}", key, value, e);
             }
         }
     }

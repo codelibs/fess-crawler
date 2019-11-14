@@ -113,7 +113,7 @@ public class LogHelperImpl implements LogHelper {
                 // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
                 final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Finished " + urlQueue.getUrl());
+                    logger.debug("Finished {}", urlQueue.getUrl());
                 }
                 break;
             }

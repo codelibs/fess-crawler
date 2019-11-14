@@ -127,12 +127,12 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         final UrlQueueService<UrlQueue<?>> urlQueueService = CrawlingParameterUtil
                 .getUrlQueueService();
         if (logger.isDebugEnabled()) {
-            logger.debug("Processing accessResult: " + accessResult);
+            logger.debug("Processing accessResult: {}", accessResult);
         }
         if (!urlQueueService.visited(urlQueue)) {
             if (checkAccessCount(crawlerContext)) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Storing accessResult: " + accessResult);
+                    logger.debug("Storing accessResult: {}", accessResult);
                 }
                 try {
                     // store
@@ -149,7 +149,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     throw e;
                 }
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Storing child urls: " + resultData.getChildUrlSet());
+                    logger.debug("Storing child urls: {}", resultData.getChildUrlSet());
                 }
                 // add and filter urls
                 storeChildUrls(crawlerContext, resultData.getChildUrlSet(), urlQueue.getUrl(),
@@ -162,7 +162,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 urlQueueService.offerAll(crawlerContext.getSessionId(), newUrlQueueList);
             }
         } else if (logger.isDebugEnabled()) {
-            logger.debug("Visited urlQueue: " + urlQueue);
+            logger.debug("Visited urlQueue: {}", urlQueue);
         }
     }
 

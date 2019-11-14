@@ -441,7 +441,7 @@ public class FtpClient extends AbstractCrawlerClient {
             try {
                 ftpClient.disconnect();
             } catch (final Exception e) {
-                logger.debug("Failed to disconnect " + info.toUrl(), e);
+                logger.debug("Failed to disconnect {}", info.toUrl(), e);
             }
         }
 
@@ -489,7 +489,7 @@ public class FtpClient extends AbstractCrawlerClient {
                 try {
                     ftpClient.disconnect();
                 } catch (final Exception e1) {
-                    logger.debug("Failed to disconnect " + info.toUrl(), e);
+                    logger.debug("Failed to disconnect {}", info.toUrl(), e);
                 }
             }
             throw e;

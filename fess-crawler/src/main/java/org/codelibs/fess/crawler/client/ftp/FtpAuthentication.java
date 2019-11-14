@@ -92,7 +92,7 @@ public class FtpAuthentication {
             }
             return true;
         } catch (final Exception e) {
-            logger.debug("Invalid URI: " + path, e);
+            logger.debug("Invalid URI: {}", path, e);
         }
         return false;
     }

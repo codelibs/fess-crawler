@@ -52,7 +52,7 @@ public class SitemapsRule extends RegexRule {
                 throw e;
             } catch (final Exception e) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Failed a sitemap check: " + responseData, e);
+                    logger.debug("Failed a sitemap check: {}", responseData, e);
                 }
             }
         }

@@ -89,7 +89,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
                     ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE, BOM_UTF_7);
             if (bomIn.hasBOM()) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("BOM: " + bomIn.getBOMCharsetName());
+                    logger.debug("BOM: {}", bomIn.getBOMCharsetName());
                 }
                 return bomIn.getBOMCharsetName();
             }

@@ -218,7 +218,7 @@ public class FormScheme implements AuthScheme {
                 }
                 logger.warn("Failed to login on " + originalLoginUrl + ". The http status is " + httpStatusCode + ".\n" + content);
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Logged in " + originalLoginUrl);
+                logger.debug("Logged in {}", originalLoginUrl);
             }
         });
 
@@ -232,10 +232,10 @@ public class FormScheme implements AuthScheme {
             if (StringUtil.isNotBlank(tokenValue)) {
                 responseParams.add(new Pair<>(tokenName, tokenValue));
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Token: " + tokenValue);
+                    logger.debug("Token: {}", tokenValue);
                 }
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Token is not found.\n" + content);
+                logger.debug("Token is not found.\n{}", content);
             }
         } catch (final IOException e) {
             throw new IORuntimeException(e);
@@ -272,7 +272,7 @@ public class FormScheme implements AuthScheme {
         final Matcher matcher = Pattern.compile(tokenPattern).matcher(content);
         if (matcher.find()) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Matched: " + matcher.group());
+                logger.debug("Matched: {}", matcher.group());
             }
             if (matcher.groupCount() > 0) {
                 return matcher.group(1);

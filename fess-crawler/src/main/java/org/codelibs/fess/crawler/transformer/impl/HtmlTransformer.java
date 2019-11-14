@@ -352,7 +352,7 @@ public class HtmlTransformer extends AbstractTransformer {
             final Document document, final String xpath, final String attr,
             final String encoding) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Base URL: " + url);
+            logger.debug("Base URL: {}", url);
         }
         final List<String> urlList = new ArrayList<>();
         try {
@@ -385,12 +385,12 @@ public class HtmlTransformer extends AbstractTransformer {
             }
             if (StringUtil.isNotBlank(u)) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Add Child: " + u);
+                    logger.debug("Add Child: {}", u);
                 }
                 urlList.add(u);
             } else {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Skip Child: " + u);
+                    logger.debug("Skip Child: {}", u);
                 }
             }
         } catch (final MalformedURLException e) {

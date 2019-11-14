@@ -177,7 +177,7 @@ public class EsClient implements Client {
                     throw e;
                 }
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to invoke actionGet. count:" + retryCount, e);
+                    logger.debug("Failed to invoke actionGet. count:{}", retryCount, e);
                 }
 
                 try {

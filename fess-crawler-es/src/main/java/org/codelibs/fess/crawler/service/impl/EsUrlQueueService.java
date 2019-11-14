@@ -151,7 +151,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             final Throwable cause = e.getCause();
             if (cause != null && cause.getClass().getSimpleName().equals("VersionConflictEngineException")) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to insert " + urlQueue, e);
+                    logger.debug("Failed to insert {}", urlQueue, e);
                 }
                 return;
             }
@@ -260,7 +260,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
         final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("URL is a blank: " + url);
+                logger.debug("URL is a blank: {}", url);
             }
             return false;
         }

@@ -151,7 +151,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("URL is a blank: " + url);
+                logger.debug("URL is a blank: {}", url);
             }
             return false;
         }
@@ -160,7 +160,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         for (final UrlQueue<Long> urlInQueue : urlQueueList) {
             if (url.equals(urlInQueue.getUrl())) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("URL exists in a queue: " + url);
+                    logger.debug("URL exists in a queue: {}", url);
                 }
                 return false;
             }
@@ -171,7 +171,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
                 urlQueue.getSessionId()).get(url);
         if (accessResult != null) {
             if (logger.isDebugEnabled()) {
-                logger.debug("URL exists in a result: " + url);
+                logger.debug("URL exists in a result: {}", url);
             }
             return false;
         }

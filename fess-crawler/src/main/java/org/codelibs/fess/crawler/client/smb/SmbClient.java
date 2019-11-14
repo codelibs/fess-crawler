@@ -180,7 +180,7 @@ public class SmbClient extends AbstractCrawlerClient {
         SmbFile file = null;
         final SmbAuthentication smbAuthentication = smbAuthenticationHolder.get(filePath);
         if (logger.isDebugEnabled()) {
-            logger.debug("Creating SmbFile: " + filePath);
+            logger.debug("Creating SmbFile: {}", filePath);
         }
         try {
             if (smbAuthentication == null) {
@@ -193,7 +193,7 @@ public class SmbClient extends AbstractCrawlerClient {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Processing SmbFile: " + filePath);
+            logger.debug("Processing SmbFile: {}", filePath);
         }
 
         try {
@@ -203,7 +203,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 responseData.setContentLength(0);
             } else if (file.isFile()) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Checking SmbFile Size: " + filePath);
+                    logger.debug("Checking SmbFile Size: {}", filePath);
                 }
                 responseData.setContentLength(file.length());
                 checkMaxContentLength(responseData);
@@ -213,7 +213,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 responseData.addMetaData(SMB_CREATE_TIME, new Date(file.createTime()));
                 try {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Parsing SmbFile Owner: " + filePath);
+                        logger.debug("Parsing SmbFile Owner: {}", filePath);
                     }
                     final SID ownerUser = file.getOwnerUser();
                     if (ownerUser != null) {
@@ -225,7 +225,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 }
 
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Parsing SmbFile ACL: " + filePath);
+                    logger.debug("Parsing SmbFile ACL: {}", filePath);
                 }
                 processAccessControlEntries(responseData, file);
                 final Map<String, List<String>> headerFieldMap = file.getHeaderFields();
@@ -239,7 +239,7 @@ public class SmbClient extends AbstractCrawlerClient {
                     final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
                     if (includeContent) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Parsing SmbFile Content: " + filePath);
+                            logger.debug("Parsing SmbFile Content: {}", filePath);
                         }
                         if (file.getContentLengthLong() < maxCachedContentSize) {
                             try (InputStream contentStream = new BufferedInputStream(new SmbFileInputStream(file))) {
@@ -263,7 +263,7 @@ public class SmbClient extends AbstractCrawlerClient {
                             }
                         }
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Parsing SmbFile MIME Type: " + filePath);
+                            logger.debug("Parsing SmbFile MIME Type: {}", filePath);
                         }
                         try (final InputStream is = responseData.getResponseBody()) {
                             responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
@@ -272,7 +272,7 @@ public class SmbClient extends AbstractCrawlerClient {
                         }
                     } else {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Parsing SmbFile MIME Type: " + filePath);
+                            logger.debug("Parsing SmbFile MIME Type: {}", filePath);
                         }
                         try (final InputStream is = new SmbFileInputStream(file)) {
                             responseData.setMimeType(mimeTypeHelper.getContentType(is, file.getName()));
@@ -294,7 +294,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 }
             } else if (file.isDirectory()) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Parsing SmbFile Directory: " + filePath);
+                    logger.debug("Parsing SmbFile Directory: {}", filePath);
                 }
                 final Set<RequestData> requestDataSet = new HashSet<>(100);
                 if (includeContent) {
@@ -331,7 +331,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 final Set<SID> sidDenySet = new HashSet<>();
                 for (ACE ace : aces) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("ACE:" + ace);
+                        logger.debug("ACE:{}", ace);
                     }
                     processAllowedSIDs(file, ace.getSID(), ace.isAllow() ? sidAllowSet : sidDenySet);
                 }
@@ -345,7 +345,7 @@ public class SmbClient extends AbstractCrawlerClient {
 
     protected void processAllowedSIDs(final SmbFile file, final SID sid, final Set<SID> sidSet) {
         if (logger.isDebugEnabled()) {
-            logger.debug("SID:" + sid);
+            logger.debug("SID:{}", sid);
         }
         final int type = sid.getType();
         sidSet.add(sid);

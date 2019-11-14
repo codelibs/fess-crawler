@@ -47,7 +47,7 @@ public class AccessTimeoutTarget implements TimeoutTarget {
         int count = 0;
         while (running.get() && count < MAX_LOOP_COUNT) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Interrupt " + runningThread);
+                logger.debug("Interrupt {}", runningThread);
             }
             runningThread.interrupt();
             try {

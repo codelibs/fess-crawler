@@ -16,6 +16,8 @@
 package org.codelibs.fess.crawler.client;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -25,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CrawlerClientCreator {
+
     private static final Logger logger = LoggerFactory.getLogger(CrawlerClientCreator.class);
 
     @Resource
@@ -32,18 +35,32 @@ public class CrawlerClientCreator {
 
     protected Map<String, String> clientMap = new LinkedHashMap<>();
 
-    public void initialize(CrawlerClientFactory crawlerClientFactory) {
-        clientMap.entrySet().stream().forEach(e -> {
-            final String name = e.getKey();
-            if (logger.isDebugEnabled()) {
-                logger.debug("loading {}", name);
-            }
-            final CrawlerClient client = crawlerContainer.getComponent(e.getValue());
-            crawlerClientFactory.addClient(name, client);
-        });
+    protected List<CrawlerClientFactory> clientFactoryList = new LinkedList<>();
+
+    protected int maxClientFactorySize = 1000;
+
+    public synchronized void register(final CrawlerClientFactory crawlerClientFactory) {
+        clientMap.entrySet().stream().forEach(e -> load(crawlerClientFactory, e.getKey(), e.getValue()));
+        clientFactoryList.add(crawlerClientFactory);
+        if (clientFactoryList.size() > maxClientFactorySize) {
+            clientFactoryList.remove(0);
+        }
     }
 
-    public void register(final String name, final String componentName) {
+    public synchronized void register(final String name, final String componentName) {
         clientMap.put(name, componentName);
+        clientFactoryList.forEach(f -> load(f, name, componentName));
+    }
+
+    protected void load(final CrawlerClientFactory crawlerClientFactory, final String name, final String componentName) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("loading {}", name);
+        }
+        final CrawlerClient client = crawlerContainer.getComponent(componentName);
+        crawlerClientFactory.addClient(name, client);
+    }
+
+    public void setMaxClientFactorySize(int maxClientFactorySize) {
+        this.maxClientFactorySize = maxClientFactorySize;
     }
 }

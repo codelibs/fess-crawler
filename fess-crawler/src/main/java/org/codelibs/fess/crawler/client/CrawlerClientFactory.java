@@ -47,7 +47,7 @@ public class CrawlerClientFactory {
         try {
             final CrawlerClientCreator creator = crawlerContainer.getComponent("crawlerClientCreator");
             if (creator != null) {
-                creator.initialize(this);
+                creator.register(this);
             }
         } catch (Exception e) {
             if (logger.isDebugEnabled()) {
@@ -90,11 +90,9 @@ public class CrawlerClientFactory {
         clientMap = newClientMap;
     }
 
-    public void addClient(final List<String> regexList,
-            final CrawlerClient client) {
+    public void addClient(final List<String> regexList, final CrawlerClient client) {
         if (regexList == null || regexList.isEmpty()) {
-            throw new CrawlerSystemException(
-                    "A regular expression list is null or empty.");
+            throw new CrawlerSystemException("A regular expression list is null or empty.");
         }
         if (client == null) {
             throw new CrawlerSystemException("CrawlerClient is null.");
@@ -111,8 +109,7 @@ public class CrawlerClientFactory {
             return null;
         }
 
-        for (final Map.Entry<Pattern, CrawlerClient> entry : clientMap
-                .entrySet()) {
+        for (final Map.Entry<Pattern, CrawlerClient> entry : clientMap.entrySet()) {
             final Matcher matcher = entry.getKey().matcher(url);
             if (matcher.matches()) {
                 return entry.getValue();

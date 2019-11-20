@@ -46,7 +46,7 @@
     <dbflute.version>1.2.0</dbflute.version>
     <lastadi.version>0.8.0</lastadi.version>
     <utflute.version>0.9.1</utflute.version>
-    <corelib.version>0.5.1</corelib.version>
+    <corelib.version>0.5.2-SNAPSHOT</corelib.version>
     <slf4j.version>1.7.28</slf4j.version>
     <httpcomponents.version>4.5.10</httpcomponents.version>
     <tika.version>1.22</tika.version>

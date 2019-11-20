@@ -17,7 +17,7 @@ package org.codelibs.fess.crawler.interval.impl;
 
 import java.util.Map;
 
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.core.lang.ThreadUtil;
 
 public class DefaultIntervalController extends AbstractIntervalController {
 
@@ -67,11 +67,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
     @Override
     protected void delayAfterProcessing() {
         if (delayMillisAfterProcessing > 0) {
-            try {
-                Thread.sleep(delayMillisAfterProcessing);
-            } catch (final InterruptedException e) {
-                throw new CrawlerSystemException(e);
-            }
+            ThreadUtil.sleep(delayMillisAfterProcessing);
         }
     }
 
@@ -85,11 +81,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
     @Override
     protected void delayAtNoUrlInQueue() {
         if (delayMillisAtNoUrlInQueue > 0) {
-            try {
-                Thread.sleep(delayMillisAtNoUrlInQueue);
-            } catch (final InterruptedException e) {
-                throw new CrawlerSystemException(e);
-            }
+            ThreadUtil.sleep(delayMillisAtNoUrlInQueue);
         }
     }
 
@@ -102,11 +94,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
     @Override
     protected void delayBeforeProcessing() {
         if (delayMillisBeforeProcessing > 0) {
-            try {
-                Thread.sleep(delayMillisBeforeProcessing);
-            } catch (final InterruptedException e) {
-                throw new CrawlerSystemException(e);
-            }
+            ThreadUtil.sleep(delayMillisBeforeProcessing);
         }
     }
 
@@ -119,11 +107,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
     @Override
     protected void delayForWaitingNewUrl() {
         if (delayMillisForWaitingNewUrl > 0) {
-            try {
-                Thread.sleep(delayMillisForWaitingNewUrl);
-            } catch (final InterruptedException e) {
-                throw new CrawlerSystemException(e);
-            }
+            ThreadUtil.sleep(delayMillisForWaitingNewUrl);
         }
     }
 

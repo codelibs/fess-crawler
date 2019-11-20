@@ -39,6 +39,7 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -97,7 +98,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
             if (!done.get()) {
                 for (int i = 0; i < 100 && !done.get(); i++) {
                     task.interrupt();
-                    Thread.sleep(100);
+                    ThreadUtil.sleep(100L);
                 }
                 throw new ExtractException("PDFBox process cannot finish in " + timeout + " sec.");
             } else if (!exceptionSet.isEmpty()) {

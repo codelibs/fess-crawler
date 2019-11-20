@@ -26,6 +26,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.elasticsearch.client.HttpClient;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.elasticsearch.ElasticsearchException;
@@ -155,7 +156,7 @@ public class EsClient implements Client {
 
             connected = true;
         } else {
-            logger.warn("Could not connect to " +   address);
+            logger.warn("Could not connect to " + address);
         }
     }
 
@@ -180,11 +181,7 @@ public class EsClient implements Client {
                     logger.debug("Failed to invoke actionGet. count:{}", retryCount, e);
                 }
 
-                try {
-                    Thread.sleep(RandomUtils.nextLong(retryInterval + retryCount * 1000L, retryInterval + retryCount * 1000L * 2L));
-                } catch (final InterruptedException ie) {
-                    throw e;
-                }
+                ThreadUtil.sleep(RandomUtils.nextLong(retryInterval + retryCount * 1000L, retryInterval + retryCount * 1000L * 2L));
                 retryCount++;
             }
         }

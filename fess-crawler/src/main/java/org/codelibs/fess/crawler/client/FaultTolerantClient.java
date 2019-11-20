@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
@@ -33,8 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FaultTolerantClient implements CrawlerClient {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(FaultTolerantClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(FaultTolerantClient.class);
 
     protected CrawlerClient client;
 
@@ -69,8 +69,7 @@ public class FaultTolerantClient implements CrawlerClient {
                     throw e;
                 } catch (final Exception e) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Failed to access to {}", request.getUrl(),
-                                e);
+                        logger.debug("Failed to access to {}", request.getUrl(), e);
                     }
 
                     if (listener != null) {
@@ -83,11 +82,7 @@ public class FaultTolerantClient implements CrawlerClient {
                     exceptionList.add(e);
                 }
 
-                try {
-                    Thread.sleep(retryInterval);
-                } catch (final InterruptedException e) {
-                    // ignore
-                }
+                ThreadUtil.sleep(retryInterval);
                 count++;
             }
             final String message = "Failed to access to " + request.getUrl()
@@ -136,14 +131,11 @@ public class FaultTolerantClient implements CrawlerClient {
 
         void onRequestStart(FaultTolerantClient client, RequestData request);
 
-        void onRequest(FaultTolerantClient client, RequestData request,
-                int count);
+        void onRequest(FaultTolerantClient client, RequestData request, int count);
 
-        void onRequestEnd(FaultTolerantClient client, RequestData request,
-                List<Exception> exceptionList);
+        void onRequestEnd(FaultTolerantClient client, RequestData request, List<Exception> exceptionList);
 
-        void onException(FaultTolerantClient client, RequestData request,
-                int count, Exception e);
+        void onException(FaultTolerantClient client, RequestData request, int count, Exception e);
 
     }
 }

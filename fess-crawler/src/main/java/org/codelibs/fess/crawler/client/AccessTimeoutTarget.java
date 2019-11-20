@@ -17,14 +17,14 @@ package org.codelibs.fess.crawler.client;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.core.timer.TimeoutTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AccessTimeoutTarget implements TimeoutTarget {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(AccessTimeoutTarget.class);
+    private static final Logger logger = LoggerFactory.getLogger(AccessTimeoutTarget.class);
 
     private static final int MAX_LOOP_COUNT = 10;
 
@@ -50,11 +50,7 @@ public class AccessTimeoutTarget implements TimeoutTarget {
                 logger.debug("Interrupt {}", runningThread);
             }
             runningThread.interrupt();
-            try {
-                Thread.sleep(1000);
-            } catch (final InterruptedException e) {
-                // ignore
-            }
+            ThreadUtil.sleepQuietly(1000L);
             count++;
         }
     }

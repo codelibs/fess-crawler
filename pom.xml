@@ -46,7 +46,7 @@
     <dbflute.version>1.2.0</dbflute.version>
     <lastadi.version>0.8.0</lastadi.version>
     <utflute.version>0.9.1</utflute.version>
-    <corelib.version>0.5.2-SNAPSHOT</corelib.version>
+    <corelib.version>0.5.2</corelib.version>
     <slf4j.version>1.7.28</slf4j.version>
     <httpcomponents.version>4.5.10</httpcomponents.version>
     <tika.version>1.22</tika.version>
@@ -54,7 +54,7 @@
     <pdfbox.version>2.0.17</pdfbox.version>
     <nekohtml.version>2.1.0</nekohtml.version>
     <elasticsearch.version>7.4.2</elasticsearch.version>
-    <elasticsearch.httpclient.version>7.4.1-SNAPSHOT</elasticsearch.httpclient.version>
+    <elasticsearch.httpclient.version>7.4.1</elasticsearch.httpclient.version>
   </properties>
   <build>
     <pluginManagement>

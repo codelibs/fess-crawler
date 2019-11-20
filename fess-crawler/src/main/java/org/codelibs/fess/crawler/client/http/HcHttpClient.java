@@ -148,8 +148,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String IGNORE_SSL_CERTIFICATE_PROPERTY = "ignoreSslCertificate";
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(HcHttpClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(HcHttpClient.class);
 
     @Resource
     protected RobotsTxtHelper robotsTxtHelper;
@@ -204,8 +203,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected long idleConnectionTimeout = 60 * 1000L; // 1min
 
-    protected Pattern redirectHttpStatusPattern = Pattern
-            .compile("[3][0-9][0-9]");
+    protected Pattern redirectHttpStatusPattern = Pattern.compile("[3][0-9][0-9]");
 
     protected boolean useRobotsTxtDisallows = true;
 
@@ -249,8 +247,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // httpclient
-        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder = RequestConfig
-                .custom();
+        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
         final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
         final Integer connectionTimeoutParam = getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout, Integer.class);
@@ -264,16 +261,13 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // AuthSchemeFactory
-        final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder = RegistryBuilder
-                .create();
+        final RegistryBuilder<AuthSchemeProvider> authSchemeProviderBuilder = RegistryBuilder.create();
         @SuppressWarnings("unchecked")
         final Map<String, AuthSchemeProvider> factoryMap =
                 getInitParameter(AUTH_SCHEME_PROVIDERS_PROPERTY, authSchemeProviderMap, Map.class);
         if (factoryMap != null) {
-            for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap
-                    .entrySet()) {
-                authSchemeProviderBuilder.register(entry.getKey(),
-                        entry.getValue());
+            for (final Map.Entry<String, AuthSchemeProvider> entry : factoryMap.entrySet()) {
+                authSchemeProviderBuilder.register(entry.getKey(), entry.getValue());
             }
         }
 
@@ -313,8 +307,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         final RequestHeader[] requestHeaders = getInitParameter(REQUERT_HEADERS_PROPERTY, new RequestHeader[0], RequestHeader[].class);
         for (final RequestHeader requestHeader : requestHeaders) {
             if (requestHeader.isValid()) {
-                requestHeaderList.add(new BasicHeader(requestHeader.getName(),
-                        requestHeader.getValue()));
+                requestHeaderList.add(new BasicHeader(requestHeader.getName(), requestHeader.getValue()));
             }
         }
 
@@ -348,27 +341,19 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         connectionMonitorTask = TimeoutManager.getInstance().addTimeoutTarget(
-                new HcConnectionMonitorTarget(clientConnectionManager,
-                        idleConnectionTimeout), connectionCheckInterval, true);
+                new HcConnectionMonitorTarget(clientConnectionManager, idleConnectionTimeout), connectionCheckInterval, true);
 
-        final CloseableHttpClient closeableHttpClient = httpClientBuilder
-                .setDnsResolver(dnsResolver)
-                .setConnectionManager(clientConnectionManager)
-                .setDefaultRequestConfig(requestConfigBuilder.build()).build();
+        final CloseableHttpClient closeableHttpClient = httpClientBuilder.setDnsResolver(dnsResolver)
+                .setConnectionManager(clientConnectionManager).setDefaultRequestConfig(requestConfigBuilder.build()).build();
         if (!httpClientPropertyMap.isEmpty()) {
-            final BeanDesc beanDesc = BeanDescFactory
-                    .getBeanDesc(closeableHttpClient.getClass());
-            for (final Map.Entry<String, Object> entry : httpClientPropertyMap
-                    .entrySet()) {
+            final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(closeableHttpClient.getClass());
+            for (final Map.Entry<String, Object> entry : httpClientPropertyMap.entrySet()) {
                 final String propertyName = entry.getKey();
                 if (beanDesc.hasPropertyDesc(propertyName)) {
-                    final PropertyDesc propertyDesc = beanDesc
-                            .getPropertyDesc(propertyName);
-                    propertyDesc
-                            .setValue(closeableHttpClient, entry.getValue());
+                    final PropertyDesc propertyDesc = beanDesc.getPropertyDesc(propertyName);
+                    propertyDesc.setValue(closeableHttpClient, entry.getValue());
                 } else {
-                    logger.warn("DefaultHttpClient does not have "
-                            + propertyName + ".");
+                    logger.warn("DefaultHttpClient does not have " + propertyName + ".");
                 }
             }
         }
@@ -405,10 +390,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
             return sslSocketFactory;
         } else if (getInitParameter(IGNORE_SSL_CERTIFICATE_PROPERTY, false, Boolean.class)) {
             try {
-                SSLContextBuilder builder = new SSLContextBuilder();
+                final SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
                 return new SSLConnectionSocketFactory(builder.build());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.warn("Failed to create TrustSelfSignedStrategy.", e);
             }
         }
@@ -469,8 +454,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // crawler context
-        final CrawlerContext crawlerContext = CrawlingParameterUtil
-                .getCrawlerContext();
+        final CrawlerContext crawlerContext = CrawlingParameterUtil.getCrawlerContext();
         if (crawlerContext == null) {
             // wrong state
             return;
@@ -516,43 +500,34 @@ public class HcHttpClient extends AbstractCrawlerClient {
             if (httpStatusCode == 200) {
 
                 // check file size
-                final Header contentLengthHeader = response
-                        .getFirstHeader("Content-Length");
+                final Header contentLengthHeader = response.getFirstHeader("Content-Length");
                 if (contentLengthHeader != null) {
                     final String value = contentLengthHeader.getValue();
                     final long contentLength = Long.parseLong(value);
                     if (contentLengthHelper != null) {
-                        final long maxLength = contentLengthHelper
-                                .getMaxLength("text/plain");
+                        final long maxLength = contentLengthHelper.getMaxLength("text/plain");
                         if (contentLength > maxLength) {
-                            throw new MaxLengthExceededException(
-                                    "The content length (" + contentLength
-                                            + " byte) is over " + maxLength
-                                            + " byte. The url is "
-                                            + robotTxtUrl);
+                            throw new MaxLengthExceededException("The content length (" + contentLength + " byte) is over " + maxLength
+                                    + " byte. The url is " + robotTxtUrl);
                         }
                     }
                 }
 
                 if (httpEntity != null) {
-                    final RobotsTxt robotsTxt = robotsTxtHelper
-                            .parse(httpEntity.getContent());
+                    final RobotsTxt robotsTxt = robotsTxtHelper.parse(httpEntity.getContent());
                     if (robotsTxt != null) {
                         final String[] sitemaps = robotsTxt.getSitemaps();
                         if (sitemaps.length > 0) {
                             crawlerContext.addSitemaps(sitemaps);
                         }
 
-                        final RobotsTxt.Directive directive = robotsTxt
-                                .getMatchedDirective(userAgent);
+                        final RobotsTxt.Directive directive = robotsTxt.getMatchedDirective(userAgent);
                         if (directive != null) {
                             if (useRobotsTxtDisallows) {
-                                for (String urlPattern : directive
-                                        .getDisallows()) {
+                                for (String urlPattern : directive.getDisallows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
                                         urlPattern = convertRobotsTxtPathPattern(urlPattern);
-                                        crawlerContext.getUrlFilter().addExclude(
-                                                hostUrl + urlPattern);
+                                        crawlerContext.getUrlFilter().addExclude(hostUrl + urlPattern);
                                     }
                                 }
                             }
@@ -560,8 +535,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                                 for (String urlPattern : directive.getAllows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
                                         urlPattern = convertRobotsTxtPathPattern(urlPattern);
-                                        crawlerContext.getUrlFilter().addInclude(
-                                                hostUrl + urlPattern);
+                                        crawlerContext.getUrlFilter().addInclude(hostUrl + urlPattern);
                                     }
                                 }
                             }
@@ -574,16 +548,14 @@ public class HcHttpClient extends AbstractCrawlerClient {
             throw e;
         } catch (final Exception e) {
             httpGet.abort();
-            throw new CrawlingAccessException("Could not process "
-                    + robotTxtUrl + ". ", e);
+            throw new CrawlingAccessException("Could not process " + robotTxtUrl + ". ", e);
         } finally {
             EntityUtils.consumeQuietly(httpEntity);
         }
     }
 
     protected String convertRobotsTxtPathPattern(final String path) {
-        String newPath = path.replace(".", "\\.").replace("?", "\\?")
-                .replace("*", ".*");
+        String newPath = path.replace(".", "\\.").replace("?", "\\?").replace("*", ".*");
         if (newPath.charAt(0) != '/') {
             newPath = ".*" + newPath;
         }
@@ -604,8 +576,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         try {
             httpGet = new HttpGet(url);
         } catch (final IllegalArgumentException e) {
-            throw new CrawlingAccessException("The url may not be valid: "
-                    + url, e);
+            throw new CrawlingAccessException("The url may not be valid: " + url, e);
         }
         return doHttpMethod(url, httpGet);
     }
@@ -621,14 +592,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
         try {
             httpHead = new HttpHead(url);
         } catch (final IllegalArgumentException e) {
-            throw new CrawlingAccessException("The url may not be valid: "
-                    + url, e);
+            throw new CrawlingAccessException("The url may not be valid: " + url, e);
         }
         return doHttpMethod(url, httpHead);
     }
 
-    public ResponseData doHttpMethod(final String url,
-            final HttpUriRequest httpRequest) {
+    public ResponseData doHttpMethod(final String url, final HttpUriRequest httpRequest) {
         if (httpClient == null) {
             init();
         }
@@ -641,10 +610,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
         AccessTimeoutTarget accessTimeoutTarget = null;
         TimeoutTask accessTimeoutTask = null;
         if (accessTimeout != null) {
-            accessTimeoutTarget = new AccessTimeoutTarget(
-                    Thread.currentThread());
-            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(
-                    accessTimeoutTarget, accessTimeout.intValue(), false);
+            accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
         }
 
         try {
@@ -659,8 +626,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
-    protected ResponseData processHttpMethod(final String url,
-            final HttpUriRequest httpRequest) {
+    protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
         try {
             processRobotsTxt(url);
         } catch (final CrawlingAccessException e) {
@@ -691,8 +657,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             final int httpStatusCode = response.getStatusLine().getStatusCode();
             // redirect
             if (isRedirectHttpStatus(httpStatusCode)) {
-                final Header locationHeader = response
-                        .getFirstHeader("location");
+                final Header locationHeader = response.getFirstHeader("location");
                 if (locationHeader == null) {
                     logger.warn("Invalid redirect location at " + url);
                 } else {
@@ -709,8 +674,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             }
 
             String contentType = null;
-            final Header contentTypeHeader = response
-                    .getFirstHeader("Content-Type");
+            final Header contentTypeHeader = response.getFirstHeader("Content-Type");
             if (contentTypeHeader != null) {
                 contentType = contentTypeHeader.getValue();
                 final int idx = contentType.indexOf(';');
@@ -762,8 +726,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     }
                 }
 
-                final Header contentEncodingHeader = httpEntity
-                        .getContentEncoding();
+                final Header contentEncodingHeader = httpEntity.getContentEncoding();
                 if (contentEncodingHeader != null) {
                     contentEncoding = contentEncodingHeader.getValue();
                 }
@@ -771,12 +734,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
             // check file size
             if (contentLengthHelper != null) {
-                final long maxLength = contentLengthHelper
-                        .getMaxLength(contentType);
+                final long maxLength = contentLengthHelper.getMaxLength(contentType);
                 if (contentLength > maxLength) {
-                    throw new MaxLengthExceededException("The content length ("
-                            + contentLength + " byte) is over " + maxLength
-                            + " byte. The url is " + url);
+                    throw new MaxLengthExceededException(
+                            "The content length (" + contentLength + " byte) is over " + maxLength + " byte. The url is " + url);
                 }
             }
 
@@ -792,8 +753,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 responseData.addMetaData(header.getName(), header.getValue());
             }
             responseData.setMimeType(contentType);
-            final Header contentLengthHeader = response
-                    .getFirstHeader("Content-Length");
+            final Header contentLengthHeader = response.getFirstHeader("Content-Length");
             if (contentLengthHeader == null) {
                 responseData.setContentLength(contentLength);
             } else {
@@ -805,8 +765,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
             }
             checkMaxContentLength(responseData);
-            final Header lastModifiedHeader = response
-                    .getFirstHeader("Last-Modified");
+            final Header lastModifiedHeader = response.getFirstHeader("Last-Modified");
             if (lastModifiedHeader != null) {
                 final String value = lastModifiedHeader.getValue();
                 if (StringUtil.isNotBlank(value)) {
@@ -820,24 +779,19 @@ public class HcHttpClient extends AbstractCrawlerClient {
             return responseData;
         } catch (final UnknownHostException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("Unknown host("
-                    + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("Unknown host(" + e.getMessage() + "): " + url, e);
         } catch (final NoRouteToHostException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("No route to host("
-                    + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("No route to host(" + e.getMessage() + "): " + url, e);
         } catch (final ConnectException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("Connection time out("
-                    + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("Connection time out(" + e.getMessage() + "): " + url, e);
         } catch (final SocketException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("Socket exception("
-                    + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("Socket exception(" + e.getMessage() + "): " + url, e);
         } catch (final IOException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("I/O exception("
-                    + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("I/O exception(" + e.getMessage() + "): " + url, e);
         } catch (final CrawlerSystemException e) {
             closeResources(httpRequest, responseData);
             throw e;
@@ -855,19 +809,15 @@ public class HcHttpClient extends AbstractCrawlerClient {
     }
 
     protected boolean isRedirectHttpStatus(final int httpStatusCode) {
-        return redirectHttpStatusPattern.matcher(
-                Integer.toString(httpStatusCode)).matches();
+        return redirectHttpStatusPattern.matcher(Integer.toString(httpStatusCode)).matches();
     }
 
-    protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest)
-            throws IOException {
-        return httpClient.execute(httpRequest, new BasicHttpContext(
-                httpClientContext));
+    protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest) throws IOException {
+        return httpClient.execute(httpRequest, new BasicHttpContext(httpClientContext));
     }
 
     protected Date parseLastModified(final String value) {
-        final SimpleDateFormat sdf = new SimpleDateFormat(
-                "EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+        final SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
         try {
             return sdf.parse(value);
         } catch (final ParseException e) {
@@ -956,13 +906,11 @@ public class HcHttpClient extends AbstractCrawlerClient {
         this.httpClientContext = httpClientContext;
     }
 
-    public void setClientConnectionManager(
-            final HttpClientConnectionManager clientConnectionManager) {
+    public void setClientConnectionManager(final HttpClientConnectionManager clientConnectionManager) {
         this.clientConnectionManager = clientConnectionManager;
     }
 
-    public void setAuthSchemeProviderMap(
-            final Map<String, AuthSchemeProvider> authSchemeProviderMap) {
+    public void setAuthSchemeProviderMap(final Map<String, AuthSchemeProvider> authSchemeProviderMap) {
         this.authSchemeProviderMap = authSchemeProviderMap;
     }
 
@@ -974,8 +922,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         this.idleConnectionTimeout = idleConnectionTimeout;
     }
 
-    public void setRedirectHttpStatusPattern(
-            final Pattern redirectHttpStatusPattern) {
+    public void setRedirectHttpStatusPattern(final Pattern redirectHttpStatusPattern) {
         this.redirectHttpStatusPattern = redirectHttpStatusPattern;
     }
 
@@ -1015,7 +962,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         this.dnsResolver = dnsResolver;
     }
 
-    public void setSslSocketFactory(LayeredConnectionSocketFactory sslSocketFactory) {
+    public void setSslSocketFactory(final LayeredConnectionSocketFactory sslSocketFactory) {
         this.sslSocketFactory = sslSocketFactory;
     }
 }

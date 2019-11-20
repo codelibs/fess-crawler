@@ -64,16 +64,14 @@ public class HostIntervalController extends DefaultIntervalController {
             if (host == null) {
                 return;
             }
-            final AtomicLong lastTime = lastTimes.putIfAbsent(host,
-                    new AtomicLong(SystemUtil.currentTimeMillis()));
+            final AtomicLong lastTime = lastTimes.putIfAbsent(host, new AtomicLong(SystemUtil.currentTimeMillis()));
             if (lastTime == null) {
                 return;
             }
             synchronized (lastTime) {
                 while (true) {
                     final long currentTime = SystemUtil.currentTimeMillis();
-                    final long delayTime = lastTime.get()
-                            + delayMillisBeforeProcessing - currentTime;
+                    final long delayTime = lastTime.get() + delayMillisBeforeProcessing - currentTime;
                     if (delayTime <= 0) {
                         lastTime.set(currentTime);
                         break;

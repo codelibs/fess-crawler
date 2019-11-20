@@ -222,10 +222,7 @@ public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
 
     @Override
     public String toString() {
-        return "UrlQueueImpl [id=" + id + ", sessionId=" + sessionId
-                + ", method=" + method + ", url=" + url + ", encoding="
-                + encoding + ", parentUrl=" + parentUrl + ", depth=" + depth
-                + ", lastModified=" + lastModified + ", createTime="
-                + createTime + "]";
+        return "UrlQueueImpl [id=" + id + ", sessionId=" + sessionId + ", method=" + method + ", url=" + url + ", encoding=" + encoding
+                + ", parentUrl=" + parentUrl + ", depth=" + depth + ", lastModified=" + lastModified + ", createTime=" + createTime + "]";
     }
 }

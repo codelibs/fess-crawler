@@ -104,8 +104,7 @@ public class CrawlerThread implements Runnable {
         return isContinue;
     }
 
-    protected void log(final LogHelper logHelper, final LogType key,
-            final Object... objs) {
+    protected void log(final LogHelper logHelper, final LogType key, final Object... objs) {
         if (logHelper != null) {
             logHelper.log(key, objs);
         }
@@ -126,19 +125,14 @@ public class CrawlerThread implements Runnable {
         CrawlingParameterUtil.setDataService(dataService);
         try {
             while (crawlerContext.getStatus() != CrawlerStatus.DONE && isContinue(threadCheckCount)) {
-                final UrlQueue<?> urlQueue = urlQueueService
-                        .poll(crawlerContext.sessionId);
+                final UrlQueue<?> urlQueue = urlQueueService.poll(crawlerContext.sessionId);
                 if (isValid(urlQueue)) {
                     ResponseData responseData = null;
-                    log(logHelper, LogType.START_CRAWLING, crawlerContext,
-                            urlQueue);
+                    log(logHelper, LogType.START_CRAWLING, crawlerContext, urlQueue);
                     try {
-                        final CrawlerClient client = getClient(urlQueue
-                                .getUrl());
+                        final CrawlerClient client = getClient(urlQueue.getUrl());
                         if (client == null) {
-                            log(logHelper,
-                                    LogType.UNSUPPORTED_URL_AT_CRAWLING_STARTED,
-                                    crawlerContext, urlQueue);
+                            log(logHelper, LogType.UNSUPPORTED_URL_AT_CRAWLING_STARTED, crawlerContext, urlQueue);
                             continue;
                         }
 
@@ -148,65 +142,49 @@ public class CrawlerThread implements Runnable {
                         CrawlingParameterUtil.setUrlQueue(urlQueue);
 
                         if (crawlerContext.intervalController != null) {
-                            crawlerContext.intervalController
-                                    .delay(IntervalController.PRE_PROCESSING);
+                            crawlerContext.intervalController.delay(IntervalController.PRE_PROCESSING);
                         }
 
-                        final boolean contentUpdated = isContentUpdated(client,
-                                urlQueue);
+                        final boolean contentUpdated = isContentUpdated(client, urlQueue);
 
                         if (contentUpdated) {
-                            log(logHelper, LogType.GET_CONTENT, crawlerContext,
-                                    urlQueue);
+                            log(logHelper, LogType.GET_CONTENT, crawlerContext, urlQueue);
                             // access an url
-                            final long startTime = SystemUtil
-                                    .currentTimeMillis();
-                            responseData = client.execute(RequestDataBuilder
-                                    .newRequestData()
-                                    .method(urlQueue.getMethod())
-                                    .url(urlQueue.getUrl()).build());
-                            responseData.setExecutionTime(SystemUtil
-                                    .currentTimeMillis() - startTime);
+                            final long startTime = SystemUtil.currentTimeMillis();
+                            responseData = client.execute(
+                                    RequestDataBuilder.newRequestData().method(urlQueue.getMethod()).url(urlQueue.getUrl()).build());
+                            responseData.setExecutionTime(SystemUtil.currentTimeMillis() - startTime);
                             responseData.setParentUrl(urlQueue.getParentUrl());
                             responseData.setSessionId(crawlerContext.sessionId);
 
                             if (responseData.getRedirectLocation() == null) {
-                                log(logHelper, LogType.PROCESS_RESPONSE,
-                                        crawlerContext, urlQueue, responseData);
+                                log(logHelper, LogType.PROCESS_RESPONSE, crawlerContext, urlQueue, responseData);
                                 processResponse(urlQueue, responseData);
                             } else {
-                                log(logHelper, LogType.REDIRECT_LOCATION,
-                                        crawlerContext, urlQueue, responseData);
+                                log(logHelper, LogType.REDIRECT_LOCATION, crawlerContext, urlQueue, responseData);
                                 // redirect
                                 storeChildUrl(responseData.getRedirectLocation(), urlQueue.getUrl(), null,
                                         urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                             }
                         }
 
-                        log(logHelper, LogType.FINISHED_CRAWLING, crawlerContext,
-                                urlQueue);
+                        log(logHelper, LogType.FINISHED_CRAWLING, crawlerContext, urlQueue);
                     } catch (final ChildUrlsException e) {
                         try {
-                            final Set<RequestData> childUrlSet = e
-                                    .getChildUrlList();
-                            log(logHelper,
-                                    LogType.PROCESS_CHILD_URLS_BY_EXCEPTION,
-                                    crawlerContext, urlQueue, childUrlSet);
+                            final Set<RequestData> childUrlSet = e.getChildUrlList();
+                            log(logHelper, LogType.PROCESS_CHILD_URLS_BY_EXCEPTION, crawlerContext, urlQueue, childUrlSet);
                             // add an url
                             storeChildUrls(childUrlSet, urlQueue.getUrl(), urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                         } catch (final Exception e1) {
-                            log(logHelper, LogType.CRAWLING_EXCETPION,
-                                    crawlerContext, urlQueue, e1);
+                            log(logHelper, LogType.CRAWLING_EXCETPION, crawlerContext, urlQueue, e1);
                         }
                         if (noWaitOnFolder) {
                             continue;
                         }
                     } catch (final CrawlingAccessException e) {
-                        log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION,
-                                crawlerContext, urlQueue, e);
+                        log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION, crawlerContext, urlQueue, e);
                     } catch (final Throwable e) {
-                        log(logHelper, LogType.CRAWLING_EXCETPION,
-                                crawlerContext, urlQueue, e);
+                        log(logHelper, LogType.CRAWLING_EXCETPION, crawlerContext, urlQueue, e);
                     } finally {
                         addSitemapsFromRobotsTxt(urlQueue);
 
@@ -214,8 +192,7 @@ public class CrawlerThread implements Runnable {
                             CloseableUtil.closeQuietly(responseData);
                         }
                         if (crawlerContext.intervalController != null) {
-                            crawlerContext.intervalController
-                                    .delay(IntervalController.POST_PROCESSING);
+                            crawlerContext.intervalController.delay(IntervalController.POST_PROCESSING);
                         }
                         threadCheckCount = 0; // clear
                         // remove urlQueue from thread
@@ -223,12 +200,10 @@ public class CrawlerThread implements Runnable {
                         finishCrawling();
                     }
                 } else {
-                    log(logHelper, LogType.NO_URL_IN_QUEUE, crawlerContext,
-                            urlQueue, Integer.valueOf(threadCheckCount));
+                    log(logHelper, LogType.NO_URL_IN_QUEUE, crawlerContext, urlQueue, Integer.valueOf(threadCheckCount));
 
                     if (crawlerContext.intervalController != null) {
-                        crawlerContext.intervalController
-                                .delay(IntervalController.NO_URL_IN_QUEUE);
+                        crawlerContext.intervalController.delay(IntervalController.NO_URL_IN_QUEUE);
                     }
 
                     threadCheckCount++;
@@ -236,8 +211,7 @@ public class CrawlerThread implements Runnable {
 
                 // interval
                 if (crawlerContext.intervalController != null) {
-                    crawlerContext.intervalController
-                            .delay(IntervalController.WAIT_NEW_URL);
+                    crawlerContext.intervalController.delay(IntervalController.WAIT_NEW_URL);
                 }
             }
         } catch (final Throwable t) {
@@ -256,15 +230,9 @@ public class CrawlerThread implements Runnable {
         if (sitemaps != null) {
             for (final String childUrl : sitemaps) {
                 try {
-                    storeChildUrl(
-                            childUrl,
-                            urlQueue.getUrl(),
-                            null,
-                            urlQueue.getDepth() == null ? 1 : urlQueue
-                                    .getDepth() + 1);
+                    storeChildUrl(childUrl, urlQueue.getUrl(), null, urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                 } catch (final Exception e) {
-                    log(logHelper, LogType.PROCESS_CHILD_URL_BY_EXCEPTION,
-                            crawlerContext, urlQueue, childUrl, e);
+                    log(logHelper, LogType.PROCESS_CHILD_URL_BY_EXCEPTION, crawlerContext, urlQueue, childUrl, e);
                 }
             }
         }
@@ -274,31 +242,24 @@ public class CrawlerThread implements Runnable {
         return clientFactory.getClient(url);
     }
 
-    protected boolean isContentUpdated(final CrawlerClient client,
-            final UrlQueue<?> urlQueue) {
+    protected boolean isContentUpdated(final CrawlerClient client, final UrlQueue<?> urlQueue) {
         if (urlQueue.getLastModified() != null) {
             log(logHelper, LogType.CHECK_LAST_MODIFIED, crawlerContext, urlQueue);
             final long startTime = SystemUtil.currentTimeMillis();
             ResponseData responseData = null;
             try {
                 // head method
-                responseData = client
-                        .execute(RequestDataBuilder.newRequestData().head()
-                                .url(urlQueue.getUrl()).build());
-                if (responseData != null
-                        && responseData.getLastModified() != null
-                        && responseData.getLastModified().getTime() <= urlQueue
-                                .getLastModified().longValue()
+                responseData = client.execute(RequestDataBuilder.newRequestData().head().url(urlQueue.getUrl()).build());
+                if (responseData != null && responseData.getLastModified() != null
+                        && responseData.getLastModified().getTime() <= urlQueue.getLastModified().longValue()
                         && responseData.getHttpStatusCode() == 200) {
                     log(logHelper, LogType.NOT_MODIFIED, crawlerContext, urlQueue);
 
-                    responseData.setExecutionTime(SystemUtil
-                            .currentTimeMillis() - startTime);
+                    responseData.setExecutionTime(SystemUtil.currentTimeMillis() - startTime);
                     responseData.setParentUrl(urlQueue.getParentUrl());
                     responseData.setSessionId(crawlerContext.sessionId);
                     responseData.setStatus(Constants.NOT_MODIFIED_STATUS);
-                    responseData
-                            .setHttpStatusCode(Constants.NOT_MODIFIED_STATUS_CODE);
+                    responseData.setHttpStatusCode(Constants.NOT_MODIFIED_STATUS_CODE);
                     processResponse(urlQueue, responseData);
 
                     return false;
@@ -312,20 +273,16 @@ public class CrawlerThread implements Runnable {
         return true;
     }
 
-    protected void processResponse(final UrlQueue<?> urlQueue,
-            final ResponseData responseData) {
+    protected void processResponse(final UrlQueue<?> urlQueue, final ResponseData responseData) {
         // get a rule
         final Rule rule = crawlerContext.ruleManager.getRule(responseData);
         if (rule == null) {
-            log(logHelper, LogType.NO_RULE, crawlerContext, urlQueue,
-                    responseData);
+            log(logHelper, LogType.NO_RULE, crawlerContext, urlQueue, responseData);
         } else {
             responseData.setRuleId(rule.getRuleId());
-            final ResponseProcessor responseProcessor = rule
-                    .getResponseProcessor();
+            final ResponseProcessor responseProcessor = rule.getResponseProcessor();
             if (responseProcessor == null) {
-                log(logHelper, LogType.NO_RESPONSE_PROCESSOR, crawlerContext,
-                        urlQueue, responseData, rule);
+                log(logHelper, LogType.NO_RESPONSE_PROCESSOR, crawlerContext, urlQueue, responseData, rule);
             } else {
                 responseProcessor.process(responseData);
             }
@@ -333,10 +290,8 @@ public class CrawlerThread implements Runnable {
 
     }
 
-    protected void storeChildUrls(final Set<RequestData> childUrlList,
-            final String url, final int depth) {
-        if (crawlerContext.getMaxDepth() >= 0
-                && depth > crawlerContext.getMaxDepth()) {
+    protected void storeChildUrls(final Set<RequestData> childUrlList, final String url, final int depth) {
+        if (crawlerContext.getMaxDepth() >= 0 && depth > crawlerContext.getMaxDepth()) {
             return;
         }
 
@@ -357,16 +312,14 @@ public class CrawlerThread implements Runnable {
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 
-    protected void storeChildUrl(final String childUrl, final String parentUrl,
-            final String metaData, final int depth) {
-        if (crawlerContext.getMaxDepth() >= 0
-                && depth > crawlerContext.getMaxDepth()) {
+    protected void storeChildUrl(final String childUrl, final String parentUrl, final String metaData, final int depth) {
+        if (crawlerContext.getMaxDepth() >= 0 && depth > crawlerContext.getMaxDepth()) {
             return;
         }
 
         // add url and filter
         if (StringUtil.isNotBlank(childUrl) && crawlerContext.urlFilter.match(childUrl)) {
-            final List<UrlQueue<?>> childList = new ArrayList< >(1);
+            final List<UrlQueue<?>> childList = new ArrayList<>(1);
             final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
             uq.setCreateTime(SystemUtil.currentTimeMillis());
             uq.setDepth(depth);
@@ -389,8 +342,7 @@ public class CrawlerThread implements Runnable {
             return false;
         }
 
-        if (crawlerContext.getMaxDepth() >= 0
-                && urlQueue.getDepth() > crawlerContext.getMaxDepth()) {
+        if (crawlerContext.getMaxDepth() >= 0 && urlQueue.getDepth() > crawlerContext.getMaxDepth()) {
             return false;
         }
 

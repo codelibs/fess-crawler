@@ -64,8 +64,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemClient extends AbstractCrawlerClient {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(FileSystemClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileSystemClient.class);
 
     public static final String FILE_ATTRIBUTE_VIEW = "fileAttributeView";
 
@@ -120,8 +119,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
         }
     }
 
-    protected ResponseData getResponseData(final String uri,
-            final boolean includeContent) {
+    protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         try {
             responseData.setMethod(Constants.GET_METHOD);
@@ -210,11 +208,11 @@ public class FileSystemClient extends AbstractCrawlerClient {
         return responseData;
     }
 
-    protected FileOwnerAttributeView parseFileOwnerAttribute(final ResponseData responseData, File file) {
+    protected FileOwnerAttributeView parseFileOwnerAttribute(final ResponseData responseData, final File file) {
         try {
             final FileOwnerAttributeView ownerAttrView = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
             if (ownerAttrView != null) {
-                UserPrincipal owner = ownerAttrView.getOwner();
+                final UserPrincipal owner = ownerAttrView.getOwner();
                 if (owner != null) {
                     responseData.addMetaData(FS_FILE_USER, owner.getName());
                 }
@@ -234,7 +232,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 return posixFileAttributeView;
             }
             return ownerAttrView;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new CrawlingAccessException("Failed to parse FileAttributeView.", e);
         }
     }

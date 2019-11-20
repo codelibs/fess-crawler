@@ -59,8 +59,7 @@ import org.slf4j.LoggerFactory;
 public class EmlExtractor extends AbstractExtractor {
     private static final String[] DAY_OF_WEEK = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
-    private static final Logger logger = LoggerFactory
-        .getLogger(EmlExtractor.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmlExtractor.class);
 
     protected Properties mailProperties = new Properties();
 
@@ -139,7 +138,7 @@ public class EmlExtractor extends AbstractExtractor {
             } else if (value != null) {
                 data.putValue(key, value.toString());
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to put {}:{}", key, value, e);
             }
@@ -167,7 +166,7 @@ public class EmlExtractor extends AbstractExtractor {
     }
 
     protected String getBodyText(final MimeMessage message) {
-        StringBuilder buf = new StringBuilder(1000);
+        final StringBuilder buf = new StringBuilder(1000);
         try {
             final Object content = message.getContent();
             if (content instanceof Multipart) {
@@ -222,7 +221,7 @@ public class EmlExtractor extends AbstractExtractor {
                     }
                 }
             }
-        } catch (MessagingException e) {
+        } catch (final MessagingException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Exception in parsing BodyPart.", e);
             }
@@ -237,8 +236,7 @@ public class EmlExtractor extends AbstractExtractor {
                 String dateStr = null;
                 try {
                     dateStr = getDateString(v);
-                    final Date receivedDate =
-                        new MailDateFormat().parse(dateStr);
+                    final Date receivedDate = new MailDateFormat().parse(dateStr);
                     if (!receivedDate.after(today)) {
                         return receivedDate;
                     }

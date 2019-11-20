@@ -37,10 +37,8 @@ import org.xml.sax.InputSource;
  *
  */
 public class HtmlXpathExtractor extends AbstractXmlExtractor {
-    protected Pattern metaCharsetPattern = Pattern
-            .compile(
-                    "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
+            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Map<String, String> featureMap = new HashMap<>();
 
@@ -57,8 +55,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
      * java.util.Map)
      */
     @Override
-    public ExtractData getText(final InputStream in,
-            final Map<String, String> params) {
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
@@ -73,14 +70,12 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
             final Document document = parser.getDocument();
 
             final StringBuilder buf = new StringBuilder(255);
-            final NodeList nodeList = getXPathAPI().selectNodeList(document,
-                    targetNodePath);
+            final NodeList nodeList = getXPathAPI().selectNodeList(document, targetNodePath);
             for (int i = 0; i < nodeList.getLength(); i++) {
                 final Node node = nodeList.item(i);
                 buf.append(node.getTextContent()).append(' ');
             }
-            return new ExtractData(buf.toString().replaceAll("\\s+", " ")
-                    .trim());
+            return new ExtractData(buf.toString().replaceAll("\\s+", " ").trim());
         } catch (final Exception e) {
             throw new ExtractException(e);
         }
@@ -100,8 +95,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
         try {
             // feature
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry
-                        .getValue()) ? true : false);
+                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()) ? true : false);
             }
 
             // property

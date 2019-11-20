@@ -47,8 +47,7 @@ public class SmbAuthentication {
     }
 
     public NtlmPasswordAuthentication getAuthentication() {
-        return new NtlmPasswordAuthentication(domain == null ? "" : domain,
-                username, password);
+        return new NtlmPasswordAuthentication(domain == null ? "" : domain, username, password);
     }
 
     public String getServer() {

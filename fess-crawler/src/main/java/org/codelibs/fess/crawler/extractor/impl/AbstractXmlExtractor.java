@@ -45,14 +45,13 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractXmlExtractor extends AbstractExtractor {
 
-    protected static final Logger logger = LoggerFactory
-            .getLogger(AbstractXmlExtractor.class);
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractXmlExtractor.class);
 
     protected static final ByteOrderMark BOM_UTF_7 = new ByteOrderMark("UTF-7", 0x2B, 0x2F, 0x76);
 
-    protected static final CharSequenceTranslator UNESCAPE_HTML4 = new AggregateTranslator(new LookupTranslator(
-            EntityArrays.BASIC_UNESCAPE), new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE), new LookupTranslator(
-            EntityArrays.HTML40_EXTENDED_UNESCAPE), new NumericEntityUnescaper());
+    protected static final CharSequenceTranslator UNESCAPE_HTML4 = new AggregateTranslator(
+            new LookupTranslator(EntityArrays.BASIC_UNESCAPE), new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE),
+            new LookupTranslator(EntityArrays.HTML40_EXTENDED_UNESCAPE), new NumericEntityUnescaper());
 
     protected String encoding = Constants.UTF_8;
 
@@ -64,16 +63,15 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
 
     protected abstract Pattern getTagPattern();
 
-    public ExtractData getText(final InputStream in,
-            final Map<String, String> params) {
+    @Override
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
         try {
             final BufferedInputStream bis = new BufferedInputStream(in);
             final String enc = getEncoding(bis);
-            final String content = UNESCAPE_HTML4.translate(new String(
-                    InputStreamUtil.getBytes(bis), enc));
+            final String content = UNESCAPE_HTML4.translate(new String(InputStreamUtil.getBytes(bis), enc));
             return new ExtractData(extractString(content));
         } catch (final Exception e) {
             throw new ExtractException(e);
@@ -142,8 +140,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
             while (attrMatcher.find()) {
                 buf.append(attrMatcher.group(1)).append(' ');
             }
-            matcher.appendReplacement(sb, buf.toString().replace("\\", "\\\\")
-                    .replace("$", "\\$"));
+            matcher.appendReplacement(sb, buf.toString().replace("\\", "\\\\").replace("$", "\\$"));
         }
         matcher.appendTail(sb);
         return sb.toString().replaceAll("\\s+", " ").trim();

@@ -46,21 +46,16 @@ import org.codelibs.fess.crawler.exception.RobotsTxtException;
  */
 public class RobotsTxtHelper {
 
-    protected static final Pattern USER_AGENT_RECORD = Pattern.compile(
-            "^user-agent:\\s*([^\\t\\n\\x0B\\f\\r]+)\\s*$",
-            Pattern.CASE_INSENSITIVE);
+    protected static final Pattern USER_AGENT_RECORD =
+            Pattern.compile("^user-agent:\\s*([^\\t\\n\\x0B\\f\\r]+)\\s*$", Pattern.CASE_INSENSITIVE);
 
-    protected static final Pattern DISALLOW_RECORD = Pattern.compile(
-            "^disallow:\\s*([^\\s]*)\\s*$", Pattern.CASE_INSENSITIVE);
+    protected static final Pattern DISALLOW_RECORD = Pattern.compile("^disallow:\\s*([^\\s]*)\\s*$", Pattern.CASE_INSENSITIVE);
 
-    protected static final Pattern ALLOW_RECORD = Pattern.compile(
-            "^allow:\\s*([^\\s]*)\\s*$", Pattern.CASE_INSENSITIVE);
+    protected static final Pattern ALLOW_RECORD = Pattern.compile("^allow:\\s*([^\\s]*)\\s*$", Pattern.CASE_INSENSITIVE);
 
-    protected static final Pattern CRAWL_DELAY_RECORD = Pattern.compile(
-            "^crawl-delay:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
+    protected static final Pattern CRAWL_DELAY_RECORD = Pattern.compile("^crawl-delay:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
 
-    protected static final Pattern SITEMAP_RECORD = Pattern.compile(
-            "^sitemap:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
+    protected static final Pattern SITEMAP_RECORD = Pattern.compile("^sitemap:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
 
     protected boolean enabled = true;
 
@@ -75,9 +70,7 @@ public class RobotsTxtHelper {
 
         try {
             @SuppressWarnings("resource")
-            final BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(new BOMInputStream(stream),
-                            charsetName));
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(new BOMInputStream(stream), charsetName));
 
             String line;
             final RobotsTxt robotsTxt = new RobotsTxt();
@@ -96,8 +89,7 @@ public class RobotsTxtHelper {
                         isGroupRecodeStarted = false;
                     }
                     final String userAgent = value.toLowerCase(Locale.ENGLISH);
-                    Directive currentDirective = robotsTxt
-                            .getDirective(userAgent);
+                    Directive currentDirective = robotsTxt.getDirective(userAgent);
                     if (currentDirective == null) {
                         currentDirective = new Directive(userAgent);
                         robotsTxt.addDirective(currentDirective);
@@ -106,15 +98,13 @@ public class RobotsTxtHelper {
                 } else {
                     isGroupRecodeStarted = true;
                     if ((value = getValue(DISALLOW_RECORD, line)) != null) {
-                        if (!currentDirectiveList.isEmpty()
-                                && value.length() > 0) {
+                        if (!currentDirectiveList.isEmpty() && value.length() > 0) {
                             for (final Directive directive : currentDirectiveList) {
                                 directive.addDisallow(value);
                             }
                         }
                     } else if ((value = getValue(ALLOW_RECORD, line)) != null) {
-                        if (!currentDirectiveList.isEmpty()
-                                && value.length() > 0) {
+                        if (!currentDirectiveList.isEmpty() && value.length() > 0) {
                             for (final Directive directive : currentDirectiveList) {
                                 directive.addAllow(value);
                             }
@@ -124,8 +114,7 @@ public class RobotsTxtHelper {
                             try {
                                 final int crawlDelay = Integer.parseInt(value);
                                 for (final Directive directive : currentDirectiveList) {
-                                    directive.setCrawlDelay(Math.max(0,
-                                            crawlDelay));
+                                    directive.setCrawlDelay(Math.max(0, crawlDelay));
                                 }
                             } catch (final NumberFormatException e) {
                                 // ignore

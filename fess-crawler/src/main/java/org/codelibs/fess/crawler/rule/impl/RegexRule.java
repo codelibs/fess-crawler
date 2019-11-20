@@ -49,8 +49,7 @@ public class RegexRule extends AbstractRule {
         }
 
         final Map<String, Object> map = new HashMap<>();
-        BeanUtil.copyBeanToMap(responseData, map,
-                option -> option.excludeWhitespace());
+        BeanUtil.copyBeanToMap(responseData, map, option -> option.excludeWhitespace());
         for (final Map.Entry<String, Pattern> entry : regexMap.entrySet()) {
             String value = "";
             final Object obj = map.get(entry.getKey());
@@ -100,9 +99,7 @@ public class RegexRule extends AbstractRule {
     public boolean equals(final Object obj) {
         if (obj instanceof RegexRule) {
             final RegexRule rule = (RegexRule) obj;
-            if (allRequired == rule.isAllRequired()
-                    && defaultRule == rule.isDefaultRule()
-                    && regexMap.equals(rule.regexMap)) {
+            if (allRequired == rule.isAllRequired() && defaultRule == rule.isDefaultRule() && regexMap.equals(rule.regexMap)) {
                 return true;
             }
         }

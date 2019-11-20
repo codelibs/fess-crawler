@@ -45,8 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class DefaultResponseProcessor implements ResponseProcessor {
-    private static final Logger logger = LoggerFactory
-            .getLogger(DefaultResponseProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultResponseProcessor.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;
@@ -69,24 +68,19 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         } else if (isSuccessful(responseData)) {
             if (transformer == null) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("No Transformer for (" + responseData.getUrl()
-                            + "). PLEASE CHECK YOUR CONFIGURATION.");
+                    logger.debug("No Transformer for (" + responseData.getUrl() + "). PLEASE CHECK YOUR CONFIGURATION.");
                 }
             } else {
-                final ResultData resultData = transformer
-                        .transform(responseData);
+                final ResultData resultData = transformer.transform(responseData);
                 if (resultData == null) {
-                    logger.warn("No data for (" + responseData.getUrl() + ", "
-                            + responseData.getMimeType() + ")");
+                    logger.warn("No data for (" + responseData.getUrl() + ", " + responseData.getMimeType() + ")");
                 } else {
-                    final UrlQueue<?> urlQueue = CrawlingParameterUtil
-                            .getUrlQueue();
+                    final UrlQueue<?> urlQueue = CrawlingParameterUtil.getUrlQueue();
                     processResult(urlQueue, responseData, resultData);
                 }
             }
         } else if (logger.isDebugEnabled()) {
-            logger.debug("Ignore a response(" + responseData.getStatus()
-                    + "): " + responseData.getUrl());
+            logger.debug("Ignore a response(" + responseData.getStatus() + "): " + responseData.getUrl());
         }
     }
 
@@ -116,16 +110,12 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         return false;
     }
 
-    protected void processResult(final UrlQueue<?> urlQueue,
-            final ResponseData responseData, final ResultData resultData) {
-        final AccessResult<?> accessResult = crawlerContainer
-                .getComponent("accessResult");
+    protected void processResult(final UrlQueue<?> urlQueue, final ResponseData responseData, final ResultData resultData) {
+        final AccessResult<?> accessResult = crawlerContainer.getComponent("accessResult");
         accessResult.init(responseData, resultData);
 
-        final CrawlerContext crawlerContext = CrawlingParameterUtil
-                .getCrawlerContext();
-        final UrlQueueService<UrlQueue<?>> urlQueueService = CrawlingParameterUtil
-                .getUrlQueueService();
+        final CrawlerContext crawlerContext = CrawlingParameterUtil.getCrawlerContext();
+        final UrlQueueService<UrlQueue<?>> urlQueueService = CrawlingParameterUtil.getUrlQueueService();
         if (logger.isDebugEnabled()) {
             logger.debug("Processing accessResult: {}", accessResult);
         }
@@ -173,11 +163,9 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         return true;
     }
 
-    private void storeChildUrls(final CrawlerContext crawlerContext,
-            final Set<RequestData> childUrlList, final String url,
-            final int depth, final String encoding) {
-        if (crawlerContext.getMaxDepth() >= 0
-                && depth > crawlerContext.getMaxDepth()) {
+    private void storeChildUrls(final CrawlerContext crawlerContext, final Set<RequestData> childUrlList, final String url, final int depth,
+            final String encoding) {
+        if (crawlerContext.getMaxDepth() >= 0 && depth > crawlerContext.getMaxDepth()) {
             return;
         }
 

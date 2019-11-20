@@ -52,8 +52,7 @@ public class AccessResultImpl<IDTYPE> implements AccessResult<IDTYPE> {
     protected AccessResultData<IDTYPE> accessResultData;
 
     @Override
-    public void init(final ResponseData responseData,
-            final ResultData resultData) {
+    public void init(final ResponseData responseData, final ResultData resultData) {
 
         setCreateTime(System.currentTimeMillis());
         if (responseData != null) {
@@ -333,14 +332,10 @@ public class AccessResultImpl<IDTYPE> implements AccessResult<IDTYPE> {
 
     @Override
     public String toString() {
-        return "AccessResultImpl [id=" + id + ", sessionId=" + sessionId
-                + ", ruleId=" + ruleId + ", url=" + url + ", parentUrl="
-                + parentUrl + ", status=" + status + ", httpStatusCode="
-                + httpStatusCode + ", method=" + method + ", mimeType="
-                + mimeType + ", createTime=" + createTime + ", executionTime="
-                + executionTime + ", contentLength=" + contentLength
-                + ", lastModified=" + lastModified + ", accessResultData="
-                + accessResultData + "]";
+        return "AccessResultImpl [id=" + id + ", sessionId=" + sessionId + ", ruleId=" + ruleId + ", url=" + url + ", parentUrl="
+                + parentUrl + ", status=" + status + ", httpStatusCode=" + httpStatusCode + ", method=" + method + ", mimeType=" + mimeType
+                + ", createTime=" + createTime + ", executionTime=" + executionTime + ", contentLength=" + contentLength + ", lastModified="
+                + lastModified + ", accessResultData=" + accessResultData + "]";
     }
 
 }

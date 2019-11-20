@@ -40,8 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(UrlQueueServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UrlQueueServiceImpl.class);
 
     @Resource
     protected MemoryDataHelper dataHelper;
@@ -54,11 +53,9 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
      * , java.lang.String)
      */
     @Override
-    public void updateSessionId(final String oldSessionId,
-            final String newSessionId) {
+    public void updateSessionId(final String oldSessionId, final String newSessionId) {
         // not MT-safe
-        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper
-                .getUrlQueueList(oldSessionId);
+        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(oldSessionId);
         // overwrite
         dataHelper.addUrlQueueList(newSessionId, urlQueueList);
         dataHelper.removeUrlQueueList(oldSessionId);
@@ -72,8 +69,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
      */
     @Override
     public void add(final String sessionId, final String url) {
-        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper
-                .getUrlQueueList(sessionId);
+        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
             urlQueue.setSessionId(sessionId);
@@ -95,8 +91,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
      */
     @Override
     public void insert(final UrlQueueImpl<Long> urlQueue) {
-        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper
-                .getUrlQueueList(urlQueue.getSessionId());
+        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             urlQueueList.add(urlQueue);
         }
@@ -129,10 +124,8 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
      * java.util.List)
      */
     @Override
-    public void offerAll(final String sessionId,
-            final List<UrlQueueImpl<Long>> newUrlQueueList) {
-        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper
-                .getUrlQueueList(sessionId);
+    public void offerAll(final String sessionId, final List<UrlQueueImpl<Long>> newUrlQueueList) {
+        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             final List<UrlQueueImpl<Long>> targetList = new ArrayList<>();
             for (final UrlQueueImpl<Long> urlQueue : newUrlQueueList) {
@@ -145,8 +138,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
 
     }
 
-    protected boolean isNewUrl(final UrlQueueImpl<Long> urlQueue,
-            final Queue<UrlQueueImpl<Long>> urlQueueList) {
+    protected boolean isNewUrl(final UrlQueueImpl<Long> urlQueue, final Queue<UrlQueueImpl<Long>> urlQueueList) {
 
         final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
@@ -167,8 +159,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         }
 
         // check it in result
-        final AccessResult<Long> accessResult = dataHelper.getAccessResultMap(
-                urlQueue.getSessionId()).get(url);
+        final AccessResult<Long> accessResult = dataHelper.getAccessResultMap(urlQueue.getSessionId()).get(url);
         if (accessResult != null) {
             if (logger.isDebugEnabled()) {
                 logger.debug("URL exists in a result: {}", url);
@@ -187,8 +178,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
      */
     @Override
     public UrlQueueImpl<Long> poll(final String sessionId) {
-        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper
-                .getUrlQueueList(sessionId);
+        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
         synchronized (urlQueueList) {
             return urlQueueList.poll();
         }
@@ -212,20 +202,16 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
      */
     @Override
     public boolean visited(final UrlQueueImpl<Long> urlQueue) {
-        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper
-                .getUrlQueueList(urlQueue.getSessionId());
+        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             return !isNewUrl(urlQueue, urlQueueList);
         }
     }
 
     @Override
-    public void generateUrlQueues(final String previousSessionId,
-            final String sessionId) {
-        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper
-                .getUrlQueueList(sessionId);
-        final Map<String, AccessResultImpl<Long>> arMap = dataHelper
-                .getAccessResultMap(previousSessionId);
+    public void generateUrlQueues(final String previousSessionId, final String sessionId) {
+        final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+        final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(previousSessionId);
         for (final Map.Entry<String, AccessResultImpl<Long>> entry : arMap.entrySet()) {
             synchronized (urlQueueList) {
                 final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();

@@ -116,8 +116,7 @@ public class AccessResultDataImpl<IDTYPE> implements AccessResultData<IDTYPE> {
             return null;
         }
         try {
-            return new String(data, StringUtil.isNotBlank(encoding) ? encoding
-                    : Constants.UTF_8);
+            return new String(data, StringUtil.isNotBlank(encoding) ? encoding : Constants.UTF_8);
         } catch (final UnsupportedEncodingException e) {
             return new String(data, Constants.UTF_8_CHARSET);
         }
@@ -125,8 +124,7 @@ public class AccessResultDataImpl<IDTYPE> implements AccessResultData<IDTYPE> {
 
     @Override
     public String toString() {
-        return "AccessResultDataImpl [id=" + id + ", transformerName="
-                + transformerName + ", encoding=" + encoding + "]";
+        return "AccessResultDataImpl [id=" + id + ", transformerName=" + transformerName + ", encoding=" + encoding + "]";
     }
 
 }

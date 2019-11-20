@@ -46,8 +46,7 @@ public class ExtractorFactory {
         }
     }
 
-    public void addExtractor(final List<String> keyList,
-            final Extractor extractor) {
+    public void addExtractor(final List<String> keyList, final Extractor extractor) {
         if (keyList == null || keyList.isEmpty()) {
             throw new CrawlerSystemException("The key list is empty.");
         }

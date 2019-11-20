@@ -34,8 +34,7 @@ public class UrlConvertHelper {
         }
         String convertedUrl = url;
         for (final Map.Entry<String, String> entry : convertMap.entrySet()) {
-            convertedUrl = convertedUrl.replaceAll(entry.getKey(),
-                    entry.getValue());
+            convertedUrl = convertedUrl.replaceAll(entry.getKey(), entry.getValue());
         }
         return convertedUrl;
     }

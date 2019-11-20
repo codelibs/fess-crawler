@@ -129,10 +129,8 @@ public class SitemapUrl implements Sitemap {
             return false;
         }
         final SitemapUrl sitemapUrl = (SitemapUrl) obj;
-        if (StringUtil.equals(loc, sitemapUrl.loc)
-                && StringUtil.equals(changefreq, sitemapUrl.changefreq)
-                && StringUtil.equals(lastmod, sitemapUrl.lastmod)
-                && StringUtil.equals(priority, sitemapUrl.priority)) {
+        if (StringUtil.equals(loc, sitemapUrl.loc) && StringUtil.equals(changefreq, sitemapUrl.changefreq)
+                && StringUtil.equals(lastmod, sitemapUrl.lastmod) && StringUtil.equals(priority, sitemapUrl.priority)) {
             return true;
         }
         return false;
@@ -140,14 +138,12 @@ public class SitemapUrl implements Sitemap {
 
     @Override
     public int hashCode() {
-        return loc.hashCode() + changefreq.hashCode() + lastmod.hashCode()
-                + priority.hashCode();
+        return loc.hashCode() + changefreq.hashCode() + lastmod.hashCode() + priority.hashCode();
     }
 
     @Override
     public String toString() {
-        return "SitemapUrl [loc=" + loc + ", lastmod=" + lastmod
-                + ", changefreq=" + changefreq + ", priority=" + priority + "]";
+        return "SitemapUrl [loc=" + loc + ", lastmod=" + lastmod + ", changefreq=" + changefreq + ", priority=" + priority + "]";
     }
 
 }

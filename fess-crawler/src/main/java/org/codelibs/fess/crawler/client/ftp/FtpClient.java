@@ -260,13 +260,13 @@ public class FtpClient extends AbstractCrawlerClient {
     protected void disconnectInternalClient(final FTPClient client) {
         try {
             client.disconnect();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             logger.warn("Failed to close FTPClient", e);
         }
     }
 
-    protected void updateResponseData(final String uri, final boolean includeContent, final ResponseData responseData, FTPClient client,
-            final FtpInfo ftpInfo, FTPFile file) {
+    protected void updateResponseData(final String uri, final boolean includeContent, final ResponseData responseData, final FTPClient client,
+            final FtpInfo ftpInfo, final FTPFile file) {
         if (file == null) {
             responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
             responseData.setCharSet(charset);

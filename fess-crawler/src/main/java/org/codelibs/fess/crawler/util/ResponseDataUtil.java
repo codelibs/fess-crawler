@@ -31,8 +31,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public final class ResponseDataUtil {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ResponseDataUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResponseDataUtil.class);
 
     private ResponseDataUtil() {
     }
@@ -50,9 +49,7 @@ public final class ResponseDataUtil {
             if (tempFile != null && !tempFile.delete()) {
                 logger.warn("Could not delete a temp file: " + tempFile);
             }
-            throw new CrawlingAccessException(
-                    "Could not read a response body: " + responseData.getUrl(),
-                    e);
+            throw new CrawlingAccessException("Could not read a response body: " + responseData.getUrl(), e);
         } finally {
             CloseableUtil.closeQuietly(fos);
         }

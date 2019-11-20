@@ -27,15 +27,13 @@ import org.apache.http.impl.auth.NTLMEngineException;
 public class SmbjEngine implements NTLMEngine {
 
     @Override
-    public String generateType1Msg(String arg0, String arg1)
-            throws NTLMEngineException {
+    public String generateType1Msg(final String arg0, final String arg1) throws NTLMEngineException {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public String generateType3Msg(String arg0, String arg1, String arg2,
-            String arg3, String arg4) throws NTLMEngineException {
+    public String generateType3Msg(final String arg0, final String arg1, final String arg2, final String arg3, final String arg4) throws NTLMEngineException {
         // TODO Auto-generated method stub
         return null;
     }

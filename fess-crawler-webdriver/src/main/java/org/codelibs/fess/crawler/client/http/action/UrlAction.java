@@ -26,7 +26,7 @@ import org.openqa.selenium.WebDriver;
  */
 public interface UrlAction {
 
-    public static final String URL_ACTION = "urlaction";
+    String URL_ACTION = "urlaction";
 
     String getName();
 

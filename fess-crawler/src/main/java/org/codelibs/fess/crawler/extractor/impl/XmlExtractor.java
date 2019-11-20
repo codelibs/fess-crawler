@@ -22,9 +22,8 @@ import java.util.regex.Pattern;
  *
  */
 public class XmlExtractor extends AbstractXmlExtractor {
-    protected Pattern xmlEncodingPattern = Pattern.compile(
-            "<\\?xml.*encoding\\s*=\\s*['\"]([\\w\\d\\-_]*)['\"]\\s*\\?>",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    protected Pattern xmlEncodingPattern =
+            Pattern.compile("<\\?xml.*encoding\\s*=\\s*['\"]([\\w\\d\\-_]*)['\"]\\s*\\?>", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Pattern xmlTagPattern = Pattern.compile("<[^>]+>");
 

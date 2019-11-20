@@ -52,11 +52,9 @@ import org.w3c.dom.NodeList;
  *
  */
 public class XmlTransformer extends AbstractTransformer {
-    private static final Logger logger = LoggerFactory
-            .getLogger(XmlTransformer.class);
+    private static final Logger logger = LoggerFactory.getLogger(XmlTransformer.class);
 
-    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+",
-            Pattern.MULTILINE);
+    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+", Pattern.MULTILINE);
 
     protected boolean namespaceAware;
 
@@ -101,8 +99,7 @@ public class XmlTransformer extends AbstractTransformer {
         if (dataClass == null) {
             // check transformer name
             if (!getName().equals(accessResultData.getTransformerName())) {
-                throw new CrawlerSystemException("Transformer is invalid. Use "
-                        + accessResultData.getTransformerName()
+                throw new CrawlerSystemException("Transformer is invalid. Use " + accessResultData.getTransformerName()
                         + ". This transformer is " + getName() + ".");
             }
 
@@ -112,19 +109,16 @@ public class XmlTransformer extends AbstractTransformer {
             }
             final String encoding = accessResultData.getEncoding();
             try {
-                return new String(data, encoding == null ? Constants.UTF_8
-                        : encoding);
+                return new String(data, encoding == null ? Constants.UTF_8 : encoding);
             } catch (final UnsupportedEncodingException e) {
                 if (logger.isInfoEnabled()) {
-                    logger.info("Invalid charsetName: " + encoding
-                            + ". Changed to " + Constants.UTF_8, e);
+                    logger.info("Invalid charsetName: " + encoding + ". Changed to " + Constants.UTF_8, e);
                 }
                 return new String(data, Constants.UTF_8_CHARSET);
             }
         }
 
-        final Map<String, Object> dataMap = XmlUtil
-                .getDataMap(accessResultData);
+        final Map<String, Object> dataMap = XmlUtil.getDataMap(accessResultData);
         if (Map.class.equals(dataClass)) {
             return dataMap;
         }
@@ -134,8 +128,7 @@ public class XmlTransformer extends AbstractTransformer {
             BeanUtil.copyMapToBean(dataMap, obj);
             return obj;
         } catch (final Exception e) {
-            throw new CrawlerSystemException(
-                    "Could not create/copy a data map to " + dataClass, e);
+            throw new CrawlerSystemException("Could not create/copy a data map to " + dataClass, e);
         }
     }
 
@@ -151,18 +144,15 @@ public class XmlTransformer extends AbstractTransformer {
         }
 
         try (final InputStream is = responseData.getResponseBody()) {
-            final DocumentBuilderFactory factory = DocumentBuilderFactory
-                    .newInstance();
+            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 
-            for (final Map.Entry<String, Object> entry : attributeMap
-                    .entrySet()) {
+            for (final Map.Entry<String, Object> entry : attributeMap.entrySet()) {
                 factory.setAttribute(entry.getKey(), entry.getValue());
             }
 
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                factory.setFeature(entry.getKey(),
-                        "true".equalsIgnoreCase(entry.getValue()));
+                factory.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()));
             }
 
             factory.setCoalescing(coalescing);
@@ -179,8 +169,7 @@ public class XmlTransformer extends AbstractTransformer {
 
             final StringBuilder buf = new StringBuilder(1000);
             buf.append(getResultDataHeader());
-            for (final Map.Entry<String, String> entry : fieldRuleMap
-                    .entrySet()) {
+            for (final Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
                 final List<String> nodeStrList = new ArrayList<>();
                 try {
                     final NodeList nodeList = getNodeList(doc, entry.getValue());
@@ -189,12 +178,10 @@ public class XmlTransformer extends AbstractTransformer {
                         nodeStrList.add(node.getTextContent());
                     }
                 } catch (final TransformerException e) {
-                    logger.warn("Could not parse a value of " + entry.getKey()
-                            + ":" + entry.getValue(), e);
+                    logger.warn("Could not parse a value of " + entry.getKey() + ":" + entry.getValue(), e);
                 }
                 if (nodeStrList.size() == 1) {
-                    buf.append(getResultDataBody(entry.getKey(),
-                            nodeStrList.get(0)));
+                    buf.append(getResultDataBody(entry.getKey(), nodeStrList.get(0)));
                 } else if (nodeStrList.size() > 1) {
                     buf.append(getResultDataBody(entry.getKey(), nodeStrList));
                 }
@@ -210,12 +197,10 @@ public class XmlTransformer extends AbstractTransformer {
                 resultData.setData(data.getBytes(charsetName));
             } catch (final UnsupportedEncodingException e) {
                 if (logger.isInfoEnabled()) {
-                    logger.info("Invalid charsetName: " + charsetName
-                            + ". Changed to " + Constants.UTF_8, e);
+                    logger.info("Invalid charsetName: " + charsetName + ". Changed to " + Constants.UTF_8, e);
                 }
                 charsetName = Constants.UTF_8_CHARSET.name();
-                resultData.setData(data.getBytes(
-                        Constants.UTF_8_CHARSET));
+                resultData.setData(data.getBytes(Constants.UTF_8_CHARSET));
             }
             resultData.setEncoding(charsetName);
 
@@ -227,11 +212,9 @@ public class XmlTransformer extends AbstractTransformer {
         }
     }
 
-    protected NodeList getNodeList(final Document doc, final String xpath)
-            throws TransformerException {
-        final DefaultPrefixResolver prefixResolver = new DefaultPrefixResolver(
-                doc.getNodeType() == Node.DOCUMENT_NODE ? doc
-                        .getDocumentElement() : doc);
+    protected NodeList getNodeList(final Document doc, final String xpath) throws TransformerException {
+        final DefaultPrefixResolver prefixResolver =
+                new DefaultPrefixResolver(doc.getNodeType() == Node.DOCUMENT_NODE ? doc.getDocumentElement() : doc);
         return getXPathAPI().eval(doc, xpath, prefixResolver).nodelist();
     }
 
@@ -252,13 +235,10 @@ public class XmlTransformer extends AbstractTransformer {
     protected String getResultDataBody(final String name, final String value) {
         // TODO support other type
         // TODO trim(default)
-        return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
-                + trimSpace(XmlUtil.escapeXml(value != null ? value : ""))
-                + "</field>\n";
+        return "<field name=\"" + XmlUtil.escapeXml(name) + "\">" + trimSpace(XmlUtil.escapeXml(value != null ? value : "")) + "</field>\n";
     }
 
-    protected String getResultDataBody(final String name,
-            final List<String> values) {
+    protected String getResultDataBody(final String name, final List<String> values) {
         final StringBuilder buf = new StringBuilder();
         buf.append("<list>");
         if (values != null && !values.isEmpty()) {
@@ -271,12 +251,10 @@ public class XmlTransformer extends AbstractTransformer {
         buf.append("</list>");
         // TODO support other type
         // TODO trim(default)
-        return "<field name=\"" + XmlUtil.escapeXml(name) + "\">"
-                + buf.toString().trim() + "</field>\n";
+        return "<field name=\"" + XmlUtil.escapeXml(name) + "\">" + buf.toString().trim() + "</field>\n";
     }
 
-    protected String getAdditionalData(final ResponseData responseData,
-            final Document document) {
+    protected String getAdditionalData(final ResponseData responseData, final Document document) {
         return "";
     }
 
@@ -427,8 +405,7 @@ public class XmlTransformer extends AbstractTransformer {
     /**
      * @param ignoringElementContentWhitespace the ignoringElementContentWhitespace to set
      */
-    public void setIgnoringElementContentWhitespace(
-            final boolean ignoringElementContentWhitespace) {
+    public void setIgnoringElementContentWhitespace(final boolean ignoringElementContentWhitespace) {
         this.ignoringElementContentWhitespace = ignoringElementContentWhitespace;
     }
 
@@ -472,10 +449,8 @@ public class XmlTransformer extends AbstractTransformer {
          * @see org.apache.xml.utils.PrefixResolverDefault#getNamespaceForPrefix(java.lang.String, org.w3c.dom.Node)
          */
         @Override
-        public String getNamespaceForPrefix(final String prefix,
-                final Node namespaceContext) {
-            final String namespace = super.getNamespaceForPrefix(prefix,
-                    namespaceContext);
+        public String getNamespaceForPrefix(final String prefix, final Node namespaceContext) {
+            final String namespace = super.getNamespaceForPrefix(prefix, namespaceContext);
             if (StringUtil.isNotBlank(namespace)) {
                 return namespace;
             }

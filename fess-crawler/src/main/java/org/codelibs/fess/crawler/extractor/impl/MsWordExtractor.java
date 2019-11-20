@@ -38,8 +38,7 @@ public class MsWordExtractor extends AbstractExtractor {
      * java.util.Map)
      */
     @Override
-    public ExtractData getText(final InputStream in,
-            final Map<String, String> params) {
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }

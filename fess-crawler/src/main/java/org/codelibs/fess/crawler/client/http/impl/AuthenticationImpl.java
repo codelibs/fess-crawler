@@ -31,13 +31,11 @@ public class AuthenticationImpl implements Authentication {
 
     private AuthScheme authScheme;
 
-    public AuthenticationImpl(final AuthScope authScope,
-            final Credentials credentials) {
+    public AuthenticationImpl(final AuthScope authScope, final Credentials credentials) {
         this(authScope, credentials, null);
     }
 
-    public AuthenticationImpl(final AuthScope authScope,
-            final Credentials credentials, final AuthScheme authScheme) {
+    public AuthenticationImpl(final AuthScope authScope, final Credentials credentials, final AuthScheme authScheme) {
         this.authScope = authScope;
         this.credentials = credentials;
         this.authScheme = authScheme;

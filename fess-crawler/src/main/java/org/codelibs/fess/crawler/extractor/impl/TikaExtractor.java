@@ -83,8 +83,7 @@ import org.xml.sax.SAXException;
  */
 public class TikaExtractor extends PasswordBasedExtractor {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(TikaExtractor.class);
+    private static final Logger logger = LoggerFactory.getLogger(TikaExtractor.class);
 
     public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
 
@@ -116,9 +115,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     protected TikaConfig tikaConfig;
 
-    private Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
+    private final Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
 
-    private Map<String, PDFParserConfig> pdfParserConfigMap = new ConcurrentHashMap<>();
+    private final Map<String, PDFParserConfig> pdfParserConfigMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -128,14 +127,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
         if (logger.isDebugEnabled()) {
             final Parser parser = tikaConfig.getParser();
-            logger.debug("supportedTypes: {}",
-                    parser.getSupportedTypes(new ParseContext()));
+            logger.debug("supportedTypes: {}", parser.getSupportedTypes(new ParseContext()));
         }
     }
 
     @Override
-    public ExtractData getText(final InputStream inputStream,
-            final Map<String, String> params) {
+    public ExtractData getText(final InputStream inputStream, final Map<String, String> params) {
         if (inputStream == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
@@ -161,18 +158,13 @@ public class TikaExtractor extends PasswordBasedExtractor {
             final ByteArrayOutputStream errStream = new ByteArrayOutputStream();
             System.setErr(new PrintStream(errStream, true));
             try {
-                final String resourceName = params == null ? null : params
-                        .get(TikaMetadataKeys.RESOURCE_NAME_KEY);
-                final String contentType = params == null ? null : params
-                        .get(HttpHeaders.CONTENT_TYPE);
-                String contentEncoding = params == null ? null : params
-                        .get(HttpHeaders.CONTENT_ENCODING);
-                final boolean normalizeText = params == null ? true :
-                    !Constants.FALSE.equalsIgnoreCase(params.get(NORMALIZE_TEXT));
-                String pdfPassword = getPassword(params);
+                final String resourceName = params == null ? null : params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
+                final String contentType = params == null ? null : params.get(HttpHeaders.CONTENT_TYPE);
+                String contentEncoding = params == null ? null : params.get(HttpHeaders.CONTENT_ENCODING);
+                final boolean normalizeText = params == null ? true : !Constants.FALSE.equalsIgnoreCase(params.get(NORMALIZE_TEXT));
+                final String pdfPassword = getPassword(params);
 
-                final Metadata metadata = createMetadata(resourceName,
-                        contentType, contentEncoding, pdfPassword);
+                final Metadata metadata = createMetadata(resourceName, contentType, contentEncoding, pdfPassword);
 
                 final Parser parser = new TikaDetectParser();
                 final ParseContext parseContext = createParseContext(parser, params);
@@ -198,8 +190,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         if (logger.isDebugEnabled()) {
                             logger.debug("retry without a resource name: {}", resourceName);
                         }
-                        final Metadata metadata2 = createMetadata(null,
-                                contentType, contentEncoding, pdfPassword);
+                        final Metadata metadata2 = createMetadata(null, contentType, contentEncoding, pdfPassword);
                         content = getContent(writer -> {
                             InputStream in = null;
                             try {
@@ -219,8 +210,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         if (logger.isDebugEnabled()) {
                             logger.debug("retry without a content type: {}", contentType);
                         }
-                        final Metadata metadata3 = createMetadata(null, null,
-                                contentEncoding, pdfPassword);
+                        final Metadata metadata3 = createMetadata(null, null, contentEncoding, pdfPassword);
                         content = getContent(writer -> {
                             InputStream in = null;
                             try {
@@ -303,8 +293,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 }
                 final Throwable cause = e.getCause();
                 if (cause instanceof SAXException) {
-                    final Extractor xmlExtractor = crawlerContainer
-                            .getComponent("xmlExtractor");
+                    final Extractor xmlExtractor = crawlerContainer.getComponent("xmlExtractor");
                     if (xmlExtractor != null) {
                         InputStream in = null;
                         try {
@@ -364,7 +353,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             if (tesseractOCRConfig == null) {
                 try (final InputStream in = new FileInputStream(tesseractConfigPath)) {
                     tesseractOCRConfig = new TesseractOCRConfig(in);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     logger.warn("Could not load " + tesseractConfigPath, e);
                     tesseractOCRConfig = new TesseractOCRConfig();
                 }
@@ -379,7 +368,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             if (pdfParserConfig == null) {
                 try (final InputStream in = new FileInputStream(pdfParserConfigPath)) {
                     pdfParserConfig = new PDFParserConfig(in);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     logger.warn("Could not load " + pdfParserConfigPath, e);
                     pdfParserConfig = new PDFParserConfig();
                 }
@@ -388,11 +377,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             parseContext.set(PDFParserConfig.class, pdfParserConfig);
         }
 
-        parseContext.set(PasswordProvider.class, new PasswordProvider() {
-            public String getPassword(Metadata metadata) {
-                return metadata.get(FILE_PASSWORD);
-            }
-        });
+        parseContext.set(PasswordProvider.class, metadata -> metadata.get(FILE_PASSWORD));
 
         return parseContext;
     }
@@ -436,8 +421,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
     }
 
-    protected Metadata createMetadata(final String resourceName,
-            final String contentType, final String contentEncoding,
+    protected Metadata createMetadata(final String resourceName, final String contentType, final String contentEncoding,
             final String pdfPassword) {
         final Metadata metadata = new Metadata();
         if (StringUtil.isNotEmpty(resourceName)) {
@@ -484,10 +468,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
 
         @Override
-        public void parse(final InputStream stream,
-                final ContentHandler handler, final Metadata metadata,
-                final ParseContext context) throws IOException, SAXException,
-                TikaException {
+        public void parse(final InputStream stream, final ContentHandler handler, final Metadata metadata, final ParseContext context)
+                throws IOException, SAXException, TikaException {
             final TemporaryResources tmp = new TemporaryResources();
             try {
                 final TikaInputStream tis = TikaInputStream.get(stream, tmp);
@@ -505,12 +487,11 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 //pass self to handle embedded documents if
                 //the caller hasn't specified one.
                 if (context.get(EmbeddedDocumentExtractor.class) == null) {
-                    Parser p = context.get(Parser.class);
+                    final Parser p = context.get(Parser.class);
                     if (p == null) {
                         context.set(Parser.class, this);
                     }
-                    context.set(EmbeddedDocumentExtractor.class,
-                            new ParsingEmbeddedDocumentExtractor(context));
+                    context.set(EmbeddedDocumentExtractor.class, new ParsingEmbeddedDocumentExtractor(context));
                 }
 
                 if (logger.isDebugEnabled()) {
@@ -532,8 +513,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
 
         @Override
-        public void parse(final InputStream stream,
-                final ContentHandler handler, final Metadata metadata)
+        public void parse(final InputStream stream, final ContentHandler handler, final Metadata metadata)
                 throws IOException, SAXException, TikaException {
             final ParseContext context = new ParseContext();
             context.set(Parser.class, this);
@@ -583,7 +563,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         this.maxSymbolTermSize = maxSymbolTermSize;
     }
 
-    public void setSpaceChars(int[] spaceChars) {
+    public void setSpaceChars(final int[] spaceChars) {
         this.spaceChars = spaceChars;
     }
 

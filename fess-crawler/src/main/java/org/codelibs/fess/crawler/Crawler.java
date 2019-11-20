@@ -79,8 +79,7 @@ public class Crawler implements Runnable {
 
     public Crawler() {
         crawlerContext = new CrawlerContext();
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS",
-                Locale.ENGLISH);
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.ENGLISH);
         crawlerContext.sessionId = sdf.format(new Date());
     }
 
@@ -98,8 +97,7 @@ public class Crawler implements Runnable {
     }
 
     public void setSessionId(final String sessionId) {
-        if (StringUtil.isNotBlank(sessionId)
-                && !sessionId.equals(crawlerContext.sessionId)) {
+        if (StringUtil.isNotBlank(sessionId) && !sessionId.equals(crawlerContext.sessionId)) {
             urlQueueService.updateSessionId(crawlerContext.sessionId, sessionId);
             crawlerContext.sessionId = sessionId;
         }
@@ -179,8 +177,7 @@ public class Crawler implements Runnable {
         return intervalController;
     }
 
-    public void setIntervalController(
-            final IntervalController intervalController) {
+    public void setIntervalController(final IntervalController intervalController) {
         this.intervalController = intervalController;
     }
 
@@ -221,12 +218,11 @@ public class Crawler implements Runnable {
         crawlerThreadGroup = new ThreadGroup("Crawler-" + crawlerContext.sessionId);
         final Thread[] threads = new Thread[crawlerContext.getNumOfThread()];
         for (int i = 0; i < crawlerContext.getNumOfThread(); i++) {
-            final CrawlerThread crawlerThread = crawlerContainer
-                    .getComponent("crawlerThread");
+            final CrawlerThread crawlerThread = crawlerContainer.getComponent("crawlerThread");
             crawlerThread.crawlerContext = crawlerContext;
             crawlerThread.clientFactory = clientFactory;
-            threads[i] = new Thread(crawlerThreadGroup, crawlerThread, "Crawler-"
-                    + crawlerContext.sessionId + "-" + Integer.toString(i + 1));
+            threads[i] =
+                    new Thread(crawlerThreadGroup, crawlerThread, "Crawler-" + crawlerContext.sessionId + "-" + Integer.toString(i + 1));
             threads[i].setDaemon(daemon);
             threads[i].setPriority(threadPriority);
         }

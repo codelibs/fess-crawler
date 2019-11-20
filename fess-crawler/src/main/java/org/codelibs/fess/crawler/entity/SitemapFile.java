@@ -79,8 +79,7 @@ public class SitemapFile implements Sitemap {
             return false;
         }
         final SitemapFile sitemapUrl = (SitemapFile) obj;
-        if (StringUtil.equals(loc, sitemapUrl.loc)
-                && StringUtil.equals(lastmod, sitemapUrl.lastmod)) {
+        if (StringUtil.equals(loc, sitemapUrl.loc) && StringUtil.equals(lastmod, sitemapUrl.lastmod)) {
             return true;
         }
         return false;

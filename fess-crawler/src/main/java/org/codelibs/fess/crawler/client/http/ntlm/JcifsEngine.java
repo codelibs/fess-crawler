@@ -47,7 +47,7 @@ public class JcifsEngine implements NTLMEngine {
     public JcifsEngine(final Properties props) {
         try {
             cifsContext = new BaseContext(new PropertyConfiguration(props));
-        } catch (CIFSException e) {
+        } catch (final CIFSException e) {
             throw new CrawlingAccessException(e);
         }
     }
@@ -73,7 +73,7 @@ public class JcifsEngine implements NTLMEngine {
             final Type3Message type3Message =
                     new Type3Message(cifsContext, type2Message, null, password, domain, username, workstation, type3Flags);
             return Base64.getEncoder().encodeToString(type3Message.toByteArray());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new CrawlingAccessException(e);
         }
     }

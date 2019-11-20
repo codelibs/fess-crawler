@@ -36,8 +36,7 @@ public class SitemapsRule extends RegexRule {
      */
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(SitemapsRule.class);
+    private static final Logger logger = LoggerFactory.getLogger(SitemapsRule.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;

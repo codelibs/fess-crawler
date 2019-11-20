@@ -27,16 +27,13 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class HcConnectionMonitorTarget implements TimeoutTarget {
-    private static final Logger logger = LoggerFactory
-            .getLogger(HcConnectionMonitorTarget.class);
+    private static final Logger logger = LoggerFactory.getLogger(HcConnectionMonitorTarget.class);
 
     private final HttpClientConnectionManager clientConnectionManager;
 
     private final long idleConnectionTimeout;
 
-    public HcConnectionMonitorTarget(
-            final HttpClientConnectionManager clientConnectionManager,
-            final long idleConnectionTimeout) {
+    public HcConnectionMonitorTarget(final HttpClientConnectionManager clientConnectionManager, final long idleConnectionTimeout) {
         this.clientConnectionManager = clientConnectionManager;
         this.idleConnectionTimeout = idleConnectionTimeout;
     }
@@ -57,8 +54,7 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
             // Close expired connections
             clientConnectionManager.closeExpiredConnections();
             // Close idle connections
-            clientConnectionManager.closeIdleConnections(idleConnectionTimeout,
-                    TimeUnit.MILLISECONDS);
+            clientConnectionManager.closeIdleConnections(idleConnectionTimeout, TimeUnit.MILLISECONDS);
         } catch (final Exception e) {
             logger.warn("A connection monitoring exception occurs.", e);
         }

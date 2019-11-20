@@ -60,7 +60,7 @@ public class CrawlerClientCreator {
         crawlerClientFactory.addClient(name, client);
     }
 
-    public void setMaxClientFactorySize(int maxClientFactorySize) {
+    public void setMaxClientFactorySize(final int maxClientFactorySize) {
         this.maxClientFactorySize = maxClientFactorySize;
     }
 }

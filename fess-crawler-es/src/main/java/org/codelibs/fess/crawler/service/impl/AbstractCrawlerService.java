@@ -142,18 +142,17 @@ public abstract class AbstractCrawlerService {
             // ignore
         }
         if (!exists) {
-            final CreateIndexResponse indexResponse =
-                    esClient.get(c -> {
-                        final String source;
-                        if (numberOfReplicas > 0) {
-                            source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards
-                                    + ",\"number_of_replicas\":0,\"auto_expand_replicas\":\"0-" + numberOfReplicas + "\"}}}";
-                        } else {
-                            source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards + ",\"number_of_replicas\":"
-                                    + numberOfReplicas + "}}}";
-                        }
-                        return c.admin().indices().prepareCreate(index).setSource(source, XContentType.JSON).execute();
-                    });
+            final CreateIndexResponse indexResponse = esClient.get(c -> {
+                final String source;
+                if (numberOfReplicas > 0) {
+                    source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards
+                            + ",\"number_of_replicas\":0,\"auto_expand_replicas\":\"0-" + numberOfReplicas + "\"}}}";
+                } else {
+                    source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards + ",\"number_of_replicas\":"
+                            + numberOfReplicas + "}}}";
+                }
+                return c.admin().indices().prepareCreate(index).setSource(source, XContentType.JSON).execute();
+            });
             if (indexResponse.isAcknowledged()) {
                 logger.info("Created " + index + " index.");
             } else if (logger.isDebugEnabled()) {
@@ -161,14 +160,12 @@ public abstract class AbstractCrawlerService {
             }
         }
 
-        final GetMappingsResponse getMappingsResponse =
-                esClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
+        final GetMappingsResponse getMappingsResponse = esClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
         final ImmutableOpenMap<String, MappingMetaData> indexMappings = getMappingsResponse.mappings().get(index);
         if (indexMappings == null || !indexMappings.containsKey("properties")) {
             final AcknowledgedResponse putMappingResponse = esClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");
-                return c.admin().indices().preparePutMapping(index).setSource(source, XContentType.JSON)
-                        .execute();
+                return c.admin().indices().preparePutMapping(index).setSource(source, XContentType.JSON).execute();
             });
             if (putMappingResponse.isAcknowledged()) {
                 logger.info("Created " + index + " mapping.");
@@ -503,8 +500,6 @@ public abstract class AbstractCrawlerService {
     public void setIndex(final String index) {
         this.index = index;
     }
-
- 
 
     public int getScrollTimeout() {
         return scrollTimeout;

@@ -57,8 +57,7 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
         synchronized (idCountLock) {
             idCount++;
             accessResult.setId(idCount);
-            AccessResultData<Long> accessResultData = accessResult
-                    .getAccessResultData();
+            AccessResultData<Long> accessResultData = accessResult.getAccessResultData();
             if (accessResultData == null) {
                 accessResultData = new AccessResultDataImpl<>();
                 accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
@@ -66,11 +65,9 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
             }
             accessResultData.setId(accessResult.getId());
 
-            final Map<String, AccessResultImpl<Long>> arMap = dataHelper
-                    .getAccessResultMap(accessResult.getSessionId());
+            final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(accessResult.getSessionId());
             if (arMap.containsKey(accessResult.getUrl())) {
-                throw new CrawlerSystemException(accessResult.getUrl()
-                        + " already exists.");
+                throw new CrawlerSystemException(accessResult.getUrl() + " already exists.");
             }
             arMap.put(accessResult.getUrl(), accessResult);
         }
@@ -127,8 +124,7 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
      * , boolean)
      */
     @Override
-    public List<AccessResultImpl<Long>> getAccessResultList(final String url,
-            final boolean hasData) {
+    public List<AccessResultImpl<Long>> getAccessResultList(final String url, final boolean hasData) {
         return dataHelper.getAccessResultList(url);
     }
 
@@ -139,10 +135,8 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
      * org.codelibs.fess.crawler.util.AccessResultCallback)
      */
     @Override
-    public void iterate(final String sessionId,
-            final AccessResultCallback<AccessResultImpl<Long>> accessResultCallback) {
-        final Map<String, AccessResultImpl<Long>> arMap = dataHelper
-                .getAccessResultMap(sessionId);
+    public void iterate(final String sessionId, final AccessResultCallback<AccessResultImpl<Long>> accessResultCallback) {
+        final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(sessionId);
         for (final Map.Entry<String, AccessResultImpl<Long>> entry : arMap.entrySet()) {
             accessResultCallback.iterate(entry.getValue());
         }
@@ -156,11 +150,9 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
      */
     @Override
     public void update(final AccessResultImpl<Long> accessResult) {
-        final Map<String, AccessResultImpl<Long>> arMap = dataHelper
-                .getAccessResultMap(accessResult.getSessionId());
+        final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(accessResult.getSessionId());
         if (!arMap.containsKey(accessResult.getUrl())) {
-            throw new CrawlerSystemException(accessResult.getUrl()
-                    + " is not found.");
+            throw new CrawlerSystemException(accessResult.getUrl() + " is not found.");
         }
         arMap.put(accessResult.getUrl(), accessResult);
     }

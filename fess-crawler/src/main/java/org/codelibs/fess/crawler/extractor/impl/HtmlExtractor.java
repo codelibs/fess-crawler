@@ -23,10 +23,8 @@ import java.util.regex.Pattern;
  */
 public class HtmlExtractor extends AbstractXmlExtractor {
 
-    protected Pattern metaCharsetPattern = Pattern
-            .compile(
-                    "<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
+            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     protected Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
 

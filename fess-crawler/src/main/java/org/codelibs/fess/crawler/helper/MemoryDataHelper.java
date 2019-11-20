@@ -53,8 +53,7 @@ public class MemoryDataHelper {
         return urlQueueList;
     }
 
-    public synchronized void addUrlQueueList(final String sessionId,
-            final Queue<UrlQueueImpl<Long>> urlQueueList) {
+    public synchronized void addUrlQueueList(final String sessionId, final Queue<UrlQueueImpl<Long>> urlQueueList) {
         final Queue<UrlQueueImpl<Long>> uqList = getUrlQueueList(sessionId);
         uqList.addAll(urlQueueList);
         urlQueueMap.put(sessionId, uqList);
@@ -68,8 +67,7 @@ public class MemoryDataHelper {
         urlQueueMap.clear();
     }
 
-    public synchronized Map<String, AccessResultImpl<Long>> getAccessResultMap(
-            final String sessionId) {
+    public synchronized Map<String, AccessResultImpl<Long>> getAccessResultMap(final String sessionId) {
         Map<String, AccessResultImpl<Long>> arMap = sessionMap.get(sessionId);
         if (arMap == null) {
             arMap = new HashMap<>();
@@ -88,8 +86,7 @@ public class MemoryDataHelper {
 
     public synchronized List<AccessResultImpl<Long>> getAccessResultList(final String url) {
         final List<AccessResultImpl<Long>> acList = new ArrayList<>();
-        for (final Map.Entry<String, Map<String, AccessResultImpl<Long>>> entry : sessionMap
-                .entrySet()) {
+        for (final Map.Entry<String, Map<String, AccessResultImpl<Long>>> entry : sessionMap.entrySet()) {
             if (entry.getValue() != null) {
                 final AccessResultImpl<Long> ar = entry.getValue().get(url);
                 if (ar != null) {
@@ -101,8 +98,7 @@ public class MemoryDataHelper {
         return acList;
     }
 
-    public synchronized void addIncludeUrlPattern(final String sessionId,
-            final String url) {
+    public synchronized void addIncludeUrlPattern(final String sessionId, final String url) {
         final List<Pattern> patternList = getIncludeUrlPatternList(sessionId);
         patternList.add(Pattern.compile(url));
     }
@@ -116,8 +112,7 @@ public class MemoryDataHelper {
         return patternList;
     }
 
-    public synchronized void addExcludeUrlPattern(final String sessionId,
-            final String url) {
+    public synchronized void addExcludeUrlPattern(final String sessionId, final String url) {
         final List<Pattern> patternList = getExcludeUrlPatternList(sessionId);
         patternList.add(Pattern.compile(url));
     }

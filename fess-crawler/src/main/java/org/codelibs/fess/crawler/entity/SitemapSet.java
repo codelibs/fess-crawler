@@ -61,7 +61,6 @@ public class SitemapSet implements Serializable {
 
     @Override
     public String toString() {
-        return "SitemapSet [sitemapList=" + sitemapList + ", type=" + type
-                + "]";
+        return "SitemapSet [sitemapList=" + sitemapList + ", type=" + type + "]";
     }
 }

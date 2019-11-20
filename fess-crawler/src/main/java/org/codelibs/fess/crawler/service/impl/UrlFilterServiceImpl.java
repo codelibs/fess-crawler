@@ -52,8 +52,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
      * .lang.String, java.util.List)
      */
     @Override
-    public void addIncludeUrlFilter(final String sessionId,
-            final List<String> urlList) {
+    public void addIncludeUrlFilter(final String sessionId, final List<String> urlList) {
         for (final String url : urlList) {
             dataHelper.addIncludeUrlPattern(sessionId, url);
         }
@@ -79,8 +78,7 @@ public class UrlFilterServiceImpl implements UrlFilterService {
      * .lang.String, java.util.List)
      */
     @Override
-    public void addExcludeUrlFilter(final String sessionId,
-            final List<String> urlList) {
+    public void addExcludeUrlFilter(final String sessionId, final List<String> urlList) {
         for (final String url : urlList) {
             dataHelper.addExcludeUrlPattern(sessionId, url);
         }

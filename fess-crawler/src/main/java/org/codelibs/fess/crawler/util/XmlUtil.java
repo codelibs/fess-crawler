@@ -61,20 +61,17 @@ public final class XmlUtil {
         char c;
         for (int i = 0; i < in.length(); i++) {
             c = in.charAt(i);
-            if (c == 0x9 || c == 0xA || c == 0xD || c >= 0x20 && c <= 0xD7FF
-                    || c >= 0xE000 && c <= 0xFFFD || c >= 0x10000
-                    && c <= 0x10FFFF) {
+            if (c == 0x9 || c == 0xA || c == 0xD || c >= 0x20 && c <= 0xD7FF || c >= 0xE000 && c <= 0xFFFD
+                    || c >= 0x10000 && c <= 0x10FFFF) {
                 buf.append(c);
             }
         }
         return buf.toString().trim();
     }
 
-    public static Map<String, Object> getDataMap(
-            final AccessResultData<?> accessResultData) {
+    public static Map<String, Object> getDataMap(final AccessResultData<?> accessResultData) {
         // create input source
-        final InputSource is = new InputSource(new ByteArrayInputStream(
-                accessResultData.getData()));
+        final InputSource is = new InputSource(new ByteArrayInputStream(accessResultData.getData()));
         if (StringUtil.isNotBlank(accessResultData.getEncoding())) {
             is.setEncoding(accessResultData.getEncoding());
         }
@@ -93,8 +90,7 @@ public final class XmlUtil {
 
             return handler.getDataMap();
         } catch (final Exception e) {
-            throw new CrawlerSystemException(
-                    "Could not create a data map from XML content.", e);
+            throw new CrawlerSystemException("Could not create a data map from XML content.", e);
         }
     }
 
@@ -111,8 +107,7 @@ public final class XmlUtil {
         }
 
         @Override
-        public void startElement(final String uri, final String localName,
-                final String qName, final Attributes attributes) {
+        public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
             if ("field".equals(qName)) {
                 fieldName = attributes.getValue("name");
                 if (StringUtil.isBlank(fieldName)) {
@@ -129,14 +124,12 @@ public final class XmlUtil {
         }
 
         @Override
-        public void characters(final char[] ch, final int offset,
-                final int length) {
+        public void characters(final char[] ch, final int offset, final int length) {
             buffer.append(new String(ch, offset, length));
         }
 
         @Override
-        public void endElement(final String uri, final String localName,
-                final String qName) {
+        public void endElement(final String uri, final String localName, final String qName) {
             if ("field".equals(qName)) {
                 if (fieldName != null) {
                     final Object obj = dataMap.get(fieldName);

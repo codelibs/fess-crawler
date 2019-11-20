@@ -22,15 +22,13 @@ import java.io.PrintWriter;
  * @author shinsuke
  *
  */
-public class MultipleCrawlingAccessException extends
-        CrawlingAccessException {
+public class MultipleCrawlingAccessException extends CrawlingAccessException {
 
     private static final long serialVersionUID = 1L;
 
     private final Throwable[] throwables;
 
-    public MultipleCrawlingAccessException(final String message,
-            final Throwable[] throwables) {
+    public MultipleCrawlingAccessException(final String message, final Throwable[] throwables) {
         super(message);
         if (throwables == null) {
             this.throwables = new Throwable[0];

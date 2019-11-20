@@ -83,8 +83,7 @@ public class ResultData implements Serializable {
 
     @Override
     public String toString() {
-        return "ResultData [transformerName=" + transformerName + ", encoding="
-                + encoding + ", childUrlSet=" + childUrlSet + "]";
+        return "ResultData [transformerName=" + transformerName + ", encoding=" + encoding + ", childUrlSet=" + childUrlSet + "]";
     }
 
 }

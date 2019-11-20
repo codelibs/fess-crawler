@@ -49,7 +49,7 @@ public class CrawlerClientFactory {
             if (creator != null) {
                 creator.register(this);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("CrawlerClientCreator is unavailable.", e);
             }

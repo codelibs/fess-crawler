@@ -16,13 +16,13 @@
 package org.codelibs.fess.crawler.interval;
 
 public interface IntervalController {
-    public static final int PRE_PROCESSING = 1;
+    int PRE_PROCESSING = 1;
 
-    public static final int POST_PROCESSING = 2;
+    int POST_PROCESSING = 2;
 
-    public static final int NO_URL_IN_QUEUE = 4;
+    int NO_URL_IN_QUEUE = 4;
 
-    public static final int WAIT_NEW_URL = 8;
+    int WAIT_NEW_URL = 8;
 
     void delay(int type);
 }

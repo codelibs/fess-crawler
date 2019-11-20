@@ -115,7 +115,8 @@ public class FormScheme implements AuthScheme {
         return null;
     }
 
-    public void authenticate(final Credentials credentials, final BiConsumer<HttpUriRequest, BiConsumer<HttpResponse, HttpEntity>> executor) {
+    public void authenticate(final Credentials credentials,
+            final BiConsumer<HttpUriRequest, BiConsumer<HttpResponse, HttpEntity>> executor) {
         final String tokenUrl = getParameter(TOKEN_URL);
         final String tokenPattern = getParameter(TOKEN_PATTERN);
         final List<Pair<String, String>> responseParams = new ArrayList<>();

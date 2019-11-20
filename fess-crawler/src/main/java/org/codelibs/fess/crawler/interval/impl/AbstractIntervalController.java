@@ -35,21 +35,21 @@ public abstract class AbstractIntervalController implements IntervalController {
     public void delay(final int type) {
         try {
             switch (type) {
-                case PRE_PROCESSING:
-                    delayBeforeProcessing();
-                    break;
-                case POST_PROCESSING:
-                    delayAfterProcessing();
-                    break;
-                case NO_URL_IN_QUEUE:
-                    delayAtNoUrlInQueue();
-                    break;
-                case WAIT_NEW_URL:
-                    delayForWaitingNewUrl();
-                    break;
-                default:
-                    // NOP
-                    break;
+            case PRE_PROCESSING:
+                delayBeforeProcessing();
+                break;
+            case POST_PROCESSING:
+                delayAfterProcessing();
+                break;
+            case NO_URL_IN_QUEUE:
+                delayAtNoUrlInQueue();
+                break;
+            case WAIT_NEW_URL:
+                delayForWaitingNewUrl();
+                break;
+            default:
+                // NOP
+                break;
             }
         } catch (final CrawlerSystemException e) {
             if (!ignoreException) {

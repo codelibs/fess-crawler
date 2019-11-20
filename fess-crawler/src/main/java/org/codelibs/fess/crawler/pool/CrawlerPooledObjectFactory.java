@@ -67,7 +67,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     }
 
     public interface OnDestroyListener<T> {
-        public void onDestroy(PooledObject<T> p);
+        void onDestroy(PooledObject<T> p);
     }
 
     public String getComponentName() {
@@ -82,8 +82,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
         return onDestroyListener;
     }
 
-    public void setOnDestroyListener(
-            final OnDestroyListener<T> onDestroyListener) {
+    public void setOnDestroyListener(final OnDestroyListener<T> onDestroyListener) {
         this.onDestroyListener = onDestroyListener;
     }
 }

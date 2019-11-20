@@ -40,7 +40,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
 
     protected Map<Pattern, String> passwordMap = new HashMap<>();
 
-    private Map<String, List<Pair<Pattern, String>>> configPasswordMap = new ConcurrentHashMap<>();
+    private final Map<String, List<Pair<Pattern, String>>> configPasswordMap = new ConcurrentHashMap<>();
 
     public void addPassword(final String regex, final String password) {
         passwordMap.put(Pattern.compile(regex), password);
@@ -73,19 +73,19 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                 List<Pair<Pattern, String>> list = configPasswordMap.get(value);
                 if (list == null) {
                     try {
-                        Gson gson = new Gson();
-                        Type type = new TypeToken<Map<String, String>>() {
+                        final Gson gson = new Gson();
+                        final Type type = new TypeToken<Map<String, String>>() {
                         }.getType();
-                        Map<String, String> passwordMap = gson.fromJson(value, type);
+                        final Map<String, String> passwordMap = gson.fromJson(value, type);
                         list = passwordMap.entrySet().stream().map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         logger.warn("Failed to parse passwords for " + url, e);
                         list = Collections.emptyList();
                     }
                     configPasswordMap.put(value, list);
                 }
-                for (Pair<Pattern, String> pair : list) {
+                for (final Pair<Pattern, String> pair : list) {
                     if (pair.getFirst().matcher(url).matches()) {
                         return pair.getSecond();
                     }

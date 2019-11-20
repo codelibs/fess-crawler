@@ -42,8 +42,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TextTransformer extends AbstractTransformer {
-    private static final Logger logger = LoggerFactory
-            .getLogger(TextTransformer.class);
+    private static final Logger logger = LoggerFactory.getLogger(TextTransformer.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;
@@ -62,16 +61,13 @@ public class TextTransformer extends AbstractTransformer {
             throw new CrawlingAccessException("No response body.");
         }
 
-        final ExtractorFactory extractorFactory = crawlerContainer
-                .getComponent("extractorFactory");
+        final ExtractorFactory extractorFactory = crawlerContainer.getComponent("extractorFactory");
         if (extractorFactory == null) {
             throw new CrawlerSystemException("Could not find extractorFactory.");
         }
-        final Extractor extractor = extractorFactory.getExtractor(responseData
-                .getMimeType());
+        final Extractor extractor = extractorFactory.getExtractor(responseData.getMimeType());
         final Map<String, String> params = new HashMap<>();
-        params.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
-                getResourceName(responseData));
+        params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, getResourceName(responseData));
         params.put(HttpHeaders.CONTENT_TYPE, responseData.getMimeType());
         String content = null;
         try (final InputStream in = responseData.getResponseBody()) {
@@ -86,8 +82,7 @@ public class TextTransformer extends AbstractTransformer {
             resultData.setData(content.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
-                logger.info("Invalid charsetName: " + charsetName
-                        + ". Changed to " + Constants.UTF_8, e);
+                logger.info("Invalid charsetName: " + charsetName + ". Changed to " + Constants.UTF_8, e);
             }
             charsetName = Constants.UTF_8_CHARSET.name();
             resultData.setData(content.getBytes(Constants.UTF_8_CHARSET));
@@ -107,9 +102,8 @@ public class TextTransformer extends AbstractTransformer {
     public Object getData(final AccessResultData<?> accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
-            throw new CrawlerSystemException("Transformer is invalid. Use "
-                    + accessResultData.getTransformerName()
-                    + ". This transformer is " + getName() + ".");
+            throw new CrawlerSystemException(
+                    "Transformer is invalid. Use " + accessResultData.getTransformerName() + ". This transformer is " + getName() + ".");
         }
         final byte[] data = accessResultData.getData();
         if (data == null) {
@@ -118,8 +112,7 @@ public class TextTransformer extends AbstractTransformer {
         try {
             return new String(data, charsetName);
         } catch (final UnsupportedEncodingException e) {
-            throw new CrawlingAccessException("Unsupported encoding: "
-                    + charsetName, e);
+            throw new CrawlingAccessException("Unsupported encoding: " + charsetName, e);
         }
     }
 

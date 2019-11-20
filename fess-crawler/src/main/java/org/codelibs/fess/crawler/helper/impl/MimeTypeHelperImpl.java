@@ -46,8 +46,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         try {
             mimeTypes = MimeTypesFactory.create(MIME_TYPES_RESOURCE_NAME);
         } catch (final Exception e) {
-            throw new CrawlerSystemException(
-                    "Could not initialize MimeTypeHelper.", e);
+            throw new CrawlerSystemException("Could not initialize MimeTypeHelper.", e);
         }
     }
 
@@ -62,12 +61,10 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
     }
 
     @Override
-    public String getContentType(final InputStream is,
-            final Map<String, String> params) {
+    public String getContentType(final InputStream is, final Map<String, String> params) {
         final String filename = params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
         if (StringUtil.isEmpty(filename) && is == null) {
-            throw new MimeTypeException(
-                    "The filename or input stream is empty.");
+            throw new MimeTypeException("The filename or input stream is empty.");
         }
 
         final Metadata metadata = new Metadata();
@@ -81,9 +78,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
                 }
             }
 
-            final MediaType mediaType = mimeTypes.detect(
-                    is == null || is.markSupported() ? is
-                            : new BufferedInputStream(is), metadata);
+            final MediaType mediaType = mimeTypes.detect(is == null || is.markSupported() ? is : new BufferedInputStream(is), metadata);
             return mediaType.getType() + "/" + mediaType.getSubtype();
         } catch (final IOException e) {
             throw new MimeTypeException("Could not detect a content type.", e);
@@ -121,7 +116,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         return buf.toString();
     }
 
-    public void setUseFilename(boolean useFilename) {
+    public void setUseFilename(final boolean useFilename) {
         this.useFilename = useFilename;
     }
 }

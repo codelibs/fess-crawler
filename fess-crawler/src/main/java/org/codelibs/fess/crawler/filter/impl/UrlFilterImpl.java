@@ -147,10 +147,8 @@ public class UrlFilterImpl implements UrlFilter {
      */
     @Override
     public boolean match(final String url) {
-        final List<Pattern> includeList = getUrlFilterService()
-                .getIncludeUrlPatternList(sessionId);
-        final List<Pattern> excludeList = getUrlFilterService()
-                .getExcludeUrlPatternList(sessionId);
+        final List<Pattern> includeList = getUrlFilterService().getIncludeUrlPatternList(sessionId);
+        final List<Pattern> excludeList = getUrlFilterService().getExcludeUrlPatternList(sessionId);
 
         if (!includeList.isEmpty()) {
             boolean match = false;
@@ -232,12 +230,9 @@ public class UrlFilterImpl implements UrlFilter {
 
     @Override
     public String toString() {
-        return "UrlFilterImpl [urlPattern=" + urlPattern
-                + ", includeFilteringPattern=" + includeFilteringPattern
-                + ", excludeFilteringPattern=" + excludeFilteringPattern
-                + ", cachedIncludeSet=" + cachedIncludeSet
-                + ", cachedExcludeSet=" + cachedExcludeSet + ", sessionId="
-                + sessionId + ", urlFilterService=" + urlFilterService + "]";
+        return "UrlFilterImpl [urlPattern=" + urlPattern + ", includeFilteringPattern=" + includeFilteringPattern
+                + ", excludeFilteringPattern=" + excludeFilteringPattern + ", cachedIncludeSet=" + cachedIncludeSet + ", cachedExcludeSet="
+                + cachedExcludeSet + ", sessionId=" + sessionId + ", urlFilterService=" + urlFilterService + "]";
     }
 
 }

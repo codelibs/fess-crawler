@@ -34,8 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractCrawlerClient implements CrawlerClient {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(AbstractCrawlerClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractCrawlerClient.class);
 
     protected static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
 
@@ -138,15 +137,14 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     @Override
     public ResponseData execute(final RequestData request) {
         switch (request.getMethod()) {
-            case GET:
-                return doGet(request.getUrl());
-            case HEAD:
-                return doHead(request.getUrl());
-            case POST:
-                return doPost(request.getUrl());
-            default:
-                throw new CrawlerSystemException(request.getMethod()
-                        + " method is not supported.");
+        case GET:
+            return doGet(request.getUrl());
+        case HEAD:
+            return doHead(request.getUrl());
+        case POST:
+            return doPost(request.getUrl());
+        default:
+            throw new CrawlerSystemException(request.getMethod() + " method is not supported.");
         }
     }
 
@@ -182,17 +180,17 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     }
 
     public void register(final String regex) {
-        CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
+        final CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
         clientFactory.addClient(regex, this);
     }
 
     public void register(final List<String> regexList) {
-        CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
+        final CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
         clientFactory.addClient(regexList, this);
     }
 
     public void register(final String regex, final int pos) {
-        CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
+        final CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
         clientFactory.addClient(regex, this, pos);
     }
 }

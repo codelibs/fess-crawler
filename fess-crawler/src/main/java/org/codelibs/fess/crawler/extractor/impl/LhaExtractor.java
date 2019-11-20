@@ -47,14 +47,12 @@ import jp.gr.java_conf.dangan.util.lha.LhaHeader;
  *
  */
 public class LhaExtractor extends AbstractExtractor {
-    private static final Logger logger = LoggerFactory
-            .getLogger(LhaExtractor.class);
+    private static final Logger logger = LoggerFactory.getLogger(LhaExtractor.class);
 
     protected long maxContentSize = -1;
 
     @Override
-    public ExtractData getText(final InputStream in,
-            final Map<String, String> params) {
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
@@ -82,27 +80,20 @@ public class LhaExtractor extends AbstractExtractor {
                     throw new MaxLengthExceededException("Extracted size is " + contentSize + " > " + maxContentSize);
                 }
                 final String filename = head.getPath();
-                final String mimeType = mimeTypeHelper.getContentType(null,
-                        filename);
+                final String mimeType = mimeTypeHelper.getContentType(null, filename);
                 if (mimeType != null) {
-                    final Extractor extractor = extractorFactory
-                            .getExtractor(mimeType);
+                    final Extractor extractor = extractorFactory.getExtractor(mimeType);
                     if (extractor != null) {
                         InputStream is = null;
                         try {
                             is = lhaFile.getInputStream(head);
                             final Map<String, String> map = new HashMap<>();
-                            map.put(TikaMetadataKeys.RESOURCE_NAME_KEY,
-                                    filename);
-                            buf.append(extractor.getText(
-                                    new IgnoreCloseInputStream(is), map)
-                                    .getContent());
+                            map.put(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
+                            buf.append(extractor.getText(new IgnoreCloseInputStream(is), map).getContent());
                             buf.append('\n');
                         } catch (final Exception e) {
                             if (logger.isDebugEnabled()) {
-                                logger.debug(
-                                        "Exception in an internal extractor.",
-                                        e);
+                                logger.debug("Exception in an internal extractor.", e);
                             }
                         } finally {
                             CloseableUtil.closeQuietly(is);
@@ -132,4 +123,5 @@ public class LhaExtractor extends AbstractExtractor {
 
     public void setMaxContentSize(final long maxContentSize) {
         this.maxContentSize = maxContentSize;
-    }}
+    }
+}

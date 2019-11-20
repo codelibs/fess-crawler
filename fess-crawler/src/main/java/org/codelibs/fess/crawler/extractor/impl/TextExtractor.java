@@ -33,14 +33,12 @@ public class TextExtractor extends AbstractExtractor {
     protected String encoding = Constants.UTF_8;
 
     @Override
-    public ExtractData getText(final InputStream in,
-            final Map<String, String> params) {
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
         try {
-            return new ExtractData(new String(InputStreamUtil.getBytes(in),
-                    getEncoding()));
+            return new ExtractData(new String(InputStreamUtil.getBytes(in), getEncoding()));
         } catch (final Exception e) {
             throw new ExtractException(e);
         }

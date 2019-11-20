@@ -47,8 +47,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class JodExtractor extends AbstractExtractor {
-    private static final Logger logger = LoggerFactory
-            .getLogger(JodExtractor.class);
+    private static final Logger logger = LoggerFactory.getLogger(JodExtractor.class);
 
     protected OfficeManager officeManager;
 
@@ -112,14 +111,12 @@ public class JodExtractor extends AbstractExtractor {
      * java.util.Map)
      */
     @Override
-    public ExtractData getText(final InputStream in,
-            final Map<String, String> params) {
+    public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
             throw new CrawlerSystemException("in is null.");
         }
 
-        final String resourceName = params == null ? null : params
-                .get(TikaMetadataKeys.RESOURCE_NAME_KEY);
+        final String resourceName = params == null ? null : params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
 
         String extension;
         String filePrefix;
@@ -147,25 +144,20 @@ public class JodExtractor extends AbstractExtractor {
         File inputFile = null;
         File outputFile = null;
         try {
-            inputFile = File.createTempFile("jodextin_" + filePrefix + "_",
-                    StringUtil.isNotBlank(extension) ? "." + extension
-                            : extension, tempDir);
+            inputFile = File.createTempFile("jodextin_" + filePrefix + "_", StringUtil.isNotBlank(extension) ? "." + extension : extension,
+                    tempDir);
             final String outExt = getOutputExtension(extension);
-            outputFile = File.createTempFile("cmdextout_" + filePrefix + "_",
-                    "." + outExt, tempDir);
+            outputFile = File.createTempFile("cmdextout_" + filePrefix + "_", "." + outExt, tempDir);
 
             // store to a file
             CopyUtil.copy(in, inputFile);
 
-            final OfficeDocumentConverter converter = new OfficeDocumentConverter(
-                    officeManager);
+            final OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
             converter.convert(inputFile, outputFile);
 
-            final ExtractData extractData = new ExtractData(getOutputContent(
-                    outputFile, outExt));
+            final ExtractData extractData = new ExtractData(getOutputContent(outputFile, outExt));
             if (StringUtil.isNotBlank(resourceName)) {
-                extractData.putValues("resourceName",
-                        new String[] { resourceName });
+                extractData.putValues("resourceName", new String[] { resourceName });
             }
 
             return extractData;
@@ -192,8 +184,7 @@ public class JodExtractor extends AbstractExtractor {
                 final ExtractData extractData = extractor.getText(in, params);
                 return extractData.getContent();
             } catch (final FileNotFoundException e) {
-                throw new ExtractException("Could not open "
-                        + outputFile.getAbsolutePath(), e);
+                throw new ExtractException("Could not open " + outputFile.getAbsolutePath(), e);
             } finally {
                 CloseableUtil.closeQuietly(in);
             }
@@ -201,8 +192,7 @@ public class JodExtractor extends AbstractExtractor {
         try {
             return new String(FileUtil.readBytes(outputFile), outputEncoding);
         } catch (final UnsupportedEncodingException e) {
-            return new String(FileUtil.readBytes(outputFile),
-                    Constants.UTF_8_CHARSET);
+            return new String(FileUtil.readBytes(outputFile), Constants.UTF_8_CHARSET);
         }
     }
 

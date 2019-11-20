@@ -38,7 +38,7 @@ public class EsCrawlerConfig {
         return queueIndex;
     }
 
-    public void setQueueIndex(String queueIndex) {
+    public void setQueueIndex(final String queueIndex) {
         this.queueIndex = queueIndex;
     }
 
@@ -46,7 +46,7 @@ public class EsCrawlerConfig {
         return dataIndex;
     }
 
-    public void setDataIndex(String dataIndex) {
+    public void setDataIndex(final String dataIndex) {
         this.dataIndex = dataIndex;
     }
 
@@ -54,7 +54,7 @@ public class EsCrawlerConfig {
         return filterIndex;
     }
 
-    public void setFilterIndex(String filterIndex) {
+    public void setFilterIndex(final String filterIndex) {
         this.filterIndex = filterIndex;
     }
 
@@ -62,7 +62,7 @@ public class EsCrawlerConfig {
         return queueShards;
     }
 
-    public void setQueueShards(int queueShards) {
+    public void setQueueShards(final int queueShards) {
         this.queueShards = queueShards;
     }
 
@@ -70,7 +70,7 @@ public class EsCrawlerConfig {
         return dataShards;
     }
 
-    public void setDataShards(int dataShards) {
+    public void setDataShards(final int dataShards) {
         this.dataShards = dataShards;
     }
 
@@ -78,7 +78,7 @@ public class EsCrawlerConfig {
         return filterShards;
     }
 
-    public void setFilterShards(int filterShards) {
+    public void setFilterShards(final int filterShards) {
         this.filterShards = filterShards;
     }
 
@@ -86,7 +86,7 @@ public class EsCrawlerConfig {
         return queueReplicas;
     }
 
-    public void setQueueReplicas(int queueReplicas) {
+    public void setQueueReplicas(final int queueReplicas) {
         this.queueReplicas = queueReplicas;
     }
 
@@ -94,7 +94,7 @@ public class EsCrawlerConfig {
         return dataReplicas;
     }
 
-    public void setDataReplicas(int dataReplicas) {
+    public void setDataReplicas(final int dataReplicas) {
         this.dataReplicas = dataReplicas;
     }
 
@@ -102,7 +102,7 @@ public class EsCrawlerConfig {
         return filterReplicas;
     }
 
-    public void setFilterReplicas(int filterReplicas) {
+    public void setFilterReplicas(final int filterReplicas) {
         this.filterReplicas = filterReplicas;
     }
 

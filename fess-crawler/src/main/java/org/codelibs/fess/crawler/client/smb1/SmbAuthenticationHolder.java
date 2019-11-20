@@ -34,8 +34,7 @@ public class SmbAuthenticationHolder {
             return null;
         }
 
-        for (final Map.Entry<String, SmbAuthentication> entry : authMap
-                .entrySet()) {
+        for (final Map.Entry<String, SmbAuthentication> entry : authMap.entrySet()) {
             if (path.startsWith(entry.getKey())) {
                 return entry.getValue();
             }

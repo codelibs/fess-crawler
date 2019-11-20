@@ -38,8 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FileTransformer extends HtmlTransformer {
-    private static final Logger logger = LoggerFactory
-            .getLogger(FileTransformer.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileTransformer.class);
 
     /**
      * A path to store downloaded files. The default path is a current
@@ -91,9 +90,7 @@ public class FileTransformer extends HtmlTransformer {
                             }
                         } else {
                             if (!file.mkdirs()) {
-                                throw new CrawlerSystemException(
-                                        "Could not create "
-                                                + file.getAbsolutePath());
+                                throw new CrawlerSystemException("Could not create " + file.getAbsolutePath());
                             }
                             break;
                         }
@@ -101,8 +98,7 @@ public class FileTransformer extends HtmlTransformer {
                 }
             } else {
                 if (!file.mkdirs()) {
-                    throw new CrawlerSystemException("Could not create "
-                            + file.getAbsolutePath());
+                    throw new CrawlerSystemException("Could not create " + file.getAbsolutePath());
                 }
             }
             targetFile = file;
@@ -124,8 +120,7 @@ public class FileTransformer extends HtmlTransformer {
     }
 
     @Override
-    public void storeData(final ResponseData responseData,
-            final ResultData resultData) {
+    public void storeData(final ResponseData responseData, final ResultData resultData) {
         resultData.setTransformerName(getName());
 
         initBaseDir();
@@ -140,16 +135,14 @@ public class FileTransformer extends HtmlTransformer {
             try (final InputStream is = responseData.getResponseBody(); final OutputStream os = new FileOutputStream(file);) {
                 CopyUtil.copy(is, os);
             } catch (final IOException e) {
-                throw new CrawlerSystemException("Could not store "
-                        + file.getAbsolutePath(), e);
+                throw new CrawlerSystemException("Could not store " + file.getAbsolutePath(), e);
             }
         }
         try {
             resultData.setData(path.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
-                logger.info("Invalid charsetName: " + charsetName
-                        + ". Changed to " + Constants.UTF_8, e);
+                logger.info("Invalid charsetName: " + charsetName + ". Changed to " + Constants.UTF_8, e);
             }
             charsetName = Constants.UTF_8_CHARSET.name();
             resultData.setData(path.getBytes(Constants.UTF_8_CHARSET));
@@ -165,8 +158,7 @@ public class FileTransformer extends HtmlTransformer {
             } else {
                 baseDir = new File(path);
                 if (!baseDir.isDirectory() && !baseDir.mkdirs()) {
-                    throw new CrawlerSystemException("Could not create "
-                            + baseDir.getAbsolutePath());
+                    throw new CrawlerSystemException("Could not create " + baseDir.getAbsolutePath());
                 }
             }
         }
@@ -179,10 +171,8 @@ public class FileTransformer extends HtmlTransformer {
      * @return path File path
      */
     protected String getFilePath(final String url) {
-        return url.replaceAll("/+", "/").replaceAll("\\./", "")
-                .replaceAll("\\.\\./", "").replaceAll("/$", "/index.html")
-                .replaceAll("\\?", questionStr).replaceAll(":", colonStr)
-                .replaceAll(";", semicolonStr).replaceAll("&", ampersandStr);
+        return url.replaceAll("/+", "/").replaceAll("\\./", "").replaceAll("\\.\\./", "").replaceAll("/$", "/index.html")
+                .replaceAll("\\?", questionStr).replaceAll(":", colonStr).replaceAll(";", semicolonStr).replaceAll("&", ampersandStr);
     }
 
     /**
@@ -193,9 +183,8 @@ public class FileTransformer extends HtmlTransformer {
     public Object getData(final AccessResultData<?> accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
-            throw new CrawlerSystemException("Transformer is invalid. Use "
-                    + accessResultData.getTransformerName()
-                    + ". This transformer is " + getName() + ".");
+            throw new CrawlerSystemException(
+                    "Transformer is invalid. Use " + accessResultData.getTransformerName() + ". This transformer is " + getName() + ".");
         }
 
         final byte[] data = accessResultData.getData();
@@ -205,8 +194,7 @@ public class FileTransformer extends HtmlTransformer {
         final String encoding = accessResultData.getEncoding();
         String filePath;
         try {
-            filePath = new String(data, encoding == null ? Constants.UTF_8
-                    : encoding);
+            filePath = new String(data, encoding == null ? Constants.UTF_8 : encoding);
         } catch (final UnsupportedEncodingException e) {
             filePath = new String(data, Constants.UTF_8_CHARSET);
         }

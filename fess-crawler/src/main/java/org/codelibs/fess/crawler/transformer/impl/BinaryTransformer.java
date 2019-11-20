@@ -71,9 +71,8 @@ public class BinaryTransformer extends AbstractTransformer {
     public Object getData(final AccessResultData<?> accessResultData) {
         // check transformer name
         if (!getName().equals(accessResultData.getTransformerName())) {
-            throw new CrawlerSystemException("Transformer is invalid. Use "
-                    + accessResultData.getTransformerName()
-                    + ". This transformer is " + getName() + ".");
+            throw new CrawlerSystemException(
+                    "Transformer is invalid. Use " + accessResultData.getTransformerName() + ". This transformer is " + getName() + ".");
         }
         final byte[] data = accessResultData.getData();
         if (data == null) {

@@ -450,14 +450,14 @@ public class EsClient implements Client {
     }
 
     @Override
-    public <Request extends ActionRequest, Response extends ActionResponse> ActionFuture<Response> execute(ActionType<Response> action,
-            Request request) {
+    public <Request extends ActionRequest, Response extends ActionResponse> ActionFuture<Response> execute(final ActionType<Response> action,
+            final Request request) {
         return client.execute(action, request);
     }
 
     @Override
-    public <Request extends ActionRequest, Response extends ActionResponse> void execute(ActionType<Response> action, Request request,
-            ActionListener<Response> listener) {
+    public <Request extends ActionRequest, Response extends ActionResponse> void execute(final ActionType<Response> action, final Request request,
+            final ActionListener<Response> listener) {
         client.execute(action, request, listener);
     }
 
@@ -540,7 +540,7 @@ public class EsClient implements Client {
     }
 
     @Override
-    public FieldCapabilitiesRequestBuilder prepareFieldCaps(String... indices) {
+    public FieldCapabilitiesRequestBuilder prepareFieldCaps(final String... indices) {
         return client.prepareFieldCaps(indices);
     }
 
@@ -555,7 +555,7 @@ public class EsClient implements Client {
     }
 
     @Override
-    public BulkRequestBuilder prepareBulk(String globalIndex, String globalType) {
+    public BulkRequestBuilder prepareBulk(final String globalIndex, final String globalType) {
         return client.prepareBulk(globalIndex, globalType);
     }
 }

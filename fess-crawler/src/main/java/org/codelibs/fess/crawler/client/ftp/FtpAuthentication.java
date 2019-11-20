@@ -26,8 +26,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FtpAuthentication {
-    private static final Logger logger = LoggerFactory
-            .getLogger(FtpAuthentication.class);
+    private static final Logger logger = LoggerFactory.getLogger(FtpAuthentication.class);
 
     private String server;
 

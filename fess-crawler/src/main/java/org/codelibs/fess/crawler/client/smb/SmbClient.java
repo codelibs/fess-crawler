@@ -110,7 +110,7 @@ public class SmbClient extends AbstractCrawlerClient {
         });
         try {
             cifsContext = new BaseContext(new PropertyConfiguration(props));
-        } catch (CIFSException e) {
+        } catch (final CIFSException e) {
             throw new CrawlingAccessException(e);
         }
 
@@ -329,7 +329,7 @@ public class SmbClient extends AbstractCrawlerClient {
             if (aces != null) {
                 final Set<SID> sidAllowSet = new HashSet<>();
                 final Set<SID> sidDenySet = new HashSet<>();
-                for (ACE ace : aces) {
+                for (final ACE ace : aces) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("ACE:{}", ace);
                     }
@@ -351,15 +351,15 @@ public class SmbClient extends AbstractCrawlerClient {
         sidSet.add(sid);
         if (type == SID.SID_TYPE_DOM_GRP || type == SID.SID_TYPE_ALIAS) {
             try {
-                CIFSContext context = file.getContext();
+                final CIFSContext context = file.getContext();
                 final SID[] children = context.getSIDResolver().getGroupMemberSids(context, file.getServer(), sid.getDomainSid(),
                         sid.getRid(), jcifs.smb.SID.SID_FLAG_RESOLVE_SIDS);
-                for (SID child : children) {
+                for (final SID child : children) {
                     if (!sidSet.contains(child)) {
                         processAllowedSIDs(file, child, sidSet);
                     }
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Exception on SID processing.", e);
                 }

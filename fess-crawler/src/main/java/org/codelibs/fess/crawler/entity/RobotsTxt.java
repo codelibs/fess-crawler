@@ -56,8 +56,7 @@ public class RobotsTxt {
 
         int maxUaLength = -1;
         Directive matchedDirective = null;
-        for (final Map.Entry<Pattern, Directive> entry : directiveMap
-                .entrySet()) {
+        for (final Map.Entry<Pattern, Directive> entry : directiveMap.entrySet()) {
             if (entry.getKey().matcher(target).find()) {
                 final Directive directive = entry.getValue();
                 final String ua = directive.getUserAgent();
@@ -88,9 +87,7 @@ public class RobotsTxt {
     }
 
     public void addDirective(final Directive directive) {
-        directiveMap.put(Pattern.compile(
-                directive.getUserAgent().replace("*", ".*"),
-                Pattern.CASE_INSENSITIVE), directive);
+        directiveMap.put(Pattern.compile(directive.getUserAgent().replace("*", ".*"), Pattern.CASE_INSENSITIVE), directive);
     }
 
     public void addSitemap(final String url) {
@@ -159,8 +156,7 @@ public class RobotsTxt {
 
     @Override
     public String toString() {
-        return "RobotsTxt [directiveMap=" + directiveMap + ", sitemapList="
-                + sitemapList + "]";
+        return "RobotsTxt [directiveMap=" + directiveMap + ", sitemapList=" + sitemapList + "]";
     }
 
 }

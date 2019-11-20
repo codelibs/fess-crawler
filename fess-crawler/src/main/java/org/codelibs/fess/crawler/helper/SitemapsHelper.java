@@ -42,8 +42,7 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  */
 public class SitemapsHelper {
-    private static final Logger logger = LoggerFactory
-            .getLogger(SitemapsHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(SitemapsHelper.class);
 
     protected int preloadSize = 512;
 
@@ -68,8 +67,7 @@ public class SitemapsHelper {
             } else if (preloadDate.indexOf("<sitemapindex") >= 0) {
                 // XML Sitemaps Index
                 return true;
-            } else if (preloadDate.startsWith("http://")
-                    || preloadDate.startsWith("https://")) {
+            } else if (preloadDate.startsWith("http://") || preloadDate.startsWith("https://")) {
                 // Text Sitemaps Index
                 return true;
             } else {
@@ -117,8 +115,7 @@ public class SitemapsHelper {
                 // XML Sitemaps Index
                 bis.reset();
                 return parseXmlSitemapsIndex(bis);
-            } else if (preloadDate.startsWith("http://")
-                    || preloadDate.startsWith("https://")) {
+            } else if (preloadDate.startsWith("http://") || preloadDate.startsWith("https://")) {
                 // Text Sitemaps Index
                 bis.reset();
                 return parseTextSitemaps(bis);
@@ -139,14 +136,11 @@ public class SitemapsHelper {
         sitemapSet.setType(SitemapSet.URLSET);
 
         try {
-            final BufferedReader br = new BufferedReader(new InputStreamReader(
-                    in, Constants.UTF_8));
+            final BufferedReader br = new BufferedReader(new InputStreamReader(in, Constants.UTF_8));
             String line;
             while ((line = br.readLine()) != null) {
                 final String url = line.trim();
-                if (StringUtil.isNotBlank(url)
-                        && (url.startsWith("http://") || url
-                                .startsWith("https://"))) {
+                if (StringUtil.isNotBlank(url) && (url.startsWith("http://") || url.startsWith("https://"))) {
                     final SitemapUrl sitemapUrl = new SitemapUrl();
                     sitemapUrl.setLoc(url);
                     sitemapSet.addSitemap(sitemapUrl);
@@ -154,8 +148,7 @@ public class SitemapsHelper {
             }
             return sitemapSet;
         } catch (final Exception e) {
-            throw new SitemapsException("Could not parse Text Sitemaps.",
-                    e);
+            throw new SitemapsException("Could not parse Text Sitemaps.", e);
         }
 
     }
@@ -198,8 +191,7 @@ public class SitemapsHelper {
         }
 
         @Override
-        public void startElement(final String uri, final String localName,
-                final String qName, final Attributes attributes) {
+        public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
             if (URL_ELEMENT.equals(qName)) {
                 sitemapUrl = new SitemapUrl();
             } else if (LOC_ELEMENT.equals(qName)) {
@@ -214,16 +206,14 @@ public class SitemapsHelper {
         }
 
         @Override
-        public void characters(final char[] ch, final int offset,
-                final int length) {
+        public void characters(final char[] ch, final int offset, final int length) {
             if (buf != null) {
                 buf.append(new String(ch, offset, length));
             }
         }
 
         @Override
-        public void endElement(final String uri, final String localName,
-                final String qName) {
+        public void endElement(final String uri, final String localName, final String qName) {
             if (URL_ELEMENT.equals(qName)) {
                 if (sitemapUrl != null) {
                     sitemapSet.addSitemap(sitemapUrl);
@@ -271,8 +261,7 @@ public class SitemapsHelper {
             final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
         } catch (final Exception e) {
-            throw new SitemapsException(
-                    "Could not parse XML Sitemaps Index.", e);
+            throw new SitemapsException("Could not parse XML Sitemaps Index.", e);
         }
         return handler.getSitemapSet();
     }
@@ -292,8 +281,7 @@ public class SitemapsHelper {
         }
 
         @Override
-        public void startElement(final String uri, final String localName,
-                final String qName, final Attributes attributes) {
+        public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
             if ("sitemap".equals(qName)) {
                 sitemapFile = new SitemapFile();
             } else if ("loc".equals(qName)) {
@@ -304,16 +292,14 @@ public class SitemapsHelper {
         }
 
         @Override
-        public void characters(final char[] ch, final int offset,
-                final int length) {
+        public void characters(final char[] ch, final int offset, final int length) {
             if (buf != null) {
                 buf.append(new String(ch, offset, length));
             }
         }
 
         @Override
-        public void endElement(final String uri, final String localName,
-                final String qName) {
+        public void endElement(final String uri, final String localName, final String qName) {
             if ("sitemap".equals(qName)) {
                 if (sitemapFile != null) {
                     sitemapSet.addSitemap(sitemapFile);
@@ -343,7 +329,7 @@ public class SitemapsHelper {
 
     }
 
-    public void setPreloadSize(int preloadSize) {
+    public void setPreloadSize(final int preloadSize) {
         this.preloadSize = preloadSize;
     }
 }

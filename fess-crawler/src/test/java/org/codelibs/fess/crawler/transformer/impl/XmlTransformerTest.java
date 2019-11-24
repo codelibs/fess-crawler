@@ -56,6 +56,7 @@ public class XmlTransformerTest extends PlainTestCase {
             fieldRuleMap.put("url", "//address/item/access[@kind='url']");
             fieldRuleMap.put("tel", "//address/item/access[@kind='tel']");
             xmlTransformer.setFieldRuleMap(fieldRuleMap);
+            xmlTransformer.init();
         }
         {
             xmlNsTransformer = new XmlTransformer();
@@ -73,6 +74,7 @@ public class XmlTransformerTest extends PlainTestCase {
             fieldRuleMap.put("tel",
                     "//hoge:address/hoge:item/hoge:access[@kind='tel']");
             xmlNsTransformer.setFieldRuleMap(fieldRuleMap);
+            xmlNsTransformer.init();
         }
         {
             xmlMapTransformer = new XmlTransformer();
@@ -90,6 +92,7 @@ public class XmlTransformerTest extends PlainTestCase {
             fieldRuleMap.put("tel",
                     "//hoge:address/hoge:item/hoge:access[@kind='tel']");
             xmlMapTransformer.setFieldRuleMap(fieldRuleMap);
+            xmlMapTransformer.init();
         }
         {
             xmlEntityTransformer = new XmlTransformer();
@@ -107,6 +110,7 @@ public class XmlTransformerTest extends PlainTestCase {
             fieldRuleMap.put("tel",
                     "//hoge:address/hoge:item/hoge:access[@kind='tel']");
             xmlEntityTransformer.setFieldRuleMap(fieldRuleMap);
+            xmlEntityTransformer.init();
         }
     }
 

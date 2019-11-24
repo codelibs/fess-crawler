@@ -43,6 +43,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         StandardCrawlerContainer container = new StandardCrawlerContainer()
                 .singleton("htmlXpathExtractor", HtmlXpathExtractor.class);
         htmlXpathExtractor = container.getComponent("htmlXpathExtractor");
+        htmlXpathExtractor.init();
     }
 
     public void test_getHtml_utf8() {

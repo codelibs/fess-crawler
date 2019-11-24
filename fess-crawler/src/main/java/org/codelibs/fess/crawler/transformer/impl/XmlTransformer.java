@@ -22,9 +22,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Resource;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -46,6 +49,10 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * @author shinsuke
@@ -87,7 +94,23 @@ public class XmlTransformer extends AbstractTransformer {
      */
     protected Class<?> dataClass = null;
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<>();
+    protected LoadingCache<String, CachedXPathAPI> xpathAPICache;
+
+    protected long cacheDuration = 10; // min
+
+    @Resource
+    public void init() {
+        xpathAPICache = CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES)
+                .build(new CacheLoader<String, CachedXPathAPI>() {
+                    @Override
+                    public CachedXPathAPI load(String key) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("created CachedXPathAPI by {}", key);
+                        }
+                        return new CachedXPathAPI();
+                    }
+                });
+    }
 
     /**
      * Returns data as XML content of String.
@@ -219,12 +242,14 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     protected CachedXPathAPI getXPathAPI() {
-        CachedXPathAPI cachedXPathAPI = xpathAPI.get();
-        if (cachedXPathAPI == null) {
-            cachedXPathAPI = new CachedXPathAPI();
-            xpathAPI.set(cachedXPathAPI);
+        try {
+            return xpathAPICache.get(Thread.currentThread().getName());
+        } catch (ExecutionException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to retrieval a cache.", e);
+            }
+            return new CachedXPathAPI();
         }
-        return cachedXPathAPI;
     }
 
     protected String getResultDataHeader() {
@@ -457,5 +482,9 @@ public class XmlTransformer extends AbstractTransformer {
             return "http://crawler.codelibs.org/namespace/" + prefix;
         }
 
+    }
+
+    public void setCacheDuration(long cacheDuration) {
+        this.cacheDuration = cacheDuration;
     }
 }

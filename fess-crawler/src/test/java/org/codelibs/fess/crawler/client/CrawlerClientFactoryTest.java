@@ -19,8 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codelibs.fess.crawler.client.fs.FileSystemClient;
+import org.codelibs.fess.crawler.client.ftp.FtpClient;
 import org.codelibs.fess.crawler.client.http.HcHttpClient;
 import org.codelibs.fess.crawler.client.smb.SmbClient;
+import org.codelibs.fess.crawler.client.storage.StorageClient;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -42,6 +44,9 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
                 .singleton("httpClient", FaultTolerantClient.class)//
                 .singleton("fsClient", FileSystemClient.class)//
                 .singleton("smbClient", SmbClient.class)//
+                .singleton("smb1Client", org.codelibs.fess.crawler.client.smb1.SmbClient.class)//
+                .singleton("ftpClient", FtpClient.class)//
+                .singleton("storageClient", StorageClient.class)//
                 .singleton("clientFactory", CrawlerClientFactory.class);
         clientFactory = container.getComponent("clientFactory");
         FaultTolerantClient httpClient = container.getComponent("httpClient");
@@ -50,6 +55,9 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
         clientFactory.addClient("https:.*", httpClient);
         clientFactory.addClient("file:.*", container.getComponent("fsClient"));
         clientFactory.addClient("smb:.*", container.getComponent("smbClient"));
+        clientFactory.addClient("smb1:.*", container.getComponent("smb1Client"));
+        clientFactory.addClient("ftp:.*", container.getComponent("ftpClient"));
+        clientFactory.addClient("storage:.*", container.getComponent("storageClient"));
     }
 
     public void test_getClient() {
@@ -72,6 +80,26 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
         client = clientFactory.getClient(url);
         assertNotNull(client);
         assertTrue(client instanceof FileSystemClient);
+
+        url = "smb:/home/hoge";
+        client = clientFactory.getClient(url);
+        assertNotNull(client);
+        assertTrue(client instanceof SmbClient);
+
+        url = "smb1:/home/hoge";
+        client = clientFactory.getClient(url);
+        assertNotNull(client);
+        assertTrue(client instanceof org.codelibs.fess.crawler.client.smb1.SmbClient);
+
+        url = "ftp:/home/hoge";
+        client = clientFactory.getClient(url);
+        assertNotNull(client);
+        assertTrue(client instanceof FtpClient);
+
+        url = "storage:/home/hoge";
+        client = clientFactory.getClient(url);
+        assertNotNull(client);
+        assertTrue(client instanceof StorageClient);
 
     }
 

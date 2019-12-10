@@ -13,29 +13,22 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.fess.crawler.container;
+package org.codelibs.fess.net.protocol.storage;
 
-import org.lastaflute.di.core.factory.SingletonLaContainerFactory;
+import java.net.URL;
 
-public class LastaCrawlerContainer implements CrawlerContainer {
+import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
+import org.dbflute.utflute.core.PlainTestCase;
 
-    public LastaCrawlerContainer() {
-        initialize();
-    }
-
+public class HandlerTest extends PlainTestCase {
     @Override
-    public <T> T getComponent(final String name) {
-        return SingletonLaContainerFactory.getContainer().getComponent(name);
+    protected void setUp() throws Exception {
+        super.setUp();
+        new StandardCrawlerContainer();
     }
 
-    @Override
-    public boolean available() {
-        return SingletonLaContainerFactory.hasContainer();
+    public void test_protocol() throws Exception {
+        URL url = new URL("storage:/home/foo");
+        assertEquals("storage", url.getProtocol());
     }
-
-    @Override
-    public void destroy() {
-        SingletonLaContainerFactory.destroy();
-    }
-
 }

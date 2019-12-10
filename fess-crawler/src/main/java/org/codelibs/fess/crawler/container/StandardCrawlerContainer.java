@@ -44,6 +44,10 @@ public class StandardCrawlerContainer implements CrawlerContainer {
 
     private boolean available = true;
 
+    public StandardCrawlerContainer() {
+        initialize();
+    }
+
     @Override
     public <T> T getComponent(final String name) {
         if ("crawlerContainer".equals(name)) {

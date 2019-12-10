@@ -13,29 +13,31 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.fess.crawler.container;
+package org.codelibs.fess.net.protocol.storage;
 
-import org.lastaflute.di.core.factory.SingletonLaContainerFactory;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
-public class LastaCrawlerContainer implements CrawlerContainer {
-
-    public LastaCrawlerContainer() {
-        initialize();
-    }
-
-    @Override
-    public <T> T getComponent(final String name) {
-        return SingletonLaContainerFactory.getContainer().getComponent(name);
-    }
+public class Handler extends URLStreamHandler {
 
     @Override
-    public boolean available() {
-        return SingletonLaContainerFactory.hasContainer();
+    protected URLConnection openConnection(URL u) throws IOException {
+        return new StorageURLConnection(u);
     }
 
-    @Override
-    public void destroy() {
-        SingletonLaContainerFactory.destroy();
-    }
+    public class StorageURLConnection extends URLConnection {
 
+        protected StorageURLConnection(URL url) {
+            super(url);
+        }
+
+        @Override
+        public void connect() throws IOException {
+            // TODO
+            throw new IOException("not supported.");
+        }
+
+    }
 }

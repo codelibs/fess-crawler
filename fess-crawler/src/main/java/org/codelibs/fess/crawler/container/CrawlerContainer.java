@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.container;
 
+import org.codelibs.core.lang.StringUtil;
+
 /**
  * @author shinsuke
  *
@@ -26,4 +28,17 @@ public interface CrawlerContainer {
     boolean available();
 
     void destroy();
+
+    default void initialize() {
+        final StringBuilder buf = new StringBuilder(100);
+        final String value = System.getProperty("java.protocol.handler.pkgs");
+        if (StringUtil.isEmpty(value)) {
+            buf.append("org.codelibs.fess.net.protocol");
+        } else if (!value.contains("org.codelibs.fess.net.protocol")) {
+            buf.append("|org.codelibs.fess.net.protocol");
+        }
+        if (buf.length() > 0) {
+            System.setProperty("java.protocol.handler.pkgs", buf.toString());
+        }
+    }
 }

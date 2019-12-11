@@ -20,10 +20,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codelibs.core.io.InputStreamUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.testcontainers.Testcontainers;
@@ -67,7 +69,6 @@ public class StorageClientTest extends PlainTestCase {
         params.put("endpoint", endpoint);
         params.put("accessKey", accessKey);
         params.put("secretKey", secretKey);
-        params.put("bucket", bucketName);
         storageClient.setInitParameterMap(params);
 
         MinioClient minioClient = new MinioClient(endpoint, accessKey, secretKey);
@@ -88,62 +89,62 @@ public class StorageClientTest extends PlainTestCase {
     }
 
     public void test_doGet() throws Exception {
-        try (final ResponseData responseData = storageClient.doGet("storage://file1.txt")) {
-            assertEquals("storage://file1.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/file1.txt")) {
+            assertEquals("storage://fess/file1.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file1", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://dir1/file2.txt")) {
-            assertEquals("storage://dir1/file2.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/file2.txt")) {
+            assertEquals("storage://fess/dir1/file2.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file2", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://dir1/dir2/file3.txt")) {
-            assertEquals("storage://dir1/dir2/file3.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/dir2/file3.txt")) {
+            assertEquals("storage://fess/dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file3", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://dir3/file4.txt")) {
-            assertEquals("storage://dir3/file4.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/dir3/file4.txt")) {
+            assertEquals("storage://fess/dir3/file4.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file4", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://")) {
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/")) {
             fail();
         } catch (ChildUrlsException e) {
             String[] values = e.getChildUrlList().stream().map(d -> d.getUrl()).sorted().toArray(n -> new String[n]);
             assertEquals(3, values.length);
-            assertEquals("storage://dir1/", values[0]);
-            assertEquals("storage://dir3/", values[1]);
-            assertEquals("storage://file1.txt", values[2]);
+            assertEquals("storage://fess/dir1/", values[0]);
+            assertEquals("storage://fess/dir3/", values[1]);
+            assertEquals("storage://fess/file1.txt", values[2]);
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://dir1/")) {
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/")) {
             fail();
         } catch (ChildUrlsException e) {
             String[] values = e.getChildUrlList().stream().map(d -> d.getUrl()).sorted().toArray(n -> new String[n]);
             assertEquals(2, values.length);
-            assertEquals("storage://dir1/dir2/", values[0]);
-            assertEquals("storage://dir1/file2.txt", values[1]);
+            assertEquals("storage://fess/dir1/dir2/", values[0]);
+            assertEquals("storage://fess/dir1/file2.txt", values[1]);
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://dir1/dir2/")) {
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/dir2/")) {
             fail();
         } catch (ChildUrlsException e) {
             String[] values = e.getChildUrlList().stream().map(d -> d.getUrl()).sorted().toArray(n -> new String[n]);
             assertEquals(1, values.length);
-            assertEquals("storage://dir1/dir2/file3.txt", values[0]);
+            assertEquals("storage://fess/dir1/dir2/file3.txt", values[0]);
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://dir3/")) {
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/dir3/")) {
             fail();
         } catch (ChildUrlsException e) {
             String[] values = e.getChildUrlList().stream().map(d -> d.getUrl()).sorted().toArray(n -> new String[n]);
             assertEquals(1, values.length);
-            assertEquals("storage://dir3/file4.txt", values[0]);
+            assertEquals("storage://fess/dir3/file4.txt", values[0]);
         }
-        try (final ResponseData responseData = storageClient.doGet("storage://none")) {
+        try (final ResponseData responseData = storageClient.doGet("storage://fess/none")) {
             fail();
         } catch (ChildUrlsException e) {
             String[] values = e.getChildUrlList().stream().map(d -> d.getUrl()).sorted().toArray(n -> new String[n]);
@@ -157,45 +158,74 @@ public class StorageClientTest extends PlainTestCase {
     }
 
     public void test_doHead() throws Exception {
-        try (final ResponseData responseData = storageClient.doHead("storage://file1.txt")) {
-            assertEquals("storage://file1.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/file1.txt")) {
+            assertEquals("storage://fess/file1.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://dir1/file2.txt")) {
-            assertEquals("storage://dir1/file2.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/dir1/file2.txt")) {
+            assertEquals("storage://fess/dir1/file2.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://dir1/dir2/file3.txt")) {
-            assertEquals("storage://dir1/dir2/file3.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/dir1/dir2/file3.txt")) {
+            assertEquals("storage://fess/dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://dir3/file4.txt")) {
-            assertEquals("storage://dir3/file4.txt", responseData.getUrl());
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/dir3/file4.txt")) {
+            assertEquals("storage://fess/dir3/file4.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://")) {
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/")) {
             assertNull(responseData);
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://dir1/")) {
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/dir1/")) {
             assertNull(responseData);
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://dir1/dir2/")) {
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/dir1/dir2/")) {
             assertNull(responseData);
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://dir3/")) {
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/dir3/")) {
             assertNull(responseData);
         }
-        try (final ResponseData responseData = storageClient.doHead("storage://none")) {
+        try (final ResponseData responseData = storageClient.doHead("storage://fess/none")) {
             assertNull(responseData);
         }
         try (final ResponseData responseData = storageClient.doHead("")) {
             fail();
         } catch (CrawlerSystemException e) {
             // nothing
+        }
+    }
+
+    public void test_parsePath() {
+        String[] values;
+
+        values = storageClient.parsePath("bucket/path");
+        assertEquals("bucket", values[0]);
+        assertEquals("path", values[1]);
+
+        values = storageClient.parsePath("bucket/path1/path2");
+        assertEquals("bucket", values[0]);
+        assertEquals("path1/path2", values[1]);
+
+        values = storageClient.parsePath("bucket/");
+        assertEquals("bucket", values[0]);
+        assertEquals(StringUtil.EMPTY, values[1]);
+
+        try {
+            storageClient.parsePath("");
+            fail();
+        } catch (final CrawlingAccessException e) {
+            // ok
+        }
+        try {
+            storageClient.parsePath(null);
+            fail();
+        } catch (final CrawlingAccessException e) {
+            // ok
         }
     }
 }

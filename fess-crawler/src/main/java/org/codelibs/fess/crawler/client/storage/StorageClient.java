@@ -71,8 +71,6 @@ public class StorageClient extends AbstractCrawlerClient {
 
     protected MinioClient minioClient;
 
-    protected String bucketName;
-
     @Override
     public void init() {
         super.init();
@@ -93,14 +91,6 @@ public class StorageClient extends AbstractCrawlerClient {
             minioClient = new MinioClient(endpoint, accessKey, secretKey);
         } catch (final Exception e) {
             throw new CrawlingAccessException("Failed to create MinioClient(" + endpoint + ")", e);
-        }
-
-        bucketName = getInitParameter("bucket", null, String.class);
-        if (StringUtil.isBlank(bucketName)) {
-            throw new CrawlingAccessException("bucket is blank.");
-        }
-        if (!bucketExists(bucketName)) {
-            throw new CrawlingAccessException("bucket:" + bucketName + " does not exist.");
         }
 
         minioClient.setTimeout(getInitParameter("connectTimeout", Long.valueOf(10000), Long.class),
@@ -146,6 +136,18 @@ public class StorageClient extends AbstractCrawlerClient {
         }
     }
 
+    protected String[] parsePath(final String path) {
+        if (StringUtil.isNotEmpty(path)) {
+            final String[] values = path.split("/", 2);
+            if (values.length == 2) {
+                return values;
+            } else if (values.length == 1 && StringUtil.isNotEmpty(values[0])) {
+                return new String[] { values[0], StringUtil.EMPTY };
+            }
+        }
+        throw new CrawlingAccessException("Invalid path: " + path);
+    }
+
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         try {
@@ -153,8 +155,10 @@ public class StorageClient extends AbstractCrawlerClient {
             final String filePath = preprocessUri(uri);
             responseData.setUrl(filePath);
 
-            final String path = filePath.replaceFirst("^storage:/+", StringUtil.EMPTY);
-            final ObjectStat statObject = getStatObject(path);
+            final String[] paths = parsePath(filePath.replaceFirst("^storage:/+", StringUtil.EMPTY));
+            final String bucketName = paths[0];
+            final String path = paths[1];
+            final ObjectStat statObject = getStatObject(bucketName, path);
             if (statObject != null) {
                 // check file size
                 responseData.setContentLength(statObject.length());
@@ -209,7 +213,7 @@ public class StorageClient extends AbstractCrawlerClient {
                 for (final Result<Item> result : minioClient.listObjects(bucketName, path, false)) {
                     final Item item = result.get();
                     final String objectName = item.objectName();
-                    requestDataSet.add(RequestDataBuilder.newRequestData().get().url("storage://" + objectName).build());
+                    requestDataSet.add(RequestDataBuilder.newRequestData().get().url("storage://" + bucketName + "/" + objectName).build());
                 }
                 throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData");
             }
@@ -223,12 +227,14 @@ public class StorageClient extends AbstractCrawlerClient {
         return responseData;
     }
 
-    protected ObjectStat getStatObject(final String path) {
+    protected ObjectStat getStatObject(final String bucketName, final String path) {
         try {
             return minioClient.statObject(bucketName, path);
         } catch (final ErrorResponseException e) {
             final String code = e.errorResponse().code();
-            if ("NoSuchKey".equals(code)) {
+            if ("NoSuchBucket".equals(code)) {
+                throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
+            } else if ("NoSuchKey".equals(code)) {
                 if (logger.isDebugEnabled()) {
                     logger.debug(path + " is not an object.");
                 }

@@ -228,6 +228,10 @@ public class StorageClient extends AbstractCrawlerClient {
     }
 
     protected ObjectStat getStatObject(final String bucketName, final String path) {
+        if (StringUtil.isEmpty(path)) {
+            return null;
+        }
+
         try {
             return minioClient.statObject(bucketName, path);
         } catch (final ErrorResponseException e) {

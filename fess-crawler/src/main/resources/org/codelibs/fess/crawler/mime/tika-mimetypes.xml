@@ -954,9 +954,13 @@
     <glob pattern="*.aet"/>
   </mime-type>
   <mime-type type="application/vnd.adobe.xdp+xml">
+    <sub-class-of type="application/xml"/>
+    <root-XML localName="xdp" namespaceURI="http://ns.adobe.com/xdp/" />
     <glob pattern="*.xdp"/>
   </mime-type>
   <mime-type type="application/vnd.adobe.xfdf">
+    <sub-class-of type="application/xml"/>
+    <root-XML localName="xfdf" namespaceURI="http://ns.adobe.com/xfdf/" />
     <glob pattern="*.xfdf"/>
   </mime-type>
   <mime-type type="application/vnd.aether.imp"/>
@@ -1102,6 +1106,15 @@
   </mime-type>
   <mime-type type="application/vnd.denovo.fcselayout-link">
     <glob pattern="*.fe_launch"/>
+  </mime-type>
+  <mime-type type="application/vnd.digilite.prolights">
+    <tika:link>http://support.digilite.eu/?digilite=library</tika:link>
+    <_comment>digilite.eu Prolights configuration file</_comment>
+    <_comment>Note glob clash with Adobe's .fdf</_comment>
+    <!--<glob pattern="*.fdf"/>-->
+    <magic priority="50">
+      <match value="0x7F0C442B" type="string" offset="0"/>
+    </magic>
   </mime-type>
   <mime-type type="application/vnd.dir-bi.plate-dl-nosuffix"/>
   <mime-type type="application/vnd.dna">
@@ -2807,6 +2820,16 @@
     <glob pattern="*.warc"/>
   </mime-type>
 
+  <mime-type type="application/wasm">
+    <acronym>Wasm</acronym>
+    <_comment>Web Assembly</_comment>
+    <magic priority="50">
+      <match value="0x6d736100" type="little32" offset="0" />
+      <match value="0x6d736100" type="big32" offset="0" />
+    </magic>
+    <glob pattern="*.wasm"/>
+  </mime-type>
+
   <mime-type type="application/watcherinfo+xml"/>
   <mime-type type="application/whoispp-query"/>
   <mime-type type="application/whoispp-response"/>
@@ -3663,7 +3686,7 @@
       <match value="-lh6-" type="string" offset="2"/>
       <match value="-lh7-" type="string" offset="2"/>
     </magic>
-    <!-- S2ROBOT added -->
+    <!-- FESS added -->
     <glob pattern="*.lha"/>
     <glob pattern="*.lzh"/>
   </mime-type>
@@ -4442,7 +4465,7 @@
     <glob pattern="*.xml"/>
     <glob pattern="*.xsl"/>
     <glob pattern="*.xsd"/>
-    <!-- S2ROBOT added -->
+    <!-- FESS added -->
     <glob pattern="*.mm"/>
     <glob pattern="*.dicon"/>
     <sub-class-of type="text/plain" />
@@ -5129,6 +5152,46 @@
     <glob pattern="*.gif"/>
   </mime-type>
 
+  <mime-type type="image/heif">
+    <_comment>HEIF - High Efficiency Image File</_comment>
+    <acronym>HEIF</acronym>
+    <tika:link>https://en.wikipedia.org/wiki/High_Efficiency_Image_File_Format</tika:link>
+    <magic priority="60">
+      <match value="ftypmif1" type="string" offset="4"/>
+    </magic>
+    <glob pattern="*.heif"/>
+    <sub-class-of type="video/quicktime" />
+  </mime-type>
+  <mime-type type="image/heif-sequence">
+    <_comment>HEIF Sequence - High Efficiency Image Sequence</_comment>
+    <magic priority="60">
+      <match value="ftypmsf1" type="string" offset="4"/>
+    </magic>
+    <sub-class-of type="video/quicktime" />
+  </mime-type>
+
+  <mime-type type="image/heic">
+    <alias   type="image/hevc"/>
+    <_comment>HEIF Image using HEVC Codec</_comment>
+    <acronym>HEIC</acronym>
+    <magic priority="60">
+      <match value="ftypheic" type="string" offset="4"/>
+      <match value="ftypheix" type="string" offset="4"/>
+    </magic>
+    <glob pattern="*.heic"/>
+    <sub-class-of type="image/heif" />
+  </mime-type>
+  <mime-type type="image/heic-sequence">
+    <alias   type="image/hevc-sequence"/>
+    <_comment>HEIF Sequence using HEVC Codec</_comment>
+    <acronym>HEVC</acronym>
+    <magic priority="60">
+      <match value="ftyphevc" type="string" offset="4"/>
+      <match value="ftyphevx" type="string" offset="4"/>
+    </magic>
+    <sub-class-of type="image/heif-sequence" />
+  </mime-type>
+
   <mime-type type="image/icns">
     <_comment>Apple Icon Image Format</_comment>
     <magic priority="50">
@@ -5760,7 +5823,7 @@
       <match value="From:" type="stringignorecase" offset="0"/>
       <match value="Received:" type="stringignorecase" offset="0"/>
       <match value="Message-ID:" type="stringignorecase" offset="0"/>
-      <match value="\nMessage-ID:" type="stringignorecase" offset="0:1000"/><!-- S2ROBOT add -->
+      <match value="\nMessage-ID:" type="stringignorecase" offset="0:1000"/><!-- FESS add -->
       <match value="\nReturn-Path:" type="stringignorecase" offset="0:1000"/>
       <match value="\nX-Originating-IP:" type="stringignorecase" offset="0:1000"/>
       <match value="\nReceived:" type="stringignorecase" offset="0:1000"/>
@@ -7213,6 +7276,20 @@
     <_comment>Haxe source code</_comment>
     <glob pattern="*.hx"/>
     <sub-class-of type="text/plain"/>
+  </mime-type>
+
+  <mime-type type="application/x-xliff+xml">
+    <sub-class-of type="application/xml"/>
+    <_comment>XLIFF 1.2 document</_comment>
+    <root-XML namespaceURI="urn:oasis:names:tc:xliff:document:1.2" localName="xliff"/>
+    <glob pattern="*.xlf"/>
+    <glob pattern="*.xliff"/>
+  </mime-type>
+
+  <mime-type type="application/x-xliff+zip">
+    <sub-class-of type="application/zip"/>
+    <_comment>XLZ Archive</_comment>
+    <glob pattern="*.xlz"/>
   </mime-type>
 
   <mime-type type="text/x-rsrc">

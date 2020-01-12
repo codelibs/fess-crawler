@@ -111,7 +111,7 @@ public class EsClient implements Client {
 
     protected long retryInterval = 3 * 1000L;
 
-    protected int maxRetryCount = 30;
+    protected int maxRetryCount = 5;
 
     protected long connTimeout = 180 * 1000L;
 

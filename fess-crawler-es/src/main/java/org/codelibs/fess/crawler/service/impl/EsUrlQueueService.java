@@ -133,6 +133,9 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     @Override
     public void add(final String sessionId, final String url) {
+        if(exists(sessionId, url)) {
+            return;
+        }
         final EsUrlQueue urlQueue = new EsUrlQueue();
         urlQueue.setSessionId(sessionId);
         urlQueue.setUrl(url);

@@ -44,7 +44,7 @@ import org.mortbay.jetty.handler.HandlerList;
  * 
  */
 public class ApiExtractorTest extends PlainTestCase {
-    final int port = 8080;
+    final int port = 9876;
 
     final String ATTR_NAME = "filedata";
 
@@ -60,7 +60,7 @@ public class ApiExtractorTest extends PlainTestCase {
         server.start();
 
         extractor = new ApiExtractor();
-        extractor.setUrl("http://127.0.0.1:8080/");
+        extractor.setUrl("http://127.0.0.1:" + port + "/");
         extractor.init();
     }
 

@@ -359,6 +359,10 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 tesseractOCRConfigMap.put(tesseractConfigPath, tesseractOCRConfig);
             }
             parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
+        } else {
+            TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
+            tesseractOCRConfig.setTessdataPath("disabled");
+            parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig); // disabled
         }
 
         final String pdfParserConfigPath = params != null ? params.get(TIKA_PDF_CONFIG) : null;

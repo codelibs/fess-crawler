@@ -64,6 +64,7 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.io.ReaderUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -337,9 +338,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         } catch (final Exception e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
-            if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
-            }
+            FileUtil.deleteInBackground(tempFile);
         }
     }
 
@@ -415,9 +414,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         } catch (final Exception e) {
             throw new ExtractException("Failed to read a content.", e);
         } finally {
-            if (tempFile != null && tempFile.exists() && !tempFile.delete()) {
-                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
-            }
+            FileUtil.deleteInBackground(tempFile);
         }
     }
 

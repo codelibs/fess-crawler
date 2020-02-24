@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.timer.TimeoutManager;
@@ -195,9 +196,7 @@ public class StorageClient extends AbstractCrawlerClient {
                         } catch (final Exception e) {
                             logger.warn("I/O Exception.", e);
                             responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
-                            if (outputFile != null && !outputFile.delete()) {
-                                logger.warn("Could not delete " + outputFile.getAbsolutePath());
-                            }
+                            FileUtil.deleteInBackground(outputFile);
                         }
                     }
 

@@ -21,17 +21,15 @@ import java.io.InputStream;
 
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public final class ResponseDataUtil {
-    private static final Logger logger = LoggerFactory.getLogger(ResponseDataUtil.class);
 
     private ResponseDataUtil() {
     }
@@ -45,10 +43,7 @@ public final class ResponseDataUtil {
             CopyUtil.copy(is, fos);
         } catch (final Exception e) {
             CloseableUtil.closeQuietly(fos); // for deleting file
-            // clean up
-            if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Could not delete a temp file: " + tempFile);
-            }
+            FileUtil.deleteInBackground(tempFile); // clean up
             throw new CrawlingAccessException("Could not read a response body: " + responseData.getUrl(), e);
         } finally {
             CloseableUtil.closeQuietly(fos);

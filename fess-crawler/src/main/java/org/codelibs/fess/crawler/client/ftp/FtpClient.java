@@ -42,6 +42,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilters;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.timer.TimeoutManager;
 import org.codelibs.core.timer.TimeoutTask;
@@ -363,9 +364,7 @@ public class FtpClient extends AbstractCrawlerClient {
                     disconnectInternalClient(client);
                     responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                 } finally {
-                    if (tempFile != null && !tempFile.delete()) {
-                        logger.warn("Could not delete " + tempFile.getAbsolutePath());
-                    }
+                    FileUtil.deleteInBackground(tempFile);
                 }
             }
         } else if (file.isDirectory() || file.isSymbolicLink()) {

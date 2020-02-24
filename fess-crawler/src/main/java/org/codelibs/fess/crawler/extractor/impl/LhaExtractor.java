@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -113,9 +114,7 @@ public class LhaExtractor extends AbstractExtractor {
                     // ignore
                 }
             }
-            if (tempFile != null && !tempFile.delete()) {
-                logger.warn("Failed to delete " + tempFile.getAbsolutePath());
-            }
+            FileUtil.deleteInBackground(tempFile);
         }
 
         return new ExtractData(buf.toString().trim());

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.codelibs.core.exception.IORuntimeException;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.Constants;
 
 /**
@@ -242,8 +243,8 @@ public class ResponseData implements Closeable {
 
     @Override
     public void close() throws IOException {
-        if (isTemporaryFile && responseBodyFile != null) {
-            responseBodyFile.delete();
+        if (isTemporaryFile) {
+            FileUtil.deleteInBackground(responseBodyFile);
         }
     }
 }

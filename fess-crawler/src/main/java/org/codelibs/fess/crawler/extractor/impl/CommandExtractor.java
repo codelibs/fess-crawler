@@ -131,12 +131,8 @@ public class CommandExtractor extends AbstractExtractor {
         } catch (final IOException e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
-            if (inputFile != null && !inputFile.delete()) {
-                logger.info("Failed to delete " + inputFile.getAbsolutePath());
-            }
-            if (outputFile != null && !outputFile.delete()) {
-                logger.info("Failed to delete " + outputFile.getAbsolutePath());
-            }
+            FileUtil.deleteInBackground(inputFile);
+            FileUtil.deleteInBackground(outputFile);
         }
     }
 

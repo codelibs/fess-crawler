@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.codelibs.core.io.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,9 +65,7 @@ public class TemporaryFileInputStream extends InputStream {
         try {
             fileInputStream.close();
         } finally {
-            if (tempFile.exists() && !tempFile.delete()) {
-                logger.warn("Could not delete a temporary file: " + tempFile.getAbsolutePath());
-            }
+            FileUtil.deleteInBackground(tempFile);
         }
     }
 

@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
@@ -68,6 +69,7 @@ import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.io.ReaderUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
+import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -120,8 +122,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     private final Map<String, PDFParserConfig> pdfParserConfigMap = new ConcurrentHashMap<>();
 
+    @Resource
+    protected CrawlerContainer crawlerContainer;
+
     @PostConstruct
     public void init() {
+        if (tikaConfig == null && crawlerContainer != null) {
+            tikaConfig = crawlerContainer.getComponent("tikaConfig");
+        }
+
         if (tikaConfig == null) {
             tikaConfig = TikaConfig.getDefaultConfig();
         }
@@ -359,10 +368,6 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 tesseractOCRConfigMap.put(tesseractConfigPath, tesseractOCRConfig);
             }
             parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
-        } else {
-            TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
-            tesseractOCRConfig.setTessdataPath("disabled");
-            parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig); // disabled
         }
 
         final String pdfParserConfigPath = params != null ? params.get(TIKA_PDF_CONFIG) : null;

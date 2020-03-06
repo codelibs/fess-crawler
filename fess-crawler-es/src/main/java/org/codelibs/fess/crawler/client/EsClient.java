@@ -171,7 +171,7 @@ public class EsClient implements Client {
             try {
                 return func.apply(this).actionGet(connTimeout, TimeUnit.MILLISECONDS);
             } catch (final IndexNotFoundException | VersionConflictEngineException e) {
-                logger.debug(e.getClass().getName() + " occurs.", e);
+                logger.debug("{} occurs.", e.getClass().getName(), e);
                 throw e;
             } catch (final Exception e) {
                 if (retryCount > maxRetryCount) {

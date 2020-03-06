@@ -71,8 +71,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("Base URL: " + url + "\nContent: "
-                        + webDriver.getPageSource());
+                logger.debug("Base URL: {}\nContent: {}", url, webDriver.getPageSource());
             }
 
             if (paramMap != null) {

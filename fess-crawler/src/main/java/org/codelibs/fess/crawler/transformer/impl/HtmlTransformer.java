@@ -367,7 +367,7 @@ public class HtmlTransformer extends AbstractTransformer {
                     childUrlValue.startsWith("?") ? new URL(url.toExternalForm() + childUrlValue) : new URL(url, childUrlValue);
             final String u = encodeUrl(normalizeUrl(childUrl.toExternalForm()), encoding);
             if (logger.isDebugEnabled()) {
-                logger.debug(attrValue + " -> " + u);
+                logger.debug("{} -> {}", attrValue, u);
             }
             if (StringUtil.isNotBlank(u)) {
                 if (logger.isDebugEnabled()) {

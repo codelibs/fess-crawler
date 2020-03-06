@@ -68,7 +68,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         } else if (isSuccessful(responseData)) {
             if (transformer == null) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("No Transformer for (" + responseData.getUrl() + "). PLEASE CHECK YOUR CONFIGURATION.");
+                    logger.debug("No Transformer for ({}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl());
                 }
             } else {
                 final ResultData resultData = transformer.transform(responseData);
@@ -80,7 +80,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 }
             }
         } else if (logger.isDebugEnabled()) {
-            logger.debug("Ignore a response(" + responseData.getStatus() + "): " + responseData.getUrl());
+            logger.debug("Ignore a response({}): {}", responseData.getStatus(), responseData.getUrl());
         }
     }
 
@@ -132,7 +132,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     if (urlQueueService.visited(urlQueue)) {
                         // document already exists
                         if (logger.isDebugEnabled()) {
-                            logger.debug(urlQueue.getUrl() + " exists.", e);
+                            logger.debug("{} exists.", urlQueue.getUrl(), e);
                         }
                         return;
                     }

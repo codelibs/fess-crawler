@@ -239,7 +239,7 @@ public class StorageClient extends AbstractCrawlerClient {
                 throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
             } else if ("NoSuchKey".equals(code)) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug(path + " is not an object.");
+                    logger.debug("{} is not an object.", path);
                 }
             } else {
                 logger.warn(path + " is not an object.", e);

@@ -66,7 +66,7 @@ public class LogHelperImpl implements LogHelper {
             // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
             final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             if (logger.isDebugEnabled()) {
-                logger.debug("Checking the last modified: " + urlQueue.getLastModified());
+                logger.debug("Checking the last modified: {}", urlQueue.getLastModified());
             }
             break;
         }
@@ -82,7 +82,7 @@ public class LogHelperImpl implements LogHelper {
             // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
             final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             if (logger.isDebugEnabled()) {
-                logger.debug("Getting the content from URL: " + urlQueue.getUrl());
+                logger.debug("Getting the content from URL: {}", urlQueue.getUrl());
             }
             break;
         }
@@ -100,8 +100,8 @@ public class LogHelperImpl implements LogHelper {
             // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             final ResponseData responseData = (ResponseData) objs[2];
             if (logger.isDebugEnabled()) {
-                logger.debug("Processing the response. Http Status: " + responseData.getHttpStatusCode() + ", Exec Time: "
-                        + responseData.getExecutionTime());
+                logger.debug("Processing the response. Http Status: {}, Exec Time: {}",
+                        responseData.getHttpStatusCode(), responseData.getExecutionTime());
             }
             break;
         }
@@ -120,7 +120,7 @@ public class LogHelperImpl implements LogHelper {
             final Set<RequestData> requestDataSet = (Set<RequestData>) objs[2];
             if (logger.isDebugEnabled()) {
                 for (final RequestData requestData : requestDataSet) {
-                    logger.debug("Child URL: " + requestData.getUrl() + " from " + urlQueue.getUrl());
+                    logger.debug("Child URL: {} from {}", requestData.getUrl(), urlQueue.getUrl());
                 }
             }
             break;
@@ -131,7 +131,7 @@ public class LogHelperImpl implements LogHelper {
             final String url = (String) objs[2];
             final Throwable e = (Throwable) objs[3];
             if (logger.isDebugEnabled()) {
-                logger.debug("Child URL: " + url + " from " + urlQueue.getUrl(), e);
+                logger.debug("Child URL: {} from {}", url, urlQueue.getUrl(), e);
             }
             break;
         }
@@ -140,7 +140,7 @@ public class LogHelperImpl implements LogHelper {
             final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             final CrawlingAccessException e = (CrawlingAccessException) objs[2];
             if (e.isDebugEnabled()) {
-                logger.debug("Crawling Access Exception at " + urlQueue.getUrl(), e);
+                logger.debug("Crawling Access Exception at {}", urlQueue.getUrl(), e);
             } else if (e.isInfoEnabled()) {
                 logger.info(e.getMessage());
             } else if (e.isWarnEnabled()) {
@@ -163,9 +163,9 @@ public class LogHelperImpl implements LogHelper {
             final Integer threadCheckCount = (Integer) objs[2];
             if (logger.isDebugEnabled()) {
                 if (urlQueue != null && urlQueue.getUrl() != null) {
-                    logger.debug(urlQueue.getUrl() + " is not a target url. (" + threadCheckCount + ")");
+                    logger.debug("{} is not a target url. ({})", urlQueue.getUrl(), threadCheckCount);
                 } else {
-                    logger.debug("The url is null. (" + threadCheckCount + ")");
+                    logger.debug("The url is null. ({})", threadCheckCount);
                 }
             }
             break;
@@ -180,8 +180,8 @@ public class LogHelperImpl implements LogHelper {
             final ResponseData responseData = (ResponseData) objs[2];
             // Rule rule = (Rule) objs[3];
             if (logger.isDebugEnabled()) {
-                logger.debug("No ResponseProcessor for (" + responseData.getUrl() + ", " + responseData.getMimeType()
-                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+                logger.debug("No ResponseProcessor for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.",
+                        responseData.getUrl(), responseData.getMimeType());
             }
             break;
         }
@@ -190,8 +190,8 @@ public class LogHelperImpl implements LogHelper {
             // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             final ResponseData responseData = (ResponseData) objs[2];
             if (logger.isDebugEnabled()) {
-                logger.debug("No rule for (" + responseData.getUrl() + ", " + responseData.getMimeType()
-                        + "). PLEASE CHECK YOUR CONFIGURATION.");
+                logger.debug("No rule for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.",
+                        responseData.getUrl(), responseData.getMimeType());
             }
             break;
         }

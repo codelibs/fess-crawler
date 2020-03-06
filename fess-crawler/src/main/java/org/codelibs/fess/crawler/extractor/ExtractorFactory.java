@@ -42,7 +42,7 @@ public class ExtractorFactory {
         }
         extractorMap.put(key, extractor);
         if (logger.isDebugEnabled()) {
-            logger.debug("Loaded " + key + " : " + extractor.getClass().getName());
+            logger.debug("Loaded {} : {}", key, extractor.getClass().getName());
         }
     }
 

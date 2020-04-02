@@ -103,7 +103,7 @@ public class XmlTransformer extends AbstractTransformer {
         xpathAPICache = CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES)
                 .build(new CacheLoader<String, CachedXPathAPI>() {
                     @Override
-                    public CachedXPathAPI load(String key) {
+                    public CachedXPathAPI load(final String key) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("created CachedXPathAPI by {}", key);
                         }
@@ -244,7 +244,7 @@ public class XmlTransformer extends AbstractTransformer {
     protected CachedXPathAPI getXPathAPI() {
         try {
             return xpathAPICache.get(Thread.currentThread().getName());
-        } catch (ExecutionException e) {
+        } catch (final ExecutionException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to retrieval a cache.", e);
             }
@@ -484,7 +484,7 @@ public class XmlTransformer extends AbstractTransformer {
 
     }
 
-    public void setCacheDuration(long cacheDuration) {
+    public void setCacheDuration(final long cacheDuration) {
         this.cacheDuration = cacheDuration;
     }
 }

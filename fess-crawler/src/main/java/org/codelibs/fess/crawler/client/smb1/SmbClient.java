@@ -189,7 +189,7 @@ public class SmbClient extends AbstractCrawlerClient {
         TimeoutTask accessTimeoutTask = null;
         if (accessTimeout != null) {
             accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
-            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
         }
 
         try {

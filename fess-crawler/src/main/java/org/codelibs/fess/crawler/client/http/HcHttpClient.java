@@ -243,7 +243,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         // robots.txt parser
         final Boolean robotsTxtEnabled = getInitParameter(ROBOTS_TXT_ENABLED_PROPERTY, Boolean.TRUE, Boolean.class);
         if (robotsTxtHelper != null) {
-            robotsTxtHelper.setEnabled(robotsTxtEnabled.booleanValue());
+            robotsTxtHelper.setEnabled(robotsTxtEnabled);
         }
 
         // httpclient
@@ -611,7 +611,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         TimeoutTask accessTimeoutTask = null;
         if (accessTimeout != null) {
             accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
-            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
         }
 
         try {

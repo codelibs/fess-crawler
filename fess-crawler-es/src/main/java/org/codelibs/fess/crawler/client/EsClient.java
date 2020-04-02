@@ -123,7 +123,7 @@ public class EsClient implements Client {
         address = System.getProperty(HTTP_ADDRESS, "localhost:9200").trim();
         final String targets = System.getProperty(TARGET_INDICES);
         if (StringUtil.isNotBlank(targets)) {
-            targetIndices = Arrays.stream(targets.split(",")).map(v -> v.trim()).toArray(n -> new String[n]);
+            targetIndices = Arrays.stream(targets.split(",")).map(String::trim).toArray(n -> new String[n]);
         }
     }
 

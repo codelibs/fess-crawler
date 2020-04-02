@@ -71,7 +71,7 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
         // max cached content size
         final Long maxCachedContentSizeParam = getInitParameter(MAX_CACHED_CONTENT_SIZE, null, Long.class);
         if (maxCachedContentSizeParam != null) {
-            maxCachedContentSize = maxCachedContentSizeParam.longValue();
+            maxCachedContentSize = maxCachedContentSizeParam;
         }
     }
 

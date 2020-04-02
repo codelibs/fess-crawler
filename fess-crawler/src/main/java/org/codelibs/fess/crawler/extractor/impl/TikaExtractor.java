@@ -130,7 +130,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         if (tikaConfig == null && crawlerContainer != null) {
             try {
                 tikaConfig = crawlerContainer.getComponent("tikaConfig");
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.debug("tikaConfig component is not found.", e);
             }
         }

@@ -94,9 +94,9 @@ public class StorageClient extends AbstractCrawlerClient {
             throw new CrawlingAccessException("Failed to create MinioClient(" + endpoint + ")", e);
         }
 
-        minioClient.setTimeout(getInitParameter("connectTimeout", Long.valueOf(10000), Long.class),
-                getInitParameter("writeTimeout", Long.valueOf(10000), Long.class).longValue(),
-                getInitParameter("readTimeout", Long.valueOf(10000), Long.class));
+        minioClient.setTimeout(getInitParameter("connectTimeout", (long) 10000, Long.class),
+                getInitParameter("writeTimeout", (long) 10000, Long.class),
+                getInitParameter("readTimeout", (long) 10000, Long.class));
     }
 
     protected boolean bucketExists(final String name) {
@@ -122,7 +122,7 @@ public class StorageClient extends AbstractCrawlerClient {
         TimeoutTask accessTimeoutTask = null;
         if (accessTimeout != null) {
             accessTimeoutTarget = new AccessTimeoutTarget(Thread.currentThread());
-            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout.intValue(), false);
+            accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
         }
 
         try {

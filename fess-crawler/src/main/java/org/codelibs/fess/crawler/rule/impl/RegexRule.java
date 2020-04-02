@@ -21,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.codelibs.core.beans.util.BeanUtil;
+import org.codelibs.core.beans.util.CopyOptions;
 import org.codelibs.fess.crawler.entity.ResponseData;
 
 /**
@@ -49,7 +50,7 @@ public class RegexRule extends AbstractRule {
         }
 
         final Map<String, Object> map = new HashMap<>();
-        BeanUtil.copyBeanToMap(responseData, map, option -> option.excludeWhitespace());
+        BeanUtil.copyBeanToMap(responseData, map, CopyOptions::excludeWhitespace);
         for (final Map.Entry<String, Pattern> entry : regexMap.entrySet()) {
             String value = "";
             final Object obj = map.get(entry.getKey());

@@ -15,8 +15,12 @@
  */
 package org.codelibs.fess.crawler.rule.impl;
 
+import javax.annotation.Resource;
+
+import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.rule.Rule;
+import org.codelibs.fess.crawler.rule.RuleManager;
 
 /**
  * @author shinsuke
@@ -29,6 +33,14 @@ public abstract class AbstractRule implements Rule {
     protected String ruleId;
 
     protected ResponseProcessor responseProcessor;
+
+    @Resource
+    protected CrawlerContainer crawlerContainer;
+
+    public void register(final int index) {
+        final RuleManager ruleManager = crawlerContainer.getComponent("ruleManager");
+        ruleManager.addRule(index, this);
+    }
 
     @Override
     public String getRuleId() {
@@ -47,5 +59,4 @@ public abstract class AbstractRule implements Rule {
     public void setResponseProcessor(final ResponseProcessor responseProcessor) {
         this.responseProcessor = responseProcessor;
     }
-
 }

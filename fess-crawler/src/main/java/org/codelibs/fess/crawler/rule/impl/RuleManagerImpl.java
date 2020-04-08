@@ -28,11 +28,7 @@ import org.codelibs.fess.crawler.rule.RuleManager;
  */
 public class RuleManagerImpl implements RuleManager {
 
-    protected List<Rule> ruleList;
-
-    public RuleManagerImpl() {
-        ruleList = new ArrayList<>();
-    }
+    protected final List<Rule> ruleList = new ArrayList<>();
 
     /*
      * (non-Javadoc)
@@ -60,6 +56,11 @@ public class RuleManagerImpl implements RuleManager {
         ruleList.add(rule);
     }
 
+    @Override
+    public void addRule(int index, Rule rule) {
+        ruleList.add(index, rule);
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -80,9 +81,5 @@ public class RuleManagerImpl implements RuleManager {
     @Override
     public boolean removeRule(final Rule rule) {
         return ruleList.remove(rule);
-    }
-
-    public void setRuleList(final List<Rule> ruleList) {
-        this.ruleList = ruleList;
     }
 }

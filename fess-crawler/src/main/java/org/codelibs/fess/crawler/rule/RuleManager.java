@@ -27,6 +27,8 @@ public interface RuleManager {
 
     void addRule(Rule rule);
 
+    void addRule(int index, Rule rule);
+
     boolean removeRule(Rule rule);
 
     boolean hasRule(Rule rule);

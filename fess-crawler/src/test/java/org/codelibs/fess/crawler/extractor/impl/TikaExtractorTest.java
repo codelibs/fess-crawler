@@ -143,8 +143,7 @@ public class TikaExtractorTest extends PlainTestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
-            logger.info(key + "="
-                    + String.join("|", extractData.getValues(key)));
+            logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
         assertEquals("こめんと", extractData.getValues("Comments")[0]);
         assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
@@ -175,8 +174,7 @@ public class TikaExtractorTest extends PlainTestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
-            logger.info(key + "="
-                    + String.join("|", extractData.getValues(key)));
+            logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
         assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
         assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
@@ -222,8 +220,7 @@ public class TikaExtractorTest extends PlainTestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
-            logger.info(key + "="
-                    + String.join("|", extractData.getValues(key)));
+            logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
         assertEquals("こめんと", extractData.getValues("Comments")[0]);
         assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
@@ -253,8 +250,7 @@ public class TikaExtractorTest extends PlainTestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
-            logger.info(key + "="
-                    + String.join("|", extractData.getValues(key)));
+            logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
         assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
         assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
@@ -291,8 +287,7 @@ public class TikaExtractorTest extends PlainTestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
-            logger.info(key + "="
-                    + String.join("|", extractData.getValues(key)));
+            logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
         assertEquals("2", extractData.getValues("Revision-Number")[0]);
         assertEquals("こめんと", extractData.getValues("Comments")[0]);
@@ -327,8 +322,7 @@ public class TikaExtractorTest extends PlainTestCase {
         logger.info(content);
         assertTrue(content.contains("テスト"));
         for (final String key : extractData.getKeySet()) {
-            logger.info(key + "="
-                    + String.join("|", extractData.getValues(key)));
+            logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
         assertEquals("2", extractData.getValues("Revision-Number")[0]);
         assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);

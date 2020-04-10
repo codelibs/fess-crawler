@@ -50,7 +50,7 @@ public class LogHelperImpl implements LogHelper {
             // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
             final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             if (logger.isInfoEnabled()) {
-                logger.info("Crawling URL: " + urlQueue.getUrl());
+                logger.info("Crawling URL: {}", urlQueue.getUrl());
             }
             break;
         }
@@ -58,7 +58,7 @@ public class LogHelperImpl implements LogHelper {
             // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
             final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             if (logger.isInfoEnabled()) {
-                logger.info("Unsupported URL: " + urlQueue.getUrl());
+                logger.info("Unsupported URL: {}", urlQueue.getUrl());
             }
             break;
         }
@@ -74,7 +74,7 @@ public class LogHelperImpl implements LogHelper {
             // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
             final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             if (logger.isInfoEnabled()) {
-                logger.info("Not modified URL: " + urlQueue.getUrl());
+                logger.info("Not modified URL: {}", urlQueue.getUrl());
             }
             break;
         }
@@ -91,7 +91,7 @@ public class LogHelperImpl implements LogHelper {
             // final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
             final ResponseData responseData = (ResponseData) objs[2];
             if (logger.isInfoEnabled()) {
-                logger.info("Redirect to URL: " + responseData.getRedirectLocation());
+                logger.info("Redirect to URL: {}", responseData.getRedirectLocation());
             }
             break;
         }

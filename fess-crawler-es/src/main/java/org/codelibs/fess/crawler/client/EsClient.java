@@ -156,7 +156,7 @@ public class EsClient implements Client {
 
             connected = true;
         } else {
-            logger.warn("Could not connect to " + address);
+            logger.warn("Could not connect to {}", address);
         }
     }
 
@@ -195,7 +195,7 @@ public class EsClient implements Client {
             } catch (final ElasticsearchException e) {
                 logger.warn("Failed to close client.", e);
             }
-            logger.info("Disconnected to " + address);
+            logger.info("Disconnected to {}", address);
         }
         connected = false;
     }

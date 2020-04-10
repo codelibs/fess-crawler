@@ -154,7 +154,7 @@ public abstract class AbstractCrawlerService {
                 return c.admin().indices().prepareCreate(index).setSource(source, XContentType.JSON).execute();
             });
             if (indexResponse.isAcknowledged()) {
-                logger.info("Created " + index + " index.");
+                logger.info("Created {} index.", index);
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Failed to create {} index.", index);
             }
@@ -168,9 +168,9 @@ public abstract class AbstractCrawlerService {
                 return c.admin().indices().preparePutMapping(index).setSource(source, XContentType.JSON).execute();
             });
             if (putMappingResponse.isAcknowledged()) {
-                logger.info("Created " + index + " mapping.");
+                logger.info("Created {} mapping.", index);
             } else {
-                logger.warn("Failed to create " + index + " mapping.");
+                logger.warn("Failed to create {} mapping.", index);
             }
         } else if (logger.isDebugEnabled()) {
             logger.debug("{} mapping exists.", index);

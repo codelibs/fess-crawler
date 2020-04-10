@@ -122,7 +122,7 @@ public class Crawler implements Runnable {
             try {
                 parentThread.join(millis);
             } catch (final InterruptedException e) {
-                logger.warn("Interrupted job at " + parentThread.getName());
+                logger.warn("Interrupted job at {}", parentThread.getName());
             }
         }
     }
@@ -238,7 +238,7 @@ public class Crawler implements Runnable {
             try {
                 threads[i].join();
             } catch (final InterruptedException e) {
-                logger.warn("Interrupted job at " + threads[i].getName());
+                logger.warn("Interrupted job at {}", threads[i].getName());
             }
         }
         crawlerContext.setStatus(CrawlerStatus.DONE);

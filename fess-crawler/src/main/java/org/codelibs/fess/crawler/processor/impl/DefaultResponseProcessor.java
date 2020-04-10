@@ -73,7 +73,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
             } else {
                 final ResultData resultData = transformer.transform(responseData);
                 if (resultData == null) {
-                    logger.warn("No data for (" + responseData.getUrl() + ", " + responseData.getMimeType() + ")");
+                    logger.warn("No data for ({}, {})", responseData.getUrl(), responseData.getMimeType());
                 } else {
                     final UrlQueue<?> urlQueue = CrawlingParameterUtil.getUrlQueue();
                     processResult(urlQueue, responseData, resultData);

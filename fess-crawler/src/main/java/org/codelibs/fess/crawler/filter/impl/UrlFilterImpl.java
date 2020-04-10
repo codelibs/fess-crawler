@@ -67,7 +67,7 @@ public class UrlFilterImpl implements UrlFilter {
             Pattern.compile(urlPattern);
         } catch (final Exception e) {
             if (logger.isWarnEnabled()) {
-                logger.warn("Invalid exclude pattern: " + urlPattern);
+                logger.warn("Invalid exclude pattern: {}", urlPattern);
             }
             return;
         }
@@ -89,7 +89,7 @@ public class UrlFilterImpl implements UrlFilter {
             Pattern.compile(urlPattern);
         } catch (final Exception e) {
             if (logger.isWarnEnabled()) {
-                logger.warn("Invalid include pattern: " + urlPattern);
+                logger.warn("Invalid include pattern: {}", urlPattern);
             }
             return;
         }

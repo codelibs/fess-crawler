@@ -158,7 +158,7 @@ public class FormScheme implements AuthScheme {
                     } catch (final IOException e) {
                         content = e.getMessage();
                     }
-                    logger.warn("Failed to access to " + tokenUrl + ". The http status is " + httpStatusCode + ".\n" + content);
+                    logger.warn("Failed to access to {}. The http status is {}.\n{}", tokenUrl, httpStatusCode, content);
                 }
             });
         }
@@ -217,7 +217,7 @@ public class FormScheme implements AuthScheme {
                 } catch (final IOException e) {
                     content = e.getMessage();
                 }
-                logger.warn("Failed to login on " + originalLoginUrl + ". The http status is " + httpStatusCode + ".\n" + content);
+                logger.warn("Failed to login on {}. The http status is {}.\n{}", originalLoginUrl, httpStatusCode, content);
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Logged in {}", originalLoginUrl);
             }

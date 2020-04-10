@@ -254,7 +254,7 @@ public class SmbClient extends AbstractCrawlerClient {
                         responseData.addMetaData(SMB_OWNER_ATTRIBUTES, ownerAttributes);
                     }
                 } catch (final IOException e) {
-                    logger.warn("Cannot get owner of the file: " + filePath);
+                    logger.warn("Cannot get owner of the file: {}", filePath);
                 }
 
                 if (logger.isDebugEnabled()) {

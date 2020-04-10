@@ -157,7 +157,7 @@ public class CommandExtractor extends AbstractExtractor {
 
         final List<String> cmdList = parseCommand(command, params);
         if (logger.isInfoEnabled()) {
-            logger.info("Command: " + cmdList);
+            logger.info("Command: {}", cmdList);
         }
 
         final ProcessBuilder pb = new ProcessBuilder(cmdList);
@@ -193,9 +193,9 @@ public class CommandExtractor extends AbstractExtractor {
 
             if (logger.isInfoEnabled()) {
                 if (standardOutput) {
-                    logger.info("Exit Code: " + exitValue);
+                    logger.info("Exit Code: {}", exitValue);
                 } else {
-                    logger.info("Exit Code: " + exitValue + " - Process Output:\n" + it.getOutput());
+                    logger.info("Exit Code: {} - Process Output:\n{}", exitValue, it.getOutput());
                 }
             }
             if (exitValue == 143 && mt.isTeminated()) {

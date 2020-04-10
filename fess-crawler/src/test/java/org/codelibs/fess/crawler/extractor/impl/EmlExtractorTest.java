@@ -80,7 +80,7 @@ public class EmlExtractorTest extends PlainTestCase {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/eml/sample1.eml")) {
             ExtractData data = emlExtractor.getText(in, null);
             final String[] receivedDate = data.getValues("Received-Date");
-            logger.info("Received-Date: " + receivedDate[0]);
+            logger.info("Received-Date: {}", receivedDate[0]);
             assertEquals(receivedDate[0], "2012-11-11T02:39:59.000Z");
         }
     }

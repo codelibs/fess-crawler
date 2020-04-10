@@ -165,7 +165,7 @@ public class ApiExtractor extends AbstractExtractor {
                     final PropertyDesc propertyDesc = beanDesc.getPropertyDesc(propertyName);
                     propertyDesc.setValue(closeableHttpClient, entry.getValue());
                 } else {
-                    logger.warn("DefaultHttpClient does not have " + propertyName + ".");
+                    logger.warn("DefaultHttpClient does not have {}.", propertyName);
                 }
             }
         }
@@ -206,7 +206,7 @@ public class ApiExtractor extends AbstractExtractor {
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
             if (response.getStatusLine().getStatusCode() != Constants.OK_STATUS_CODE) {
-                logger.error("Failed to access " + url + ", code: " + response.getStatusLine().getStatusCode() + ".");
+                logger.error("Failed to access {}, code: {}.", url, response.getStatusLine().getStatusCode());
                 return null;
             }
 

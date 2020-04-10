@@ -353,7 +353,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     final PropertyDesc propertyDesc = beanDesc.getPropertyDesc(propertyName);
                     propertyDesc.setValue(closeableHttpClient, entry.getValue());
                 } else {
-                    logger.warn("DefaultHttpClient does not have " + propertyName + ".");
+                    logger.warn("DefaultHttpClient does not have {}.", propertyName);
                 }
             }
         }
@@ -478,7 +478,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         if (logger.isInfoEnabled()) {
-            logger.info("Checking URL: " + robotTxtUrl);
+            logger.info("Checking URL: {}", robotTxtUrl);
         }
         // add url to a set
         crawlerContext.getRobotsTxtUrlSet().add(robotTxtUrl);
@@ -659,7 +659,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             if (isRedirectHttpStatus(httpStatusCode)) {
                 final Header locationHeader = response.getFirstHeader("location");
                 if (locationHeader == null) {
-                    logger.warn("Invalid redirect location at " + url);
+                    logger.warn("Invalid redirect location at {}", url);
                 } else {
                     final String redirectLocation;
                     if (locationHeader.getValue().startsWith("/")) {

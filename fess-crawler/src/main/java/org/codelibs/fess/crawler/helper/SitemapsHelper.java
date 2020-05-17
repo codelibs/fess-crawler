@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -157,7 +156,7 @@ public class SitemapsHelper {
         final XmlSitemapsHandler handler = new XmlSitemapsHandler();
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
-            spfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
         } catch (final Exception e) {
@@ -257,7 +256,7 @@ public class SitemapsHelper {
         final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
-            spfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
             parser.parse(in, handler);
         } catch (final Exception e) {

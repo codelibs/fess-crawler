@@ -32,6 +32,7 @@ import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 
 import io.minio.MinioClient;
+import io.minio.PutObjectOptions;
 
 /**
  * @author shinsuke
@@ -73,13 +74,14 @@ public class StorageClientTest extends PlainTestCase {
 
         MinioClient minioClient = new MinioClient(endpoint, accessKey, secretKey);
         minioClient.makeBucket(bucketName);
-        minioClient.putObject(bucketName, "file1.txt", new ByteArrayInputStream("file1".getBytes()), null, new HashMap<>(), null, null);
-        minioClient.putObject(bucketName, "dir1/file2.txt", new ByteArrayInputStream("file2".getBytes()), null, new HashMap<>(), null,
-                null);
-        minioClient.putObject(bucketName, "dir1/dir2/file3.txt", new ByteArrayInputStream("file3".getBytes()), null, new HashMap<>(), null,
-                null);
-        minioClient.putObject(bucketName, "dir3/file4.txt", new ByteArrayInputStream("file4".getBytes()), null, new HashMap<>(), null,
-                null);
+        minioClient.putObject(bucketName, "file1.txt", new ByteArrayInputStream("file1".getBytes()),
+                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
+        minioClient.putObject(bucketName, "dir1/file2.txt", new ByteArrayInputStream("file2".getBytes()),
+                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
+        minioClient.putObject(bucketName, "dir1/dir2/file3.txt", new ByteArrayInputStream("file3".getBytes()),
+                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
+        minioClient.putObject(bucketName, "dir3/file4.txt", new ByteArrayInputStream("file4".getBytes()),
+                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
     }
 
     @Override

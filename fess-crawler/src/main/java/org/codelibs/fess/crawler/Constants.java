@@ -57,6 +57,8 @@ public final class Constants {
 
     public static final String ISO_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
+    public static final String FEATURE_SECURE_PROCESSING = "http://javax.xml.XMLConstants/feature/secure-processing";
+
     private Constants() {
     }
 

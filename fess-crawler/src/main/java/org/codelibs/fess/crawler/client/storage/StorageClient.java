@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.client.storage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,6 +47,7 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.minio.ErrorCode;
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
 import io.minio.Result;
@@ -167,7 +169,7 @@ public class StorageClient extends AbstractCrawlerClient {
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(getCharset());
-                responseData.setLastModified(statObject.createdTime());
+                responseData.setLastModified(statObject.createdTime() == null ? null : Date.from(statObject.createdTime().toInstant()));
                 responseData.setMimeType(statObject.contentType());
                 statObject.httpHeaders().entrySet().forEach(e -> responseData.addMetaData(e.getKey(), e.getValue()));
 
@@ -234,15 +236,18 @@ public class StorageClient extends AbstractCrawlerClient {
         try {
             return minioClient.statObject(bucketName, path);
         } catch (final ErrorResponseException e) {
-            final String code = e.errorResponse().code();
-            if ("NoSuchBucket".equals(code)) {
+            final ErrorCode code = e.errorResponse().errorCode();
+            switch (code) {
+            case NO_SUCH_BUCKET:
                 throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
-            } else if ("NoSuchKey".equals(code)) {
+            case NO_SUCH_KEY:
                 if (logger.isDebugEnabled()) {
                     logger.debug("{} is not an object.", path);
                 }
-            } else {
+                break;
+            default:
                 logger.warn(path + " is not an object.", e);
+                break;
             }
         } catch (final Exception e) {
             logger.warn(path + " is not an object.", e);

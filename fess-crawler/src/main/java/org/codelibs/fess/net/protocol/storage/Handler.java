@@ -24,19 +24,17 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 import org.codelibs.core.lang.StringUtil;
-import org.xmlpull.v1.XmlPullParserException;
 
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
-import io.minio.errors.InvalidArgumentException;
 import io.minio.errors.InvalidBucketNameException;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
 import io.minio.errors.InvalidResponseException;
-import io.minio.errors.NoResponseException;
+import io.minio.errors.XmlParserException;
 
 public class Handler extends URLStreamHandler {
 
@@ -93,16 +91,16 @@ public class Handler extends URLStreamHandler {
             }
             try {
                 return minioClient.getObject(bucketName, objectName);
-            } catch (InvalidKeyException | InvalidBucketNameException | NoSuchAlgorithmException | InsufficientDataException
-                    | NoResponseException | ErrorResponseException | InternalException | InvalidArgumentException | InvalidResponseException
-                    | XmlPullParserException e) {
+            } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
+                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | IOException e) {
                 throw new IOException("Failed to access " + url, e);
             }
         }
 
-        private ObjectStat getStatObject() throws InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException,
-                IOException, InvalidKeyException, NoResponseException, XmlPullParserException, ErrorResponseException, InternalException,
-                InvalidResponseException, InvalidArgumentException {
+        private ObjectStat getStatObject()
+                throws InvalidKeyException, ErrorResponseException, IllegalArgumentException, InsufficientDataException, InternalException,
+                InvalidBucketNameException, InvalidResponseException, NoSuchAlgorithmException, XmlParserException, IOException {
             if (statObject == null) {
                 statObject = minioClient.statObject(bucketName, objectName);
             }
@@ -116,9 +114,9 @@ public class Handler extends URLStreamHandler {
             }
             try {
                 return getStatObject().length();
-            } catch (InvalidKeyException | InvalidBucketNameException | NoSuchAlgorithmException | InsufficientDataException
-                    | NoResponseException | ErrorResponseException | InternalException | InvalidResponseException | InvalidArgumentException
-                    | IOException | XmlPullParserException e) {
+            } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
+                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | IOException e) {
                 return -1;
             }
         }
@@ -130,9 +128,9 @@ public class Handler extends URLStreamHandler {
             }
             try {
                 return getStatObject().contentType();
-            } catch (InvalidKeyException | InvalidBucketNameException | NoSuchAlgorithmException | InsufficientDataException
-                    | NoResponseException | ErrorResponseException | InternalException | InvalidResponseException | InvalidArgumentException
-                    | IOException | XmlPullParserException e) {
+            } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
+                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | IOException e) {
                 return null;
             }
         }
@@ -148,10 +146,10 @@ public class Handler extends URLStreamHandler {
                 return 0;
             }
             try {
-                return getStatObject().createdTime().getTime();
-            } catch (InvalidKeyException | InvalidBucketNameException | NoSuchAlgorithmException | InsufficientDataException
-                    | NoResponseException | ErrorResponseException | InternalException | InvalidResponseException | InvalidArgumentException
-                    | IOException | XmlPullParserException e) {
+                return getStatObject().createdTime().toEpochSecond();
+            } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
+                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | IOException e) {
                 return 0;
             }
         }

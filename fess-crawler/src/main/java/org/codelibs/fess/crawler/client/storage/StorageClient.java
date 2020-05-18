@@ -241,6 +241,7 @@ public class StorageClient extends AbstractCrawlerClient {
             case NO_SUCH_BUCKET:
                 throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
             case NO_SUCH_KEY:
+            case NO_SUCH_OBJECT:
                 if (logger.isDebugEnabled()) {
                     logger.debug("{} is not an object.", path);
                 }

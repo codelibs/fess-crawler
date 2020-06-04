@@ -111,21 +111,17 @@ public class DefaultResponseProcessor implements ResponseProcessor {
     }
 
     protected void processResult(final UrlQueue<?> urlQueue, final ResponseData responseData, final ResultData resultData) {
-        final AccessResult<?> accessResult = crawlerContainer.getComponent("accessResult");
-        accessResult.init(responseData, resultData);
-
         final CrawlerContext crawlerContext = CrawlingParameterUtil.getCrawlerContext();
         final UrlQueueService<UrlQueue<?>> urlQueueService = CrawlingParameterUtil.getUrlQueueService();
-        if (logger.isDebugEnabled()) {
-            logger.debug("Processing accessResult: {}", accessResult);
-        }
         if (!urlQueueService.visited(urlQueue)) {
             if (checkAccessCount(crawlerContext)) {
+                final AccessResult<?> accessResult = createAccessResult(responseData, resultData);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Storing accessResult: {}", accessResult);
                 }
                 try {
-                    storeAccessResult(accessResult);
+                    // store
+                    CrawlingParameterUtil.getDataService().store(accessResult);
                 } catch (final Exception e) {
                     crawlerContext.decrementAndGetAccessCount();
                     if (urlQueueService.visited(urlQueue)) {
@@ -146,6 +142,9 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     storeChildUrls(crawlerContext, resultData.getChildUrlSet(), urlQueue.getUrl(), depth, resultData.getEncoding());
                 }
             } else if (crawlerContext.getMaxDepth() < 0 || urlQueue.getDepth() <= crawlerContext.getMaxDepth()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Canceled urlQueue: {}", urlQueue);
+                }
                 // cancel crawling
                 crawlerContext.decrementAndGetAccessCount();
                 final List<UrlQueue<?>> newUrlQueueList = new ArrayList<>();
@@ -157,9 +156,10 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         }
     }
 
-    protected void storeAccessResult(final AccessResult<?> accessResult) {
-        // store
-        CrawlingParameterUtil.getDataService().store(accessResult);
+    protected AccessResult<?> createAccessResult(final ResponseData responseData, final ResultData resultData) {
+        final AccessResult<?> accessResult = crawlerContainer.getComponent("accessResult");
+        accessResult.init(responseData, resultData);
+        return accessResult;
     }
 
     protected boolean checkAccessCount(final CrawlerContext crawlerContext) {

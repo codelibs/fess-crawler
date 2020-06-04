@@ -54,7 +54,7 @@
     <pdfbox.version>2.0.19</pdfbox.version>
     <nekohtml.version>2.1.0</nekohtml.version>
     <minio.version>7.0.2</minio.version>
-    <elasticsearch.version>7.7.0</elasticsearch.version>
+    <elasticsearch.version>7.7.1</elasticsearch.version>
     <elasticsearch.httpclient.version>7.7.0</elasticsearch.httpclient.version>
   </properties>
   <build>

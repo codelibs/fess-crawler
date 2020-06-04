@@ -125,9 +125,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     logger.debug("Storing accessResult: {}", accessResult);
                 }
                 try {
-                    // store
-                    CrawlingParameterUtil.getDataService().store(accessResult);
-                } catch (final RuntimeException e) {
+                    storeAccessResult(accessResult);
+                } catch (final Exception e) {
                     crawlerContext.decrementAndGetAccessCount();
                     if (urlQueueService.visited(urlQueue)) {
                         // document already exists
@@ -141,9 +140,11 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Storing child urls: {}", resultData.getChildUrlSet());
                 }
-                // add and filter urls
-                storeChildUrls(crawlerContext, resultData.getChildUrlSet(), urlQueue.getUrl(),
-                        urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1, resultData.getEncoding());
+                final int depth = urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1;
+                if (crawlerContext.getMaxDepth() < 0 || depth <= crawlerContext.getMaxDepth()) {
+                    // add and filter urls
+                    storeChildUrls(crawlerContext, resultData.getChildUrlSet(), urlQueue.getUrl(), depth, resultData.getEncoding());
+                }
             } else if (crawlerContext.getMaxDepth() < 0 || urlQueue.getDepth() <= crawlerContext.getMaxDepth()) {
                 // cancel crawling
                 crawlerContext.decrementAndGetAccessCount();
@@ -156,19 +157,20 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         }
     }
 
-    private boolean checkAccessCount(final CrawlerContext crawlerContext) {
+    protected void storeAccessResult(final AccessResult<?> accessResult) {
+        // store
+        CrawlingParameterUtil.getDataService().store(accessResult);
+    }
+
+    protected boolean checkAccessCount(final CrawlerContext crawlerContext) {
         if (crawlerContext.getMaxAccessCount() > 0) {
             return crawlerContext.incrementAndGetAccessCount() <= crawlerContext.getMaxAccessCount();
         }
         return true;
     }
 
-    private void storeChildUrls(final CrawlerContext crawlerContext, final Set<RequestData> childUrlList, final String url, final int depth,
+    protected void storeChildUrls(final CrawlerContext crawlerContext, final Set<RequestData> childUrlList, final String url, final int depth,
             final String encoding) {
-        if (crawlerContext.getMaxDepth() >= 0 && depth > crawlerContext.getMaxDepth()) {
-            return;
-        }
-
         // add url and filter
         final Set<String> urlSet = new HashSet<>();
         final List<UrlQueue<?>> childList = childUrlList.stream().filter(d -> StringUtil.isNotBlank(d.getUrl())

@@ -61,7 +61,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -161,7 +161,7 @@ public abstract class AbstractCrawlerService {
         }
 
         final GetMappingsResponse getMappingsResponse = esClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
-        final ImmutableOpenMap<String, MappingMetaData> indexMappings = getMappingsResponse.mappings().get(index);
+        final ImmutableOpenMap<String, MappingMetadata> indexMappings = getMappingsResponse.mappings().get(index);
         if (indexMappings == null || !indexMappings.containsKey("properties")) {
             final AcknowledgedResponse putMappingResponse = esClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");

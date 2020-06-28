@@ -40,11 +40,14 @@
 		class="org.codelibs.fess.crawler.extractor.impl.EmlExtractor"/>
 	<component name="filenameExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.FilenameExtractor" />
-	<!-- <component name="officeManagerConfiguration" class="org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration"> 
-		</component> <component name="jodExtractor" class="org.codelibs.fess.crawler.extractor.impl.JodExtractor"> 
-		<property name="officeManager"> officeManagerConfiguration.buildOfficeManager() 
-		</property> </component> -->
-
+	<!--
+	<component name="jodExtractor"
+		class="org.codelibs.fess.crawler.extractor.impl.JodExtractor">
+		<property name="officeManager">
+			@org.jodconverter.local.office.LocalOfficeManager@.builder().portNumbers(12002).build()
+		</property>
+	</component>
+	-->
 
 	<component name="extractorFactory"
 		class="org.codelibs.fess.crawler.extractor.ExtractorFactory">

@@ -28,8 +28,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.tika.metadata.TikaMetadataKeys;
-import org.artofsolving.jodconverter.OfficeDocumentConverter;
-import org.artofsolving.jodconverter.office.OfficeManager;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -39,6 +37,9 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
+import org.jodconverter.core.office.OfficeException;
+import org.jodconverter.core.office.OfficeManager;
+import org.jodconverter.local.LocalConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,25 +64,31 @@ public class JodExtractor extends AbstractExtractor {
         extensionMap.put("", "txt");
         // Text Formats
         extensionMap.put("odt", "txt");
+        extensionMap.put("ott", "txt");
         extensionMap.put("sxw", "txt");
         extensionMap.put("rtf", "txt");
         extensionMap.put("doc", "txt");
-        extensionMap.put("docx", "pdf");
+        extensionMap.put("docx", "txt");
         extensionMap.put("wpd", "txt");
+        extensionMap.put("txt", "txt");
+        extensionMap.put("html", "txt");
         // Spreadsheet Formats
-        extensionMap.put("ods", "pdf");
+        extensionMap.put("ods", "tsv");
+        extensionMap.put("ots", "tsv");
         extensionMap.put("sxc", "tsv");
-        extensionMap.put("xls", "pdf");
-        extensionMap.put("xlsx", "pdf");
+        extensionMap.put("xls", "tsv");
+        extensionMap.put("xlsx", "tsv");
         extensionMap.put("csv", "tsv");
         extensionMap.put("tsv", "tsv");
         // Presentation Formats
         extensionMap.put("odp", "pdf");
+        extensionMap.put("otp", "pdf");
         extensionMap.put("sxi", "pdf");
         extensionMap.put("ppt", "pdf");
         extensionMap.put("pptx", "pdf");
         // Drawing Formats
         extensionMap.put("odg", "svg");
+        extensionMap.put("otg", "svg");
 
         extractorMap.put("pdf", new PdfExtractor());
         extractorMap.put("svg", new XmlExtractor());
@@ -92,12 +99,23 @@ public class JodExtractor extends AbstractExtractor {
         if (officeManager == null) {
             throw new CrawlerSystemException("officeManager is null.");
         }
-        officeManager.start();
+        try {
+            officeManager.start();
+        } catch (OfficeException e) {
+            throw new CrawlerSystemException("Failed to start officeManager.", e);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug(officeManager.getClass().getSimpleName() + " is started.");
+        }
     }
 
     @PreDestroy
     public void destroy() {
-        officeManager.stop();
+        try {
+            officeManager.stop();
+        } catch (OfficeException e) {
+            throw new CrawlerSystemException("Failed to stop officeManager.", e);
+        }
     }
 
     public void addConversionRule(final String inExt, final String outExt) {
@@ -152,8 +170,7 @@ public class JodExtractor extends AbstractExtractor {
             // store to a file
             CopyUtil.copy(in, inputFile);
 
-            final OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-            converter.convert(inputFile, outputFile);
+            LocalConverter.make(officeManager).convert(inputFile).to(outputFile).execute();
 
             final ExtractData extractData = new ExtractData(getOutputContent(outputFile, outExt));
             if (StringUtil.isNotBlank(resourceName)) {
@@ -161,7 +178,7 @@ public class JodExtractor extends AbstractExtractor {
             }
 
             return extractData;
-        } catch (final IOException e) {
+        } catch (final IOException | OfficeException e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
             FileUtil.deleteInBackground(inputFile);

@@ -53,6 +53,7 @@
     <poi.version>4.1.2</poi.version>
     <pdfbox.version>2.0.20</pdfbox.version>
     <nekohtml.version>2.1.0</nekohtml.version>
+    <jodconverter.version>4.3.0</jodconverter.version>
     <minio.version>7.0.2</minio.version>
     <elasticsearch.version>7.8.0</elasticsearch.version>
     <elasticsearch.httpclient.version>7.8.0</elasticsearch.httpclient.version>

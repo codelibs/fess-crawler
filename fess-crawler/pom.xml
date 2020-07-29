@@ -207,7 +207,7 @@
     <dependency>
       <groupId>org.codelibs</groupId>
       <artifactId>jcifs</artifactId>
-      <version>2.1.20-SNAPSHOT</version>
+      <version>2.1.20</version>
       <exclusions>
         <exclusion>
           <groupId>javax.servlet</groupId>

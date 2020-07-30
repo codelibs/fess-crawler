@@ -26,7 +26,24 @@
 	<component name="textExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.TextExtractor" />
 	<component name="htmlExtractor"
-		class="org.codelibs.fess.crawler.extractor.impl.HtmlExtractor" />
+		class="org.codelibs.fess.crawler.extractor.impl.HtmlExtractor">
+		<property name="featureMap">
+			<component class="java.util.LinkedHashMap">
+				<postConstruct name="put">
+					<arg>"http://xml.org/sax/features/namespaces"</arg>
+					<arg>"false"</arg>
+				</postConstruct>
+			</component>
+		</property>
+		<property name="propertyMap">
+			<component class="java.util.LinkedHashMap">
+			</component>
+		</property>
+		<postConstruct name="put">
+			<arg>"title"</arg>
+			<arg>"//TITLE"</arg>
+		</postConstruct>
+	</component>
 	<component name="xmlExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.XmlExtractor" />
 	<component name="htmlXpathExtractor"

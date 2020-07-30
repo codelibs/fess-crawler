@@ -22,6 +22,7 @@ import java.io.InputStream;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
+import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.slf4j.Logger;
@@ -32,50 +33,36 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class HtmlExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(HtmlExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(HtmlExtractorTest.class);
 
     public HtmlExtractor htmlExtractor;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("htmlExtractor", HtmlExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("htmlExtractor", HtmlExtractor.class);
         htmlExtractor = container.getComponent("htmlExtractor");
+        htmlExtractor.addMetadata("title", "//TITLE");
     }
 
     public void test_getHtml_utf8() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.html");
-        final String content = htmlExtractor.getText(in, null).getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
+        final ExtractData data = htmlExtractor.getText(in, null);
+        final String content = data.getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+        assertEquals("タイトル", data.getValues("title")[0]);
     }
 
     public void test_getHtml_sjis() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.html");
-        final String content = htmlExtractor.getText(in, null).getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
+        final ExtractData data = htmlExtractor.getText(in, null);
+        final String content = data.getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
-    }
-
-    public void test_getHtml_attr() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_attr.html");
-        final String content = htmlExtractor.getText(in, null).getContent();
-        CloseableUtil.closeQuietly(in);
-        logger.info(content);
-        assertTrue(content.contains("本文1"));
-        assertTrue(content.contains("本文2"));
-        assertTrue(content.contains("画像1"));
-        assertTrue(content.contains("画像2"));
-        assertTrue(content.contains("タイトル1"));
-        assertTrue(content.contains("タイトル2"));
-        assertTrue(content.contains("リンク1"));
+        assertEquals("タイトル", data.getValues("title")[0]);
     }
 
     public void test_getHtml_empty() {
@@ -87,8 +74,7 @@ public class HtmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getEncoding_utf8() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.html");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);
@@ -96,8 +82,7 @@ public class HtmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getEncoding_sjis() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.html");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);

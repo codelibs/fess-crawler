@@ -72,10 +72,14 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
             final BufferedInputStream bis = new BufferedInputStream(in);
             final String enc = getEncoding(bis);
             final String content = UNESCAPE_HTML4.translate(new String(InputStreamUtil.getBytes(bis), enc));
-            return new ExtractData(extractString(content));
+            return createExtractData(content);
         } catch (final Exception e) {
             throw new ExtractException(e);
         }
+    }
+
+    protected ExtractData createExtractData(final String content) {
+        return new ExtractData(extractString(content));
     }
 
     protected String getEncoding(final BufferedInputStream bis) {

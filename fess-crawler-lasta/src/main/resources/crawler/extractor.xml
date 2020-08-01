@@ -39,7 +39,7 @@
 			<component class="java.util.LinkedHashMap">
 			</component>
 		</property>
-		<postConstruct name="put">
+		<postConstruct name="addMetadata">
 			<arg>"title"</arg>
 			<arg>"//TITLE"</arg>
 		</postConstruct>

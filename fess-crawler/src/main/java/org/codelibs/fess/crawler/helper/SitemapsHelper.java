@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -158,6 +159,8 @@ public class SitemapsHelper {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
+            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
+            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
             parser.parse(in, handler);
         } catch (final Exception e) {
             throw new SitemapsException("Could not parse XML Sitemaps.", e);
@@ -258,6 +261,8 @@ public class SitemapsHelper {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
+            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
+            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
             parser.parse(in, handler);
         } catch (final Exception e) {
             throw new SitemapsException("Could not parse XML Sitemaps Index.", e);

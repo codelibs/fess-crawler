@@ -35,6 +35,8 @@ import org.codelibs.fess.crawler.exception.SitemapsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -159,13 +161,23 @@ public class SitemapsHelper {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
-            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
-            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
+            disableExternalResources(parser);
             parser.parse(in, handler);
         } catch (final Exception e) {
             throw new SitemapsException("Could not parse XML Sitemaps.", e);
         }
         return handler.getSitemapSet();
+    }
+
+    protected void disableExternalResources(final SAXParser parser) throws SAXNotRecognizedException, SAXNotSupportedException {
+        try {
+            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
+            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to set a property.", e);
+            }
+        }
     }
 
     protected static class XmlSitemapsHandler extends DefaultHandler {
@@ -261,8 +273,7 @@ public class SitemapsHelper {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             final SAXParser parser = spfactory.newSAXParser();
-            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
-            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
+            disableExternalResources(parser);
             parser.parse(in, handler);
         } catch (final Exception e) {
             throw new SitemapsException("Could not parse XML Sitemaps Index.", e);

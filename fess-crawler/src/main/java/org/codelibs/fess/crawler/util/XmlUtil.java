@@ -29,6 +29,8 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;
@@ -38,6 +40,8 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  */
 public final class XmlUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger(XmlUtil.class);
 
     private XmlUtil() {
     }
@@ -86,8 +90,14 @@ public final class XmlUtil {
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             // create a sax parser
             final SAXParser parser = spfactory.newSAXParser();
-            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
-            parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
+            try {
+                parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
+                parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
+            } catch (final Exception e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to set a property.", e);
+                }
+            }
             // parse a content
             parser.parse(is, handler);
 

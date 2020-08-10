@@ -54,21 +54,21 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
         FindsByTagName, FindsByXPath, HasInputDevices, HasCapabilities,
         TakesScreenshot {
 
-    public Capabilities capabilities;
+    protected Capabilities capabilities;
 
     protected WebDriver webDriver;
 
-    public String phantomjsBinaryPath;
+    protected String phantomjsBinaryPath;
 
-    public String phantomjsGhostdriverPath;
+    protected String phantomjsGhostdriverPath;
 
-    public String[] phantomjsCliArgs;
+    protected String[] phantomjsCliArgs;
 
-    public String[] phantomjsGhostdriverCliArgs;
+    protected String[] phantomjsGhostdriverCliArgs;
 
-    public String webdriverChromeDriver;
+    protected String webdriverChromeDriver;
 
-    public URL remoteAddress;
+    protected URL remoteAddress;
 
     @PostConstruct
     public void phantomjs() {
@@ -526,5 +526,33 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
     @Override
     public Options manage() {
         return webDriver.manage();
+    }
+
+    public void setCapabilities(Capabilities capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    public void setPhantomjsBinaryPath(String phantomjsBinaryPath) {
+        this.phantomjsBinaryPath = phantomjsBinaryPath;
+    }
+
+    public void setPhantomjsGhostdriverPath(String phantomjsGhostdriverPath) {
+        this.phantomjsGhostdriverPath = phantomjsGhostdriverPath;
+    }
+
+    public void setPhantomjsCliArgs(String[] phantomjsCliArgs) {
+        this.phantomjsCliArgs = phantomjsCliArgs;
+    }
+
+    public void setPhantomjsGhostdriverCliArgs(String[] phantomjsGhostdriverCliArgs) {
+        this.phantomjsGhostdriverCliArgs = phantomjsGhostdriverCliArgs;
+    }
+
+    public void setWebdriverChromeDriver(String webdriverChromeDriver) {
+        this.webdriverChromeDriver = webdriverChromeDriver;
+    }
+
+    public void setRemoteAddress(URL remoteAddress) {
+        this.remoteAddress = remoteAddress;
     }
 }

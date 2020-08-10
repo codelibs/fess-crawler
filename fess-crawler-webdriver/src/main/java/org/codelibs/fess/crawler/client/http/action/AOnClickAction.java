@@ -32,7 +32,7 @@ import org.openqa.selenium.WebElement;
  */
 public class AOnClickAction extends BaseUrlAction {
 
-    public String attrName = "onclick";
+    protected String attrName = "onclick";
 
     /*
      * (non-Javadoc)
@@ -81,6 +81,10 @@ public class AOnClickAction extends BaseUrlAction {
                         .get().url(url).metaData(buf.toString()).build());
             }
         }
+    }
+
+    public void setAttrName(String attrName) {
+        this.attrName = attrName;
     }
 
 }

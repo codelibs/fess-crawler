@@ -52,7 +52,7 @@
     <tika.version>1.24.1</tika.version>
     <poi.version>4.1.2</poi.version>
     <pdfbox.version>2.0.21</pdfbox.version>
-    <nekohtml.version>2.1.1-SNAPSHOT</nekohtml.version>
+    <nekohtml.version>2.1.1</nekohtml.version>
     <jodconverter.version>4.3.0</jodconverter.version>
     <minio.version>7.1.0</minio.version>
     <elasticsearch.version>7.9.0</elasticsearch.version>

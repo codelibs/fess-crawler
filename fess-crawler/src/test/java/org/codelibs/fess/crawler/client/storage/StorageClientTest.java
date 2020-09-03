@@ -31,7 +31,9 @@ import org.dbflute.utflute.core.PlainTestCase;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 
+import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import io.minio.PutObjectOptions;
 
 /**
@@ -72,16 +74,21 @@ public class StorageClientTest extends PlainTestCase {
         params.put("secretKey", secretKey);
         storageClient.setInitParameterMap(params);
 
-        MinioClient minioClient = new MinioClient(endpoint, accessKey, secretKey);
-        minioClient.makeBucket(bucketName);
-        minioClient.putObject(bucketName, "file1.txt", new ByteArrayInputStream("file1".getBytes()),
-                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
-        minioClient.putObject(bucketName, "dir1/file2.txt", new ByteArrayInputStream("file2".getBytes()),
-                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
-        minioClient.putObject(bucketName, "dir1/dir2/file3.txt", new ByteArrayInputStream("file3".getBytes()),
-                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
-        minioClient.putObject(bucketName, "dir3/file4.txt", new ByteArrayInputStream("file4".getBytes()),
-                new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE));
+        MinioClient minioClient = MinioClient.builder().endpoint(endpoint).credentials(accessKey, secretKey).build();
+        minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+        PutObjectOptions options = new PutObjectOptions(-1, PutObjectOptions.MIN_MULTIPART_SIZE);
+        minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("file1.txt")
+                .stream(new ByteArrayInputStream("file1".getBytes()), options.objectSize(), options.partSize())
+                .contentType(options.contentType()).headers(options.headers()).sse(options.sse()).build());
+        minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("dir1/file2.txt")
+                .stream(new ByteArrayInputStream("file2".getBytes()), options.objectSize(), options.partSize())
+                .contentType(options.contentType()).headers(options.headers()).sse(options.sse()).build());
+        minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("dir1/dir2/file3.txt")
+                .stream(new ByteArrayInputStream("file3".getBytes()), options.objectSize(), options.partSize())
+                .contentType(options.contentType()).headers(options.headers()).sse(options.sse()).build());
+        minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("dir3/file4.txt")
+                .stream(new ByteArrayInputStream("file4".getBytes()), options.objectSize(), options.partSize())
+                .contentType(options.contentType()).headers(options.headers()).sse(options.sse()).build());
     }
 
     @Override

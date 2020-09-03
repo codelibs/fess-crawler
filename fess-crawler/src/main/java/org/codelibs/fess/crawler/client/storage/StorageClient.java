@@ -47,10 +47,15 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.minio.BucketExistsArgs;
 import io.minio.ErrorCode;
+import io.minio.GetObjectArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
+import io.minio.MinioClient.Builder;
 import io.minio.ObjectStat;
 import io.minio.Result;
+import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.Item;
 
@@ -78,10 +83,12 @@ public class StorageClient extends AbstractCrawlerClient {
     public void init() {
         super.init();
 
+        final Builder builder = MinioClient.builder();
         final String endpoint = getInitParameter("endpoint", null, String.class);
         if (StringUtil.isBlank(endpoint)) {
             throw new CrawlingAccessException("endpoint is blank.");
         }
+        builder.endpoint(endpoint);
         final String accessKey = getInitParameter("accessKey", null, String.class);
         if (StringUtil.isBlank(accessKey)) {
             throw new CrawlingAccessException("accessKey is blank.");
@@ -90,8 +97,9 @@ public class StorageClient extends AbstractCrawlerClient {
         if (StringUtil.isBlank(secretKey)) {
             throw new CrawlingAccessException("secretKey is blank.");
         }
+        builder.credentials(accessKey, secretKey);
         try {
-            minioClient = new MinioClient(endpoint, accessKey, secretKey);
+            minioClient = builder.build();
         } catch (final Exception e) {
             throw new CrawlingAccessException("Failed to create MinioClient(" + endpoint + ")", e);
         }
@@ -103,7 +111,8 @@ public class StorageClient extends AbstractCrawlerClient {
 
     protected boolean bucketExists(final String name) {
         try {
-            return minioClient.bucketExists(name);
+            final BucketExistsArgs args = BucketExistsArgs.builder().bucket(name).build();
+            return minioClient.bucketExists(args);
         } catch (final Exception e) {
             throw new CrawlingAccessException("Could not access bucket:" + name, e);
         }
@@ -183,7 +192,8 @@ public class StorageClient extends AbstractCrawlerClient {
 
                 if (includeContent) {
                     if (statObject.length() < maxCachedContentSize) {
-                        try (InputStream contentStream = new BufferedInputStream(minioClient.getObject(bucketName, path))) {
+                        final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
+                        try (InputStream contentStream = new BufferedInputStream(minioClient.getObject(args))) {
                             responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
                         } catch (final Exception e) {
                             logger.warn("I/O Exception.", e);
@@ -193,7 +203,8 @@ public class StorageClient extends AbstractCrawlerClient {
                         File outputFile = null;
                         try {
                             outputFile = File.createTempFile("crawler-SmbClient-", ".out");
-                            CopyUtil.copy(minioClient.getObject(bucketName, path), outputFile);
+                            final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
+                            CopyUtil.copy(minioClient.getObject(args), outputFile);
                             responseData.setResponseBody(outputFile, true);
                         } catch (final Exception e) {
                             logger.warn("I/O Exception.", e);
@@ -211,7 +222,9 @@ public class StorageClient extends AbstractCrawlerClient {
                 }
             } else {
                 final Set<RequestData> requestDataSet = new HashSet<>();
-                for (final Result<Item> result : minioClient.listObjects(bucketName, path, false)) {
+                final ListObjectsArgs args = ListObjectsArgs.builder().bucket(bucketName).prefix(path).recursive(false)
+                        .includeUserMetadata(false).useApiVersion1(false).build();
+                for (final Result<Item> result : minioClient.listObjects(args)) {
                     final Item item = result.get();
                     final String objectName = item.objectName();
                     requestDataSet.add(RequestDataBuilder.newRequestData().get().url("storage://" + bucketName + "/" + objectName).build());
@@ -234,7 +247,8 @@ public class StorageClient extends AbstractCrawlerClient {
         }
 
         try {
-            return minioClient.statObject(bucketName, path);
+            final StatObjectArgs args = StatObjectArgs.builder().bucket(bucketName).object(path).build();
+            return minioClient.statObject(args);
         } catch (final ErrorResponseException e) {
             final ErrorCode code = e.errorResponse().errorCode();
             switch (code) {

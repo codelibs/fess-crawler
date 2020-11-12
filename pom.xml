@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codelibs.fess</groupId>
   <artifactId>fess-crawler-parent</artifactId>
-  <version>3.9.2-SNAPSHOT</version>
+  <version>3.10.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Fess Crawler Project</name>
   <description>Fess Crawler is Crawler Framework.</description>
@@ -44,19 +44,19 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jta.version>1.2</jta.version>
     <dbflute.version>1.2.3</dbflute.version>
-    <lastadi.version>0.8.2</lastadi.version>
+    <lastadi.version>0.8.3</lastadi.version>
     <utflute.version>0.9.1</utflute.version>
     <corelib.version>0.5.4</corelib.version>
     <slf4j.version>1.7.30</slf4j.version>
-    <httpcomponents.version>4.5.12</httpcomponents.version>
+    <httpcomponents.version>4.5.13</httpcomponents.version>
     <tika.version>1.24.1</tika.version>
     <poi.version>4.1.2</poi.version>
     <pdfbox.version>2.0.21</pdfbox.version>
     <nekohtml.version>2.1.1</nekohtml.version>
     <jodconverter.version>4.3.0</jodconverter.version>
-    <minio.version>7.1.0</minio.version>
-    <elasticsearch.version>7.9.3</elasticsearch.version>
-    <elasticsearch.httpclient.version>7.9.1</elasticsearch.httpclient.version>
+    <minio.version>7.1.4</minio.version>
+    <elasticsearch.version>7.10.0</elasticsearch.version>
+    <elasticsearch.httpclient.version>7.10.0</elasticsearch.httpclient.version>
   </properties>
   <build>
     <pluginManagement>
@@ -116,7 +116,7 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>3.0</version>
+          <version>4.0.rc2</version>
           <configuration>
             <header>https://www.codelibs.org/assets/license/header.txt</header>
             <properties>

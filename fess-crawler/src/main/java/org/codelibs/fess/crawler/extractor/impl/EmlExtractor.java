@@ -176,9 +176,7 @@ public class EmlExtractor extends AbstractExtractor {
                     final BodyPart bodyPart = multipart.getBodyPart(i);
                     if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
                         appendAttachment(buf, bodyPart);
-                    } else if (bodyPart.isMimeType("text/plain")) {
-                        buf.append(bodyPart.getContent().toString()).append(' ');
-                    } else if (bodyPart.isMimeType("text/html")) {
+                    } else if (bodyPart.isMimeType("text/plain") || bodyPart.isMimeType("text/html")) {
                         buf.append(bodyPart.getContent().toString()).append(' ');
                     } else if (bodyPart.isMimeType("multipart/alternative") && bodyPart.getContent() instanceof Multipart) {
                         final Multipart alternativePart = (Multipart) bodyPart.getContent();

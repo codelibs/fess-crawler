@@ -101,7 +101,7 @@ public class JodExtractor extends AbstractExtractor {
         }
         try {
             officeManager.start();
-        } catch (OfficeException e) {
+        } catch (final OfficeException e) {
             throw new CrawlerSystemException("Failed to start officeManager.", e);
         }
         if (logger.isDebugEnabled()) {
@@ -113,7 +113,7 @@ public class JodExtractor extends AbstractExtractor {
     public void destroy() {
         try {
             officeManager.stop();
-        } catch (OfficeException e) {
+        } catch (final OfficeException e) {
             throw new CrawlerSystemException("Failed to stop officeManager.", e);
         }
     }

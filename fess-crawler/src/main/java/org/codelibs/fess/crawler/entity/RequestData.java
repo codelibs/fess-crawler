@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import java.util.Objects;
+
 import org.codelibs.fess.crawler.Constants;
 
 /**
@@ -95,21 +97,13 @@ public class RequestData {
             return false;
         }
         final RequestData other = (RequestData) obj;
-        if (metaData == null) {
-            if (other.metaData != null) {
-                return false;
-            }
-        } else if (!metaData.equals(other.metaData)) {
+        if (!Objects.equals(metaData, other.metaData)) {
             return false;
         }
         if (method != other.method) {
             return false;
         }
-        if (url == null) {
-            if (other.url != null) {
-                return false;
-            }
-        } else if (!url.equals(other.url)) {
+        if (!Objects.equals(url, other.url)) {
             return false;
         }
         return true;

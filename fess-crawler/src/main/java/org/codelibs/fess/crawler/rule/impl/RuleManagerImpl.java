@@ -57,7 +57,7 @@ public class RuleManagerImpl implements RuleManager {
     }
 
     @Override
-    public void addRule(int index, Rule rule) {
+    public void addRule(final int index, final Rule rule) {
         ruleList.add(index, rule);
     }
 

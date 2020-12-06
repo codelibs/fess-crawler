@@ -63,14 +63,8 @@ public class SitemapsHelper {
             }
 
             final String preloadDate = new String(bytes, Constants.UTF_8);
-            if (preloadDate.indexOf("<urlset") >= 0) {
+            if ((preloadDate.indexOf("<urlset") >= 0) || (preloadDate.indexOf("<sitemapindex") >= 0) || (preloadDate.startsWith("http://") || preloadDate.startsWith("https://"))) {
                 // XML Sitemaps
-                return true;
-            } else if (preloadDate.indexOf("<sitemapindex") >= 0) {
-                // XML Sitemaps Index
-                return true;
-            } else if (preloadDate.startsWith("http://") || preloadDate.startsWith("https://")) {
-                // Text Sitemaps Index
                 return true;
             } else {
                 // gz
@@ -208,13 +202,7 @@ public class SitemapsHelper {
         public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
             if (URL_ELEMENT.equals(qName)) {
                 sitemapUrl = new SitemapUrl();
-            } else if (LOC_ELEMENT.equals(qName)) {
-                buf = new StringBuilder();
-            } else if (LASTMOD_ELEMENT.equals(qName)) {
-                buf = new StringBuilder();
-            } else if (CHANGEFREQ_ELEMENT.equals(qName)) {
-                buf = new StringBuilder();
-            } else if (PRIORITY_ELEMENT.equals(qName)) {
+            } else if (LOC_ELEMENT.equals(qName) || LASTMOD_ELEMENT.equals(qName) || CHANGEFREQ_ELEMENT.equals(qName) || PRIORITY_ELEMENT.equals(qName)) {
                 buf = new StringBuilder();
             }
         }
@@ -299,9 +287,7 @@ public class SitemapsHelper {
         public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
             if ("sitemap".equals(qName)) {
                 sitemapFile = new SitemapFile();
-            } else if ("loc".equals(qName)) {
-                buf = new StringBuilder();
-            } else if ("lastmod".equals(qName)) {
+            } else if ("loc".equals(qName) || "lastmod".equals(qName)) {
                 buf = new StringBuilder();
             }
         }

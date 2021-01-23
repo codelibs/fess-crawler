@@ -27,75 +27,75 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.lang3.RandomUtils;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.ThreadUtil;
-import org.codelibs.elasticsearch.client.HttpClient;
+import org.codelibs.fesen.FesenException;
+import org.codelibs.fesen.action.ActionFuture;
+import org.codelibs.fesen.action.ActionListener;
+import org.codelibs.fesen.action.ActionRequest;
+import org.codelibs.fesen.action.ActionResponse;
+import org.codelibs.fesen.action.ActionType;
+import org.codelibs.fesen.action.admin.cluster.health.ClusterHealthResponse;
+import org.codelibs.fesen.action.bulk.BulkRequest;
+import org.codelibs.fesen.action.bulk.BulkRequestBuilder;
+import org.codelibs.fesen.action.bulk.BulkResponse;
+import org.codelibs.fesen.action.delete.DeleteRequest;
+import org.codelibs.fesen.action.delete.DeleteRequestBuilder;
+import org.codelibs.fesen.action.delete.DeleteResponse;
+import org.codelibs.fesen.action.explain.ExplainRequest;
+import org.codelibs.fesen.action.explain.ExplainRequestBuilder;
+import org.codelibs.fesen.action.explain.ExplainResponse;
+import org.codelibs.fesen.action.fieldcaps.FieldCapabilitiesRequest;
+import org.codelibs.fesen.action.fieldcaps.FieldCapabilitiesRequestBuilder;
+import org.codelibs.fesen.action.fieldcaps.FieldCapabilitiesResponse;
+import org.codelibs.fesen.action.get.GetRequest;
+import org.codelibs.fesen.action.get.GetRequestBuilder;
+import org.codelibs.fesen.action.get.GetResponse;
+import org.codelibs.fesen.action.get.MultiGetRequest;
+import org.codelibs.fesen.action.get.MultiGetRequestBuilder;
+import org.codelibs.fesen.action.get.MultiGetResponse;
+import org.codelibs.fesen.action.index.IndexRequest;
+import org.codelibs.fesen.action.index.IndexRequestBuilder;
+import org.codelibs.fesen.action.index.IndexResponse;
+import org.codelibs.fesen.action.search.ClearScrollRequest;
+import org.codelibs.fesen.action.search.ClearScrollRequestBuilder;
+import org.codelibs.fesen.action.search.ClearScrollResponse;
+import org.codelibs.fesen.action.search.MultiSearchRequest;
+import org.codelibs.fesen.action.search.MultiSearchRequestBuilder;
+import org.codelibs.fesen.action.search.MultiSearchResponse;
+import org.codelibs.fesen.action.search.SearchRequest;
+import org.codelibs.fesen.action.search.SearchRequestBuilder;
+import org.codelibs.fesen.action.search.SearchResponse;
+import org.codelibs.fesen.action.search.SearchScrollRequest;
+import org.codelibs.fesen.action.search.SearchScrollRequestBuilder;
+import org.codelibs.fesen.action.termvectors.MultiTermVectorsRequest;
+import org.codelibs.fesen.action.termvectors.MultiTermVectorsRequestBuilder;
+import org.codelibs.fesen.action.termvectors.MultiTermVectorsResponse;
+import org.codelibs.fesen.action.termvectors.TermVectorsRequest;
+import org.codelibs.fesen.action.termvectors.TermVectorsRequestBuilder;
+import org.codelibs.fesen.action.termvectors.TermVectorsResponse;
+import org.codelibs.fesen.action.update.UpdateRequest;
+import org.codelibs.fesen.action.update.UpdateRequestBuilder;
+import org.codelibs.fesen.action.update.UpdateResponse;
+import org.codelibs.fesen.client.AdminClient;
+import org.codelibs.fesen.client.Client;
+import org.codelibs.fesen.client.HttpClient;
+import org.codelibs.fesen.common.settings.Settings;
+import org.codelibs.fesen.common.unit.TimeValue;
+import org.codelibs.fesen.index.IndexNotFoundException;
+import org.codelibs.fesen.index.engine.VersionConflictEngineException;
+import org.codelibs.fesen.index.query.QueryBuilder;
+import org.codelibs.fesen.search.Scroll;
+import org.codelibs.fesen.search.SearchHit;
+import org.codelibs.fesen.threadpool.ThreadPool;
 import org.codelibs.fess.crawler.exception.EsAccessException;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.ActionListener;
-import org.elasticsearch.action.ActionRequest;
-import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.ActionType;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.explain.ExplainRequest;
-import org.elasticsearch.action.explain.ExplainRequestBuilder;
-import org.elasticsearch.action.explain.ExplainResponse;
-import org.elasticsearch.action.fieldcaps.FieldCapabilitiesRequest;
-import org.elasticsearch.action.fieldcaps.FieldCapabilitiesRequestBuilder;
-import org.elasticsearch.action.fieldcaps.FieldCapabilitiesResponse;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.get.MultiGetRequest;
-import org.elasticsearch.action.get.MultiGetRequestBuilder;
-import org.elasticsearch.action.get.MultiGetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.ClearScrollRequest;
-import org.elasticsearch.action.search.ClearScrollRequestBuilder;
-import org.elasticsearch.action.search.ClearScrollResponse;
-import org.elasticsearch.action.search.MultiSearchRequest;
-import org.elasticsearch.action.search.MultiSearchRequestBuilder;
-import org.elasticsearch.action.search.MultiSearchResponse;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchScrollRequest;
-import org.elasticsearch.action.search.SearchScrollRequestBuilder;
-import org.elasticsearch.action.termvectors.MultiTermVectorsRequest;
-import org.elasticsearch.action.termvectors.MultiTermVectorsRequestBuilder;
-import org.elasticsearch.action.termvectors.MultiTermVectorsResponse;
-import org.elasticsearch.action.termvectors.TermVectorsRequest;
-import org.elasticsearch.action.termvectors.TermVectorsRequestBuilder;
-import org.elasticsearch.action.termvectors.TermVectorsResponse;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateRequestBuilder;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.AdminClient;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.engine.VersionConflictEngineException;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.Scroll;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.threadpool.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EsClient implements Client {
+public class FesenClient implements Client {
     public static final String HTTP_ADDRESS = "crawler.es.http_address";
 
     public static final String TARGET_INDICES = "crawler.es.target_indices";
 
-    private static final Logger logger = LoggerFactory.getLogger(EsClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(FesenClient.class);
 
     protected Client client;
 
@@ -119,7 +119,7 @@ public class EsClient implements Client {
 
     protected String[] targetIndices;
 
-    public EsClient() {
+    public FesenClient() {
         address = System.getProperty(HTTP_ADDRESS, "localhost:9200").trim();
         final String targets = System.getProperty(TARGET_INDICES);
         if (StringUtil.isNotBlank(targets)) {
@@ -165,7 +165,7 @@ public class EsClient implements Client {
         return new HttpClient(settings, null);
     }
 
-    public <T> T get(final Function<EsClient, ActionFuture<T>> func) {
+    public <T> T get(final Function<FesenClient, ActionFuture<T>> func) {
         int retryCount = 0;
         while (true) {
             try {
@@ -192,7 +192,7 @@ public class EsClient implements Client {
         if (client != null) {
             try {
                 client.close();
-            } catch (final ElasticsearchException e) {
+            } catch (final FesenException e) {
                 logger.warn("Failed to close client.", e);
             }
             logger.info("Disconnected to {}", address);

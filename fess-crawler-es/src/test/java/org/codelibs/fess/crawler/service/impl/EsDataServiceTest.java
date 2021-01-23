@@ -15,7 +15,7 @@
  */
 package org.codelibs.fess.crawler.service.impl;
 
-import static org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner.newConfigs;
+import static org.codelibs.fesen.runner.FesenRunner.newConfigs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +23,10 @@ import java.util.UUID;
 
 import javax.annotation.Resource;
 
-import org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner;
-import org.codelibs.fess.crawler.client.EsClient;
+import org.codelibs.fesen.runner.FesenRunner;
+import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
-import org.codelibs.fess.crawler.service.impl.EsDataService;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
 /**
@@ -39,9 +38,9 @@ public class EsDataServiceTest extends LastaDiTestCase {
     private EsDataService dataService;
 
     @Resource
-    private  EsClient esClient;
+    private  FesenClient fesenClient;
 
-    private ElasticsearchClusterRunner runner;
+    private FesenRunner runner;
 
     @Override
     protected String prepareConfigFile() {
@@ -56,7 +55,7 @@ public class EsDataServiceTest extends LastaDiTestCase {
     @Override
     public void setUp() throws Exception {
         // create runner instance
-        runner = new ElasticsearchClusterRunner();
+        runner = new FesenRunner();
         // create ES nodes
         final String clusterName = UUID.randomUUID().toString();
         runner.onBuild((number, settingsBuilder) -> {
@@ -67,7 +66,7 @@ public class EsDataServiceTest extends LastaDiTestCase {
         // wait for yellow status
         runner.ensureYellow();
 
-        System.setProperty(EsClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
+        System.setProperty(FesenClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
 
         super.setUp();
     }

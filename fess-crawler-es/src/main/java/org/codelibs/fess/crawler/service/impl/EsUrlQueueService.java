@@ -28,6 +28,18 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.fesen.action.DocWriteRequest.OpType;
+import org.codelibs.fesen.action.bulk.BulkRequestBuilder;
+import org.codelibs.fesen.action.bulk.BulkResponse;
+import org.codelibs.fesen.action.search.SearchResponse;
+import org.codelibs.fesen.action.support.WriteRequest.RefreshPolicy;
+import org.codelibs.fesen.action.update.UpdateRequestBuilder;
+import org.codelibs.fesen.common.unit.TimeValue;
+import org.codelibs.fesen.index.query.QueryBuilders;
+import org.codelibs.fesen.search.SearchHit;
+import org.codelibs.fesen.search.SearchHits;
+import org.codelibs.fesen.search.sort.SortBuilders;
+import org.codelibs.fesen.search.sort.SortOrder;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.EsUrlQueue;
@@ -35,18 +47,6 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.util.EsCrawlerConfig;
-import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.action.update.UpdateRequestBuilder;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
 
     @PostConstruct
     public void init() {
-        esClient.addOnConnectListener(() -> createMapping("queue"));
+        fesenClient.addOnConnectListener(() -> createMapping("queue"));
     }
 
     @PreDestroy

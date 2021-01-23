@@ -15,7 +15,7 @@
  */
 package org.codelibs.fess.crawler.service.impl;
 
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.codelibs.fesen.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -40,39 +40,39 @@ import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.security.MessageDigestUtil;
-import org.codelibs.fess.crawler.client.EsClient;
+import org.codelibs.fesen.action.DocWriteRequest.OpType;
+import org.codelibs.fesen.action.DocWriteResponse.Result;
+import org.codelibs.fesen.action.admin.indices.create.CreateIndexResponse;
+import org.codelibs.fesen.action.admin.indices.exists.indices.IndicesExistsResponse;
+import org.codelibs.fesen.action.admin.indices.mapping.get.GetMappingsResponse;
+import org.codelibs.fesen.action.admin.indices.refresh.RefreshResponse;
+import org.codelibs.fesen.action.bulk.BulkItemResponse;
+import org.codelibs.fesen.action.bulk.BulkRequestBuilder;
+import org.codelibs.fesen.action.bulk.BulkResponse;
+import org.codelibs.fesen.action.delete.DeleteResponse;
+import org.codelibs.fesen.action.get.GetResponse;
+import org.codelibs.fesen.action.index.IndexResponse;
+import org.codelibs.fesen.action.search.SearchRequestBuilder;
+import org.codelibs.fesen.action.search.SearchResponse;
+import org.codelibs.fesen.action.support.WriteRequest.RefreshPolicy;
+import org.codelibs.fesen.action.support.master.AcknowledgedResponse;
+import org.codelibs.fesen.cluster.metadata.MappingMetadata;
+import org.codelibs.fesen.common.collect.ImmutableOpenMap;
+import org.codelibs.fesen.common.unit.TimeValue;
+import org.codelibs.fesen.common.xcontent.XContentBuilder;
+import org.codelibs.fesen.common.xcontent.XContentType;
+import org.codelibs.fesen.index.IndexNotFoundException;
+import org.codelibs.fesen.index.query.BoolQueryBuilder;
+import org.codelibs.fesen.index.query.QueryBuilder;
+import org.codelibs.fesen.index.query.QueryBuilders;
+import org.codelibs.fesen.search.SearchHit;
+import org.codelibs.fesen.search.SearchHits;
+import org.codelibs.fesen.search.sort.SortBuilder;
+import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.util.EsResultList;
-import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.DocWriteResponse.Result;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
-import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.cluster.metadata.MappingMetadata;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -106,7 +106,7 @@ public abstract class AbstractCrawlerService {
     protected static final HashFunction murmur3Hash = Hashing.murmur3_128(0);
 
     @Resource
-    protected volatile EsClient esClient;
+    protected volatile FesenClient fesenClient;
 
     protected String index;
 
@@ -122,27 +122,27 @@ public abstract class AbstractCrawlerService {
 
     protected int idPrefixLength = 445;
 
-    protected EsClient getClient() {
-        if (!esClient.connected()) {
-            synchronized (esClient) {
-                if (!esClient.connected()) {
-                    esClient.connect();
+    protected FesenClient getClient() {
+        if (!fesenClient.connected()) {
+            synchronized (fesenClient) {
+                if (!fesenClient.connected()) {
+                    fesenClient.connect();
                 }
             }
         }
-        return esClient;
+        return fesenClient;
     }
 
     protected void createMapping(final String mappingName) {
         boolean exists = false;
         try {
-            final IndicesExistsResponse response = esClient.get(c -> c.admin().indices().prepareExists(index).execute());
+            final IndicesExistsResponse response = fesenClient.get(c -> c.admin().indices().prepareExists(index).execute());
             exists = response.isExists();
         } catch (final IndexNotFoundException e) {
             // ignore
         }
         if (!exists) {
-            final CreateIndexResponse indexResponse = esClient.get(c -> {
+            final CreateIndexResponse indexResponse = fesenClient.get(c -> {
                 final String source;
                 if (numberOfReplicas > 0) {
                     source = "{\"settings\":{\"index\":{\"number_of_shards\":" + numberOfShards
@@ -160,10 +160,10 @@ public abstract class AbstractCrawlerService {
             }
         }
 
-        final GetMappingsResponse getMappingsResponse = esClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
+        final GetMappingsResponse getMappingsResponse = fesenClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
         final ImmutableOpenMap<String, MappingMetadata> indexMappings = getMappingsResponse.mappings().get(index);
         if (indexMappings == null || !indexMappings.containsKey("properties")) {
-            final AcknowledgedResponse putMappingResponse = esClient.get(c -> {
+            final AcknowledgedResponse putMappingResponse = fesenClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");
                 return c.admin().indices().preparePutMapping(index).setSource(source, XContentType.JSON).execute();
             });

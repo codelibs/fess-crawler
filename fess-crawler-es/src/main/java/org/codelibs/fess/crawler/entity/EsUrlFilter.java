@@ -17,8 +17,8 @@ package org.codelibs.fess.crawler.entity;
 
 import java.io.IOException;
 
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.codelibs.fesen.common.xcontent.ToXContent;
+import org.codelibs.fesen.common.xcontent.XContentBuilder;
 
 public class EsUrlFilter implements ToXContent {
 

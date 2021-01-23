@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.codelibs.fesen.action.DocWriteRequest.OpType;
+import org.codelibs.fesen.index.query.QueryBuilders;
 import org.codelibs.fess.crawler.entity.EsUrlFilter;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.service.UrlFilterService;
 import org.codelibs.fess.crawler.util.EsCrawlerConfig;
-import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.index.query.QueryBuilders;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -65,7 +65,7 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
 
     @PostConstruct
     public void init() {
-        esClient.addOnConnectListener(() -> createMapping("filter"));
+        fesenClient.addOnConnectListener(() -> createMapping("filter"));
 
         includeFilterCache = createFilterCache(INCLUDE);
         excludeFilterCache = createFilterCache(EXCLUDE);

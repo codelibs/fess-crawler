@@ -109,6 +109,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
             if (webDriver != null) {
                 try {
                     webDriverPool.returnObject(webDriver);
+                    webDriverPool.invalidateObject(webDriver);
                 } catch (final Exception e) {
                     logger.warn("Failed to return a returned object.", e);
                 }

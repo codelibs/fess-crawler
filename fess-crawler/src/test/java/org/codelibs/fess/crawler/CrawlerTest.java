@@ -91,8 +91,6 @@ public class CrawlerTest extends PlainTestCase {
                         HcHttpClient.class,
                         client -> {
                             client.setCookieSpec(CookieSpecs.BEST_MATCH);
-                            client.setClientConnectionManager(container
-                                    .getComponent("clientConnectionManager"));
                         })
                 .prototype(
                         "httpClient",
@@ -182,13 +180,6 @@ public class CrawlerTest extends PlainTestCase {
                             rule.setDefaultRule(true);
                             rule.setResponseProcessor(container
                                     .getComponent("defaultResponseProcessor"));
-                        })//
-                .<PoolingHttpClientConnectionManager> singleton(
-                        "clientConnectionManager",
-                        new PoolingHttpClientConnectionManager(5,
-                                TimeUnit.MINUTES), manager -> {
-                            manager.setMaxTotal(200);
-                            manager.setDefaultMaxPerRoute(20);
                         });
 
         crawler = container.getComponent("crawler");

@@ -26,6 +26,8 @@ import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,10 +36,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.commons.lang3.SystemUtils;
@@ -60,13 +64,17 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.Lookup;
+import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.Cookie;
@@ -78,6 +86,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider.CompatibilityLevel;
 import org.apache.http.impl.cookie.IgnoreSpecProvider;
@@ -147,6 +156,14 @@ public class HcHttpClient extends AbstractCrawlerClient {
     public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
 
     public static final String IGNORE_SSL_CERTIFICATE_PROPERTY = "ignoreSslCertificate";
+
+    public static final String DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY = "defaultMaxConnectionPerRoute";
+
+    public static final String MAX_TOTAL_CONNECTION_PROPERTY = "maxTotalConnection";
+
+    public static final String TIME_TO_LIVE_TIME_UNIT_PROPERTY = "timeToLiveTimeUnit";
+
+    public static final String TIME_TO_LIVE_PROPERTY = "timeToLive";
 
     private static final Logger logger = LoggerFactory.getLogger(HcHttpClient.class);
 
@@ -334,11 +351,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             httpClientBuilder.setDefaultCookieSpecRegistry(cookieSpecRegistry);
         }
 
-        // SSL
-        final LayeredConnectionSocketFactory sslSocketFactory = buildSSLSocketFactory();
-        if (sslSocketFactory != null) {
-            httpClientBuilder.setSSLSocketFactory(sslSocketFactory);
-        }
+        clientConnectionManager = buildConnectionManager(httpClientBuilder);
 
         connectionMonitorTask = TimeoutManager.getInstance().addTimeoutTarget(
                 new HcConnectionMonitorTarget(clientConnectionManager, idleConnectionTimeout), connectionCheckInterval, true);
@@ -385,19 +398,48 @@ public class HcHttpClient extends AbstractCrawlerClient {
         httpClient = closeableHttpClient;
     }
 
-    protected LayeredConnectionSocketFactory buildSSLSocketFactory() {
+    public void shutdown() {
+        if (clientConnectionManager != null) {
+            clientConnectionManager.shutdown();
+        }
+    }
+
+    protected HttpClientConnectionManager buildConnectionManager(final HttpClientBuilder httpClientBuilder) {
+        // SSL
+        final LayeredConnectionSocketFactory sslSocketFactory = buildSSLSocketFactory(httpClientBuilder);
+        final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create()//
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())//
+                .register("https", sslSocketFactory).build();
+
+        final long timeToLive = getInitParameter(TIME_TO_LIVE_PROPERTY, 5L, Long.class);
+        final TimeUnit timeUnit = TimeUnit.valueOf(getInitParameter(TIME_TO_LIVE_TIME_UNIT_PROPERTY, "MINUTES", String.class));
+        final int maxTotal = getInitParameter(MAX_TOTAL_CONNECTION_PROPERTY, 200, Integer.class);
+        final int defaultMaxPerRoute = getInitParameter(DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY, 20, Integer.class);
+
+        final PoolingHttpClientConnectionManager connectionManager =
+                new PoolingHttpClientConnectionManager(socketFactoryRegistry, null, null, dnsResolver, timeToLive, timeUnit);
+        connectionManager.setMaxTotal(maxTotal);
+        connectionManager.setDefaultMaxPerRoute(defaultMaxPerRoute);
+        return connectionManager;
+    }
+
+    protected LayeredConnectionSocketFactory buildSSLSocketFactory(final HttpClientBuilder httpClientBuilder) {
         if (sslSocketFactory != null) {
             return sslSocketFactory;
         } else if (getInitParameter(IGNORE_SSL_CERTIFICATE_PROPERTY, false, Boolean.class)) {
             try {
-                final SSLContextBuilder builder = new SSLContextBuilder();
-                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-                return new SSLConnectionSocketFactory(builder.build());
+                final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
+                    public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                        return true;
+                    }
+                }).build();
+                httpClientBuilder.setSSLContext(sslContext);
+                return new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
             } catch (final Exception e) {
                 logger.warn("Failed to create TrustSelfSignedStrategy.", e);
             }
         }
-        return null;
+        return SSLConnectionSocketFactory.getSocketFactory();
     }
 
     protected Lookup<CookieSpecProvider> buildCookieSpecRegistry() {
@@ -904,10 +946,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public void setHttpClientContext(final HttpClientContext httpClientContext) {
         this.httpClientContext = httpClientContext;
-    }
-
-    public void setClientConnectionManager(final HttpClientConnectionManager clientConnectionManager) {
-        this.clientConnectionManager = clientConnectionManager;
     }
 
     public void setAuthSchemeProviderMap(final Map<String, AuthSchemeProvider> authSchemeProviderMap) {

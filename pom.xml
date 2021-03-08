@@ -55,8 +55,8 @@
     <nekohtml.version>2.1.1</nekohtml.version>
     <jodconverter.version>4.3.0</jodconverter.version>
     <minio.version>7.1.4</minio.version>
-    <fesen.runner.version>0.11.0-SNAPSHOT</fesen.runner.version>
-    <fesen.httpclient.version>0.11.0-SNAPSHOT</fesen.httpclient.version>
+    <fesen.runner.version>0.11.0</fesen.runner.version>
+    <fesen.httpclient.version>0.11.0</fesen.httpclient.version>
   </properties>
   <build>
     <pluginManagement>

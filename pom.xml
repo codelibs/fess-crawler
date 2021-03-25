@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codelibs.fess</groupId>
   <artifactId>fess-crawler-parent</artifactId>
-  <version>3.11.2-SNAPSHOT</version>
+  <version>3.12.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Fess Crawler Project</name>
   <description>Fess Crawler is Crawler Framework.</description>
@@ -55,8 +55,8 @@
     <nekohtml.version>2.1.1</nekohtml.version>
     <jodconverter.version>4.3.0</jodconverter.version>
     <minio.version>7.1.4</minio.version>
-    <fesen.runner.version>0.11.0</fesen.runner.version>
-    <fesen.httpclient.version>0.11.0</fesen.httpclient.version>
+    <fesen.runner.version>0.12.0-SNAPSHOT</fesen.runner.version>
+    <fesen.httpclient.version>0.12.0-SNAPSHOT</fesen.httpclient.version>
   </properties>
   <build>
     <pluginManagement>

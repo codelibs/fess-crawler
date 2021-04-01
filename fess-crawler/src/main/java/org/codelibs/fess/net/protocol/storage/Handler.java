@@ -28,12 +28,11 @@ import org.codelibs.core.lang.StringUtil;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.MinioClient.Builder;
-import io.minio.ObjectStat;
 import io.minio.StatObjectArgs;
+import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
-import io.minio.errors.InvalidBucketNameException;
 import io.minio.errors.InvalidResponseException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
@@ -50,7 +49,7 @@ public class Handler extends URLStreamHandler {
         private MinioClient minioClient;
         private String bucketName;
         private String objectName;
-        private ObjectStat statObject;
+        private StatObjectResponse statObject;
 
         protected StorageURLConnection(final URL url) {
             super(url);
@@ -99,15 +98,15 @@ public class Handler extends URLStreamHandler {
                 final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(objectName).build();
                 return minioClient.getObject(args);
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
                     | IOException | ServerException e) {
                 throw new IOException("Failed to access " + url, e);
             }
         }
 
-        private ObjectStat getStatObject()
+        private StatObjectResponse getStatObject()
                 throws InvalidKeyException, ErrorResponseException, IllegalArgumentException, InsufficientDataException, InternalException,
-                InvalidBucketNameException, InvalidResponseException, NoSuchAlgorithmException, XmlParserException, IOException, ServerException {
+                InvalidResponseException, NoSuchAlgorithmException, XmlParserException, IOException, ServerException {
             if (statObject == null) {
                 final StatObjectArgs args = StatObjectArgs.builder().bucket(bucketName).object(objectName).build();
                 statObject = minioClient.statObject(args);
@@ -121,9 +120,9 @@ public class Handler extends URLStreamHandler {
                 return -1;
             }
             try {
-                return getStatObject().length();
+                return getStatObject().size();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
                     | IOException | ServerException e) {
                 return -1;
             }
@@ -137,7 +136,7 @@ public class Handler extends URLStreamHandler {
             try {
                 return getStatObject().contentType();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
                     | IOException | ServerException e) {
                 return null;
             }
@@ -154,9 +153,9 @@ public class Handler extends URLStreamHandler {
                 return 0;
             }
             try {
-                return getStatObject().createdTime().toEpochSecond();
+                return getStatObject().lastModified().toEpochSecond();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidBucketNameException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
                     | IOException | ServerException e) {
                 return 0;
             }

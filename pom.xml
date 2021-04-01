@@ -54,7 +54,7 @@
     <pdfbox.version>2.0.23</pdfbox.version>
     <nekohtml.version>2.1.1</nekohtml.version>
     <jodconverter.version>4.4.2</jodconverter.version>
-    <minio.version>7.1.4</minio.version>
+    <minio.version>8.1.0</minio.version>
     <fesen.runner.version>0.12.0-SNAPSHOT</fesen.runner.version>
     <fesen.httpclient.version>0.12.0-SNAPSHOT</fesen.httpclient.version>
     <junit.version>4.13.2</junit.version>

@@ -48,14 +48,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.minio.BucketExistsArgs;
-import io.minio.ErrorCode;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.MinioClient.Builder;
-import io.minio.ObjectStat;
 import io.minio.Result;
 import io.minio.StatObjectArgs;
+import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.Item;
 
@@ -170,17 +169,17 @@ public class StorageClient extends AbstractCrawlerClient {
             final String[] paths = parsePath(filePath.replaceFirst("^storage:/+", StringUtil.EMPTY));
             final String bucketName = paths[0];
             final String path = paths[1];
-            final ObjectStat statObject = getStatObject(bucketName, path);
+            final StatObjectResponse statObject = getStatObject(bucketName, path);
             if (statObject != null) {
                 // check file size
-                responseData.setContentLength(statObject.length());
+                responseData.setContentLength(statObject.size());
                 checkMaxContentLength(responseData);
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(getCharset());
-                responseData.setLastModified(statObject.createdTime() == null ? null : Date.from(statObject.createdTime().toInstant()));
+                responseData.setLastModified(statObject.lastModified() == null ? null : Date.from(statObject.lastModified().toInstant()));
                 responseData.setMimeType(statObject.contentType());
-                statObject.httpHeaders().entrySet().forEach(e -> responseData.addMetaData(e.getKey(), e.getValue()));
+                statObject.headers().forEach(e -> responseData.addMetaData(e.getFirst(), e.getSecond()));
 
                 if (contentLengthHelper != null) {
                     final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
@@ -191,7 +190,7 @@ public class StorageClient extends AbstractCrawlerClient {
                 }
 
                 if (includeContent) {
-                    if (statObject.length() < maxCachedContentSize) {
+                    if (statObject.size() < maxCachedContentSize) {
                         final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
                         try (InputStream contentStream = new BufferedInputStream(minioClient.getObject(args))) {
                             responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
@@ -215,9 +214,9 @@ public class StorageClient extends AbstractCrawlerClient {
 
                     final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
                     try (final InputStream is = responseData.getResponseBody()) {
-                        responseData.setMimeType(mimeTypeHelper.getContentType(is, statObject.name()));
+                        responseData.setMimeType(mimeTypeHelper.getContentType(is, statObject.object()));
                     } catch (final Exception e) {
-                        responseData.setMimeType(mimeTypeHelper.getContentType(null, statObject.name()));
+                        responseData.setMimeType(mimeTypeHelper.getContentType(null, statObject.object()));
                     }
                 }
             } else {
@@ -241,7 +240,7 @@ public class StorageClient extends AbstractCrawlerClient {
         return responseData;
     }
 
-    protected ObjectStat getStatObject(final String bucketName, final String path) {
+    protected StatObjectResponse getStatObject(final String bucketName, final String path) {
         if (StringUtil.isEmpty(path)) {
             return null;
         }
@@ -250,12 +249,12 @@ public class StorageClient extends AbstractCrawlerClient {
             final StatObjectArgs args = StatObjectArgs.builder().bucket(bucketName).object(path).build();
             return minioClient.statObject(args);
         } catch (final ErrorResponseException e) {
-            final ErrorCode code = e.errorResponse().errorCode();
+            final String code = e.errorResponse().code();
             switch (code) {
-            case NO_SUCH_BUCKET:
+            case "NoSuchBucket":
                 throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
-            case NO_SUCH_KEY:
-            case NO_SUCH_OBJECT:
+            case "NoSuchKey":
+            case "NoSuchObject":
                 if (logger.isDebugEnabled()) {
                     logger.debug("{} is not an object.", path);
                 }

@@ -52,9 +52,14 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.codelibs</groupId>
+      <artifactId>sai</artifactId>
+      <version>0.2.0</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.1</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -17,9 +17,6 @@ package org.codelibs.fess.crawler.rule.impl;
 
 import java.io.InputStream;
 
-import javax.annotation.Resource;
-
-import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
@@ -37,9 +34,6 @@ public class SitemapsRule extends RegexRule {
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = LoggerFactory.getLogger(SitemapsRule.class);
-
-    @Resource
-    protected CrawlerContainer crawlerContainer;
 
     @Override
     public boolean match(final ResponseData responseData) {

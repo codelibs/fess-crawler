@@ -28,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
@@ -83,7 +84,7 @@ public class XmlTransformer extends AbstractTransformer {
     protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 
     /** a flag to trim a space characters. */
-    protected boolean trimSpace = true;
+    protected boolean trimSpaceEnabled = true;
 
     protected String charsetName = Constants.UTF_8;
 
@@ -168,6 +169,8 @@ public class XmlTransformer extends AbstractTransformer {
         try (final InputStream is = responseData.getResponseBody()) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
 
             for (final Map.Entry<String, Object> entry : attributeMap.entrySet()) {
                 factory.setAttribute(entry.getKey(), entry.getValue());
@@ -288,7 +291,7 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     protected String trimSpace(final String value) {
-        if (trimSpace) {
+        if (trimSpaceEnabled) {
             final Matcher matcher = SPACE_PATTERN.matcher(value);
             return matcher.replaceAll(" ").trim();
         }
@@ -325,14 +328,14 @@ public class XmlTransformer extends AbstractTransformer {
      * @return the trimSpace
      */
     public boolean isTrimSpace() {
-        return trimSpace;
+        return trimSpaceEnabled;
     }
 
     /**
      * @param trimSpace the trimSpace to set
      */
     public void setTrimSpace(final boolean trimSpace) {
-        this.trimSpace = trimSpace;
+        this.trimSpaceEnabled = trimSpace;
     }
 
     /**

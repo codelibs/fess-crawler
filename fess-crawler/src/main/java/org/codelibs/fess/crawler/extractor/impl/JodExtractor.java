@@ -17,7 +17,6 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -28,7 +27,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.tika.metadata.TikaMetadataKeys;
-import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -191,15 +189,11 @@ public class JodExtractor extends AbstractExtractor {
         if (extractor != null) {
             final Map<String, String> params = new HashMap<>();
             params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, outputFile.getName());
-            FileInputStream in = null;
-            try {
-                in = new FileInputStream(outputFile);
+            try (final FileInputStream in = new FileInputStream(outputFile)) {
                 final ExtractData extractData = extractor.getText(in, params);
                 return extractData.getContent();
-            } catch (final FileNotFoundException e) {
+            } catch (final IOException e) {
                 throw new ExtractException("Could not open " + outputFile.getAbsolutePath(), e);
-            } finally {
-                CloseableUtil.closeQuietly(in);
             }
         }
         try {

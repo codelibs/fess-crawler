@@ -126,7 +126,10 @@ public class RuleManagerImplTest extends PlainTestCase {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
         responseData.setResponseBody(new byte[0]);
-        ruleManager.getRule(responseData);
+        final Rule rule = ruleManager.getRule(responseData);
+        assertNotNull(rule);
+        assertEquals("fileRule", rule.getRuleId());
+        CloseableUtil.closeQuietly(responseData);
     }
 
     public void test_checkRule() {

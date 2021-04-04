@@ -57,7 +57,7 @@ public class XpathTransformer extends HtmlTransformer {
     protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 
     /** a flag to trim a space characters. */
-    protected boolean trimSpace = true;
+    protected boolean trimSpaceEnabled = true;
 
     protected String charsetName = Constants.UTF_8;
 
@@ -182,7 +182,7 @@ public class XpathTransformer extends HtmlTransformer {
     }
 
     protected String trimSpace(final String value) {
-        if (trimSpace) {
+        if (trimSpaceEnabled) {
             final Matcher matcher = SPACE_PATTERN.matcher(value);
             return matcher.replaceAll(" ").trim();
         }
@@ -227,11 +227,11 @@ public class XpathTransformer extends HtmlTransformer {
     }
 
     public boolean isTrimSpace() {
-        return trimSpace;
+        return trimSpaceEnabled;
     }
 
     public void setTrimSpace(final boolean trimSpace) {
-        this.trimSpace = trimSpace;
+        this.trimSpaceEnabled = trimSpace;
     }
 
     public String getCharsetName() {

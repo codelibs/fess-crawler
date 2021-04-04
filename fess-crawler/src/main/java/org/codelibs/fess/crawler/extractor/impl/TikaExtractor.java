@@ -39,7 +39,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
@@ -69,7 +68,6 @@ import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.io.ReaderUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
-import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -121,9 +119,6 @@ public class TikaExtractor extends PasswordBasedExtractor {
     private final Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
 
     private final Map<String, PDFParserConfig> pdfParserConfigMap = new ConcurrentHashMap<>();
-
-    @Resource
-    protected CrawlerContainer crawlerContainer;
 
     @PostConstruct
     public void init() {

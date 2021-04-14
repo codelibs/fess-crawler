@@ -91,7 +91,8 @@ public class ResponseData implements Closeable {
     public InputStream getResponseBody() {
         if (responseBodyBytes != null) {
             return new ByteArrayInputStream(responseBodyBytes);
-        } else if (responseBodyFile != null) {
+        }
+        if (responseBodyFile != null) {
             try {
                 return new FileInputStream(responseBodyFile);
             } catch (final FileNotFoundException e) {

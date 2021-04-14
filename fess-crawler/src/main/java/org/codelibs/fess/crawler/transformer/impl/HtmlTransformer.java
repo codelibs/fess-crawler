@@ -303,7 +303,7 @@ public class HtmlTransformer extends AbstractTransformer {
         try {
             // feature
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()) ? true : false);
+                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()) == true);
             }
 
             // property
@@ -374,10 +374,8 @@ public class HtmlTransformer extends AbstractTransformer {
                     logger.debug("Add Child: {}", u);
                 }
                 urlList.add(u);
-            } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Skip Child: {}", u);
-                }
+            } else if (logger.isDebugEnabled()) {
+                logger.debug("Skip Child: {}", u);
             }
         } catch (final MalformedURLException e) {
             logger.warn("Malformed URL: " + attrValue, e);

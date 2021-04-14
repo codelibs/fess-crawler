@@ -82,8 +82,8 @@ public class RobotsTxtHelper {
                     continue;
                 }
 
-                String value;
-                if ((value = getValue(USER_AGENT_RECORD, line)) != null) {
+                String value = getValue(USER_AGENT_RECORD, line);
+                if (value != null) {
                     if (isGroupRecodeStarted) {
                         currentDirectiveList.clear();
                         isGroupRecodeStarted = false;
@@ -97,7 +97,8 @@ public class RobotsTxtHelper {
                     }
                 } else {
                     isGroupRecodeStarted = true;
-                    if ((value = getValue(DISALLOW_RECORD, line)) != null) {
+                    value = getValue(DISALLOW_RECORD, line);
+                    if (value != null) {
                         if (!currentDirectiveList.isEmpty() && value.length() > 0) {
                             for (final Directive directive : currentDirectiveList) {
                                 directive.addDisallow(value);
@@ -120,10 +121,8 @@ public class RobotsTxtHelper {
                                 // ignore
                             }
                         }
-                    } else if ((value = getValue(SITEMAP_RECORD, line)) != null) {
-                        if (value.length() > 0) {
-                            robotsTxt.addSitemap(value);
-                        }
+                    } else if (((value = getValue(SITEMAP_RECORD, line)) != null) && (value.length() > 0)) {
+                        robotsTxt.addSitemap(value);
                     }
                 }
             }

@@ -26,8 +26,6 @@ import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -74,7 +72,6 @@ import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.Cookie;
@@ -426,13 +423,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
     protected LayeredConnectionSocketFactory buildSSLSocketFactory(final HttpClientBuilder httpClientBuilder) {
         if (sslSocketFactory != null) {
             return sslSocketFactory;
-        } else if (getInitParameter(IGNORE_SSL_CERTIFICATE_PROPERTY, false, Boolean.class)) {
+        }
+        if (getInitParameter(IGNORE_SSL_CERTIFICATE_PROPERTY, false, Boolean.class)) {
             try {
-                final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-                    public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-                        return true;
-                    }
-                }).build();
+                final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, (arg0, arg1) -> true).build();
                 httpClientBuilder.setSSLContext(sslContext);
                 return new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
             } catch (final Exception e) {
@@ -700,9 +694,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             // redirect
             if (isRedirectHttpStatus(httpStatusCode)) {
                 final Header locationHeader = response.getFirstHeader("location");
-                if (locationHeader == null) {
-                    logger.warn("Invalid redirect location at {}", url);
-                } else {
+                if (locationHeader != null) {
                     final String redirectLocation;
                     if (locationHeader.getValue().startsWith("/")) {
                         redirectLocation = buildRedirectLocation(url, locationHeader.getValue());
@@ -713,6 +705,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     responseData.setRedirectLocation(redirectLocation);
                     return responseData;
                 }
+                logger.warn("Invalid redirect location at {}", url);
             }
 
             String contentType = null;

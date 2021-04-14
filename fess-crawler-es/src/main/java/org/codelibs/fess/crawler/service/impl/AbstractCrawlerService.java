@@ -181,9 +181,11 @@ public abstract class AbstractCrawlerService {
         final Object obj = sourceMap.get(name);
         if (obj instanceof Date) {
             return (Date) obj;
-        } else if (obj instanceof Number) {
+        }
+        if (obj instanceof Number) {
             return new Date(((Number) obj).longValue());
-        } else if (obj instanceof String) {
+        }
+        if (obj instanceof String) {
             final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
             try {
@@ -354,12 +356,10 @@ public abstract class AbstractCrawlerService {
                     }
                     builder.setQuery(boolQuery);
                 }
+            } else if (queryBuilder != null) {
+                builder.setQuery(queryBuilder);
             } else {
-                if (queryBuilder != null) {
-                    builder.setQuery(queryBuilder);
-                } else {
-                    builder.setQuery(QueryBuilders.matchAllQuery());
-                }
+                builder.setQuery(QueryBuilders.matchAllQuery());
             }
             if (sortBuilder != null) {
                 builder.addSort(sortBuilder);

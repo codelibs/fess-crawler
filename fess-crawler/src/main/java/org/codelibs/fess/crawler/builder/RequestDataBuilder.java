@@ -43,9 +43,11 @@ public final class RequestDataBuilder {
         public RequestDataContext method(final String method) {
             if (Constants.GET_METHOD.equalsIgnoreCase(method)) {
                 return get();
-            } else if (Constants.HEAD_METHOD.equalsIgnoreCase(method)) {
+            }
+            if (Constants.HEAD_METHOD.equalsIgnoreCase(method)) {
                 return head();
-            } else if (Constants.POST_METHOD.equalsIgnoreCase(method)) {
+            }
+            if (Constants.POST_METHOD.equalsIgnoreCase(method)) {
                 return post();
             }
             return get();

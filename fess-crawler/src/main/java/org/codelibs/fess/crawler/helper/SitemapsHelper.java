@@ -66,11 +66,10 @@ public class SitemapsHelper {
             if ((preloadDate.indexOf("<urlset") >= 0) || (preloadDate.indexOf("<sitemapindex") >= 0) || (preloadDate.startsWith("http://") || preloadDate.startsWith("https://"))) {
                 // XML Sitemaps
                 return true;
-            } else {
-                // gz
-                bis.reset();
-                return isValid(new GZIPInputStream(bis), false);
             }
+            // gz
+            bis.reset();
+            return isValid(new GZIPInputStream(bis), false);
         } catch (final Exception e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to validate a file.", e);
@@ -107,11 +106,13 @@ public class SitemapsHelper {
                 // XML Sitemaps
                 bis.reset();
                 return parseXmlSitemaps(bis);
-            } else if (preloadDate.indexOf("<sitemapindex") >= 0) {
+            }
+            if (preloadDate.indexOf("<sitemapindex") >= 0) {
                 // XML Sitemaps Index
                 bis.reset();
                 return parseXmlSitemapsIndex(bis);
-            } else if (preloadDate.startsWith("http://") || preloadDate.startsWith("https://")) {
+            }
+            if (preloadDate.startsWith("http://") || preloadDate.startsWith("https://")) {
                 // Text Sitemaps Index
                 bis.reset();
                 return parseTextSitemaps(bis);
@@ -236,11 +237,9 @@ public class SitemapsHelper {
                     sitemapUrl.setChangefreq(buf.toString().trim());
                     buf = null;
                 }
-            } else if (PRIORITY_ELEMENT.equals(qName)) {
-                if (buf != null) {
-                    sitemapUrl.setPriority(buf.toString().trim());
-                    buf = null;
-                }
+            } else if (PRIORITY_ELEMENT.equals(qName) && (buf != null)) {
+                sitemapUrl.setPriority(buf.toString().trim());
+                buf = null;
             }
         }
 
@@ -311,11 +310,9 @@ public class SitemapsHelper {
                     sitemapFile.setLoc(buf.toString().trim());
                     buf = null;
                 }
-            } else if ("lastmod".equals(qName)) {
-                if (buf != null) {
-                    sitemapFile.setLastmod(buf.toString().trim());
-                    buf = null;
-                }
+            } else if ("lastmod".equals(qName) && (buf != null)) {
+                sitemapFile.setLastmod(buf.toString().trim());
+                buf = null;
             }
         }
 

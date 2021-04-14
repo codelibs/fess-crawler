@@ -285,7 +285,8 @@ public class FtpClient extends AbstractCrawlerClient {
                 responseData.setContentLength(0);
                 ftpClientQueue.offer(client);
                 return;
-            } else if (link.startsWith("/")) {
+            }
+            if (link.startsWith("/")) {
                 redirect = ftpInfo.toUrl(file.getLink());
             } else if (link.startsWith("../")) {
                 redirect = ftpInfo.toChildUrl(file.getLink());
@@ -475,10 +476,8 @@ public class FtpClient extends AbstractCrawlerClient {
             validateRequest(ftpClient);
 
             final FtpAuthentication auth = ftpAuthenticationHolder.get(info.toUrl());
-            if (auth != null) {
-                if (!ftpClient.login(auth.getUsername(), auth.getPassword())) {
-                    throw new CrawlerLoginFailureException("Login Failure: " + auth.getUsername() + " for " + info.toUrl());
-                }
+            if ((auth != null) && !ftpClient.login(auth.getUsername(), auth.getPassword())) {
+                throw new CrawlerLoginFailureException("Login Failure: " + auth.getUsername() + " for " + info.toUrl());
             }
 
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);

@@ -33,7 +33,6 @@ public class EsAccessResultData extends AccessResultDataImpl<String> implements 
     public static final String ENCODING = "encoding";
 
     public EsAccessResultData() {
-        super();
     }
 
     public EsAccessResultData(final Map<String, Object> src) {

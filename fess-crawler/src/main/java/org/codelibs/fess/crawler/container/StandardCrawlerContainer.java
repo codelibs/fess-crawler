@@ -145,12 +145,12 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         protected void destroy() {
             final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(instance.getClass());
             for (final String methodName : beanDesc.getMethodNames()) {
-                final MethodDesc methodDesc = beanDesc.getMethodDescNoException(methodName, new Class[0]);
+                final MethodDesc methodDesc = beanDesc.getMethodDescNoException(methodName);
                 if (methodDesc != null) {
                     final Method method = methodDesc.getMethod();
                     final PreDestroy postConstruct = method.getAnnotation(PreDestroy.class);
                     if (postConstruct != null) {
-                        MethodUtil.invoke(method, instance, new Object[0]);
+                        MethodUtil.invoke(method, instance);
                     }
                 }
             }
@@ -196,12 +196,12 @@ public class StandardCrawlerContainer implements CrawlerContainer {
             }
 
             for (final String methodName : beanDesc.getMethodNames()) {
-                final MethodDesc methodDesc = beanDesc.getMethodDescNoException(methodName, new Class[0]);
+                final MethodDesc methodDesc = beanDesc.getMethodDescNoException(methodName);
                 if (methodDesc != null) {
                     final Method method = methodDesc.getMethod();
                     final PostConstruct postConstruct = method.getAnnotation(PostConstruct.class);
                     if (postConstruct != null) {
-                        MethodUtil.invoke(method, component, new Object[0]);
+                        MethodUtil.invoke(method, component);
                     }
                 }
             }

@@ -101,7 +101,8 @@ public class PdfExtractor extends PasswordBasedExtractor {
                     ThreadUtil.sleep(100L);
                 }
                 throw new ExtractException("PDFBox process cannot finish in " + timeout + " sec.");
-            } else if (!exceptionSet.isEmpty()) {
+            }
+            if (!exceptionSet.isEmpty()) {
                 throw exceptionSet.iterator().next();
             }
             writer.flush();

@@ -57,11 +57,12 @@ public class Handler extends URLStreamHandler {
             if (values.length == 2) {
                 bucketName = values[0];
                 objectName = values[1];
-            } else if (values.length == 1) {
-                bucketName = values[0];
-                objectName = StringUtil.EMPTY;
             } else {
-                bucketName = StringUtil.EMPTY;
+                if (values.length == 1) {
+                    bucketName = values[0];
+                } else {
+                    bucketName = StringUtil.EMPTY;
+                }
                 objectName = StringUtil.EMPTY;
             }
         }

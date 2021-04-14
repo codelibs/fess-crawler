@@ -62,10 +62,8 @@ public class RegexRule extends AbstractRule {
                 if (!matcher.matches()) {
                     return false;
                 }
-            } else {
-                if (matcher.matches()) {
-                    return true;
-                }
+            } else if (matcher.matches()) {
+                return true;
             }
         }
 

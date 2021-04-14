@@ -32,6 +32,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -243,9 +244,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             if (lowerName.contains("comment") || lowerName.contains("text")) {
                                 final String[] values = metadata.getValues(name);
                                 if (values != null) {
-                                    for (final String value : values) {
-                                        list.add(value);
-                                    }
+                                    Collections.addAll(list, values);
                                 }
                             }
                         }
@@ -392,9 +391,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
     protected InputStream getContentStream(final DeferredFileOutputStream dfos) throws IOException {
         if (dfos.isInMemory()) {
             return new ByteArrayInputStream(dfos.getData());
-        } else {
-            return new BufferedInputStream(new FileInputStream(dfos.getFile()));
         }
+        return new BufferedInputStream(new FileInputStream(dfos.getFile()));
     }
 
     protected String getContent(final ContentWriter out, final String encoding, final boolean normalizeText) throws TikaException {
@@ -413,9 +411,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 if (normalizeText) {
                     return TextUtil.normalizeText(reader).initialCapacity(initialBufferSize).maxAlphanumTermSize(maxAlphanumTermSize)
                             .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(replaceDuplication).spaceChars(spaceChars).execute();
-                } else {
-                    return ReaderUtil.readText(reader);
                 }
+                return ReaderUtil.readText(reader);
             }
         } catch (final TikaException e) {
             throw e;

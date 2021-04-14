@@ -295,7 +295,6 @@ public class CommandExtractor extends AbstractExtractor {
         private boolean teminated = false;
 
         public MonitorThread(final Process process, final long timeout) {
-            super();
             this.process = process;
             this.timeout = timeout;
         }
@@ -341,7 +340,6 @@ public class CommandExtractor extends AbstractExtractor {
         private final int maxLineBuffer;
 
         public InputStreamThread(final InputStream is, final String charset, final int maxOutputLineBuffer) {
-            super();
             try {
                 br = new BufferedReader(new InputStreamReader(is, charset));
             } catch (final UnsupportedEncodingException e) {

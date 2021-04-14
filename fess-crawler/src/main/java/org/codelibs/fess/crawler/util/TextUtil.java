@@ -208,10 +208,10 @@ public final class TextUtil {
     private static String rightString(final StringBuilder buf, final int length) {
         if (length <= 0) {
             return StringUtils.EMPTY;
-        } else if (length >= buf.length()) {
-            return buf.toString();
-        } else {
-            return buf.substring(buf.length() - length, buf.length());
         }
+        if (length >= buf.length()) {
+            return buf.toString();
+        }
+        return buf.substring(buf.length() - length, buf.length());
     }
 }

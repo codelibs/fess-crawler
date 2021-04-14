@@ -77,12 +77,7 @@ public class RequestData {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (metaData == null ? 0 : metaData.hashCode());
-        result = prime * result + (method == null ? 0 : method.hashCode());
-        result = prime * result + (url == null ? 0 : url.hashCode());
-        return result;
+        return Objects.hash(metaData, method, url);
     }
 
     @Override

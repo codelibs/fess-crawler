@@ -37,12 +37,11 @@ public class IdnDnsResolver implements DnsResolver {
     protected String decode(final String host) {
         if (host.indexOf('%') == -1) {
             return host;
-        } else {
-            try {
-                return URLDecoder.decode(host, encoding);
-            } catch (final UnsupportedEncodingException e) {
-                return host;
-            }
+        }
+        try {
+            return URLDecoder.decode(host, encoding);
+        } catch (final UnsupportedEncodingException e) {
+            return host;
         }
     }
 

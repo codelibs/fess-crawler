@@ -152,7 +152,7 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
             super.insert(urlQueue, urlQueue.getId() == null ? OpType.CREATE : OpType.INDEX);
         } catch (final EsAccessException e) {
             final Throwable cause = e.getCause();
-            if (cause != null && cause.getClass().getSimpleName().equals("VersionConflictEngineException")) {
+            if (cause != null && "VersionConflictEngineException".equals(cause.getClass().getSimpleName())) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Failed to insert {}", urlQueue, e);
                 }

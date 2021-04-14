@@ -32,7 +32,6 @@ public class HostIntervalController extends DefaultIntervalController {
     private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<>();
 
     public HostIntervalController() {
-        super();
     }
 
     public HostIntervalController(final Map<String, Long> params) {

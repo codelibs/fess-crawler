@@ -52,8 +52,8 @@ public final class XmlUtil {
                         .replaceAll("&", "&amp;") //
                         .replaceAll("<", "&lt;")//
                         .replaceAll(">", "&gt;")//
-                        .replaceAll("\"", "&quot;")//
-                        .replaceAll("\'", "&apos;")//
+                        .replace("\"", "&quot;")//
+                        .replace("\'", "&apos;")//
         );
     }
 

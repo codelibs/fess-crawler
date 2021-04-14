@@ -133,10 +133,12 @@ public class EsDataService extends AbstractCrawlerService implements DataService
     private <T> T getFieldValue(final Object field, final Class<T> clazz) {
         if (field == null) {
             return null;
-        } else if (clazz.equals(Integer.class)) {
+        }
+        if (clazz.equals(Integer.class)) {
             final Number value = (Number) field;
             return (T) Integer.valueOf(value.intValue());
-        } else if (clazz.equals(Long.class)) {
+        }
+        if (clazz.equals(Long.class)) {
             final Number value = (Number) field;
             return (T) Long.valueOf(value.longValue());
         }

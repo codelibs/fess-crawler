@@ -84,22 +84,19 @@ public class FileTransformer extends HtmlTransformer {
                 if (!file.isDirectory()) {
                     for (int j = 0; j < maxDuplicatedPath; j++) {
                         file = new File(targetFile, paths[i] + "_" + j);
-                        if (file.exists()) {
-                            if (file.isDirectory()) {
-                                break;
-                            }
-                        } else {
+                        if (!file.exists()) {
                             if (!file.mkdirs()) {
                                 throw new CrawlerSystemException("Could not create " + file.getAbsolutePath());
                             }
                             break;
                         }
+                        if (file.isDirectory()) {
+                            break;
+                        }
                     }
                 }
-            } else {
-                if (!file.mkdirs()) {
-                    throw new CrawlerSystemException("Could not create " + file.getAbsolutePath());
-                }
+            } else if (!file.mkdirs()) {
+                throw new CrawlerSystemException("Could not create " + file.getAbsolutePath());
             }
             targetFile = file;
         }

@@ -30,7 +30,6 @@ public class DefaultIntervalController extends AbstractIntervalController {
     protected long delayMillisForWaitingNewUrl = 1000L;
 
     public DefaultIntervalController() {
-        super();
     }
 
     public DefaultIntervalController(final Map<String, Long> params) {

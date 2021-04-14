@@ -152,7 +152,8 @@ public class StorageClient extends AbstractCrawlerClient {
             final String[] values = path.split("/", 2);
             if (values.length == 2) {
                 return values;
-            } else if (values.length == 1 && StringUtil.isNotEmpty(values[0])) {
+            }
+            if (values.length == 1 && StringUtil.isNotEmpty(values[0])) {
                 return new String[] { values[0], StringUtil.EMPTY };
             }
         }
@@ -170,56 +171,7 @@ public class StorageClient extends AbstractCrawlerClient {
             final String bucketName = paths[0];
             final String path = paths[1];
             final StatObjectResponse statObject = getStatObject(bucketName, path);
-            if (statObject != null) {
-                // check file size
-                responseData.setContentLength(statObject.size());
-                checkMaxContentLength(responseData);
-
-                responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
-                responseData.setCharSet(getCharset());
-                responseData.setLastModified(statObject.lastModified() == null ? null : Date.from(statObject.lastModified().toInstant()));
-                responseData.setMimeType(statObject.contentType());
-                statObject.headers().forEach(e -> responseData.addMetaData(e.getFirst(), e.getSecond()));
-
-                if (contentLengthHelper != null) {
-                    final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
-                    if (responseData.getContentLength() > maxLength) {
-                        throw new MaxLengthExceededException("The content length (" + responseData.getContentLength() + " byte) is over "
-                                + maxLength + " byte. The url is " + filePath);
-                    }
-                }
-
-                if (includeContent) {
-                    if (statObject.size() < maxCachedContentSize) {
-                        final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
-                        try (InputStream contentStream = new BufferedInputStream(minioClient.getObject(args))) {
-                            responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
-                        } catch (final Exception e) {
-                            logger.warn("I/O Exception.", e);
-                            responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
-                        }
-                    } else {
-                        File outputFile = null;
-                        try {
-                            outputFile = File.createTempFile("crawler-SmbClient-", ".out");
-                            final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
-                            CopyUtil.copy(minioClient.getObject(args), outputFile);
-                            responseData.setResponseBody(outputFile, true);
-                        } catch (final Exception e) {
-                            logger.warn("I/O Exception.", e);
-                            responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
-                            FileUtil.deleteInBackground(outputFile);
-                        }
-                    }
-
-                    final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
-                    try (final InputStream is = responseData.getResponseBody()) {
-                        responseData.setMimeType(mimeTypeHelper.getContentType(is, statObject.object()));
-                    } catch (final Exception e) {
-                        responseData.setMimeType(mimeTypeHelper.getContentType(null, statObject.object()));
-                    }
-                }
-            } else {
+            if (statObject == null) {
                 final Set<RequestData> requestDataSet = new HashSet<>();
                 final ListObjectsArgs args = ListObjectsArgs.builder().bucket(bucketName).prefix(path).recursive(false)
                         .includeUserMetadata(false).useApiVersion1(false).build();
@@ -229,6 +181,54 @@ public class StorageClient extends AbstractCrawlerClient {
                     requestDataSet.add(RequestDataBuilder.newRequestData().get().url("storage://" + bucketName + "/" + objectName).build());
                 }
                 throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData");
+            }
+            // check file size
+            responseData.setContentLength(statObject.size());
+            checkMaxContentLength(responseData);
+
+            responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
+            responseData.setCharSet(getCharset());
+            responseData.setLastModified(statObject.lastModified() == null ? null : Date.from(statObject.lastModified().toInstant()));
+            responseData.setMimeType(statObject.contentType());
+            statObject.headers().forEach(e -> responseData.addMetaData(e.getFirst(), e.getSecond()));
+
+            if (contentLengthHelper != null) {
+                final long maxLength = contentLengthHelper.getMaxLength(responseData.getMimeType());
+                if (responseData.getContentLength() > maxLength) {
+                    throw new MaxLengthExceededException("The content length (" + responseData.getContentLength() + " byte) is over "
+                            + maxLength + " byte. The url is " + filePath);
+                }
+            }
+
+            if (includeContent) {
+                if (statObject.size() < maxCachedContentSize) {
+                    final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
+                    try (InputStream contentStream = new BufferedInputStream(minioClient.getObject(args))) {
+                        responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
+                    } catch (final Exception e) {
+                        logger.warn("I/O Exception.", e);
+                        responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                    }
+                } else {
+                    File outputFile = null;
+                    try {
+                        outputFile = File.createTempFile("crawler-SmbClient-", ".out");
+                        final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
+                        CopyUtil.copy(minioClient.getObject(args), outputFile);
+                        responseData.setResponseBody(outputFile, true);
+                    } catch (final Exception e) {
+                        logger.warn("I/O Exception.", e);
+                        responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                        FileUtil.deleteInBackground(outputFile);
+                    }
+                }
+
+                final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
+                try (final InputStream is = responseData.getResponseBody()) {
+                    responseData.setMimeType(mimeTypeHelper.getContentType(is, statObject.object()));
+                } catch (final Exception e) {
+                    responseData.setMimeType(mimeTypeHelper.getContentType(null, statObject.object()));
+                }
             }
         } catch (final CrawlerSystemException e) {
             CloseableUtil.closeQuietly(responseData);

@@ -95,34 +95,25 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     protected <T> T convertObj(final Object value, final Class<T> clazz) {
         if (clazz.isAssignableFrom(String.class)) {
             return (T) value.toString();
-        } else if (clazz.isAssignableFrom(Long.class)) {
-            if (value instanceof Long) {
-                return (T) value;
-            } else {
+        }
+        if (clazz.isAssignableFrom(Long.class)) {
+            if (!(value instanceof Long)) {
                 return (T) Long.valueOf(value.toString());
             }
         } else if (clazz.isAssignableFrom(Integer.class)) {
-            if (value instanceof Integer) {
-                return (T) value;
-            } else {
+            if (!(value instanceof Integer)) {
                 return (T) Integer.valueOf(value.toString());
             }
         } else if (clazz.isAssignableFrom(Double.class)) {
-            if (value instanceof Double) {
-                return (T) value;
-            } else {
+            if (!(value instanceof Double)) {
                 return (T) Double.valueOf(value.toString());
             }
         } else if (clazz.isAssignableFrom(Float.class)) {
-            if (value instanceof Float) {
-                return (T) value;
-            } else {
+            if (!(value instanceof Float)) {
                 return (T) Float.valueOf(value.toString());
             }
         } else if (clazz.isAssignableFrom(Boolean.class)) {
-            if (value instanceof Boolean) {
-                return (T) value;
-            } else {
+            if (!(value instanceof Boolean)) {
                 return (T) Boolean.valueOf(value.toString());
             }
         }

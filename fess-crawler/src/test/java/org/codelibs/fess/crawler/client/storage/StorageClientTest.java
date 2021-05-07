@@ -237,4 +237,10 @@ public class StorageClientTest extends PlainTestCase {
             // ok
         }
     }
+
+    public void test_urlDecode() {
+        assertEquals("", storageClient.urlDecode(""));
+        assertEquals("テスト.txt", storageClient.urlDecode("%E3%83%86%E3%82%B9%E3%83%88.txt"));
+        assertEquals("てすと/テスト.txt", storageClient.urlDecode("%E3%81%A6%E3%81%99%E3%81%A8/%E3%83%86%E3%82%B9%E3%83%88.txt"));
+    }
 }

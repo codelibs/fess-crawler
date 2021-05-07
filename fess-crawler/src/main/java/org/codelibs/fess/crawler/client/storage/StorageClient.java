@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.client.storage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -226,7 +227,7 @@ public class StorageClient extends AbstractCrawlerClient {
                         .includeUserMetadata(false).useApiVersion1(false).build();
                 for (final Result<Item> result : minioClient.listObjects(args)) {
                     final Item item = result.get();
-                    final String objectName = item.objectName();
+                    final String objectName = urlDecode(item.objectName());
                     requestDataSet.add(RequestDataBuilder.newRequestData().get().url("storage://" + bucketName + "/" + objectName).build());
                 }
                 throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData");
@@ -317,4 +318,10 @@ public class StorageClient extends AbstractCrawlerClient {
         }
     }
 
+    protected String urlDecode(final String str) {
+        if (str == null) {
+            return StringUtil.EMPTY;
+        }
+        return URLDecoder.decode(str, Constants.UTF_8_CHARSET);
+    }
 }

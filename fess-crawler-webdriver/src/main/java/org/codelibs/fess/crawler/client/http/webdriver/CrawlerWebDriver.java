@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.client.http.webdriver;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.pool2.PooledObject;
@@ -68,6 +69,8 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
     protected URL remoteAddress;
 
     protected String[] chromeArguments;
+
+    protected Map<String, Object> prefs;
 
     public void phantomjs() {
         if (capabilities == null) {
@@ -123,6 +126,9 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
             ChromeOptions options = new ChromeOptions();
             if (chromeArguments != null) {
                 options.addArguments(chromeArguments);
+            }
+            if (prefs != null) {
+                options.setExperimentalOption("prefs", prefs);
             }
             ((DesiredCapabilities) capabilities).setCapability(ChromeOptions.CAPABILITY, options);
         }
@@ -554,5 +560,9 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
 
     public void setChromeArguments(String[] chromeArguments) {
         this.chromeArguments = chromeArguments;
+    }
+
+    public void setPrefs(Map<String, Object> prefs) {
+        this.prefs = prefs;
     }
 }

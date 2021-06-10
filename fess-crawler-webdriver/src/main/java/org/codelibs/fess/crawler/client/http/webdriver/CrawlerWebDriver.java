@@ -19,8 +19,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.pool2.PooledObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Capabilities;
@@ -68,7 +66,6 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
 
     protected URL remoteAddress;
 
-    @PostConstruct
     public void phantomjs() {
         if (capabilities == null) {
             capabilities = DesiredCapabilities.phantomjs();

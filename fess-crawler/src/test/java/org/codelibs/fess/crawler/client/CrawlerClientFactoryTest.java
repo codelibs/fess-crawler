@@ -39,8 +39,7 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("httpClient", FaultTolerantClient.class)//
                 .singleton("fsClient", FileSystemClient.class)//
                 .singleton("smbClient", SmbClient.class)//

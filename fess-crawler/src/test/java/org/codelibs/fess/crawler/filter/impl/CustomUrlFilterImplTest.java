@@ -34,8 +34,7 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("dataHelper", MemoryDataHelper.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//
                 .singleton("includeFilter", UrlFilterImpl.class)//
                 .singleton("excludeFilter", UrlFilterImpl.class)//
@@ -58,15 +57,13 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
 
         assertEquals(1, includeFilter.cachedIncludeSet.size());
         assertEquals(0, includeFilter.cachedExcludeSet.size());
-        assertEquals("http://example.com/.*",
-                includeFilter.cachedIncludeSet.toArray()[0]);
+        assertEquals("http://example.com/.*", includeFilter.cachedIncludeSet.toArray()[0]);
 
         includeFilter.processUrl("https://test.com");
 
         assertEquals(2, includeFilter.cachedIncludeSet.size());
         assertEquals(0, includeFilter.cachedExcludeSet.size());
-        assertEquals("https://test.com.*",
-                includeFilter.cachedIncludeSet.toArray()[1]);
+        assertEquals("https://test.com.*", includeFilter.cachedIncludeSet.toArray()[1]);
     }
 
     public void test_exclude_processUrl() {
@@ -77,15 +74,13 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
 
         assertEquals(0, excludeFilter.cachedIncludeSet.size());
         assertEquals(1, excludeFilter.cachedExcludeSet.size());
-        assertEquals("http://example.com/.*",
-                excludeFilter.cachedExcludeSet.toArray()[0]);
+        assertEquals("http://example.com/.*", excludeFilter.cachedExcludeSet.toArray()[0]);
 
         excludeFilter.processUrl("https://test.com");
 
         assertEquals(0, excludeFilter.cachedIncludeSet.size());
         assertEquals(2, excludeFilter.cachedExcludeSet.size());
-        assertEquals("https://test.com.*",
-                excludeFilter.cachedExcludeSet.toArray()[1]);
+        assertEquals("https://test.com.*", excludeFilter.cachedExcludeSet.toArray()[1]);
     }
 
     public void test_domain_processUrl() {
@@ -96,18 +91,14 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
 
         assertEquals(1, domainFilter.cachedIncludeSet.size());
         assertEquals(1, domainFilter.cachedExcludeSet.size());
-        assertEquals("http://example.com/.*",
-                domainFilter.cachedIncludeSet.toArray()[0]);
-        assertEquals("http://example.com/.*",
-                domainFilter.cachedExcludeSet.toArray()[0]);
+        assertEquals("http://example.com/.*", domainFilter.cachedIncludeSet.toArray()[0]);
+        assertEquals("http://example.com/.*", domainFilter.cachedExcludeSet.toArray()[0]);
 
         domainFilter.processUrl("https://test.com");
 
         assertEquals(2, domainFilter.cachedIncludeSet.size());
         assertEquals(2, domainFilter.cachedExcludeSet.size());
-        assertEquals("http://test.com/.*",
-                domainFilter.cachedIncludeSet.toArray()[1]);
-        assertEquals("http://test.com/.*",
-                domainFilter.cachedExcludeSet.toArray()[1]);
+        assertEquals("http://test.com/.*", domainFilter.cachedIncludeSet.toArray()[1]);
+        assertEquals("http://test.com/.*", domainFilter.cachedExcludeSet.toArray()[1]);
     }
 }

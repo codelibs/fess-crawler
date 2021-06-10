@@ -32,45 +32,37 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class HtmlXpathExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(HtmlXpathExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(HtmlXpathExtractorTest.class);
 
     public HtmlXpathExtractor htmlXpathExtractor;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("htmlXpathExtractor", HtmlXpathExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("htmlXpathExtractor", HtmlXpathExtractor.class);
         htmlXpathExtractor = container.getComponent("htmlXpathExtractor");
         htmlXpathExtractor.init();
     }
 
     public void test_getHtml_utf8() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.html");
-        final String content = htmlXpathExtractor.getText(in, null)
-                .getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
+        final String content = htmlXpathExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
 
     public void test_getHtml_sjis() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.html");
-        final String content = htmlXpathExtractor.getText(in, null)
-                .getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
+        final String content = htmlXpathExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
     }
 
     public void test_getHtml_attr() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_attr.html");
-        final String content = htmlXpathExtractor.getText(in, null)
-                .getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_attr.html");
+        final String content = htmlXpathExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("本文1"));
@@ -84,16 +76,14 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
 
     public void test_getHtml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());
-        final String content = htmlXpathExtractor.getText(in, null)
-                .getContent();
+        final String content = htmlXpathExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertEquals("", content);
     }
 
     public void test_getEncoding_utf8() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.html");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlXpathExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);
@@ -101,8 +91,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
     }
 
     public void test_getEncoding_sjis() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.html");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = htmlXpathExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);

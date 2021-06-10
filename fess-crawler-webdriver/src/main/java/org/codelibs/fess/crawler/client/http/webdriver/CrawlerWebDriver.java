@@ -49,10 +49,8 @@ import org.openqa.selenium.remote.RemoteWebDriver;
  * @author shinsuke
  *
  */
-public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsById,
-        FindsByClassName, FindsByLinkText, FindsByName, FindsByCssSelector,
-        FindsByTagName, FindsByXPath, HasInputDevices, HasCapabilities,
-        TakesScreenshot {
+public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsById, FindsByClassName, FindsByLinkText, FindsByName,
+        FindsByCssSelector, FindsByTagName, FindsByXPath, HasInputDevices, HasCapabilities, TakesScreenshot {
 
     protected Capabilities capabilities;
 
@@ -119,17 +117,14 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
         }
         if (capabilities instanceof DesiredCapabilities) {
             if (webdriverChromeDriver != null) {
-                ((DesiredCapabilities) capabilities).setCapability(
-                        "webdriver.chrome.driver", webdriverChromeDriver);
+                ((DesiredCapabilities) capabilities).setCapability("webdriver.chrome.driver", webdriverChromeDriver);
             }
         }
-        webDriver = new RemoteWebDriver(remoteAddress,
-                DesiredCapabilities.chrome());
+        webDriver = new RemoteWebDriver(remoteAddress, DesiredCapabilities.chrome());
     }
 
     public static class OnDestroyListener
-            implements
-            org.codelibs.fess.crawler.pool.CrawlerPooledObjectFactory.OnDestroyListener<CrawlerWebDriver> {
+            implements org.codelibs.fess.crawler.pool.CrawlerPooledObjectFactory.OnDestroyListener<CrawlerWebDriver> {
         @Override
         public void onDestroy(final PooledObject<CrawlerWebDriver> p) {
             final CrawlerWebDriver driver = p.getObject();
@@ -145,8 +140,7 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
      * .OutputType)
      */
     @Override
-    public <X> X getScreenshotAs(final OutputType<X> target)
-            throws WebDriverException {
+    public <X> X getScreenshotAs(final OutputType<X> target) throws WebDriverException {
         return ((TakesScreenshot) webDriver).getScreenshotAs(target);
     }
 
@@ -249,8 +243,7 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
      */
     @Override
     public List<WebElement> findElementsByCssSelector(final String using) {
-        return ((FindsByCssSelector) webDriver)
-                .findElementsByCssSelector(using);
+        return ((FindsByCssSelector) webDriver).findElementsByCssSelector(using);
     }
 
     /*
@@ -310,8 +303,7 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
      */
     @Override
     public WebElement findElementByPartialLinkText(final String using) {
-        return ((FindsByLinkText) webDriver)
-                .findElementByPartialLinkText(using);
+        return ((FindsByLinkText) webDriver).findElementByPartialLinkText(using);
     }
 
     /*
@@ -323,8 +315,7 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
      */
     @Override
     public List<WebElement> findElementsByPartialLinkText(final String using) {
-        return ((FindsByLinkText) webDriver)
-                .findElementsByPartialLinkText(using);
+        return ((FindsByLinkText) webDriver).findElementsByPartialLinkText(using);
     }
 
     /*
@@ -394,8 +385,7 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
      */
     @Override
     public Object executeAsyncScript(final String script, final Object... args) {
-        return ((JavascriptExecutor) webDriver)
-                .executeAsyncScript(script, args);
+        return ((JavascriptExecutor) webDriver).executeAsyncScript(script, args);
     }
 
     /*

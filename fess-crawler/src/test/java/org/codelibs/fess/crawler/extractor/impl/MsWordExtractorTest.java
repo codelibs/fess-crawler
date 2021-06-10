@@ -30,22 +30,19 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class MsWordExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(MsWordExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(MsWordExtractorTest.class);
 
     public MsWordExtractor msWordExtractor;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("msWordExtractor", MsWordExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msWordExtractor", MsWordExtractor.class);
         msWordExtractor = container.getComponent("msWordExtractor");
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.doc");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         final String content = msWordExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);

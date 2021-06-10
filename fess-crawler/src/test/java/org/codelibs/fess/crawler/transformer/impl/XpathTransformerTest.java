@@ -126,8 +126,7 @@ public class XpathTransformerTest extends PlainTestCase {
                 + "</doc>";
 
         final ResponseData responseData = new ResponseData();
-        responseData.setResponseBody(ResourceUtil
-                .getResourceAsFile("html/test1.html"), false);
+        responseData.setResponseBody(ResourceUtil.getResourceAsFile("html/test1.html"), false);
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = new ResultData();
         xpathTransformer.storeData(responseData, resultData);
@@ -166,8 +165,7 @@ public class XpathTransformerTest extends PlainTestCase {
         try {
             final Object obj = xpathTransformer.getData(accessResultDataImpl);
             fail();
-        } catch (final CrawlerSystemException e) {
-        }
+        } catch (final CrawlerSystemException e) {}
     }
 
     public void test_getData_nullData() throws Exception {

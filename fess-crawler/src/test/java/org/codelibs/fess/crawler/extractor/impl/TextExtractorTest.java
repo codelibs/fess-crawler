@@ -30,22 +30,19 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TextExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(TextExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(TextExtractorTest.class);
 
     public TextExtractor textExtractor;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("textExtractor", TextExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("textExtractor", TextExtractor.class);
         textExtractor = container.getComponent("textExtractor");
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test.txt");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
         final String content = textExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);

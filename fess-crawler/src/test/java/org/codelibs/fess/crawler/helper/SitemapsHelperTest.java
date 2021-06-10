@@ -36,14 +36,12 @@ public class SitemapsHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("sitemapsHelper", SitemapsHelper.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("sitemapsHelper", SitemapsHelper.class);
         sitemapsHelper = container.getComponent("sitemapsHelper");
     }
 
     public void test_parseXmlSitemaps() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
         final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(5, sitemaps.length);
@@ -56,37 +54,28 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("0.8", ((SitemapUrl) sitemaps[0]).getPriority());
 
         assertNull(sitemaps[1].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=12&desc=vacation_hawaii",
-                sitemaps[1].getLoc());
+        assertEquals("http://www.example.com/catalog?item=12&desc=vacation_hawaii", sitemaps[1].getLoc());
         assertEquals("weekly", ((SitemapUrl) sitemaps[1]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[1]).getPriority());
 
         assertEquals("2004-12-23", sitemaps[2].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=73&desc=vacation_new_zealand",
-                sitemaps[2].getLoc());
+        assertEquals("http://www.example.com/catalog?item=73&desc=vacation_new_zealand", sitemaps[2].getLoc());
         assertEquals("weekly", ((SitemapUrl) sitemaps[2]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[2]).getPriority());
 
         assertEquals("2004-12-23T18:00:15+00:00", sitemaps[3].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=74&desc=vacation_newfoundland",
-                sitemaps[3].getLoc());
+        assertEquals("http://www.example.com/catalog?item=74&desc=vacation_newfoundland", sitemaps[3].getLoc());
         assertNull(((SitemapUrl) sitemaps[3]).getChangefreq());
         assertEquals("0.3", ((SitemapUrl) sitemaps[3]).getPriority());
 
         assertEquals("2004-11-23", sitemaps[4].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=83&desc=vacation_usa",
-                sitemaps[4].getLoc());
+        assertEquals("http://www.example.com/catalog?item=83&desc=vacation_usa", sitemaps[4].getLoc());
         assertNull(((SitemapUrl) sitemaps[4]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[4]).getPriority());
     }
 
     public void test_parseXmlSitemapsGz() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.xml.gz");
+        final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml.gz");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
         final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(5, sitemaps.length);
@@ -99,37 +88,28 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("0.8", ((SitemapUrl) sitemaps[0]).getPriority());
 
         assertNull(sitemaps[1].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=12&desc=vacation_hawaii",
-                sitemaps[1].getLoc());
+        assertEquals("http://www.example.com/catalog?item=12&desc=vacation_hawaii", sitemaps[1].getLoc());
         assertEquals("weekly", ((SitemapUrl) sitemaps[1]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[1]).getPriority());
 
         assertEquals("2004-12-23", sitemaps[2].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=73&desc=vacation_new_zealand",
-                sitemaps[2].getLoc());
+        assertEquals("http://www.example.com/catalog?item=73&desc=vacation_new_zealand", sitemaps[2].getLoc());
         assertEquals("weekly", ((SitemapUrl) sitemaps[2]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[2]).getPriority());
 
         assertEquals("2004-12-23T18:00:15+00:00", sitemaps[3].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=74&desc=vacation_newfoundland",
-                sitemaps[3].getLoc());
+        assertEquals("http://www.example.com/catalog?item=74&desc=vacation_newfoundland", sitemaps[3].getLoc());
         assertNull(((SitemapUrl) sitemaps[3]).getChangefreq());
         assertEquals("0.3", ((SitemapUrl) sitemaps[3]).getPriority());
 
         assertEquals("2004-11-23", sitemaps[4].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=83&desc=vacation_usa",
-                sitemaps[4].getLoc());
+        assertEquals("http://www.example.com/catalog?item=83&desc=vacation_usa", sitemaps[4].getLoc());
         assertNull(((SitemapUrl) sitemaps[4]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[4]).getPriority());
     }
 
     public void test_parseTextSitemaps() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap1.txt");
+        final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap1.txt");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
         final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(5, sitemaps.length);
@@ -142,37 +122,28 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertNull(((SitemapUrl) sitemaps[0]).getPriority());
 
         assertNull(sitemaps[1].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=12&desc=vacation_hawaii",
-                sitemaps[1].getLoc());
+        assertEquals("http://www.example.com/catalog?item=12&desc=vacation_hawaii", sitemaps[1].getLoc());
         assertNull(((SitemapUrl) sitemaps[1]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[1]).getPriority());
 
         assertNull(sitemaps[2].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=73&desc=vacation_new_zealand",
-                sitemaps[2].getLoc());
+        assertEquals("http://www.example.com/catalog?item=73&desc=vacation_new_zealand", sitemaps[2].getLoc());
         assertNull(((SitemapUrl) sitemaps[2]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[2]).getPriority());
 
         assertNull(sitemaps[3].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=74&desc=vacation_newfoundland",
-                sitemaps[3].getLoc());
+        assertEquals("http://www.example.com/catalog?item=74&desc=vacation_newfoundland", sitemaps[3].getLoc());
         assertNull(((SitemapUrl) sitemaps[3]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[3]).getPriority());
 
         assertNull(sitemaps[4].getLastmod());
-        assertEquals(
-                "http://www.example.com/catalog?item=83&desc=vacation_usa",
-                sitemaps[4].getLoc());
+        assertEquals("http://www.example.com/catalog?item=83&desc=vacation_usa", sitemaps[4].getLoc());
         assertNull(((SitemapUrl) sitemaps[4]).getChangefreq());
         assertNull(((SitemapUrl) sitemaps[4]).getPriority());
     }
 
     public void test_parseXmlSitemapsIndex() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap2.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap2.xml");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
         final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(2, sitemaps.length);
@@ -180,18 +151,15 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertTrue(sitemapSet.isIndex());
 
         assertEquals("2004-10-01T18:23:17+00:00", sitemaps[0].getLastmod());
-        assertEquals("http://www.example.com/sitemap1.xml.gz",
-                sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/sitemap1.xml.gz", sitemaps[0].getLoc());
 
         assertEquals("2005-01-01", sitemaps[1].getLastmod());
-        assertEquals("http://www.example.com/sitemap2.xml.gz",
-                sitemaps[1].getLoc());
+        assertEquals("http://www.example.com/sitemap2.xml.gz", sitemaps[1].getLoc());
 
     }
 
     public void test_parseXmlSitemapsIndexGz() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("sitemaps/sitemap2.xml.gz");
+        final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap2.xml.gz");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
         final Sitemap[] sitemaps = sitemapSet.getSitemaps();
         assertEquals(2, sitemaps.length);
@@ -199,12 +167,10 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertTrue(sitemapSet.isIndex());
 
         assertEquals("2004-10-01T18:23:17+00:00", sitemaps[0].getLastmod());
-        assertEquals("http://www.example.com/sitemap1.xml.gz",
-                sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/sitemap1.xml.gz", sitemaps[0].getLoc());
 
         assertEquals("2005-01-01", sitemaps[1].getLastmod());
-        assertEquals("http://www.example.com/sitemap2.xml.gz",
-                sitemaps[1].getLoc());
+        assertEquals("http://www.example.com/sitemap2.xml.gz", sitemaps[1].getLoc());
 
     }
 

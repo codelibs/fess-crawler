@@ -36,8 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ZipExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ZipExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(ZipExtractorTest.class);
 
     public ZipExtractor zipExtractor;
 
@@ -45,35 +44,24 @@ public class ZipExtractorTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container
-                .singleton("archiveStreamFactory", ArchiveStreamFactory.class)
-                .singleton("compressorStreamFactory",
-                        CompressorStreamFactory.class)
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
-                .singleton("tikaExtractor", TikaExtractor.class)
-                .singleton("zipExtractor", ZipExtractor.class)
-                .<ExtractorFactory> singleton(
-                        "extractorFactory",
-                        ExtractorFactory.class,
-                        factory -> {
-                            TikaExtractor tikaExtractor = container
-                                    .getComponent("tikaExtractor");
-                            ZipExtractor zipExtractor = container
-                                    .getComponent("zipExtractor");
-                            factory.addExtractor("text/plain", tikaExtractor);
-                            factory.addExtractor("text/html", tikaExtractor);
-                            factory.addExtractor("application/zip",
-                                    zipExtractor);
+        container.singleton("archiveStreamFactory", ArchiveStreamFactory.class)
+                .singleton("compressorStreamFactory", CompressorStreamFactory.class).singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class).singleton("zipExtractor", ZipExtractor.class)
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                    TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+                    ZipExtractor zipExtractor = container.getComponent("zipExtractor");
+                    factory.addExtractor("text/plain", tikaExtractor);
+                    factory.addExtractor("text/html", tikaExtractor);
+                    factory.addExtractor("application/zip", zipExtractor);
 
-                        })//
+                })//
         ;
 
         zipExtractor = container.getComponent("zipExtractor");
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/zip/test.zip");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/zip/test.zip");
         final String content = zipExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);

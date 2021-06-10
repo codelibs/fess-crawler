@@ -32,8 +32,7 @@ public class DataServiceImplTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("dataHelper", MemoryDataHelper.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("dataService", DataServiceImpl.class);
         dataService = container.getComponent("dataService");
     }

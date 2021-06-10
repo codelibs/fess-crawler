@@ -36,8 +36,7 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class PdfExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(PdfExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(PdfExtractorTest.class);
 
     public PdfExtractor pdfExtractor;
 
@@ -64,8 +63,7 @@ public class PdfExtractorTest extends PlainTestCase {
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test.pdf");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
         final ExtractData extractData = pdfExtractor.getText(in, null);
         final String content = extractData.getContent();
         CloseableUtil.closeQuietly(in);
@@ -73,17 +71,14 @@ public class PdfExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
         assertEquals("Writer", extractData.getValues("Creator")[0]);
         assertEquals("OpenOffice.org 3.0", extractData.getValues("Producer")[0]);
-        assertEquals("D:20090627222631+09'00'",
-                extractData.getValues("CreationDate")[0]);
+        assertEquals("D:20090627222631+09'00'", extractData.getValues("CreationDate")[0]);
     }
 
     public void test_getText_pass() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_pass.pdf");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
         final Map<String, String> params = new HashMap<String, String>();
         params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
-        final String content = pdfExtractorForPdfPassword.getText(in, params)
-                .getContent();
+        final String content = pdfExtractorForPdfPassword.getText(in, params).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));

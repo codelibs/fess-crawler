@@ -35,14 +35,11 @@ public class TextTransformerTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("extractorFactory", ExtractorFactory.class)
-                .singleton("textTransformer", TextTransformer.class)
-                .singleton("tikaExtractor", TikaExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("extractorFactory", ExtractorFactory.class)
+                .singleton("textTransformer", TextTransformer.class).singleton("tikaExtractor", TikaExtractor.class);
         textTransformer = container.getComponent("textTransformer");
         textTransformer.setName("textTransformer");
-        ExtractorFactory extractorFactory = container
-                .getComponent("extractorFactory");
+        ExtractorFactory extractorFactory = container.getComponent("extractorFactory");
         TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
         extractorFactory.addExtractor("text/plain", tikaExtractor);
         extractorFactory.addExtractor("text/html", tikaExtractor);
@@ -60,21 +57,18 @@ public class TextTransformerTest extends PlainTestCase {
         responseData.setResponseBody(data);
         responseData.setMimeType("text/plain");
         final ResultData resultData = textTransformer.transform(responseData);
-        assertEquals("xyz",
-                new String(resultData.getData(), resultData.getEncoding()));
+        assertEquals("xyz", new String(resultData.getData(), resultData.getEncoding()));
     }
 
     public void test_transform_html() throws Exception {
-        final byte[] data = new String("<html><body>xyz</body></html>")
-                .getBytes();
+        final byte[] data = new String("<html><body>xyz</body></html>").getBytes();
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("file:/test.html");
         responseData.setCharSet(Constants.UTF_8);
         responseData.setResponseBody(data);
         responseData.setMimeType("text/html");
         final ResultData resultData = textTransformer.transform(responseData);
-        assertEquals("xyz",
-                new String(resultData.getData(), resultData.getEncoding()));
+        assertEquals("xyz", new String(resultData.getData(), resultData.getEncoding()));
     }
 
     public void test_transform_null() {
@@ -105,8 +99,7 @@ public class TextTransformerTest extends PlainTestCase {
         try {
             textTransformer.getData(accessResultData);
             fail();
-        } catch (final CrawlerSystemException e) {
-        }
+        } catch (final CrawlerSystemException e) {}
     }
 
     public void test_getData_nullData() throws Exception {

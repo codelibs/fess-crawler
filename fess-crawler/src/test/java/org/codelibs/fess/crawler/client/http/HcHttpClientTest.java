@@ -44,8 +44,7 @@ public class HcHttpClientTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//
                 .singleton("urlFilter", UrlFilterImpl.class)//
@@ -88,8 +87,7 @@ public class HcHttpClientTest extends PlainTestCase {
             httpClient.init();
             httpClient.processRobotsTxt(url);
             assertEquals(1, crawlerContext.getRobotsTxtUrlSet().size());
-            assertTrue(crawlerContext.getRobotsTxtUrlSet().contains(
-                    "http://localhost:7070/robots.txt"));
+            assertTrue(crawlerContext.getRobotsTxtUrlSet().contains("http://localhost:7070/robots.txt"));
             assertFalse(urlFilter.match("http://localhost:7070/admin/"));
             assertFalse(urlFilter.match("http://localhost:7070/websvn/"));
         } finally {
@@ -107,10 +105,8 @@ public class HcHttpClientTest extends PlainTestCase {
     public void test_convertRobotsTxtPathPattern() {
         assertEquals("/.*\\?.*", httpClient.convertRobotsTxtPathPattern("/*?*"));
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/"));
-        assertEquals("/index\\.html$",
-                httpClient.convertRobotsTxtPathPattern("/index.html$"));
-        assertEquals(".*index\\.html$",
-                httpClient.convertRobotsTxtPathPattern("index.html$"));
+        assertEquals("/index\\.html$", httpClient.convertRobotsTxtPathPattern("/index.html$"));
+        assertEquals(".*index\\.html$", httpClient.convertRobotsTxtPathPattern("index.html$"));
         assertEquals("/\\..*", httpClient.convertRobotsTxtPathPattern("/."));
         assertEquals("/.*", httpClient.convertRobotsTxtPathPattern("/*"));
         assertEquals(".*\\..*", httpClient.convertRobotsTxtPathPattern("."));
@@ -126,8 +122,7 @@ public class HcHttpClientTest extends PlainTestCase {
             final ResponseData responseData = httpClient.doHead(url);
             Thread.sleep(100);
             assertNotNull(responseData.getLastModified());
-            assertTrue(responseData.getLastModified().getTime() < new Date()
-                    .getTime());
+            assertTrue(responseData.getLastModified().getTime() < new Date().getTime());
         } finally {
             server.stop();
         }
@@ -176,8 +171,7 @@ public class HcHttpClientTest extends PlainTestCase {
     }
 
     public void test_buildRedirectLocation() throws Exception {
-        assertEquals("http://localhost/login.html",
-            HcHttpClient.buildRedirectLocation("http://localhost/", "/login.html"));
+        assertEquals("http://localhost/login.html", HcHttpClient.buildRedirectLocation("http://localhost/", "/login.html"));
     }
 
     // public void test_doGet_mt() throws Exception {

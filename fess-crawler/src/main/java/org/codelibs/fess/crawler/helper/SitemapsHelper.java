@@ -63,7 +63,8 @@ public class SitemapsHelper {
             }
 
             final String preloadDate = new String(bytes, Constants.UTF_8);
-            if ((preloadDate.indexOf("<urlset") >= 0) || (preloadDate.indexOf("<sitemapindex") >= 0) || (preloadDate.startsWith("http://") || preloadDate.startsWith("https://"))) {
+            if ((preloadDate.indexOf("<urlset") >= 0) || (preloadDate.indexOf("<sitemapindex") >= 0)
+                    || (preloadDate.startsWith("http://") || preloadDate.startsWith("https://"))) {
                 // XML Sitemaps
                 return true;
             }
@@ -203,7 +204,8 @@ public class SitemapsHelper {
         public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
             if (URL_ELEMENT.equals(qName)) {
                 sitemapUrl = new SitemapUrl();
-            } else if (LOC_ELEMENT.equals(qName) || LASTMOD_ELEMENT.equals(qName) || CHANGEFREQ_ELEMENT.equals(qName) || PRIORITY_ELEMENT.equals(qName)) {
+            } else if (LOC_ELEMENT.equals(qName) || LASTMOD_ELEMENT.equals(qName) || CHANGEFREQ_ELEMENT.equals(qName)
+                    || PRIORITY_ELEMENT.equals(qName)) {
                 buf = new StringBuilder();
             }
         }

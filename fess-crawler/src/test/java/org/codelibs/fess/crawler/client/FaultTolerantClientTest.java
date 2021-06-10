@@ -41,8 +41,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setCrawlerClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.execute(RequestDataBuilder
-                .newRequestData().get().url(url).build());
+        final ResponseData response = client.execute(RequestDataBuilder.newRequestData().get().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(1, testListener.requestCount);
         assertEquals(0, testListener.exceptionCount);
@@ -63,8 +62,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setCrawlerClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.execute(RequestDataBuilder
-                .newRequestData().get().url(url).build());
+        final ResponseData response = client.execute(RequestDataBuilder.newRequestData().get().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -86,8 +84,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder.newRequestData().get().url(url)
-                    .build());
+            client.execute(RequestDataBuilder.newRequestData().get().url(url).build());
             fail();
         } catch (final MultipleCrawlingAccessException e) {
             // ok
@@ -114,8 +111,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder.newRequestData().get().url(url)
-                    .build());
+            client.execute(RequestDataBuilder.newRequestData().get().url(url).build());
             fail();
         } catch (final MultipleCrawlingAccessException e) {
             // ok
@@ -142,8 +138,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setCrawlerClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.execute(RequestDataBuilder
-                .newRequestData().get().url(url).build());
+        final ResponseData response = client.execute(RequestDataBuilder.newRequestData().get().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -163,8 +158,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setCrawlerClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.execute(RequestDataBuilder
-                .newRequestData().head().url(url).build());
+        final ResponseData response = client.execute(RequestDataBuilder.newRequestData().head().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(1, testListener.requestCount);
         assertEquals(0, testListener.exceptionCount);
@@ -185,8 +179,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setCrawlerClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.execute(RequestDataBuilder
-                .newRequestData().head().url(url).build());
+        final ResponseData response = client.execute(RequestDataBuilder.newRequestData().head().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -208,8 +201,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder.newRequestData().head().url(url)
-                    .build());
+            client.execute(RequestDataBuilder.newRequestData().head().url(url).build());
             fail();
         } catch (final MultipleCrawlingAccessException e) {
             // ok
@@ -236,8 +228,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
         try {
-            client.execute(RequestDataBuilder.newRequestData().head().url(url)
-                    .build());
+            client.execute(RequestDataBuilder.newRequestData().head().url(url).build());
             fail();
         } catch (final MultipleCrawlingAccessException e) {
             // ok
@@ -264,8 +255,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         client.setCrawlerClient(testClient);
         client.setRequestListener(testListener);
         final String url = "http://test.com/";
-        final ResponseData response = client.execute(RequestDataBuilder
-                .newRequestData().head().url(url).build());
+        final ResponseData response = client.execute(RequestDataBuilder.newRequestData().head().url(url).build());
         assertEquals(1, testListener.startCount);
         assertEquals(5, testListener.requestCount);
         assertEquals(4, testListener.exceptionCount);
@@ -356,28 +346,24 @@ public class FaultTolerantClientTest extends PlainTestCase {
         String requestMethod;
 
         @Override
-        public void onRequestStart(final FaultTolerantClient client,
-                final RequestData request) {
+        public void onRequestStart(final FaultTolerantClient client, final RequestData request) {
             startCount++;
         }
 
         @Override
-        public void onRequest(final FaultTolerantClient client,
-                final RequestData request, final int count) {
+        public void onRequest(final FaultTolerantClient client, final RequestData request, final int count) {
             requestCount++;
             requestUrl = request.getUrl();
             requestMethod = request.getMethod().toString();
         }
 
         @Override
-        public void onRequestEnd(final FaultTolerantClient client,
-                RequestData request, final List<Exception> exceptionList) {
+        public void onRequestEnd(final FaultTolerantClient client, RequestData request, final List<Exception> exceptionList) {
             endCount++;
         }
 
         @Override
-        public void onException(final FaultTolerantClient client,
-                RequestData request, final int count, final Exception e) {
+        public void onException(final FaultTolerantClient client, RequestData request, final int count, final Exception e) {
             exceptionCount++;
             exceptionUrl = request.getUrl();
         }

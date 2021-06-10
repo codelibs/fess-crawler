@@ -28,23 +28,20 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("robotsTxtHelper", RobotsTxtHelper.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("robotsTxtHelper", RobotsTxtHelper.class);
         robotsTxtHelper = container.getComponent("robotsTxtHelper");
     }
 
     public void testParse() {
         RobotsTxt robotsTxt;
-        final InputStream in = RobotsTxtHelperTest.class
-                .getResourceAsStream("robots.txt");
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
         try {
             robotsTxt = robotsTxtHelper.parse(in);
         } finally {
             CloseableUtil.closeQuietly(in);
         }
 
-        for (String userAgent : new String[] { "FessCrawler", "FessCrawler/1.0",
-                "Mozilla FessCrawler" }) {
+        for (String userAgent : new String[] { "FessCrawler", "FessCrawler/1.0", "Mozilla FessCrawler" }) {
             assertTrue(robotsTxt.allows("/aaa", userAgent));
             assertTrue(robotsTxt.allows("/private/", userAgent));
             assertTrue(robotsTxt.allows("/private/index.html", userAgent));
@@ -68,8 +65,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
             assertEquals(1314000, robotsTxt.getCrawlDelay(userAgent));
         }
 
-        for (String userAgent : new String[] { "GOOGLEBOT", "GoogleBot",
-                "googlebot" }) {
+        for (String userAgent : new String[] { "GOOGLEBOT", "GoogleBot", "googlebot" }) {
             assertTrue(robotsTxt.allows("/aaa", userAgent));
             assertTrue(robotsTxt.allows("/private/", userAgent));
             assertTrue(robotsTxt.allows("/private/index.html", userAgent));
@@ -118,8 +114,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     public void testParse_disable() {
-        final InputStream in = RobotsTxtHelperTest.class
-                .getResourceAsStream("robots.txt");
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
         robotsTxtHelper.setEnabled(false);
         try {
             assertNull(robotsTxtHelper.parse(in));

@@ -65,14 +65,10 @@ public class XmlTransformerTest extends PlainTestCase {
             Map<String, String> fieldRuleMap = newLinkedHashMap();
             fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
             fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
-            fieldRuleMap.put("image",
-                    "//hoge:address/hoge:item/hoge:image/@file");
-            fieldRuleMap.put("email",
-                    "//hoge:address/hoge:item/hoge:access[@kind='email']");
-            fieldRuleMap.put("url",
-                    "//hoge:address/hoge:item/hoge:access[@kind='url']");
-            fieldRuleMap.put("tel",
-                    "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+            fieldRuleMap.put("image", "//hoge:address/hoge:item/hoge:image/@file");
+            fieldRuleMap.put("email", "//hoge:address/hoge:item/hoge:access[@kind='email']");
+            fieldRuleMap.put("url", "//hoge:address/hoge:item/hoge:access[@kind='url']");
+            fieldRuleMap.put("tel", "//hoge:address/hoge:item/hoge:access[@kind='tel']");
             xmlNsTransformer.setFieldRuleMap(fieldRuleMap);
             xmlNsTransformer.init();
         }
@@ -83,14 +79,10 @@ public class XmlTransformerTest extends PlainTestCase {
             Map<String, String> fieldRuleMap = newLinkedHashMap();
             fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
             fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
-            fieldRuleMap.put("image",
-                    "//hoge:address/hoge:item/hoge:image/@file");
-            fieldRuleMap.put("email",
-                    "//hoge:address/hoge:item/hoge:access[@kind='email']");
-            fieldRuleMap.put("url",
-                    "//hoge:address/hoge:item/hoge:access[@kind='url']");
-            fieldRuleMap.put("tel",
-                    "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+            fieldRuleMap.put("image", "//hoge:address/hoge:item/hoge:image/@file");
+            fieldRuleMap.put("email", "//hoge:address/hoge:item/hoge:access[@kind='email']");
+            fieldRuleMap.put("url", "//hoge:address/hoge:item/hoge:access[@kind='url']");
+            fieldRuleMap.put("tel", "//hoge:address/hoge:item/hoge:access[@kind='tel']");
             xmlMapTransformer.setFieldRuleMap(fieldRuleMap);
             xmlMapTransformer.init();
         }
@@ -101,14 +93,10 @@ public class XmlTransformerTest extends PlainTestCase {
             Map<String, String> fieldRuleMap = newLinkedHashMap();
             fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
             fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
-            fieldRuleMap.put("image",
-                    "//hoge:address/hoge:item/hoge:image/@file");
-            fieldRuleMap.put("email",
-                    "//hoge:address/hoge:item/hoge:access[@kind='email']");
-            fieldRuleMap.put("url",
-                    "//hoge:address/hoge:item/hoge:access[@kind='url']");
-            fieldRuleMap.put("tel",
-                    "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+            fieldRuleMap.put("image", "//hoge:address/hoge:item/hoge:image/@file");
+            fieldRuleMap.put("email", "//hoge:address/hoge:item/hoge:access[@kind='email']");
+            fieldRuleMap.put("url", "//hoge:address/hoge:item/hoge:access[@kind='url']");
+            fieldRuleMap.put("tel", "//hoge:address/hoge:item/hoge:access[@kind='tel']");
             xmlEntityTransformer.setFieldRuleMap(fieldRuleMap);
             xmlEntityTransformer.init();
         }
@@ -126,8 +114,7 @@ public class XmlTransformerTest extends PlainTestCase {
                 + "</doc>";
 
         final ResponseData responseData = new ResponseData();
-        responseData.setResponseBody(ResourceUtil
-                .getResourceAsFile("extractor/test.xml"), false);
+        responseData.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test.xml"), false);
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = xmlTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
@@ -145,8 +132,7 @@ public class XmlTransformerTest extends PlainTestCase {
                 + "</doc>";
 
         final ResponseData responseData = new ResponseData();
-        responseData.setResponseBody(ResourceUtil
-                .getResourceAsFile("extractor/test_ns.xml"), false);
+        responseData.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test_ns.xml"), false);
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = xmlNsTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
@@ -184,8 +170,7 @@ public class XmlTransformerTest extends PlainTestCase {
         try {
             final Object obj = xmlTransformer.getData(accessResultDataImpl);
             fail();
-        } catch (final CrawlerSystemException e) {
-        }
+        } catch (final CrawlerSystemException e) {}
     }
 
     public void test_getData_nullData() throws Exception {

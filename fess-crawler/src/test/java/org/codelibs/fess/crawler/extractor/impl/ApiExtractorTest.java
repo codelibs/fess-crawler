@@ -91,8 +91,7 @@ public class ApiExtractorTest extends PlainTestCase {
 
             final RequestHandlerImpl request_handler = new RequestHandlerImpl();
             final HandlerList handlers = new HandlerList();
-            handlers.setHandlers(new Handler[] { request_handler,
-                    new DefaultHandler() });
+            handlers.setHandlers(new Handler[] { request_handler, new DefaultHandler() });
             server.setHandler(handlers);
         }
 
@@ -117,24 +116,21 @@ public class ApiExtractorTest extends PlainTestCase {
             public static final String MULTIPART_FORMDATA_TYPE = "multipart/form-data";
 
             public static boolean isMultipartRequest(HttpServletRequest request) {
-                return request.getContentType() != null
-                        && request.getContentType().startsWith(MULTIPART_FORMDATA_TYPE);
+                return request.getContentType() != null && request.getContentType().startsWith(MULTIPART_FORMDATA_TYPE);
             }
 
             @Override
-            public void handle(String target, HttpServletRequest request,
-                    HttpServletResponse response, int dispatch)
+            public void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch)
                     throws java.io.IOException, ServletException {
-                
-                if(!isMultipartRequest(request) || !request.getMethod().equals(HttpMethods.POST)) {
+
+                if (!isMultipartRequest(request) || !request.getMethod().equals(HttpMethods.POST)) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     response.getWriter().println(HttpServletResponse.SC_BAD_REQUEST);
                     HttpConnection.getCurrentConnection().getRequest().setHandled(true);
                     return;
                 }
                 try {
-                    List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory())
-                            .parseRequest(request);
+                    List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
                     for (FileItem item : multiparts) {
                         if (!item.isFormField()) {
                             // item is not form field.

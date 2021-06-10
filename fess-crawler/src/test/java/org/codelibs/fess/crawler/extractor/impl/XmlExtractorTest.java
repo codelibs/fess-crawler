@@ -32,22 +32,19 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class XmlExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(XmlExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(XmlExtractorTest.class);
 
     public XmlExtractor xmlExtractor;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("xmlExtractor", XmlExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("xmlExtractor", XmlExtractor.class);
         xmlExtractor = container.getComponent("xmlExtractor");
     }
 
     public void test_getXml_utf8() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
@@ -56,8 +53,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getXml_utf8_ignoreCommentTag() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         xmlExtractor.setIgnoreCommentTag(true);
         final String content = xmlExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
@@ -68,8 +64,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getXml_sjis() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
@@ -77,8 +72,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getXml_entity() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_entity.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_entity.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
@@ -86,8 +80,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getXml_mm() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test.mm");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.mm");
         final String content = xmlExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
@@ -103,8 +96,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getEncoding_utf8() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_utf8.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = xmlExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);
@@ -112,8 +104,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getEncoding_sjis() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test_sjis.xml");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = xmlExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);
@@ -145,8 +136,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getEncoding_none() {
-        final InputStream in = new ByteArrayInputStream(
-                "<hoge></hoge>".getBytes());
+        final InputStream in = new ByteArrayInputStream("<hoge></hoge>".getBytes());
         final BufferedInputStream bis = new BufferedInputStream(in);
         final String encoding = xmlExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);
@@ -154,8 +144,7 @@ public class XmlExtractorTest extends PlainTestCase {
     }
 
     public void test_getRdf() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/test.rdf");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.rdf");
         final String content = xmlExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);

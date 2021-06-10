@@ -104,8 +104,7 @@ public class StorageClient extends AbstractCrawlerClient {
         }
 
         minioClient.setTimeout(getInitParameter("connectTimeout", (long) 10000, Long.class),
-                getInitParameter("writeTimeout", (long) 10000, Long.class),
-                getInitParameter("readTimeout", (long) 10000, Long.class));
+                getInitParameter("writeTimeout", (long) 10000, Long.class), getInitParameter("readTimeout", (long) 10000, Long.class));
     }
 
     protected boolean bucketExists(final String name) {

@@ -38,7 +38,7 @@ public class EsDataServiceTest extends LastaDiTestCase {
     private EsDataService dataService;
 
     @Resource
-    private  FesenClient fesenClient;
+    private FesenClient fesenClient;
 
     private FesenRunner runner;
 

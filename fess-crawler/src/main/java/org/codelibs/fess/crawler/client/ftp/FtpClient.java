@@ -266,8 +266,8 @@ public class FtpClient extends AbstractCrawlerClient {
         }
     }
 
-    protected void updateResponseData(final String uri, final boolean includeContent, final ResponseData responseData, final FTPClient client,
-            final FtpInfo ftpInfo, final FTPFile file) {
+    protected void updateResponseData(final String uri, final boolean includeContent, final ResponseData responseData,
+            final FTPClient client, final FtpInfo ftpInfo, final FTPFile file) {
         if (file == null) {
             responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
             responseData.setCharSet(charset);

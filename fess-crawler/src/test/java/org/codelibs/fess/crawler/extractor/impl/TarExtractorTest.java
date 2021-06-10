@@ -36,8 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TarExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(TarExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(TarExtractorTest.class);
 
     public TarExtractor tarExtractor;
 
@@ -45,34 +44,23 @@ public class TarExtractorTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container
-                .singleton("archiveStreamFactory", ArchiveStreamFactory.class)
-                .singleton("compressorStreamFactory",
-                        CompressorStreamFactory.class)
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
-                .singleton("tikaExtractor", TikaExtractor.class)
-                .singleton("tarExtractor", TarExtractor.class)
-                .<ExtractorFactory> singleton(
-                        "extractorFactory",
-                        ExtractorFactory.class,
-                        factory -> {
-                            TikaExtractor tikaExtractor = container
-                                    .getComponent("tikaExtractor");
-                            TarExtractor tarExtractor = container
-                                    .getComponent("tarExtractor");
-                            factory.addExtractor("text/plain", tikaExtractor);
-                            factory.addExtractor("text/html", tikaExtractor);
-                            factory.addExtractor("application/tar",
-                                    tarExtractor);
-                        })//
+        container.singleton("archiveStreamFactory", ArchiveStreamFactory.class)
+                .singleton("compressorStreamFactory", CompressorStreamFactory.class).singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class).singleton("tarExtractor", TarExtractor.class)
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                    TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+                    TarExtractor tarExtractor = container.getComponent("tarExtractor");
+                    factory.addExtractor("text/plain", tikaExtractor);
+                    factory.addExtractor("text/html", tikaExtractor);
+                    factory.addExtractor("application/tar", tarExtractor);
+                })//
         ;
 
         tarExtractor = container.getComponent("tarExtractor");
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/tar/test.tar");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/tar/test.tar");
         final String content = tarExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);

@@ -30,24 +30,20 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class MsPowerPointExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(MsPowerPointExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(MsPowerPointExtractorTest.class);
 
     public MsPowerPointExtractor msPowerPointExtractor;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("msPowerPointExtractor", MsPowerPointExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msPowerPointExtractor", MsPowerPointExtractor.class);
         msPowerPointExtractor = container.getComponent("msPowerPointExtractor");
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.ppt");
-        final String content = msPowerPointExtractor.getText(in, null)
-                .getContent();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.ppt");
+        final String content = msPowerPointExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));

@@ -69,7 +69,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
             tasks.add(testCallable);
         }
 
-         // 時間取得
+        // 時間取得
         final long time = System.nanoTime();
 
         // Callableタスク(複数)を実行する

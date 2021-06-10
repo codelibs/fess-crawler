@@ -51,8 +51,7 @@ public class FtpClientTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("ftpClient", FtpClient.class);
         ftpClient = container.getComponent("ftpClient");
     }

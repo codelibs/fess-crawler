@@ -30,16 +30,14 @@ public class ContentLengthHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("contentLengthHelper", ContentLengthHelper.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("contentLengthHelper", ContentLengthHelper.class);
         contentLengthHelper = container.getComponent("contentLengthHelper");
     }
 
     public void test_getMaxLength() {
         final String mimeType = "text/plain";
 
-        assertEquals(DEFAULT_MAX_LENGTH,
-                contentLengthHelper.getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper.getMaxLength(mimeType));
         contentLengthHelper.addMaxLength(mimeType, 1000L);
         assertEquals(1000L, contentLengthHelper.getMaxLength(mimeType));
     }
@@ -48,15 +46,12 @@ public class ContentLengthHelperTest extends PlainTestCase {
         String mimeType;
 
         mimeType = null;
-        assertEquals(DEFAULT_MAX_LENGTH,
-                contentLengthHelper.getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper.getMaxLength(mimeType));
 
         mimeType = "";
-        assertEquals(DEFAULT_MAX_LENGTH,
-                contentLengthHelper.getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper.getMaxLength(mimeType));
 
         mimeType = " ";
-        assertEquals(DEFAULT_MAX_LENGTH,
-                contentLengthHelper.getMaxLength(mimeType));
+        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper.getMaxLength(mimeType));
     }
 }

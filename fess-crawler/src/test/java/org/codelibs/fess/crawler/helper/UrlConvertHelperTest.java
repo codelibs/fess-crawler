@@ -29,8 +29,7 @@ public class UrlConvertHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("urlConvertHelper", UrlConvertHelper.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("urlConvertHelper", UrlConvertHelper.class);
         urlConvertHelper = container.getComponent("urlConvertHelper");
     }
 
@@ -38,22 +37,18 @@ public class UrlConvertHelperTest extends PlainTestCase {
         String url;
 
         url = "http://hoge.com/http/fuga.html";
-        assertEquals("http://hoge.com/http/fuga.html",
-                urlConvertHelper.convert(url));
+        assertEquals("http://hoge.com/http/fuga.html", urlConvertHelper.convert(url));
 
         url = "tp://hoge.com/http/fuga.html";
-        assertEquals("tp://hoge.com/http/fuga.html",
-                urlConvertHelper.convert(url));
+        assertEquals("tp://hoge.com/http/fuga.html", urlConvertHelper.convert(url));
 
         urlConvertHelper.add("^tp:", "http:");
 
         url = "http://hoge.com/http/fuga.html";
-        assertEquals("http://hoge.com/http/fuga.html",
-                urlConvertHelper.convert(url));
+        assertEquals("http://hoge.com/http/fuga.html", urlConvertHelper.convert(url));
 
         url = "tp://hoge.com/http/fuga.html";
-        assertEquals("http://hoge.com/http/fuga.html",
-                urlConvertHelper.convert(url));
+        assertEquals("http://hoge.com/http/fuga.html", urlConvertHelper.convert(url));
 
         urlConvertHelper.add("fuga", "hoge");
         urlConvertHelper.add("http/hoge", "peke");

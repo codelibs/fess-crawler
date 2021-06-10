@@ -70,16 +70,13 @@ public class FileTransformerTest extends PlainTestCase {
         String url;
 
         url = "http://www.example.com/";
-        assertEquals("http_CLN_/www.example.com/index.html",
-                fileTransformer.getFilePath(url));
+        assertEquals("http_CLN_/www.example.com/index.html", fileTransformer.getFilePath(url));
 
         url = "http://www.example.com/action?a=1";
-        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1",
-                fileTransformer.getFilePath(url));
+        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1", fileTransformer.getFilePath(url));
 
         url = "http://www.example.com/action?a=1&b=2";
-        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1_AMP_b=2",
-                fileTransformer.getFilePath(url));
+        assertEquals("http_CLN_/www.example.com/action_QUEST_a=1_AMP_b=2", fileTransformer.getFilePath(url));
     }
 
     public void test_transform() throws Exception {
@@ -90,10 +87,8 @@ public class FileTransformerTest extends PlainTestCase {
         responseData.setCharSet("UTF-8");
         setBaseDir();
         final ResultData resultData = fileTransformer.transform(responseData);
-        assertEquals("http_CLN_/www.example.com/submit_QUEST_a=1_AMP_b=2",
-                new String(resultData.getData(), "UTF-8"));
-        final File file = new File(fileTransformer.baseDir, new String(
-                resultData.getData(), "UTF-8"));
+        assertEquals("http_CLN_/www.example.com/submit_QUEST_a=1_AMP_b=2", new String(resultData.getData(), "UTF-8"));
+        final File file = new File(fileTransformer.baseDir, new String(resultData.getData(), "UTF-8"));
         assertEquals("xyz", new String(FileUtil.readBytes(file)));
     }
 
@@ -139,22 +134,19 @@ public class FileTransformerTest extends PlainTestCase {
 
         path = "hoge.html/hoge2.html";
         file = fileTransformer.createFile(path);
-        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
-                + File.separator + "hoge2.html");
+        resultFile = new File(fileTransformer.baseDir, "hoge.html_2" + File.separator + "hoge2.html");
         assertEquals(resultFile, file);
         FileUtil.writeBytes(file.getAbsolutePath(), "abc".getBytes());
 
         path = "hoge.html/hoge3.html";
         file = fileTransformer.createFile(path);
-        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
-                + File.separator + "hoge3.html");
+        resultFile = new File(fileTransformer.baseDir, "hoge.html_2" + File.separator + "hoge3.html");
         assertEquals(resultFile, file);
         FileUtil.writeBytes(file.getAbsolutePath(), "abc".getBytes());
 
         path = "hoge.html/hoge2.html";
         file = fileTransformer.createFile(path);
-        resultFile = new File(fileTransformer.baseDir, "hoge.html_2"
-                + File.separator + "hoge2.html_0");
+        resultFile = new File(fileTransformer.baseDir, "hoge.html_2" + File.separator + "hoge2.html_0");
         assertEquals(resultFile, file);
         FileUtil.writeBytes(file.getAbsolutePath(), "abc".getBytes());
     }
@@ -183,8 +175,7 @@ public class FileTransformerTest extends PlainTestCase {
         try {
             final Object obj = fileTransformer.getData(accessResultDataImpl);
             fail();
-        } catch (final CrawlerSystemException e) {
-        }
+        } catch (final CrawlerSystemException e) {}
     }
 
     public void test_getData_nullData() throws Exception {

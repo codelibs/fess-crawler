@@ -30,22 +30,19 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class MsExcelExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(MsExcelExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(MsExcelExtractorTest.class);
 
     public MsExcelExtractor msExcelExtractor;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("msExcelExtractor", MsExcelExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msExcelExtractor", MsExcelExtractor.class);
         msExcelExtractor = container.getComponent("msExcelExtractor");
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/msoffice/test.xls");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.xls");
         final String content = msExcelExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);

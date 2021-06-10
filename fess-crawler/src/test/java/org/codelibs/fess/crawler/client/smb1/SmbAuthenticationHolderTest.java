@@ -39,12 +39,9 @@ public class SmbAuthenticationHolderTest extends PlainTestCase {
         assertEquals(hogeAuth, smbAuthenticationHolder.get("smb1://hoge/"));
         assertEquals(fugaAuth, smbAuthenticationHolder.get("smb1://fuga/"));
         assertEquals(fooAuth, smbAuthenticationHolder.get("smb1://foo:1000/"));
-        assertEquals(hogeAuth,
-                smbAuthenticationHolder.get("smb1://hoge/text.txt"));
-        assertEquals(fugaAuth,
-                smbAuthenticationHolder.get("smb1://fuga/text.txt"));
-        assertEquals(fooAuth,
-                smbAuthenticationHolder.get("smb1://foo:1000/text.txt"));
+        assertEquals(hogeAuth, smbAuthenticationHolder.get("smb1://hoge/text.txt"));
+        assertEquals(fugaAuth, smbAuthenticationHolder.get("smb1://fuga/text.txt"));
+        assertEquals(fooAuth, smbAuthenticationHolder.get("smb1://foo:1000/text.txt"));
 
         assertNull(smbAuthenticationHolder.get(null));
         assertNull(smbAuthenticationHolder.get(""));

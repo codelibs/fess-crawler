@@ -33,8 +33,7 @@ public class UrlFilterImplTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("dataHelper", MemoryDataHelper.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//
                 .singleton("urlFilter", UrlFilterImpl.class)//
                 .singleton("dataService", DataServiceImpl.class);

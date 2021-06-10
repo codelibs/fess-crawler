@@ -169,8 +169,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         return true;
     }
 
-    protected void storeChildUrls(final CrawlerContext crawlerContext, final Set<RequestData> childUrlList, final String url, final int depth,
-            final String encoding) {
+    protected void storeChildUrls(final CrawlerContext crawlerContext, final Set<RequestData> childUrlList, final String url,
+            final int depth, final String encoding) {
         // add url and filter
         final Set<String> urlSet = new HashSet<>();
         final List<UrlQueue<?>> childList = childUrlList.stream().filter(d -> StringUtil.isNotBlank(d.getUrl())

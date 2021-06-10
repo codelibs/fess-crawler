@@ -85,102 +85,55 @@ public class CrawlerTest extends PlainTestCase {
         childUrlRuleMap.put("//SCRIPT", "src");
 
         container = new StandardCrawlerContainer();
-        container
-                .<HcHttpClient> prototype(
-                        "internalHttpClient",
-                        HcHttpClient.class,
-                        client -> {
-                            client.setCookieSpec(CookieSpecs.BEST_MATCH);
-                        })
-                .prototype(
-                        "httpClient",
-                        FaultTolerantClient.class,
-                        client -> {
-                            client.setCrawlerClient(container
-                                    .getComponent("internalHttpClient"));
-                            client.setMaxRetryCount(5);
-                            client.setRetryInterval(500);
-                        })
-                .prototype("fsClient", FileSystemClient.class)
-                .prototype("ruleManager", RuleManagerImpl.class, manager -> {
-                    manager.addRule(container.getComponent("sitemapsRule"));
-                    manager.addRule(container.getComponent("fileRule"));
-                })
-                .prototype("accessResult", AccessResultImpl.class)
-                .prototype("urlQueue", UrlQueueImpl.class)
-                .prototype("crawlerThread", CrawlerThread.class)
-                .prototype("crawler", Crawler.class)
-                .prototype("urlFilterService", UrlFilterServiceImpl.class)
-                .prototype("urlQueueService", UrlQueueServiceImpl.class)
-                .prototype("dataService", DataServiceImpl.class)
-                .prototype("urlFilter", UrlFilterImpl.class)
-                .singleton("urlConvertHelper", UrlConvertHelper.class)
-                .singleton("intervalController",
-                        DefaultIntervalController.class)
-                .singleton("sitemapsHelper", SitemapsHelper.class)
-                .singleton("logHelper", LogHelperImpl.class)
-                .singleton("encodingHelper", EncodingHelper.class)
-                .singleton("contentLengthHelper", ContentLengthHelper.class)
+        container.<HcHttpClient> prototype("internalHttpClient", HcHttpClient.class, client -> {
+            client.setCookieSpec(CookieSpecs.BEST_MATCH);
+        }).prototype("httpClient", FaultTolerantClient.class, client -> {
+            client.setCrawlerClient(container.getComponent("internalHttpClient"));
+            client.setMaxRetryCount(5);
+            client.setRetryInterval(500);
+        }).prototype("fsClient", FileSystemClient.class).prototype("ruleManager", RuleManagerImpl.class, manager -> {
+            manager.addRule(container.getComponent("sitemapsRule"));
+            manager.addRule(container.getComponent("fileRule"));
+        }).prototype("accessResult", AccessResultImpl.class).prototype("urlQueue", UrlQueueImpl.class)
+                .prototype("crawlerThread", CrawlerThread.class).prototype("crawler", Crawler.class)
+                .prototype("urlFilterService", UrlFilterServiceImpl.class).prototype("urlQueueService", UrlQueueServiceImpl.class)
+                .prototype("dataService", DataServiceImpl.class).prototype("urlFilter", UrlFilterImpl.class)
+                .singleton("urlConvertHelper", UrlConvertHelper.class).singleton("intervalController", DefaultIntervalController.class)
+                .singleton("sitemapsHelper", SitemapsHelper.class).singleton("logHelper", LogHelperImpl.class)
+                .singleton("encodingHelper", EncodingHelper.class).singleton("contentLengthHelper", ContentLengthHelper.class)
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
-                .<FileTransformer> singleton("fileTransformer",
-                        FileTransformer.class, transformer -> {
-                            transformer.setName("fileTransformer");
-                            transformer.setFeatureMap(featureMap);
-                            transformer.setPropertyMap(propertyMap);
-                            transformer.setChildUrlRuleMap(childUrlRuleMap);
-                        })
-                .singleton("dataHelper", MemoryDataHelper.class)
-                .singleton("robotsTxtHelper", RobotsTxtHelper.class)
-                .<CrawlerClientFactory> singleton(
-                        "clientFactory",
-                        CrawlerClientFactory.class,
-                        factory -> {
-                            factory.addClient("http:.*",
-                                    container.getComponent("httpClient"));
-                            factory.addClient("file:.*",
-                                    container.getComponent("fsClient"));
-                        })
-                .singleton("tikaExtractor", TikaExtractor.class)
-                .<ExtractorFactory> singleton(
-                        "extractorFactory",
-                        ExtractorFactory.class,
-                        factory -> {
-                            TikaExtractor tikaExtractor = container
-                                    .getComponent("tikaExtractor");
-                            factory.addExtractor("text/plain", tikaExtractor);
-                            factory.addExtractor("text/html", tikaExtractor);
-                        })//
+                .<FileTransformer> singleton("fileTransformer", FileTransformer.class, transformer -> {
+                    transformer.setName("fileTransformer");
+                    transformer.setFeatureMap(featureMap);
+                    transformer.setPropertyMap(propertyMap);
+                    transformer.setChildUrlRuleMap(childUrlRuleMap);
+                }).singleton("dataHelper", MemoryDataHelper.class).singleton("robotsTxtHelper", RobotsTxtHelper.class)
+                .<CrawlerClientFactory> singleton("clientFactory", CrawlerClientFactory.class, factory -> {
+                    factory.addClient("http:.*", container.getComponent("httpClient"));
+                    factory.addClient("file:.*", container.getComponent("fsClient"));
+                }).singleton("tikaExtractor", TikaExtractor.class)
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                    TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+                    factory.addExtractor("text/plain", tikaExtractor);
+                    factory.addExtractor("text/html", tikaExtractor);
+                })//
                 .singleton("httpClient", HcHttpClient.class)//
-                .singleton("sitemapsResponseProcessor",
-                        SitemapsResponseProcessor.class)//
-                .<SitemapsRule> singleton(
-                        "sitemapsRule",
-                        SitemapsRule.class,
-                        rule -> {
-                            rule.setResponseProcessor(container
-                                    .getComponent("sitemapsResponseProcessor"));
-                            rule.setRuleId("sitemapsRule");
-                            rule.addRule("url", ".*sitemap.*");
-                        })//
-                .<DefaultResponseProcessor> singleton(
-                        "defaultResponseProcessor",
-                        DefaultResponseProcessor.class,
-                        processor -> {
-                            processor.setTransformer(container
-                                    .getComponent("fileTransformer"));
-                            processor.setSuccessfulHttpCodes(new int[] { 200 });
-                            processor
-                                    .setNotModifiedHttpCodes(new int[] { 304 });
-                        })//
-                .<RegexRule> singleton(
-                        "fileRule",
-                        RegexRule.class,
-                        rule -> {
-                            rule.setRuleId("fileRule");
-                            rule.setDefaultRule(true);
-                            rule.setResponseProcessor(container
-                                    .getComponent("defaultResponseProcessor"));
-                        });
+                .singleton("sitemapsResponseProcessor", SitemapsResponseProcessor.class)//
+                .<SitemapsRule> singleton("sitemapsRule", SitemapsRule.class, rule -> {
+                    rule.setResponseProcessor(container.getComponent("sitemapsResponseProcessor"));
+                    rule.setRuleId("sitemapsRule");
+                    rule.addRule("url", ".*sitemap.*");
+                })//
+                .<DefaultResponseProcessor> singleton("defaultResponseProcessor", DefaultResponseProcessor.class, processor -> {
+                    processor.setTransformer(container.getComponent("fileTransformer"));
+                    processor.setSuccessfulHttpCodes(new int[] { 200 });
+                    processor.setNotModifiedHttpCodes(new int[] { 304 });
+                })//
+                .<RegexRule> singleton("fileRule", RegexRule.class, rule -> {
+                    rule.setRuleId("fileRule");
+                    rule.setDefaultRule(true);
+                    rule.setResponseProcessor(container.getComponent("defaultResponseProcessor"));
+                });
 
         crawler = container.getComponent("crawler");
         dataService = container.getComponent("dataService");
@@ -362,8 +315,7 @@ public class CrawlerTest extends PlainTestCase {
             file.deleteOnExit();
             fileTransformer.setPath(file.getAbsolutePath());
             crawler.setBackground(true);
-            ((UrlFilterImpl) crawler.urlFilter)
-                    .setIncludeFilteringPattern("$1$2$3.*");
+            ((UrlFilterImpl) crawler.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
             crawler.addUrl(url);
             crawler.getCrawlerContext().setMaxAccessCount(maxCount);
             crawler.getCrawlerContext().setNumOfThread(numOfThread);
@@ -399,8 +351,7 @@ public class CrawlerTest extends PlainTestCase {
             final Crawler crawler1 = container.getComponent("crawler");
             crawler1.setSessionId(crawler1.getSessionId() + "1");
             crawler1.setBackground(true);
-            ((UrlFilterImpl) crawler1.urlFilter)
-                    .setIncludeFilteringPattern("$1$2$3.*");
+            ((UrlFilterImpl) crawler1.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
             crawler1.addUrl(url1);
             crawler1.getCrawlerContext().setMaxAccessCount(maxCount);
             crawler1.getCrawlerContext().setNumOfThread(numOfThread);
@@ -408,8 +359,7 @@ public class CrawlerTest extends PlainTestCase {
             final Crawler crawler2 = container.getComponent("crawler");
             crawler2.setSessionId(crawler2.getSessionId() + "2");
             crawler2.setBackground(true);
-            ((UrlFilterImpl) crawler2.urlFilter)
-                    .setIncludeFilteringPattern("$1$2$3.*");
+            ((UrlFilterImpl) crawler2.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
             crawler2.addUrl(url2);
             crawler2.getCrawlerContext().setMaxAccessCount(maxCount);
             crawler2.getCrawlerContext().setNumOfThread(numOfThread);

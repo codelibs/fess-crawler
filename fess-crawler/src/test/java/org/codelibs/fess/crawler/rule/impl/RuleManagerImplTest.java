@@ -37,8 +37,7 @@ public class RuleManagerImplTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
 
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("sitemapsHelper", SitemapsHelper.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("sitemapsHelper", SitemapsHelper.class)//
                 .singleton("sitemapsRule", SitemapsRule.class)//
                 .singleton("fileRule", RegexRule.class)//
                 .singleton("ruleManager", RuleManagerImpl.class);
@@ -65,8 +64,7 @@ public class RuleManagerImplTest extends PlainTestCase {
     public void test_getRule_sitemaps1() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml");
         responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -77,8 +75,7 @@ public class RuleManagerImplTest extends PlainTestCase {
     public void test_getRule_sitemaps2() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml.gz");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml.gz");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml.gz");
         responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -89,8 +86,7 @@ public class RuleManagerImplTest extends PlainTestCase {
     public void test_getRule_sitemaps3() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.txt");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.txt");
         responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -101,8 +97,7 @@ public class RuleManagerImplTest extends PlainTestCase {
     public void test_getRule_sitemaps4() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt.gz");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml.gz");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml.gz");
         responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);
@@ -113,8 +108,7 @@ public class RuleManagerImplTest extends PlainTestCase {
     public void test_getRule_sitemaps5() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap/");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml");
         responseData.setResponseBody(file, false);
         final Rule rule = ruleManager.getRule(responseData);
         assertNotNull(rule);

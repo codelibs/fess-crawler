@@ -55,8 +55,7 @@ public class CrawlerWebServer {
         resource_handler.setResourceBase(docRoot.getAbsolutePath());
         Log.info("serving " + resource_handler.getBaseResource());
         final HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[] { resource_handler,
-                new DefaultHandler() });
+        handlers.setHandlers(new Handler[] { resource_handler, new DefaultHandler() });
         server.setHandler(handlers);
     }
 
@@ -93,37 +92,28 @@ public class CrawlerWebServer {
             buf.append("Disallow: /admin/").append('\n');
             buf.append("Disallow: /websvn/").append('\n');
             final File robotTxtFile = new File(tempDir, "robots.txt");
-            FileUtil.writeBytes(robotTxtFile.getAbsolutePath(), buf.toString()
-                    .getBytes("UTF-8"));
+            FileUtil.writeBytes(robotTxtFile.getAbsolutePath(), buf.toString().getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 
             // sitemaps.xml
             buf = new StringBuilder();
-            buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append(
-                    '\n');
-            buf.append("<urlset ")
-                    .append("xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">")
-                    .append('\n');
+            buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append('\n');
+            buf.append("<urlset ").append("xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">").append('\n');
             buf.append("<url>").append('\n');
-            buf.append("<loc>http://localhost:7070/index.html</loc>").append(
-                    '\n');
-            buf.append("<loc>http://localhost:7070/file").append(count)
-                    .append("-1.html").append("</loc>").append('\n');
+            buf.append("<loc>http://localhost:7070/index.html</loc>").append('\n');
+            buf.append("<loc>http://localhost:7070/file").append(count).append("-1.html").append("</loc>").append('\n');
             buf.append("</url>").append('\n');
             buf.append("</urlset>").append('\n');
             File sitemapsFile = new File(tempDir, "sitemaps.xml");
-            FileUtil.writeBytes(sitemapsFile.getAbsolutePath(), buf.toString()
-                    .getBytes("UTF-8"));
+            FileUtil.writeBytes(sitemapsFile.getAbsolutePath(), buf.toString().getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 
             // sitemaps.txt
             buf = new StringBuilder();
             buf.append("http://localhost:7070/index.html").append('\n');
-            buf.append("http://localhost:7070/file").append(count)
-                    .append("-1.html").append('\n');
+            buf.append("http://localhost:7070/file").append(count).append("-1.html").append('\n');
             sitemapsFile = new File(tempDir, "sitemaps.txt");
-            FileUtil.writeBytes(sitemapsFile.getAbsolutePath(), buf.toString()
-                    .getBytes("UTF-8"));
+            FileUtil.writeBytes(sitemapsFile.getAbsolutePath(), buf.toString().getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();
 
             generateContents(tempDir, count);
@@ -134,8 +124,7 @@ public class CrawlerWebServer {
         }
     }
 
-    private static void generateContents(final File dir, final int count)
-            throws Exception {
+    private static void generateContents(final File dir, final int count) throws Exception {
         if (count <= 0) {
             return;
         }
@@ -144,14 +133,12 @@ public class CrawlerWebServer {
 
         final File indexFile = new File(dir, "index.html");
         indexFile.deleteOnExit();
-        FileUtil.writeBytes(indexFile.getAbsolutePath(),
-                content.getBytes("UTF-8"));
+        FileUtil.writeBytes(indexFile.getAbsolutePath(), content.getBytes("UTF-8"));
 
         for (int i = 1; i <= 10; i++) {
             final File file = new File(dir, "file" + count + "-" + i + ".html");
             file.deleteOnExit();
-            FileUtil.writeBytes(file.getAbsolutePath(),
-                    content.getBytes("UTF-8"));
+            FileUtil.writeBytes(file.getAbsolutePath(), content.getBytes("UTF-8"));
             final File childDir = new File(dir, "dir" + count + "-" + i);
             childDir.mkdirs();
             generateContents(childDir, count - 1);

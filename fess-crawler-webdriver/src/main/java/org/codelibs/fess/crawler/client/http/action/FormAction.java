@@ -41,20 +41,17 @@ public class FormAction extends BaseUrlAction {
      * .WebDriver, java.util.Map)
      */
     @Override
-    public void navigate(final WebDriver webDriver,
-            final Map<String, String> paramMap) {
+    public void navigate(final WebDriver webDriver, final Map<String, String> paramMap) {
         final String cssQuery = paramMap.get(CSS_QUERY);
         final int index = Integer.parseInt(paramMap.get(INDEX));
         if (StringUtil.isNotBlank(cssQuery) && index >= 0) {
-            final List<WebElement> elementList = webDriver.findElements(By
-                    .cssSelector(cssQuery));
+            final List<WebElement> elementList = webDriver.findElements(By.cssSelector(cssQuery));
             if (index < elementList.size()) {
                 elementList.get(index).submit();
                 return;
             }
         }
-        throw new CrawlerSystemException("Invalid position. css query: "
-                + cssQuery + ", index: " + index);
+        throw new CrawlerSystemException("Invalid position. css query: " + cssQuery + ", index: " + index);
     }
 
     /*
@@ -65,10 +62,8 @@ public class FormAction extends BaseUrlAction {
      * org.codelibs.fess.crawler.entity.ResponseData)
      */
     @Override
-    public void collect(final String url, final WebDriver webDriver,
-            final ResponseData responseData) {
-        final List<WebElement> formElementList = webDriver.findElements(By
-                .cssSelector(cssQuery));
+    public void collect(final String url, final WebDriver webDriver, final ResponseData responseData) {
+        final List<WebElement> formElementList = webDriver.findElements(By.cssSelector(cssQuery));
         for (int i = 0; i < formElementList.size(); i++) {
             final WebElement formElement = formElementList.get(i);
             final String methodAttr = formElement.getAttribute("method");
@@ -81,11 +76,9 @@ public class FormAction extends BaseUrlAction {
                 method = Constants.GET_METHOD;
             }
             final StringBuilder buf = new StringBuilder(url.length() + 30);
-            buf.append(URL_ACTION).append("=").append(name).append("&")
-                    .append(CSS_QUERY).append("=").append(cssQuery).append("&")
+            buf.append(URL_ACTION).append("=").append(name).append("&").append(CSS_QUERY).append("=").append(cssQuery).append("&")
                     .append(INDEX).append("=").append(i);
-            responseData.addChildUrl(RequestDataBuilder.newRequestData()
-                    .method(method).url(url).metaData(buf.toString()).build());
+            responseData.addChildUrl(RequestDataBuilder.newRequestData().method(method).url(url).metaData(buf.toString()).build());
         }
     }
 

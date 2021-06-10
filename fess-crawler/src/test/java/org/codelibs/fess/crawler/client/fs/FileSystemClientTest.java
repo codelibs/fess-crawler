@@ -41,8 +41,7 @@ public class FileSystemClientTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("fsClient", FileSystemClient.class);
         fsClient = container.getComponent("fsClient");
     }
@@ -58,15 +57,11 @@ public class FileSystemClientTest extends PlainTestCase {
             fail();
         } catch (final ChildUrlsException e) {
             final Set<RequestData> urlSet = e.getChildUrlList();
-            for (final RequestData requestData : urlSet
-                    .toArray(new RequestData[urlSet.size()])) {
+            for (final RequestData requestData : urlSet.toArray(new RequestData[urlSet.size()])) {
                 String url = requestData.getUrl();
                 if (url.indexOf(".svn") < 0) {
-                    assertTrue(url.contains("test/dir1")
-                            || url.contains("test/dir2")
-                            || url.contains("test/text1.txt")
-                            || url.contains("test/text2.txt")
-                            || url.contains("test/text%203.txt"));
+                    assertTrue(url.contains("test/dir1") || url.contains("test/dir2") || url.contains("test/text1.txt")
+                            || url.contains("test/text2.txt") || url.contains("test/text%203.txt"));
                 }
             }
         }
@@ -82,14 +77,12 @@ public class FileSystemClientTest extends PlainTestCase {
         final ResponseData responseData = fsClient.doGet("file:" + path);
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
-        assertTrue(6 == responseData.getContentLength()
-                || 7 == responseData.getContentLength());
+        assertTrue(6 == responseData.getContentLength() || 7 == responseData.getContentLength());
         assertNotNull(responseData.getLastModified());
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
         assertTrue(responseData.getUrl().endsWith("test/text1.txt"));
-        final String content = new String(InputStreamUtil.getBytes(responseData
-                .getResponseBody()), "UTF-8");
+        final String content = new String(InputStreamUtil.getBytes(responseData.getResponseBody()), "UTF-8");
         assertEquals("test1", content.trim());
     }
 
@@ -107,8 +100,7 @@ public class FileSystemClientTest extends PlainTestCase {
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
         assertTrue(responseData.getUrl().endsWith("test/text%203.txt"));
-        final String content = new String(InputStreamUtil.getBytes(responseData
-                .getResponseBody()), "UTF-8");
+        final String content = new String(InputStreamUtil.getBytes(responseData.getResponseBody()), "UTF-8");
         assertEquals("test3\n", content);
     }
 
@@ -141,13 +133,11 @@ public class FileSystemClientTest extends PlainTestCase {
         try {
             fsClient.preprocessUri(null);
             fail();
-        } catch (final CrawlerSystemException e) {
-        }
+        } catch (final CrawlerSystemException e) {}
         try {
             fsClient.preprocessUri("");
             fail();
-        } catch (final CrawlerSystemException e) {
-        }
+        } catch (final CrawlerSystemException e) {}
     }
 
     public void test_doHead_file() throws Exception {
@@ -158,8 +148,7 @@ public class FileSystemClientTest extends PlainTestCase {
         }
         final ResponseData responseData = fsClient.doHead("file:" + path);
         assertNotNull(responseData.getLastModified());
-        assertTrue(responseData.getLastModified().getTime() < new Date()
-                .getTime());
+        assertTrue(responseData.getLastModified().getTime() < new Date().getTime());
         assertNull(responseData.getResponseBody());
     }
 

@@ -34,8 +34,7 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class LhaExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory
-            .getLogger(LhaExtractorTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(LhaExtractorTest.class);
 
     public LhaExtractor lhaExtractor;
 
@@ -43,24 +42,16 @@ public class LhaExtractorTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container
-                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
-                .singleton("tikaExtractor", TikaExtractor.class)
+        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class).singleton("tikaExtractor", TikaExtractor.class)
                 .singleton("lhaExtractor", LhaExtractor.class)
-                .<ExtractorFactory> singleton(
-                        "extractorFactory",
-                        ExtractorFactory.class,
-                        factory -> {
-                            TikaExtractor tikaExtractor = container
-                                    .getComponent("tikaExtractor");
-                            LhaExtractor lhaExtractor = container
-                                    .getComponent("lhaExtractor");
-                            factory.addExtractor("text/plain", tikaExtractor);
-                            factory.addExtractor("text/html", tikaExtractor);
-                            factory.addExtractor("application/x-lha",
-                                    lhaExtractor);
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                    TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
+                    LhaExtractor lhaExtractor = container.getComponent("lhaExtractor");
+                    factory.addExtractor("text/plain", tikaExtractor);
+                    factory.addExtractor("text/html", tikaExtractor);
+                    factory.addExtractor("application/x-lha", lhaExtractor);
 
-                        })//
+                })//
         ;
 
         lhaExtractor = container.getComponent("lhaExtractor");
@@ -68,8 +59,7 @@ public class LhaExtractorTest extends PlainTestCase {
     }
 
     public void test_getText() {
-        final InputStream in = ResourceUtil
-                .getResourceAsStream("extractor/lha/test.lzh");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/lha/test.lzh");
         final String content = lhaExtractor.getText(in, null).getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);

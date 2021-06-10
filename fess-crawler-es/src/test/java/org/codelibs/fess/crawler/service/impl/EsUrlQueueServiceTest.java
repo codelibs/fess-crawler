@@ -33,10 +33,10 @@ import org.dbflute.utflute.lastadi.LastaDiTestCase;
  */
 public class EsUrlQueueServiceTest extends LastaDiTestCase {
     @Resource
-    private  EsUrlQueueService urlQueueService;
+    private EsUrlQueueService urlQueueService;
 
     @Resource
-    private  FesenClient fesenClient;
+    private FesenClient fesenClient;
 
     private FesenRunner runner;
 
@@ -91,8 +91,9 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
                 .setSize(0).execute().actionGet().getHits().getTotalHits().value > 0);
 
         urlQueueService.delete("sessionId");
-        assertFalse(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId"))
-                .setSize(0).execute().actionGet().getHits().getTotalHits().value > 0);
+        assertFalse(
+                fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "sessionId"))
+                        .setSize(0).execute().actionGet().getHits().getTotalHits().value > 0);
 
     }
 
@@ -114,21 +115,21 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
         urlQueue2.setUrl("http://www.id2.com/");
 
         urlQueueService.insert(urlQueue2);
-        assertTrue(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().getHits().getTotalHits().value > 0);
-        assertTrue(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().getHits().getTotalHits().value > 0);
+        assertTrue(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1"))
+                .execute().actionGet().getHits().getTotalHits().value > 0);
+        assertTrue(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2"))
+                .execute().actionGet().getHits().getTotalHits().value > 0);
 
         urlQueueService.delete("id1");
-        assertFalse(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().getHits().getTotalHits().value > 0);
-        assertTrue(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().getHits().getTotalHits().value > 0);
+        assertFalse(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1"))
+                .execute().actionGet().getHits().getTotalHits().value > 0);
+        assertTrue(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2"))
+                .execute().actionGet().getHits().getTotalHits().value > 0);
 
         urlQueueService.deleteAll();
-        assertFalse(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1")).execute()
-                .actionGet().getHits().getTotalHits().value > 0);
-        assertFalse(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2")).execute()
-                .actionGet().getHits().getTotalHits().value > 0);
+        assertFalse(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id1"))
+                .execute().actionGet().getHits().getTotalHits().value > 0);
+        assertFalse(fesenClient.prepareSearch(".crawler.queue").setTypes("queue").setQuery(QueryBuilders.termQuery("sessionId", "id2"))
+                .execute().actionGet().getHits().getTotalHits().value > 0);
     }
 }

@@ -95,8 +95,7 @@ public class CommandExtractorTest extends PlainTestCase {
     private String getCommand(final File scriptFile) {
         if (File.separator.equals("/")) {
             // Unix
-            return "sh " + scriptFile.getAbsolutePath()
-                    + " $INPUT_FILE $OUTPUT_FILE";
+            return "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
         } else {
             // Windows
             return scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
@@ -106,8 +105,7 @@ public class CommandExtractorTest extends PlainTestCase {
     private String getCommandStdout(final File scriptFile) {
         if (File.separator.equals("/")) {
             // Unix
-            return "sh " + scriptFile.getAbsolutePath()
-                    + " $INPUT_FILE";
+            return "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE";
         } else {
             // Windows
             return scriptFile.getAbsolutePath() + " $INPUT_FILE";
@@ -122,8 +120,7 @@ public class CommandExtractorTest extends PlainTestCase {
         final CommandExtractor extractor = new CommandExtractor();
         extractor.command = getCommand(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
-        final ExtractData text = extractor.getText(new FileInputStream(
-                contentFile), params);
+        final ExtractData text = extractor.getText(new FileInputStream(contentFile), params);
         assertEquals(content, text.getContent());
     }
 
@@ -136,8 +133,7 @@ public class CommandExtractorTest extends PlainTestCase {
         extractor.command = getCommand(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
         params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, "hoge/fuga.txt");
-        final ExtractData text = extractor.getText(new FileInputStream(
-                contentFile), params);
+        final ExtractData text = extractor.getText(new FileInputStream(contentFile), params);
         assertEquals(content, text.getContent());
     }
 
@@ -153,8 +149,7 @@ public class CommandExtractorTest extends PlainTestCase {
         try {
             final ExtractData data = extractor.getText(new FileInputStream(contentFile), params);
             fail(data.toString());
-        } catch (final ExecutionTimeoutException e) {
-        }
+        } catch (final ExecutionTimeoutException e) {}
     }
 
     public void test_getText_fromStdin() throws IOException {
@@ -166,8 +161,7 @@ public class CommandExtractorTest extends PlainTestCase {
         extractor.standardOutput = true;
         extractor.command = getCommandStdout(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
-        final ExtractData text = extractor.getText(new FileInputStream(
-                contentFile), params);
+        final ExtractData text = extractor.getText(new FileInputStream(contentFile), params);
         assertEquals(content, text.getContent());
     }
 

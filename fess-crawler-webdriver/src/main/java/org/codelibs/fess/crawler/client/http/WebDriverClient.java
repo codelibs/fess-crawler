@@ -41,8 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WebDriverClient extends AbstractCrawlerClient {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(WebDriverClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebDriverClient.class);
 
     @Resource
     protected ObjectPool<WebDriver> webDriverPool;
@@ -78,8 +77,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
                 final String processorName = paramMap.get(UrlAction.URL_ACTION);
                 final UrlAction urlAction = urlActionMap.get(processorName);
                 if (urlAction == null) {
-                    throw new CrawlerSystemException("Unknown processor: "
-                            + processorName);
+                    throw new CrawlerSystemException("Unknown processor: " + processorName);
                 }
                 urlAction.navigate(webDriver, paramMap);
             }
@@ -106,8 +104,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
 
             return responseData;
         } catch (final Exception e) {
-            throw new CrawlerSystemException("Failed to access "
-                    + request.getUrl(), e);
+            throw new CrawlerSystemException("Failed to access " + request.getUrl(), e);
         } finally {
             if (webDriver != null) {
                 try {
@@ -139,8 +136,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
         if (wd instanceof JavascriptExecutor) {
             final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
             // TODO document.contentType does not exist.
-            final Object ret = jsExecutor
-                    .executeScript("return document.contentType;");
+            final Object ret = jsExecutor.executeScript("return document.contentType;");
             if (ret != null) {
                 return ret.toString();
             }
@@ -155,8 +151,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
     private Date getLastModified(final WebDriver wd) {
         if (wd instanceof JavascriptExecutor) {
             final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
-            final Object ret = jsExecutor
-                    .executeScript("return new Date(document.lastModified).getTime();");
+            final Object ret = jsExecutor.executeScript("return new Date(document.lastModified).getTime();");
             if (ret != null) {
                 try {
                     return new Date(Long.parseLong(ret.toString()));
@@ -183,8 +178,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
     private String getCharSet(final WebDriver wd) {
         if (wd instanceof JavascriptExecutor) {
             final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
-            final Object ret = jsExecutor
-                    .executeScript("return document.characterSet;");
+            final Object ret = jsExecutor.executeScript("return document.characterSet;");
             if (ret != null) {
                 return ret.toString();
             }

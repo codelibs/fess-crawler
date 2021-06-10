@@ -76,17 +76,13 @@ public class StorageClientTest extends PlainTestCase {
         MinioClient minioClient = MinioClient.builder().endpoint(endpoint).credentials(accessKey, secretKey).build();
         minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
         minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("file1.txt")
-                .stream(new ByteArrayInputStream("file1".getBytes()), 5, -1)
-                .contentType("application/octet-stream").build());
+                .stream(new ByteArrayInputStream("file1".getBytes()), 5, -1).contentType("application/octet-stream").build());
         minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("dir1/file2.txt")
-                .stream(new ByteArrayInputStream("file2".getBytes()), 5, -1)
-                .contentType("application/octet-stream").build());
+                .stream(new ByteArrayInputStream("file2".getBytes()), 5, -1).contentType("application/octet-stream").build());
         minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("dir1/dir2/file3.txt")
-                .stream(new ByteArrayInputStream("file3".getBytes()), 5, -1)
-                .contentType("application/octet-stream").build());
+                .stream(new ByteArrayInputStream("file3".getBytes()), 5, -1).contentType("application/octet-stream").build());
         minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("dir3/file4.txt")
-                .stream(new ByteArrayInputStream("file4".getBytes()), 5, -1)
-                .contentType("application/octet-stream").build());
+                .stream(new ByteArrayInputStream("file4".getBytes()), 5, -1).contentType("application/octet-stream").build());
     }
 
     @Override

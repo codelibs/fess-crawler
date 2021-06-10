@@ -28,8 +28,7 @@ public class EncodingHelperTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("encodingHelper", EncodingHelper.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("encodingHelper", EncodingHelper.class);
         encodingHelper = container.getComponent("encodingHelper");
     }
 

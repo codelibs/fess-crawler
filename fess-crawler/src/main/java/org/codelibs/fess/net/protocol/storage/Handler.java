@@ -99,8 +99,7 @@ public class Handler extends URLStreamHandler {
                 final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(objectName).build();
                 return minioClient.getObject(args);
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
-                    | IOException | ServerException e) {
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | IOException | ServerException e) {
                 throw new IOException("Failed to access " + url, e);
             }
         }
@@ -123,8 +122,7 @@ public class Handler extends URLStreamHandler {
             try {
                 return getStatObject().size();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
-                    | IOException | ServerException e) {
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | IOException | ServerException e) {
                 return -1;
             }
         }
@@ -137,8 +135,7 @@ public class Handler extends URLStreamHandler {
             try {
                 return getStatObject().contentType();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
-                    | IOException | ServerException e) {
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | IOException | ServerException e) {
                 return null;
             }
         }
@@ -156,8 +153,7 @@ public class Handler extends URLStreamHandler {
             try {
                 return getStatObject().lastModified().toEpochSecond();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
-                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException
-                    | IOException | ServerException e) {
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | IOException | ServerException e) {
                 return 0;
             }
         }

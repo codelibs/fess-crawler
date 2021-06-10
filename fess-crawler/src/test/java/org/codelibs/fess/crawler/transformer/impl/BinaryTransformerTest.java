@@ -78,8 +78,7 @@ public class BinaryTransformerTest extends PlainTestCase {
         try {
             binaryTransformer.getData(accessResultData);
             fail();
-        } catch (final CrawlerSystemException e) {
-        }
+        } catch (final CrawlerSystemException e) {}
     }
 
     public void test_getData_nullData() throws Exception {

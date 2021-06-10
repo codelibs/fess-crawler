@@ -38,8 +38,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("tikaExtractor", TikaExtractor.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("tikaExtractor", TikaExtractor.class)//
                 .singleton("pdfExtractor", PdfExtractor.class)//
                 .singleton("lhaExtractor", LhaExtractor.class)//
                 .singleton("extractorFactory", ExtractorFactory.class);
@@ -48,10 +47,8 @@ public class ExtractorFactoryTest extends PlainTestCase {
         LhaExtractor lhaExtractor = container.getComponent("lhaExtractor");
         PasswordBasedExtractor pdfExtractor = container.getComponent("pdfExtractor");
         extractorFactory.addExtractor("application/msword", tikaExtractor);
-        extractorFactory
-                .addExtractor("application/vnd.ms-excel", tikaExtractor);
-        extractorFactory.addExtractor("application/vnd.ms-powerpoint",
-                tikaExtractor);
+        extractorFactory.addExtractor("application/vnd.ms-excel", tikaExtractor);
+        extractorFactory.addExtractor("application/vnd.ms-powerpoint", tikaExtractor);
         extractorFactory.addExtractor("application/vnd.visio", tikaExtractor);
         extractorFactory.addExtractor("application/pdf", pdfExtractor);
         extractorFactory.addExtractor("application/x-lha", lhaExtractor);
@@ -62,8 +59,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
     public void test_addExtractor() {
         final ExtractorFactory extractorFactory = new ExtractorFactory();
         final Extractor extractor = new Extractor() {
-            public ExtractData getText(final InputStream in,
-                    final Map<String, String> params) {
+            public ExtractData getText(final InputStream in, final Map<String, String> params) {
                 return null;
             }
         };
@@ -76,8 +72,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
     public void test_addExtractor_list() {
         final ExtractorFactory extractorFactory = new ExtractorFactory();
         final Extractor extractor = new Extractor() {
-            public ExtractData getText(final InputStream in,
-                    final Map<String, String> params) {
+            public ExtractData getText(final InputStream in, final Map<String, String> params) {
                 return null;
             }
         };

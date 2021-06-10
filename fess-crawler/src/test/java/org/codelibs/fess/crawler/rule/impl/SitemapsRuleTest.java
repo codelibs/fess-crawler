@@ -37,8 +37,7 @@ public class SitemapsRuleTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("sitemapsHelper", SitemapsHelper.class)//
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("sitemapsHelper", SitemapsHelper.class)//
                 .singleton("sitemapsRule", SitemapsRule.class);
         sitemapsRule = container.getComponent("sitemapsRule");
     }
@@ -65,8 +64,7 @@ public class SitemapsRuleTest extends PlainTestCase {
         assertFalse(sitemapsRule.match(responseData));
         InputStream is = responseData.getResponseBody();
         if (is instanceof TemporaryFileInputStream) {
-            File temporaryFile = ((TemporaryFileInputStream) is)
-                    .getTemporaryFile();
+            File temporaryFile = ((TemporaryFileInputStream) is).getTemporaryFile();
             assertTrue(temporaryFile.exists());
             CloseableUtil.closeQuietly(is);
             assertFalse(temporaryFile.exists());
@@ -78,8 +76,7 @@ public class SitemapsRuleTest extends PlainTestCase {
     private ResponseData getTestData1_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.xml");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml");
         responseData.setResponseBody(file, false);
         return responseData;
     }
@@ -87,8 +84,7 @@ public class SitemapsRuleTest extends PlainTestCase {
     private ResponseData getTestData2_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.xml.gz");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml.gz");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml.gz");
         responseData.setResponseBody(file, false);
         return responseData;
     }
@@ -96,8 +92,7 @@ public class SitemapsRuleTest extends PlainTestCase {
     private ResponseData getTestData3_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap.txt");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.txt");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.txt");
         responseData.setResponseBody(file, false);
         return responseData;
     }
@@ -105,8 +100,7 @@ public class SitemapsRuleTest extends PlainTestCase {
     private ResponseData getTestData4_OK() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/sitemap/");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml");
         responseData.setResponseBody(file, false);
         return responseData;
     }
@@ -114,8 +108,7 @@ public class SitemapsRuleTest extends PlainTestCase {
     private ResponseData getTestData1_FAIL() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com/test.xml");
-        File file = ResourceUtil
-                .getResourceAsFile("sitemaps/sitemap1.xml");
+        File file = ResourceUtil.getResourceAsFile("sitemaps/sitemap1.xml");
         responseData.setResponseBody(file, false);
         return responseData;
     }

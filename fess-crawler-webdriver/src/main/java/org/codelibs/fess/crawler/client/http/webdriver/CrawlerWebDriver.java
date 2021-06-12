@@ -17,11 +17,13 @@ package org.codelibs.fess.crawler.client.http.webdriver;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.pool2.PooledObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.HasCapabilities;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
@@ -65,6 +67,10 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
     protected String webdriverChromeDriver;
 
     protected URL remoteAddress;
+
+    protected String[] chromeArguments;
+
+    protected Map<String, Object> prefs;
 
     public void phantomjs() {
         if (capabilities == null) {
@@ -116,8 +122,17 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
             if (webdriverChromeDriver != null) {
                 ((DesiredCapabilities) capabilities).setCapability("webdriver.chrome.driver", webdriverChromeDriver);
             }
+
+            ChromeOptions options = new ChromeOptions();
+            if (chromeArguments != null) {
+                options.addArguments(chromeArguments);
+            }
+            if (prefs != null) {
+                options.setExperimentalOption("prefs", prefs);
+            }
+            ((DesiredCapabilities) capabilities).setCapability(ChromeOptions.CAPABILITY, options);
         }
-        webDriver = new RemoteWebDriver(remoteAddress, DesiredCapabilities.chrome());
+        webDriver = new RemoteWebDriver(remoteAddress, capabilities);
     }
 
     public static class OnDestroyListener
@@ -541,5 +556,13 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
 
     public void setRemoteAddress(URL remoteAddress) {
         this.remoteAddress = remoteAddress;
+    }
+
+    public void setChromeArguments(String[] chromeArguments) {
+        this.chromeArguments = chromeArguments;
+    }
+
+    public void setPrefs(Map<String, Object> prefs) {
+        this.prefs = prefs;
     }
 }

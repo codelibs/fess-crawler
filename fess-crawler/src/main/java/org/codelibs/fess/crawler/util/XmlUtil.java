@@ -88,6 +88,8 @@ public final class XmlUtil {
         final SAXParserFactory spfactory = SAXParserFactory.newInstance();
         try {
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
+            spfactory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            spfactory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
             // create a sax parser
             final SAXParser parser = spfactory.newSAXParser();
             try {

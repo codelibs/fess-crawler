@@ -169,6 +169,8 @@ public class XmlTransformer extends AbstractTransformer {
         try (final InputStream is = responseData.getResponseBody()) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
+            factory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            factory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
             factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
             factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
 

@@ -156,6 +156,8 @@ public class SitemapsHelper {
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
+            spfactory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            spfactory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
             final SAXParser parser = spfactory.newSAXParser();
             disableExternalResources(parser);
             parser.parse(in, handler);
@@ -261,6 +263,8 @@ public class SitemapsHelper {
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
+            spfactory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            spfactory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
             final SAXParser parser = spfactory.newSAXParser();
             disableExternalResources(parser);
             parser.parse(in, handler);

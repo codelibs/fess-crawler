@@ -34,7 +34,7 @@ import org.codelibs.fesen.action.bulk.BulkResponse;
 import org.codelibs.fesen.action.search.SearchResponse;
 import org.codelibs.fesen.action.support.WriteRequest.RefreshPolicy;
 import org.codelibs.fesen.action.update.UpdateRequestBuilder;
-import org.codelibs.fesen.common.unit.TimeValue;
+import org.codelibs.fesen.core.TimeValue;
 import org.codelibs.fesen.index.query.QueryBuilders;
 import org.codelibs.fesen.search.SearchHit;
 import org.codelibs.fesen.search.SearchHits;

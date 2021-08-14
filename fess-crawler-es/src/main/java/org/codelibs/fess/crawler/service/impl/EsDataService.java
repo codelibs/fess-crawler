@@ -25,7 +25,7 @@ import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fesen.action.DocWriteRequest.OpType;
 import org.codelibs.fesen.action.search.SearchRequestBuilder;
 import org.codelibs.fesen.action.search.SearchResponse;
-import org.codelibs.fesen.common.unit.TimeValue;
+import org.codelibs.fesen.core.TimeValue;
 import org.codelibs.fesen.index.query.QueryBuilders;
 import org.codelibs.fesen.search.SearchHit;
 import org.codelibs.fesen.search.SearchHits;

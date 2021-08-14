@@ -79,7 +79,7 @@ import org.codelibs.fesen.client.AdminClient;
 import org.codelibs.fesen.client.Client;
 import org.codelibs.fesen.client.HttpClient;
 import org.codelibs.fesen.common.settings.Settings;
-import org.codelibs.fesen.common.unit.TimeValue;
+import org.codelibs.fesen.core.TimeValue;
 import org.codelibs.fesen.index.IndexNotFoundException;
 import org.codelibs.fesen.index.engine.VersionConflictEngineException;
 import org.codelibs.fesen.index.query.QueryBuilder;

@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,15 +23,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class PasswordBasedExtractor extends AbstractExtractor {
 
@@ -49,7 +47,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
     protected String getPassword(final Map<String, String> params) {
         final String url = params != null ? params.get(ExtractData.URL) : null;
         if (!passwordMap.isEmpty()) {
-            final String resourceName = params != null ? params.get(TikaMetadataKeys.RESOURCE_NAME_KEY) : null;
+            final String resourceName = params != null ? params.get(ExtractData.RESOURCE_NAME_KEY) : null;
 
             String value = null;
             if (StringUtil.isNotEmpty(url)) {
@@ -73,10 +71,9 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                 List<Pair<Pattern, String>> list = configPasswordMap.get(value);
                 if (list == null) {
                     try {
-                        final Gson gson = new Gson();
-                        final Type type = new TypeToken<Map<String, String>>() {
-                        }.getType();
-                        final Map<String, String> passwordMap = gson.fromJson(value, type);
+                        ObjectMapper mapper=new ObjectMapper();
+                        final Map<String, String> passwordMap =  mapper.readValue(value, new TypeReference<Map<String,String>>() {
+                        });
                         list = passwordMap.entrySet().stream().map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (final Exception e) {

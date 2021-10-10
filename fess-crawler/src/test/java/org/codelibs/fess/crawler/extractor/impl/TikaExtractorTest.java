@@ -21,7 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -550,7 +550,7 @@ public class TikaExtractorTest extends PlainTestCase {
     private Map<String, String> createParams(String url, String resoureName) {
         Map<String, String> params = new HashMap<>();
         params.put(ExtractData.URL, url);
-        params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, resoureName);
+        params.put(TikaCoreProperties.RESOURCE_NAME_KEY, resoureName);
         return params;
     }
 

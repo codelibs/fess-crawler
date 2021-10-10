@@ -24,7 +24,6 @@ import javax.annotation.Resource;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -82,7 +81,7 @@ public class TarExtractor extends AbstractExtractor {
                     if (extractor != null) {
                         try {
                             final Map<String, String> map = new HashMap<>();
-                            map.put(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
+                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                             buf.append(extractor.getText(new IgnoreCloseInputStream(ais), map).getContent());
                             buf.append('\n');
                         } catch (final Exception e) {

@@ -51,9 +51,7 @@ import org.apache.tika.extractor.EmbeddedDocumentExtractor;
 import org.apache.tika.extractor.ParsingEmbeddedDocumentExtractor;
 import org.apache.tika.io.TemporaryResources;
 import org.apache.tika.io.TikaInputStream;
-import org.apache.tika.metadata.HttpHeaders;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.CompositeParser;
 import org.apache.tika.parser.ParseContext;
@@ -168,9 +166,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
             final ByteArrayOutputStream errStream = new ByteArrayOutputStream();
             System.setErr(new PrintStream(errStream, true));
             try {
-                final String resourceName = params == null ? null : params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
-                final String contentType = params == null ? null : params.get(HttpHeaders.CONTENT_TYPE);
-                String contentEncoding = params == null ? null : params.get(HttpHeaders.CONTENT_ENCODING);
+                final String resourceName = params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
+                final String contentType = params == null ? null : params.get(ExtractData.CONTENT_TYPE);
+                String contentEncoding = params == null ? null : params.get(ExtractData.CONTENT_ENCODING);
                 final boolean normalizeText = params == null ? true : !Constants.FALSE.equalsIgnoreCase(params.get(NORMALIZE_TEXT));
                 final String pdfPassword = getPassword(params);
 
@@ -427,13 +425,13 @@ public class TikaExtractor extends PasswordBasedExtractor {
             final String pdfPassword) {
         final Metadata metadata = new Metadata();
         if (StringUtil.isNotEmpty(resourceName)) {
-            metadata.set(TikaMetadataKeys.RESOURCE_NAME_KEY, resourceName);
+            metadata.set(ExtractData.RESOURCE_NAME_KEY, resourceName);
         }
         if (StringUtil.isNotBlank(contentType)) {
-            metadata.set(HttpHeaders.CONTENT_TYPE, contentType);
+            metadata.set(ExtractData.CONTENT_TYPE, contentType);
         }
         if (StringUtil.isNotBlank(contentEncoding)) {
-            metadata.set(HttpHeaders.CONTENT_ENCODING, contentEncoding);
+            metadata.set(ExtractData.CONTENT_ENCODING, contentEncoding);
         }
         if (pdfPassword != null) {
             metadata.add(FILE_PASSWORD, pdfPassword);
@@ -478,7 +476,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
                 // Automatically detect the MIME type of the document
                 final MediaType type = detector.detect(tis, metadata);
-                metadata.set(HttpHeaders.CONTENT_TYPE, type.toString());
+                metadata.set(ExtractData.CONTENT_TYPE, type.toString());
 
                 // TIKA-216: Zip bomb prevention
                 final SecureContentHandler sch = new SecureContentHandler(handler, tis);

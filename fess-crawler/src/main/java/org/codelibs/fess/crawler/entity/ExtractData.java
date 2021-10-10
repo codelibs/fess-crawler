@@ -20,11 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.tika.metadata.ClimateForcast;
 import org.apache.tika.metadata.CreativeCommons;
-import org.apache.tika.metadata.DublinCore;
+import org.apache.tika.metadata.Geographic;
 import org.apache.tika.metadata.HttpHeaders;
-import org.apache.tika.metadata.MSOffice;
-import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.metadata.Message;
+import org.apache.tika.metadata.TIFF;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.metadata.TikaMimeKeys;
 import org.apache.tika.parser.pdf.PDFParser;
 
@@ -32,7 +34,7 @@ import org.apache.tika.parser.pdf.PDFParser;
  * @author shinsuke
  *
  */
-public class ExtractData implements CreativeCommons, DublinCore, HttpHeaders, MSOffice, TikaMetadataKeys, TikaMimeKeys, Serializable {
+public class ExtractData implements TikaCoreProperties, CreativeCommons, Geographic, HttpHeaders, Message, ClimateForcast, TIFF, TikaMimeKeys, Serializable {
 
     private static final long serialVersionUID = 1L;
 

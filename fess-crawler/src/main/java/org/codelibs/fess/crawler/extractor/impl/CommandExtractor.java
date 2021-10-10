@@ -27,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -75,7 +74,7 @@ public class CommandExtractor extends AbstractExtractor {
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        final String resourceName = params == null ? null : params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
+        final String resourceName = params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
 
         String extention;
         String filePrefix;

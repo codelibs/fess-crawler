@@ -39,7 +39,6 @@ import javax.mail.internet.MailDateFormat;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -209,7 +208,7 @@ public class EmlExtractor extends AbstractExtractor {
                 if (extractor != null) {
                     try (final InputStream in = bodyPart.getInputStream()) {
                         final Map<String, String> map = new HashMap<>();
-                        map.put(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
+                        map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                         final String content = extractor.getText(in, map).getContent();
                         buf.append(content).append(' ');
                     } catch (final Exception e) {

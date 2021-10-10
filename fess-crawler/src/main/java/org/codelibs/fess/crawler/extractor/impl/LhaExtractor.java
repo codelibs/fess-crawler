@@ -23,7 +23,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -89,7 +88,7 @@ public class LhaExtractor extends AbstractExtractor {
                         try {
                             is = lhaFile.getInputStream(head);
                             final Map<String, String> map = new HashMap<>();
-                            map.put(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
+                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                             buf.append(extractor.getText(new IgnoreCloseInputStream(is), map).getContent());
                             buf.append('\n');
                         } catch (final Exception e) {

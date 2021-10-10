@@ -26,7 +26,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -132,7 +131,7 @@ public class JodExtractor extends AbstractExtractor {
             throw new CrawlerSystemException("in is null.");
         }
 
-        final String resourceName = params == null ? null : params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
+        final String resourceName = params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
 
         String extension;
         String filePrefix;
@@ -188,7 +187,7 @@ public class JodExtractor extends AbstractExtractor {
         final Extractor extractor = getExtractor(outExt);
         if (extractor != null) {
             final Map<String, String> params = new HashMap<>();
-            params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, outputFile.getName());
+            params.put(ExtractData.RESOURCE_NAME_KEY, outputFile.getName());
             try (final FileInputStream in = new FileInputStream(outputFile)) {
                 final ExtractData extractData = extractor.getText(in, params);
                 return extractData.getContent();

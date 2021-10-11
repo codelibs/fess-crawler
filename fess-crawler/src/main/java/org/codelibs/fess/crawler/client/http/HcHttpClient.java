@@ -221,7 +221,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected boolean useRobotsTxtDisallows = true;
 
-    protected boolean useRobotsTxtAllows = false;
+    protected boolean useRobotsTxtAllows = true;
 
     protected CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 

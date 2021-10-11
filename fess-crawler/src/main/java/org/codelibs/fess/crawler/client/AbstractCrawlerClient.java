@@ -112,10 +112,8 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
             if (!(value instanceof Float)) {
                 return (T) Float.valueOf(value.toString());
             }
-        } else if (clazz.isAssignableFrom(Boolean.class)) {
-            if (!(value instanceof Boolean)) {
-                return (T) Boolean.valueOf(value.toString());
-            }
+        } else if (clazz.isAssignableFrom(Boolean.class) && !(value instanceof Boolean)) {
+            return (T) Boolean.valueOf(value.toString());
         }
         return (T) value;
     }

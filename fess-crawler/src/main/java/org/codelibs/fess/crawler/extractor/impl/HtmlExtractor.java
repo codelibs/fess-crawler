@@ -132,7 +132,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         try {
             // feature
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()) == true);
+                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()));
             }
 
             // property

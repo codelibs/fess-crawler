@@ -68,12 +68,10 @@ public class FormAction extends BaseUrlAction {
             final WebElement formElement = formElementList.get(i);
             final String methodAttr = formElement.getAttribute("method");
             String method;
-            if (Constants.GET_METHOD.equalsIgnoreCase(methodAttr)) {
+            if (Constants.GET_METHOD.equalsIgnoreCase(methodAttr) || !Constants.POST_METHOD.equalsIgnoreCase(methodAttr)) {
                 method = Constants.GET_METHOD;
-            } else if (Constants.POST_METHOD.equalsIgnoreCase(methodAttr)) {
-                method = Constants.POST_METHOD;
             } else {
-                method = Constants.GET_METHOD;
+                method = Constants.POST_METHOD;
             }
             final StringBuilder buf = new StringBuilder(url.length() + 30);
             buf.append(URL_ACTION).append("=").append(name).append("&").append(CSS_QUERY).append("=").append(cssQuery).append("&")

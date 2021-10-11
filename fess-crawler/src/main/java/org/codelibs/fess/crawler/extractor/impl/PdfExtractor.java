@@ -38,7 +38,6 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDFileSpecification;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -143,7 +142,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
             if (extractor != null) {
                 try (COSInputStream is = embeddedFile.createInputStream()) {
                     final Map<String, String> map = new HashMap<>();
-                    map.put(TikaMetadataKeys.RESOURCE_NAME_KEY, filename);
+                    map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                     final String content = extractor.getText(is, map).getContent();
                     writer.write(content);
                     writer.write('\n');

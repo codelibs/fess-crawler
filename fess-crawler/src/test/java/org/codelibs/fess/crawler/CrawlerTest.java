@@ -17,10 +17,8 @@ package org.codelibs.fess.crawler;
 
 import java.io.File;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.client.CrawlerClientFactory;
 import org.codelibs.fess.crawler.client.FaultTolerantClient;

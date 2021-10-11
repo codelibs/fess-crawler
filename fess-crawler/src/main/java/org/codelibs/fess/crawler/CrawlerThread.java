@@ -334,15 +334,8 @@ public class CrawlerThread implements Runnable {
     }
 
     protected boolean isValid(final UrlQueue<?> urlQueue) {
-        if (urlQueue == null) {
-            return false;
-        }
-
-        if (StringUtil.isBlank(urlQueue.getUrl())) {
-            return false;
-        }
-
-        if (crawlerContext.getMaxDepth() >= 0 && urlQueue.getDepth() > crawlerContext.getMaxDepth()) {
+        if ((urlQueue == null) || StringUtil.isBlank(urlQueue.getUrl())
+                || (crawlerContext.getMaxDepth() >= 0 && urlQueue.getDepth() > crawlerContext.getMaxDepth())) {
             return false;
         }
 

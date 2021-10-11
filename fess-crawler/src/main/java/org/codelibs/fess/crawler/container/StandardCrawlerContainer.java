@@ -51,22 +51,16 @@ public class StandardCrawlerContainer implements CrawlerContainer {
     @Override
     public <T> T getComponent(final String name) {
         if ("crawlerContainer".equals(name)) {
-            @SuppressWarnings("unchecked")
-            final T t = (T) this;
-            return t;
+            return (T) this;
         }
 
         final ComponentDef<?> componentDef = prototypeMap.get(name);
         if (componentDef != null) {
-            @SuppressWarnings("unchecked")
-            final T instance = (T) componentDef.get();
-            return instance;
+            return (T) componentDef.get();
         }
         final ComponentHolder<?> componentHolder = singletonMap.get(name);
         if (componentHolder != null) {
-            @SuppressWarnings("unchecked")
-            final T instance = (T) componentHolder.get();
-            return instance;
+            return (T) componentHolder.get();
         }
         return null;
     }

@@ -303,7 +303,7 @@ public class HtmlTransformer extends AbstractTransformer {
         try {
             // feature
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()) == true);
+                parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()));
             }
 
             // property
@@ -415,7 +415,7 @@ public class HtmlTransformer extends AbstractTransformer {
             url = url.substring(0, idx);
         }
 
-        url = url.replaceAll(Pattern.quote("/./"), "/");
+        url = url.replace("/./", "/");
 
         idx = url.indexOf(";jsessionid");
         if (idx >= 0) {
@@ -432,9 +432,7 @@ public class HtmlTransformer extends AbstractTransformer {
             url = url.replaceFirst("/[^/]+/\\.\\./", "/");
         }
 
-        url = url.replaceAll("([^:])/+", "$1/");
-
-        return url;
+        return url.replaceAll("([^:])/+", "$1/");
     }
 
     protected boolean isValidPath(final String path) {

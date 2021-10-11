@@ -23,11 +23,10 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.tika.metadata.HttpHeaders;
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.AccessResultData;
+import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -67,8 +66,8 @@ public class TextTransformer extends AbstractTransformer {
         }
         final Extractor extractor = extractorFactory.getExtractor(responseData.getMimeType());
         final Map<String, String> params = new HashMap<>();
-        params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, getResourceName(responseData));
-        params.put(HttpHeaders.CONTENT_TYPE, responseData.getMimeType());
+        params.put(ExtractData.RESOURCE_NAME_KEY, getResourceName(responseData));
+        params.put(ExtractData.CONTENT_TYPE, responseData.getMimeType());
         String content = null;
         try (final InputStream in = responseData.getResponseBody()) {
             content = extractor.getText(in, params).getContent();

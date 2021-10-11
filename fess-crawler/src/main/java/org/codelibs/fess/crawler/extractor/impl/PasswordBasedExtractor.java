@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -49,7 +48,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
     protected String getPassword(final Map<String, String> params) {
         final String url = params != null ? params.get(ExtractData.URL) : null;
         if (!passwordMap.isEmpty()) {
-            final String resourceName = params != null ? params.get(TikaMetadataKeys.RESOURCE_NAME_KEY) : null;
+            final String resourceName = params != null ? params.get(ExtractData.RESOURCE_NAME_KEY) : null;
 
             String value = null;
             if (StringUtil.isNotEmpty(url)) {

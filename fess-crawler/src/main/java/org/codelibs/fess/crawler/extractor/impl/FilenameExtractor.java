@@ -18,7 +18,6 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -35,7 +34,7 @@ public class FilenameExtractor extends AbstractExtractor {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
-        final String content = params.getOrDefault(TikaMetadataKeys.RESOURCE_NAME_KEY, StringUtil.EMPTY);
+        final String content = params.getOrDefault(ExtractData.RESOURCE_NAME_KEY, StringUtil.EMPTY);
         try {
             return new ExtractData(content);
         } catch (final Exception e) {

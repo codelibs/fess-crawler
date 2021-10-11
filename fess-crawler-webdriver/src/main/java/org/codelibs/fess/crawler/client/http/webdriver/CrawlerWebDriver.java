@@ -23,7 +23,6 @@ import java.util.Set;
 import org.apache.commons.pool2.PooledObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.HasCapabilities;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
@@ -31,6 +30,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.HasInputDevices;
 import org.openqa.selenium.interactions.Keyboard;
 import org.openqa.selenium.interactions.Mouse;
@@ -123,7 +123,7 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
                 ((DesiredCapabilities) capabilities).setCapability("webdriver.chrome.driver", webdriverChromeDriver);
             }
 
-            ChromeOptions options = new ChromeOptions();
+            final ChromeOptions options = new ChromeOptions();
             if (chromeArguments != null) {
                 options.addArguments(chromeArguments);
             }
@@ -530,39 +530,39 @@ public class CrawlerWebDriver implements WebDriver, JavascriptExecutor, FindsByI
         return webDriver.manage();
     }
 
-    public void setCapabilities(Capabilities capabilities) {
+    public void setCapabilities(final Capabilities capabilities) {
         this.capabilities = capabilities;
     }
 
-    public void setPhantomjsBinaryPath(String phantomjsBinaryPath) {
+    public void setPhantomjsBinaryPath(final String phantomjsBinaryPath) {
         this.phantomjsBinaryPath = phantomjsBinaryPath;
     }
 
-    public void setPhantomjsGhostdriverPath(String phantomjsGhostdriverPath) {
+    public void setPhantomjsGhostdriverPath(final String phantomjsGhostdriverPath) {
         this.phantomjsGhostdriverPath = phantomjsGhostdriverPath;
     }
 
-    public void setPhantomjsCliArgs(String[] phantomjsCliArgs) {
+    public void setPhantomjsCliArgs(final String[] phantomjsCliArgs) {
         this.phantomjsCliArgs = phantomjsCliArgs;
     }
 
-    public void setPhantomjsGhostdriverCliArgs(String[] phantomjsGhostdriverCliArgs) {
+    public void setPhantomjsGhostdriverCliArgs(final String[] phantomjsGhostdriverCliArgs) {
         this.phantomjsGhostdriverCliArgs = phantomjsGhostdriverCliArgs;
     }
 
-    public void setWebdriverChromeDriver(String webdriverChromeDriver) {
+    public void setWebdriverChromeDriver(final String webdriverChromeDriver) {
         this.webdriverChromeDriver = webdriverChromeDriver;
     }
 
-    public void setRemoteAddress(URL remoteAddress) {
+    public void setRemoteAddress(final URL remoteAddress) {
         this.remoteAddress = remoteAddress;
     }
 
-    public void setChromeArguments(String[] chromeArguments) {
+    public void setChromeArguments(final String[] chromeArguments) {
         this.chromeArguments = chromeArguments;
     }
 
-    public void setPrefs(Map<String, Object> prefs) {
+    public void setPrefs(final Map<String, Object> prefs) {
         this.prefs = prefs;
     }
 }

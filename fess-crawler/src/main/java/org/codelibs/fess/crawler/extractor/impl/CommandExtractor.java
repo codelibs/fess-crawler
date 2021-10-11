@@ -21,13 +21,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -61,7 +61,7 @@ public class CommandExtractor extends AbstractExtractor {
 
     protected File workingDirectory = null;
 
-    protected String commandOutputEncoding = System.getProperty("file.encoding");
+    protected String commandOutputEncoding = Charset.defaultCharset().displayName();
 
     protected int maxOutputLine = 1000;
 
@@ -75,7 +75,7 @@ public class CommandExtractor extends AbstractExtractor {
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        final String resourceName = params == null ? null : params.get(TikaMetadataKeys.RESOURCE_NAME_KEY);
+        final String resourceName = params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
 
         String extention;
         String filePrefix;

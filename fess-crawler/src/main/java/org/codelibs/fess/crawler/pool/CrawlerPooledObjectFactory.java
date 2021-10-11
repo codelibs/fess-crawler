@@ -43,9 +43,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
      */
     @Override
     public T create() throws Exception {
-        @SuppressWarnings("unchecked")
-        final T component = (T) crawlerContainer.getComponent(componentName);
-        return component;
+        return (T) crawlerContainer.getComponent(componentName);
     }
 
     /*

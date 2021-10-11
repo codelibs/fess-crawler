@@ -117,11 +117,10 @@ public class SitemapsHelper {
                 // Text Sitemaps Index
                 bis.reset();
                 return parseTextSitemaps(bis);
-            } else {
-                // gz
-                bis.reset();
-                return parse(new GZIPInputStream(bis), false);
             }
+            // gz
+            bis.reset();
+            return parse(new GZIPInputStream(bis), false);
         } catch (final CrawlingAccessException e) {
             throw e;
         } catch (final Exception e) {

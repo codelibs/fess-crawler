@@ -48,7 +48,7 @@ public final class TextUtil {
 
         private boolean duplicateTermRemoved = false;
 
-        private int[] spaceChars = new int[] { '\u0020', '\u00a0', '\u3000', '\ufffd' };
+        private int[] spaceChars = { '\u0020', '\u00a0', '\u3000', '\ufffd' };
 
         public TextNormalizeContext(final Reader reader) {
             this.reader = reader;

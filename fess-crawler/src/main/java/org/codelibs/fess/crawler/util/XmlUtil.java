@@ -49,9 +49,9 @@ public final class XmlUtil {
     public static String escapeXml(final String value) {
         return stripInvalidXMLCharacters(//
                 value//
-                        .replaceAll("&", "&amp;") //
-                        .replaceAll("<", "&lt;")//
-                        .replaceAll(">", "&gt;")//
+                        .replace("&", "&amp;") //
+                        .replace("<", "&lt;")//
+                        .replace(">", "&gt;")//
                         .replace("\"", "&quot;")//
                         .replace("\'", "&apos;")//
         );

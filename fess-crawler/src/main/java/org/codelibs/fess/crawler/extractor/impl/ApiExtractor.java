@@ -134,7 +134,7 @@ public class ApiExtractor extends AbstractExtractor {
         }
 
         // Authentication
-        final Authentication[] siteCredentialList = new Authentication[0];
+        final Authentication[] siteCredentialList = {};
         for (final Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
             credentialsProvider.setCredentials(authScope, authentication.getCredentials());

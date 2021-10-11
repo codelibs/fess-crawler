@@ -101,7 +101,7 @@ public abstract class AbstractCrawlerService {
 
     protected static final String _DOC = "_doc";
 
-    protected static final String[] timestampFields = new String[] { LAST_MODIFIED, CREATE_TIME };
+    protected static final String[] timestampFields = { LAST_MODIFIED, CREATE_TIME };
 
     protected static final HashFunction murmur3Hash = Hashing.murmur3_128(0);
 

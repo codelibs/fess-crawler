@@ -76,7 +76,7 @@ public class AOnClickAction extends BaseUrlAction {
         }
     }
 
-    public void setAttrName(String attrName) {
+    public void setAttrName(final String attrName) {
         this.attrName = attrName;
     }
 

@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.tika.metadata.TikaMetadataKeys;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -132,7 +131,7 @@ public class CommandExtractorTest extends PlainTestCase {
         final CommandExtractor extractor = new CommandExtractor();
         extractor.command = getCommand(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
-        params.put(TikaMetadataKeys.RESOURCE_NAME_KEY, "hoge/fuga.txt");
+        params.put(ExtractData.RESOURCE_NAME_KEY, "hoge/fuga.txt");
         final ExtractData text = extractor.getText(new FileInputStream(contentFile), params);
         assertEquals(content, text.getContent());
     }

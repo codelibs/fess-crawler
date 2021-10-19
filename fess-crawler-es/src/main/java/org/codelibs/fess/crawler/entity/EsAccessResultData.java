@@ -21,6 +21,7 @@ import java.util.Map;
 import org.codelibs.core.misc.Base64Util;
 import org.codelibs.fesen.common.xcontent.ToXContent;
 import org.codelibs.fesen.common.xcontent.XContentBuilder;
+import org.codelibs.fess.crawler.exception.EsAccessException;
 
 public class EsAccessResultData extends AccessResultDataImpl<String> implements ToXContent {
 
@@ -40,7 +41,11 @@ public class EsAccessResultData extends AccessResultDataImpl<String> implements 
         setEncoding((String) src.get(ENCODING));
         final String dataStr = (String) src.get(DATA);
         if (dataStr != null) {
-            setData(Base64Util.decode(dataStr));
+            try {
+                setData(Base64Util.decode(dataStr));
+            } catch (Exception e) {
+                throw new EsAccessException("data: " + dataStr, e);
+            }
         }
     }
 

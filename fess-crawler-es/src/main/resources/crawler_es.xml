@@ -47,13 +47,13 @@
 	</component>
 
 	<component name="crawlerConfig" class="org.codelibs.fess.crawler.util.EsCrawlerConfig">
-		<property name="queueIndex">".crawler.queue"</property>
+		<property name="queueIndex">"fess_crawler.queue"</property>
 		<property name="queueShards">5</property>
 		<property name="queueReplicas">1</property>
-		<property name="dataIndex">".crawler.data"</property>
+		<property name="dataIndex">"fess_crawler.data"</property>
 		<property name="dataShards">5</property>
 		<property name="dataReplicas">1</property>
-		<property name="filterIndex">".crawler.filter"</property>
+		<property name="filterIndex">"fess_crawler.filter"</property>
 		<property name="filterShards">5</property>
 		<property name="filterReplicas">1</property>
 	</component>

@@ -133,8 +133,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
      * @return
      */
     private String getContentType(final WebDriver wd) {
-        if (wd instanceof JavascriptExecutor) {
-            final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
+        if (wd instanceof JavascriptExecutor jsExecutor) {
             // TODO document.contentType does not exist.
             final Object ret = jsExecutor.executeScript("return document.contentType;");
             if (ret != null) {
@@ -149,8 +148,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
      * @return
      */
     private Date getLastModified(final WebDriver wd) {
-        if (wd instanceof JavascriptExecutor) {
-            final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
+        if (wd instanceof JavascriptExecutor jsExecutor) {
             final Object ret = jsExecutor.executeScript("return new Date(document.lastModified).getTime();");
             if (ret != null) {
                 try {
@@ -176,8 +174,7 @@ public class WebDriverClient extends AbstractCrawlerClient {
      * @return
      */
     private String getCharSet(final WebDriver wd) {
-        if (wd instanceof JavascriptExecutor) {
-            final JavascriptExecutor jsExecutor = (JavascriptExecutor) wd;
+        if (wd instanceof JavascriptExecutor jsExecutor) {
             final Object ret = jsExecutor.executeScript("return document.characterSet;");
             if (ret != null) {
                 return ret.toString();

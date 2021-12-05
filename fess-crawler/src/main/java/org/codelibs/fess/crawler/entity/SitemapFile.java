@@ -75,10 +75,9 @@ public class SitemapFile implements Sitemap {
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof SitemapFile)) {
+        if (!(obj instanceof final SitemapFile sitemapUrl)) {
             return false;
         }
-        final SitemapFile sitemapUrl = (SitemapFile) obj;
         if (StringUtil.equals(loc, sitemapUrl.loc) && StringUtil.equals(lastmod, sitemapUrl.lastmod)) {
             return true;
         }

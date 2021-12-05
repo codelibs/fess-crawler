@@ -125,10 +125,9 @@ public class SitemapUrl implements Sitemap {
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof SitemapUrl)) {
+        if (!(obj instanceof final SitemapUrl sitemapUrl)) {
             return false;
         }
-        final SitemapUrl sitemapUrl = (SitemapUrl) obj;
         if (StringUtil.equals(loc, sitemapUrl.loc) && StringUtil.equals(changefreq, sitemapUrl.changefreq)
                 && StringUtil.equals(lastmod, sitemapUrl.lastmod) && StringUtil.equals(priority, sitemapUrl.priority)) {
             return true;

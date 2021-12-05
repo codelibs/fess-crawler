@@ -43,7 +43,7 @@ public class EsAccessResultData extends AccessResultDataImpl<String> implements 
         if (dataStr != null) {
             try {
                 setData(Base64Util.decode(dataStr));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new EsAccessException("data: " + dataStr, e);
             }
         }

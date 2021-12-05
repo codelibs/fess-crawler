@@ -117,11 +117,9 @@ public class PdfExtractor extends PasswordBasedExtractor {
         for (final PDPage page : doc.getPages()) {
             try {
                 for (final PDAnnotation annotation : page.getAnnotations()) {
-                    if (annotation instanceof PDAnnotationFileAttachment) {
-                        final PDAnnotationFileAttachment annotationFileAttachment = (PDAnnotationFileAttachment) annotation;
+                    if (annotation instanceof final PDAnnotationFileAttachment annotationFileAttachment) {
                         final PDFileSpecification fileSpec = annotationFileAttachment.getFile();
-                        if (fileSpec instanceof PDComplexFileSpecification) {
-                            final PDComplexFileSpecification complexFileSpec = (PDComplexFileSpecification) fileSpec;
+                        if (fileSpec instanceof final PDComplexFileSpecification complexFileSpec) {
                             final PDEmbeddedFile embeddedFile = getEmbeddedFile(complexFileSpec);
                             extractFile(complexFileSpec.getFilename(), embeddedFile, writer);
                         }

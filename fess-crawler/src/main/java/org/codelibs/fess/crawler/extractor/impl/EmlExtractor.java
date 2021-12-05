@@ -168,8 +168,7 @@ public class EmlExtractor extends AbstractExtractor {
         final StringBuilder buf = new StringBuilder(1000);
         try {
             final Object content = message.getContent();
-            if (content instanceof Multipart) {
-                final Multipart multipart = (Multipart) content;
+            if (content instanceof final Multipart multipart) {
                 final int count = multipart.getCount();
                 for (int i = 0; i < count; i++) {
                     final BodyPart bodyPart = multipart.getBodyPart(i);

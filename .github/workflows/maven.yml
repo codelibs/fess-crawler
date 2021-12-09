@@ -5,9 +5,13 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ master ]
+    branches:
+    - master
+    - "*.x"
   pull_request:
-    branches: [ master ]
+    branches:
+    - master
+    - "*.x"
 
 jobs:
   build:
@@ -32,10 +36,10 @@ jobs:
       with:
         repository: codelibs/fess-parent
         path: fess-parent
+        ref: 13.16.x
     - name: Install fess-parent
       run: |
         cd fess-parent
-        git checkout -b 13.16.x origin/13.16.x
         mvn install
     - name: Build with Maven
       run: mvn -B package --file pom.xml

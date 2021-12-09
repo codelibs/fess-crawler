@@ -35,6 +35,7 @@ jobs:
     - name: Install fess-parent
       run: |
         cd fess-parent
+        git checkout -b 13.16.x origin/13.16.x
         mvn install
     - name: Build with Maven
       run: mvn -B package --file pom.xml

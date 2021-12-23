@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import org.codelibs.fesen.action.DocWriteRequest.OpType;
-import org.codelibs.fesen.index.query.QueryBuilders;
 import org.codelibs.fess.crawler.entity.EsUrlFilter;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.service.UrlFilterService;
 import org.codelibs.fess.crawler.util.EsCrawlerConfig;
+import org.opensearch.action.DocWriteRequest.OpType;
+import org.opensearch.index.query.QueryBuilders;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

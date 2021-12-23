@@ -22,13 +22,6 @@ import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 
 import org.codelibs.core.beans.util.BeanUtil;
-import org.codelibs.fesen.action.DocWriteRequest.OpType;
-import org.codelibs.fesen.action.search.SearchRequestBuilder;
-import org.codelibs.fesen.action.search.SearchResponse;
-import org.codelibs.fesen.core.TimeValue;
-import org.codelibs.fesen.index.query.QueryBuilders;
-import org.codelibs.fesen.search.SearchHit;
-import org.codelibs.fesen.search.SearchHits;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
 import org.codelibs.fess.crawler.exception.EsAccessException;
@@ -36,6 +29,13 @@ import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
 import org.codelibs.fess.crawler.util.EsCrawlerConfig;
 import org.codelibs.fess.crawler.util.EsResultList;
+import org.opensearch.action.DocWriteRequest.OpType;
+import org.opensearch.action.search.SearchRequestBuilder;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.common.unit.TimeValue;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.SearchHit;
+import org.opensearch.search.SearchHits;
 
 public class EsDataService extends AbstractCrawlerService implements DataService<EsAccessResult> {
 

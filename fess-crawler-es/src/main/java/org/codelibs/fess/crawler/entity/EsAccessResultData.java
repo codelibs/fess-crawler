@@ -19,9 +19,9 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.codelibs.core.misc.Base64Util;
-import org.codelibs.fesen.common.xcontent.ToXContent;
-import org.codelibs.fesen.common.xcontent.XContentBuilder;
 import org.codelibs.fess.crawler.exception.EsAccessException;
+import org.opensearch.common.xcontent.ToXContent;
+import org.opensearch.common.xcontent.XContentBuilder;
 
 public class EsAccessResultData extends AccessResultDataImpl<String> implements ToXContent {
 

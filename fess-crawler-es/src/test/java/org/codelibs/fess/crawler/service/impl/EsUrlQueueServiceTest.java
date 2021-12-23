@@ -15,17 +15,17 @@
  */
 package org.codelibs.fess.crawler.service.impl;
 
-import static org.codelibs.fesen.runner.FesenRunner.newConfigs;
+import static org.codelibs.opensearch.runner.OpenSearchRunner.newConfigs;
 
 import java.util.UUID;
 
 import javax.annotation.Resource;
 
-import org.codelibs.fesen.index.query.QueryBuilders;
-import org.codelibs.fesen.runner.FesenRunner;
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.EsUrlQueue;
+import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
+import org.opensearch.index.query.QueryBuilders;
 
 /**
  * @author shinsuke
@@ -38,7 +38,7 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
     @Resource
     private FesenClient fesenClient;
 
-    private FesenRunner runner;
+    private OpenSearchRunner runner;
 
     @Override
     protected String prepareConfigFile() {
@@ -53,7 +53,7 @@ public class EsUrlQueueServiceTest extends LastaDiTestCase {
     @Override
     public void setUp() throws Exception {
         // create runner instance
-        runner = new FesenRunner();
+        runner = new OpenSearchRunner();
         // create ES nodes
         final String clusterName = UUID.randomUUID().toString();
         runner.onBuild((number, settingsBuilder) -> {

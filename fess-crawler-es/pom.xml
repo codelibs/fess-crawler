@@ -95,9 +95,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.codelibs.fesen</groupId>
-			<artifactId>fesen-runner</artifactId>
-			<version>${fesen.runner.version}</version>
+			<groupId>org.codelibs.opensearch</groupId>
+			<artifactId>opensearch-runner</artifactId>
+			<version>${opensearch.runner.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

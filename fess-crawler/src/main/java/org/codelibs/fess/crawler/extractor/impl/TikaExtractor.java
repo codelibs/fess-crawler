@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -61,10 +62,13 @@ import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
+import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
+import org.codelibs.core.io.PropertiesUtil;
 import org.codelibs.core.io.ReaderUtil;
+import org.codelibs.core.lang.FieldUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -355,12 +359,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
         if (StringUtil.isNotBlank(tesseractConfigPath)) {
             TesseractOCRConfig tesseractOCRConfig = tesseractOCRConfigMap.get(tesseractConfigPath);
             if (tesseractOCRConfig == null) {
-                try (final InputStream in = new FileInputStream(tesseractConfigPath)) {
-                    tesseractOCRConfig = new TesseractOCRConfig(in);
-                } catch (final Exception e) {
-                    logger.warn("Could not load " + tesseractConfigPath, e);
-                    tesseractOCRConfig = new TesseractOCRConfig();
-                }
+                final Properties props = new Properties();
+                PropertiesUtil.load(props, tesseractConfigPath);
+                final Map<String, String> propMap =
+                        props.entrySet().stream().collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
+                tesseractOCRConfig = new TesseractOCRConfig();
+                BeanUtil.copyMapToBean(propMap, tesseractOCRConfig);
                 tesseractOCRConfigMap.put(tesseractConfigPath, tesseractOCRConfig);
             }
             parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
@@ -370,12 +374,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
         if (StringUtil.isNotBlank(pdfParserConfigPath)) {
             PDFParserConfig pdfParserConfig = pdfParserConfigMap.get(pdfParserConfigPath);
             if (pdfParserConfig == null) {
-                try (final InputStream in = new FileInputStream(pdfParserConfigPath)) {
-                    pdfParserConfig = new PDFParserConfig(in);
-                } catch (final Exception e) {
-                    logger.warn("Could not load " + pdfParserConfigPath, e);
-                    pdfParserConfig = new PDFParserConfig();
-                }
+                final Properties props = new Properties();
+                PropertiesUtil.load(props, pdfParserConfigPath);
+                final Map<String, String> propMap =
+                        props.entrySet().stream().collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
+                pdfParserConfig = new PDFParserConfig();
+                BeanUtil.copyMapToBean(propMap, pdfParserConfig);
                 pdfParserConfigMap.put(pdfParserConfigPath, pdfParserConfig);
             }
             parseContext.set(PDFParserConfig.class, pdfParserConfig);

@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +29,8 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class PasswordBasedExtractor extends AbstractExtractor {
 
@@ -72,10 +71,9 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                 List<Pair<Pattern, String>> list = configPasswordMap.get(value);
                 if (list == null) {
                     try {
-                        final Gson gson = new Gson();
-                        final Type type = new TypeToken<Map<String, String>>() {
-                        }.getType();
-                        final Map<String, String> passwordMap = gson.fromJson(value, type);
+                        ObjectMapper mapper = new ObjectMapper();
+                        final Map<String, String> passwordMap = mapper.readValue(value, new TypeReference<Map<String, String>>() {
+                        });
                         list = passwordMap.entrySet().stream().map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (final Exception e) {

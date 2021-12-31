@@ -133,19 +133,24 @@ public class TikaExtractorTest extends PlainTestCase {
         for (final String key : extractData.getKeySet()) {
             logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
-        assertEquals("こめんと", extractData.getValues("Comments")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
-        assertEquals("太郎", extractData.getValues("Author")[0]);
-        assertEquals("2009-06-26T21:41:00Z", extractData.getValues("Creation-Date")[0]);
-        assertEquals("たいとる", extractData.getValues("title")[0]);
-        assertEquals("かいしゃ", extractData.getValues("Company")[0]);
-        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
-        assertEquals("2012-05-18T22:45:00Z", extractData.getValues("Last-Save-Date")[0]);
-        assertEquals("4", extractData.getValues("Revision-Number")[0]);
-        assertEquals("Normal", extractData.getValues("Template")[0]);
-        assertEquals("Microsoft Office Word", extractData.getValues("Application-Name")[0]);
+        assertEquals("4", extractData.getValues("cp:revision")[0]);
+        assertEquals("こめんと", extractData.getValues("w:Comments")[0]);
+        assertEquals("たぐ|さぶたいとる", String.join("|", extractData.getValues("dc:subject")));
+        assertEquals("Microsoft Office Word", extractData.getValues("extended-properties:Application")[0]);
+        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
+        assertEquals("太郎", extractData.getValues("dc:creator")[0]);
+        assertEquals("かいしゃ", extractData.getValues("extended-properties:Company")[0]);
         assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
-        assertEquals("3", extractData.getValues("Character Count")[0]);
+        assertEquals("2009-06-26T21:41:00Z", extractData.getValues("dcterms:created")[0]);
+        assertEquals("2012-05-18T22:45:00Z", extractData.getValues("dcterms:modified")[0]);
+        assertEquals("3", extractData.getValues("meta:character-count")[0]);
+        assertEquals("Normal", extractData.getValues("extended-properties:Template")[0]);
+        assertEquals("たいとる", extractData.getValues("dc:title")[0]);
+        assertEquals("3000000000", extractData.getValues("extended-properties:TotalTime")[0]);
+        assertEquals("たぐ", extractData.getValues("meta:keyword")[0]);
+        assertEquals("花子", extractData.getValues("extended-properties:Manager")[0]);
+        assertEquals("ぶんるい", extractData.getValues("cp:category")[0]);
+        assertEquals("1", extractData.getValues("meta:page-count")[0]);
         assertEquals("application/msword", extractData.getValues("Content-Type")[0]);
     }
 
@@ -159,33 +164,32 @@ public class TikaExtractorTest extends PlainTestCase {
         for (final String key : extractData.getKeySet()) {
             logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
-        assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
-        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
-        assertEquals("Microsoft Office Word", extractData.getValues("Application-Name")[0]);
-        assertEquals("太郎", extractData.getValues("Author")[0]);
-        assertEquals("14.0000", extractData.getValues("Application-Version")[0]);
-        assertEquals("3", extractData.getValues("Character-Count-With-Spaces")[0]);
-        assertEquals("2012-05-18T22:44:00Z", extractData.getValues("date")[0]);
-        assertEquals("2", extractData.getValues("Total-Time")[0]);
-        assertEquals("太郎", extractData.getValues("creator")[0]);
-        assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
-        assertEquals("2010-07-22T00:21:00Z", extractData.getValues("Creation-Date")[0]);
-        assertEquals("たいとる", extractData.getValues("title")[0]);
-        assertEquals("1", extractData.getValues("Line-Count")[0]);
-        assertEquals("花子", extractData.getValues("Manager")[0]);
-        assertEquals("こめんと", extractData.getValues("description")[0]);
-        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
-        assertEquals("1", extractData.getValues("Paragraph-Count")[0]);
-        assertEquals("2", extractData.getValues("Revision-Number")[0]);
-        assertEquals("Normal", extractData.getValues("Template")[0]);
-        assertEquals("1", extractData.getValues("Page-Count")[0]);
-        assertEquals("2012-05-18T22:44:00Z", extractData.getValues("Last-Modified")[0]);
-        assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
-        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
-        assertEquals("3", extractData.getValues("Character Count")[0]);
+        assertEquals("2", extractData.getValues("cp:revision")[0]);
+        assertEquals("こめんと", extractData.getValues("dc:description")[0]);
+        assertEquals("14.0000", extractData.getValues("extended-properties:AppVersion")[0]);
+        assertEquals("1", extractData.getValues("meta:paragraph-count")[0]);
+        assertEquals("太郎", extractData.getValues("dc:creator")[0]);
+        assertEquals("かいしゃ", extractData.getValues("extended-properties:Company")[0]);
+        assertEquals("2010-07-22T00:21:00Z", extractData.getValues("dcterms:created")[0]);
+        assertEquals("1", extractData.getValues("meta:line-count")[0]);
+        assertEquals("2012-05-18T22:44:00Z", extractData.getValues("dcterms:modified")[0]);
+        assertEquals("3", extractData.getValues("meta:character-count")[0]);
+        assertEquals("じょうたい", extractData.getValues("cp:contentStatus")[0]);
+        assertEquals("3", extractData.getValues("meta:character-count-with-spaces")[0]);
+        assertEquals("たいとる", extractData.getValues("dc:title")[0]);
+        assertEquals("2", extractData.getValues("extended-properties:TotalTime")[0]);
+        assertEquals("花子", extractData.getValues("extended-properties:Manager")[0]);
         assertEquals("application/vnd.openxmlformats-officedocument.wordprocessingml.document", extractData.getValues("Content-Type")[0]);
-
+        assertEquals("さぶたいとる|たぐ", String.join("|", extractData.getValues("dc:subject")));
+        assertEquals("Microsoft Office Word", extractData.getValues("extended-properties:Application")[0]);
+        assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
+        assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
+        assertEquals("Normal", extractData.getValues("extended-properties:Template")[0]);
+        assertEquals("None", extractData.getValues("extended-properties:DocSecurityString")[0]);
+        assertEquals("たぐ", extractData.getValues("meta:keyword")[0]);
+        assertEquals("ぶんるい", extractData.getValues("cp:category")[0]);
+        assertEquals("1", extractData.getValues("meta:page-count")[0]);
+        assertEquals("かいしゃ", extractData.getValues("dc:publisher")[0]);
     }
 
     public void test_getTika_msexcel() {
@@ -198,19 +202,21 @@ public class TikaExtractorTest extends PlainTestCase {
         for (final String key : extractData.getKeySet()) {
             logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
-        assertEquals("こめんと", extractData.getValues("Comments")[0]);
+        assertEquals("こめんと", extractData.getValues("w:Comments")[0]);
+        assertEquals("たぐ|さぶたいとる", String.join("|", extractData.getValues("dc:subject")));
+        assertEquals("Microsoft Excel", extractData.getValues("extended-properties:Application")[0]);
         assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
-        assertEquals("Microsoft Excel", extractData.getValues("Application-Name")[0]);
-        assertEquals("太郎", extractData.getValues("Author")[0]);
-        assertEquals("1997-01-08T22:48:59Z", extractData.getValues("Creation-Date")[0]);
-        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
-        assertEquals("たいとる", extractData.getValues("title")[0]);
-        assertEquals("花子", extractData.getValues("Manager")[0]);
-        assertEquals("かいしゃ", extractData.getValues("Company")[0]);
+        assertEquals("太郎", extractData.getValues("dc:creator")[0]);
+        assertEquals("かいしゃ", extractData.getValues("extended-properties:Company")[0]);
+        assertEquals("1997-01-08T22:48:59Z", extractData.getValues("dcterms:created")[0]);
+        assertEquals("2012-05-18T22:48:52Z", extractData.getValues("dcterms:modified")[0]);
+        assertEquals("たいとる", extractData.getValues("dc:title")[0]);
+        assertEquals("0", extractData.getValues("extended-properties:TotalTime")[0]);
+        assertEquals("たぐ", extractData.getValues("meta:keyword")[0]);
+        assertEquals("花子", extractData.getValues("extended-properties:Manager")[0]);
+        assertEquals("ぶんるい", extractData.getValues("cp:category")[0]);
         assertEquals("application/vnd.ms-excel", extractData.getValues("Content-Type")[0]);
-        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
-        assertEquals("2012-05-18T22:48:52Z", extractData.getValues("Last-Save-Date")[0]);
+
     }
 
     public void test_getTika_msexcelx() {
@@ -223,25 +229,24 @@ public class TikaExtractorTest extends PlainTestCase {
         for (final String key : extractData.getKeySet()) {
             logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
-        assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
+        assertEquals("こめんと", extractData.getValues("dc:description")[0]);
+        assertEquals("14.0300", extractData.getValues("extended-properties:AppVersion")[0]);
+        assertEquals("さぶたいとる|たぐ", String.join("|", extractData.getValues("dc:subject")));
+        assertEquals("Microsoft Excel", extractData.getValues("extended-properties:Application")[0]);
         assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
-        assertEquals("Microsoft Excel", extractData.getValues("Application-Name")[0]);
-        assertEquals("太郎", extractData.getValues("Author")[0]);
-        assertEquals("2012-05-18T22:50:00Z", extractData.getValues("Last-Modified")[0]);
-        assertEquals("14.0300", extractData.getValues("Application-Version")[0]);
-        assertEquals("2012-05-18T22:50:00Z", extractData.getValues("date")[0]);
-        assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
-        assertEquals("太郎", extractData.getValues("creator")[0]);
-        assertEquals("1997-01-08T22:48:59Z", extractData.getValues("Creation-Date")[0]);
-        assertEquals("たいとる", extractData.getValues("title")[0]);
-        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
+        assertEquals("太郎", extractData.getValues("dc:creator")[0]);
+        assertEquals("かいしゃ", extractData.getValues("extended-properties:Company")[0]);
+        assertEquals("1997-01-08T22:48:59Z", extractData.getValues("dcterms:created")[0]);
+        assertEquals("2012-05-18T22:50:00Z", extractData.getValues("dcterms:modified")[0]);
         assertEquals("false", extractData.getValues("protected")[0]);
-        assertEquals("こめんと", extractData.getValues("description")[0]);
-        assertEquals("花子", extractData.getValues("Manager")[0]);
+        assertEquals("じょうたい", extractData.getValues("cp:contentStatus")[0]);
+        assertEquals("たいとる", extractData.getValues("dc:title")[0]);
+        assertEquals("None", extractData.getValues("extended-properties:DocSecurityString")[0]);
+        assertEquals("たぐ", extractData.getValues("meta:keyword")[0]);
+        assertEquals("花子", extractData.getValues("extended-properties:Manager")[0]);
+        assertEquals("ぶんるい", extractData.getValues("cp:category")[0]);
         assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", extractData.getValues("Content-Type")[0]);
-        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
-
+        assertEquals("かいしゃ", extractData.getValues("dc:publisher")[0]);
     }
 
     public void test_getTika_mspowerpoint() {
@@ -254,24 +259,24 @@ public class TikaExtractorTest extends PlainTestCase {
         for (final String key : extractData.getKeySet()) {
             logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
-        assertEquals("2", extractData.getValues("Revision-Number")[0]);
-        assertEquals("こめんと", extractData.getValues("Comments")[0]);
-        assertEquals("1", extractData.getValues("Slide-Count")[0]);
+        assertEquals("2", extractData.getValues("cp:revision")[0]);
+        assertEquals("こめんと", extractData.getValues("w:Comments")[0]);
+        assertEquals("1", extractData.getValues("meta:word-count")[0]);
+        assertEquals("たぐ|さぶたいとる", String.join("|", extractData.getValues("dc:subject")));
+        assertEquals("Microsoft PowerPoint", extractData.getValues("extended-properties:Application")[0]);
         assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
-        assertEquals("Microsoft PowerPoint", extractData.getValues("Application-Name")[0]);
-        assertEquals("太郎", extractData.getValues("Author")[0]);
+        assertEquals("太郎", extractData.getValues("dc:creator")[0]);
+        assertEquals("かいしゃ", extractData.getValues("extended-properties:Company")[0]);
+        assertEquals("1", extractData.getValues("meta:slide-count")[0]);
         assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
-        assertEquals("1", extractData.getValues("Word-Count")[0]);
-        assertEquals("1126220000", extractData.getValues("Edit-Time")[0]);
-        assertEquals("2009-06-26T21:44:55Z", extractData.getValues("Creation-Date")[0]);
-        assertEquals("たいとる", extractData.getValues("title")[0]);
-        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
-        assertEquals("花子", extractData.getValues("Manager")[0]);
-        assertEquals("かいしゃ", extractData.getValues("Company")[0]);
+        assertEquals("2009-06-26T21:44:55Z", extractData.getValues("dcterms:created")[0]);
+        assertEquals("2012-05-18T22:46:36Z", extractData.getValues("dcterms:modified")[0]);
+        assertEquals("たいとる", extractData.getValues("dc:title")[0]);
+        assertEquals("1126220000", extractData.getValues("extended-properties:TotalTime")[0]);
+        assertEquals("たぐ", extractData.getValues("meta:keyword")[0]);
+        assertEquals("花子", extractData.getValues("extended-properties:Manager")[0]);
+        assertEquals("ぶんるい", extractData.getValues("cp:category")[0]);
         assertEquals("application/vnd.ms-powerpoint", extractData.getValues("Content-Type")[0]);
-        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
-        assertEquals("2012-05-18T22:46:36Z", extractData.getValues("Last-Save-Date")[0]);
     }
 
     public void test_getTika_mspowerpointx() {
@@ -284,29 +289,29 @@ public class TikaExtractorTest extends PlainTestCase {
         for (final String key : extractData.getKeySet()) {
             logger.info("{}={}", key, String.join("|", extractData.getValues(key)));
         }
-        assertEquals("2", extractData.getValues("Revision-Number")[0]);
-        assertEquals("じょうたい", extractData.getValues("Content-Status")[0]);
-        assertEquals("1", extractData.getValues("Slide-Count")[0]);
+        assertEquals("2", extractData.getValues("cp:revision")[0]);
+        assertEquals("こめんと", extractData.getValues("dc:description")[0]);
+        assertEquals("14.0000", extractData.getValues("extended-properties:AppVersion")[0]);
+        assertEquals("1", extractData.getValues("meta:paragraph-count")[0]);
+        assertEquals("1", extractData.getValues("meta:word-count")[0]);
+        assertEquals("さぶたいとる|たぐ", String.join("|", extractData.getValues("dc:subject")));
+        assertEquals("画面に合わせる (4:3)", extractData.getValues("extended-properties:PresentationFormat")[0]);
+        assertEquals("Microsoft Office PowerPoint", extractData.getValues("extended-properties:Application")[0]);
         assertEquals("sugaya", extractData.getValues("meta:last-author")[0]);
-        assertEquals("さぶたいとる", extractData.getValues("cp:subject")[0]);
-        assertEquals("Microsoft Office PowerPoint", extractData.getValues("Application-Name")[0]);
-        assertEquals("太郎", extractData.getValues("Author")[0]);
-        assertEquals("2012-05-18T22:47:45Z", extractData.getValues("Last-Modified")[0]);
-        assertEquals("14.0000", extractData.getValues("Application-Version")[0]);
-        assertEquals("2012-05-18T22:47:45Z", extractData.getValues("date")[0]);
-        assertEquals("かいしゃ", extractData.getValues("publisher")[0]);
-        assertEquals("太郎", extractData.getValues("creator")[0]);
+        assertEquals("太郎", extractData.getValues("dc:creator")[0]);
+        assertEquals("かいしゃ", extractData.getValues("extended-properties:Company")[0]);
+        assertEquals("1", extractData.getValues("meta:slide-count")[0]);
         assertEquals("1", extractData.getValues("xmpTPg:NPages")[0]);
-        assertEquals("1", extractData.getValues("Word-Count")[0]);
-        assertEquals("2009-06-26T21:44:55Z", extractData.getValues("Creation-Date")[0]);
-        assertEquals("たいとる", extractData.getValues("title")[0]);
-        assertEquals("ぶんるい", extractData.getValues("Category")[0]);
-        assertEquals("こめんと", extractData.getValues("description")[0]);
-        assertEquals("花子", extractData.getValues("Manager")[0]);
+        assertEquals("2009-06-26T21:44:55Z", extractData.getValues("dcterms:created")[0]);
+        assertEquals("2012-05-18T22:47:45Z", extractData.getValues("dcterms:modified")[0]);
+        assertEquals("じょうたい", extractData.getValues("cp:contentStatus")[0]);
+        assertEquals("たいとる", extractData.getValues("dc:title")[0]);
+        assertEquals("None", extractData.getValues("extended-properties:DocSecurityString")[0]);
+        assertEquals("たぐ", extractData.getValues("meta:keyword")[0]);
+        assertEquals("花子", extractData.getValues("extended-properties:Manager")[0]);
+        assertEquals("ぶんるい", extractData.getValues("cp:category")[0]);
         assertEquals("application/vnd.openxmlformats-officedocument.presentationml.presentation", extractData.getValues("Content-Type")[0]);
-        assertEquals("たぐ", extractData.getValues("Keywords")[0]);
-        assertEquals("画面に合わせる (4:3)", extractData.getValues("Presentation-Format")[0]);
-        assertEquals("1", extractData.getValues("Paragraph-Count")[0]);
+        assertEquals("かいしゃ", extractData.getValues("dc:publisher")[0]);
     }
 
     public void test_getTika_zip() {
@@ -357,7 +362,7 @@ public class TikaExtractorTest extends PlainTestCase {
         final String content = extractData.getContent();
         CloseableUtil.closeQuietly(in);
         logger.info(content);
-        assertEquals(extractData.getValues("title")[0], "タイトル");
+        assertEquals(extractData.getValues("dc:title")[0], "タイトル");
         assertTrue(content.contains("テスト"));
     }
 

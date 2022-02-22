@@ -26,7 +26,6 @@
 		<module>fess-crawler</module>
 		<module>fess-crawler-lasta</module>
 		<module>fess-crawler-es</module>
-		<module>fess-crawler-webdriver</module>
 	</modules>
 	<build>
 		<pluginManagement>

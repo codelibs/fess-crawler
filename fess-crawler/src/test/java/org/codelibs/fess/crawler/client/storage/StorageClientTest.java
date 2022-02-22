@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.client.storage;
 
 import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -51,12 +53,17 @@ public class StorageClientTest extends PlainTestCase {
         String accessKey = "AKIAIOSFODNN7EXAMPLE";
         String secretKey = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
         String bucketName = "fess";
+        int i = 9000;
 
         minioServer = new GenericContainer<>("minio/minio")//
                 .withEnv("MINIO_ACCESS_KEY", accessKey)//
                 .withEnv("MINIO_SECRET_KEY", secretKey)//
-                .withExposedPorts(9000)//
-                .withCommand("server /data");
+                .withExposedPorts(i)//
+                .withCommand("server /data")//
+                .waitingFor(new HttpWaitStrategy()//
+                        .forPath("/minio/health/ready")//
+                        .forPort(i)//
+                        .withStartupTimeout(Duration.ofSeconds(10)));
         minioServer.start();
 
         Integer mappedPort = minioServer.getFirstMappedPort();

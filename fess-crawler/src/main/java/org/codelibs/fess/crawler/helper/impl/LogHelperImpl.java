@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class LogHelperImpl implements LogHelper {
+
     private static final Logger logger = LoggerFactory.getLogger(LogHelperImpl.class);
 
     /*
@@ -42,167 +43,225 @@ public class LogHelperImpl implements LogHelper {
     @Override
     public void log(final LogType key, final Object... objs) {
         switch (key) {
-        case START_THREAD: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        case START_THREAD:
+            processStartThread(objs);
             break;
-        }
-        case START_CRAWLING: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            if (logger.isInfoEnabled()) {
-                logger.info("Crawling URL: {}", urlQueue.getUrl());
-            }
+        case START_CRAWLING:
+            processStartCrawling(objs);
             break;
-        }
-        case UNSUPPORTED_URL_AT_CRAWLING_STARTED: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            if (logger.isInfoEnabled()) {
-                logger.info("Unsupported URL: {}", urlQueue.getUrl());
-            }
+        case UNSUPPORTED_URL_AT_CRAWLING_STARTED:
+            processUnsupportedUrlAtCrawlingStarted(objs);
             break;
-        }
-        case CHECK_LAST_MODIFIED: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            if (logger.isDebugEnabled()) {
-                logger.debug("Checking the last modified: {}", urlQueue.getLastModified());
-            }
+        case CHECK_LAST_MODIFIED:
+            processCheckLastModified(objs);
             break;
-        }
-        case NOT_MODIFIED: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            if (logger.isInfoEnabled()) {
-                logger.info("Not modified URL: {}", urlQueue.getUrl());
-            }
+        case NOT_MODIFIED:
+            processNotModified(objs);
             break;
-        }
-        case GET_CONTENT: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            if (logger.isDebugEnabled()) {
-                logger.debug("Getting the content from URL: {}", urlQueue.getUrl());
-            }
+        case GET_CONTENT:
+            processGetContent(objs);
             break;
-        }
-        case REDIRECT_LOCATION: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            // final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final ResponseData responseData = (ResponseData) objs[2];
-            if (logger.isInfoEnabled()) {
-                logger.info("Redirect to URL: {}", responseData.getRedirectLocation());
-            }
+        case REDIRECT_LOCATION:
+            processRedirectLocation(objs);
             break;
-        }
-        case PROCESS_RESPONSE: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final ResponseData responseData = (ResponseData) objs[2];
-            if (logger.isDebugEnabled()) {
-                logger.debug("Processing the response. Http Status: {}, Exec Time: {}", responseData.getHttpStatusCode(),
-                        responseData.getExecutionTime());
-            }
+        case PROCESS_RESPONSE:
+            processProcessResponse(objs);
             break;
-        }
-        case FINISHED_CRAWLING: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            if (logger.isDebugEnabled()) {
-                logger.debug("Finished {}", urlQueue.getUrl());
-            }
+        case FINISHED_CRAWLING:
+            processFinishedCrawling(objs);
             break;
-        }
-        case PROCESS_CHILD_URLS_BY_EXCEPTION: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            @SuppressWarnings("unchecked")
-            final Set<RequestData> requestDataSet = (Set<RequestData>) objs[2];
-            if (logger.isDebugEnabled()) {
-                for (final RequestData requestData : requestDataSet) {
-                    logger.debug("Child URL: {} from {}", requestData.getUrl(), urlQueue.getUrl());
-                }
-            }
+        case PROCESS_CHILD_URLS_BY_EXCEPTION:
+            processProcessChildUrlsByException(objs);
             break;
-        }
-        case PROCESS_CHILD_URL_BY_EXCEPTION: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final String url = (String) objs[2];
-            final Throwable e = (Throwable) objs[3];
-            if (logger.isDebugEnabled()) {
-                logger.debug("Child URL: {} from {}", url, urlQueue.getUrl(), e);
-            }
+        case PROCESS_CHILD_URL_BY_EXCEPTION:
+            processProcessChildUrlByException(objs);
             break;
-        }
-        case CRAWLING_ACCESS_EXCEPTION: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final CrawlingAccessException e = (CrawlingAccessException) objs[2];
-            if (e.isDebugEnabled()) {
-                logger.debug("Crawling Access Exception at {}", urlQueue.getUrl(), e);
-            } else if (e.isInfoEnabled()) {
-                logger.info(e.getMessage());
-            } else if (e.isWarnEnabled()) {
-                logger.warn("Crawling Access Exception at " + urlQueue.getUrl(), e);
-            } else if (e.isErrorEnabled()) {
-                logger.error("Crawling Access Exception at " + urlQueue.getUrl(), e);
-            }
+        case CRAWLING_ACCESS_EXCEPTION:
+            processCrawlingAccessException(objs);
             break;
-        }
-        case CRAWLING_EXCETPION: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final Throwable e = (Throwable) objs[2];
-            logger.error("Crawling Exception at " + urlQueue.getUrl(), e);
+        case CRAWLING_EXCETPION:
+            processCrawlingException(objs);
             break;
-        }
-        case NO_URL_IN_QUEUE: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final Integer threadCheckCount = (Integer) objs[2];
-            if (logger.isDebugEnabled()) {
-                if (urlQueue != null && urlQueue.getUrl() != null) {
-                    logger.debug("{} is not a target url. ({})", urlQueue.getUrl(), threadCheckCount);
-                } else {
-                    logger.debug("The url is null. ({})", threadCheckCount);
-                }
-            }
+        case NO_URL_IN_QUEUE:
+            processNoUrlInQueue(objs);
             break;
-        }
-        case FINISHED_THREAD: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        case FINISHED_THREAD:
+            processFinishedThread(objs);
             break;
-        }
-        case NO_RESPONSE_PROCESSOR: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final ResponseData responseData = (ResponseData) objs[2];
-            // Rule rule = (Rule) objs[3];
-            if (logger.isDebugEnabled()) {
-                logger.debug("No ResponseProcessor for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl(),
-                        responseData.getMimeType());
-            }
+        case NO_RESPONSE_PROCESSOR:
+            processNoResponseProcessor(objs);
             break;
-        }
-        case NO_RULE: {
-            // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
-            // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
-            final ResponseData responseData = (ResponseData) objs[2];
-            if (logger.isDebugEnabled()) {
-                logger.debug("No rule for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl(), responseData.getMimeType());
-            }
+        case NO_RULE:
+            processNoRule(objs);
             break;
-        }
-        case SYSTEM_ERROR: {
-            final Throwable t = (Throwable) objs[0];
-            if (logger.isErrorEnabled()) {
-                logger.error("System Error.", t);
-            }
+        case SYSTEM_ERROR:
+            processSystemError(objs);
             break;
-        }
         default:
+            processDefault(objs);
             break;
         }
+    }
+
+    protected void processDefault(final Object... objs) {
+    }
+
+    protected void processSystemError(final Object... objs) {
+        final Throwable t = (Throwable) objs[0];
+        if (logger.isErrorEnabled()) {
+            logger.error("System Error.", t);
+        }
+    }
+
+    protected void processNoRule(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final ResponseData responseData = (ResponseData) objs[2];
+        if (logger.isDebugEnabled()) {
+            logger.debug("No rule for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl(), responseData.getMimeType());
+        }
+    }
+
+    protected void processNoResponseProcessor(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final ResponseData responseData = (ResponseData) objs[2];
+        // Rule rule = (Rule) objs[3];
+        if (logger.isDebugEnabled()) {
+            logger.debug("No ResponseProcessor for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl(),
+                    responseData.getMimeType());
+        }
+    }
+
+    protected void processFinishedThread(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+    }
+
+    protected void processNoUrlInQueue(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final Integer threadCheckCount = (Integer) objs[2];
+        if (logger.isDebugEnabled()) {
+            if (urlQueue != null && urlQueue.getUrl() != null) {
+                logger.debug("{} is not a target url. ({})", urlQueue.getUrl(), threadCheckCount);
+            } else {
+                logger.debug("The url is null. ({})", threadCheckCount);
+            }
+        }
+    }
+
+    protected void processCrawlingException(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final Throwable e = (Throwable) objs[2];
+        logger.error("Crawling Exception at " + urlQueue.getUrl(), e);
+    }
+
+    protected void processCrawlingAccessException(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final CrawlingAccessException e = (CrawlingAccessException) objs[2];
+        if (e.isDebugEnabled()) {
+            logger.debug("Crawling Access Exception at {}", urlQueue.getUrl(), e);
+        } else if (e.isInfoEnabled()) {
+            logger.info(e.getMessage());
+        } else if (e.isWarnEnabled()) {
+            logger.warn("Crawling Access Exception at " + urlQueue.getUrl(), e);
+        } else if (e.isErrorEnabled()) {
+            logger.error("Crawling Access Exception at " + urlQueue.getUrl(), e);
+        }
+    }
+
+    protected void processProcessChildUrlByException(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final String url = (String) objs[2];
+        final Throwable e = (Throwable) objs[3];
+        if (logger.isDebugEnabled()) {
+            logger.debug("Child URL: {} from {}", url, urlQueue.getUrl(), e);
+        }
+    }
+
+    protected void processProcessChildUrlsByException(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        @SuppressWarnings("unchecked")
+        final Set<RequestData> requestDataSet = (Set<RequestData>) objs[2];
+        if (logger.isDebugEnabled()) {
+            for (final RequestData requestData : requestDataSet) {
+                logger.debug("Child URL: {} from {}", requestData.getUrl(), urlQueue.getUrl());
+            }
+        }
+    }
+
+    protected void processFinishedCrawling(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        if (logger.isDebugEnabled()) {
+            logger.debug("Finished {}", urlQueue.getUrl());
+        }
+    }
+
+    protected void processProcessResponse(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final ResponseData responseData = (ResponseData) objs[2];
+        if (logger.isDebugEnabled()) {
+            logger.debug("Processing the response. Http Status: {}, Exec Time: {}", responseData.getHttpStatusCode(),
+                    responseData.getExecutionTime());
+        }
+    }
+
+    protected void processRedirectLocation(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        // final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        final ResponseData responseData = (ResponseData) objs[2];
+        if (logger.isInfoEnabled()) {
+            logger.info("Redirect to URL: {}", responseData.getRedirectLocation());
+        }
+    }
+
+    protected void processGetContent(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        if (logger.isDebugEnabled()) {
+            logger.debug("Getting the content from URL: {}", urlQueue.getUrl());
+        }
+    }
+
+    protected void processNotModified(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        if (logger.isInfoEnabled()) {
+            logger.info("Not modified URL: {}", urlQueue.getUrl());
+        }
+    }
+
+    protected void processCheckLastModified(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        if (logger.isDebugEnabled()) {
+            logger.debug("Checking the last modified: {}", urlQueue.getLastModified());
+        }
+    }
+
+    protected void processUnsupportedUrlAtCrawlingStarted(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        if (logger.isInfoEnabled()) {
+            logger.info("Unsupported URL: {}", urlQueue.getUrl());
+        }
+    }
+
+    protected void processStartCrawling(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
+        final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
+        if (logger.isInfoEnabled()) {
+            logger.info("Crawling URL: {}", urlQueue.getUrl());
+        }
+    }
+
+    protected void processStartThread(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
     }
 }

@@ -186,20 +186,22 @@ public class CrawlerThread implements Runnable {
                     } catch (final Throwable e) {
                         log(logHelper, LogType.CRAWLING_EXCETPION, crawlerContext, urlQueue, e);
                     } finally {
-                        addSitemapsFromRobotsTxt(urlQueue);
+                        try {
+                            addSitemapsFromRobotsTxt(urlQueue);
 
-                        if (responseData != null) {
-                            CloseableUtil.closeQuietly(responseData);
+                            if (responseData != null) {
+                                CloseableUtil.closeQuietly(responseData);
+                            }
+                            if (crawlerContext.intervalController != null) {
+                                crawlerContext.intervalController.delay(IntervalController.POST_PROCESSING);
+                            }
+                            threadCheckCount = 0; // clear
+                            // remove urlQueue from thread
+                            CrawlingParameterUtil.setUrlQueue(null);
+                            finishCrawling();
+                        } finally {
+                            log(logHelper, LogType.CLEANUP_CRAWLING, crawlerContext, urlQueue);
                         }
-                        if (crawlerContext.intervalController != null) {
-                            crawlerContext.intervalController.delay(IntervalController.POST_PROCESSING);
-                        }
-                        threadCheckCount = 0; // clear
-                        // remove urlQueue from thread
-                        CrawlingParameterUtil.setUrlQueue(null);
-                        finishCrawling();
-
-                        log(logHelper, LogType.CLEANUP_CRAWLING, crawlerContext, urlQueue);
                     }
                 } else {
                     log(logHelper, LogType.NO_URL_IN_QUEUE, crawlerContext, urlQueue, Integer.valueOf(threadCheckCount));

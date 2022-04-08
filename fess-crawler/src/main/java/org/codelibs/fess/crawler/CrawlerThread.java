@@ -198,6 +198,8 @@ public class CrawlerThread implements Runnable {
                         // remove urlQueue from thread
                         CrawlingParameterUtil.setUrlQueue(null);
                         finishCrawling();
+
+                        log(logHelper, LogType.CLEANUP_CRAWLING, crawlerContext, urlQueue);
                     }
                 } else {
                     log(logHelper, LogType.NO_URL_IN_QUEUE, crawlerContext, urlQueue, Integer.valueOf(threadCheckCount));

@@ -49,6 +49,9 @@ public class LogHelperImpl implements LogHelper {
         case START_CRAWLING:
             processStartCrawling(objs);
             break;
+        case CLEANUP_CRAWLING:
+            processCleanupCrawling(objs);
+            break;
         case UNSUPPORTED_URL_AT_CRAWLING_STARTED:
             processUnsupportedUrlAtCrawlingStarted(objs);
             break;
@@ -251,6 +254,10 @@ public class LogHelperImpl implements LogHelper {
         if (logger.isInfoEnabled()) {
             logger.info("Unsupported URL: {}", urlQueue.getUrl());
         }
+    }
+
+    protected void processCleanupCrawling(final Object... objs) {
+        // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
     }
 
     protected void processStartCrawling(final Object... objs) {

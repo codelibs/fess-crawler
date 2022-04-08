@@ -21,6 +21,7 @@ package org.codelibs.fess.crawler.log;
  */
 public enum LogType {
     START_CRAWLING, //
+    CLEANUP_CRAWLING, //
     UNSUPPORTED_URL_AT_CRAWLING_STARTED, //
     CHECK_LAST_MODIFIED, //
     NOT_MODIFIED, //

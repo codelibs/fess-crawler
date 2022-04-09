@@ -28,7 +28,7 @@ import org.mortbay.log.Log;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class CrawlerWebServer {
     private final File docRoot;

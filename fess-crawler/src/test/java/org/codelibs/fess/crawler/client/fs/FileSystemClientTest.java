@@ -33,7 +33,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class FileSystemClientTest extends PlainTestCase {
     public FileSystemClient fsClient;

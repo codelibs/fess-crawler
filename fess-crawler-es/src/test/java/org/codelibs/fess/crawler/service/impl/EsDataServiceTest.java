@@ -31,7 +31,7 @@ import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class EsDataServiceTest extends LastaDiTestCase {
     @Resource

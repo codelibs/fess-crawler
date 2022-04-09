@@ -19,7 +19,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class FtpAuthenticationTest extends PlainTestCase {
 

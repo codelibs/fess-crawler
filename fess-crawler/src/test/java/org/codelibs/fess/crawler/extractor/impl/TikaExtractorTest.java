@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class TikaExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory.getLogger(TikaExtractorTest.class);

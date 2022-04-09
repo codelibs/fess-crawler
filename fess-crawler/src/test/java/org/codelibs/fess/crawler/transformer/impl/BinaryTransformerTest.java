@@ -26,7 +26,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class BinaryTransformerTest extends PlainTestCase {
     public BinaryTransformer binaryTransformer;

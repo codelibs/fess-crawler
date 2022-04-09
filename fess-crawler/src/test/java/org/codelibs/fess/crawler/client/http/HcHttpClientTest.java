@@ -34,7 +34,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class HcHttpClientTest extends PlainTestCase {
     public HcHttpClient httpClient;

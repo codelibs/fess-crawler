@@ -29,7 +29,7 @@ import org.opensearch.index.query.QueryBuilders;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class EsUrlQueueServiceTest extends LastaDiTestCase {
     @Resource

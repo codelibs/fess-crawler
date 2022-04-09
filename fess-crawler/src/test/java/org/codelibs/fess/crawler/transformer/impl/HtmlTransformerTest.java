@@ -27,7 +27,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class HtmlTransformerTest extends PlainTestCase {
     public HtmlTransformer htmlTransformer;

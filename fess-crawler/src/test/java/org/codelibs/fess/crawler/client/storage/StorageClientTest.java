@@ -39,7 +39,7 @@ import io.minio.PutObjectArgs;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class StorageClientTest extends PlainTestCase {
     public StorageClient storageClient;

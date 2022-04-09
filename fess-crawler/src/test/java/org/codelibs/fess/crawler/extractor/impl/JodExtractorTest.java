@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class JodExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory.getLogger(JodExtractorTest.class);

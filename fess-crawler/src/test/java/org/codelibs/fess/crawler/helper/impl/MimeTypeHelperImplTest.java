@@ -26,7 +26,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class MimeTypeHelperImplTest extends PlainTestCase {
 

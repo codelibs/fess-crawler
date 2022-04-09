@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class LhaExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory.getLogger(LhaExtractorTest.class);

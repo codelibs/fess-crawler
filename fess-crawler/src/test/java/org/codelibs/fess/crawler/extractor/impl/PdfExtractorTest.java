@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class PdfExtractorTest extends PlainTestCase {
     private static final Logger logger = LoggerFactory.getLogger(PdfExtractorTest.class);

@@ -30,7 +30,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class XmlTransformerTest extends PlainTestCase {
     public XmlTransformer xmlTransformer;

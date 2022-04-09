@@ -41,7 +41,7 @@ import org.mortbay.jetty.handler.HandlerList;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class ApiExtractorTest extends PlainTestCase {
     final int port = 9876;

@@ -41,7 +41,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class FtpClientTest extends PlainTestCase {
     private static final int FTP_PORT = 10021;

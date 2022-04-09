@@ -30,7 +30,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author hayato
- * 
+ *
  */
 public class HostIntervalControllerTest extends PlainTestCase {
 

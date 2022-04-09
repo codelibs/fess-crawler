@@ -30,7 +30,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class FaultTolerantClientTest extends PlainTestCase {
 
@@ -283,7 +283,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see org.codelibs.fess.crawler.client.CrawlerClient#doGet(java.lang.String)
          */
         @Override
@@ -307,7 +307,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see org.codelibs.fess.crawler.client.CrawlerClient#doHead(java.lang.String)
          */
         public ResponseData doHead(final String url) {

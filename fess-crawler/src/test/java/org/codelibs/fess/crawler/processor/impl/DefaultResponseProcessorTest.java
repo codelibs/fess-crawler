@@ -20,7 +20,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class DefaultResponseProcessorTest extends PlainTestCase {
 

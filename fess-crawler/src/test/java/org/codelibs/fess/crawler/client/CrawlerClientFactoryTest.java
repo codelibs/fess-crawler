@@ -31,7 +31,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class CrawlerClientFactoryTest extends PlainTestCase {
     public CrawlerClientFactory clientFactory;

@@ -29,7 +29,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 
 /**
  * @author shinsuke
- * 
+ *
  */
 public class FileTransformerTest extends PlainTestCase {
     public FileTransformer fileTransformer;

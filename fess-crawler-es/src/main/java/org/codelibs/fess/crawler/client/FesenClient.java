@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.client;
 
+import static org.codelibs.core.stream.StreamUtil.split;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -161,7 +163,9 @@ public class FesenClient implements Client {
     }
 
     protected Client createClient() {
-        final Settings settings = Settings.builder().putList("http.hosts", address).build();
+        final String[] hosts =
+                split(address, ",").get(stream -> stream.map(s -> s.trim()).filter(StringUtil::isNotEmpty).toArray(n -> new String[n]));
+        final Settings settings = Settings.builder().putList("http.hosts", hosts).build();
         return new HttpClient(settings, null);
     }
 

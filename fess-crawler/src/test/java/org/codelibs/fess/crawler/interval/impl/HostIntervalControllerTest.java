@@ -87,6 +87,6 @@ public class HostIntervalControllerTest extends PlainTestCase {
 
         long elapsed = (System.nanoTime() - time) / 1000000;
         long wait = waittime * (numTasks - 1);
-        assertTrue(elapsed + " >= " + wait, elapsed >= wait);
+        assertTrue(elapsed + " >= " + wait, elapsed + 1L >= wait);
     }
 }

@@ -36,6 +36,7 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.SetObjectTagsArgs;
 
 /**
  * @author shinsuke
@@ -90,6 +91,15 @@ public class StorageClientTest extends PlainTestCase {
                 .stream(new ByteArrayInputStream("file3".getBytes()), 5, -1).contentType("application/octet-stream").build());
         minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("dir3/file4.txt")
                 .stream(new ByteArrayInputStream("file4".getBytes()), 5, -1).contentType("application/octet-stream").build());
+
+        minioClient
+                .setObjectTags(SetObjectTagsArgs.builder().bucket(bucketName).object("file1.txt").tags(Map.of("label", "label1")).build());
+        minioClient.setObjectTags(
+                SetObjectTagsArgs.builder().bucket(bucketName).object("dir1/file2.txt").tags(Map.of("label", "label2")).build());
+        minioClient.setObjectTags(
+                SetObjectTagsArgs.builder().bucket(bucketName).object("dir1/dir2/file3.txt").tags(Map.of("label", "label3")).build());
+        minioClient.setObjectTags(
+                SetObjectTagsArgs.builder().bucket(bucketName).object("dir3/file4.txt").tags(Map.of("label", "label4")).build());
     }
 
     @Override
@@ -104,24 +114,28 @@ public class StorageClientTest extends PlainTestCase {
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file1", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
+            assertEquals("label1", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/file2.txt")) {
             assertEquals("storage://fess/dir1/file2.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file2", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
+            assertEquals("label2", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/dir2/file3.txt")) {
             assertEquals("storage://fess/dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file3", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
+            assertEquals("label3", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/dir3/file4.txt")) {
             assertEquals("storage://fess/dir3/file4.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file4", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
             assertEquals(5, responseData.getContentLength());
+            assertEquals("label4", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/")) {
             fail();
@@ -172,21 +186,25 @@ public class StorageClientTest extends PlainTestCase {
             assertEquals("storage://fess/file1.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
+            assertNull(responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doHead("storage://fess/dir1/file2.txt")) {
             assertEquals("storage://fess/dir1/file2.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
+            assertNull(responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doHead("storage://fess/dir1/dir2/file3.txt")) {
             assertEquals("storage://fess/dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
+            assertNull(responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doHead("storage://fess/dir3/file4.txt")) {
             assertEquals("storage://fess/dir3/file4.txt", responseData.getUrl());
             assertEquals("application/octet-stream", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
+            assertNull(responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doHead("storage://fess/")) {
             assertNull(responseData);

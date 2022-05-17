@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import io.minio.BucketExistsArgs;
 import io.minio.GetObjectArgs;
+import io.minio.GetObjectTagsArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.MinioClient.Builder;
@@ -57,6 +58,7 @@ import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.Item;
+import io.minio.messages.Tags;
 
 /**
  * StorageClient is CrawlerClient implementation to crawl files on a storage
@@ -200,6 +202,10 @@ public class StorageClient extends AbstractCrawlerClient {
             }
 
             if (includeContent) {
+                final Tags objectTags = getObjectTags(bucketName, path);
+                if (objectTags != null) {
+                    objectTags.get().entrySet().forEach(e -> responseData.addMetaData(e.getKey(), e.getValue()));
+                }
                 if (statObject.size() < maxCachedContentSize) {
                     final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
                     try (InputStream contentStream = new BufferedInputStream(minioClient.getObject(args))) {
@@ -252,8 +258,35 @@ public class StorageClient extends AbstractCrawlerClient {
             switch (code) {
             case "NoSuchBucket":
                 throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
-            case "NoSuchKey":
-            case "NoSuchObject":
+            case "NoSuchKey", "NoSuchObject":
+                if (logger.isDebugEnabled()) {
+                    logger.debug("{} is not an object.", path);
+                }
+                break;
+            default:
+                logger.warn(path + " is not an object.", e);
+                break;
+            }
+        } catch (final Exception e) {
+            logger.warn(path + " is not an object.", e);
+        }
+        return null;
+    }
+
+    protected Tags getObjectTags(final String bucketName, final String path) {
+        if (StringUtil.isEmpty(path)) {
+            return null;
+        }
+
+        try {
+            final GetObjectTagsArgs args = GetObjectTagsArgs.builder().bucket(bucketName).object(path).build();
+            return minioClient.getObjectTags(args);
+        } catch (final ErrorResponseException e) {
+            final String code = e.errorResponse().code();
+            switch (code) {
+            case "NoSuchBucket":
+                throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
+            case "NoSuchKey", "NoSuchObject":
                 if (logger.isDebugEnabled()) {
                     logger.debug("{} is not an object.", path);
                 }

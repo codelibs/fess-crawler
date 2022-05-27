@@ -136,6 +136,19 @@ public class CommandExtractorTest extends PlainTestCase {
         assertEquals(content, text.getContent());
     }
 
+    public void test_getText_withUrlContainingSpace() throws IOException {
+        final File scriptFile = createScriptTempFile(3);
+        final String content = "TEST";
+        final File contentFile = createContentFile(".txt", content.getBytes());
+
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = getCommand(scriptFile);
+        final Map<String, String> params = new HashMap<String, String>();
+        params.put(ExtractData.RESOURCE_NAME_KEY, "hoge/fuga ほげ　ふが1１.txt");
+        final ExtractData text = extractor.getText(new FileInputStream(contentFile), params);
+        assertEquals(content, text.getContent());
+    }
+
     public void test_getText_timeout() throws IOException {
         final File scriptFile = createScriptTempFile(3);
         final String content = "TEST";

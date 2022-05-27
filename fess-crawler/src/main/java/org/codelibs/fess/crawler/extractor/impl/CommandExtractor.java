@@ -96,6 +96,7 @@ public class CommandExtractor extends AbstractExtractor {
                 filePrefix = name;
                 extention = "";
             }
+            filePrefix = filePrefix.replaceAll("\\p{Zs}", "_");
         } else {
             filePrefix = "none";
             extention = "";

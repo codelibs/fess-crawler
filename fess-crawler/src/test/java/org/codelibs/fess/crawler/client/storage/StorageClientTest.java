@@ -54,16 +54,16 @@ public class StorageClientTest extends PlainTestCase {
         String accessKey = "AKIAIOSFODNN7EXAMPLE";
         String secretKey = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
         String bucketName = "fess";
-        int i = 9000;
+        int port = 9000;
 
-        minioServer = new GenericContainer<>("minio/minio")//
+        minioServer = new GenericContainer<>("minio/minio:RELEASE.2022-06-02T02-11-04Z")//
                 .withEnv("MINIO_ACCESS_KEY", accessKey)//
                 .withEnv("MINIO_SECRET_KEY", secretKey)//
-                .withExposedPorts(i)//
+                .withExposedPorts(port)//
                 .withCommand("server /data")//
                 .waitingFor(new HttpWaitStrategy()//
                         .forPath("/minio/health/ready")//
-                        .forPort(i)//
+                        .forPort(port)//
                         .withStartupTimeout(Duration.ofSeconds(10)));
         minioServer.start();
 

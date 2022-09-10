@@ -68,7 +68,6 @@ import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.io.PropertiesUtil;
 import org.codelibs.core.io.ReaderUtil;
-import org.codelibs.core.lang.FieldUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;

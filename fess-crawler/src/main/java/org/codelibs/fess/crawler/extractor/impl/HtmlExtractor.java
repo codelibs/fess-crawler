@@ -24,20 +24,20 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathEvaluationResult;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathNodes;
 
-import org.apache.xpath.CachedXPathAPI;
-import org.apache.xpath.objects.XObject;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.stream.StreamUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
@@ -60,7 +60,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
 
     protected Map<String, String> metadataXpathMap = new HashMap<>();
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<>();
+    private final ThreadLocal<XPathAPI> xpathAPI = new ThreadLocal<>();
 
     @Override
     protected ExtractData createExtractData(final String content) {
@@ -87,40 +87,36 @@ public class HtmlExtractor extends AbstractXmlExtractor {
 
     protected String[] getStringsByXPath(final Document document, final String path) {
         try {
-            final XObject xObj = getXPathAPI().eval(document, path);
-            final int type = xObj.getType();
-            switch (type) {
-            case XObject.CLASS_BOOLEAN:
-                final boolean b = xObj.bool();
-                return new String[] { Boolean.toString(b) };
-            case XObject.CLASS_NUMBER:
-                final double d = xObj.num();
-                return new String[] { Double.toString(d) };
-            case XObject.CLASS_STRING:
-                final String str = xObj.str();
+            final XPathEvaluationResult<?> xObj = getXPathAPI().eval(document, path);
+            switch (xObj.type()) {
+            case BOOLEAN:
+                final Boolean b = (Boolean) xObj.value();
+                return new String[] { b.toString() };
+            case NUMBER:
+                final Number d = (Number) xObj.value();
+                return new String[] { d.toString() };
+            case STRING:
+                final String str = (String) xObj.value();
                 return new String[] { str.trim() };
-            case XObject.CLASS_NODESET:
-                final NodeList nodeList = xObj.nodelist();
+            case NODESET:
+                final XPathNodes nodeList = (XPathNodes) xObj.value();
                 final List<String> strList = new ArrayList<>();
-                for (int i = 0; i < nodeList.getLength(); i++) {
-                    final Node node = nodeList.item(i);
+                for (int i = 0; i < nodeList.size(); i++) {
+                    final Node node = nodeList.get(i);
                     strList.add(node.getTextContent());
                 }
                 return strList.toArray(n -> new String[n]);
-            case XObject.CLASS_RTREEFRAG:
-                final int rtf = xObj.rtf();
-                return new String[] { Integer.toString(rtf) };
-            case XObject.CLASS_NULL:
-            case XObject.CLASS_UNKNOWN:
-            case XObject.CLASS_UNRESOLVEDVARIABLE:
+            case NODE:
+                final Node node = (Node) xObj.value();
+                return new String[] { node.getTextContent() };
             default:
-                Object obj = xObj.object();
+                Object obj = xObj.value();
                 if (obj == null) {
                     obj = "";
                 }
                 return new String[] { obj.toString() };
             }
-        } catch (final TransformerException e) {
+        } catch (final XPathException e) {
             logger.warn("Failed to parse the content by {}", path, e);
             return StringUtil.EMPTY_STRINGS;
         }
@@ -146,10 +142,10 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         return parser;
     }
 
-    protected CachedXPathAPI getXPathAPI() {
-        CachedXPathAPI cachedXPathAPI = xpathAPI.get();
+    protected XPathAPI getXPathAPI() {
+        XPathAPI cachedXPathAPI = xpathAPI.get();
         if (cachedXPathAPI == null) {
-            cachedXPathAPI = new CachedXPathAPI();
+            cachedXPathAPI = new XPathAPI();
             xpathAPI.set(cachedXPathAPI);
         }
         return cachedXPathAPI;

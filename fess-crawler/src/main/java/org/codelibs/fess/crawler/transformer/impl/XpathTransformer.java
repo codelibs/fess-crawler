@@ -24,9 +24,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathEvaluationResult;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathNodes;
 
-import org.apache.xpath.objects.XObject;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultData;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
@@ -86,46 +86,42 @@ public class XpathTransformer extends HtmlTransformer {
         for (final Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
             final String path = entry.getValue();
             try {
-                final XObject xObj = getXPathAPI().eval(document, path);
-                final int type = xObj.getType();
-                switch (type) {
-                case XObject.CLASS_BOOLEAN:
-                    final boolean b = xObj.bool();
-                    buf.append(getResultDataBody(entry.getKey(), Boolean.toString(b)));
+                final XPathEvaluationResult<?> xObj = getXPathAPI().eval(document, path);
+                switch (xObj.type()) {
+                case BOOLEAN:
+                    final Boolean b = (Boolean) xObj.value();
+                    buf.append(getResultDataBody(entry.getKey(), b.toString()));
                     break;
-                case XObject.CLASS_NUMBER:
-                    final double d = xObj.num();
-                    buf.append(getResultDataBody(entry.getKey(), Double.toString(d)));
+                case NUMBER:
+                    final Number d = (Number) xObj.value();
+                    buf.append(getResultDataBody(entry.getKey(), d.toString()));
                     break;
-                case XObject.CLASS_STRING:
-                    final String str = xObj.str();
+                case STRING:
+                    final String str = (String) xObj.value();
                     buf.append(getResultDataBody(entry.getKey(), str.trim()));
                     break;
-                case XObject.CLASS_NODESET:
-                    final NodeList nodeList = xObj.nodelist();
+                case NODESET:
+                    final XPathNodes nodeList = (XPathNodes) xObj.value();
                     final List<String> strList = new ArrayList<>();
-                    for (int i = 0; i < nodeList.getLength(); i++) {
-                        final Node node = nodeList.item(i);
+                    for (int i = 0; i < nodeList.size(); i++) {
+                        final Node node = nodeList.get(i);
                         strList.add(node.getTextContent());
                     }
                     buf.append(getResultDataBody(entry.getKey(), strList));
                     break;
-                case XObject.CLASS_RTREEFRAG:
-                    final int rtf = xObj.rtf();
-                    buf.append(getResultDataBody(entry.getKey(), Integer.toString(rtf)));
+                case NODE:
+                    final Node node = (Node) xObj.value();
+                    buf.append(getResultDataBody(entry.getKey(), node.getTextContent()));
                     break;
-                case XObject.CLASS_NULL:
-                case XObject.CLASS_UNKNOWN:
-                case XObject.CLASS_UNRESOLVEDVARIABLE:
                 default:
-                    Object obj = xObj.object();
+                    Object obj = xObj.value();
                     if (obj == null) {
                         obj = "";
                     }
                     buf.append(getResultDataBody(entry.getKey(), obj.toString()));
                     break;
                 }
-            } catch (final TransformerException e) {
+            } catch (final XPathException e) {
                 logger.warn("Could not parse a value of " + entry.getKey() + ":" + entry.getValue(), e);
             }
         }

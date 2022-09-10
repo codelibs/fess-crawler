@@ -71,7 +71,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                 List<Pair<Pattern, String>> list = configPasswordMap.get(value);
                 if (list == null) {
                     try {
-                        ObjectMapper mapper = new ObjectMapper();
+                        final ObjectMapper mapper = new ObjectMapper();
                         final Map<String, String> passwordMap = mapper.readValue(value, new TypeReference<Map<String, String>>() {
                         });
                         list = passwordMap.entrySet().stream().map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))

@@ -24,16 +24,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
+import javax.xml.xpath.XPathNodes;
 
-import org.apache.xpath.CachedXPathAPI;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.google.common.cache.CacheBuilder;
@@ -54,20 +54,20 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
 
     protected String targetNodePath = "//HTML/BODY | //@alt | //@title";
 
-    protected LoadingCache<String, CachedXPathAPI> xpathAPICache;
+    protected LoadingCache<String, XPathAPI> xpathAPICache;
 
     protected long cacheDuration = 10; // min
 
     @Resource
     public void init() {
-        xpathAPICache = CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES)
-                .build(new CacheLoader<String, CachedXPathAPI>() {
+        xpathAPICache =
+                CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES).build(new CacheLoader<String, XPathAPI>() {
                     @Override
-                    public CachedXPathAPI load(final String key) {
+                    public XPathAPI load(final String key) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("created CachedXPathAPI by {}", key);
+                            logger.debug("created XPathAPI by {}", key);
                         }
-                        return new CachedXPathAPI();
+                        return new XPathAPI();
                     }
                 });
     }
@@ -94,9 +94,9 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
             final Document document = parser.getDocument();
 
             final StringBuilder buf = new StringBuilder(255);
-            final NodeList nodeList = getXPathAPI().selectNodeList(document, targetNodePath);
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                final Node node = nodeList.item(i);
+            final XPathNodes nodeList = getXPathAPI().selectNodeList(document, targetNodePath);
+            for (int i = 0; i < nodeList.size(); i++) {
+                final Node node = nodeList.get(i);
                 buf.append(node.getTextContent()).append(' ');
             }
             return new ExtractData(buf.toString().replaceAll("\\s+", " ").trim());
@@ -105,14 +105,14 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
         }
     }
 
-    protected CachedXPathAPI getXPathAPI() {
+    protected XPathAPI getXPathAPI() {
         try {
             return xpathAPICache.get(Thread.currentThread().getName());
         } catch (final ExecutionException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to retrieval a cache.", e);
             }
-            return new CachedXPathAPI();
+            return new XPathAPI();
         }
     }
 

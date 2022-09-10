@@ -32,9 +32,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
-import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathNodes;
 
-import org.apache.xpath.CachedXPathAPI;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -49,12 +49,12 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.EncodingHelper;
 import org.codelibs.fess.crawler.helper.UrlConvertHelper;
 import org.codelibs.fess.crawler.util.CharUtil;
+import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
@@ -98,7 +98,7 @@ public class HtmlTransformer extends AbstractTransformer {
             + "^\\s*ios-app:|" //
             + "^\\s*callto:", Pattern.CASE_INSENSITIVE);
 
-    private final ThreadLocal<CachedXPathAPI> xpathAPI = new ThreadLocal<>();
+    private final ThreadLocal<XPathAPI> xpathAPI = new ThreadLocal<>();
 
     @Override
     public ResultData transform(final ResponseData responseData) {
@@ -147,10 +147,10 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
-    protected CachedXPathAPI getXPathAPI() {
-        CachedXPathAPI cachedXPathAPI = xpathAPI.get();
+    protected XPathAPI getXPathAPI() {
+        XPathAPI cachedXPathAPI = xpathAPI.get();
         if (cachedXPathAPI == null) {
-            cachedXPathAPI = new CachedXPathAPI();
+            cachedXPathAPI = new XPathAPI();
             xpathAPI.set(cachedXPathAPI);
         }
         return cachedXPathAPI;
@@ -318,23 +318,24 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected String getBaseHref(final Document document) {
-        NodeList list;
         try {
-            list = getXPathAPI().selectNodeList(document, "//BASE");
+            final XPathNodes list = getXPathAPI().selectNodeList(document, "//BASE");
+            if (list.size() > 0) {
+                final Node node = list.get(0);
+                final Node attrNode = node.getAttributes().getNamedItem("href");
+                if (attrNode != null) {
+                    String attrValue = attrNode.getNodeValue();
+                    if (StringUtil.isNotBlank(attrValue)) {
+                        // if starting with www, append a protocol
+                        if (attrValue.startsWith("www.")) {
+                            attrValue = "http://" + attrValue;
+                        }
+                        return attrValue;
+                    }
+                }
+            }
         } catch (final Exception e) {
             logger.warn("Could not get a base tag. ", e);
-            return null;
-        }
-        if (list.getLength() > 0) {
-            final Element element = (Element) list.item(0);
-            String attrValue = element.getAttribute("href");
-            if (StringUtil.isNotBlank(attrValue)) {
-                // if starting with www, append a protocol
-                if (attrValue.startsWith("www.")) {
-                    attrValue = "http://" + attrValue;
-                }
-                return attrValue;
-            }
         }
         return null;
     }
@@ -346,15 +347,18 @@ public class HtmlTransformer extends AbstractTransformer {
         }
         final List<String> urlList = new ArrayList<>();
         try {
-            final NodeList list = getXPathAPI().selectNodeList(document, xpath);
-            for (int i = 0; i < list.getLength(); i++) {
-                final Element element = (Element) list.item(i);
-                final String attrValue = element.getAttribute(attr);
-                if (isValidPath(attrValue)) {
-                    addChildUrlFromTagAttribute(urlList, url, attrValue, encoding);
+            final XPathNodes list = getXPathAPI().selectNodeList(document, xpath);
+            for (int i = 0; i < list.size(); i++) {
+                final Node node = list.get(i);
+                final Node attrNode = node.getAttributes().getNamedItem(attr);
+                if (attrNode != null) {
+                    final String attrValue = attrNode.getNodeValue();
+                    if (isValidPath(attrValue)) {
+                        addChildUrlFromTagAttribute(urlList, url, attrValue, encoding);
+                    }
                 }
             }
-        } catch (final TransformerException e) {
+        } catch (final XPathException e) {
             logger.warn("Could not get urls: (" + xpath + ", " + attr + ")", e);
         }
         return urlList;

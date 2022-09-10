@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +30,13 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathNodes;
 
-import org.apache.xml.utils.PrefixResolverDefault;
-import org.apache.xpath.CachedXPathAPI;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -43,12 +45,13 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.fess.crawler.util.XmlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -94,20 +97,20 @@ public class XmlTransformer extends AbstractTransformer {
      */
     protected Class<?> dataClass = null;
 
-    protected LoadingCache<String, CachedXPathAPI> xpathAPICache;
+    protected LoadingCache<String, XPathAPI> xpathAPICache;
 
     protected long cacheDuration = 10; // min
 
     @Resource
     public void init() {
-        xpathAPICache = CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES)
-                .build(new CacheLoader<String, CachedXPathAPI>() {
+        xpathAPICache =
+                CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES).build(new CacheLoader<String, XPathAPI>() {
                     @Override
-                    public CachedXPathAPI load(final String key) {
+                    public XPathAPI load(final String key) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("created CachedXPathAPI by {}", key);
+                            logger.debug("created XPathAPI by {}", key);
                         }
-                        return new CachedXPathAPI();
+                        return new XPathAPI();
                     }
                 });
     }
@@ -199,12 +202,12 @@ public class XmlTransformer extends AbstractTransformer {
             for (final Map.Entry<String, String> entry : fieldRuleMap.entrySet()) {
                 final List<String> nodeStrList = new ArrayList<>();
                 try {
-                    final NodeList nodeList = getNodeList(doc, entry.getValue());
-                    for (int i = 0; i < nodeList.getLength(); i++) {
-                        final Node node = nodeList.item(i);
+                    final XPathNodes nodeList = getNodeList(doc, entry.getValue());
+                    for (int i = 0; i < nodeList.size(); i++) {
+                        final Node node = nodeList.get(i);
                         nodeStrList.add(node.getTextContent());
                     }
-                } catch (final TransformerException e) {
+                } catch (final XPathExpressionException e) {
                     logger.warn("Could not parse a value of " + entry.getKey() + ":" + entry.getValue(), e);
                 }
                 if (nodeStrList.size() == 1) {
@@ -239,20 +242,20 @@ public class XmlTransformer extends AbstractTransformer {
         }
     }
 
-    protected NodeList getNodeList(final Document doc, final String xpath) throws TransformerException {
-        final DefaultPrefixResolver prefixResolver =
-                new DefaultPrefixResolver(doc.getNodeType() == Node.DOCUMENT_NODE ? doc.getDocumentElement() : doc);
-        return getXPathAPI().eval(doc, xpath, prefixResolver).nodelist();
+    protected XPathNodes getNodeList(final Document doc, final String xpath) throws XPathExpressionException {
+        final XPath xPathApi = getXPathAPI().createXPath(f -> {});
+        xPathApi.setNamespaceContext(new DefaultNamespaceContext(doc.getNodeType() == Node.DOCUMENT_NODE ? doc.getDocumentElement() : doc));
+        return xPathApi.evaluateExpression(xpath, doc, XPathNodes.class);
     }
 
-    protected CachedXPathAPI getXPathAPI() {
+    protected XPathAPI getXPathAPI() {
         try {
             return xpathAPICache.get(Thread.currentThread().getName());
         } catch (final ExecutionException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to retrieval a cache.", e);
             }
-            return new CachedXPathAPI();
+            return new XPathAPI();
         }
     }
 
@@ -466,29 +469,74 @@ public class XmlTransformer extends AbstractTransformer {
         this.includeAware = includeAware;
     }
 
-    public static class DefaultPrefixResolver extends PrefixResolverDefault {
+    public void setCacheDuration(final long cacheDuration) {
+        this.cacheDuration = cacheDuration;
+    }
 
-        public DefaultPrefixResolver(final Node xpathExpressionContext) {
-            super(xpathExpressionContext);
+    private static final class DefaultNamespaceContext implements NamespaceContext {
+
+        private final Node doc;
+
+        public DefaultNamespaceContext(final Node doc) {
+            this.doc = doc;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see org.apache.xml.utils.PrefixResolverDefault#getNamespaceForPrefix(java.lang.String, org.w3c.dom.Node)
-         */
         @Override
-        public String getNamespaceForPrefix(final String prefix, final Node namespaceContext) {
-            final String namespace = super.getNamespaceForPrefix(prefix, namespaceContext);
+        public String getNamespaceURI(final String prefix) {
+            return getNamespaceForPrefix(prefix, doc);
+        }
+
+        private String getNamespaceForPrefix(final String prefix, final Node namespaceContext) {
+            Node parent = namespaceContext;
+            String namespace = null;
+
+            if ("xml".equals(prefix)) {
+                namespace = "http://www.w3.org/XML/1998/namespace";
+            } else {
+                int type;
+                while ((null != parent) && (null == namespace)
+                        && (((type = parent.getNodeType()) == Node.ELEMENT_NODE) || (type == Node.ENTITY_REFERENCE_NODE))) {
+                    if (type == Node.ELEMENT_NODE) {
+                        if (parent.getNodeName().indexOf(prefix + ":") == 0) {
+                            return parent.getNamespaceURI();
+                        }
+                        final NamedNodeMap nnm = parent.getAttributes();
+
+                        for (int i = 0; i < nnm.getLength(); i++) {
+                            final Node attr = nnm.item(i);
+                            final String aname = attr.getNodeName();
+                            final boolean isPrefix = aname.startsWith("xmlns:");
+
+                            if (isPrefix || "xmlns".equals(aname)) {
+                                final int index = aname.indexOf(':');
+                                final String p = isPrefix ? aname.substring(index + 1) : StringUtil.EMPTY;
+                                if (p.equals(prefix)) {
+                                    namespace = attr.getNodeValue();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    parent = parent.getParentNode();
+                }
+            }
+
             if (StringUtil.isNotBlank(namespace)) {
                 return namespace;
             }
             return "http://crawler.codelibs.org/namespace/" + prefix;
         }
 
+        @Override
+        public Iterator<String> getPrefixes(final String val) {
+            return null; // not used
+        }
+
+        @Override
+        public String getPrefix(final String uri) {
+            return null; // not used
+        }
     }
 
-    public void setCacheDuration(final long cacheDuration) {
-        this.cacheDuration = cacheDuration;
-    }
 }

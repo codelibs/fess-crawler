@@ -77,11 +77,9 @@ public class XPathAPI {
 
     /**
      * Use an XPath string to select a single node.
-     * XPath namespace prefixes are resolved from the namespaceNode.
      *
      * @param contextNode The node to start searching from.
      * @param expression A valid XPath string.
-     * @param namespaceNode The node from which prefixes in the XPath will be resolved to namespaces.
      * @return The first node found that matches the XPath, or null.
      *
      * @throws XPathExpressionException

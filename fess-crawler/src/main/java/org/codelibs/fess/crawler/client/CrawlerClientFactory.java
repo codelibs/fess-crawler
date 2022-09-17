@@ -40,9 +40,7 @@ public class CrawlerClientFactory {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
-    protected Map<String, CrawlerClient> clientMap = new LinkedHashMap<>();
-
-    protected Map<Pattern, CrawlerClient> clientRuleMap = new LinkedHashMap<>();
+    protected Map<Pattern, CrawlerClient> clientMap = new LinkedHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -62,19 +60,10 @@ public class CrawlerClientFactory {
         if (StringUtil.isBlank(regex)) {
             throw new CrawlerSystemException("A regular expression is null.");
         }
-        addClient(null, regex, client);
-    }
-
-    public void addClient(final String name, final String regex, final CrawlerClient client) {
         if (client == null) {
             throw new CrawlerSystemException("CrawlerClient is null.");
         }
-        if (StringUtil.isNotBlank(name)) {
-            clientMap.put(name, client);
-        }
-        if (StringUtil.isNotBlank(regex)) {
-            clientRuleMap.put(Pattern.compile(regex), client);
-        }
+        clientMap.put(Pattern.compile(regex), client);
     }
 
     public void addClient(final String regex, final CrawlerClient client, final int pos) {
@@ -87,7 +76,7 @@ public class CrawlerClientFactory {
         int current = 0;
         boolean added = false;
         final Map<Pattern, CrawlerClient> newClientMap = new LinkedHashMap<>();
-        for (final Map.Entry<Pattern, CrawlerClient> entry : clientRuleMap.entrySet()) {
+        for (final Map.Entry<Pattern, CrawlerClient> entry : clientMap.entrySet()) {
             if (pos == current) {
                 newClientMap.put(Pattern.compile(regex), client);
                 added = true;
@@ -98,43 +87,30 @@ public class CrawlerClientFactory {
         if (!added) {
             newClientMap.put(Pattern.compile(regex), client);
         }
-        clientRuleMap = newClientMap;
+        clientMap = newClientMap;
     }
 
     public void addClient(final List<String> regexList, final CrawlerClient client) {
         if (regexList == null || regexList.isEmpty()) {
             throw new CrawlerSystemException("A regular expression list is null or empty.");
         }
-        addClient(null, regexList, client);
-    }
-
-    public void addClient(final String name, final List<String> regexList, final CrawlerClient client) {
         if (client == null) {
             throw new CrawlerSystemException("CrawlerClient is null.");
         }
-        if (StringUtil.isNotBlank(name)) {
-            clientMap.put(name, client);
-        }
-        if (regexList != null) {
-            for (final String regex : regexList) {
-                if (StringUtil.isNotBlank(regex)) {
-                    clientRuleMap.put(Pattern.compile(regex), client);
-                }
+        for (final String regex : regexList) {
+            if (StringUtil.isNotBlank(regex)) {
+                clientMap.put(Pattern.compile(regex), client);
             }
         }
     }
 
-    public CrawlerClient getClientByName(final String name) {
-        return clientMap.get(name);
-    }
-
-    public CrawlerClient getClient(final String url) {
-        if (StringUtil.isBlank(url)) {
+    public CrawlerClient getClient(final String urlKey) {
+        if (StringUtil.isBlank(urlKey)) {
             return null;
         }
 
-        for (final Map.Entry<Pattern, CrawlerClient> entry : clientRuleMap.entrySet()) {
-            final Matcher matcher = entry.getKey().matcher(url);
+        for (final Map.Entry<Pattern, CrawlerClient> entry : clientMap.entrySet()) {
+            final Matcher matcher = entry.getKey().matcher(urlKey);
             if (matcher.matches()) {
                 return entry.getValue();
             }
@@ -144,13 +120,13 @@ public class CrawlerClientFactory {
 
     public void setInitParameterMap(final Map<String, Object> params) {
         if (params != null) {
-            for (final CrawlerClient client : clientRuleMap.values()) {
+            for (final CrawlerClient client : clientMap.values()) {
                 client.setInitParameterMap(params);
             }
         }
     }
 
     public void setClientMap(final Map<Pattern, CrawlerClient> clientMap) {
-        this.clientRuleMap = clientMap;
+        this.clientMap = clientMap;
     }
 }

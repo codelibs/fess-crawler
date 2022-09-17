@@ -52,12 +52,12 @@ public class CrawlerClientCreator {
         clientFactoryList.forEach(f -> load(f, regex, componentName));
     }
 
-    protected void load(final CrawlerClientFactory crawlerClientFactory, final String name, final String componentName) {
+    protected void load(final CrawlerClientFactory crawlerClientFactory, final String regex, final String componentName) {
         if (logger.isDebugEnabled()) {
-            logger.debug("loading {}", name);
+            logger.debug("loading {}", componentName);
         }
         final CrawlerClient client = crawlerContainer.getComponent(componentName);
-        crawlerClientFactory.addClient(name, client);
+        crawlerClientFactory.addClient(regex, client);
     }
 
     public void setMaxClientFactorySize(final int maxClientFactorySize) {

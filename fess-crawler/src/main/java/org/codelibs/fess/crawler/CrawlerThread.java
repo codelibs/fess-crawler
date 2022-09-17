@@ -358,4 +358,12 @@ public class CrawlerThread implements Runnable {
     public void setNoWaitOnFolder(final boolean noWaitOnFolder) {
         this.noWaitOnFolder = noWaitOnFolder;
     }
+
+    public void setClientFactory(CrawlerClientFactory clientFactory) {
+        this.clientFactory = clientFactory;
+    }
+
+    public void setCrawlerContext(CrawlerContext crawlerContext) {
+        this.crawlerContext = crawlerContext;
+    }
 }

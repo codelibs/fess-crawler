@@ -51,26 +51,32 @@
 	<component name="clientFactory"
 		class="org.codelibs.fess.crawler.client.CrawlerClientFactory" instance="prototype">
 		<postConstruct name="addClient">
+			<arg>"httpClient"</arg>
 			<arg>["http:.*", "https:.*"]</arg>
 			<arg>httpClient</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
+			<arg>"fsClient"</arg>
 			<arg>"file:.*"</arg>
 			<arg>fsClient</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
+			<arg>"smbClient"</arg>
 			<arg>"smb:.*"</arg>
 			<arg>smbClient</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
+			<arg>"smb1Client"</arg>
 			<arg>"smb1:.*"</arg>
 			<arg>smb1Client</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
+			<arg>"ftpClient"</arg>
 			<arg>"ftp:.*"</arg>
 			<arg>ftpClient</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
+			<arg>"storageClient"</arg>
 			<arg>"storage:.*"</arg>
 			<arg>storageClient</arg>
 		</postConstruct>

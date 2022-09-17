@@ -219,8 +219,8 @@ public class Crawler implements Runnable {
         final Thread[] threads = new Thread[crawlerContext.getNumOfThread()];
         for (int i = 0; i < crawlerContext.getNumOfThread(); i++) {
             final CrawlerThread crawlerThread = crawlerContainer.getComponent("crawlerThread");
-            crawlerThread.crawlerContext = crawlerContext;
-            crawlerThread.clientFactory = clientFactory;
+            crawlerThread.setCrawlerContext(crawlerContext);
+            crawlerThread.setClientFactory(clientFactory);
             threads[i] =
                     new Thread(crawlerThreadGroup, crawlerThread, "Crawler-" + crawlerContext.sessionId + "-" + Integer.toString(i + 1));
             threads[i].setDaemon(daemon);

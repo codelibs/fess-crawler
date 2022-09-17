@@ -47,9 +47,9 @@ public class CrawlerClientCreator {
         }
     }
 
-    public synchronized void register(final String name, final String componentName) {
-        clientMap.put(name, componentName);
-        clientFactoryList.forEach(f -> load(f, name, componentName));
+    public synchronized void register(final String regex, final String componentName) {
+        clientMap.put(regex, componentName);
+        clientFactoryList.forEach(f -> load(f, regex, componentName));
     }
 
     protected void load(final CrawlerClientFactory crawlerClientFactory, final String name, final String componentName) {

@@ -37,7 +37,7 @@ public class CrawlerClientCreator {
 
     protected List<CrawlerClientFactory> clientFactoryList = new LinkedList<>();
 
-    protected int maxClientFactorySize = 1000;
+    protected int maxClientFactorySize = 10000;
 
     public synchronized void register(final CrawlerClientFactory crawlerClientFactory) {
         clientMap.entrySet().stream().forEach(e -> load(crawlerClientFactory, e.getKey(), e.getValue()));

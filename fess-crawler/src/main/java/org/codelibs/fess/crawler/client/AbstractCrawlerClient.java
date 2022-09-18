@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.client;
 
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -166,20 +165,5 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     public void setMaxContentLength(final Long maxContentLength) {
         this.maxContentLength = maxContentLength;
-    }
-
-    public void register(final String regex) {
-        final CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
-        clientFactory.addClient(regex, this);
-    }
-
-    public void register(final List<String> regexList) {
-        final CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
-        clientFactory.addClient(regexList, this);
-    }
-
-    public void register(final String regex, final int pos) {
-        final CrawlerClientFactory clientFactory = crawlerContainer.getComponent("clientFactory");
-        clientFactory.addClient(regex, this, pos);
     }
 }

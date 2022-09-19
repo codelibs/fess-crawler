@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class CrawlerClientFactory {
+public class CrawlerClientFactory implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(CrawlerClientFactory.class);
 
     @Resource
@@ -128,5 +128,16 @@ public class CrawlerClientFactory {
 
     public void setClientMap(final Map<Pattern, CrawlerClient> clientMap) {
         this.clientMap = clientMap;
+    }
+
+    @Override
+    public void close() {
+        clientMap.values().stream().distinct().forEach(client -> {
+            try {
+                client.close();
+            } catch (final Exception e) {
+                logger.warn("Faild to close {}.", client.getClass().getCanonicalName(), e);
+            }
+        });
     }
 }

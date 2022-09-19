@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.codelibs.core.exception.IORuntimeException;
@@ -164,8 +163,8 @@ public class SmbClient extends AbstractCrawlerClient {
         smbAuthenticationHolder = holder;
     }
 
-    @PreDestroy
-    public void destroy() {
+    @Override
+    public void close() {
         smbAuthenticationHolder = null;
     }
 

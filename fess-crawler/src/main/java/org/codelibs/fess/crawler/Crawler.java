@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * @author shinsuke
  *
  */
-public class Crawler implements Runnable {
+public class Crawler implements Runnable, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
 
@@ -132,6 +132,11 @@ public class Crawler implements Runnable {
         urlQueueService.delete(sessionId);
         dataService.delete(sessionId);
         urlFilter.clear();
+    }
+
+    @Override
+    public void close() {
+        clientFactory.close();
     }
 
     public void addIncludeFilter(final String regexp) {

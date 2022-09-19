@@ -24,10 +24,13 @@ import org.codelibs.fess.crawler.entity.ResponseData;
  * @author shinsuke
  *
  */
-public interface CrawlerClient {
+public interface CrawlerClient extends AutoCloseable {
 
     void setInitParameterMap(Map<String, Object> params);
 
     ResponseData execute(RequestData data);
 
+    default void close() throws Exception {
+        // nothing
+    }
 }

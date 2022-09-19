@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.net.ssl.SSLContext;
 
@@ -395,12 +394,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
         httpClient = closeableHttpClient;
     }
 
-    public void shutdown() {
-        if (clientConnectionManager != null) {
-            clientConnectionManager.shutdown();
-        }
-    }
-
     protected HttpClientConnectionManager buildConnectionManager(final HttpClientBuilder httpClientBuilder) {
         // SSL
         final LayeredConnectionSocketFactory sslSocketFactory = buildSSLSocketFactory(httpClientBuilder);
@@ -459,8 +452,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 .build();
     }
 
-    @PreDestroy
-    public void destroy() {
+    @Override
+    public void close() {
         if (connectionMonitorTask != null) {
             connectionMonitorTask.cancel();
         }
@@ -470,6 +463,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
             } catch (final IOException e) {
                 logger.error("Failed to close httpClient.", e);
             }
+        }
+        if (clientConnectionManager != null) {
+            clientConnectionManager.shutdown();
         }
     }
 

@@ -30,7 +30,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -155,8 +154,8 @@ public class FtpClient extends AbstractCrawlerClient {
         ftpAuthenticationHolder = holder;
     }
 
-    @PreDestroy
-    public void destroy() {
+    @Override
+    public void close() {
         ftpAuthenticationHolder = null;
         for (final FTPClient ftpClient : ftpClientQueue) {
             try {

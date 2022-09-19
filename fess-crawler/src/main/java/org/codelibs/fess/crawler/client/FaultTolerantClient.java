@@ -95,6 +95,11 @@ public class FaultTolerantClient implements CrawlerClient {
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        client.close();
+    }
+
     public CrawlerClient getCrawlerClient() {
         return client;
     }

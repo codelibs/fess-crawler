@@ -30,6 +30,7 @@ public interface CrawlerClient extends AutoCloseable {
 
     ResponseData execute(RequestData data);
 
+    @Override
     default void close() throws Exception {
         // nothing
     }

@@ -124,16 +124,12 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     @Override
     public ResponseData execute(final RequestData request) {
-        switch (request.getMethod()) {
-        case GET:
-            return doGet(request.getUrl());
-        case HEAD:
-            return doHead(request.getUrl());
-        case POST:
-            return doPost(request.getUrl());
-        default:
-            throw new CrawlerSystemException(request.getMethod() + " method is not supported.");
-        }
+        return switch (request.getMethod()) {
+        case GET -> doGet(request.getUrl());
+        case HEAD -> doHead(request.getUrl());
+        case POST -> doPost(request.getUrl());
+        default -> throw new CrawlerSystemException(request.getMethod() + " method is not supported.");
+        };
     }
 
     protected void checkMaxContentLength(final ResponseData responseData) {

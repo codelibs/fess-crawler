@@ -164,7 +164,7 @@ public class FesenClient implements Client {
 
     protected Client createClient() {
         final String[] hosts =
-                split(address, ",").get(stream -> stream.map(s -> s.trim()).filter(StringUtil::isNotEmpty).toArray(n -> new String[n]));
+                split(address, ",").get(stream -> stream.map(String::trim).filter(StringUtil::isNotEmpty).toArray(n -> new String[n]));
         final Settings settings = Settings.builder().putList("http.hosts", hosts).build();
         return new HttpClient(settings, null);
     }

@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 
 import javax.annotation.Resource;
 
+import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.Converter;
 import org.codelibs.core.beans.PropertyDesc;
@@ -316,11 +317,12 @@ public abstract class AbstractCrawlerService {
     }
 
     public int getCount(final Consumer<SearchRequestBuilder> callback) {
-        return (int) getClient().get(c -> {
+        final TotalHits totalHits = getClient().get(c -> {
             final SearchRequestBuilder builder = c.prepareSearch(index).setSize(0).setTrackTotalHits(true);
             callback.accept(builder);
             return builder.execute();
-        }).getHits().getTotalHits().value;
+        }).getHits().getTotalHits();
+        return totalHits != null ? (int) totalHits.value : 0;
     }
 
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
@@ -381,9 +383,11 @@ public abstract class AbstractCrawlerService {
         });
         final EsResultList<T> targetList = new EsResultList<>();
         final SearchHits hits = response.getHits();
-        targetList.setTotalHits(hits.getTotalHits().value);
+        final TotalHits totalHits = hits.getTotalHits();
+        final long totalHitsValue = totalHits != null ? totalHits.value : 0;
+        targetList.setTotalHits(totalHitsValue);
         targetList.setTookInMillis(response.getTook().getMillis());
-        if (hits.getTotalHits().value != 0) {
+        if (totalHitsValue != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
                     final Map<String, Object> source = searchHit.getSourceAsMap();

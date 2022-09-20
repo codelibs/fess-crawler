@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
@@ -99,9 +100,11 @@ public class EsDataService extends AbstractCrawlerService implements DataService
         });
         final EsResultList<EsAccessResult> targetList = new EsResultList<>();
         final SearchHits hits = response.getHits();
-        targetList.setTotalHits(hits.getTotalHits().value);
+        final TotalHits totalHits = hits.getTotalHits();
+        final long totalHitsValue = totalHits != null ? totalHits.value : 0;
+        targetList.setTotalHits(totalHitsValue);
         targetList.setTookInMillis(response.getTook().getMillis());
-        if (hits.getTotalHits().value != 0) {
+        if (totalHitsValue != 0) {
             try {
                 for (final SearchHit searchHit : hits.getHits()) {
                     final EsAccessResult target = new EsAccessResult();

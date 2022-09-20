@@ -84,7 +84,7 @@ public class XPathAPI {
      *
      * @throws XPathExpressionException
      */
-    public Node selectSingleNode(Node contextNode, String expression) throws XPathExpressionException {
+    public Node selectSingleNode(final Node contextNode, final String expression) throws XPathExpressionException {
         return xPath.evaluateExpression(expression, contextNode, Node.class);
     }
 }

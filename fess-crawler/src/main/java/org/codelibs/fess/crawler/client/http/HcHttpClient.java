@@ -454,6 +454,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     @Override
     public void close() {
+        if (httpClient == null) {
+            return;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Closing HcHttpClient...");
+        }
         if (connectionMonitorTask != null) {
             connectionMonitorTask.cancel();
         }
@@ -463,9 +469,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
             } catch (final IOException e) {
                 logger.error("Failed to close httpClient.", e);
             }
-        }
-        if (clientConnectionManager != null) {
-            clientConnectionManager.shutdown();
+            httpClient = null;
+            if (clientConnectionManager != null) {
+                clientConnectionManager.shutdown();
+            }
         }
     }
 

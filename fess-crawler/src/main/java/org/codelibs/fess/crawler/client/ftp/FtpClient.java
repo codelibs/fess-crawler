@@ -156,6 +156,12 @@ public class FtpClient extends AbstractCrawlerClient {
 
     @Override
     public void close() {
+        if (ftpAuthenticationHolder == null) {
+            return;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Closing FtpClient...");
+        }
         ftpAuthenticationHolder = null;
         for (final FTPClient ftpClient : ftpClientQueue) {
             try {

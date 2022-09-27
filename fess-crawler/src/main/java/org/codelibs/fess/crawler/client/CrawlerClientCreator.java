@@ -56,8 +56,24 @@ public class CrawlerClientCreator {
         if (logger.isDebugEnabled()) {
             logger.debug("loading {}", componentName);
         }
-        final CrawlerClient client = crawlerContainer.getComponent(componentName);
-        crawlerClientFactory.addClient(regex, client);
+        CrawlerClient client = null;
+        try {
+            client = crawlerContainer.getComponent(componentName);
+            crawlerClientFactory.addClient(regex, client);
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to create {}.", componentName, e);
+            } else {
+                logger.info("{} is not available.", componentName);
+            }
+            if (client != null) {
+                try {
+                    client.close();
+                } catch (Exception ex) {
+                    logger.warn("Failed to close {}.", componentName, ex);
+                }
+            }
+        }
     }
 
     public void setMaxClientFactorySize(final int maxClientFactorySize) {

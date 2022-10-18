@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.codelibs.core.exception.InterruptedRuntimeException;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.entity.UrlQueue;
@@ -78,6 +79,8 @@ public class HostIntervalController extends DefaultIntervalController {
                     lastTime.wait(delayTime);
                 }
             }
+        } catch (final InterruptedException e) {
+            throw new InterruptedRuntimeException(e);
         } catch (final Exception e) {
             throw new CrawlerSystemException(e);
         }

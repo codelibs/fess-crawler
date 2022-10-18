@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.codelibs.core.exception.InterruptedRuntimeException;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -208,7 +209,7 @@ public class CommandExtractor extends AbstractExtractor {
             if (mt != null && mt.isTeminated()) {
                 throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList, e);
             }
-            throw new CrawlerSystemException("Process terminated.", e);
+            throw new InterruptedRuntimeException(e);
         } catch (final Exception e) {
             throw new CrawlerSystemException("Process terminated.", e);
         } finally {

@@ -566,7 +566,11 @@ public class HcHttpClient extends AbstractCrawlerClient {
                                 for (String urlPattern : directive.getDisallows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
                                         urlPattern = convertRobotsTxtPathPattern(urlPattern);
-                                        crawlerContext.getUrlFilter().addExclude(hostUrl + urlPattern);
+                                        final String urlValue = hostUrl + urlPattern;
+                                        crawlerContext.getUrlFilter().addExclude(urlValue);
+                                        if (logger.isInfoEnabled()) {
+                                            logger.info("Excluded URL: {}", urlValue);
+                                        }
                                     }
                                 }
                             }
@@ -574,7 +578,11 @@ public class HcHttpClient extends AbstractCrawlerClient {
                                 for (String urlPattern : directive.getAllows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
                                         urlPattern = convertRobotsTxtPathPattern(urlPattern);
-                                        crawlerContext.getUrlFilter().addInclude(hostUrl + urlPattern);
+                                        final String urlValue = hostUrl + urlPattern;
+                                        crawlerContext.getUrlFilter().addInclude(urlValue);
+                                        if (logger.isInfoEnabled()) {
+                                            logger.info("Included URL: {}", urlValue);
+                                        }
                                     }
                                 }
                             }

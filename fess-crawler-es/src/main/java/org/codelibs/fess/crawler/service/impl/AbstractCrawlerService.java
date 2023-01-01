@@ -162,7 +162,7 @@ public abstract class AbstractCrawlerService {
         }
 
         final GetMappingsResponse getMappingsResponse = fesenClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
-        final ImmutableOpenMap<String, MappingMetadata> indexMappings = getMappingsResponse.mappings().get(index);
+        final ImmutableOpenMap<String, MappingMetadata> indexMappings = getMappingsResponse.mappings();
         if (indexMappings == null || !indexMappings.containsKey("properties")) {
             final AcknowledgedResponse putMappingResponse = fesenClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");
@@ -277,8 +277,8 @@ public abstract class AbstractCrawlerService {
                 if (ignoreAlreadyExists) {
                     continue;
                 }
-                sb.append("\n[").append(i).append("]: index [").append(response.getIndex()).append("], type [").append(response.getType())
-                        .append("], id [").append(response.getId()).append("], message [").append(response.getFailureMessage()).append("]");
+                sb.append("\n[").append(i).append("]: index [").append(response.getIndex()).append("], id [").append(response.getId())
+                        .append("], message [").append(response.getFailureMessage()).append("]");
             }
         }
         if (sb.length() > 0) {
@@ -309,7 +309,7 @@ public abstract class AbstractCrawlerService {
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
-            final GetResponse response = getClient().get(c -> c.prepareGet(index, null, id).execute());
+            final GetResponse response = getClient().get(c -> c.prepareGet(index, id).execute());
             return response.isExists();
         } catch (final Exception e) {
             throw new EsAccessException("Failed to check if " + sessionId + ":" + url + " exists.", e);

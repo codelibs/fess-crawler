@@ -9,6 +9,8 @@
 
 	<component name="internalHttpClient" class="org.codelibs.fess.crawler.client.http.HcHttpClient"
 		instance="prototype">
+		<property name="connectionTimeout">15000</property>
+		<property name="soTimeout">30000</property>
 	</component>
 	<component name="httpClient"
 		class="org.codelibs.fess.crawler.client.FaultTolerantClient" instance="prototype">

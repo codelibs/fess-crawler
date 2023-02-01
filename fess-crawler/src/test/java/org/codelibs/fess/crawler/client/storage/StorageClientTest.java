@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
@@ -46,13 +47,13 @@ import io.minio.SetObjectTagsArgs;
  */
 public class StorageClientTest extends PlainTestCase {
 
+    private static final Logger logger = LoggerFactory.getLogger(StorageClientTest.class);
+
     private static final String IMAGE_NAME = "minio/minio:RELEASE.2022-06-02T02-11-04Z";
 
     private static final String SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
 
     private static final String ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";
-
-    private static final Logger logger = LoggerFactory.getLogger(StorageClientTest.class);
 
     public StorageClient storageClient;
 
@@ -62,13 +63,26 @@ public class StorageClientTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
 
-        startServer();
+        final int port = 9000;
+        logger.info("Creating {}", IMAGE_NAME);
+        minioServer = new GenericContainer<>(IMAGE_NAME)//
+                .withEnv("MINIO_ACCESS_KEY", ACCESS_KEY)//
+                .withEnv("MINIO_SECRET_KEY", SECRET_KEY)//
+                .withExposedPorts(port)//
+                .withCommand("server /data")//
+                .waitingFor(new HttpWaitStrategy()//
+                        .forPath("/minio/health/ready")//
+                        .forPort(port)//
+                        .withStartupTimeout(Duration.ofSeconds(30)));
+        logger.info("Starting {}", IMAGE_NAME);
+        minioServer.start();
+        logger.info("Started {}", IMAGE_NAME);
 
         String bucketName = "fess";
         Integer mappedPort = minioServer.getFirstMappedPort();
         Testcontainers.exposeHostPorts(mappedPort);
         String endpoint = String.format("http://%s:%s", minioServer.getContainerIpAddress(), mappedPort);
-        System.out.println("endpoint: " + endpoint);
+        logger.info("endpoint: {}", endpoint);
 
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("storageClient", StorageClient.class);
@@ -79,6 +93,18 @@ public class StorageClientTest extends PlainTestCase {
         params.put("secretKey", SECRET_KEY);
         storageClient.setInitParameterMap(params);
 
+        for (int i = 0; i < 10; i++) {
+            try {
+                setupMinioClient(bucketName, endpoint);
+                break;
+            } catch (final Exception e) {
+                logger.warn("[{}] {}", i + i, e.getMessage());
+            }
+            ThreadUtil.sleep(1000L);
+        }
+    }
+
+    private void setupMinioClient(String bucketName, String endpoint) throws Exception {
         MinioClient minioClient = MinioClient.builder().endpoint(endpoint).credentials(ACCESS_KEY, SECRET_KEY).build();
         minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
         minioClient.putObject(PutObjectArgs.builder().bucket(bucketName).object("file1.txt")
@@ -98,29 +124,6 @@ public class StorageClientTest extends PlainTestCase {
                 SetObjectTagsArgs.builder().bucket(bucketName).object("dir1/dir2/file3.txt").tags(Map.of("label", "label3")).build());
         minioClient.setObjectTags(
                 SetObjectTagsArgs.builder().bucket(bucketName).object("dir3/file4.txt").tags(Map.of("label", "label4")).build());
-    }
-
-    private void startServer() {
-        final int port = 9000;
-        for (int i = 0; i < 10; i++) {
-            try {
-                logger.info("Creating {}...", IMAGE_NAME);
-                minioServer = new GenericContainer<>(IMAGE_NAME)//
-                        .withEnv("MINIO_ACCESS_KEY", ACCESS_KEY)//
-                        .withEnv("MINIO_SECRET_KEY", SECRET_KEY)//
-                        .withExposedPorts(port)//
-                        .withCommand("server /data")//
-                        .waitingFor(new HttpWaitStrategy()//
-                                .forPath("/minio/health/ready")//
-                                .forPort(port)//
-                                .withStartupTimeout(Duration.ofSeconds(30)));
-                logger.info("Starting {}...", IMAGE_NAME);
-                minioServer.start();
-                return;
-            } catch (Exception e) {
-                logger.warn("Failed to start a server. Try it again ({}).", i + 1, e);
-            }
-        }
     }
 
     @Override

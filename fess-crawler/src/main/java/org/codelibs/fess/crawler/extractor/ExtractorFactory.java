@@ -15,11 +15,15 @@
  */
 package org.codelibs.fess.crawler.extractor;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +33,11 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ExtractorFactory {
+
     private static final Logger logger = LoggerFactory.getLogger(ExtractorFactory.class);
+
+    @Resource
+    protected CrawlerContainer crawlerContainer;
 
     protected Map<String, Extractor> extractorMap = new HashMap<>();
 
@@ -61,5 +69,9 @@ public class ExtractorFactory {
 
     public void setExtractorMap(final Map<String, Extractor> extractorMap) {
         this.extractorMap = extractorMap;
+    }
+
+    public ExtractorBuilder builder(final InputStream in, final Map<String, String> params) {
+        return new ExtractorBuilder(crawlerContainer, in, params);
     }
 }

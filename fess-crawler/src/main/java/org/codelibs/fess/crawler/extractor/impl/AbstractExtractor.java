@@ -31,8 +31,7 @@ public abstract class AbstractExtractor implements Extractor {
     protected CrawlerContainer crawlerContainer;
 
     public void register(final List<String> keyList) {
-        final ExtractorFactory extractorFactory = crawlerContainer.getComponent("extractorFactory");
-        extractorFactory.addExtractor(keyList, this);
+        getExtractorFactory().addExtractor(keyList, this);
     }
 
     protected MimeTypeHelper getMimeTypeHelper() {

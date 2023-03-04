@@ -190,11 +190,7 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
             fail();
         } catch (final MimeTypeException e) {}
 
-        try {
-            mimeTypeHelper.getContentType(is, "");
-            fail();
-        } catch (final MimeTypeException e) {}
-
+        assertEquals("text/plain", mimeTypeHelper.getContentType(is, ""));
         assertEquals("text/plain", mimeTypeHelper.getContentType(is, " "));
     }
 

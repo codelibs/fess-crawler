@@ -52,9 +52,6 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
 
     @Override
     public String getContentType(final InputStream is, final String filename) {
-        if (StringUtil.isEmpty(filename)) {
-            throw new MimeTypeException("The filename is empty.");
-        }
         final Map<String, String> params = new HashMap<>();
         params.put(ExtractData.RESOURCE_NAME_KEY, filename);
         return getContentType(is, params);

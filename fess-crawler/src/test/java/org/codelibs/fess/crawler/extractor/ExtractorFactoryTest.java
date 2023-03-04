@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.extractor;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.codelibs.fess.crawler.extractor.impl.LhaExtractor;
 import org.codelibs.fess.crawler.extractor.impl.PasswordBasedExtractor;
 import org.codelibs.fess.crawler.extractor.impl.PdfExtractor;
 import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
+import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -41,6 +43,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("tikaExtractor", TikaExtractor.class)//
                 .singleton("pdfExtractor", PdfExtractor.class)//
                 .singleton("lhaExtractor", LhaExtractor.class)//
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("extractorFactory", ExtractorFactory.class);
         extractorFactory = container.getComponent("extractorFactory");
         TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
@@ -111,5 +114,11 @@ public class ExtractorFactoryTest extends PlainTestCase {
         key = "application/x-lharc";
         assertTrue(extractorFactory.getExtractor(key) instanceof LhaExtractor);
 
+    }
+
+    public void test_builder() {
+        assertEquals("test", extractorFactory.builder(new ByteArrayInputStream("test".getBytes()), null).extract().getContent());
+        assertEquals("test",
+                extractorFactory.builder(new ByteArrayInputStream("test".getBytes()), null).filename("test.txt").extract().getContent());
     }
 }

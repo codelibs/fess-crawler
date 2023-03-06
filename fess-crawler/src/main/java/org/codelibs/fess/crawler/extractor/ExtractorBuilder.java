@@ -30,6 +30,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,14 +95,6 @@ public class ExtractorBuilder {
             CopyUtil.copy(in, out);
             out.flush();
 
-            if (maxContentLength >= 0) {
-                final long contentLength = getContentLength(out);
-                if (contentLength > maxContentLength) {
-                    throw new MaxLengthExceededException(
-                            "The content length (" + contentLength + " byte) is over " + maxContentLength + " byte.");
-                }
-            }
-
             Extractor extractor = StringUtil.isBlank(mimeType) ? null : extractorFactory.getExtractor(mimeType);
             if (extractor == null) {
                 final String detectedMimeType = getMimeType(out);
@@ -116,6 +109,16 @@ public class ExtractorBuilder {
                 }
             } else if (logger.isDebugEnabled()) {
                 logger.debug("use {} from {}", extractor.getClass().getName(), mimeType);
+            }
+
+            if (maxContentLength < 0) {
+                ContentLengthHelper contentLengthHelper = crawlerContainer.getComponent("contentLengthHelper");
+                maxContentLength = contentLengthHelper.getMaxLength(mimeType);
+            }
+            final long contentLength = getContentLength(out);
+            if (contentLength > maxContentLength) {
+                throw new MaxLengthExceededException(
+                        "The content length (" + contentLength + " byte) is over " + maxContentLength + " byte.");
             }
 
             try (InputStream is = getContentInputStream(out)) {

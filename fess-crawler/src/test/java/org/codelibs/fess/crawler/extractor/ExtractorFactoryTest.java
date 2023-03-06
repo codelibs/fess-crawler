@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.extractor.impl.LhaExtractor;
 import org.codelibs.fess.crawler.extractor.impl.PasswordBasedExtractor;
 import org.codelibs.fess.crawler.extractor.impl.PdfExtractor;
 import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
+import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -44,6 +45,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
                 .singleton("pdfExtractor", PdfExtractor.class)//
                 .singleton("lhaExtractor", LhaExtractor.class)//
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
+                .singleton("contentLengthHelper", ContentLengthHelper.class)//
                 .singleton("extractorFactory", ExtractorFactory.class);
         extractorFactory = container.getComponent("extractorFactory");
         TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");

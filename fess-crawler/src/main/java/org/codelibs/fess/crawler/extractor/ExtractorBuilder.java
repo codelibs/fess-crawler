@@ -76,7 +76,7 @@ public class ExtractorBuilder {
         return this;
     }
 
-    public ExtractorBuilder maxContentLength(final int maxContentLength) {
+    public ExtractorBuilder maxContentLength(final long maxContentLength) {
         this.maxContentLength = maxContentLength;
         return this;
     }

@@ -69,7 +69,7 @@ public class CrawlerClientCreator {
             if (client != null) {
                 try {
                     client.close();
-                } catch (Exception ex) {
+                } catch (final Exception ex) {
                     logger.warn("Failed to close {}.", componentName, ex);
                 }
             }

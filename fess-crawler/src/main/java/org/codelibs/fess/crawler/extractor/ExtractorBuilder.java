@@ -55,7 +55,7 @@ public class ExtractorBuilder {
 
     private long maxContentLength = -1;
 
-    protected ExtractorBuilder(CrawlerContainer crawlerContainer, final InputStream in, final Map<String, String> params) {
+    protected ExtractorBuilder(final CrawlerContainer crawlerContainer, final InputStream in, final Map<String, String> params) {
         this.crawlerContainer = crawlerContainer;
         this.in = in;
         this.params = params;
@@ -112,7 +112,7 @@ public class ExtractorBuilder {
             }
 
             if (maxContentLength < 0) {
-                ContentLengthHelper contentLengthHelper = crawlerContainer.getComponent("contentLengthHelper");
+                final ContentLengthHelper contentLengthHelper = crawlerContainer.getComponent("contentLengthHelper");
                 maxContentLength = contentLengthHelper.getMaxLength(mimeType);
             }
             final long contentLength = getContentLength(out);

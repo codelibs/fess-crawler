@@ -20,8 +20,8 @@ import java.io.IOException;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.service.impl.EsDataService;
 import org.lastaflute.di.core.SingletonLaContainer;
-import org.opensearch.common.xcontent.ToXContent;
-import org.opensearch.common.xcontent.XContentBuilder;
+import org.opensearch.core.xcontent.ToXContent;
+import org.opensearch.core.xcontent.XContentBuilder;
 
 public class EsAccessResult extends AccessResultImpl<String> implements ToXContent {
 

@@ -20,8 +20,8 @@ import java.util.Map;
 
 import org.codelibs.core.misc.Base64Util;
 import org.codelibs.fess.crawler.exception.EsAccessException;
-import org.opensearch.common.xcontent.ToXContent;
-import org.opensearch.common.xcontent.XContentBuilder;
+import org.opensearch.core.xcontent.ToXContent;
+import org.opensearch.core.xcontent.XContentBuilder;
 
 public class EsAccessResultData extends AccessResultDataImpl<String> implements ToXContent {
 

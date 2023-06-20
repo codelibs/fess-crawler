@@ -218,6 +218,30 @@
 
   <mime-type type="application/dns"/>
   <mime-type type="application/dvcs"/>
+
+  <mime-type type="application/x-dvd-ifo">
+    <acronym>IFO</acronym>
+    <_comment>DVD information file</_comment>
+    <magic priority="70">
+      <match value="DVDVIDEO-VTS" type="string" offset="0"/>
+      <match value="DVDVIDEO-VMG" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.ifo"/>
+    <glob pattern="*.bup"/>
+  </mime-type>
+
+  <mime-type type="application/x-ebu-stl">
+    <acronym>EBU-STL</acronym>
+    <_comment>EBU-STL subtitles</_comment>
+    <tika:link>https://tech.ebu.ch/docs/tech/tech3264.pdf</tika:link>
+    <magic priority="70">
+      <match value="STL" type="string" offset="3">
+        <match value=".01" type="string" offset="8" />
+      </match>
+    </magic>
+    <!-- <glob pattern="*.stl"/> conflicts with 3D STL -->
+  </mime-type>
+  
   <mime-type type="application/ecmascript">
     <glob pattern="*.ecma"/>
   </mime-type>
@@ -278,7 +302,17 @@
     <acronym>AI</acronym>
     <_comment>Adobe Illustrator Artwork</_comment>
     <tika:link>http://en.wikipedia.org/wiki/Adobe_Illustrator_Artwork</tika:link>
-    <glob pattern="*.ai"/>]
+    <glob pattern="*.ai"/>
+    <sub-class-of type="application/pdf"/>
+  </mime-type>
+  <mime-type type="application/illustrator+ps">
+    <acronym>AI</acronym>
+    <_comment>Adobe Illustrator Artwork -- the older postscript based AI files</_comment>
+    <!-- we can do more specific versions by focusing on the integer in the regex below -->
+    <tika:link>http://justsolve.archiveteam.org/wiki/Adobe_Illustrator_Artwork</tika:link>
+    <magic priority="60">
+      <match value="[\r\n]%AI5_FileFormat [1-4][\r\n]" type="regex" offset="0:8192"/>
+    </magic>
     <sub-class-of type="application/postscript"/>
   </mime-type>
 
@@ -729,7 +763,13 @@
 
   <mime-type type="application/pgp-encrypted">
     <alias type="application/pgp"/>
+    <magic>
+      <match value="\x85" type="string" offset="0">
+        <match value="\x03" type="string" offset="3"/>
+      </match>
+    </magic>
     <glob pattern="*.pgp"/>
+    <glob pattern="*.gpg"/>
   </mime-type>
 
   <mime-type type="application/pgp-keys"/>
@@ -2751,6 +2791,22 @@
     <sub-class-of type="application/x-tika-staroffice"/>
     <glob pattern="*.vor"/>
   </mime-type>
+
+  <mime-type type="application/x-subrip">
+    <_comment>SubRip (srt) subtitles</_comment>
+    <magic priority="50">
+      <!-- 1[CR|LF|CRLF]00 -->
+      <match value="0x310A3030" type="string" offset="0"/>
+      <match value="0x310D3030" type="string" offset="0"/>
+      <match value="0x310D0A13030" type="string" offset="0"/>
+      <match value="0xEFBBBF310A3030" type="string" offset="0"/>
+      <match value="0xEFBBBF310D3030" type="string" offset="0"/>
+      <match value="0xEFBBBF310D0A13030" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.srt"/>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+  
   <mime-type type="application/vnd.sun.xml.writer">
     <sub-class-of type="application/zip"/>
     <glob pattern="*.sxw"/>
@@ -2892,6 +2948,13 @@
     <glob pattern="*.ufd"/>
     <glob pattern="*.ufdl"/>
   </mime-type>
+
+  <mime-type type="application/ttml+xml">
+    <root-XML localName="tt" namespaceURI="http://www.w3.org/ns/ttml"/>
+    <glob pattern="*.ttml"/>
+    <sub-class-of type="application/xml"/>
+  </mime-type>
+
   <mime-type type="application/vnd.uiq.theme">
     <glob pattern="*.utz"/>
   </mime-type>
@@ -3177,7 +3240,13 @@
   <mime-type type="application/x-ace-compressed">
     <glob pattern="*.ace"/>
   </mime-type>
-
+  <mime-type type="application/x-activemime">
+    <magic priority="60">
+      <!-- ActiveMime\u0000\u0000 -->
+      <match value="0x4163746976654D696D650000" type="string" offset="0">
+    </match>
+    </magic>
+  </mime-type>
   <mime-type type="application/x-axcrypt">
     <_comment>AxCrypt</_comment>
     <glob pattern="*.axx" />
@@ -5233,10 +5302,14 @@
       <match value="0xfffb" type="string" offset="0"/> <!-- V1, L3      -->
       <match value="0xfffc" type="string" offset="0"/> <!-- V1, L2, CRC -->
       <match value="0xfffd" type="string" offset="0"/> <!-- V1, L2      -->
+      <match value="0xffe3" type="string" offset="0"/> <!-- MP3 2.5 from pronom     -->
       <!-- TIKA-417: This is the UTF-16 LE byte order mark! -->
       <!-- match value="0xfffe" type="string" offset="0"/ --> <!-- V1, L1, CRC -->
       <match value="0xffff" type="string" offset="0"/> <!-- V1, L1      -->
       <match value="ID3" type="string" offset="0"/>
+      <!-- in the wild, 0D0A or quite a few \x00 may precede the magic -->
+      <match value="(?:\\x0D\\x0A|\\x00{1,1024})(?:\\xff[\\xe3\\xf2\\xf3\\xf4\\xf5\\xf6\\xf7\\xf8\\xf9\\xfa\\xfb\\xfc\\xfd\\xfe\\xff]|ID3)"
+             type="regex" offset="0"/>
     </magic>
     <glob pattern="*.mpga"/>
     <glob pattern="*.mp2"/>
@@ -5575,8 +5648,21 @@
       <match value="0x762F310102040000" type="string" offset="0"/>
     </magic>
     <glob pattern="*.exr"/>
-  </mime-type> 
+  </mime-type>
 
+  <mime-type type="image/x-os2-graphics; charset=binary">
+    <_comment>OS2 bitmap array</_comment>
+    <tika:link>http://fileformats.archiveteam.org/wiki/OS/2_Bitmap_Array</tika:link>
+    <magic priority="50">
+      <match value="BA" type="string" offset="0">
+        <match value="BM" type="string" offset="14"/>
+        <match value="CI" type="string" offset="14"/>
+        <match value="IC" type="string" offset="14"/>
+        <match value="CP" type="string" offset="14"/>
+        <match value="PT" type="string" offset="14"/>
+      </match>
+    </magic>
+  </mime-type>
   <mime-type type="image/bmp">
     <alias type="image/x-bmp"/>
     <alias type="image/x-ms-bmp"/>
@@ -6265,9 +6351,44 @@
   </mime-type>
 
   <mime-type type="image/x-raw-canon">
+    <!-- should we move this to: image/x-canon-crw ? -->
     <_comment>Canon raw image</_comment>
+    <magic priority="50">
+      <match value="\x49\x49\x1a\x00\x00\x00HEAPCCDR" type="string" offset="0"/>
+    </magic>
     <glob pattern="*.crw"/>
+  </mime-type>
+
+  <mime-type type="image/x-canon-cr2">
+    <_comment>Canon raw image, version 2, TIFF-based</_comment>
+    <!-- basically tiff header with 'CR' at offset 8; major version is at offset 9, minor at 10/.
+     priority must be higher than tiff -->
+    <magic priority="60">
+      <!-- MM.* = Big endian (M=Motorola) and 0x002a in big endian    -->
+      <match value="MM\x00\x2a" type="string" offset="0">
+        <match value="CR" type="string" offset="8"/>
+      </match>
+      <!-- II*. = Little endian (I=Intel) and 0x002a in little endian -->
+      <match value="II\x2a\x00" type="string" offset="0">
+        <match value="CR" type="string" offset="8"/>
+      </match>
+      <!-- MM.+ = Big endian (M=Motorola) and 0x002a in big endian-->
+      <match value="MM\x00\x2b" type="string" offset="0">
+        <match value="CR" type="string" offset="8"/>
+      </match>
+    </magic>
+    <sub-class-of type="image/tiff" />
     <glob pattern="*.cr2"/>
+  </mime-type>
+
+  <mime-type type="image/x-canon-cr3">
+    <_comment>Canon raw image, version 3, Quicktime-based</_comment>
+    <glob pattern="*.cr3"/>
+    <!-- needs to be higher than quicktime -->
+    <magic priority="60">
+      <match value="ftypcrx " type="string" offset="4"/>
+    </magic>
+    <sub-class-of type="video/quicktime" />
   </mime-type>
 
   <mime-type type="image/x-raw-kodak">
@@ -6649,6 +6770,24 @@
     <root-XML localName="DIF"/>
     <root-XML localName="DIF" namespaceURI="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/"/>
     <glob pattern="*.dif"/>
+    <sub-class-of type="application/xml"/>
+  </mime-type>
+
+  <mime-type type="application/onix-message+xml">
+    <_comment>ONline Information eXchange (ONIX) for books</_comment>
+    <!-- see https://www.loc.gov/preservation/digital/formats/fdd/fdd000488.shtml -->
+    <root-XML localName="ONIXMessage" namespaceURI="http://ns.editeur.org/onix/3.0/reference"/>
+    <!-- do we want a separate mime for this? -->
+    <root-XML localName="ONIXmessage" namespaceURI="http://ns.editeur.org/onix/3.0/short"/>
+    <root-XML localName="ONIXMessage"/>
+    <sub-class-of type="application/xml"/>
+  </mime-type>
+
+  <mime-type type="application/onix-message-short+xml">
+    <_comment>ONline Information eXchange (ONIX) for books</_comment>
+    <!-- see https://www.loc.gov/preservation/digital/formats/fdd/fdd000488.shtml -->
+    <root-XML localName="ONIXMessage" namespaceURI="http://ns.editeur.org/onix/3.0/reference"/>
+    <root-XML localName="ONIXMessage"/>
     <sub-class-of type="application/xml"/>
   </mime-type>
 

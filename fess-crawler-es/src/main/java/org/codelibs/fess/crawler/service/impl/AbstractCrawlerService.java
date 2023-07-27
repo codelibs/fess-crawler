@@ -66,7 +66,6 @@ import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.support.WriteRequest.RefreshPolicy;
 import org.opensearch.action.support.master.AcknowledgedResponse;
 import org.opensearch.cluster.metadata.MappingMetadata;
-import org.opensearch.common.collect.ImmutableOpenMap;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.xcontent.XContentType;
 import org.opensearch.core.xcontent.XContentBuilder;
@@ -162,7 +161,7 @@ public abstract class AbstractCrawlerService {
         }
 
         final GetMappingsResponse getMappingsResponse = fesenClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
-        final ImmutableOpenMap<String, MappingMetadata> indexMappings = getMappingsResponse.mappings();
+        final Map<String, MappingMetadata> indexMappings = getMappingsResponse.mappings();
         if (indexMappings == null || !indexMappings.containsKey("properties")) {
             final AcknowledgedResponse putMappingResponse = fesenClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");

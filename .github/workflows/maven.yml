@@ -41,4 +41,4 @@ jobs:
         cd fess-parent
         mvn install
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B source:jar javadoc:jar package --file pom.xml

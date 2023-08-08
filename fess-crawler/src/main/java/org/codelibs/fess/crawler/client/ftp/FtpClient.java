@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
@@ -39,6 +40,8 @@ import org.apache.commons.net.ftp.FTPClient.NatServerResolverImpl;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilters;
+import org.apache.commons.net.ftp.FTPSClient;
+import org.apache.commons.net.util.TrustManagerUtils;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -110,6 +113,10 @@ public class FtpClient extends AbstractCrawlerClient {
 
     protected boolean useEPSVwithIPv4;
 
+    protected Boolean isImplicit;
+
+    protected String trustManager;
+
     @Override
     public synchronized void init() {
         if (ftpAuthenticationHolder != null) {
@@ -141,6 +148,8 @@ public class FtpClient extends AbstractCrawlerClient {
         passiveNatWorkaround = getInitParameter("passiveNatWorkaround", true, Boolean.class);
         reportActiveExternalHost = getInitParameter("reportActiveExternalHost", null, String.class);
         useEPSVwithIPv4 = getInitParameter("useEPSVwithIPv4", false, Boolean.class);
+        isImplicit = getInitParameter("isImplicit", null, Boolean.class);
+        trustManager = getInitParameter("trustManager", null, String.class);
 
         // ftp auth
         final FtpAuthenticationHolder holder = new FtpAuthenticationHolder();
@@ -451,7 +460,19 @@ public class FtpClient extends AbstractCrawlerClient {
         }
 
         try {
-            ftpClient = new FTPClient();
+            if (isImplicit != null) {
+                final FTPSClient ftpsClient = new FTPSClient(isImplicit);
+                if ("all".equals(trustManager)) {
+                    ftpsClient.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());
+                } else if ("valid".equals(trustManager)) {
+                    ftpsClient.setTrustManager(TrustManagerUtils.getValidateServerCertificateTrustManager());
+                } else if ("none".equals(trustManager)) {
+                    ftpsClient.setTrustManager(null);
+                }
+                ftpClient = ftpsClient;
+            } else {
+                ftpClient = new FTPClient();
+            }
 
             if (activeExternalHost != null) {
                 ftpClient.setActiveExternalIPAddress(activeExternalHost);
@@ -467,7 +488,7 @@ public class FtpClient extends AbstractCrawlerClient {
             }
             ftpClient.setAutodetectUTF8(autodetectEncoding);
             ftpClient.setConnectTimeout(connectTimeout);
-            ftpClient.setDataTimeout(dataTimeout);
+            ftpClient.setDataTimeout(Duration.ofMillis(dataTimeout));
             ftpClient.setControlEncoding(controlEncoding);
             ftpClient.setBufferSize(bufferSize);
             if (passiveNatWorkaround) {

@@ -73,6 +73,10 @@
 			<arg>ftpClient</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
+			<arg>"ftps:.*"</arg>
+			<arg>ftpClient</arg>
+		</postConstruct>
+		<postConstruct name="addClient">
 			<arg>"storage:.*"</arg>
 			<arg>storageClient</arg>
 		</postConstruct>

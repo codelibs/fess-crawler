@@ -38,8 +38,11 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
     }
 
-    public void test_getContentType() throws IOException {
+    public void test_getContentType_filenameFirst() throws IOException {
+        final MimeTypeHelperImpl mimeTypeHelper = container.getComponent("mimeTypeHelper");
+        mimeTypeHelper.useFilename = true;
         assertContentType("text/plain", "test/text1.txt", "hoge.txt");
+        assertContentType("text/plain", null, "hoge.txt");
         assertContentType("text/html", "html/test1.html", "hoge.html");
         assertContentType("text/html", "html/test1.html", "hoge.htm");
         assertContentType("text/html", "html/test1.shtml", "hoge.shtml");
@@ -104,9 +107,8 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
     }
 
     public void test_getContentType_content() throws IOException {
-        final MimeTypeHelperImpl mimeTypeHelper = container.getComponent("mimeTypeHelper");
-        mimeTypeHelper.useFilename = false;
         assertContentType("text/plain", "test/text1.txt", "hoge.txt");
+        assertContentType("text/plain", null, "hoge.txt");
         assertContentType("text/html", "html/test1.html", "hoge.html");
         assertContentType("text/html", "html/test1.html", "hoge.htm");
         assertContentType("text/html", "html/test1.shtml", "hoge.shtml");

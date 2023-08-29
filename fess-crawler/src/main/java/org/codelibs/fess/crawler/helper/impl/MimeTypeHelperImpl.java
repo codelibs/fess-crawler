@@ -40,7 +40,9 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
 
     protected MimeTypes mimeTypes;
 
-    protected boolean useFilename = true;
+    protected boolean useFilename = false;
+
+    protected boolean useFilenameOnOctetStream = true;
 
     public MimeTypeHelperImpl() {
         try {
@@ -76,6 +78,10 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
             }
 
             final MediaType mediaType = mimeTypes.detect(is == null || is.markSupported() ? is : new BufferedInputStream(is), metadata);
+            if (useFilenameOnOctetStream && MediaType.OCTET_STREAM.equals(mediaType)) {
+                final MediaType mediaTypeFromFilename = mimeTypes.detect(null, metadata);
+                return mediaTypeFromFilename.getType() + "/" + mediaTypeFromFilename.getSubtype();
+            }
             return mediaType.getType() + "/" + mediaType.getSubtype();
         } catch (final IOException e) {
             throw new MimeTypeException("Could not detect a content type.", e);
@@ -115,5 +121,9 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
 
     public void setUseFilename(final boolean useFilename) {
         this.useFilename = useFilename;
+    }
+
+    public void setUseFilenameOnOctetStream(final boolean useFilenameOnOctetStream) {
+        this.useFilenameOnOctetStream = useFilenameOnOctetStream;
     }
 }

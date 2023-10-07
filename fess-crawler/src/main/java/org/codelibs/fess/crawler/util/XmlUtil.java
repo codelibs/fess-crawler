@@ -131,7 +131,7 @@ public final class XmlUtil {
                 buffer.setLength(0);
             } else if ("list".equals(qName)) {
                 if (fieldName != null && !dataMap.containsKey(fieldName)) {
-                    dataMap.put(fieldName, new ArrayList<String>());
+                    dataMap.put(fieldName, new ArrayList<>());
                 }
             } else if ("item".equals(qName)) {
                 buffer.setLength(0);

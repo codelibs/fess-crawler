@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.codelibs.fess</groupId>
 		<artifactId>fess-crawler-parent</artifactId>
-		<version>14.11.0</version>
+		<version>14.11.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<build>

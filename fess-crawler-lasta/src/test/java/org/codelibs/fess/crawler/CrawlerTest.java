@@ -17,11 +17,7 @@ package org.codelibs.fess.crawler;
 
 import java.io.File;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.io.ResourceUtil;
-import org.codelibs.fess.crawler.Constants;
-import org.codelibs.fess.crawler.Crawler;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
@@ -30,6 +26,8 @@ import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
+
+import jakarta.annotation.Resource;
 
 public class CrawlerTest extends LastaDiTestCase {
 

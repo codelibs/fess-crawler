@@ -15,12 +15,12 @@
  */
 package org.codelibs.fess.crawler.pool;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
+
+import jakarta.annotation.Resource;
 
 /**
  *

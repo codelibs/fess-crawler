@@ -27,18 +27,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Header;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.Session;
-import javax.mail.internet.MailDateFormat;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
-
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -48,6 +36,18 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.mail.Address;
+import jakarta.mail.BodyPart;
+import jakarta.mail.Header;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
+import jakarta.mail.Part;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MailDateFormat;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeUtility;
 
 /**
  * Gets a text from .eml file.
@@ -224,7 +224,7 @@ public class EmlExtractor extends AbstractExtractor {
         }
     }
 
-    protected static Date getReceivedDate(final javax.mail.Message message) throws MessagingException {
+    protected static Date getReceivedDate(final Message message) throws MessagingException {
         final Date today = new Date();
         final String[] received = message.getHeader("received");
         if (received != null) {

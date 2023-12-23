@@ -20,10 +20,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.FieldDesc;
 import org.codelibs.core.beans.MethodDesc;
@@ -33,6 +29,10 @@ import org.codelibs.core.lang.FieldUtil;
 import org.codelibs.core.lang.MethodUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 
 public class StandardCrawlerContainer implements CrawlerContainer {
 

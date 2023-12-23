@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 
-import javax.annotation.Resource;
-
 import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.Converter;
@@ -81,6 +79,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+
+import jakarta.annotation.Resource;
 
 public abstract class AbstractCrawlerService {
     private static final Logger logger = LoggerFactory.getLogger(AbstractCrawlerService.class);

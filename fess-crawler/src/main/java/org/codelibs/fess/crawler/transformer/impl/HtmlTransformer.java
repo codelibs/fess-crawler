@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
 import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathNodes;
 
@@ -56,6 +55,8 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+
+import jakarta.annotation.Resource;
 
 /**
  * HtmlTransformer stores WEB data as HTML content.

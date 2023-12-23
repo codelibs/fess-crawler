@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
@@ -44,6 +42,8 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

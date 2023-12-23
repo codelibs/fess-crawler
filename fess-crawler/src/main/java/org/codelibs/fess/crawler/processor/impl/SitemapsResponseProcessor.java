@@ -20,8 +20,6 @@ import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
@@ -32,6 +30,8 @@ import org.codelibs.fess.crawler.entity.SitemapSet;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

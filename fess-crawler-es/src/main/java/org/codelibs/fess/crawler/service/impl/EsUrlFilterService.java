@@ -24,8 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
 import org.codelibs.fess.crawler.entity.EsUrlFilter;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.service.UrlFilterService;
@@ -36,6 +34,8 @@ import org.opensearch.index.query.QueryBuilders;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+
+import jakarta.annotation.PostConstruct;
 
 public class EsUrlFilterService extends AbstractCrawlerService implements UrlFilterService {
 

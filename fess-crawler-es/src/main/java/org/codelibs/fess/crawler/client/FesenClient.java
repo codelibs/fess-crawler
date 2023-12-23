@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import javax.annotation.PreDestroy;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.ThreadUtil;
@@ -99,6 +97,8 @@ import org.opensearch.search.SearchHit;
 import org.opensearch.threadpool.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.PreDestroy;
 
 public class FesenClient implements Client {
     public static final String HTTP_ADDRESS = "crawler.es.http_address";

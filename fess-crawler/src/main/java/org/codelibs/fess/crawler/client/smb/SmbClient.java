@@ -29,8 +29,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.FileUtil;
@@ -53,6 +51,7 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.annotation.Resource;
 import jcifs.ACE;
 import jcifs.CIFSContext;
 import jcifs.CIFSException;

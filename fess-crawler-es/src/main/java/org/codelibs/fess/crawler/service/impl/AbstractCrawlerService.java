@@ -47,6 +47,7 @@ import org.codelibs.fess.crawler.util.EsResultList;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.opensearch.OpenSearchStatusException;
 import org.opensearch.action.DocWriteRequest.OpType;
 import org.opensearch.action.DocWriteResponse.Result;
 import org.opensearch.action.admin.indices.create.CreateIndexResponse;
@@ -228,6 +229,8 @@ public abstract class AbstractCrawlerService {
                     .setOpType(opType).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
             setId(target, id);
             return response;
+        } catch (final OpenSearchStatusException e) {
+            throw new EsAccessException("[" + e.status() + "] Failed to insert " + id, e);
         } catch (final Exception e) {
             throw new EsAccessException("Failed to insert " + id, e);
         }

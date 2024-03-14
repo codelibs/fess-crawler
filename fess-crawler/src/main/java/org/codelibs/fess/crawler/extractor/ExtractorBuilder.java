@@ -23,8 +23,8 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
-import org.apache.poi.util.StringUtil;
 import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
@@ -119,10 +119,15 @@ public class ExtractorBuilder {
             if (contentLength > maxContentLength) {
                 throw new MaxLengthExceededException(
                         "The content length (" + contentLength + " byte) is over " + maxContentLength + " byte.");
-            }
-
-            try (InputStream is = getContentInputStream(out)) {
-                return extractor.getText(is, params);
+            } else if (contentLength == 0) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("The content length is 0.");
+                }
+                return new ExtractData(StringUtil.EMPTY);
+            } else {
+                try (InputStream is = getContentInputStream(out)) {
+                    return extractor.getText(is, params);
+                }
             }
         } catch (final CrawlingAccessException e) {
             throw e;

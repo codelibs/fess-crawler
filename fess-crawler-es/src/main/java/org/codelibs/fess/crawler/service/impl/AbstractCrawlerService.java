@@ -44,6 +44,7 @@ import org.codelibs.core.security.MessageDigestUtil;
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResultData;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.EsAccessException;
 import org.codelibs.fess.crawler.util.EsResultList;
 import org.joda.time.DateTimeZone;
@@ -69,6 +70,7 @@ import org.opensearch.action.support.master.AcknowledgedResponse;
 import org.opensearch.cluster.metadata.MappingMetadata;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.xcontent.XContentType;
+import org.opensearch.core.rest.RestStatus;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.index.IndexNotFoundException;
 import org.opensearch.index.query.BoolQueryBuilder;
@@ -230,6 +232,9 @@ public abstract class AbstractCrawlerService {
             setId(target, id);
             return response;
         } catch (final OpenSearchStatusException e) {
+            if (e.status() == RestStatus.CONFLICT) {
+                throw new CrawlingAccessException("[" + e.status() + "] Failed to insert " + id, e);
+            }
             throw new EsAccessException("[" + e.status() + "] Failed to insert " + id, e);
         } catch (final Exception e) {
             throw new EsAccessException("Failed to insert " + id, e);

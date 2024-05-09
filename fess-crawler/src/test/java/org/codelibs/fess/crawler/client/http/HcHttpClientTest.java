@@ -188,7 +188,7 @@ public class HcHttpClientTest extends PlainTestCase {
     // new UsernamePasswordCredentials("username", "password"),
     // digestScheme));
     // paramMap.put(
-    // HcHttpClient.BASIC_AUTHENTICATIONS_PROPERTY,
+    // HcHttpClient.AUTHENTICATIONS_PROPERTY,
     // basicAuthList.toArray(new Authentication[basicAuthList.size()]));
     //
     // List<Callable<ResponseData>> list =

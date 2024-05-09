@@ -142,7 +142,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String ROBOTS_TXT_ENABLED_PROPERTY = "robotsTxtEnabled";
 
-    public static final String BASIC_AUTHENTICATIONS_PROPERTY = "basicAuthentications";
+    public static final String AUTHENTICATIONS_PROPERTY = "webAuthentications";
 
     public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
 
@@ -161,6 +161,9 @@ public class HcHttpClient extends AbstractCrawlerClient {
     public static final String TIME_TO_LIVE_TIME_UNIT_PROPERTY = "timeToLiveTimeUnit";
 
     public static final String TIME_TO_LIVE_PROPERTY = "timeToLive";
+
+    @Deprecated
+    public static final String BASIC_AUTHENTICATIONS_PROPERTY = AUTHENTICATIONS_PROPERTY;
 
     private static final Logger logger = LoggerFactory.getLogger(HcHttpClient.class);
 
@@ -298,7 +301,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
         // Authentication
         final Authentication[] siteCredentialList =
-                getInitParameter(BASIC_AUTHENTICATIONS_PROPERTY, new Authentication[0], Authentication[].class);
+                getInitParameter(AUTHENTICATIONS_PROPERTY, new Authentication[0], Authentication[].class);
         final List<Pair<FormScheme, Credentials>> formSchemeList = new ArrayList<>();
         for (final Authentication authentication : siteCredentialList) {
             final AuthScheme authScheme = authentication.getAuthScheme();

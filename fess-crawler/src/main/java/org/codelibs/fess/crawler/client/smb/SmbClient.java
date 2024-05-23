@@ -301,7 +301,7 @@ public class SmbClient extends AbstractCrawlerClient {
                     final SmbFile[] files = file.listFiles();
                     if (files != null) {
                         for (final SmbFile f : files) {
-                            final String chileUri = f.toString();
+                            final String chileUri = f.getURL().toExternalForm();
                             requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
                         }
                     }

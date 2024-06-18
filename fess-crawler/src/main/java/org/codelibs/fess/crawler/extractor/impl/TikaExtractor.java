@@ -38,6 +38,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -144,21 +146,29 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     @Override
     public ExtractData getText(final InputStream inputStream, final Map<String, String> params) {
+        return getText(inputStream, params, null);
+    }
+
+    protected ExtractData getText(final InputStream inputStream, final Map<String, String> params,
+            final BiConsumer<ExtractData, InputStream> postFilter) {
         if (inputStream == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
 
+        final long contentLength;
         final File tempFile;
         final boolean isByteStream = inputStream instanceof ByteArrayInputStream;
         if (isByteStream) {
             inputStream.mark(0);
             tempFile = null;
+            contentLength = (long) ((ByteArrayInputStream) inputStream).available();
         } else {
             try {
                 tempFile = File.createTempFile("tikaExtractor-", ".out");
             } catch (final IOException e) {
                 throw new ExtractException("Could not create a temp file.", e);
             }
+            contentLength = tempFile.length();
         }
 
         try {
@@ -284,11 +294,27 @@ public class TikaExtractor extends PasswordBasedExtractor {
                     }
                 }
                 final ExtractData extractData = new ExtractData(content);
+                extractData.putValue("Content-Length", Long.toString(contentLength));
 
                 final String[] names = metadata.names();
                 Arrays.sort(names);
                 for (final String name : names) {
                     extractData.putValues(name, metadata.getValues(name));
+                }
+
+                if (postFilter != null) {
+                    InputStream in = null;
+                    try {
+                        if (isByteStream) {
+                            inputStream.reset();
+                            in = inputStream;
+                        } else {
+                            in = new FileInputStream(tempFile);
+                        }
+                        postFilter.accept(extractData, inputStream);
+                    } finally {
+                        CloseableUtil.closeQuietly(in);
+                    }
                 }
 
                 if (logger.isDebugEnabled()) {

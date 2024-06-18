@@ -28,4 +28,8 @@ public interface Extractor {
 
     ExtractData getText(InputStream in, Map<String, String> params);
 
+    default int getWeight() {
+        return 1;
+    }
+
 }

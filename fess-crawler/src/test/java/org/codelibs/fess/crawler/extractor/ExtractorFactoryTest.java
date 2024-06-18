@@ -123,4 +123,40 @@ public class ExtractorFactoryTest extends PlainTestCase {
         assertEquals("test",
                 extractorFactory.builder(new ByteArrayInputStream("test".getBytes()), null).filename("test.txt").extract().getContent());
     }
+
+    public void test_addExtractor_weight() {
+        final String key = "application/test";
+        assertNull(extractorFactory.getExtractor(key));
+        extractorFactory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return null;
+            }
+        });
+        assertEquals(1, extractorFactory.getExtractor(key).getWeight());
+        extractorFactory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return null;
+            }
+
+            @Override
+            public int getWeight() {
+                return 10;
+            }
+        });
+        assertEquals(10, extractorFactory.getExtractor(key).getWeight());
+        extractorFactory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return null;
+            }
+
+            @Override
+            public int getWeight() {
+                return 5;
+            }
+        });
+        assertEquals(10, extractorFactory.getExtractor(key).getWeight());
+    }
 }

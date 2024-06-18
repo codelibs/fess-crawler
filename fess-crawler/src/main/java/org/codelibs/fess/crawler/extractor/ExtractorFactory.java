@@ -48,6 +48,15 @@ public class ExtractorFactory {
         if (extractor == null) {
             throw new CrawlerSystemException("The extractor is null.");
         }
+        if (extractorMap.containsKey(key)) {
+            final Extractor oldExtractor = extractorMap.get(key);
+            if (oldExtractor.getWeight() > extractor.getWeight()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Ignored {} on {}. Use {}.", extractor.getClass().getName(), key, oldExtractor.getClass().getName());
+                }
+                return;
+            }
+        }
         extractorMap.put(key, extractor);
         if (logger.isDebugEnabled()) {
             logger.debug("Loaded {} : {}", key, extractor.getClass().getName());

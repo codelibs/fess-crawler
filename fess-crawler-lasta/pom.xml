@@ -82,7 +82,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.dbflute.utflute</groupId>
-			<artifactId>utflute-lasta-di-jakarta</artifactId>
+			<artifactId>utflute-lasta-di</artifactId>
 			<version>${utflute.version}</version>
 			<scope>test</scope>
 		</dependency>

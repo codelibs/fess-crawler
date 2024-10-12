@@ -33,9 +33,7 @@ public class DefaultIntervalController extends AbstractIntervalController {
     }
 
     public DefaultIntervalController(final Map<String, Long> params) {
-        Long millis;
-
-        millis = params.get("delayMillisAfterProcessing");
+        Long millis = params.get("delayMillisAfterProcessing");
         if (millis != null) {
             delayMillisAfterProcessing = millis;
         }

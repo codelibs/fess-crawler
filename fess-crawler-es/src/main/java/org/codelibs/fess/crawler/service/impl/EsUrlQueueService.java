@@ -63,13 +63,13 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
     protected int maxCrawlingQueueSize = 100;
 
     public EsUrlQueueService(final EsCrawlerConfig crawlerConfig) {
-        this.index = crawlerConfig.getQueueIndex();
+        index = crawlerConfig.getQueueIndex();
         setNumberOfShards(crawlerConfig.getQueueShards());
         setNumberOfReplicas(crawlerConfig.getQueueReplicas());
     }
 
     public EsUrlQueueService(final String name, final String type) {
-        this.index = name + "." + type;
+        index = name + "." + type;
     }
 
     @PostConstruct

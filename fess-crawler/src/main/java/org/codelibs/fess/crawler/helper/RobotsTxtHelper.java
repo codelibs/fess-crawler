@@ -121,7 +121,7 @@ public class RobotsTxtHelper {
                                 // ignore
                             }
                         }
-                    } else if (((value = getValue(SITEMAP_RECORD, line)) != null) && (value.length() > 0)) {
+                    } else if ((value = getValue(SITEMAP_RECORD, line)) != null && value.length() > 0) {
                         robotsTxt.addSitemap(value);
                     }
                 }

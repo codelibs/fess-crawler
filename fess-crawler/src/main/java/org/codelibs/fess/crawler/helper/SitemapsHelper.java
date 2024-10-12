@@ -63,8 +63,8 @@ public class SitemapsHelper {
             }
 
             final String preloadDate = new String(bytes, Constants.UTF_8);
-            if ((preloadDate.indexOf("<urlset") >= 0) || (preloadDate.indexOf("<sitemapindex") >= 0)
-                    || (preloadDate.startsWith("http://") || preloadDate.startsWith("https://"))) {
+            if (preloadDate.indexOf("<urlset") >= 0 || preloadDate.indexOf("<sitemapindex") >= 0 || preloadDate.startsWith("http://")
+                    || preloadDate.startsWith("https://")) {
                 // XML Sitemaps
                 return true;
             }
@@ -240,7 +240,7 @@ public class SitemapsHelper {
                     sitemapUrl.setChangefreq(buf.toString().trim());
                     buf = null;
                 }
-            } else if (PRIORITY_ELEMENT.equals(qName) && (buf != null)) {
+            } else if (PRIORITY_ELEMENT.equals(qName) && buf != null) {
                 sitemapUrl.setPriority(buf.toString().trim());
                 buf = null;
             }
@@ -315,7 +315,7 @@ public class SitemapsHelper {
                     sitemapFile.setLoc(buf.toString().trim());
                     buf = null;
                 }
-            } else if ("lastmod".equals(qName) && (buf != null)) {
+            } else if ("lastmod".equals(qName) && buf != null) {
                 sitemapFile.setLastmod(buf.toString().trim());
                 buf = null;
             }

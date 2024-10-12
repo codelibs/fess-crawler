@@ -80,11 +80,11 @@ public class CrawlerContext {
     }
 
     public long incrementAndGetAccessCount() {
-        return this.accessCount.incrementAndGet();
+        return accessCount.incrementAndGet();
     }
 
     public long decrementAndGetAccessCount() {
-        return this.accessCount.decrementAndGet();
+        return accessCount.decrementAndGet();
     }
 
     public CrawlerStatus getStatus() {

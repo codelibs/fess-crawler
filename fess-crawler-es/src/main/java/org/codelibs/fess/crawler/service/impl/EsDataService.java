@@ -41,13 +41,13 @@ import jakarta.annotation.PostConstruct;
 public class EsDataService extends AbstractCrawlerService implements DataService<EsAccessResult> {
 
     public EsDataService(final EsCrawlerConfig crawlerConfig) {
-        this.index = crawlerConfig.getDataIndex();
+        index = crawlerConfig.getDataIndex();
         setNumberOfShards(crawlerConfig.getDataShards());
         setNumberOfReplicas(crawlerConfig.getDataReplicas());
     }
 
     public EsDataService(final String name, final String type) {
-        this.index = name + "." + type;
+        index = name + "." + type;
     }
 
     @PostConstruct

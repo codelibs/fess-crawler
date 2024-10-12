@@ -76,7 +76,7 @@ public class FtpAuthentication {
         try {
             final int pos = path.indexOf('/', 6);
             final URL uri = new URL(pos == -1 ? path : path.substring(0, pos));
-            if (!"ftp".equals(uri.getProtocol()) || (StringUtil.isNotBlank(server) && !server.equals(uri.getHost()))) {
+            if (!"ftp".equals(uri.getProtocol()) || StringUtil.isNotBlank(server) && !server.equals(uri.getHost())) {
                 return false;
             }
             int p = uri.getPort();

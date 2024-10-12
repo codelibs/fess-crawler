@@ -96,8 +96,8 @@ public class RegexRule extends AbstractRule {
 
     @Override
     public boolean equals(final Object obj) {
-        if ((obj instanceof final RegexRule rule)
-                && (allRequired == rule.isAllRequired() && defaultRule == rule.isDefaultRule() && regexMap.equals(rule.regexMap))) {
+        if (obj instanceof final RegexRule rule && allRequired == rule.isAllRequired() && defaultRule == rule.isDefaultRule()
+                && regexMap.equals(rule.regexMap)) {
             return true;
         }
         return false;

@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -161,7 +160,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         if (isByteStream) {
             inputStream.mark(0);
             tempFile = null;
-            contentLength = (long) ((ByteArrayInputStream) inputStream).available();
+            contentLength = ((ByteArrayInputStream) inputStream).available();
         } else {
             try {
                 tempFile = File.createTempFile("tikaExtractor-", ".out");

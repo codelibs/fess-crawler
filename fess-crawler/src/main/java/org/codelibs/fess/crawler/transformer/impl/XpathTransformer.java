@@ -227,7 +227,7 @@ public class XpathTransformer extends HtmlTransformer {
     }
 
     public void setTrimSpace(final boolean trimSpace) {
-        this.trimSpaceEnabled = trimSpace;
+        trimSpaceEnabled = trimSpace;
     }
 
     public String getCharsetName() {

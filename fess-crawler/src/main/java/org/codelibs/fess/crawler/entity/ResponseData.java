@@ -103,12 +103,12 @@ public class ResponseData implements Closeable {
     }
 
     public void setResponseBody(final byte[] responseBody) {
-        this.responseBodyBytes = responseBody;
+        responseBodyBytes = responseBody;
     }
 
     public void setResponseBody(final File responseBody, final boolean isTemporary) {
-        this.responseBodyFile = responseBody;
-        this.isTemporaryFile = isTemporary;
+        responseBodyFile = responseBody;
+        isTemporaryFile = isTemporary;
     }
 
     public String getCharSet() {

@@ -53,7 +53,7 @@ public class RequestHeader implements Serializable {
     }
 
     public boolean isValid() {
-        if (StringUtil.isBlank(name) || (value == null)) {
+        if (StringUtil.isBlank(name) || value == null) {
             return false;
         }
 

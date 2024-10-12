@@ -502,7 +502,7 @@ public class FtpClient extends AbstractCrawlerClient {
             validateRequest(ftpClient);
 
             final FtpAuthentication auth = ftpAuthenticationHolder.get(info.toUrl());
-            if ((auth != null) && !ftpClient.login(auth.getUsername(), auth.getPassword())) {
+            if (auth != null && !ftpClient.login(auth.getUsername(), auth.getPassword())) {
                 throw new CrawlerLoginFailureException("Login Failure: " + auth.getUsername() + " for " + info.toUrl());
             }
 

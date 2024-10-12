@@ -341,7 +341,7 @@ public class XmlTransformer extends AbstractTransformer {
      * @param trimSpace the trimSpace to set
      */
     public void setTrimSpace(final boolean trimSpace) {
-        this.trimSpaceEnabled = trimSpace;
+        trimSpaceEnabled = trimSpace;
     }
 
     /**
@@ -495,8 +495,8 @@ public class XmlTransformer extends AbstractTransformer {
                 namespace = "http://www.w3.org/XML/1998/namespace";
             } else {
                 int type;
-                while ((null != parent) && (null == namespace)
-                        && (((type = parent.getNodeType()) == Node.ELEMENT_NODE) || (type == Node.ENTITY_REFERENCE_NODE))) {
+                while (null != parent && null == namespace
+                        && ((type = parent.getNodeType()) == Node.ELEMENT_NODE || type == Node.ENTITY_REFERENCE_NODE)) {
                     if (type == Node.ELEMENT_NODE) {
                         if (parent.getNodeName().indexOf(prefix + ":") == 0) {
                             return parent.getNamespaceURI();

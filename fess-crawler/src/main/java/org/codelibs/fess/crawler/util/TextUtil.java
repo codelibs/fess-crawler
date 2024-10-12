@@ -81,7 +81,7 @@ public final class TextUtil {
                         }
                         alphanumSize = 0;
                         symbolSize = 0;
-                    } else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+                    } else if (c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z') {
                         if (duplicateTermRemoved && symbolSize > 0) {
                             isSpace = removeLastDuplication(buf, symbolSize, isSpace, termCache);
                         }
@@ -97,7 +97,7 @@ public final class TextUtil {
                         }
                         isSpace = false;
                         symbolSize = 0;
-                    } else if ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~')) {
+                    } else if (c >= '!' && c <= '/' || c >= ':' && c <= '@' || c >= '[' && c <= '`' || c >= '{' && c <= '~') {
                         if (duplicateTermRemoved && alphanumSize > 0) {
                             isSpace = removeLastDuplication(buf, alphanumSize, isSpace, termCache);
                         }

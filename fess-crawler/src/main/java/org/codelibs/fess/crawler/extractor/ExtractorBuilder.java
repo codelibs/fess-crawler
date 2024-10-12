@@ -119,7 +119,8 @@ public class ExtractorBuilder {
             if (contentLength > maxContentLength) {
                 throw new MaxLengthExceededException(
                         "The content length (" + contentLength + " byte) is over " + maxContentLength + " byte.");
-            } else if (contentLength == 0) {
+            }
+            if (contentLength == 0) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("The content length is 0.");
                 }

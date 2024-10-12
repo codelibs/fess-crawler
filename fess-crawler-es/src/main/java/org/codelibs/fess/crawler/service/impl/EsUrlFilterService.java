@@ -54,13 +54,13 @@ public class EsUrlFilterService extends AbstractCrawlerService implements UrlFil
     protected int maxLoadSize = 10000;
 
     public EsUrlFilterService(final EsCrawlerConfig crawlerConfig) {
-        this.index = crawlerConfig.getFilterIndex();
+        index = crawlerConfig.getFilterIndex();
         setNumberOfShards(crawlerConfig.getFilterShards());
         setNumberOfReplicas(crawlerConfig.getFilterReplicas());
     }
 
     public EsUrlFilterService(final String name, final String type) {
-        this.index = name + "." + type;
+        index = name + "." + type;
     }
 
     @PostConstruct

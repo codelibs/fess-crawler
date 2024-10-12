@@ -177,7 +177,7 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         }
 
         protected T get() {
-            final T component = this.instance == null ? ClassUtil.newInstance(cls) : this.instance;
+            final T component = instance == null ? ClassUtil.newInstance(cls) : instance;
             final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(component.getClass());
             for (final FieldDesc fieldDesc : beanDesc.getFieldDescs()) {
                 final Resource annotation = fieldDesc.getField().getAnnotation(Resource.class);

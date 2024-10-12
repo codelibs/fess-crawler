@@ -85,11 +85,11 @@ public class RequestData {
         if (this == obj) {
             return true;
         }
-        if ((obj == null) || (getClass() != obj.getClass())) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final RequestData other = (RequestData) obj;
-        if (!Objects.equals(metaData, other.metaData) || (method != other.method) || !Objects.equals(url, other.url)) {
+        if (!Objects.equals(metaData, other.metaData) || method != other.method || !Objects.equals(url, other.url)) {
             return false;
         }
         return true;

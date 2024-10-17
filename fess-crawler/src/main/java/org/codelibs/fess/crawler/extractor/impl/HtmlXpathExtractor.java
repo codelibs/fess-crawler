@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
 import javax.xml.xpath.XPathNodes;
 
 import org.codelibs.core.lang.StringUtil;
@@ -39,6 +38,8 @@ import org.xml.sax.InputSource;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

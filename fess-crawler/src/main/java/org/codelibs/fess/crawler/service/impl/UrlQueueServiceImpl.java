@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -33,6 +31,8 @@ import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

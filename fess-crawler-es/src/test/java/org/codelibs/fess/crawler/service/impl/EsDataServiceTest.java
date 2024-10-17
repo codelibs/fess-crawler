@@ -21,13 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

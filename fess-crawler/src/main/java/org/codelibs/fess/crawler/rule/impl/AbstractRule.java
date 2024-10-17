@@ -15,12 +15,12 @@
  */
 package org.codelibs.fess.crawler.rule.impl;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

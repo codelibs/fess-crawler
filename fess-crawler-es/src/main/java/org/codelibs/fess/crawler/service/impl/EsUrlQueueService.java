@@ -23,10 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResult;
@@ -49,6 +45,10 @@ import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 
 public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueueService<EsUrlQueue> {
     private static final Logger logger = LoggerFactory.getLogger(EsUrlQueueService.class);

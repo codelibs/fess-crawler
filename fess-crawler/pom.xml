@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.codelibs.fess</groupId>
 		<artifactId>fess-crawler-parent</artifactId>
-		<version>14.18.0-SNAPSHOT</version>
+		<version>15.0.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<build>
@@ -119,9 +119,9 @@
 			<version>${httpcomponents.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
-			<version>${javax.annotation.api.version}</version>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>${jakarta.annotation.api.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codelibs</groupId>
@@ -307,14 +307,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.sun.mail</groupId>
-			<artifactId>javax.mail</artifactId>
-			<version>${javax.mail.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.activation</groupId>
-					<artifactId>activation</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>jakarta.mail</artifactId>
+			<version>${jakarta.mail.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>

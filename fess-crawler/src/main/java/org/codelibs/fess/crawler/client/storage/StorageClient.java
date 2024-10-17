@@ -23,8 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -59,6 +57,7 @@ import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.Item;
 import io.minio.messages.Tags;
+import jakarta.annotation.Resource;
 
 /**
  * StorageClient is CrawlerClient implementation to crawl files on a storage

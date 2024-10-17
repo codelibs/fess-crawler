@@ -33,8 +33,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -54,6 +52,8 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.Resource;
 
 /**
  * FileSystemClient is CrawlerClient implementation to crawl files on a file

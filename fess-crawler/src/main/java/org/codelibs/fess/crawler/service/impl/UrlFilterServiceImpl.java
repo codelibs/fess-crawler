@@ -18,10 +18,10 @@ package org.codelibs.fess.crawler.service.impl;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.UrlFilterService;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

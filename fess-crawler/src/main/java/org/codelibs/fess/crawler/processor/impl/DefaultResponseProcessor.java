@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -39,6 +37,8 @@ import org.codelibs.fess.crawler.transformer.Transformer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

@@ -17,8 +17,6 @@ package org.codelibs.fess.crawler.client;
 
 import java.util.Map;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -26,6 +24,8 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

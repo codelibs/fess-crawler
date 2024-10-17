@@ -19,13 +19,13 @@ import static org.codelibs.opensearch.runner.OpenSearchRunner.newConfigs;
 
 import java.util.UUID;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.EsUrlQueue;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
 import org.opensearch.index.query.QueryBuilders;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

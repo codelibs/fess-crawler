@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
@@ -118,6 +117,8 @@ import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

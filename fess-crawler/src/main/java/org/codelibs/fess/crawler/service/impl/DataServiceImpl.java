@@ -18,8 +18,6 @@ package org.codelibs.fess.crawler.service.impl;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultData;
 import org.codelibs.fess.crawler.entity.AccessResultDataImpl;
@@ -28,6 +26,8 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
+
+import jakarta.annotation.Resource;
 
 /**
  * @author shinsuke

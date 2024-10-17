@@ -17,13 +17,13 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
+
+import jakarta.annotation.Resource;
 
 public abstract class AbstractExtractor implements Extractor {
 

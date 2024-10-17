@@ -24,8 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import javax.annotation.Resource;
-
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
@@ -36,6 +34,8 @@ import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
+
+import jakarta.annotation.Resource;
 
 public class CrawlerTest extends LastaDiTestCase {
 

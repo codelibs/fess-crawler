@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.entity.EsAccessResult;
@@ -37,6 +35,8 @@ import org.opensearch.common.unit.TimeValue;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+
+import jakarta.annotation.PostConstruct;
 
 public class EsDataService extends AbstractCrawlerService implements DataService<EsAccessResult> {
 

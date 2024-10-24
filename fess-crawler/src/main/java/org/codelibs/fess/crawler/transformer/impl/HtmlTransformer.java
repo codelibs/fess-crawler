@@ -174,7 +174,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 uri = new URI(responseData.getUrl());
             }
             final URL url = uri.toURL();
-            getChildUrlRules().forEach(entry -> {
+            getChildUrlRules(responseData, resultData).forEach(entry -> {
                 List<RequestData> requestDataList = new ArrayList<>();
                 for (final String childUrl : getUrlFromTagAttribute(url, document, entry.getFirst(), entry.getSecond(),
                         responseData.getCharSet())) {
@@ -196,7 +196,7 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
-    protected Stream<Pair<String, String>> getChildUrlRules() {
+    protected Stream<Pair<String, String>> getChildUrlRules(final ResponseData responseData, final ResultData resultData) {
         return childUrlRuleMap.entrySet().stream().map(e -> new Pair<>(e.getKey(), e.getValue()));
     }
 

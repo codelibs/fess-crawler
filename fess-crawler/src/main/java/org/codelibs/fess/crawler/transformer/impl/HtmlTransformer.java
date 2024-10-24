@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -30,12 +31,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathNodes;
 
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.misc.Pair;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
@@ -158,27 +161,28 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     protected void storeChildUrls(final ResponseData responseData, final ResultData resultData) {
-        List<RequestData> requestDataList = new ArrayList<>();
         try (final InputStream is = responseData.getResponseBody()) {
             final DOMParser parser = getDomParser();
             parser.parse(new InputSource(is));
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            URL url;
+            URI uri;
             try {
-                url = new URL(baseHref == null ? responseData.getUrl() : baseHref);
-            } catch (final MalformedURLException e) {
-                url = new URL(responseData.getUrl());
+                uri = new URI(baseHref == null ? responseData.getUrl() : baseHref);
+            } catch (final Exception e) {
+                uri = new URI(responseData.getUrl());
             }
-            for (final Map.Entry<String, String> entry : childUrlRuleMap.entrySet()) {
-                for (final String childUrl : getUrlFromTagAttribute(url, document, entry.getKey(), entry.getValue(),
+            final URL url = uri.toURL();
+            getChildUrlRules().forEach(entry -> {
+                List<RequestData> requestDataList = new ArrayList<>();
+                for (final String childUrl : getUrlFromTagAttribute(url, document, entry.getFirst(), entry.getSecond(),
                         responseData.getCharSet())) {
                     requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
                 }
-            }
-            requestDataList = convertChildUrlList(requestDataList);
-            resultData.addAllUrl(requestDataList);
+                requestDataList = convertChildUrlList(requestDataList);
+                resultData.addAllUrl(requestDataList);
+            });
 
             resultData.addAllUrl(responseData.getChildUrlSet());
 
@@ -192,6 +196,10 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
+    protected Stream<Pair<String, String>> getChildUrlRules() {
+        return childUrlRuleMap.entrySet().stream().map(e -> new Pair<>(e.getKey(), e.getValue()));
+    }
+
     protected List<RequestData> convertChildUrlList(final List<RequestData> requestDataList) {
         try {
             final UrlConvertHelper urlConvertHelper = crawlerContainer.getComponent("urlConvertHelper");
@@ -200,7 +208,9 @@ public class HtmlTransformer extends AbstractTransformer {
             }
             return requestDataList;
         } catch (final Exception e) {
-            // NOP
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to convert child URLs.", e);
+            }
         }
         return requestDataList;
     }

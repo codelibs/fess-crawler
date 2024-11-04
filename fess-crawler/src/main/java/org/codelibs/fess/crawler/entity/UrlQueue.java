@@ -61,4 +61,7 @@ public interface UrlQueue<IDTYPE> {
 
     void setCreateTime(Long createTime);
 
+    float getWeight();
+
+    void setWeight(float weight);
 }

@@ -38,6 +38,8 @@ public class EsUrlQueue extends UrlQueueImpl<String> implements ToXContent {
 
     public static final String CREATE_TIME = "createTime";
 
+    public static final String WEIGHT = "weight";
+
     @Override
     public XContentBuilder toXContent(final XContentBuilder builder, final Params params) throws IOException {
         builder.startObject();
@@ -62,6 +64,7 @@ public class EsUrlQueue extends UrlQueueImpl<String> implements ToXContent {
         if (createTime != null) {
             builder.field(CREATE_TIME, createTime);
         }
+        builder.field(WEIGHT, weight);
         builder.endObject();
         return builder;
     }

@@ -353,7 +353,7 @@ public abstract class AbstractCrawlerService {
     }
 
     protected <T> List<T> getList(final Class<T> clazz, final String sessionId, final QueryBuilder queryBuilder, final Integer from,
-            final Integer size, final SortBuilder<?> sortBuilder) {
+            final Integer size, final SortBuilder<?>... sortBuilders) {
         return getList(clazz, builder -> {
             if (StringUtil.isNotBlank(sessionId)) {
                 if (queryBuilder instanceof BoolQueryBuilder) {
@@ -370,8 +370,10 @@ public abstract class AbstractCrawlerService {
             } else {
                 builder.setQuery(QueryBuilders.matchAllQuery());
             }
-            if (sortBuilder != null) {
-                builder.addSort(sortBuilder);
+            if (sortBuilders != null) {
+                for (SortBuilder<?> sortBuilder : sortBuilders) {
+                    builder.addSort(sortBuilder);
+                }
             }
             if (from != null) {
                 builder.setFrom(from);

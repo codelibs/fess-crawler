@@ -40,6 +40,8 @@ public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
 
     protected Long createTime;
 
+    protected float weight = 1.0f;
+
     /*
      * (non-Javadoc)
      *
@@ -218,6 +220,16 @@ public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
     @Override
     public void setLastModified(final Long lastModified) {
         this.lastModified = lastModified;
+    }
+
+    @Override
+    public float getWeight() {
+        return weight;
+    }
+
+    @Override
+    public void setWeight(float weight) {
+        this.weight = weight;
     }
 
     @Override

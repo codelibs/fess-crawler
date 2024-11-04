@@ -253,7 +253,8 @@ public class EsUrlQueueService extends AbstractCrawlerService implements UrlQueu
     }
 
     protected List<EsUrlQueue> fetchUrlQueueList(final String sessionId) {
-        return getList(EsUrlQueue.class, sessionId, null, 0, pollingFetchSize, SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
+        return getList(EsUrlQueue.class, sessionId, null, 0, pollingFetchSize,
+                SortBuilders.fieldSort(EsUrlQueue.WEIGHT).order(SortOrder.DESC), SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
     }
 
     @Override

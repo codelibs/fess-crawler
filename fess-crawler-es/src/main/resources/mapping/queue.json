@@ -9,6 +9,9 @@
       "method": {
         "type": "keyword"
       },
+      "weight": {
+        "type": "float"
+      },
       "createTime": {
         "type": "long"
       },

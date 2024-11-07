@@ -25,7 +25,7 @@
 	<modules>
 		<module>fess-crawler</module>
 		<module>fess-crawler-lasta</module>
-		<module>fess-crawler-es</module>
+		<module>fess-crawler-opensearch</module>
 	</modules>
 	<build>
 		<pluginManagement>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN" 
+	"http://dbflute.org/meta/lastadi10.dtd">
+<components namespace="fessCrawler">
+    <include path="crawler/container.xml"/>
+    <include path="crawler/client.xml"/>
+    <include path="crawler/rule.xml"/>
+    <include path="crawler/filter.xml"/>
+    <include path="crawler/interval.xml"/>
+    <include path="crawler/extractor.xml"/>
+    <include path="crawler/mimetype.xml"/>
+    <include path="crawler/encoding.xml"/>
+    <include path="crawler/urlconverter.xml"/>
+    <include path="crawler/log.xml"/>
+    <include path="crawler/sitemaps.xml"/>
+
+    <include path="crawler/opensearch.xml"/>
+
+	<!-- Crawler -->
+	<component name="crawler" class="org.codelibs.fess.crawler.Crawler" instance="prototype" >
+	</component>
+
+	<!-- Crawler Thread -->
+	<component name="crawlerThread" class="org.codelibs.fess.crawler.CrawlerThread" instance="prototype" >
+	</component>
+
+	<!-- Entity -->
+	<component name="accessResult"
+		class="org.codelibs.fess.crawler.entity.OpenSearchAccessResult" instance="prototype">
+	</component>
+	<component name="urlQueue"
+		class="org.codelibs.fess.crawler.entity.OpenSearchUrlQueue" instance="prototype">
+	</component>
+
+	<!-- Service -->
+	<component name="urlQueueService"
+		class="org.codelibs.fess.crawler.service.impl.OpenSearchUrlQueueService">
+		<arg>crawlerConfig</arg>
+	</component>
+	<component name="dataService"
+		class="org.codelibs.fess.crawler.service.impl.OpenSearchDataService">
+		<arg>crawlerConfig</arg>
+	</component>
+	<component name="urlFilterService"
+		class="org.codelibs.fess.crawler.service.impl.OpenSearchUrlFilterService">
+		<arg>crawlerConfig</arg>
+	</component>
+
+	<component name="crawlerConfig" class="org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig">
+		<property name="queueIndex">"fess_crawler.queue"</property>
+		<property name="queueShards">5</property>
+		<property name="queueReplicas">1</property>
+		<property name="dataIndex">"fess_crawler.data"</property>
+		<property name="dataShards">5</property>
+		<property name="dataReplicas">1</property>
+		<property name="filterIndex">"fess_crawler.filter"</property>
+		<property name="filterShards">5</property>
+		<property name="filterReplicas">1</property>
+	</component>
+
+</components>

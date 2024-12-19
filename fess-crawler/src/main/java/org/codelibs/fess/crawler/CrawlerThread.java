@@ -151,8 +151,8 @@ public class CrawlerThread implements Runnable {
                             log(logHelper, LogType.GET_CONTENT, crawlerContext, urlQueue);
                             // access an url
                             final long startTime = SystemUtil.currentTimeMillis();
-                            responseData = client.execute(
-                                    RequestDataBuilder.newRequestData().method(urlQueue.getMethod()).url(urlQueue.getUrl()).build());
+                            responseData = client.execute(RequestDataBuilder.newRequestData().method(urlQueue.getMethod())
+                                    .url(urlQueue.getUrl()).weight(urlQueue.getWeight()).build());
                             responseData.setExecutionTime(SystemUtil.currentTimeMillis() - startTime);
                             responseData.setParentUrl(urlQueue.getParentUrl());
                             responseData.setSessionId(crawlerContext.sessionId);
@@ -163,7 +163,7 @@ public class CrawlerThread implements Runnable {
                             } else {
                                 log(logHelper, LogType.REDIRECT_LOCATION, crawlerContext, urlQueue, responseData);
                                 // redirect
-                                storeChildUrl(responseData.getRedirectLocation(), urlQueue.getUrl(), null,
+                                storeChildUrl(responseData.getRedirectLocation(), urlQueue.getUrl(), urlQueue.getWeight(),
                                         urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                             }
                         }
@@ -234,7 +234,8 @@ public class CrawlerThread implements Runnable {
         if (sitemaps != null) {
             for (final String childUrl : sitemaps) {
                 try {
-                    storeChildUrl(childUrl, urlQueue.getUrl(), null, urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
+                    storeChildUrl(childUrl, urlQueue.getUrl(), urlQueue.getWeight(),
+                            urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                 } catch (final Exception e) {
                     log(logHelper, LogType.PROCESS_CHILD_URL_BY_EXCEPTION, crawlerContext, urlQueue, childUrl, e);
                 }
@@ -253,7 +254,8 @@ public class CrawlerThread implements Runnable {
             ResponseData responseData = null;
             try {
                 // head method
-                responseData = client.execute(RequestDataBuilder.newRequestData().head().url(urlQueue.getUrl()).build());
+                responseData = client
+                        .execute(RequestDataBuilder.newRequestData().head().url(urlQueue.getUrl()).weight(urlQueue.getWeight()).build());
                 if (responseData != null && responseData.getLastModified() != null
                         && responseData.getLastModified().getTime() <= urlQueue.getLastModified().longValue()
                         && responseData.getHttpStatusCode() == 200) {
@@ -301,8 +303,9 @@ public class CrawlerThread implements Runnable {
 
         // add url and filter
         final Set<String> urlSet = new HashSet<>();
-        final List<UrlQueue<?>> childList = childUrlList.stream().filter(d -> StringUtil.isNotBlank(d.getUrl())
-                && urlSet.add(d.getUrl() + "\n" + d.getMetaData()) && crawlerContext.urlFilter.match(d.getUrl())).map(d -> {
+        final List<UrlQueue<?>> childList = childUrlList.stream()
+                .filter(d -> StringUtil.isNotBlank(d.getUrl()) && urlSet.add(d.getUrl()) && crawlerContext.urlFilter.match(d.getUrl()))
+                .map(d -> {
                     final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
                     uq.setCreateTime(SystemUtil.currentTimeMillis());
                     uq.setDepth(depth);
@@ -310,13 +313,13 @@ public class CrawlerThread implements Runnable {
                     uq.setParentUrl(url);
                     uq.setSessionId(crawlerContext.sessionId);
                     uq.setUrl(d.getUrl());
-                    uq.setMetaData(d.getMetaData());
+                    uq.setWeight(d.getWeight());
                     return uq;
                 }).collect(Collectors.toList());
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 
-    protected void storeChildUrl(final String childUrl, final String parentUrl, final String metaData, final int depth) {
+    protected void storeChildUrl(final String childUrl, final String parentUrl, final float weight, final int depth) {
         if (crawlerContext.getMaxDepth() >= 0 && depth > crawlerContext.getMaxDepth()) {
             return;
         }
@@ -331,7 +334,7 @@ public class CrawlerThread implements Runnable {
             uq.setParentUrl(parentUrl);
             uq.setSessionId(crawlerContext.sessionId);
             uq.setUrl(childUrl);
-            uq.setMetaData(metaData);
+            uq.setWeight(weight);
             childList.add(uq);
             urlQueueService.offerAll(crawlerContext.sessionId, childList);
         }

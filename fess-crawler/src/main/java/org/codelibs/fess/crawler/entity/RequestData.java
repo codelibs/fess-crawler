@@ -15,6 +15,9 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.codelibs.fess.crawler.Constants;
@@ -32,7 +35,7 @@ public class RequestData {
 
     private String url;
 
-    private String metaData;
+    private float weight = 1.0f;
 
     public Method getMethod() {
         return method;
@@ -62,36 +65,35 @@ public class RequestData {
         this.url = url;
     }
 
-    public String getMetaData() {
-        return metaData;
+    public float getWeight() {
+        return weight;
     }
 
-    public void setMetaData(final String metaData) {
-        this.metaData = metaData;
-    }
-
-    @Override
-    public String toString() {
-        return "RequestData [method=" + method + ", url=" + url + "]";
+    public void setWeight(float weight) {
+        this.weight = weight;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(metaData, method, url);
+        return Objects.hash(method, url, weight);
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
+    public boolean equals(Object obj) {
+        if (this == obj)
             return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
+        if (obj == null)
             return false;
-        }
-        final RequestData other = (RequestData) obj;
-        if (!Objects.equals(metaData, other.metaData) || method != other.method || !Objects.equals(url, other.url)) {
+        if (getClass() != obj.getClass())
             return false;
-        }
-        return true;
+        RequestData other = (RequestData) obj;
+        return method == other.method && Objects.equals(url, other.url)
+                && Float.floatToIntBits(weight) == Float.floatToIntBits(other.weight);
     }
+
+    @Override
+    public String toString() {
+        return "RequestData [method=" + method + ", url=" + url + ", weight=" + weight + "]";
+    }
+
 }

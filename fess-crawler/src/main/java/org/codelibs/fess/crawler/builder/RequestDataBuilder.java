@@ -75,8 +75,8 @@ public final class RequestDataBuilder {
             return this;
         }
 
-        public RequestDataContext metaData(final String metaData) {
-            data.setMetaData(metaData);
+        public RequestDataContext weight(final float weight) {
+            data.setWeight(weight);
             return this;
         }
 

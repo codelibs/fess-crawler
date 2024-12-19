@@ -75,7 +75,6 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
             urlQueue.setSessionId(sessionId);
             urlQueue.setMethod(Constants.GET_METHOD);
             urlQueue.setUrl(url);
-            urlQueue.setUrl(url);
             urlQueue.setDepth(0);
             urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
             urlQueueList.add(urlQueue);
@@ -215,12 +214,13 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         for (final Map.Entry<String, AccessResultImpl<Long>> entry : arMap.entrySet()) {
             synchronized (urlQueueList) {
                 final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
+                final AccessResultImpl<Long> value = entry.getValue();
                 urlQueue.setSessionId(sessionId);
-                urlQueue.setMethod(entry.getValue().getMethod());
-                urlQueue.setUrl(entry.getValue().getUrl());
-                urlQueue.setParentUrl(entry.getValue().getParentUrl());
+                urlQueue.setMethod(value.getMethod());
+                urlQueue.setUrl(value.getUrl());
+                urlQueue.setParentUrl(value.getParentUrl());
                 urlQueue.setDepth(0);
-                urlQueue.setLastModified(entry.getValue().getLastModified());
+                urlQueue.setLastModified(value.getLastModified());
                 urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
                 urlQueueList.add(urlQueue);
             }

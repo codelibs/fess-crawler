@@ -49,7 +49,7 @@ public class SitemapsResponseProcessor implements ResponseProcessor {
             final Set<RequestData> requestDataSet = new LinkedHashSet<>();
             for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
                 if (sitemap != null) {
-                    requestDataSet.add(RequestDataBuilder.newRequestData().get().url(sitemap.getLoc()).build());
+                    requestDataSet.add(RequestDataBuilder.newRequestData().get().url(sitemap.getLoc()).build()); // TODO priority
                 }
             }
             throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#process");

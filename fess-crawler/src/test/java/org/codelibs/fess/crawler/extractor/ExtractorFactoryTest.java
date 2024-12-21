@@ -134,6 +134,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
             }
         });
         assertEquals(1, extractorFactory.getExtractor(key).getWeight());
+        assertEquals(1, extractorFactory.getExtractors(key).length);
         extractorFactory.addExtractor(key, new Extractor() {
             @Override
             public ExtractData getText(InputStream in, Map<String, String> params) {
@@ -146,6 +147,8 @@ public class ExtractorFactoryTest extends PlainTestCase {
             }
         });
         assertEquals(10, extractorFactory.getExtractor(key).getWeight());
+        assertEquals(1, extractorFactory.getExtractors(key)[1].getWeight());
+        assertEquals(2, extractorFactory.getExtractors(key).length);
         extractorFactory.addExtractor(key, new Extractor() {
             @Override
             public ExtractData getText(InputStream in, Map<String, String> params) {
@@ -158,5 +161,8 @@ public class ExtractorFactoryTest extends PlainTestCase {
             }
         });
         assertEquals(10, extractorFactory.getExtractor(key).getWeight());
+        assertEquals(5, extractorFactory.getExtractors(key)[1].getWeight());
+        assertEquals(1, extractorFactory.getExtractors(key)[2].getWeight());
+        assertEquals(3, extractorFactory.getExtractors(key).length);
     }
 }

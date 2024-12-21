@@ -16,6 +16,8 @@
 package org.codelibs.fess.crawler.extractor;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +41,7 @@ public class ExtractorFactory {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
-    protected Map<String, Extractor> extractorMap = new HashMap<>();
+    protected Map<String, Extractor[]> extractorMap = new HashMap<>();
 
     public void addExtractor(final String key, final Extractor extractor) {
         if (StringUtil.isBlank(key)) {
@@ -49,15 +51,19 @@ public class ExtractorFactory {
             throw new CrawlerSystemException("The extractor is null.");
         }
         if (extractorMap.containsKey(key)) {
-            final Extractor oldExtractor = extractorMap.get(key);
-            if (oldExtractor.getWeight() > extractor.getWeight()) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Ignored {} on {}. Use {}.", extractor.getClass().getName(), key, oldExtractor.getClass().getName());
-                }
-                return;
-            }
+            final Extractor[] existingExtractors = extractorMap.get(key);
+
+            final Extractor[] newExtractors = new Extractor[existingExtractors.length + 1];
+            System.arraycopy(existingExtractors, 0, newExtractors, 0, existingExtractors.length);
+            newExtractors[newExtractors.length - 1] = extractor;
+
+            Arrays.sort(newExtractors, Comparator.comparingInt(Extractor::getWeight).reversed());
+
+            extractorMap.put(key, newExtractors);
+        } else {
+            extractorMap.put(key, new Extractor[] { extractor });
         }
-        extractorMap.put(key, extractor);
+
         if (logger.isDebugEnabled()) {
             logger.debug("Loaded {} : {}", key, extractor.getClass().getName());
         }
@@ -73,10 +79,22 @@ public class ExtractorFactory {
     }
 
     public Extractor getExtractor(final String key) {
-        return extractorMap.get(key);
+        final Extractor[] extractors = extractorMap.get(key);
+        if (extractors == null || extractors.length == 0) {
+            return null;
+        }
+        return extractors[0];
     }
 
-    public void setExtractorMap(final Map<String, Extractor> extractorMap) {
+    public Extractor[] getExtractors(final String key) {
+        final Extractor[] extractors = extractorMap.get(key);
+        if (extractors == null || extractors.length == 0) {
+            return new Extractor[0];
+        }
+        return extractors;
+    }
+
+    public void setExtractorMap(final Map<String, Extractor[]> extractorMap) {
         this.extractorMap = extractorMap;
     }
 

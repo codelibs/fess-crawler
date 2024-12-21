@@ -24,7 +24,10 @@ import java.util.Map;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
+import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.UnsupportedExtractException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +86,29 @@ public class ExtractorFactory {
         if (extractors == null || extractors.length == 0) {
             return null;
         }
-        return extractors[0];
+        if (extractors.length == 1) {
+            return extractors[0];
+        }
+        return new Extractor() {
+            @Override
+            public ExtractData getText(final InputStream in, final Map<String, String> params) {
+                for (final Extractor extractor : extractors) {
+                    try {
+                        return extractor.getText(in, params);
+                    } catch (final UnsupportedExtractException e) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("{} does not support this data. {}", extractor.getClass().getName(), e.getMessage());
+                        }
+                    }
+                }
+                throw new ExtractException("Failed to extract the content using available extractors.");
+            }
+
+            @Override
+            public int getWeight() {
+                return extractors[0].getWeight();
+            }
+        };
     }
 
     public Extractor[] getExtractors(final String key) {

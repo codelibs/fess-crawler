@@ -15,27 +15,11 @@
  */
 package org.codelibs.fess.crawler.exception;
 
-/**
- * @author shinsuke
- *
- */
-public class ExtractException extends CrawlerSystemException {
+public class UnsupportedExtractException extends ExtractException {
 
     private static final long serialVersionUID = 1L;
 
-    public ExtractException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public ExtractException(final String message) {
-        super(message);
-    }
-
-    public ExtractException(final Throwable cause) {
-        super(cause);
-    }
-
-    protected ExtractException(final String message, final boolean enableSuppression, final boolean writableStackTrace) {
-        super(message, enableSuppression, writableStackTrace);
+    public UnsupportedExtractException(final String message) {
+        super(message, false, false);
     }
 }

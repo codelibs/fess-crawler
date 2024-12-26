@@ -26,9 +26,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author shinsuke
- * @author kaorufuzita
+ * Utility class for text normalization and processing.
  *
+ * This class provides methods to normalize text by reading characters from a provided Reader
+ * and processing them according to specific rules. The main functionality is encapsulated
+ * within the nested {@link TextNormalizeContext} class.
+ *
+ * <p>The text normalization process includes:
+ * <ul>
+ *   <li>Treating ISO control characters and specified space characters as spaces.</li>
+ *   <li>Appending alphanumeric characters (0-9, A-Z, a-z) to the buffer.</li>
+ *   <li>Appending symbol characters (!-/, :-@, [-`, {-~) to the buffer.</li>
+ *   <li>Optionally removing duplicate terms based on a flag.</li>
+ *   <li>Limiting the maximum size of alphanumeric and symbol terms.</li>
+ * </ul>
+ *
+ * <p>The {@link TextNormalizeContext} class provides a fluent API to configure the text
+ * normalization process, including setting initial buffer capacity, maximum term sizes,
+ * duplicate term removal, and custom space characters.
+ *
+ * <p>Example usage:
+ * <pre>{@code
+ * Reader reader = new StringReader("Example text to normalize.");
+ * String normalizedText = TextUtil.normalizeText(reader)
+ *                                  .initialCapacity(5000)
+ *                                  .maxAlphanumTermSize(100)
+ *                                  .maxSymbolTermSize(50)
+ *                                  .duplicateTermRemoved(true)
+ *                                  .spaceChars(new int[] { ' ', '\u00a0' })
+ *                                  .execute();
+ * System.out.println(normalizedText);
+ * }</pre>
+ *
+ * <p>Note: This class is not intended to be instantiated.
+ *
+ * @see TextNormalizeContext
  */
 public final class TextUtil {
     private static final Logger logger = LoggerFactory.getLogger(TextUtil.class);
@@ -54,6 +86,18 @@ public final class TextUtil {
             this.reader = reader;
         }
 
+        /**
+         * Executes the text processing operation on the provided reader.
+         *
+         * This method reads characters from the reader and processes them according to the following rules:
+         * - ISO control characters and space characters are treated as spaces.
+         * - Alphanumeric characters (0-9, A-Z, a-z) are appended to the buffer.
+         * - Symbol characters (!-/, :-@, [-`, {-~) are appended to the buffer.
+         * - Duplicate terms can be removed based on the `duplicateTermRemoved` flag.
+         * - The maximum size of alphanumeric and symbol terms can be limited by `maxAlphanumTermSize` and `maxSymbolTermSize` respectively.
+         *
+         * @return A processed string with terms and spaces, or an empty string if the reader is null or an IOException occurs.
+         */
         public String execute() {
             if (reader == null) {
                 return StringUtil.EMPTY;
@@ -153,32 +197,68 @@ public final class TextUtil {
             return false;
         }
 
+        /**
+         * Sets the initial capacity for the text normalization context.
+         *
+         * @param initialCapacity the initial capacity to be set
+         * @return the updated TextNormalizeContext instance
+         */
         public TextNormalizeContext initialCapacity(final int initialCapacity) {
             this.initialCapacity = initialCapacity;
             return this;
         }
 
+        /**
+         * Sets the maximum size for alphanumeric terms.
+         *
+         * @param maxAlphanumTermSize the maximum size for alphanumeric terms
+         * @return the current instance of {@code TextNormalizeContext} for method chaining
+         */
         public TextNormalizeContext maxAlphanumTermSize(final int maxAlphanumTermSize) {
             this.maxAlphanumTermSize = maxAlphanumTermSize;
             return this;
         }
 
+        /**
+         * Sets the maximum size for symbol terms.
+         *
+         * @param maxSymbolTermSize the maximum size for symbol terms
+         * @return the current instance of TextNormalizeContext
+         */
         public TextNormalizeContext maxSymbolTermSize(final int maxSymbolTermSize) {
             this.maxSymbolTermSize = maxSymbolTermSize;
             return this;
         }
 
+        /**
+         * Sets the flag indicating whether duplicate terms should be removed.
+         *
+         * @param duplicateTermRemoved true if duplicate terms should be removed, false otherwise
+         * @return the current instance of {@link TextNormalizeContext}
+         */
         public TextNormalizeContext duplicateTermRemoved(final boolean duplicateTermRemoved) {
             this.duplicateTermRemoved = duplicateTermRemoved;
             return this;
         }
 
+        /**
+         * Sets the array of space characters to be used for text normalization.
+         *
+         * @param spaceChars an array of integers representing space characters
+         * @return the current instance of TextNormalizeContext for method chaining
+         */
         public TextNormalizeContext spaceChars(final int[] spaceChars) {
             this.spaceChars = spaceChars;
             return this;
         }
     }
 
+    /**
+     * Normalizes the text from the given Reader.
+     *
+     * @param reader the Reader from which to read the text to be normalized
+     * @return a TextNormalizeContext containing the normalized text
+     */
     public static TextNormalizeContext normalizeText(final Reader reader) {
         return new TextNormalizeContext(reader);
     }

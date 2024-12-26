@@ -20,17 +20,30 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 
 /**
- *
- *
- * @author shinsuke
- *
+ * The Authentication interface provides methods to retrieve authentication details
+ * required for HTTP client authentication.
  */
 public interface Authentication {
 
+    /**
+     * Retrieves the authentication scope associated with this authentication.
+     *
+     * @return the {@link AuthScope} object representing the authentication scope.
+     */
     AuthScope getAuthScope();
 
+    /**
+     * Retrieves the credentials associated with the current authentication.
+     *
+     * @return the credentials object containing authentication details.
+     */
     Credentials getCredentials();
 
+    /**
+     * Retrieves the authentication scheme to be used for HTTP requests.
+     *
+     * @return the authentication scheme
+     */
     AuthScheme getAuthScheme();
 
 }

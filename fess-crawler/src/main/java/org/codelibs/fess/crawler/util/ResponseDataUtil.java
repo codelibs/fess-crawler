@@ -26,14 +26,20 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 
 /**
- * @author shinsuke
- *
+ * Utility class for handling response data.
  */
 public final class ResponseDataUtil {
 
     private ResponseDataUtil() {
     }
 
+    /**
+     * Creates a temporary file containing the response body from the given ResponseData.
+     *
+     * @param responseData the response data containing the response body
+     * @return a temporary file containing the response body
+     * @throws CrawlingAccessException if an error occurs while reading the response body
+     */
     public static File createResponseBodyFile(final ResponseData responseData) {
         File tempFile = null;
         FileOutputStream fos = null;

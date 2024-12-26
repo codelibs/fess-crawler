@@ -19,10 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * This inputstream ignores a close method.
+ * A wrapper for an {@link InputStream} that ignores the {@link #close()} method call.
+ * This can be useful when you want to prevent the underlying input stream from being closed.
  *
- * @author shinsuke
+ * <p>All other methods delegate to the wrapped input stream.</p>
  *
+ * @author
  */
 public class IgnoreCloseInputStream extends InputStream {
 

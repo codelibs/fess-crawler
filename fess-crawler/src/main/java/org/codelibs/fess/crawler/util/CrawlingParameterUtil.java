@@ -22,8 +22,39 @@ import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 
 /**
- * @author shinsuke
+ * Utility class for managing crawling parameters using ThreadLocal variables.
+ * This class provides methods to set and get various parameters related to the crawling process.
  *
+ * <p>This class is final and cannot be instantiated.</p>
+ *
+ * <p>The following parameters are managed:</p>
+ * <ul>
+ *   <li>{@link UrlQueue} - The queue of URLs to be crawled.</li>
+ *   <li>{@link CrawlerContext} - The context of the current crawling process.</li>
+ *   <li>{@link UrlQueueService} - The service for managing the URL queue.</li>
+ *   <li>{@link DataService} - The service for managing access results.</li>
+ * </ul>
+ *
+ * <p>Each parameter is stored in a ThreadLocal variable to ensure thread safety.</p>
+ *
+ * <p>Usage example:</p>
+ * <pre>
+ * {@code
+ * UrlQueue<?> urlQueue = CrawlingParameterUtil.getUrlQueue();
+ * CrawlingParameterUtil.setUrlQueue(newUrlQueue);
+ *
+ * CrawlerContext context = CrawlingParameterUtil.getCrawlerContext();
+ * CrawlingParameterUtil.setCrawlerContext(newContext);
+ *
+ * UrlQueueService<UrlQueue<?>> urlQueueService = CrawlingParameterUtil.getUrlQueueService();
+ * CrawlingParameterUtil.setUrlQueueService(newUrlQueueService);
+ *
+ * DataService<AccessResult<?>> dataService = CrawlingParameterUtil.getDataService();
+ * CrawlingParameterUtil.setDataService(newDataService);
+ * }
+ * </pre>
+ *
+ * <p>Note: If a parameter is set to {@code null}, the corresponding ThreadLocal variable is removed.</p>
  */
 public final class CrawlingParameterUtil {
     private static final ThreadLocal<UrlQueue<?>> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<>();
@@ -37,10 +68,21 @@ public final class CrawlingParameterUtil {
     private CrawlingParameterUtil() {
     }
 
+    /**
+     * Retrieves the current thread's {@link UrlQueue} instance.
+     *
+     * @return the {@link UrlQueue} instance associated with the current thread, or {@code null} if none is set.
+     */
     public static UrlQueue<?> getUrlQueue() {
         return URL_QUEUE_THREAD_LOCAL.get();
     }
 
+    /**
+     * Sets the URL queue for the current thread. If the provided URL queue is null,
+     * the URL queue for the current thread is removed.
+     *
+     * @param urlQueue the URL queue to be set for the current thread, or null to remove the URL queue
+     */
     public static void setUrlQueue(final UrlQueue<?> urlQueue) {
         if (urlQueue == null) {
             URL_QUEUE_THREAD_LOCAL.remove();
@@ -49,10 +91,22 @@ public final class CrawlingParameterUtil {
         }
     }
 
+    /**
+     * Retrieves the current {@link CrawlerContext} associated with the current thread.
+     *
+     * @return the {@link CrawlerContext} for the current thread, or {@code null} if no context is set.
+     */
     public static CrawlerContext getCrawlerContext() {
         return ROBOT_CONTEXT_THREAD_LOCAL.get();
     }
 
+    /**
+     * Sets the current {@link CrawlerContext} for the current thread.
+     * If the provided {@code crawlerContext} is {@code null}, the context is removed from the thread-local storage.
+     * Otherwise, the provided {@code crawlerContext} is set in the thread-local storage.
+     *
+     * @param crawlerContext the {@link CrawlerContext} to be set for the current thread, or {@code null} to remove the context.
+     */
     public static void setCrawlerContext(final CrawlerContext crawlerContext) {
         if (crawlerContext == null) {
             ROBOT_CONTEXT_THREAD_LOCAL.remove();
@@ -61,10 +115,21 @@ public final class CrawlingParameterUtil {
         }
     }
 
+    /**
+     * Retrieves the current thread-local instance of the UrlQueueService.
+     *
+     * @return the UrlQueueService instance associated with the current thread.
+     */
     public static UrlQueueService<UrlQueue<?>> getUrlQueueService() {
         return URL_QUEUE_SERVICE_THREAD_LOCAL.get();
     }
 
+    /**
+     * Sets the UrlQueueService instance to the thread-local variable.
+     * If the provided UrlQueueService is null, it removes the current instance from the thread-local variable.
+     *
+     * @param urlQueueService the UrlQueueService instance to be set, or null to remove the current instance
+     */
     public static void setUrlQueueService(final UrlQueueService<UrlQueue<?>> urlQueueService) {
         if (urlQueueService == null) {
             URL_QUEUE_SERVICE_THREAD_LOCAL.remove();
@@ -73,10 +138,22 @@ public final class CrawlingParameterUtil {
         }
     }
 
+    /**
+     * Retrieves the current thread-local instance of the DataService for AccessResult.
+     *
+     * @return the DataService instance associated with the current thread, or null if none is set.
+     */
     public static DataService<AccessResult<?>> getDataService() {
         return DATA_SERVICE_THREAD_LOCAL.get();
     }
 
+    /**
+     * Sets the DataService instance for the current thread.
+     * If the provided DataService is null, it removes the DataService from the current thread's local storage.
+     * Otherwise, it sets the provided DataService to the current thread's local storage.
+     *
+     * @param dataService the DataService instance to be set for the current thread, or null to remove it
+     */
     public static void setDataService(final DataService<AccessResult<?>> dataService) {
         if (dataService == null) {
             DATA_SERVICE_THREAD_LOCAL.remove();

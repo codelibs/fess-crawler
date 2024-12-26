@@ -21,15 +21,33 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 
 /**
- * @author shinsuke
- *
+ * The Rule interface defines the contract for implementing rules that can be applied to
+ * response data in a web crawler. Implementations of this interface should provide logic
+ * to determine if a given response data matches the rule, retrieve the rule's identifier,
+ * and obtain the associated response processor.
  */
 public interface Rule extends Serializable {
 
+    /**
+     * Determines if the given response data matches the rule.
+     *
+     * @param responseData the response data to be evaluated
+     * @return true if the response data matches the rule, false otherwise
+     */
     boolean match(ResponseData responseData);
 
+    /**
+     * Retrieves the unique identifier for the rule.
+     *
+     * @return the rule's unique identifier as a String.
+     */
     String getRuleId();
 
+    /**
+     * Retrieves the response processor associated with this rule.
+     *
+     * @return the response processor
+     */
     ResponseProcessor getResponseProcessor();
 
 }

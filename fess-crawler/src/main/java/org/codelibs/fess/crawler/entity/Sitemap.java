@@ -18,13 +18,23 @@ package org.codelibs.fess.crawler.entity;
 import java.io.Serializable;
 
 /**
- * @author shinsuke
- *
+ * The Sitemap interface represents a sitemap entity with location and last modification date.
+ * It extends the Serializable interface to allow sitemap objects to be serialized.
  */
 public interface Sitemap extends Serializable {
 
+    /**
+     * Retrieves the location (URL) of the sitemap.
+     *
+     * @return the location of the sitemap as a String.
+     */
     String getLoc();
 
+    /**
+     * Retrieves the last modification date of the sitemap.
+     *
+     * @return A string representing the last modification date.
+     */
     String getLastmod();
 
 }

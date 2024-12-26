@@ -18,17 +18,43 @@ package org.codelibs.fess.crawler.container;
 import org.codelibs.core.lang.StringUtil;
 
 /**
- * @author shinsuke
+ * The CrawlerContainer interface provides methods for managing components
+ * within a crawler container. It includes methods to retrieve components,
+ * check availability, and destroy the container. Additionally, it provides
+ * a default method to initialize the container with specific protocol handlers.
  *
  */
 public interface CrawlerContainer {
 
+    /**
+     * Retrieves a component by its name.
+     *
+     * @param <T> the type of the component
+     * @param name the name of the component to retrieve
+     * @return the component instance of the specified type
+     */
     <T> T getComponent(String name);
 
+    /**
+     * Checks if the crawler container is available.
+     *
+     * @return true if the crawler container is available, false otherwise.
+     */
     boolean available();
 
+    /**
+     * Cleans up resources and performs any necessary finalization tasks
+     * before the object is destroyed. This method should be called to
+     * ensure that all resources are properly released.
+     */
     void destroy();
 
+    /**
+     * Initializes the CrawlerContainer by setting the system property
+     * "java.protocol.handler.pkgs" to include the package "org.codelibs.fess.net.protocol".
+     * If the property is not already set, it will be initialized with this package.
+     * If the property is set but does not contain this package, the package will be appended.
+     */
     default void initialize() {
         final StringBuilder buf = new StringBuilder(100);
         final String value = System.getProperty("java.protocol.handler.pkgs");

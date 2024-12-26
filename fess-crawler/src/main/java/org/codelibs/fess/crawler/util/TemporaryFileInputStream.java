@@ -26,8 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author shinsuke
- *
+ * A custom InputStream that wraps a temporary file. This class ensures that the temporary file
+ * is deleted when the stream is closed.
  */
 public class TemporaryFileInputStream extends InputStream {
     private static final Logger logger = LoggerFactory.getLogger(TemporaryFileInputStream.class);
@@ -36,11 +36,23 @@ public class TemporaryFileInputStream extends InputStream {
 
     private final FileInputStream fileInputStream;
 
+    /**
+     * A class that provides an input stream for reading from a temporary file.
+     * This class wraps a {@link FileInputStream} to read from the specified temporary file.
+     *
+     * @param tempFile the temporary file to be read
+     * @throws FileNotFoundException if the specified file does not exist
+     */
     public TemporaryFileInputStream(final File tempFile) throws FileNotFoundException {
         this.tempFile = tempFile;
         fileInputStream = new FileInputStream(tempFile);
     }
 
+    /**
+     * Returns the temporary file associated with this input stream.
+     *
+     * @return the temporary file
+     */
     public File getTemporaryFile() {
         return tempFile;
     }

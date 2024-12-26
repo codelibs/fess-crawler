@@ -20,15 +20,32 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 
 /**
- * @author shinsuke
- *
+ * The Transformer interface defines methods for transforming response data
+ * and retrieving data from access results.
  */
 public interface Transformer {
 
+    /**
+     * Transforms the given ResponseData into a ResultData.
+     *
+     * @param responseData the data to be transformed
+     * @return the transformed ResultData
+     */
     ResultData transform(ResponseData responseData);
 
+    /**
+     * Retrieves data from the given AccessResultData object.
+     *
+     * @param accessResultData the AccessResultData object containing the data to be retrieved
+     * @return an Object representing the data retrieved from the AccessResultData
+     */
     Object getData(AccessResultData<?> accessResultData);
 
+    /**
+     * Retrieves the name associated with this transformer.
+     *
+     * @return the name of the transformer
+     */
     String getName();
 
 }

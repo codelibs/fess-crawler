@@ -16,8 +16,7 @@
 package org.codelibs.fess.crawler.log;
 
 /**
- * @author shinsuke
- *
+ * Enum representing various types of log events that can occur during the crawling process.
  */
 public enum LogType {
     START_CRAWLING, //

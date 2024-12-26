@@ -18,11 +18,17 @@ package org.codelibs.fess.crawler.helper;
 import org.codelibs.fess.crawler.log.LogType;
 
 /**
- * @author shinsuke
- *
+ * Interface for logging helper.
+ * Provides a method to log messages with a specified log type and additional objects.
  */
 public interface LogHelper {
 
+    /**
+     * Logs a message with the specified log type and additional objects.
+     *
+     * @param key  the type of log message
+     * @param objs additional objects to include in the log message
+     */
     void log(LogType key, Object... objs);
 
 }

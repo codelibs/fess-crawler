@@ -18,11 +18,17 @@ package org.codelibs.fess.crawler.processor;
 import org.codelibs.fess.crawler.entity.ResponseData;
 
 /**
- * @author shinsuke
- *
+ * The ResponseProcessor interface defines a contract for processing response data.
+ * Implementations of this interface are responsible for handling the response data
+ * obtained during a crawling process.
  */
 public interface ResponseProcessor {
 
+    /**
+     * Processes the given response data.
+     *
+     * @param responseData the response data to be processed
+     */
     void process(ResponseData responseData);
 
 }

@@ -16,27 +16,73 @@
 package org.codelibs.fess.crawler.entity;
 
 /**
- * @author shinsuke
+ * Interface representing the data of an access result.
  *
+ * @param <IDTYPE> the type of the identifier
  */
 public interface AccessResultData<IDTYPE> {
 
+    /**
+     * Retrieves the unique identifier of the access result data.
+     *
+     * @return the unique identifier of type IDTYPE.
+     */
     IDTYPE getId();
 
+    /**
+     * Sets the ID of the access result data.
+     *
+     * @param id the ID to set
+     */
     void setId(IDTYPE id);
 
+    /**
+     * Retrieves the name of the transformer associated with this access result data.
+     *
+     * @return the name of the transformer.
+     */
     String getTransformerName();
 
+    /**
+     * Sets the name of the transformer.
+     *
+     * @param transformerName the name of the transformer to set
+     */
     void setTransformerName(String transformerName);
 
+    /**
+     * Retrieves the data as a byte array.
+     *
+     * @return a byte array containing the data.
+     */
     byte[] getData();
 
+    /**
+     * Retrieves the data as a String.
+     *
+     * @return the data in String format.
+     */
     String getDataAsString();
 
+    /**
+     * Sets the data for this AccessResultData instance.
+     *
+     * @param data the byte array containing the data to be set
+     */
     void setData(byte[] data);
 
+    /**
+     * Retrieves the encoding used for the access result data.
+     *
+     * @return the encoding as a String.
+     */
     String getEncoding();
 
+    /**
+     * Sets the encoding for the access result data.
+     *
+     * @param encoding the encoding to set
+     */
     void setEncoding(String encoding);
 
 }

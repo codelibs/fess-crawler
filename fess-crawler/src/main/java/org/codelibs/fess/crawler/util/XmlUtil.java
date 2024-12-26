@@ -36,8 +36,53 @@ import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * @author shinsuke
+ * Utility class for XML-related operations.
  *
+ * This class provides methods to escape special characters in XML strings,
+ * strip invalid XML characters, and parse XML content into a map of data.
+ *
+ * <p>
+ * The class is final and cannot be instantiated.
+ * </p>
+ *
+ * <h2>Methods:</h2>
+ * <ul>
+ *   <li>{@link #escapeXml(String)}: Escapes special characters in an XML string.</li>
+ *   <li>{@link #stripInvalidXMLCharacters(String)}: Strips invalid XML characters from a string.</li>
+ *   <li>{@link #getDataMap(AccessResultData)}: Parses XML content from {@link AccessResultData} and returns a map of the data.</li>
+ * </ul>
+ *
+ * <h2>Usage Example:</h2>
+ * <pre>
+ * {@code
+ * String escapedXml = XmlUtil.escapeXml("<tag>value</tag>");
+ * Map<String, Object> dataMap = XmlUtil.getDataMap(accessResultData);
+ * }
+ * </pre>
+ *
+ * <h2>Thread Safety:</h2>
+ * <p>
+ * This class is thread-safe as it does not maintain any state.
+ * </p>
+ *
+ * <h2>Dependencies:</h2>
+ * <ul>
+ *   <li>org.slf4j.Logger</li>
+ *   <li>org.slf4j.LoggerFactory</li>
+ *   <li>org.xml.sax.InputSource</li>
+ *   <li>javax.xml.parsers.SAXParser</li>
+ *   <li>javax.xml.parsers.SAXParserFactory</li>
+ *   <li>org.xml.sax.helpers.DefaultHandler</li>
+ *   <li>org.codelibs.fess.crawler.Constants</li>
+ *   <li>org.codelibs.fess.crawler.exception.CrawlerSystemException</li>
+ *   <li>org.codelibs.fess.crawler.entity.AccessResultData</li>
+ *   <li>org.codelibs.core.lang.StringUtil</li>
+ * </ul>
+ *
+ * @see org.codelibs.fess.crawler.Constants
+ * @see org.codelibs.fess.crawler.exception.CrawlerSystemException
+ * @see org.codelibs.fess.crawler.entity.AccessResultData
+ * @see org.codelibs.core.lang.StringUtil
  */
 public final class XmlUtil {
 
@@ -46,6 +91,21 @@ public final class XmlUtil {
     private XmlUtil() {
     }
 
+    /**
+     * Escapes special characters in the given XML string to their corresponding
+     * XML entities. This method replaces the following characters:
+     * <ul>
+     *   <li>&amp; with &amp;amp;</li>
+     *   <li>&lt; with &amp;lt;</li>
+     *   <li>&gt; with &amp;gt;</li>
+     *   <li>" with &amp;quot;</li>
+     *   <li>' with &amp;apos;</li>
+     * </ul>
+     * Additionally, it strips invalid XML characters from the input string.
+     *
+     * @param value the input string to be escaped
+     * @return the escaped XML string with invalid characters removed
+     */
     public static String escapeXml(final String value) {
         return stripInvalidXMLCharacters(//
                 value//
@@ -57,6 +117,22 @@ public final class XmlUtil {
         );
     }
 
+    /**
+     * Strips invalid XML characters from the input string.
+     *
+     * This method removes characters that are not allowed in XML documents
+     * according to the XML 1.0 specification. Valid characters include:
+     * - Tab (0x9)
+     * - Line feed (0xA)
+     * - Carriage return (0xD)
+     * - Any character between 0x20 and 0xD7FF
+     * - Any character between 0xE000 and 0xFFFD
+     * - Any character between 0x10000 and 0x10FFFF
+     *
+     * @param in the input string to be processed
+     * @return a new string with invalid XML characters removed, or the original
+     *         string if it is empty
+     */
     public static String stripInvalidXMLCharacters(final String in) {
         if (StringUtil.isEmpty(in)) {
             return in;
@@ -74,6 +150,13 @@ public final class XmlUtil {
         return buf.toString().trim();
     }
 
+    /**
+     * Parses the XML content from the provided {@link AccessResultData} and returns a map of the data.
+     *
+     * @param accessResultData the data containing the XML content to be parsed
+     * @return a map containing the parsed data from the XML content
+     * @throws CrawlerSystemException if an error occurs while parsing the XML content
+     */
     public static Map<String, Object> getDataMap(final AccessResultData<?> accessResultData) {
         // create input source
         final InputSource is = new InputSource(new ByteArrayInputStream(accessResultData.getData()));

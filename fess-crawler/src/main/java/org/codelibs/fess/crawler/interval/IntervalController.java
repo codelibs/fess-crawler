@@ -15,6 +15,21 @@
  */
 package org.codelibs.fess.crawler.interval;
 
+/**
+ * The {@code IntervalController} interface defines methods for controlling
+ * the delay intervals in a web crawler. It includes constants representing
+ * different types of processing states and a method to introduce a delay
+ * based on the type of processing.
+ * <p>
+ * Constants:
+ * </p>
+ * <ul>
+ *   <li>{@code PRE_PROCESSING} - Represents the pre-processing state.</li>
+ *   <li>{@code POST_PROCESSING} - Represents the post-processing state.</li>
+ *   <li>{@code NO_URL_IN_QUEUE} - Indicates that there are no URLs in the queue.</li>
+ *   <li>{@code WAIT_NEW_URL} - Indicates that the crawler is waiting for new URLs.</li>
+ * </ul>
+ */
 public interface IntervalController {
     int PRE_PROCESSING = 1;
 
@@ -24,5 +39,10 @@ public interface IntervalController {
 
     int WAIT_NEW_URL = 8;
 
+    /**
+     * Introduces a delay based on the specified type.
+     *
+     * @param type the type of delay to be introduced
+     */
     void delay(int type);
 }

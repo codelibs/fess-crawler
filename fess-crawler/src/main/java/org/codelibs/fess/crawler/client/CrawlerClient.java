@@ -21,15 +21,33 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 
 /**
- * @author shinsuke
- *
+ * Interface representing a client for a web crawler.
+ * This client is responsible for executing requests and handling responses.
+ * It extends {@link AutoCloseable} to allow for resource management.
  */
 public interface CrawlerClient extends AutoCloseable {
 
+    /**
+     * Sets the initialization parameters for the crawler client.
+     *
+     * @param params a map containing the initialization parameters
+     */
     void setInitParameterMap(Map<String, Object> params);
 
+    /**
+     * Executes a request and returns the response data.
+     *
+     * @param data the request data to be executed
+     * @return the response data from the executed request
+     */
     ResponseData execute(RequestData data);
 
+    /**
+     * Closes the crawler client and releases any resources associated with it.
+     * This default implementation does nothing.
+     *
+     * @throws Exception if an error occurs during closing
+     */
     @Override
     default void close() throws Exception {
         // nothing

@@ -16,13 +16,24 @@
 package org.codelibs.fess.crawler.util;
 
 /**
- * @author shinsuke
- *
+ * Utility class for character-related operations.
  */
 public final class CharUtil {
     private CharUtil() {
     }
 
+    /**
+     * Checks if the given character is a valid URL character.
+     *
+     * Valid URL characters include:
+     * - Lowercase letters (a-z)
+     * - Uppercase letters (A-Z)
+     * - Digits (0-9)
+     * - Special characters: . - * _ : / + % = &amp; ? # [ ] @ ~ ! $ ' ( ) , ;
+     *
+     * @param c the character to check
+     * @return {@code true} if the character is a valid URL character, {@code false} otherwise
+     */
     public static boolean isUrlChar(final char c) {
         if (c >= 'a' && c <= 'z' //
                 || c >= 'A' && c <= 'Z' //

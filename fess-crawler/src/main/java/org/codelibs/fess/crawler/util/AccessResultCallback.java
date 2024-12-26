@@ -18,9 +18,15 @@ package org.codelibs.fess.crawler.util;
 import org.codelibs.fess.crawler.entity.AccessResult;
 
 /**
- * @author shinsuke
+ * A callback interface for processing access results.
  *
+ * @param <RESULT> the type of access result that extends {@link AccessResult}
  */
 public interface AccessResultCallback<RESULT extends AccessResult<?>> {
+    /**
+     * Processes the given access result.
+     *
+     * @param accessResult the result of the access operation to be processed
+     */
     void iterate(RESULT accessResult);
 }

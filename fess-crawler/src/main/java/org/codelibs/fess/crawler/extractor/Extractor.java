@@ -21,13 +21,27 @@ import java.util.Map;
 import org.codelibs.fess.crawler.entity.ExtractData;
 
 /**
- * @author shinsuke
- *
+ * The Extractor interface defines methods for extracting text data from an input stream.
+ * Implementations of this interface should provide the logic for extracting text and
+ * optionally override the default weight value.
  */
 public interface Extractor {
 
+    /**
+     * Extracts text data from the given input stream.
+     *
+     * @param in the input stream to extract text from
+     * @param params a map of parameters to be used during extraction
+     * @return an ExtractData object containing the extracted text
+     */
     ExtractData getText(InputStream in, Map<String, String> params);
 
+    /**
+     * Returns the weight of the extractor.
+     * The default implementation returns a weight of 1.
+     *
+     * @return the weight of the extractor
+     */
     default int getWeight() {
         return 1;
     }

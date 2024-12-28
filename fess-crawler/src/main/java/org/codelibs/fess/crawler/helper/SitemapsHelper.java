@@ -25,6 +25,8 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.SitemapFile;
@@ -32,8 +34,6 @@ import org.codelibs.fess.crawler.entity.SitemapSet;
 import org.codelibs.fess.crawler.entity.SitemapUrl;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.SitemapsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
@@ -44,7 +44,7 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  */
 public class SitemapsHelper {
-    private static final Logger logger = LoggerFactory.getLogger(SitemapsHelper.class);
+    private static final Logger logger = LogManager.getLogger(SitemapsHelper.class);
 
     protected int preloadSize = 512;
 

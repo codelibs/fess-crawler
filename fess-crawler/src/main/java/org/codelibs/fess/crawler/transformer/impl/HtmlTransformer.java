@@ -36,6 +36,8 @@ import java.util.stream.Stream;
 import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathNodes;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
@@ -53,8 +55,6 @@ import org.codelibs.fess.crawler.helper.UrlConvertHelper;
 import org.codelibs.fess.crawler.util.CharUtil;
 import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -69,7 +69,7 @@ import jakarta.annotation.Resource;
  */
 public class HtmlTransformer extends AbstractTransformer {
 
-    private static final Logger logger = LoggerFactory.getLogger(HtmlTransformer.class);
+    private static final Logger logger = LogManager.getLogger(HtmlTransformer.class);
 
     protected static final String LOCATION_HEADER = "Location";
 

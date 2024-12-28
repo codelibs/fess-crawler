@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResult;
@@ -43,15 +45,13 @@ import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortOrder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 
 public class OpenSearchUrlQueueService extends AbstractCrawlerService implements UrlQueueService<OpenSearchUrlQueue> {
-    private static final Logger logger = LoggerFactory.getLogger(OpenSearchUrlQueueService.class);
+    private static final Logger logger = LogManager.getLogger(OpenSearchUrlQueueService.class);
 
     @Resource
     protected OpenSearchDataService dataService;

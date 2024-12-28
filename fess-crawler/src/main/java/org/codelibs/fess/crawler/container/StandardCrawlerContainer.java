@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.FieldDesc;
 import org.codelibs.core.beans.MethodDesc;
@@ -27,8 +29,6 @@ import org.codelibs.core.beans.factory.BeanDescFactory;
 import org.codelibs.core.lang.ClassUtil;
 import org.codelibs.core.lang.FieldUtil;
 import org.codelibs.core.lang.MethodUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -36,7 +36,7 @@ import jakarta.annotation.Resource;
 
 public class StandardCrawlerContainer implements CrawlerContainer {
 
-    private final Logger logger = LoggerFactory.getLogger(StandardCrawlerContainer.class);
+    private final Logger logger = LogManager.getLogger(StandardCrawlerContainer.class);
 
     private final Map<String, ComponentHolder<?>> singletonMap = new ConcurrentHashMap<>();
 

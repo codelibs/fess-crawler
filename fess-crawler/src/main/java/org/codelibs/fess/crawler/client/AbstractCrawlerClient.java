@@ -17,13 +17,13 @@ package org.codelibs.fess.crawler.client;
 
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -33,7 +33,7 @@ import jakarta.annotation.Resource;
  */
 public abstract class AbstractCrawlerClient implements CrawlerClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractCrawlerClient.class);
+    private static final Logger logger = LogManager.getLogger(AbstractCrawlerClient.class);
 
     protected static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
 

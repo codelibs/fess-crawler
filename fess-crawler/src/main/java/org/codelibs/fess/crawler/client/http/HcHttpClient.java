@@ -91,6 +91,8 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.PropertyDesc;
 import org.codelibs.core.beans.factory.BeanDescFactory;
@@ -115,8 +117,6 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -165,7 +165,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
     @Deprecated
     public static final String BASIC_AUTHENTICATIONS_PROPERTY = AUTHENTICATIONS_PROPERTY;
 
-    private static final Logger logger = LoggerFactory.getLogger(HcHttpClient.class);
+    private static final Logger logger = LogManager.getLogger(HcHttpClient.class);
 
     @Resource
     protected RobotsTxtHelper robotsTxtHelper;

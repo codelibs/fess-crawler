@@ -23,6 +23,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -34,8 +36,6 @@ import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jp.gr.java_conf.dangan.util.lha.LhaFile;
 import jp.gr.java_conf.dangan.util.lha.LhaHeader;
@@ -47,7 +47,7 @@ import jp.gr.java_conf.dangan.util.lha.LhaHeader;
  *
  */
 public class LhaExtractor extends AbstractExtractor {
-    private static final Logger logger = LoggerFactory.getLogger(LhaExtractor.class);
+    private static final Logger logger = LogManager.getLogger(LhaExtractor.class);
 
     protected long maxContentSize = -1;
 

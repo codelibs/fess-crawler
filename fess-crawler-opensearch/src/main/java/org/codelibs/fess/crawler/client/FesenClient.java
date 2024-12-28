@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fesen.client.HttpClient;
@@ -95,8 +97,6 @@ import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
 import org.opensearch.threadpool.ThreadPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.PreDestroy;
 
@@ -105,7 +105,7 @@ public class FesenClient implements Client {
 
     public static final String TARGET_INDICES = "crawler.opensearch.target_indices";
 
-    private static final Logger logger = LoggerFactory.getLogger(FesenClient.class);
+    private static final Logger logger = LogManager.getLogger(FesenClient.class);
 
     protected Client client;
 

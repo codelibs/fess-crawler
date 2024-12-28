@@ -20,15 +20,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
 public class CrawlerClientCreator {
 
-    private static final Logger logger = LoggerFactory.getLogger(CrawlerClientCreator.class);
+    private static final Logger logger = LogManager.getLogger(CrawlerClientCreator.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;

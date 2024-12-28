@@ -23,6 +23,8 @@ import java.util.Map;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -31,8 +33,6 @@ import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -41,7 +41,7 @@ import jakarta.annotation.Resource;
  *
  */
 public class ZipExtractor extends AbstractExtractor {
-    private static final Logger logger = LoggerFactory.getLogger(ZipExtractor.class);
+    private static final Logger logger = LogManager.getLogger(ZipExtractor.class);
 
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;

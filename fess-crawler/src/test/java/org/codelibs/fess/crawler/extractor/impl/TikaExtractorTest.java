@@ -21,6 +21,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -31,15 +33,13 @@ import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class TikaExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory.getLogger(TikaExtractorTest.class);
+    private static final Logger logger = LogManager.getLogger(TikaExtractorTest.class);
 
     public TikaExtractor tikaExtractor;
 

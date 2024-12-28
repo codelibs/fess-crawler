@@ -28,6 +28,8 @@ import javax.xml.xpath.XPathEvaluationResult;
 import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathNodes;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultData;
@@ -37,8 +39,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.util.XmlUtil;
 import org.codelibs.nekohtml.parsers.DOMParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -50,7 +50,7 @@ import org.xml.sax.InputSource;
  *
  */
 public class XpathTransformer extends HtmlTransformer {
-    private static final Logger logger = LoggerFactory.getLogger(XpathTransformer.class);
+    private static final Logger logger = LogManager.getLogger(XpathTransformer.class);
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+", Pattern.MULTILINE);
 

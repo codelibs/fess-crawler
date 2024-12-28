@@ -39,18 +39,18 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
 import org.codelibs.core.stream.StreamUtil;
 import org.codelibs.fess.crawler.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FormScheme implements AuthScheme {
 
-    private static final Logger logger = LoggerFactory.getLogger(FormScheme.class);
+    private static final Logger logger = LogManager.getLogger(FormScheme.class);
 
     private static final String ENCODING = "encoding";
 

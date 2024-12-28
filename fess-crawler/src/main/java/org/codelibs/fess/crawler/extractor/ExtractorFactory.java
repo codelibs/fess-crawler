@@ -22,14 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.UnsupportedExtractException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -39,7 +39,7 @@ import jakarta.annotation.Resource;
  */
 public class ExtractorFactory {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExtractorFactory.class);
+    private static final Logger logger = LogManager.getLogger(ExtractorFactory.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;

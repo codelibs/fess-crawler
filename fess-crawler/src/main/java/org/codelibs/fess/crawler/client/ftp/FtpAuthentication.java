@@ -17,16 +17,16 @@ package org.codelibs.fess.crawler.client.ftp;
 
 import java.net.URL;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class FtpAuthentication {
-    private static final Logger logger = LoggerFactory.getLogger(FtpAuthentication.class);
+    private static final Logger logger = LogManager.getLogger(FtpAuthentication.class);
 
     private String server;
 

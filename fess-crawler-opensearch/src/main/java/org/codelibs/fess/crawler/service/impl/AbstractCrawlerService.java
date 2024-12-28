@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.Converter;
@@ -77,8 +79,6 @@ import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.sort.SortBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -86,7 +86,7 @@ import com.google.common.hash.Hashing;
 import jakarta.annotation.Resource;
 
 public abstract class AbstractCrawlerService {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractCrawlerService.class);
+    private static final Logger logger = LogManager.getLogger(AbstractCrawlerService.class);
 
     private static final String ID_SEPARATOR = ".";
 

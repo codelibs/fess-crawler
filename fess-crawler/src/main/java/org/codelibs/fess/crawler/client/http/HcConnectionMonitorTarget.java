@@ -18,16 +18,16 @@ package org.codelibs.fess.crawler.client.http;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.timer.TimeoutTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class HcConnectionMonitorTarget implements TimeoutTarget {
-    private static final Logger logger = LoggerFactory.getLogger(HcConnectionMonitorTarget.class);
+    private static final Logger logger = LogManager.getLogger(HcConnectionMonitorTarget.class);
 
     private final HttpClientConnectionManager clientConnectionManager;
 

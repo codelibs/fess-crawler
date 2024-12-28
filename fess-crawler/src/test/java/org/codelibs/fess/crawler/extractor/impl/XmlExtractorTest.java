@@ -19,20 +19,20 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class XmlExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory.getLogger(XmlExtractorTest.class);
+    private static final Logger logger = LogManager.getLogger(XmlExtractorTest.class);
 
     public XmlExtractor xmlExtractor;
 

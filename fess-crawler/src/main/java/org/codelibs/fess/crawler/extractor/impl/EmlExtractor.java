@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -34,8 +36,6 @@ import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.mail.Address;
 import jakarta.mail.BodyPart;
@@ -58,7 +58,7 @@ import jakarta.mail.internet.MimeUtility;
 public class EmlExtractor extends AbstractExtractor {
     private static final String[] DAY_OF_WEEK = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
-    private static final Logger logger = LoggerFactory.getLogger(EmlExtractor.class);
+    private static final Logger logger = LogManager.getLogger(EmlExtractor.class);
 
     protected Properties mailProperties = new Properties();
 

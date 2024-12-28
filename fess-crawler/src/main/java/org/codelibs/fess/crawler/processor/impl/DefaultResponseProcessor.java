@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -35,8 +37,6 @@ import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.transformer.Transformer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -45,7 +45,7 @@ import jakarta.annotation.Resource;
  *
  */
 public class DefaultResponseProcessor implements ResponseProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(DefaultResponseProcessor.class);
+    private static final Logger logger = LogManager.getLogger(DefaultResponseProcessor.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;

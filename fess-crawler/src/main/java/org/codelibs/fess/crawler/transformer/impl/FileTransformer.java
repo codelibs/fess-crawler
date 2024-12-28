@@ -22,14 +22,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * FileTransformer stores WEB data as a file path.
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class FileTransformer extends HtmlTransformer {
-    private static final Logger logger = LoggerFactory.getLogger(FileTransformer.class);
+    private static final Logger logger = LogManager.getLogger(FileTransformer.class);
 
     /**
      * A path to store downloaded files. The default path is a current

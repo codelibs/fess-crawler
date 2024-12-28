@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.pdfbox.cos.COSInputStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -45,8 +47,6 @@ import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Gets a text from .doc file.
@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class PdfExtractor extends PasswordBasedExtractor {
-    private static final Logger logger = LoggerFactory.getLogger(PdfExtractor.class);
+    private static final Logger logger = LogManager.getLogger(PdfExtractor.class);
 
     protected long timeout = 30000; // 30sec
 

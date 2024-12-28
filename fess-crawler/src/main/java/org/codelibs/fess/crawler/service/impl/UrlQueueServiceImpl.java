@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -29,8 +31,6 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.UrlQueueService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -40,7 +40,7 @@ import jakarta.annotation.Resource;
  */
 public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> {
 
-    private static final Logger logger = LoggerFactory.getLogger(UrlQueueServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(UrlQueueServiceImpl.class);
 
     @Resource
     protected MemoryDataHelper dataHelper;

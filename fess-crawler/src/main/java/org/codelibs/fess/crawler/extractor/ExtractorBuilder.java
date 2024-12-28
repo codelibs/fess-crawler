@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
@@ -32,12 +34,10 @@ import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ExtractorBuilder {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExtractorBuilder.class);
+    private static final Logger logger = LogManager.getLogger(ExtractorBuilder.class);
 
     private final InputStream in;
 

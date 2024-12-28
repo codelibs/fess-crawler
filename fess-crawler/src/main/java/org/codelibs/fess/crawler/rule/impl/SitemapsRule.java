@@ -17,11 +17,11 @@ package org.codelibs.fess.crawler.rule.impl;
 
 import java.io.InputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
@@ -33,7 +33,7 @@ public class SitemapsRule extends RegexRule {
      */
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = LoggerFactory.getLogger(SitemapsRule.class);
+    private static final Logger logger = LogManager.getLogger(SitemapsRule.class);
 
     @Override
     public boolean match(final ResponseData responseData) {

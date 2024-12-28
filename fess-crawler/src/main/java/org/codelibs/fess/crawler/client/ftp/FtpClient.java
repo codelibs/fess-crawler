@@ -40,6 +40,8 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilters;
 import org.apache.commons.net.ftp.FTPSClient;
 import org.apache.commons.net.util.TrustManagerUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -59,8 +61,6 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -70,7 +70,7 @@ import jakarta.annotation.Resource;
  */
 public class FtpClient extends AbstractCrawlerClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(FtpClient.class);
+    private static final Logger logger = LogManager.getLogger(FtpClient.class);
 
     public static final String FTP_FILE_GROUP = "ftpFileGroup";
 

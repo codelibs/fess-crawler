@@ -22,12 +22,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.service.UrlFilterService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -37,7 +37,7 @@ import jakarta.annotation.Resource;
  */
 public class UrlFilterImpl implements UrlFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(UrlFilterImpl.class);
+    private static final Logger logger = LogManager.getLogger(UrlFilterImpl.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;

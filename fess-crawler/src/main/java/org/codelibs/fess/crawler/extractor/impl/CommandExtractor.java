@@ -28,6 +28,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.exception.InterruptedRuntimeException;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -38,8 +40,6 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExecutionTimeoutException;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Extract a text by running a command.
@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class CommandExtractor extends AbstractExtractor {
-    private static final Logger logger = LoggerFactory.getLogger(CommandExtractor.class);
+    private static final Logger logger = LogManager.getLogger(CommandExtractor.class);
 
     protected String outputEncoding = Constants.UTF_8;
 

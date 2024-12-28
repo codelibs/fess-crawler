@@ -21,16 +21,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.FileUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A custom InputStream that wraps a temporary file. This class ensures that the temporary file
  * is deleted when the stream is closed.
  */
 public class TemporaryFileInputStream extends InputStream {
-    private static final Logger logger = LoggerFactory.getLogger(TemporaryFileInputStream.class);
+    private static final Logger logger = LogManager.getLogger(TemporaryFileInputStream.class);
 
     private final File tempFile;
 

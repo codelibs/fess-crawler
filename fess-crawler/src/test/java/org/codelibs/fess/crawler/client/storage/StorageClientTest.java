@@ -20,6 +20,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.ThreadUtil;
@@ -30,8 +32,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -47,7 +47,7 @@ import io.minio.SetObjectTagsArgs;
  */
 public class StorageClientTest extends PlainTestCase {
 
-    private static final Logger logger = LoggerFactory.getLogger(StorageClientTest.class);
+    private static final Logger logger = LogManager.getLogger(StorageClientTest.class);
 
     private static final String IMAGE_NAME = "minio/minio:RELEASE.2022-06-02T02-11-04Z";
 

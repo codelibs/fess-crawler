@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.exception.TikaException;
@@ -74,8 +76,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.util.TextUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -87,7 +87,7 @@ import jakarta.annotation.PostConstruct;
  */
 public class TikaExtractor extends PasswordBasedExtractor {
 
-    private static final Logger logger = LoggerFactory.getLogger(TikaExtractor.class);
+    private static final Logger logger = LogManager.getLogger(TikaExtractor.class);
 
     public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
 

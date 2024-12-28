@@ -21,6 +21,8 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.AccessResultData;
@@ -31,8 +33,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 
@@ -41,7 +41,7 @@ import jakarta.annotation.Resource;
  *
  */
 public class TextTransformer extends AbstractTransformer {
-    private static final Logger logger = LoggerFactory.getLogger(TextTransformer.class);
+    private static final Logger logger = LogManager.getLogger(TextTransformer.class);
 
     @Resource
     protected CrawlerContainer crawlerContainer;

@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.FileUtil;
@@ -48,8 +50,6 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Resource;
 import jcifs.ACE;
@@ -68,7 +68,7 @@ import jcifs.smb.SmbFileInputStream;
  *
  */
 public class SmbClient extends AbstractCrawlerClient {
-    private static final Logger logger = LoggerFactory.getLogger(SmbClient.class);
+    private static final Logger logger = LogManager.getLogger(SmbClient.class);
 
     public static final String SMB_AUTHENTICATIONS_PROPERTY = "smbAuthentications";
 

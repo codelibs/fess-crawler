@@ -25,12 +25,12 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;
@@ -67,8 +67,8 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  * <h2>Dependencies:</h2>
  * <ul>
- *   <li>org.slf4j.Logger</li>
- *   <li>org.slf4j.LoggerFactory</li>
+ *   <li>org.apache.logging.log4j.Logger</li>
+ *   <li>org.apache.logging.log4j.LogManager</li>
  *   <li>org.xml.sax.InputSource</li>
  *   <li>javax.xml.parsers.SAXParser</li>
  *   <li>javax.xml.parsers.SAXParserFactory</li>
@@ -86,7 +86,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public final class XmlUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(XmlUtil.class);
+    private static final Logger logger = LogManager.getLogger(XmlUtil.class);
 
     private XmlUtil() {
     }

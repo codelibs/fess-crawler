@@ -44,6 +44,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.PropertyDesc;
 import org.codelibs.core.beans.factory.BeanDescFactory;
@@ -56,8 +58,6 @@ import org.codelibs.fess.crawler.client.http.Authentication;
 import org.codelibs.fess.crawler.client.http.RequestHeader;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 
@@ -72,7 +72,7 @@ import jakarta.annotation.PreDestroy;
  */
 public class ApiExtractor extends AbstractExtractor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApiExtractor.class);
+    private static final Logger logger = LogManager.getLogger(ApiExtractor.class);
 
     protected String url;
 

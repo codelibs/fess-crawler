@@ -23,18 +23,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class PasswordBasedExtractor extends AbstractExtractor {
 
-    private static final Logger logger = LoggerFactory.getLogger(PasswordBasedExtractor.class);
+    private static final Logger logger = LogManager.getLogger(PasswordBasedExtractor.class);
 
     protected Map<Pattern, String> passwordMap = new HashMap<>();
 

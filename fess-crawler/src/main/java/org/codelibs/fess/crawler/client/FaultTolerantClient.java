@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FaultTolerantClient implements CrawlerClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(FaultTolerantClient.class);
+    private static final Logger logger = LogManager.getLogger(FaultTolerantClient.class);
 
     protected CrawlerClient client;
 

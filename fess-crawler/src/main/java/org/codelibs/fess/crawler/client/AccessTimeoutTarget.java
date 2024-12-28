@@ -17,14 +17,14 @@ package org.codelibs.fess.crawler.client;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.core.timer.TimeoutTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AccessTimeoutTarget implements TimeoutTarget {
 
-    private static final Logger logger = LoggerFactory.getLogger(AccessTimeoutTarget.class);
+    private static final Logger logger = LogManager.getLogger(AccessTimeoutTarget.class);
 
     private static final int MAX_LOOP_COUNT = 10;
 

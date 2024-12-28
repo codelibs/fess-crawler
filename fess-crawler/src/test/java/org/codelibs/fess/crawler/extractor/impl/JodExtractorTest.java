@@ -19,21 +19,21 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.jodconverter.local.office.LocalOfficeManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class JodExtractorTest extends PlainTestCase {
-    private static final Logger logger = LoggerFactory.getLogger(JodExtractorTest.class);
+    private static final Logger logger = LogManager.getLogger(JodExtractorTest.class);
 
     public JodExtractor jodExtractor;
 

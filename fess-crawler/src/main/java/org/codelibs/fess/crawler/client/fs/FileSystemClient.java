@@ -50,8 +50,8 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import jakarta.annotation.Resource;
 
@@ -64,7 +64,7 @@ import jakarta.annotation.Resource;
  */
 public class FileSystemClient extends AbstractCrawlerClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileSystemClient.class);
+    private static final Logger logger = LogManager.getLogger(FileSystemClient.class);
 
     public static final String FILE_ATTRIBUTE_VIEW = "fileAttributeView";
 

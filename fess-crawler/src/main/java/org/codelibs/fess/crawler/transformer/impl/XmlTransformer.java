@@ -36,6 +36,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathNodes;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -46,8 +48,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.fess.crawler.util.XmlUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -63,7 +63,7 @@ import jakarta.annotation.Resource;
  *
  */
 public class XmlTransformer extends AbstractTransformer {
-    private static final Logger logger = LoggerFactory.getLogger(XmlTransformer.class);
+    private static final Logger logger = LogManager.getLogger(XmlTransformer.class);
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+", Pattern.MULTILINE);
 

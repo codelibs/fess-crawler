@@ -117,6 +117,8 @@ public class FtpClient extends AbstractCrawlerClient {
 
     protected String trustManager;
 
+    protected boolean enterLocalPassiveMode;
+
     @Override
     public synchronized void init() {
         if (ftpAuthenticationHolder != null) {
@@ -150,6 +152,7 @@ public class FtpClient extends AbstractCrawlerClient {
         useEPSVwithIPv4 = getInitParameter("useEPSVwithIPv4", false, Boolean.class);
         isImplicit = getInitParameter("isImplicit", null, Boolean.class);
         trustManager = getInitParameter("trustManager", null, String.class);
+        enterLocalPassiveMode = getInitParameter("enterLocalPassiveMode", false, Boolean.class);
 
         // ftp auth
         final FtpAuthenticationHolder holder = new FtpAuthenticationHolder();
@@ -504,6 +507,10 @@ public class FtpClient extends AbstractCrawlerClient {
             final FtpAuthentication auth = ftpAuthenticationHolder.get(info.toUrl());
             if (auth != null && !ftpClient.login(auth.getUsername(), auth.getPassword())) {
                 throw new CrawlerLoginFailureException("Login Failure: " + auth.getUsername() + " for " + info.toUrl());
+            }
+
+            if (enterLocalPassiveMode) {
+                ftpClient.enterLocalPassiveMode();
             }
 
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);

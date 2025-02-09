@@ -21,10 +21,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
-import java.net.MalformedURLException;
 import java.net.NoRouteToHostException;
 import java.net.SocketException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -261,7 +261,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
 
         // httpclient
-        final org.apache.http.client.config.RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
+        final RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
         final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
         final Integer connectionTimeoutParam = getInitParameter(CONNECTION_TIMEOUT_PROPERTY, connectionTimeout, Integer.class);
@@ -713,11 +713,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     } else {
                         redirectLocation = locationHeader.getValue();
                     }
-                    responseData = new ResponseData();
                     responseData.setRedirectLocation(redirectLocation);
                     return responseData;
                 }
-                logger.warn("Invalid redirect location at {}", url);
+                throw new CrawlingAccessException("Invalid redirect location at " + url);
             }
 
             String contentType = null;
@@ -742,8 +741,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
             } else {
                 final InputStream responseBodyStream = httpEntity.getContent();
-                try (final DeferredFileOutputStream dfos = new DeferredFileOutputStream((int) maxCachedContentSize, "crawler-HcHttpClient-",
-                        ".out", SystemUtils.getJavaIoTmpDir())) {
+                try (final DeferredFileOutputStream dfos = DeferredFileOutputStream.builder().setThreshold((int) maxCachedContentSize)
+                        .setPrefix("crawler-HcHttpClient-").setSuffix(".out").setDirectory(SystemUtils.getJavaIoTmpDir()).get()) {
                     CopyUtil.copy(responseBodyStream, dfos);
                     dfos.flush();
 
@@ -897,8 +896,16 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return null;
     }
 
-    protected static String buildRedirectLocation(final String url, final String location) throws MalformedURLException {
-        return new URL(new URL(url), location).toExternalForm();
+    protected static String buildRedirectLocation(final String url, final String location) {
+        try {
+            URI uri = new URI(url);
+            if (StringUtil.isNotEmpty(location)) {
+                uri = uri.resolve(location.replace(" ", "%20"));
+            }
+            return uri.normalize().toASCIIString();
+        } catch (URISyntaxException e) {
+            throw new CrawlingAccessException(e);
+        }
     }
 
     public void setConnectionTimeout(final Integer connectionTimeout) {

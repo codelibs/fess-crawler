@@ -172,6 +172,30 @@ public class HcHttpClientTest extends PlainTestCase {
 
     public void test_buildRedirectLocation() throws Exception {
         assertEquals("http://localhost/login.html", HcHttpClient.buildRedirectLocation("http://localhost/", "/login.html"));
+        assertEquals("http://localhost/path/login.html", HcHttpClient.buildRedirectLocation("http://localhost/path/", "login.html"));
+        assertEquals("http://localhost/login.html", HcHttpClient.buildRedirectLocation("http://localhost/path/", "/login.html"));
+        assertEquals("https://example.com/newpage", HcHttpClient.buildRedirectLocation("http://localhost/", "https://example.com/newpage"));
+        assertEquals("http://localhost/search?q=java", HcHttpClient.buildRedirectLocation("http://localhost/", "/search?q=java"));
+        assertEquals("http://localhost/home#section1", HcHttpClient.buildRedirectLocation("http://localhost/", "/home#section1"));
+        assertEquals("http://localhost/newpage", HcHttpClient.buildRedirectLocation("http://localhost", "newpage"));
+        assertEquals("http://localhost/newpage", HcHttpClient.buildRedirectLocation("http://localhost/path/", "../newpage"));
+        assertEquals("http://localhost/path/newpage", HcHttpClient.buildRedirectLocation("http://localhost/path/", "./newpage"));
+        assertEquals("http://localhost/", HcHttpClient.buildRedirectLocation("http://localhost/", null));
+        assertEquals("http://localhost/", HcHttpClient.buildRedirectLocation("http://localhost/", ""));
+        assertEquals("http://localhost/?query=value", HcHttpClient.buildRedirectLocation("http://localhost/", "?query=value"));
+        assertEquals("http://localhost/#section1", HcHttpClient.buildRedirectLocation("http://localhost/", "#section1"));
+        assertEquals("http://example.com/path", HcHttpClient.buildRedirectLocation("http://localhost/", "//example.com/path"));
+        assertEquals("mailto:user@example.com", HcHttpClient.buildRedirectLocation("http://localhost/", "mailto:user@example.com"));
+        assertEquals("data:text/plain;base64,SGVsbG8gd29ybGQ=",
+                HcHttpClient.buildRedirectLocation("http://localhost/", "data:text/plain;base64,SGVsbG8gd29ybGQ="));
+        assertEquals("http://192.168.1.1/path/file", HcHttpClient.buildRedirectLocation("http://192.168.1.1/path/", "file"));
+        assertEquals("http://[2001:db8::1]/path/file", HcHttpClient.buildRedirectLocation("http://[2001:db8::1]/path/", "file"));
+        assertEquals("http://example.com:8080/path/file", HcHttpClient.buildRedirectLocation("http://example.com:8080/path/", "file"));
+        assertEquals("http://example.com/%E3%83%86%E3%82%B9%E3%83%88", HcHttpClient.buildRedirectLocation("http://example.com/", "テスト"));
+        assertEquals("http://example.com/hello%20world", HcHttpClient.buildRedirectLocation("http://example.com/", "hello world"));
+        assertEquals("http://user:pass@example.com/path/file",
+                HcHttpClient.buildRedirectLocation("http://user:pass@example.com/path/", "file"));
+        assertEquals("http://example.com/", HcHttpClient.buildRedirectLocation("http://example.com/path/", "../"));
     }
 
     // public void test_doGet_mt() throws Exception {

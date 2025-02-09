@@ -162,9 +162,6 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String TIME_TO_LIVE_PROPERTY = "timeToLive";
 
-    @Deprecated
-    public static final String BASIC_AUTHENTICATIONS_PROPERTY = AUTHENTICATIONS_PROPERTY;
-
     private static final Logger logger = LogManager.getLogger(HcHttpClient.class);
 
     @Resource

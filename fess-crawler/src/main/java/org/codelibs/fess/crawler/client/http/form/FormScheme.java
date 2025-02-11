@@ -48,6 +48,40 @@ import org.codelibs.core.misc.Pair;
 import org.codelibs.core.stream.StreamUtil;
 import org.codelibs.fess.crawler.Constants;
 
+/**
+ * The FormScheme class implements the AuthScheme interface to provide
+ * form-based authentication for HTTP clients. It handles the process of
+ * obtaining a token and logging in using the provided credentials.
+ * 
+ * <p>This class supports both GET and POST methods for token and login
+ * requests. It also allows for the replacement of placeholders in URLs and
+ * parameters with actual credentials.
+ * 
+ * <p>Usage example:
+ * <pre>
+ * {@code
+ * Map<String, String> params = new HashMap<>();
+ * params.put("token_url", "http://example.com/token");
+ * params.put("login_url", "http://example.com/login");
+ * FormScheme formScheme = new FormScheme(params);
+ * formScheme.authenticate(credentials, executor);
+ * }
+ * </pre>
+ * 
+ * <p>Parameters:
+ * <ul>
+ * <li>ENCODING - The character encoding to use for request parameters.</li>
+ * <li>TOKEN_URL - The URL to request the token from.</li>
+ * <li>TOKEN_PATTERN - The regex pattern to extract the token from the response.</li>
+ * <li>TOKEN_NAME - The name of the token parameter.</li>
+ * <li>TOKEN_METHOD - The HTTP method to use for the token request (GET or POST).</li>
+ * <li>TOKEN_PARAMTERS - The parameters to include in the token request.</li>
+ * <li>LOGIN_METHOD - The HTTP method to use for the login request (GET or POST).</li>
+ * <li>LOGIN_URL - The URL to send the login request to.</li>
+ * <li>LOGIN_PARAMETERS - The parameters to include in the login request.</li>
+ * </ul>
+ * 
+ */
 public class FormScheme implements AuthScheme {
 
     private static final Logger logger = LogManager.getLogger(FormScheme.class);

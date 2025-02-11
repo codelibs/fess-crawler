@@ -20,8 +20,22 @@ import java.io.Serializable;
 import org.codelibs.core.lang.StringUtil;
 
 /**
- * @author shinsuke
- *
+ * Represents an HTTP request header with a name and value.
+ * This class is used to encapsulate the header information for HTTP requests.
+ * It provides methods to get and set the name and value of the header,
+ * as well as a method to validate the header.
+ * 
+ * <p>Example usage:</p>
+ * <pre>
+ *     RequestHeader header = new RequestHeader("Content-Type", "application/json");
+ *     String name = header.getName();
+ *     String value = header.getValue();
+ *     boolean isValid = header.isValid();
+ * </pre>
+ * 
+ * <p>Note: The name should not be blank and the value should not be null for the header to be considered valid.</p>
+ * 
+ * @see java.io.Serializable
  */
 public class RequestHeader implements Serializable {
 
@@ -31,6 +45,12 @@ public class RequestHeader implements Serializable {
 
     private String value;
 
+    /**
+     * Constructs a new RequestHeader with the specified name and value.
+     *
+     * @param name  the name of the request header
+     * @param value the value of the request header
+     */
     public RequestHeader(final String name, final String value) {
         this.name = name;
         this.value = value;

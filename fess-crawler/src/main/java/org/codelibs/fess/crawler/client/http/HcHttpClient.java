@@ -121,8 +121,34 @@ import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
- *
+ * HcHttpClient is an HTTP client implementation that extends AbstractCrawlerClient.
+ * It provides various configurations and settings for making HTTP requests, including
+ * connection timeouts, proxy settings, user agent, request headers, cookie management,
+ * and SSL configurations. The client also supports robots.txt parsing and form-based
+ * authentication schemes.
+ * 
+ * <p>Key properties and configurations:</p>
+ * <ul>
+ *   <li>CONNECTION_TIMEOUT_PROPERTY: Connection timeout setting.</li>
+ *   <li>SO_TIMEOUT_PROPERTY: Socket timeout setting.</li>
+ *   <li>PROXY_HOST_PROPERTY: Proxy host setting.</li>
+ *   <li>PROXY_PORT_PROPERTY: Proxy port setting.</li>
+ *   <li>PROXY_AUTH_SCHEME_PROPERTY: Proxy authentication scheme.</li>
+ *   <li>PROXY_CREDENTIALS_PROPERTY: Proxy credentials.</li>
+ *   <li>USER_AGENT_PROPERTY: User agent string.</li>
+ *   <li>ROBOTS_TXT_ENABLED_PROPERTY: Enable or disable robots.txt parsing.</li>
+ *   <li>AUTHENTICATIONS_PROPERTY: Web authentications.</li>
+ *   <li>REQUEST_HEADERS_PROPERTY: Custom request headers.</li>
+ *   <li>REDIRECTS_ENABLED: Enable or disable HTTP redirects.</li>
+ *   <li>COOKIES_PROPERTY: Cookie settings.</li>
+ *   <li>AUTH_SCHEME_PROVIDERS_PROPERTY: Authentication scheme providers.</li>
+ *   <li>IGNORE_SSL_CERTIFICATE_PROPERTY: Ignore SSL certificate validation.</li>
+ *   <li>DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY: Default maximum connections per route.</li>
+ *   <li>MAX_TOTAL_CONNECTION_PROPERTY: Maximum total connections.</li>
+ *   <li>TIME_TO_LIVE_TIME_UNIT_PROPERTY: Time to live unit for connections.</li>
+ *   <li>TIME_TO_LIVE_PROPERTY: Time to live for connections.</li>
+ * </ul>
+ * 
  */
 public class HcHttpClient extends AbstractCrawlerClient {
 
@@ -144,7 +170,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     public static final String AUTHENTICATIONS_PROPERTY = "webAuthentications";
 
-    public static final String REQUERT_HEADERS_PROPERTY = "requestHeaders";
+    public static final String REQUEST_HEADERS_PROPERTY = "requestHeaders";
 
     public static final String REDIRECTS_ENABLED = "redirectsEnabled";
 
@@ -242,6 +268,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     protected LayeredConnectionSocketFactory sslSocketFactory;
 
+    /**
+    * Initializes the HTTP client with the necessary configurations and settings.
+    * This method sets up the request configurations, authentication schemes,
+    * user agent, proxy settings, request headers, cookie store, and connection manager.
+    * It also processes form-based authentication schemes and sets up the HTTP client context.
+    */
     @Override
     public synchronized void init() {
         if (httpClient != null) {
@@ -318,7 +350,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         httpClientContext.setCredentialsProvider(credentialsProvider);
 
         // Request Header
-        final RequestHeader[] requestHeaders = getInitParameter(REQUERT_HEADERS_PROPERTY, new RequestHeader[0], RequestHeader[].class);
+        final RequestHeader[] requestHeaders = getInitParameter(REQUEST_HEADERS_PROPERTY, new RequestHeader[0], RequestHeader[].class);
         for (final RequestHeader requestHeader : requestHeaders) {
             if (requestHeader.isValid()) {
                 requestHeaderList.add(new BasicHeader(requestHeader.getName(), requestHeader.getValue()));
@@ -566,7 +598,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                             if (useRobotsTxtDisallows) {
                                 for (String urlPattern : directive.getDisallows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
-                                        urlPattern = convertRobotsTxtPathPattern(urlPattern);
+                                        urlPattern = convertRobotsTxtPatternToRegex(urlPattern);
                                         final String urlValue = hostUrl + urlPattern;
                                         crawlerContext.getUrlFilter().addExclude(urlValue);
                                         if (logger.isInfoEnabled()) {
@@ -578,7 +610,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                             if (useRobotsTxtAllows) {
                                 for (String urlPattern : directive.getAllows()) {
                                     if (StringUtil.isNotBlank(urlPattern)) {
-                                        urlPattern = convertRobotsTxtPathPattern(urlPattern);
+                                        urlPattern = convertRobotsTxtPatternToRegex(urlPattern);
                                         final String urlValue = hostUrl + urlPattern;
                                         crawlerContext.getUrlFilter().addInclude(urlValue);
                                         if (logger.isInfoEnabled()) {
@@ -602,7 +634,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
-    protected String convertRobotsTxtPathPattern(final String path) {
+    protected String convertRobotsTxtPatternToRegex(final String path) {
         String newPath = path.replace(".", "\\.").replace("?", "\\?").replace("*", ".*");
         if (newPath.charAt(0) != '/') {
             newPath = ".*" + newPath;
@@ -709,7 +741,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 if (locationHeader != null) {
                     final String redirectLocation;
                     if (locationHeader.getValue().startsWith("/")) {
-                        redirectLocation = buildRedirectLocation(url, locationHeader.getValue());
+                        redirectLocation = constructRedirectLocation(url, locationHeader.getValue());
                     } else {
                         redirectLocation = locationHeader.getValue();
                     }
@@ -815,7 +847,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             if (lastModifiedHeader != null) {
                 final String value = lastModifiedHeader.getValue();
                 if (StringUtil.isNotBlank(value)) {
-                    final Date d = parseLastModified(value);
+                    final Date d = parseLastModifiedDate(value);
                     if (d != null) {
                         responseData.setLastModified(d);
                     }
@@ -862,7 +894,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return httpClient.execute(httpRequest, new BasicHttpContext(httpClientContext));
     }
 
-    protected Date parseLastModified(final String value) {
+    protected Date parseLastModifiedDate(final String value) {
         final SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
         try {
             return sdf.parse(value);
@@ -896,7 +928,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return null;
     }
 
-    protected static String buildRedirectLocation(final String url, final String location) {
+    protected static String constructRedirectLocation(final String url, final String location) {
         try {
             URI uri = new URI(url);
             if (StringUtil.isNotEmpty(location)) {

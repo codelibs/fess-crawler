@@ -16,8 +16,21 @@
 package org.codelibs.fess.crawler.client.smb;
 
 /**
- * @author shinsuke
+ * Represents SMB authentication information, including server details,
+ * credentials, and domain. This class is used to encapsulate the necessary
+ * information for authenticating with an SMB server.
  *
+ * <p>
+ * It provides methods to set and retrieve the server address, port, username,
+ * password, and domain. Additionally, it offers a method to construct a path
+ * prefix for SMB URLs based on the configured server and port.
+ * </p>
+ *
+ * <p>
+ * The path prefix is in the format "smb://server:port/", where the port is
+ * included only if it's greater than 0. If the server is not set, the path
+ * prefix will be "smb://".
+ * </p>
  */
 public class SmbAuthentication {
     private String server;

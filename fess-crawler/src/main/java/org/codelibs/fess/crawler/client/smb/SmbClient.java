@@ -64,8 +64,50 @@ import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
 
 /**
- * @author shinsuke
+ * The {@link SmbClient} class is a crawler client implementation for accessing files and directories
+ * on SMB (Server Message Block) shares. It extends {@link AbstractCrawlerClient} and utilizes the JCIFS library
+ * to interact with SMB resources.
  *
+ * <p>
+ * This client supports authentication, content retrieval, and metadata extraction from SMB files.
+ * It handles file access, directory listing, and access control entries (ACEs) processing.
+ * </p>
+ *
+ * <p>
+ * The class provides methods to:
+ * <ul>
+ *   <li>Initialize the client with SMB authentication details.</li>
+ *   <li>Retrieve content and metadata from SMB files.</li>
+ *   <li>Process access control entries to determine allowed and denied SIDs (Security Identifiers).</li>
+ *   <li>Handle timeouts during SMB operations.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * The client uses a {@link SmbAuthenticationHolder} to manage SMB authentication credentials.
+ * It also integrates with other Fess Crawler components, such as {@link ContentLengthHelper} and
+ * {@link MimeTypeHelper}, to handle content length checks and MIME type detection.
+ * </p>
+ *
+ * <p>
+ * The class uses JCIFS properties to configure the SMB connection.
+ * </p>
+ *
+ * <p>
+ * Usage example:
+ * </p>
+ *
+ * <pre>
+ * {@code
+ * SmbClient smbClient = new SmbClient();
+ * smbClient.init();
+ * ResponseData responseData = smbClient.doGet("smb://example.com/share/file.txt");
+ * // Process the responseData
+ * smbClient.close();
+ * }
+ * </pre>
+ *
+ * @author shinsuke
  */
 public class SmbClient extends AbstractCrawlerClient {
     private static final Logger logger = LogManager.getLogger(SmbClient.class);
@@ -210,7 +252,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 responseData.setContentLength(file.length());
                 checkMaxContentLength(responseData);
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
-                responseData.setCharSet(geCharSet(file));
+                responseData.setCharSet(getCharSet(file));
                 responseData.setLastModified(new Date(file.lastModified()));
                 responseData.addMetaData(SMB_CREATE_TIME, new Date(file.createTime()));
                 try {
@@ -301,8 +343,8 @@ public class SmbClient extends AbstractCrawlerClient {
                     final SmbFile[] files = file.listFiles();
                     if (files != null) {
                         for (final SmbFile f : files) {
-                            final String chileUri = f.getURL().toExternalForm();
-                            requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
+                            final String childUri = f.getURL().toExternalForm();
+                            requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                         }
                     }
                 }
@@ -375,7 +417,7 @@ public class SmbClient extends AbstractCrawlerClient {
         return uri;
     }
 
-    protected String geCharSet(final SmbFile file) {
+    protected String getCharSet(final SmbFile file) {
         return charset;
     }
 
@@ -442,6 +484,11 @@ public class SmbClient extends AbstractCrawlerClient {
         this.charset = charset;
     }
 
+    /**
+     * Sets the SMB authentication holder.
+     *
+     * @param smbAuthenticationHolder the SMB authentication holder to set
+     */
     public void setSmbAuthenticationHolder(final SmbAuthenticationHolder smbAuthenticationHolder) {
         this.smbAuthenticationHolder = smbAuthenticationHolder;
     }

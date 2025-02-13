@@ -79,6 +79,7 @@ import jakarta.annotation.Resource;
  *
  * <p>
  * The client can be configured with FTP-specific settings via init parameters, such as:
+ * </p>
  * <ul>
  *   <li>ftpConfigSystemKey: The system key used to configure the FTPClientConfig.</li>
  *   <li>ftpConfigServerLanguageCode: The language code used by the FTP server.</li>
@@ -100,7 +101,6 @@ import jakarta.annotation.Resource;
  *   <li>enterLocalPassiveMode: Whether to enter local passive mode.</li>
  *   <li>ftpAuthentications: An array of {@link FtpAuthentication} objects for different FTP URLs.</li>
  * </ul>
- * </p>
  *
  * <p>
  * The class also supports FTP authentication via {@link FtpAuthenticationHolder}, which stores

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>fess-crawler-opensearch</artifactId>
 	<packaging>jar</packaging>
-	<name>Fess Crawler Elasticsearch</name>
+	<name>Fess Crawler OpenSearch</name>
 	<parent>
 		<groupId>org.codelibs.fess</groupId>
 		<artifactId>fess-crawler-parent</artifactId>

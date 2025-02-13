@@ -75,13 +75,13 @@ import jcifs.smb.SmbFileInputStream;
  *
  * <p>
  * The class provides methods to:
+ * </p>
  * <ul>
  *   <li>Initialize the client with SMB authentication details.</li>
  *   <li>Retrieve content and metadata from SMB files.</li>
  *   <li>Process access control entries to determine allowed and denied SIDs (Security Identifiers).</li>
  *   <li>Handle timeouts during SMB operations.</li>
  * </ul>
- * </p>
  *
  * <p>
  * The client uses a {@link SmbAuthenticationHolder} to manage SMB authentication credentials.

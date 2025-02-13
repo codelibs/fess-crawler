@@ -50,5 +50,43 @@ public class FtpAuthenticationTest extends PlainTestCase {
         assertFalse(auth.matches("http://hostname:21/"));
         assertFalse(auth.matches(""));
         assertFalse(auth.matches(null));
+
+        // Test with different ports
+        auth.setPort(8080);
+        assertTrue(auth.matches("ftp://hostname:8080/test/aaa.html"));
+        assertFalse(auth.matches("ftp://hostname:21/test/aaa.html"));
+
+        // Test with no port specified in FtpAuthentication
+        auth.setPort(0);
+        assertTrue(auth.matches("ftp://hostname:21/test/aaa.html"));
+        assertTrue(auth.matches("ftp://hostname/test/aaa.html"));
+
+        // Test with different server
+        auth.setServer("otherhost");
+        assertFalse(auth.matches("ftp://hostname:21/test/aaa.html"));
+        assertTrue(auth.matches("ftp://otherhost:21/test/aaa.html"));
+
+        // Test with IP address
+        auth.setServer("192.168.1.1");
+        assertTrue(auth.matches("ftp://192.168.1.1:21/test/aaa.html"));
+        assertTrue(auth.matches("ftp://192.168.1.1/test/aaa.html"));
+        assertFalse(auth.matches("ftp://hostname/test/aaa.html"));
+
+        // Test with more complex paths
+        auth.setServer("hostname");
+        auth.setPort(21);
+        assertTrue(auth.matches("ftp://hostname:21/path/to/resource.txt"));
+        assertTrue(auth.matches("ftp://hostname/path/to/resource.txt"));
+        assertFalse(auth.matches("ftp://hostname:22/path/to/resource.txt"));
+        assertFalse(auth.matches("ftp://otherhost/path/to/resource.txt"));
+
+        // Test with special characters in path
+        assertTrue(auth.matches("ftp://hostname:21/path%20with%20spaces/resource.txt"));
+        assertTrue(auth.matches("ftp://hostname/path%20with%20spaces/resource.txt"));
+
+        // Test with empty path
+        auth.setServer("test.example.com");
+        assertTrue(auth.matches("ftp://test.example.com/"));
+        assertTrue(auth.matches("ftp://test.example.com:21/"));
     }
 }

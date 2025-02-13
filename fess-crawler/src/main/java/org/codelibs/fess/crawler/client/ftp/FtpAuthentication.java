@@ -15,15 +15,18 @@
  */
 package org.codelibs.fess.crawler.client.ftp;
 
-import java.net.URL;
+import java.net.URI;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 
 /**
- * @author shinsuke
+ * FtpAuthentication class holds the authentication information for FTP connections.
+ * It includes server address, port number, username, and password.
+ * It also provides a method to check if the authentication matches a given FTP path.
  *
+ * @author shinsuke
  */
 public class FtpAuthentication {
     private static final Logger logger = LogManager.getLogger(FtpAuthentication.class);
@@ -75,8 +78,8 @@ public class FtpAuthentication {
 
         try {
             final int pos = path.indexOf('/', 6);
-            final URL uri = new URL(pos == -1 ? path : path.substring(0, pos));
-            if (!"ftp".equals(uri.getProtocol()) || StringUtil.isNotBlank(server) && !server.equals(uri.getHost())) {
+            final URI uri = new URI(pos == -1 ? path : path.substring(0, pos));
+            if (!"ftp".equals(uri.getScheme()) || (StringUtil.isNotBlank(server) && !server.equals(uri.getHost()))) {
                 return false;
             }
             int p = uri.getPort();
@@ -88,6 +91,7 @@ public class FtpAuthentication {
             }
             return true;
         } catch (final Exception e) {
+            // Log the exception at debug level because an invalid URI is not critical and can be ignored.
             logger.debug("Invalid URI: {}", path, e);
         }
         return false;

@@ -145,7 +145,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 parseFileOwnerAttribute(responseData, file);
 
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
-                responseData.setCharSet(geCharSet(file));
+                responseData.setCharSet(getCharSet(file));
                 responseData.setLastModified(new Date(file.lastModified()));
                 if (file.canRead()) {
                     final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
@@ -186,8 +186,8 @@ public class FileSystemClient extends AbstractCrawlerClient {
                     final File[] files = file.listFiles();
                     if (files != null) {
                         for (final File f : files) {
-                            final String chileUri = f.toURI().toASCIIString();
-                            requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
+                            final String childUri = f.toURI().toASCIIString();
+                            requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                         }
                     }
                 }
@@ -267,7 +267,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
         return buf.toString();
     }
 
-    protected String geCharSet(final File file) {
+    protected String getCharSet(final File file) {
         return charset;
     }
 

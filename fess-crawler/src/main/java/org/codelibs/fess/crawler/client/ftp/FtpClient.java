@@ -23,8 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Queue;
@@ -42,6 +42,7 @@ import org.apache.commons.net.ftp.FTPSClient;
 import org.apache.commons.net.util.TrustManagerUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.util.StringUtil;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
@@ -65,8 +66,62 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * FtpClient is a crawler client implementation for accessing resources via the FTP protocol.
+ * It extends {@link AbstractCrawlerClient} and provides methods to retrieve content and metadata
+ * from FTP servers. The client supports various configurations, including authentication, timeouts,
+ * passive/active modes, and encoding settings. It also handles FTP file attributes such as user,
+ * group, and symbolic links.
  *
+ * <p>
+ * The class uses Apache Commons Net library for FTP communication. It maintains a queue of FTPClient
+ * instances to improve performance by reusing connections.
+ * </p>
+ *
+ * <p>
+ * The client can be configured with FTP-specific settings via init parameters, such as:
+ * <ul>
+ *   <li>ftpConfigSystemKey: The system key used to configure the FTPClientConfig.</li>
+ *   <li>ftpConfigServerLanguageCode: The language code used by the FTP server.</li>
+ *   <li>ftpConfigServerTimeZoneId: The time zone ID of the FTP server.</li>
+ *   <li>activeExternalHost: The external IP address to use for active mode FTP.</li>
+ *   <li>activeMinPort: The minimum port number for active mode FTP.</li>
+ *   <li>activeMaxPort: The maximum port number for active mode FTP.</li>
+ *   <li>autodetectEncoding: Whether to automatically detect UTF-8 encoding.</li>
+ *   <li>connectTimeout: The timeout for establishing a connection to the FTP server.</li>
+ *   <li>dataTimeout: The timeout for data transfers.</li>
+ *   <li>controlEncoding: The character encoding for control messages.</li>
+ *   <li>bufferSize: The buffer size for data transfers.</li>
+ *   <li>passiveLocalHost: The local IP address to use for passive mode FTP.</li>
+ *   <li>passiveNatWorkaround: Whether to use a NAT workaround in passive mode.</li>
+ *   <li>reportActiveExternalHost: The external IP address to report in active mode.</li>
+ *   <li>useEPSVwithIPv4: Whether to use EPSV with IPv4.</li>
+ *   <li>isImplicit: Whether to use implicit SSL/TLS encryption.</li>
+ *   <li>trustManager: The trust manager to use for SSL/TLS connections ("all", "valid", or "none").</li>
+ *   <li>enterLocalPassiveMode: Whether to enter local passive mode.</li>
+ *   <li>ftpAuthentications: An array of {@link FtpAuthentication} objects for different FTP URLs.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * The class also supports FTP authentication via {@link FtpAuthenticationHolder}, which stores
+ * authentication details for different FTP URLs.
+ * </p>
+ *
+ * <p>
+ * Usage example:
+ * </p>
+ *
+ * <pre>
+ * {@code
+ * FtpClient ftpClient = new FtpClient();
+ * ftpClient.init(); // Initialize with configured parameters
+ * ResponseData responseData = ftpClient.doGet("ftp://example.com/path/to/file.txt");
+ * // Process the responseData
+ * ftpClient.close(); // Close and release resources
+ * }
+ * </pre>
+ *
+ * @author shinsuke
  */
 public class FtpClient extends AbstractCrawlerClient {
 
@@ -154,7 +209,7 @@ public class FtpClient extends AbstractCrawlerClient {
         trustManager = getInitParameter("trustManager", null, String.class);
         enterLocalPassiveMode = getInitParameter("enterLocalPassiveMode", false, Boolean.class);
 
-        // ftp auth
+        // Initialize FTP authentication holder
         final FtpAuthenticationHolder holder = new FtpAuthenticationHolder();
         final FtpAuthentication[] ftpAuthentications =
                 getInitParameter(FTP_AUTHENTICATIONS_PROPERTY, new FtpAuthentication[0], FtpAuthentication[].class);
@@ -225,7 +280,7 @@ public class FtpClient extends AbstractCrawlerClient {
         try {
             responseData.setMethod(Constants.GET_METHOD);
 
-            final FtpInfo ftpInfo = new FtpInfo(uri);
+            final FtpInfo ftpInfo = new FtpInfo(uri, charset);
             responseData.setUrl(ftpInfo.toUrl());
 
             client = getClient(ftpInfo);
@@ -242,8 +297,8 @@ public class FtpClient extends AbstractCrawlerClient {
                         final FTPFile[] files = client.listFiles(ftpInfo.getParent(), FTPFileFilters.NON_NULL);
                         validateRequest(client);
                         for (final FTPFile f : files) {
-                            final String chileUri = ftpInfo.toChildUrl(f.getName());
-                            requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
+                            final String childUri = ftpInfo.toChildUrl(f.getName());
+                            requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                         }
                     } catch (final IOException e) {
                         disconnectInternalClient(client);
@@ -362,7 +417,7 @@ public class FtpClient extends AbstractCrawlerClient {
                         }
                     }
 
-                    responseData.setCharSet(geCharSet(tempFile));
+                    responseData.setCharSet(getCharSet(tempFile));
 
                     if (tempFile.length() < maxCachedContentSize) {
                         try (InputStream contentStream = new BufferedInputStream(new FileInputStream(tempFile))) {
@@ -411,7 +466,11 @@ public class FtpClient extends AbstractCrawlerClient {
     }
 
     /**
-     * @param client
+     * Validates the FTP request by checking the reply code from the FTP server.
+     * If the reply code indicates an error, a CrawlingAccessException is thrown.
+     *
+     * @param client the FTPClient instance to validate
+     * @throws CrawlingAccessException if the FTP request failed
      */
     private void validateRequest(final FTPClient client) {
         final int replyCode = client.getReplyCode();
@@ -421,7 +480,7 @@ public class FtpClient extends AbstractCrawlerClient {
         throw new CrawlingAccessException("Failed FTP request: " + client.getReplyString().trim());
     }
 
-    protected String geCharSet(final File file) {
+    protected String getCharSet(final File file) {
         return charset;
     }
 
@@ -527,21 +586,49 @@ public class FtpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * FtpInfo is a helper class that encapsulates information about an FTP URL.
+     * It parses the URL and provides methods to retrieve the host, port, parent directory,
+     * and file name. It also provides methods to construct URLs for child paths.
+     *
+     * <p>
+     * Usage example:
+     * </p>
+     *
+     * <pre>
+     * {@code
+     * FtpInfo ftpInfo = new FtpInfo("ftp://example.com/path/to/file.txt");
+     * String host = ftpInfo.getHost(); // example.com
+     * int port = ftpInfo.getPort(); // 21
+     * String parent = ftpInfo.getParent(); // /path/to
+     * String name = ftpInfo.getName(); // file.txt
+     * String childUrl = ftpInfo.toChildUrl("anotherfile.txt"); // ftp://example.com/path/to/anotherfile.txt
+     * }
+     * </pre>
+     */
     public static class FtpInfo {
 
         private static final int DEFAULT_FTP_PORT = 21;
 
-        private URL uri;
+        private URI uri;
 
         private String parent;
 
         private String name;
 
-        public FtpInfo(final String s) {
+        public FtpInfo(final String s, final String c) {
+            if (StringUtil.isBlank(s)) {
+                throw new CrawlingAccessException("uri is blank.");
+            }
+
             try {
-                uri = new URL(normalize(s));
-            } catch (final MalformedURLException e) {
+                uri = new URI(normalize(s).replace("%", "%25").replace(" ", "%20"));
+            } catch (final URISyntaxException e) {
                 throw new CrawlingAccessException("Invalid URL: " + s, e);
+            }
+
+            if (!"ftp".equals(uri.getScheme())) {
+                throw new CrawlingAccessException("Invalid scheme: " + uri.getScheme());
             }
 
             final String path = uri.getPath();

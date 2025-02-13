@@ -19,14 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author shinsuke
- *
+ * Holds a list of FtpAuthentication objects and provides methods to add and retrieve them based on a given path.
+ * This class is designed to manage FTP authentication details for different paths.
  */
 public class FtpAuthenticationHolder {
-    List<FtpAuthentication> authList = new ArrayList<>();
+    List<FtpAuthentication> authenticationList = new ArrayList<>();
 
     public void add(final FtpAuthentication auth) {
-        authList.add(auth);
+        if (auth != null) {
+            authenticationList.add(auth);
+        }
     }
 
     public FtpAuthentication get(final String path) {
@@ -34,7 +36,7 @@ public class FtpAuthenticationHolder {
             return null;
         }
 
-        for (final FtpAuthentication auth : authList) {
+        for (final FtpAuthentication auth : authenticationList) {
             if (auth.matches(path)) {
                 return auth;
             }

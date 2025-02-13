@@ -52,11 +52,11 @@ import org.codelibs.fess.crawler.Constants;
  * The FormScheme class implements the AuthScheme interface to provide
  * form-based authentication for HTTP clients. It handles the process of
  * obtaining a token and logging in using the provided credentials.
- * 
+ *
  * <p>This class supports both GET and POST methods for token and login
  * requests. It also allows for the replacement of placeholders in URLs and
  * parameters with actual credentials.
- * 
+ *
  * <p>Usage example:
  * <pre>
  * {@code
@@ -67,7 +67,7 @@ import org.codelibs.fess.crawler.Constants;
  * formScheme.authenticate(credentials, executor);
  * }
  * </pre>
- * 
+ *
  * <p>Parameters:
  * <ul>
  * <li>ENCODING - The character encoding to use for request parameters.</li>
@@ -80,7 +80,7 @@ import org.codelibs.fess.crawler.Constants;
  * <li>LOGIN_URL - The URL to send the login request to.</li>
  * <li>LOGIN_PARAMETERS - The parameters to include in the login request.</li>
  * </ul>
- * 
+ *
  */
 public class FormScheme implements AuthScheme {
 

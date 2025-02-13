@@ -126,7 +126,7 @@ import jakarta.annotation.Resource;
  * connection timeouts, proxy settings, user agent, request headers, cookie management,
  * and SSL configurations. The client also supports robots.txt parsing and form-based
  * authentication schemes.
- * 
+ *
  * <p>Key properties and configurations:</p>
  * <ul>
  *   <li>CONNECTION_TIMEOUT_PROPERTY: Connection timeout setting.</li>
@@ -148,7 +148,7 @@ import jakarta.annotation.Resource;
  *   <li>TIME_TO_LIVE_TIME_UNIT_PROPERTY: Time to live unit for connections.</li>
  *   <li>TIME_TO_LIVE_PROPERTY: Time to live for connections.</li>
  * </ul>
- * 
+ *
  */
 public class HcHttpClient extends AbstractCrawlerClient {
 

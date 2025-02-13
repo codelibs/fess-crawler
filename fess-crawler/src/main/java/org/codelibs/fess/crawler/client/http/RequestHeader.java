@@ -24,7 +24,7 @@ import org.codelibs.core.lang.StringUtil;
  * This class is used to encapsulate the header information for HTTP requests.
  * It provides methods to get and set the name and value of the header,
  * as well as a method to validate the header.
- * 
+ *
  * <p>Example usage:</p>
  * <pre>
  *     RequestHeader header = new RequestHeader("Content-Type", "application/json");
@@ -32,9 +32,9 @@ import org.codelibs.core.lang.StringUtil;
  *     String value = header.getValue();
  *     boolean isValid = header.isValid();
  * </pre>
- * 
+ *
  * <p>Note: The name should not be blank and the value should not be null for the header to be considered valid.</p>
- * 
+ *
  * @see java.io.Serializable
  */
 public class RequestHeader implements Serializable {

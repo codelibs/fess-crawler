@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.client.ftp;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,11 +98,12 @@ public class FtpClientTest extends PlainTestCase {
         } catch (final ChildUrlsException e) {
             final Set<RequestData> urlSet = e.getChildUrlList();
             assertEquals(5, urlSet.size());
-            for (final RequestData requestData : urlSet.toArray(new RequestData[urlSet.size()])) {
-                String url = requestData.getUrl();
-                assertTrue(url.contains("dir1") || url.contains("dir2") || url.contains("text1.txt") || url.contains("text2.txt")
-                        || url.contains("text 3.txt"));
-            }
+            final List<String> urlList = urlSet.stream().map(x -> x.getUrl()).sorted().toList();
+            assertEquals("ftp://localhost:10021/dir1", urlList.get(0));
+            assertEquals("ftp://localhost:10021/dir2", urlList.get(1));
+            assertEquals("ftp://localhost:10021/text 3.txt", urlList.get(2));
+            assertEquals("ftp://localhost:10021/text1.txt", urlList.get(3));
+            assertEquals("ftp://localhost:10021/text2.txt", urlList.get(4));
         } finally {
             if (server != null) {
                 server.stop();
@@ -201,28 +203,28 @@ public class FtpClientTest extends PlainTestCase {
         FtpInfo ftpInfo;
 
         try {
-            ftpInfo = new FtpClient.FtpInfo(null);
+            ftpInfo = new FtpClient.FtpInfo(null, Constants.UTF_8);
             fail();
         } catch (CrawlingAccessException e) {
             // ignore
         }
 
         try {
-            ftpInfo = new FtpClient.FtpInfo("");
+            ftpInfo = new FtpClient.FtpInfo("", Constants.UTF_8);
             fail();
         } catch (CrawlingAccessException e) {
             // ignore
         }
 
         try {
-            ftpInfo = new FtpClient.FtpInfo("abc");
+            ftpInfo = new FtpClient.FtpInfo("abc", Constants.UTF_8);
             fail();
         } catch (CrawlingAccessException e) {
             // ignore
         }
 
         value = "ftp://123.123.123.123:9999/";
-        ftpInfo = new FtpClient.FtpInfo(value);
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
         assertEquals(value, ftpInfo.toUrl());
         assertEquals("123.123.123.123:9999", ftpInfo.getCacheKey());
         assertEquals("123.123.123.123", ftpInfo.getHost());
@@ -231,7 +233,7 @@ public class FtpClientTest extends PlainTestCase {
         assertNull(ftpInfo.getName());
 
         value = "ftp://123.123.123.123/test.txt";
-        ftpInfo = new FtpClient.FtpInfo(value);
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
         assertEquals(value, ftpInfo.toUrl());
         assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
         assertEquals("123.123.123.123", ftpInfo.getHost());
@@ -240,7 +242,7 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("test.txt", ftpInfo.getName());
 
         value = "ftp://123.123.123.123/aaa/../test.txt";
-        ftpInfo = new FtpClient.FtpInfo(value);
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
         assertEquals("ftp://123.123.123.123/test.txt", ftpInfo.toUrl());
         assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
         assertEquals("123.123.123.123", ftpInfo.getHost());
@@ -250,7 +252,7 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("ftp://123.123.123.123/", ftpInfo.toUrl("/"));
 
         value = "ftp://123.123.123.123:21/test1/test.txt";
-        ftpInfo = new FtpClient.FtpInfo(value);
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
         assertEquals("ftp://123.123.123.123/test1/test.txt", ftpInfo.toUrl());
         assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
         assertEquals("123.123.123.123", ftpInfo.getHost());
@@ -262,7 +264,7 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("ftp://123.123.123.123/ccc.txt", ftpInfo.toUrl("/aaa/../ccc.txt"));
 
         value = "ftp://123.123.123.123/test test.txt";
-        ftpInfo = new FtpClient.FtpInfo(value);
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
         assertEquals(value, ftpInfo.toUrl());
         assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
         assertEquals("123.123.123.123", ftpInfo.getHost());
@@ -271,7 +273,7 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("test test.txt", ftpInfo.getName());
 
         value = "ftp://123.123.123.123/テスト.txt";
-        ftpInfo = new FtpClient.FtpInfo(value);
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
         assertEquals(value, ftpInfo.toUrl());
         assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
         assertEquals("123.123.123.123", ftpInfo.getHost());
@@ -280,7 +282,7 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("テスト.txt", ftpInfo.getName());
 
         value = "ftp://123.123.123.123/";
-        ftpInfo = new FtpClient.FtpInfo(value);
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
         assertEquals(value, ftpInfo.toUrl());
         assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
         assertEquals("123.123.123.123", ftpInfo.getHost());
@@ -288,6 +290,32 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("/", ftpInfo.getParent());
         assertNull(ftpInfo.getName());
 
+        value = "ftp://123.123.123.123//";
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
+        assertEquals("ftp://123.123.123.123/", ftpInfo.toUrl());
+        assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
+        assertEquals("123.123.123.123", ftpInfo.getHost());
+        assertEquals(21, ftpInfo.getPort());
+        assertEquals("/", ftpInfo.getParent());
+        assertNull(ftpInfo.getName());
+
+        value = "ftp://testuser:testpass@123.123.123.123:21/test1/test.txt";
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
+        assertEquals("ftp://123.123.123.123/test1/test.txt", ftpInfo.toUrl());
+        assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
+        assertEquals("123.123.123.123", ftpInfo.getHost());
+        assertEquals(21, ftpInfo.getPort());
+        assertEquals("/test1", ftpInfo.getParent());
+        assertEquals("test.txt", ftpInfo.getName());
+
+        value = "ftp://123.123.123.123/path with spaces/file.txt";
+        ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
+        assertEquals(value, ftpInfo.toUrl());
+        assertEquals("123.123.123.123:21", ftpInfo.getCacheKey());
+        assertEquals("123.123.123.123", ftpInfo.getHost());
+        assertEquals(21, ftpInfo.getPort());
+        assertEquals("/path with spaces", ftpInfo.getParent());
+        assertEquals("file.txt", ftpInfo.getName());
     }
 
     public void test_doHead_file() throws Exception {

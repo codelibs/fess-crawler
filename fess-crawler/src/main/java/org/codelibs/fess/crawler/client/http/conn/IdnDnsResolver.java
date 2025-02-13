@@ -28,10 +28,10 @@ import org.apache.http.conn.DnsResolver;
  * to provide DNS resolution with support for Internationalized Domain Names (IDN).
  * It converts Unicode domain names to ASCII Compatible Encoding (ACE) using the
  * {@link java.net.IDN} class.
- * 
+ *
  * <p>This class allows setting a custom flag for the IDN conversion and a custom
  * encoding for URL decoding.</p>
- * 
+ *
  * <p>Example usage:</p>
  * <pre>
  * {@code
@@ -41,7 +41,7 @@ import org.apache.http.conn.DnsResolver;
  * InetAddress[] addresses = resolver.resolve("example.com");
  * }
  * </pre>
- * 
+ *
  */
 public class IdnDnsResolver implements DnsResolver {
 

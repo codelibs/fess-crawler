@@ -24,12 +24,12 @@ import org.codelibs.fess.crawler.client.http.Authentication;
  * Implementation of the {@link Authentication} interface.
  * This class provides methods to handle authentication details such as
  * authentication scope, credentials, and authentication scheme.
- * 
+ *
  * <p>
  * It includes constructors to initialize these details and getter and setter
  * methods to access and modify them.
  * </p>
- * 
+ *
  * <p>
  * Example usage:
  * </p>
@@ -40,7 +40,7 @@ import org.codelibs.fess.crawler.client.http.Authentication;
  * AuthenticationImpl auth = new AuthenticationImpl(authScope, credentials);
  * }
  * </pre>
- * 
+ *
  * @see org.codelibs.fess.crawler.client.http.Authentication
  */
 public class AuthenticationImpl implements Authentication {

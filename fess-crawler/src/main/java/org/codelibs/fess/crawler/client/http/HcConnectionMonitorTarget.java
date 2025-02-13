@@ -25,25 +25,25 @@ import org.codelibs.core.timer.TimeoutTarget;
 /**
  * HcConnectionMonitorTarget is responsible for monitoring and managing HTTP client connections.
  * It implements the TimeoutTarget interface to handle connection expiration events.
- * 
+ *
  * <p>This class uses an instance of HttpClientConnectionManager to manage the connections.
  * It closes expired connections and idle connections that have exceeded a specified timeout.
  * </p>
- * 
+ *
  * clientConnectionManager the HttpClientConnectionManager used to manage connections
  * idleConnectionTimeout the timeout duration (in milliseconds) for idle connections
- * 
+ *
  * <p>Methods:</p>
  * <ul>
  *   <li>{@link #expired()}: Handles the expiration of connections by closing expired and idle connections.</li>
  * </ul>
- * 
+ *
  * <p>Logging:</p>
  * <ul>
  *   <li>Logs a warning if the clientConnectionManager is null.</li>
  *   <li>Logs a warning if an exception occurs during connection monitoring.</li>
  * </ul>
- * 
+ *
  */
 public class HcConnectionMonitorTarget implements TimeoutTarget {
     private static final Logger logger = LogManager.getLogger(HcConnectionMonitorTarget.class);

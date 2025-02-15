@@ -34,9 +34,33 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 
+/**
+ * A container implementation that manages the lifecycle and dependency injection of components
+ * in a crawler application. This container supports both singleton and prototype component
+ * instantiation patterns.
+ *
+ * <p>The container provides mechanisms for:
+ * <ul>
+ *   <li>Registering and retrieving components by name</li>
+ *   <li>Managing singleton instances with lifecycle hooks</li>
+ *   <li>Creating prototype instances on demand</li>
+ *   <li>Dependency injection using {@code @Resource} annotation</li>
+ *   <li>Lifecycle management using {@code @PostConstruct} and {@code @PreDestroy} annotations</li>
+ * </ul>
+ *
+ * <p>Components can be registered in two ways:
+ * <ul>
+ *   <li>As singletons, where one instance is shared throughout the container's lifecycle</li>
+ *   <li>As prototypes, where a new instance is created each time the component is requested</li>
+ * </ul>
+ *
+ * <p>The container supports component initialization and destruction through consumer functions,
+ * allowing custom setup and cleanup operations for components.
+ *
+ */
 public class StandardCrawlerContainer implements CrawlerContainer {
 
-    private final Logger logger = LogManager.getLogger(StandardCrawlerContainer.class);
+    private static final Logger logger = LogManager.getLogger(StandardCrawlerContainer.class);
 
     private final Map<String, ComponentHolder<?>> singletonMap = new ConcurrentHashMap<>();
 
@@ -122,6 +146,12 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         return singleton(name, instance, null, null);
     }
 
+    /**
+     * A holder for a component instance and its associated destroyer function.
+     * This class manages the lifecycle of a component, including its destruction.
+     *
+     * @param <T> the type of the component
+     */
     protected static class ComponentHolder<T> {
         protected T instance;
 

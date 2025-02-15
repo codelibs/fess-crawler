@@ -26,6 +26,15 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
 
 import jakarta.annotation.Resource;
 
+/**
+ * Creates and manages crawler clients for web crawling operations.
+ * This class handles the registration and loading of crawler client factories and their associated clients.
+ * <p>
+ * The class maintains a mapping between regular expressions and component names, and manages a list
+ * of crawler client factories with a configurable maximum size.
+ * </p>
+ *
+ */
 public class CrawlerClientCreator {
 
     private static final Logger logger = LogManager.getLogger(CrawlerClientCreator.class);
@@ -52,13 +61,18 @@ public class CrawlerClientCreator {
         clientFactoryList.forEach(f -> load(f, regex, componentName));
     }
 
+    /**
+     * Loads a crawler client into the specified crawler client factory.
+     *
+     * @param crawlerClientFactory the factory to which the client will be added
+     * @param regex the regular expression used to match URLs for this client
+     * @param componentName the name of the component to be loaded as a client
+     */
     protected void load(final CrawlerClientFactory crawlerClientFactory, final String regex, final String componentName) {
         if (logger.isDebugEnabled()) {
             logger.debug("loading {}", componentName);
         }
-        CrawlerClient client = null;
-        try {
-            client = crawlerContainer.getComponent(componentName);
+        try (CrawlerClient client = crawlerContainer.getComponent(componentName)) {
             crawlerClientFactory.addClient(regex, client);
         } catch (final Exception e) {
             if (logger.isDebugEnabled()) {
@@ -66,17 +80,13 @@ public class CrawlerClientCreator {
             } else {
                 logger.info("{} is not available.", componentName);
             }
-            if (client != null) {
-                try {
-                    client.close();
-                } catch (final Exception ex) {
-                    logger.warn("Failed to close {}.", componentName, ex);
-                }
-            }
         }
     }
 
     public void setMaxClientFactorySize(final int maxClientFactorySize) {
+        if (maxClientFactorySize <= 0) {
+            throw new IllegalArgumentException("maxClientFactorySize must be positive.");
+        }
         this.maxClientFactorySize = maxClientFactorySize;
     }
 }

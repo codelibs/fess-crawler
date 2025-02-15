@@ -31,7 +31,24 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * A factory class for managing and creating crawler clients based on URL patterns.
+ * This class implements AutoCloseable to properly handle resource cleanup.
+ *
+ * <p>The factory maintains a map of regular expression patterns to crawler clients,
+ * allowing for URL-based client selection. Clients can be added with specific patterns
+ * and optionally at specific positions in the processing order.</p>
+ *
+ * <p>This factory is typically initialized through dependency injection and can be
+ * configured with initialization parameters that are passed to all registered clients.</p>
+ *
+ * <p>Features:</p>
+ * <ul>
+ *   <li>Pattern-based client mapping</li>
+ *   <li>Ordered client registration</li>
+ *   <li>Bulk client registration</li>
+ *   <li>Automatic client initialization</li>
+ *   <li>Resource cleanup management</li>
+ * </ul>
  *
  */
 public class CrawlerClientFactory implements AutoCloseable {
@@ -119,7 +136,7 @@ public class CrawlerClientFactory implements AutoCloseable {
     }
 
     public void setInitParameterMap(final Map<String, Object> params) {
-        if (params != null) {
+        if (params != null && !params.isEmpty()) {
             for (final CrawlerClient client : clientMap.values()) {
                 client.setInitParameterMap(params);
             }
@@ -136,7 +153,7 @@ public class CrawlerClientFactory implements AutoCloseable {
             try {
                 client.close();
             } catch (final Exception e) {
-                logger.warn("Faild to close {}.", client.getClass().getCanonicalName(), e);
+                logger.warn("Failed to close {}.", client.getClass().getCanonicalName(), e);
             }
         });
     }

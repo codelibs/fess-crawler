@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,10 +59,34 @@ import io.minio.messages.Tags;
 import jakarta.annotation.Resource;
 
 /**
- * StorageClient is CrawlerClient implementation to crawl files on a storage
- * system.
+ * A crawler client implementation for accessing and retrieving content from storage systems using MinIO.
+ * This client supports operations on object storage systems compatible with S3 protocol.
  *
- * @author shinsuke
+ * <p>This client requires the following initialization parameters:
+ * <ul>
+ *   <li>endpoint - The URL of the MinIO server</li>
+ *   <li>accessKey - The access key for authentication</li>
+ *   <li>secretKey - The secret key for authentication</li>
+ *   <li>connectTimeout - Connection timeout in milliseconds (default: 10000)</li>
+ *   <li>writeTimeout - Write timeout in milliseconds (default: 10000)</li>
+ *   <li>readTimeout - Read timeout in milliseconds (default: 10000)</li>
+ * </ul>
+ *
+ * <p>The client supports URLs in the format: {@code storage://bucket-name/object-path}
+ *
+ * <p>Features:
+ * <ul>
+ *   <li>Automatic initialization of MinIO client</li>
+ *   <li>Support for HEAD and GET operations</li>
+ *   <li>Content length validation</li>
+ *   <li>MIME type detection</li>
+ *   <li>Handling of large files through temporary file storage</li>
+ *   <li>Object metadata and tags retrieval</li>
+ *   <li>Directory listing capabilities</li>
+ * </ul>
+ *
+ * <p>The client handles timeout management for access operations and includes proper
+ * resource cleanup mechanisms.
  *
  */
 public class StorageClient extends AbstractCrawlerClient {
@@ -75,12 +98,16 @@ public class StorageClient extends AbstractCrawlerClient {
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
-    protected AtomicBoolean isInit = new AtomicBoolean(false);
+    protected volatile boolean isInit = false;
 
     protected MinioClient minioClient;
 
     @Override
-    public void init() {
+    public synchronized void init() {
+        if (isInit) {
+            return;
+        }
+
         super.init();
 
         final Builder builder = MinioClient.builder();
@@ -106,6 +133,8 @@ public class StorageClient extends AbstractCrawlerClient {
 
         minioClient.setTimeout(getInitParameter("connectTimeout", (long) 10000, Long.class),
                 getInitParameter("writeTimeout", (long) 10000, Long.class), getInitParameter("readTimeout", (long) 10000, Long.class));
+
+        isInit = true;
     }
 
     protected boolean bucketExists(final String name) {
@@ -118,13 +147,8 @@ public class StorageClient extends AbstractCrawlerClient {
     }
 
     protected ResponseData processRequest(final String uri, final boolean includeContent) {
-        if (!isInit.get()) {
-            synchronized (isInit) {
-                if (!isInit.get()) {
-                    init();
-                    isInit.set(true);
-                }
-            }
+        if (!isInit) {
+            init();
         }
 
         // start
@@ -216,7 +240,7 @@ public class StorageClient extends AbstractCrawlerClient {
                 } else {
                     File outputFile = null;
                     try {
-                        outputFile = File.createTempFile("crawler-SmbClient-", ".out");
+                        outputFile = File.createTempFile("crawler-StorageClient-", ".out");
                         final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
                         CopyUtil.copy(minioClient.getObject(args), outputFile);
                         responseData.setResponseBody(outputFile, true);

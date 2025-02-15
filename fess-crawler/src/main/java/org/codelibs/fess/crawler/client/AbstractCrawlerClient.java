@@ -28,8 +28,10 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
- *
+ * Abstract base class for CrawlerClient implementations.
+ * Provides common functionality for handling initialization parameters,
+ * content length checks, and default method implementations.
+ * It defines the basic structure and configuration options for crawler clients.
  */
 public abstract class AbstractCrawlerClient implements CrawlerClient {
 
@@ -48,9 +50,9 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     protected Map<String, Object> initParamMap;
 
-    protected long maxCachedContentSize = 1024L * 1024L; //1mb
+    protected long maxCachedContentSize = 1024L * 1024L; // 1MB
 
-    protected Integer accessTimeout = null; // sec
+    protected Integer accessTimeout = null; // seconds
 
     protected Long maxContentLength = null;
 

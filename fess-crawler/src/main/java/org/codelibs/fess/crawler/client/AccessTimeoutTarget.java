@@ -22,6 +22,22 @@ import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.core.timer.TimeoutTarget;
 
+/**
+ * AccessTimeoutTarget is a class that implements the TimeoutTarget interface.
+ * It is used to interrupt a running thread when a timeout occurs.
+ * The class provides methods to interrupt the thread and stop the timeout target.
+ *
+ * <p>
+ * The class uses a logger to log debug messages.
+ * It also uses an AtomicBoolean to track whether the thread is running.
+ * </p>
+ *
+ * <p>
+ * The expired method is called when a timeout occurs.
+ * It interrupts the running thread up to a maximum number of times.
+ * The stop method is called to stop the timeout target.
+ * </p>
+ */
 public class AccessTimeoutTarget implements TimeoutTarget {
 
     private static final Logger logger = LogManager.getLogger(AccessTimeoutTarget.class);
@@ -37,10 +53,10 @@ public class AccessTimeoutTarget implements TimeoutTarget {
         running.set(true);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
-     * @see org.seasar.extension.timer.TimeoutTarget#expired()
+     * @see org.codelibs.core.timer.TimeoutTarget#expired()
      */
     @Override
     public void expired() {
@@ -56,6 +72,9 @@ public class AccessTimeoutTarget implements TimeoutTarget {
     }
 
     public void stop() {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Timeout target has been stopped.");
+        }
         running.set(false);
     }
 }

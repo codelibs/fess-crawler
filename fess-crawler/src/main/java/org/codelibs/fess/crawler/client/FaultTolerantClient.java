@@ -29,7 +29,26 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
 
 /**
- * @author shinsuke
+ * A fault-tolerant wrapper for CrawlerClient that implements retry logic for failed requests.
+ * This client will attempt to execute requests multiple times before giving up, with configurable
+ * retry counts and intervals between attempts.
+ *
+ * <p>The client supports a RequestListener interface to monitor the request lifecycle and handle
+ * exceptions during retries.</p>
+ *
+ * <p>Key features:</p>
+ * <ul>
+ *   <li>Configurable maximum retry attempts</li>
+ *   <li>Adjustable interval between retries</li>
+ *   <li>Exception tracking and aggregation</li>
+ *   <li>Request lifecycle monitoring through listener</li>
+ * </ul>
+ *
+ * <p>By default, it will:</p>
+ * <ul>
+ *   <li>Retry up to 5 times</li>
+ *   <li>Wait 500ms between retries</li>
+ * </ul>
  *
  */
 public class FaultTolerantClient implements CrawlerClient {
@@ -45,6 +64,11 @@ public class FaultTolerantClient implements CrawlerClient {
     protected RequestListener listener;
 
     @Override
+    /**
+     * Sets the initialization parameters for the underlying CrawlerClient.
+     *
+     * @param params a map of parameter names and values to be set
+     */
     public void setInitParameterMap(final Map<String, Object> params) {
         client.setInitParameterMap(params);
     }
@@ -95,6 +119,11 @@ public class FaultTolerantClient implements CrawlerClient {
         }
     }
 
+    /**
+     * Closes the underlying CrawlerClient and releases any resources associated with it.
+     *
+     * @throws Exception if an error occurs during the close operation
+     */
     @Override
     public void close() throws Exception {
         client.close();

@@ -16,7 +16,10 @@
 package org.codelibs.fess.crawler.entity;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link UrlQueue} interface.
+ * This class represents a URL to be crawled, storing its ID, session ID,
+ * HTTP method, URL, metadata, encoding, parent URL, depth, last modified time,
+ * creation time, and weight.
  *
  */
 public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {

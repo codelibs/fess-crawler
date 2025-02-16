@@ -23,6 +23,27 @@ import java.util.regex.Pattern;
 
 import org.codelibs.core.lang.StringUtil;
 
+/**
+ * Represents a robots.txt file parser and handler.
+ * This class manages the rules defined in a robots.txt file, including user agent directives,
+ * allowed/disallowed paths, crawl delays, and sitemap URLs.
+ *
+ * <p>The robots.txt protocol is implemented according to the standard specification,
+ * supporting pattern matching for user agents, path-based access control, and crawl delay settings.</p>
+ *
+ * <p>Key features:</p>
+ * <ul>
+ *   <li>Supports multiple user-agent directives with pattern matching</li>
+ *   <li>Handles Allow and Disallow rules for path-based access control</li>
+ *   <li>Manages crawl delay settings per user agent</li>
+ *   <li>Stores sitemap URLs listed in robots.txt</li>
+ * </ul>
+ *
+ * <p>The class uses case-insensitive pattern matching for user agents and supports
+ * wildcard characters (*) in user agent strings. When multiple directives match a user agent,
+ * the most specific (longest) match is used.</p>
+ *
+ */
 public class RobotsTxt {
     private static final String ALL_BOTS = "*";
 
@@ -30,6 +51,14 @@ public class RobotsTxt {
 
     private final List<String> sitemapList = new ArrayList<>();
 
+    /**
+     * Checks if access to a given path is allowed for a specific user agent according to robots.txt rules.
+     *
+     * @param path The path to check for access permission
+     * @param userAgent The user agent string to check against robots.txt directives
+     * @return true if access is allowed, false if access is disallowed by robots.txt rules.
+     *         Returns true if no matching directive is found for the user agent.
+     */
     public boolean allows(final String path, final String userAgent) {
         final Directive directive = getMatchedDirective(userAgent);
         if (directive == null) {
@@ -38,6 +67,14 @@ public class RobotsTxt {
         return directive.allows(path);
     }
 
+    /**
+     * Gets the crawl delay value for the specified user agent from robots.txt.
+     * The crawl delay specifies the time (in seconds) to wait between successive requests.
+     *
+     * @param userAgent The user agent string to match against robots.txt directives
+     * @return The crawl delay value in seconds. Returns 0 if no matching directive is found
+     *         or no crawl delay is specified for the matching directive.
+     */
     public int getCrawlDelay(final String userAgent) {
         final Directive directive = getMatchedDirective(userAgent);
         if (directive == null) {
@@ -46,6 +83,15 @@ public class RobotsTxt {
         return directive.getCrawlDelay();
     }
 
+    /**
+     * Returns the most specific directive matching the given user agent.
+     * The method finds the longest matching user agent pattern in the directives,
+     * excluding the general "*" pattern which matches all bots.
+     *
+     * @param userAgent the user agent string to match against directives,
+     *                 can be null (treated as empty string)
+     * @return the most specific matching directive, or null if no directive matches
+     */
     public Directive getMatchedDirective(final String userAgent) {
         final String target;
         if (userAgent == null) {
@@ -74,6 +120,12 @@ public class RobotsTxt {
         return matchedDirective;
     }
 
+    /**
+     * Retrieves the robots.txt directive for the specified user agent.
+     *
+     * @param userAgent The user agent string to look up in the directives
+     * @return The Directive object matching the user agent, or null if no matching directive is found or if userAgent is null
+     */
     public Directive getDirective(final String userAgent) {
         if (userAgent == null) {
             return null;
@@ -86,18 +138,41 @@ public class RobotsTxt {
         return null;
     }
 
+    /**
+     * Adds a directive to the robots.txt rules.
+     * The user-agent pattern in the directive is converted to a regular expression pattern,
+     * where '*' is replaced with '.*' for pattern matching, and stored case-insensitively.
+     *
+     * @param directive The directive to add to the robots.txt rules
+     */
     public void addDirective(final Directive directive) {
         directiveMap.put(Pattern.compile(directive.getUserAgent().replace("*", ".*"), Pattern.CASE_INSENSITIVE), directive);
     }
 
+    /**
+     * Adds a sitemap URL to the list of sitemaps.
+     *
+     * @param url The URL of the sitemap to be added
+     */
     public void addSitemap(final String url) {
-        sitemapList.add(url);
+        if (!sitemapList.contains(url)) {
+            sitemapList.add(url);
+        }
     }
 
+    /**
+     * Returns an array of sitemap URLs.
+     *
+     * @return an array of sitemap URLs
+     */
     public String[] getSitemaps() {
         return sitemapList.toArray(new String[sitemapList.size()]);
     }
 
+    /**
+     * Represents a directive in a robots.txt file.
+     * A directive consists of a user agent, crawl delay, allowed paths, and disallowed paths.
+     */
     public static class Directive {
         private final String userAgent;
 
@@ -138,11 +213,15 @@ public class RobotsTxt {
         }
 
         public void addAllow(final String path) {
-            allowedPaths.add(path);
+            if (!allowedPaths.contains(path)) {
+                allowedPaths.add(path);
+            }
         }
 
         public void addDisallow(final String path) {
-            disallowedPaths.add(path);
+            if (!disallowedPaths.contains(path)) {
+                disallowedPaths.add(path);
+            }
         }
 
         public String[] getAllows() {

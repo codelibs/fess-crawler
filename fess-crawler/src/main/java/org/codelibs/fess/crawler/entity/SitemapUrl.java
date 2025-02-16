@@ -18,7 +18,18 @@ package org.codelibs.fess.crawler.entity;
 import org.codelibs.core.lang.StringUtil;
 
 /**
- * @author shinsuke
+ * Represents a URL entry within a sitemap.
+ *
+ * <p>
+ * This class encapsulates the properties of a URL as defined in the sitemap XML format,
+ * including its location, last modification date, change frequency, and priority.
+ * It implements the {@link Sitemap} interface.
+ * </p>
+ *
+ * <p>
+ * The {@code SitemapUrl} class provides getter and setter methods for each of these properties,
+ * as well as implementations for {@code equals()}, {@code hashCode()}, and {@code toString()} methods.
+ * </p>
  *
  */
 public class SitemapUrl implements Sitemap {
@@ -125,6 +136,9 @@ public class SitemapUrl implements Sitemap {
 
     @Override
     public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (!(obj instanceof final SitemapUrl sitemapUrl)) {
             return false;
         }
@@ -137,7 +151,7 @@ public class SitemapUrl implements Sitemap {
 
     @Override
     public int hashCode() {
-        return loc.hashCode() + changefreq.hashCode() + lastmod.hashCode() + priority.hashCode();
+        return java.util.Objects.hash(loc, changefreq, lastmod, priority);
     }
 
     @Override

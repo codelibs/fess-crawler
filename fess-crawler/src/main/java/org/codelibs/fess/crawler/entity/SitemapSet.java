@@ -20,7 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author shinsuke
+ * Represents a set of Sitemaps, which can be either a UrlSet or an Index.
+ * This class provides methods to manage a list of Sitemap objects and determine the type of the SitemapSet.
  *
  */
 public class SitemapSet implements Serializable {

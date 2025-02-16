@@ -20,9 +20,20 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.RequestData.Method;
 
 /**
- * Builder class to create a request.
+ * Builder class for creating RequestData objects using a fluent interface.
+ * This class provides a simple way to construct RequestData objects with method chaining.
  *
- * @author shinsuke
+ * <p>Usage example:</p>
+ * <pre>
+ * RequestData request = RequestDataBuilder.newRequestData()
+ *     .method("GET")
+ *     .url("https://example.com")
+ *     .weight(1.0f)
+ *     .build();
+ * </pre>
+ *
+ * <p>The builder is implemented using an inner class {@link RequestDataContext} that handles
+ * the actual construction of the RequestData object.</p>
  *
  */
 public final class RequestDataBuilder {
@@ -70,16 +81,33 @@ public final class RequestDataBuilder {
             return method(Method.POST);
         }
 
+        /**
+         * Sets the URL for this request data.
+         *
+         * @param url the URL string to be set
+         * @return the current RequestDataContext instance for method chaining
+         */
         public RequestDataContext url(final String url) {
             data.setUrl(url);
             return this;
         }
 
+        /**
+         * Sets the weight for the request data.
+         *
+         * @param weight the weight to set
+         * @return the current RequestDataContext instance
+         */
         public RequestDataContext weight(final float weight) {
             data.setWeight(weight);
             return this;
         }
 
+        /**
+         * Builds and returns the constructed RequestData object.
+         *
+         * @return the constructed RequestData object
+         */
         public RequestData build() {
             return data;
         }

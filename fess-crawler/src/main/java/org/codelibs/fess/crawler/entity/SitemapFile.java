@@ -18,7 +18,26 @@ package org.codelibs.fess.crawler.entity;
 import org.codelibs.core.lang.StringUtil;
 
 /**
- * @author shinsuke
+ * Represents a Sitemap file entry, conforming to the Sitemap XML format.
+ * This class holds information about a single Sitemap, including its location and last modification timestamp.
+ * It implements the {@link Sitemap} interface.
+ *
+ * <p>
+ * A Sitemap file provides search engines with a list of URLs available for crawling.
+ * This class encapsulates the essential attributes of a Sitemap entry, allowing for efficient management
+ * and processing of Sitemap data.
+ * </p>
+ *
+ * <p>
+ * The {@code loc} attribute specifies the URL of the Sitemap, while the {@code lastmod} attribute
+ * indicates the last time the Sitemap file was modified.  The {@code lastmod} attribute is used by crawlers
+ * to incrementally fetch sitemaps that have been updated since a certain date.
+ * </p>
+ *
+ * <p>
+ * This class also provides implementations for {@code equals}, {@code hashCode}, and {@code toString} methods
+ * to facilitate object comparison and representation.
+ * </p>
  *
  */
 public class SitemapFile implements Sitemap {
@@ -75,6 +94,9 @@ public class SitemapFile implements Sitemap {
 
     @Override
     public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (!(obj instanceof final SitemapFile sitemapUrl)) {
             return false;
         }
@@ -86,7 +108,7 @@ public class SitemapFile implements Sitemap {
 
     @Override
     public int hashCode() {
-        return loc.hashCode() + lastmod.hashCode();
+        return java.util.Objects.hash(loc, lastmod);
     }
 
     @Override

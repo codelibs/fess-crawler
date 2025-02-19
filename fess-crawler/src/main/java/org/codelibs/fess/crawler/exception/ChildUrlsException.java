@@ -20,9 +20,9 @@ import java.util.Set;
 import org.codelibs.fess.crawler.entity.RequestData;
 
 /**
- * ChildUrlsException is thrown when having child urls.
- *
- * @author shinsuke
+ * {@link ChildUrlsException} is thrown when child URLs are found during crawling.
+ * It extends {@link CrawlerSystemException} and holds a set of {@link RequestData}
+ * representing the child URLs that caused the exception.
  *
  */
 public class ChildUrlsException extends CrawlerSystemException {

@@ -15,6 +15,11 @@
  */
 package org.codelibs.fess.crawler.exception;
 
+/**
+ * UnsupportedExtractException is thrown when the content extraction is not supported.
+ * It extends ExtractException and indicates that the requested extraction operation cannot be performed.
+ *
+ */
 public class UnsupportedExtractException extends ExtractException {
 
     private static final long serialVersionUID = 1L;

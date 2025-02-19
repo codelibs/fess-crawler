@@ -16,25 +16,53 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
- *
+ * Exception thrown during the extraction process in the crawler.
+ * This exception indicates a failure or error that occurred while extracting content from a crawled resource.
+ * It extends {@link org.codelibs.fess.crawler.exception.CrawlerSystemException} and provides constructors
+ * to handle different scenarios such as wrapping another exception or providing a specific error message.
  */
 public class ExtractException extends CrawlerSystemException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a new ExtractException with the specified message and cause.
+     *
+     * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()} method.
+     * @param cause the cause (which is saved for later retrieval by the {@link #getCause()} method).
+     *              (A {@code null} value is permitted, and indicates that the cause is nonexistent or unknown.)
+     */
     public ExtractException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Constructs a new ExtractException with the specified detail message.
+     *
+     * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()} method.
+     */
     public ExtractException(final String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new ExtractException with the specified cause.
+     *
+     * @param cause The cause (which is saved for later retrieval by the {@link #getCause()} method).
+     *              (A {@code null} value is permitted, and indicates that the cause is nonexistent or unknown.)
+     */
     public ExtractException(final Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Constructs a new ExtractException with the specified detail message,
+     * suppression enabled or disabled, and writable stack trace enabled or disabled.
+     *
+     * @param message the detail message.
+     * @param enableSuppression whether or not suppression is enabled or disabled.
+     * @param writableStackTrace whether or not the stack trace should be writable.
+     */
     protected ExtractException(final String message, final boolean enableSuppression, final boolean writableStackTrace) {
         super(message, enableSuppression, writableStackTrace);
     }

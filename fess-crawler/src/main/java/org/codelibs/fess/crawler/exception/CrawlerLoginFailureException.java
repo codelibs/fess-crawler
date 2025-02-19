@@ -16,12 +16,18 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
+ * The crawler login failure exception.
+ * This exception is thrown when the crawler fails to login to a website.
  *
  */
 public class CrawlerLoginFailureException extends CrawlerSystemException {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a new CrawlerLoginFailureException with the specified detail message.
+     *
+     * @param message the detail message.
+     */
     public CrawlerLoginFailureException(final String message) {
         super(message);
     }

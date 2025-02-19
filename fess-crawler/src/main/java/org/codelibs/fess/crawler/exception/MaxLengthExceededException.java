@@ -16,7 +16,8 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
+ * MaxLengthExceededException is thrown when the content length exceeds the maximum allowed length.
+ * It extends CrawlingAccessException, indicating a crawling-related access issue.
  *
  */
 public class MaxLengthExceededException extends CrawlingAccessException {

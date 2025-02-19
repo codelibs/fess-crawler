@@ -19,7 +19,9 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
- * @author shinsuke
+ * An exception that indicates multiple crawling access exceptions occurred.
+ * This exception holds an array of Throwable objects representing the individual causes.
+ * It extends CrawlingAccessException and provides methods to print the stack traces of all causes.
  *
  */
 public class MultipleCrawlingAccessException extends CrawlingAccessException {
@@ -43,7 +45,7 @@ public class MultipleCrawlingAccessException extends CrawlingAccessException {
 
         int count = 1;
         for (final Throwable t : throwables) {
-            s.println("Caused " + count + ":");
+            s.println("Cause #" + count + ":");
             t.printStackTrace(s);
             count++;
         }

@@ -16,8 +16,9 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
- *
+ * MimeTypeException is a custom exception class that extends CrawlerSystemException.
+ * It is used to indicate exceptions related to MIME type handling during the crawling process.
+ * This exception can be thrown with a message, a cause, or both.
  */
 public class MimeTypeException extends CrawlerSystemException {
 

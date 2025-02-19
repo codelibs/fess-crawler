@@ -16,21 +16,42 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
- *
+ * The class CrawlerSystemException is a runtime exception that is thrown when a system error occurs during crawling.
+ * It extends the RuntimeException class and provides constructors for creating exceptions with a message, a cause, or both.
+ * It also provides a protected constructor that allows to specify whether or not suppression is enabled or stack trace is writable.
  */
 public class CrawlerSystemException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a new {@code CrawlerSystemException} with the specified detail message and cause.
+     *
+     * @param message the detail message (which is saved for later retrieval by the {@link #getMessage()} method).
+     * @param cause the cause (which is saved for later retrieval by the {@link #getCause()} method).
+     *              (A {@code null} value is permitted, and indicates that the cause is nonexistent or unknown.)
+     */
     public CrawlerSystemException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Constructs a new CrawlerSystemException with the specified detail message.
+     *
+     * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()} method.
+     */
     public CrawlerSystemException(final String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new CrawlerSystemException with the specified cause.
+     *
+     * @param cause The cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A {@code null} value is
+     *        permitted, and indicates that the cause is nonexistent or
+     *        unknown.)
+     */
     public CrawlerSystemException(final Throwable cause) {
         super(cause);
     }

@@ -16,21 +16,38 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
+ * An exception indicating that the execution of a process has timed out.
+ * This exception extends {@link org.codelibs.fess.crawler.exception.ExtractException}.
  *
  */
 public class ExecutionTimeoutException extends ExtractException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a new exception with the specified detail message and cause.
+     *
+     * @param message the detail message
+     * @param cause the cause (which is saved for later retrieval by the {@link Throwable#getCause()} method)
+     */
     public ExecutionTimeoutException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Constructs a new exception with the specified detail message.
+     *
+     * @param message the detail message.
+     */
     public ExecutionTimeoutException(final String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new exception with the specified cause.
+     *
+     * @param cause the cause (which is saved for later retrieval by the {@link Throwable#getCause()} method)
+     */
     public ExecutionTimeoutException(final Throwable cause) {
         super(cause);
     }

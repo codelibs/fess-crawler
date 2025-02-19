@@ -16,7 +16,8 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
+ * RobotsTxtException is an exception class that represents an error related to robots.txt processing during web crawling.
+ * It extends CrawlerSystemException and provides constructors to create instances with a message and/or a cause.
  *
  */
 public class RobotsTxtException extends CrawlerSystemException {

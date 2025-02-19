@@ -16,8 +16,31 @@
 package org.codelibs.fess.crawler.exception;
 
 /**
- * @author shinsuke
+ * CrawlingAccessException is an exception class that represents an issue encountered while accessing a resource during the crawling process.
+ * It extends CrawlerSystemException and provides functionality to set and check the log level for the exception.
  *
+ * <p>
+ * This exception can be thrown when there are problems accessing URLs, files, or any other resources needed for crawling.
+ * It includes constructors to handle messages, causes, or both.
+ * </p>
+ *
+ * <p>
+ * The log level can be set to DEBUG, INFO, WARN, or ERROR, and the class provides methods to check if a specific log level is enabled.
+ * </p>
+ *
+ * <p>
+ * Example usage:
+ * </p>
+ *
+ * <pre>
+ * try {
+ *     // Attempt to access a resource
+ * } catch (CrawlingAccessException e) {
+ *     if (e.isErrorEnabled()) {
+ *         // Log the error
+ *     }
+ * }
+ * </pre>
  */
 public class CrawlingAccessException extends CrawlerSystemException {
 
@@ -25,7 +48,7 @@ public class CrawlingAccessException extends CrawlerSystemException {
 
     public static final String DEBUG = "DEBUG";
 
-    public static final String INFO = "ERROR";
+    public static final String INFO = "INFO";
 
     public static final String WARN = "WARN";
 

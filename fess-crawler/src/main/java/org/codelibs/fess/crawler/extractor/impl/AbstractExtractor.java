@@ -25,12 +25,33 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 
 import jakarta.annotation.Resource;
 
+/**
+ * An abstract base class for implementing Extractor interfaces.
+ * Provides common functionality such as access to CrawlerContainer components
+ * and registration with the ExtractorFactory.
+ *
+ * <p>
+ * This class handles the retrieval of essential crawler components like
+ * {@link MimeTypeHelper} and {@link ExtractorFactory} from the
+ * {@link CrawlerContainer}. It also provides a convenient method for
+ * registering the extractor with the {@link ExtractorFactory}.
+ * </p>
+ *
+ * <p>
+ * Subclasses should implement the actual extraction logic in their own
+ * methods, leveraging the helper methods provided by this abstract class.
+ * </p>
+ *
+ */
 public abstract class AbstractExtractor implements Extractor {
 
     @Resource
     protected CrawlerContainer crawlerContainer;
 
     public void register(final List<String> keyList) {
+        if (keyList == null || keyList.isEmpty()) {
+            throw new IllegalArgumentException("keyList must not be null or empty.");
+        }
         getExtractorFactory().addExtractor(keyList, this);
     }
 

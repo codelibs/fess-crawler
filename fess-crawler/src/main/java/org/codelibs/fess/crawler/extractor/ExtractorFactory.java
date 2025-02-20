@@ -34,8 +34,22 @@ import org.codelibs.fess.crawler.exception.UnsupportedExtractException;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * Factory class for managing and retrieving {@link Extractor} instances.
+ * This class provides methods to add, retrieve, and manage extractors based on a key.
+ * It also includes a builder for creating extractors.
  *
+ * <p>
+ * The factory maintains a map of keys to an array of {@link Extractor} objects.
+ * When multiple extractors are associated with a single key, they are sorted by weight
+ * in descending order. The {@link #getExtractor(String)} method returns a composite
+ * extractor that iterates through the available extractors until one successfully
+ * extracts the data.
+ * </p>
+ *
+ * <p>
+ * The class uses a {@link CrawlerContainer} for managing crawler components and
+ * supports dependency injection via the {@link Resource} annotation.
+ * </p>
  */
 public class ExtractorFactory {
 
@@ -46,6 +60,15 @@ public class ExtractorFactory {
 
     protected Map<String, Extractor[]> extractorMap = new HashMap<>();
 
+    /**
+     * Adds an extractor to the factory for the specified key.
+     * If an extractor already exists for the key, the new extractor is added to the array of extractors,
+     * and the array is sorted by weight in descending order.
+     * If no extractor exists for the key, a new array containing the extractor is created and associated with the key.
+     *
+     * @param key       The key associated with the extractor. Must not be null or blank.
+     * @param extractor The extractor to add. Must not be null.
+     */
     public void addExtractor(final String key, final Extractor extractor) {
         if (StringUtil.isBlank(key)) {
             throw new CrawlerSystemException("The key is null.");
@@ -76,9 +99,7 @@ public class ExtractorFactory {
         if (keyList == null || keyList.isEmpty()) {
             throw new CrawlerSystemException("The key list is empty.");
         }
-        for (final String key : keyList) {
-            addExtractor(key, extractor);
-        }
+        keyList.stream().distinct().forEach(key -> addExtractor(key, extractor));
     }
 
     public Extractor getExtractor(final String key) {
@@ -119,10 +140,22 @@ public class ExtractorFactory {
         return extractors;
     }
 
+    /**
+     * Sets the extractor map with the provided map.
+     *
+     * @param extractorMap a map of keys to arrays of {@link Extractor} objects
+     */
     public void setExtractorMap(final Map<String, Extractor[]> extractorMap) {
         this.extractorMap = extractorMap;
     }
 
+    /**
+     * Creates a new ExtractorBuilder instance.
+     *
+     * @param in      The input stream to be processed by the extractor.
+     * @param params  The parameters to be used by the extractor.
+     * @return A new ExtractorBuilder instance.
+     */
     public ExtractorBuilder builder(final InputStream in, final Map<String, String> params) {
         return new ExtractorBuilder(crawlerContainer, in, params);
     }

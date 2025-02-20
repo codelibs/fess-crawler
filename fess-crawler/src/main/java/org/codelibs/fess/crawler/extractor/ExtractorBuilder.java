@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Map;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
@@ -35,6 +36,39 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 
+/**
+ * {@link ExtractorBuilder} is a builder class for creating and configuring an {@link ExtractData} object.
+ * It encapsulates the process of extracting data from an input stream using a specified or detected extractor.
+ * The builder allows setting parameters such as MIME type, filename, extractor name, maximum content length,
+ * and cache file size to optimize the extraction process.
+ *
+ * <p>
+ * The main purpose of this class is to simplify the extraction process by providing a fluent interface
+ * for configuring the extraction parameters and handling the underlying complexities of content processing,
+ * such as MIME type detection, extractor selection, and content length validation.
+ * </p>
+ *
+ * <p>
+ * Example usage:
+ * </p>
+ *
+ * <pre>
+ * {@code
+ * try (InputStream in = new FileInputStream("example.pdf")) {
+ *     ExtractData extractData = new ExtractorBuilder(crawlerContainer, in, new HashMap<>())
+ *         .mimeType("application/pdf")
+ *         .filename("example.pdf")
+ *         .maxContentLength(1024 * 1024)
+ *         .extract();
+ *
+ *     String content = extractData.getContent();
+ *     // Process the extracted content
+ * } catch (IOException e) {
+ *     // Handle exception
+ * }
+ * }
+ * </pre>
+ */
 public class ExtractorBuilder {
 
     private static final Logger logger = LogManager.getLogger(ExtractorBuilder.class);
@@ -101,14 +135,14 @@ public class ExtractorBuilder {
                 extractor = extractorFactory.getExtractor(detectedMimeType);
                 if (extractor == null) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("use a defautl extractor as {} by {}", extractorName, mimeType);
+                        logger.debug("Using default extractor {} for MIME type {}", extractorName, mimeType);
                     }
                     extractor = crawlerContainer.getComponent(extractorName);
                 } else if (logger.isDebugEnabled()) {
-                    logger.debug("use {} from {}, not {}", extractor.getClass().getName(), detectedMimeType, mimeType);
+                    logger.debug("Using {} for detected MIME type {}, not {}", extractor.getClass().getName(), detectedMimeType, mimeType);
                 }
             } else if (logger.isDebugEnabled()) {
-                logger.debug("use {} from {}", extractor.getClass().getName(), mimeType);
+                logger.debug("Using {} for MIME type {}", extractor.getClass().getName(), mimeType);
             }
 
             if (maxContentLength < 0) {
@@ -117,8 +151,8 @@ public class ExtractorBuilder {
             }
             final long contentLength = getContentLength(out);
             if (contentLength > maxContentLength) {
-                throw new MaxLengthExceededException(
-                        "The content length (" + contentLength + " byte) is over " + maxContentLength + " byte.");
+                throw new MaxLengthExceededException("Content length (" + contentLength + " bytes) exceeds the maximum allowed length ("
+                        + maxContentLength + " bytes).");
             }
             if (contentLength == 0) {
                 if (logger.isDebugEnabled()) {
@@ -137,8 +171,10 @@ public class ExtractorBuilder {
         } finally {
             if (dfos != null && !dfos.isInMemory()) {
                 final File file = dfos.getFile();
-                if (!file.delete()) {
-                    logger.warn("Failed to delete {}.", file.getAbsolutePath());
+                try {
+                    Files.delete(file.toPath());
+                } catch (final IOException e) {
+                    logger.warn("Failed to delete {}.", file.getAbsolutePath(), e);
                 }
             }
         }

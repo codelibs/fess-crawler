@@ -40,7 +40,9 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
- * @author shinsuke
+ * Abstract base class for XML extractors.
+ * Provides common functionality for extracting text content from XML-like documents.
+ * It handles encoding detection, HTML entity unescaping, and tag-based content extraction.
  *
  */
 public abstract class AbstractXmlExtractor extends AbstractExtractor {

@@ -42,10 +42,30 @@ import com.google.common.cache.LoadingCache;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * {@link HtmlXpathExtractor} is an implementation of the {@link org.codelibs.fess.crawler.extractor.Extractor} interface.
+ * It uses XPath expressions to extract text content from HTML documents.
+ * <p>
+ * This class provides methods to configure the XPath expressions, parser features, and properties.
+ * It also includes caching mechanism for XPathAPI instances to improve performance.
+ * </p>
+ * <p>
+ * The extracted text is obtained from the nodes selected by the {@code targetNodePath} XPath expression.
+ * The default value for {@code targetNodePath} is "//HTML/BODY | //@alt | //@title", which selects the body of the HTML document,
+ * as well as the alt and title attributes.
+ * </p>
+ * <p>
+ * The class uses {@link DOMParser} to parse HTML documents and {@link XPathAPI} to execute XPath queries.
+ * It also provides methods to add custom features and properties to the {@link DOMParser}.
+ * </p>
+ * <p>
+ * The encoding of the HTML document is automatically detected using a regular expression that matches the charset attribute in the meta tag.
+ * </p>
  *
  */
 public class HtmlXpathExtractor extends AbstractXmlExtractor {
+    // Regular expression pattern to match the charset attribute in the meta tag of HTML documents.
+    // The pattern captures the charset value specified in the content attribute of the meta tag.
+    // Example: <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
@@ -59,6 +79,10 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
 
     protected long cacheDuration = 10; // min
 
+    /**
+     * Initializes the XPathAPI cache with a specified cache duration.
+     * This method is called to set up the cache for XPathAPI instances.
+     */
     @Resource
     public void init() {
         xpathAPICache =
@@ -158,6 +182,12 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
         return null;
     }
 
+    /**
+     * Adds a feature to the extractor.
+     *
+     * @param key   the key of the feature
+     * @param value the value of the feature
+     */
     public void addFeature(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new CrawlerSystemException("key or value is null.");
@@ -166,6 +196,12 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
         featureMap.put(key, value);
     }
 
+    /**
+     * Adds a property to the extractor.
+     *
+     * @param key   the key of the property
+     * @param value the value of the property
+     */
     public void addProperty(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new CrawlerSystemException("key or value is null.");

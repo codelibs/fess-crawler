@@ -82,7 +82,51 @@ import org.xml.sax.SAXException;
 import jakarta.annotation.PostConstruct;
 
 /**
- * @author shinsuke
+ * <p>
+ * The {@link TikaExtractor} class is responsible for extracting text content and metadata from various file formats
+ * using the Apache Tika library. It extends {@link PasswordBasedExtractor} to handle password-protected files.
+ * </p>
+ *
+ * <p>
+ * This class provides methods to extract text from an input stream, handling different scenarios such as:
+ * </p>
+ * <ul>
+ *   <li>Normalizing text content</li>
+ *   <li>Handling resource names and content types</li>
+ *   <li>Retrying extraction without resource name or content type if the initial attempt fails</li>
+ *   <li>Extracting text from metadata if the main content extraction fails</li>
+ *   <li>Reading content as plain text if all other methods fail</li>
+ *   <li>Applying post-extraction filters</li>
+ *   <li>Handling Tika exceptions, including zip bomb exceptions</li>
+ * </ul>
+ *
+ * <p>
+ * The class also supports configuration options such as:
+ * </p>
+ * <ul>
+ *   <li>Output encoding</li>
+ *   <li>Maximum compression ratio and uncompression size</li>
+ *   <li>Initial buffer size</li>
+ *   <li>Memory size for temporary file storage</li>
+ *   <li>Maximum term sizes for alphanumeric and symbolic terms</li>
+ *   <li>Custom Tika configuration</li>
+ *   <li>Tesseract OCR configuration for image-based documents</li>
+ *   <li>PDF Parser configuration for PDF documents</li>
+ * </ul>
+ *
+ * <p>
+ * The {@link TikaDetectParser} inner class extends {@link CompositeParser} to provide auto-detection of the MIME type
+ * of the document. It also handles zip bomb prevention and embedded document extraction.
+ * </p>
+ *
+ * <p>
+ * The {@link ContentWriter} functional interface is used to abstract the process of writing content to a writer.
+ * </p>
+ *
+ * <p>
+ * The class uses temporary files for processing large input streams and ensures that these files are deleted after
+ * processing.
+ * </p>
  *
  */
 public class TikaExtractor extends PasswordBasedExtractor {
@@ -157,7 +201,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         final File tempFile;
         final boolean isByteStream = inputStream instanceof ByteArrayInputStream;
         if (isByteStream) {
-            inputStream.mark(0);
+            inputStream.mark(0); // ByteArrayInputStream
             tempFile = null;
         } else {
             try {
@@ -313,7 +357,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         } else {
                             in = new FileInputStream(tempFile);
                         }
-                        postFilter.accept(extractData, inputStream);
+                        postFilter.accept(extractData, in);
                     } finally {
                         CloseableUtil.closeQuietly(in);
                     }
@@ -326,7 +370,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 return extractData;
             } catch (final TikaException e) {
                 if (e.getMessage().indexOf("bomb") >= 0) {
-                    throw e;
+                    throw new ExtractException("Zip bomb detected.", e);
                 }
                 final Throwable cause = e.getCause();
                 if (cause instanceof SAXException) {
@@ -349,10 +393,18 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 throw e;
             } finally {
                 if (originalOutStream != null) {
-                    System.setOut(originalOutStream);
+                    try {
+                        System.setOut(originalOutStream);
+                    } catch (Exception e) {
+                        logger.warn("Failed to set originalOutStream.", e);
+                    }
                 }
                 if (originalErrStream != null) {
-                    System.setErr(originalErrStream);
+                    try {
+                        System.setErr(originalErrStream);
+                    } catch (Exception e) {
+                        logger.warn("Failed to set originalErrStream.", e);
+                    }
                 }
                 try {
                     if (logger.isInfoEnabled()) {

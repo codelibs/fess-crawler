@@ -19,8 +19,8 @@ import java.io.InputStream;
 import java.util.Map;
 
 /**
- * @author shinsuke
- *
+ * MimeTypeHelper provides methods to determine the content type of a given input stream or file.
+ * It allows content type detection based on the stream's content and/or filename.
  */
 public interface MimeTypeHelper {
     String getContentType(InputStream is, String filename);

@@ -22,12 +22,13 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 
 /**
- * @author shinsuke
- *
+ * Helper class for managing content length limits based on MIME types.
+ * It allows setting default and MIME type-specific maximum content lengths.
+ * The class provides methods to add, retrieve, and manage these limits.
  */
 public class ContentLengthHelper {
 
-    protected long defaultMaxLength = 10L * 1024L * 1024L;// 10M
+    protected long defaultMaxLength = 10L * 1024L * 1024L; // Default maximum content length set to 10MB
 
     protected Map<String, Long> maxLengthMap = new HashMap<>();
 
@@ -57,6 +58,9 @@ public class ContentLengthHelper {
     }
 
     public void setDefaultMaxLength(final long defaultMaxLength) {
+        if (defaultMaxLength < 0) {
+            throw new CrawlerSystemException("The value of defaultMaxLength is invalid.");
+        }
         this.defaultMaxLength = defaultMaxLength;
     }
 }

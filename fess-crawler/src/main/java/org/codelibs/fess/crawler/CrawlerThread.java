@@ -176,7 +176,7 @@ public class CrawlerThread implements Runnable {
                             // add an url
                             storeChildUrls(childUrlSet, urlQueue.getUrl(), urlQueue.getDepth() == null ? 1 : urlQueue.getDepth() + 1);
                         } catch (final Exception e1) {
-                            log(logHelper, LogType.CRAWLING_EXCETPION, crawlerContext, urlQueue, e1);
+                            log(logHelper, LogType.CRAWLING_EXCEPTION, crawlerContext, urlQueue, e1);
                         }
                         if (noWaitOnFolder) {
                             continue;
@@ -184,7 +184,7 @@ public class CrawlerThread implements Runnable {
                     } catch (final CrawlingAccessException e) {
                         log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION, crawlerContext, urlQueue, e);
                     } catch (final Throwable e) {
-                        log(logHelper, LogType.CRAWLING_EXCETPION, crawlerContext, urlQueue, e);
+                        log(logHelper, LogType.CRAWLING_EXCEPTION, crawlerContext, urlQueue, e);
                     } finally {
                         try {
                             addSitemapsFromRobotsTxt(urlQueue);

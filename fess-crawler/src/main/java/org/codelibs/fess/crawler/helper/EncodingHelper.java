@@ -22,12 +22,13 @@ import java.util.Map;
 import org.codelibs.core.lang.StringUtil;
 
 /**
- * @author shinsuke
- *
+ * EncodingHelper provides utility methods for managing and normalizing character encodings.
+ * It allows setting a default encoding, mapping various encoding names to preferred ones,
+ * and normalizing an encoding string to its preferred form or the default if no mapping is found.
  */
 public class EncodingHelper {
 
-    protected String defaultEncoding = null;
+    protected String defaultEncoding;
 
     protected Map<String, String> encodingMap = new HashMap<>();
 
@@ -44,10 +45,16 @@ public class EncodingHelper {
     }
 
     public void setDefaultEncoding(final String defaultEncoding) {
+        if (StringUtil.isBlank(defaultEncoding)) {
+            throw new IllegalArgumentException("Default encoding must not be blank.");
+        }
         this.defaultEncoding = defaultEncoding;
     }
 
     public void addEncodingMapping(final String source, final String target) {
+        if (StringUtil.isBlank(source) || StringUtil.isBlank(target)) {
+            throw new IllegalArgumentException("Source and target encodings must not be blank.");
+        }
         encodingMap.put(toLowerCase(source), target);
     }
 

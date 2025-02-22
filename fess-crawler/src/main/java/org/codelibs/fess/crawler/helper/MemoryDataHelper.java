@@ -27,8 +27,19 @@ import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 
 /**
- * @author shinsuke
+ * The {@code MemoryDataHelper} class provides a helper for managing crawler data in memory.
+ * It stores URL queues, access results, and URL patterns for inclusion and exclusion.
+ * This class is designed to be used in a single-threaded environment or with external synchronization.
  *
+ * <p>It uses {@code Map} and {@code Queue} data structures to hold the data. The class provides
+ * methods to add, remove, clear, and retrieve data from these structures.
+ *
+ * <p>The class is thread-safe due to the use of {@code synchronized} keyword on methods that
+ * modify the internal data structures. The internal maps are also declared as {@code volatile}
+ * to ensure visibility of changes across threads.
+ *
+ * <p>The class also provides methods to manage URL patterns for inclusion and exclusion, which
+ * are stored as {@code Pattern} objects.
  */
 public class MemoryDataHelper {
     protected volatile Map<String, Queue<UrlQueueImpl<Long>>> urlQueueMap = new HashMap<>();

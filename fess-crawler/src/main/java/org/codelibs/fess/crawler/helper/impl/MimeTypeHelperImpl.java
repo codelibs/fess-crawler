@@ -32,8 +32,30 @@ import org.codelibs.fess.crawler.exception.MimeTypeException;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 
 /**
- * @author shinsuke
+ * MimeTypeHelperImpl is a helper class that detects the MIME type of a given input stream or filename.
+ * It uses the Apache Tika library to detect the MIME type.
  *
+ * <p>
+ * This class provides methods to:
+ * </p>
+ * <ul>
+ *   <li>Detect the MIME type based on the input stream and filename.</li>
+ *   <li>Normalize the filename to handle special characters.</li>
+ *   <li>Configure whether to use the filename for MIME type detection.</li>
+ *   <li>Configure whether to use the filename for MIME type detection when the stream is octet-stream.</li>
+ * </ul>
+ *
+ * <p>
+ * The MIME type detection is based on the {@code tika-mimetypes.xml} resource, which is loaded during initialization.
+ * </p>
+ *
+ * <p>
+ * Usage:
+ * </p>
+ * <pre>
+ * MimeTypeHelperImpl mimeTypeHelper = new MimeTypeHelperImpl();
+ * String contentType = mimeTypeHelper.getContentType(inputStream, filename);
+ * </pre>
  */
 public class MimeTypeHelperImpl implements MimeTypeHelper {
     protected static final String MIME_TYPES_RESOURCE_NAME = "/org/codelibs/fess/crawler/mime/tika-mimetypes.xml";
@@ -63,7 +85,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
     public String getContentType(final InputStream is, final Map<String, String> params) {
         final String filename = params.get(ExtractData.RESOURCE_NAME_KEY);
         if (StringUtil.isEmpty(filename) && is == null) {
-            throw new MimeTypeException("The filename or input stream is empty.");
+            throw new MimeTypeException("The filename and input stream is empty.");
         }
 
         final Metadata metadata = new Metadata();
@@ -119,10 +141,20 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         return buf.toString();
     }
 
+    /**
+     * Sets whether to use the filename for MIME type detection.
+     *
+     * @param useFilename true to use the filename for MIME type detection, false otherwise
+     */
     public void setUseFilename(final boolean useFilename) {
         this.useFilename = useFilename;
     }
 
+    /**
+     * Sets whether to use the filename for MIME type detection when the stream is octet-stream.
+     *
+     * @param useFilenameOnOctetStream true to use the filename for MIME type detection when the stream is octet-stream; false otherwise.
+     */
     public void setUseFilenameOnOctetStream(final boolean useFilenameOnOctetStream) {
         this.useFilenameOnOctetStream = useFilenameOnOctetStream;
     }

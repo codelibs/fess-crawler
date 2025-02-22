@@ -32,7 +32,12 @@ import org.codelibs.fess.crawler.service.UrlFilterService;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link UrlFilter} interface.
+ * This class provides functionality to filter URLs based on include and exclude patterns.
+ * It uses a {@link UrlFilterService} to manage the URL filtering rules.
+ * The class supports caching of include and exclude patterns for scenarios where a session ID is not available.
+ * It also provides methods to initialize the filter with a session ID, clear the filter,
+ * match a URL against the defined patterns, and process a URL to add include or exclude patterns based on predefined filtering patterns.
  *
  */
 public class UrlFilterImpl implements UrlFilter {

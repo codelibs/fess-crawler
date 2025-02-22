@@ -75,7 +75,7 @@ public class RobotsTxtHelper {
             String line;
             final RobotsTxt robotsTxt = new RobotsTxt();
             final List<Directive> currentDirectiveList = new ArrayList<>();
-            boolean isGroupRecodeStarted = false;
+            boolean isGroupRecordStarted = false;
             while ((line = reader.readLine()) != null) {
                 line = stripComment(line).trim();
                 if (StringUtil.isEmpty(line)) {
@@ -84,9 +84,9 @@ public class RobotsTxtHelper {
 
                 String value = getValue(USER_AGENT_RECORD, line);
                 if (value != null) {
-                    if (isGroupRecodeStarted) {
+                    if (isGroupRecordStarted) {
                         currentDirectiveList.clear();
-                        isGroupRecodeStarted = false;
+                        isGroupRecordStarted = false;
                     }
                     final String userAgent = value.toLowerCase(Locale.ENGLISH);
                     Directive currentDirective = robotsTxt.getDirective(userAgent);
@@ -96,7 +96,7 @@ public class RobotsTxtHelper {
                         currentDirectiveList.add(currentDirective);
                     }
                 } else {
-                    isGroupRecodeStarted = true;
+                    isGroupRecordStarted = true;
                     value = getValue(DISALLOW_RECORD, line);
                     if (value != null) {
                         if (!currentDirectiveList.isEmpty() && value.length() > 0) {
@@ -118,7 +118,7 @@ public class RobotsTxtHelper {
                                     directive.setCrawlDelay(Math.max(0, crawlDelay));
                                 }
                             } catch (final NumberFormatException e) {
-                                // ignore
+                                // ignore invalid crawl-delay values
                             }
                         }
                     } else if ((value = getValue(SITEMAP_RECORD, line)) != null && value.length() > 0) {

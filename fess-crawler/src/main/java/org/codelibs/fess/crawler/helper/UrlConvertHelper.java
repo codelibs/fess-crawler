@@ -21,8 +21,25 @@ import java.util.Map;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 
 /**
- * @author shinsuke
+ * Helper class for converting URLs based on a set of predefined rules.
  *
+ * <p>This class provides functionality to convert URLs by replacing parts of the URL
+ * based on a map of target strings and their corresponding replacements. It allows
+ * adding new conversion rules, setting the entire conversion map, and converting
+ * URLs using these rules.</p>
+ *
+ * <p>The conversion is performed by iterating through the conversion map and applying
+ * each replacement rule sequentially. The order of the rules in the map is preserved
+ * during the conversion process.</p>
+ *
+ * <p>Example usage:</p>
+ *
+ * <pre>{@code
+ * UrlConvertHelper helper = new UrlConvertHelper();
+ * helper.add("old-domain.com", "new-domain.com");
+ * String convertedUrl = helper.convert("http://old-domain.com/path");
+ * // convertedUrl will be "http://new-domain.com/path"
+ * }</pre>
  */
 public class UrlConvertHelper {
 
@@ -41,12 +58,15 @@ public class UrlConvertHelper {
 
     public void add(final String target, final String replacement) {
         if (target == null || replacement == null) {
-            throw new CrawlerSystemException("target or replacement are null.");
+            throw new CrawlerSystemException("Target or replacement cannot be null.");
         }
         convertMap.put(target, replacement);
     }
 
     public void setConvertMap(final Map<String, String> convertMap) {
+        if (convertMap == null) {
+            throw new CrawlerSystemException("convertMap is null.");
+        }
         this.convertMap = convertMap;
     }
 }

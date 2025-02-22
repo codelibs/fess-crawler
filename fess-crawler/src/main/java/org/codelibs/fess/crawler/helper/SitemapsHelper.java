@@ -40,8 +40,14 @@ import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * @author shinsuke
- *
+ * Helper class for parsing and validating sitemaps.
+ * It supports XML sitemaps, XML sitemap indexes, and text sitemaps,
+ * and can handle GZIP compressed sitemaps.
+ * The class provides methods to check if an input stream is a valid sitemap,
+ * and to parse an input stream into a {@link SitemapSet} object.
+ * It uses SAX parser for XML sitemaps and XML sitemap indexes,
+ * and handles potential exceptions during parsing.
+ * The class also includes inner classes for handling XML sitemap and sitemap index parsing.
  */
 public class SitemapsHelper {
     private static final Logger logger = LogManager.getLogger(SitemapsHelper.class);

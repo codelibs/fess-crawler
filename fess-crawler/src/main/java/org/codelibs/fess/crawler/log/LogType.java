@@ -16,7 +16,8 @@
 package org.codelibs.fess.crawler.log;
 
 /**
- * Enum representing various types of log events that can occur during the crawling process.
+ * LogType defines the different types of log messages that can be generated during the crawling process.
+ * Each enum constant represents a specific event or state in the crawler's execution.
  */
 public enum LogType {
     START_CRAWLING, //
@@ -31,7 +32,7 @@ public enum LogType {
     PROCESS_CHILD_URLS_BY_EXCEPTION, //
     PROCESS_CHILD_URL_BY_EXCEPTION, //
     CRAWLING_ACCESS_EXCEPTION, //
-    CRAWLING_EXCETPION, //
+    CRAWLING_EXCEPTION, //
     NO_URL_IN_QUEUE, //
     START_THREAD, //
     FINISHED_THREAD, //

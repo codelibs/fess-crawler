@@ -27,7 +27,31 @@ import org.codelibs.fess.crawler.helper.LogHelper;
 import org.codelibs.fess.crawler.log.LogType;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link LogHelper} interface.
+ * This class provides methods for logging various events during the crawling process.
+ * It uses Log4j2 for logging.
+ *
+ * <p>
+ * The class contains methods for logging different types of events, such as:
+ * </p>
+ * <ul>
+ *   <li>Starting and finishing threads</li>
+ *   <li>Starting and cleaning up crawling</li>
+ *   <li>Handling unsupported URLs</li>
+ *   <li>Checking last modified dates</li>
+ *   <li>Getting content</li>
+ *   <li>Handling redirects</li>
+ *   <li>Processing responses</li>
+ *   <li>Handling exceptions during crawling and child URL processing</li>
+ *   <li>Handling cases where no URL is in the queue</li>
+ *   <li>Handling cases where no response processor or rule is found</li>
+ *   <li>Handling system errors</li>
+ * </ul>
+ *
+ * <p>
+ * Each logging method checks the log level before logging the message.
+ * The log level can be configured in the Log4j2 configuration file.
+ * </p>
  *
  */
 public class LogHelperImpl implements LogHelper {
@@ -82,7 +106,7 @@ public class LogHelperImpl implements LogHelper {
         case CRAWLING_ACCESS_EXCEPTION:
             processCrawlingAccessException(objs);
             break;
-        case CRAWLING_EXCETPION:
+        case CRAWLING_EXCEPTION:
             processCrawlingException(objs);
             break;
         case NO_URL_IN_QUEUE:

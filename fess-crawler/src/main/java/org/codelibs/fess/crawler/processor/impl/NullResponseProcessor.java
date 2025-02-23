@@ -19,11 +19,20 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 
 /**
- * @author kuma
+ * NullResponseProcessor is a class that implements the ResponseProcessor interface.
+ * It provides a no-op implementation for processing response data.
+ * This class can be used when you want to skip the response processing step in a crawler.
  *
+ * @author kuma
  */
 public class NullResponseProcessor implements ResponseProcessor {
 
+    /**
+     * Processes the given response data.
+     * This implementation does nothing.
+     *
+     * @param responseData the response data to process
+     */
     @Override
     public void process(final ResponseData responseData) {
         // do nothing

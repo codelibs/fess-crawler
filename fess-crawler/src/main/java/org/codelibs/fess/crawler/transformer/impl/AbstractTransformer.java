@@ -18,17 +18,28 @@ package org.codelibs.fess.crawler.transformer.impl;
 import org.codelibs.fess.crawler.transformer.Transformer;
 
 /**
- * @author shinsuke
+ * An abstract base class for transformers.
+ * Provides basic implementation for managing the transformer's name.
  *
  */
 public abstract class AbstractTransformer implements Transformer {
 
     protected String name;
 
+    /**
+     * Sets the name of the transformer.
+     *
+     * @param name the name to set
+     */
     public void setName(final String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the name of the transformer.
+     *
+     * @return the name of the transformer
+     */
     @Override
     public String getName() {
         return name;

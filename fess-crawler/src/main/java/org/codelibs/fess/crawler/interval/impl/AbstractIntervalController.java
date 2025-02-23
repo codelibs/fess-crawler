@@ -19,11 +19,41 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.interval.IntervalController;
 
 /**
- * @author shinsuke
+ * An abstract base class for implementing {@link IntervalController}.
+ * Provides a common structure for handling delays at different stages of the crawling process.
+ * It encapsulates the delay logic and exception handling, allowing subclasses to focus on
+ * defining the specific delay behavior for each stage.
+ *
+ * <p>
+ * This class defines the contract for delaying the crawling process at various points, such as:
+ * </p>
+ * <ul>
+ *   <li>Before processing a URL ({@link #delayBeforeProcessing()})</li>
+ *   <li>After processing a URL ({@link #delayAfterProcessing()})</li>
+ *   <li>When there are no URLs in the queue ({@link #delayAtNoUrlInQueue()})</li>
+ *   <li>While waiting for new URLs to be added to the queue ({@link #delayForWaitingNewUrl()})</li>
+ * </ul>
+ *
+ * <p>
+ * Subclasses are responsible for implementing the abstract methods to define the actual delay
+ * mechanism for each of these stages.
+ * </p>
+ *
+ * <p>
+ * The class also provides a mechanism to ignore exceptions that may occur during the delay process.
+ * If {@link #ignoreException} is set to true, any exceptions thrown during the delay will be caught
+ * and ignored. Otherwise, they will be re-thrown as {@link CrawlerSystemException}.
+ * </p>
  *
  */
 public abstract class AbstractIntervalController implements IntervalController {
 
+    /**
+     * Indicates whether exceptions during the delay process should be ignored.
+     * If set to true, exceptions will be caught and ignored. If set to false,
+     * exceptions will be re-thrown as {@link CrawlerSystemException}.
+     * Default value is true.
+     */
     protected boolean ignoreException = true;
 
     /*
@@ -48,7 +78,7 @@ public abstract class AbstractIntervalController implements IntervalController {
                 delayForWaitingNewUrl();
                 break;
             default:
-                // NOP
+                // No operation
                 break;
             }
         } catch (final CrawlerSystemException e) {

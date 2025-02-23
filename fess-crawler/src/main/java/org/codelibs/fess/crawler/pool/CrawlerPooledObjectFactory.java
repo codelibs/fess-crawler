@@ -23,17 +23,28 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
 import jakarta.annotation.Resource;
 
 /**
+ * A factory for creating and managing pooled crawler objects.
+ * This class extends {@link BasePooledObjectFactory} and provides
+ * methods for creating, wrapping, and destroying crawler components
+ * obtained from a {@link CrawlerContainer}.
  *
- * @param <T> Pooled object
  *
- * @author shinsuke
  */
 public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
+    /**
+     * The container that provides crawler components.
+     */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * The name of the component to be retrieved from the CrawlerContainer.
+     */
     protected String componentName;
 
+    /**
+     * The listener that is called when a pooled object is destroyed.
+     */
     protected OnDestroyListener<T> onDestroyListener;
 
     /*

@@ -30,7 +30,24 @@ import org.codelibs.fess.crawler.util.AccessResultCallback;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link DataService} interface for managing access result data.
+ * This class provides methods to store, retrieve, update, and delete access results,
+ * as well as to iterate over them. It uses a {@link MemoryDataHelper} to store the data in memory.
+ *
+ * <p>
+ * The class uses a static {@code idCount} to generate unique IDs for each access result.
+ * The {@code idCountLock} object is used to synchronize access to the {@code idCount} variable,
+ * ensuring that IDs are generated in a thread-safe manner.
+ * </p>
+ *
+ * <p>
+ * The class also provides methods to get the count of access results for a given session,
+ * to delete all access results for a given session, and to delete all access results.
+ * </p>
+ *
+ * <p>
+ * The class is a singleton, and is injected using the {@link Resource} annotation.
+ * </p>
  *
  */
 public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {

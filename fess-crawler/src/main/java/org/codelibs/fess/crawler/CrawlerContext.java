@@ -24,8 +24,20 @@ import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.rule.RuleManager;
 
 /**
- * @author shinsuke
+ * The {@link CrawlerContext} class holds the context information for a crawler execution.
+ * It contains various attributes related to the crawler's state, configuration, and runtime data.
+ * This class provides methods to access and modify these attributes, allowing for control and monitoring
+ * of the crawler's behavior.
  *
+ * <p>
+ * The context includes information such as the session ID, active thread count, access count, crawler status,
+ * URL filter, rule manager, interval controller, robots.txt URL set, sitemaps, number of threads,
+ * maximum thread check count, maximum depth, and maximum access count.
+ * </p>
+ *
+ * <p>
+ * It also provides thread-local storage for sitemaps, allowing each thread to have its own set of sitemaps.
+ * </p>
  */
 public class CrawlerContext {
     protected String sessionId;
@@ -48,15 +60,15 @@ public class CrawlerContext {
 
     protected ThreadLocal<String[]> sitemapsLocal = new ThreadLocal<>();
 
-    /** The number of a thread */
+    /** The number of threads used by the crawler */
     protected int numOfThread = 10;
 
     protected int maxThreadCheckCount = 20;
 
-    /** a max depth for crawling. -1 is no depth check. */
+    /** The maximum depth for crawling. A value of -1 indicates no depth check. */
     protected int maxDepth = -1;
 
-    /** a max count to access urls. 0 is no limit to access it. */
+    /** The maximum number of URLs to access. A value of 0 indicates no limit. */
     protected long maxAccessCount = 0;
 
     public String getSessionId() {

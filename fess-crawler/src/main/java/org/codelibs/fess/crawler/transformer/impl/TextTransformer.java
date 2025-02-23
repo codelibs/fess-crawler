@@ -37,8 +37,23 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * TextTransformer is a class that transforms a ResponseData object into a ResultData object containing the extracted text content.
+ * It uses an Extractor to extract the text from the response body based on the MIME type.
+ * The extracted text is then converted into a byte array using the specified charset encoding.
+ * It also provides a method to retrieve the extracted data as a String from an AccessResultData object.
  *
+ * <p>
+ * The class handles character encoding issues by attempting to use the specified charset.
+ * If the specified charset is invalid, it falls back to UTF-8.
+ * </p>
+ *
+ * <p>
+ * The class also provides methods to set and get the charset name used for encoding and decoding the text content.
+ * </p>
+ *
+ * <p>
+ * It depends on CrawlerContainer to get ExtractorFactory.
+ * </p>
  */
 public class TextTransformer extends AbstractTransformer {
     private static final Logger logger = LogManager.getLogger(TextTransformer.class);
@@ -83,7 +98,7 @@ public class TextTransformer extends AbstractTransformer {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName + ". Changed to " + Constants.UTF_8, e);
             }
-            charsetName = Constants.UTF_8_CHARSET.name();
+            charsetName = Constants.UTF_8;
             resultData.setData(content.getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
@@ -131,6 +146,9 @@ public class TextTransformer extends AbstractTransformer {
         try {
             return URLDecoder.decode(name, enc);
         } catch (final UnsupportedEncodingException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to decode URL: " + name + " with encoding: " + enc, e);
+            }
             return name;
         }
     }

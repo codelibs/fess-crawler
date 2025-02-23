@@ -25,7 +25,35 @@ import org.codelibs.core.beans.util.CopyOptions;
 import org.codelibs.fess.crawler.entity.ResponseData;
 
 /**
- * @author shinsuke
+ * RegexRule is a rule implementation that uses regular expressions to match against the ResponseData.
+ * It allows defining multiple regular expressions for different fields of the ResponseData.
+ * The rule can be configured to require all regular expressions to match (allRequired = true) or
+ * only one of them (allRequired = false). It also supports a default rule that always matches.
+ *
+ * <p>
+ * The class uses a map of field names to Pattern objects to store the regular expressions.
+ * The match method extracts the values of the specified fields from the ResponseData and
+ * applies the corresponding regular expressions.
+ * </p>
+ *
+ * <p>
+ * Example usage:
+ * </p>
+ *
+ * <pre>
+ * {@code
+ * RegexRule rule = new RegexRule();
+ * rule.addRule("url", "https://example.com/.*");
+ * rule.addRule("contentType", "text/html");
+ * rule.setAllRequired(true); // Both URL and content type must match
+ *
+ * ResponseData responseData = new ResponseData();
+ * responseData.setUrl("https://example.com/page1");
+ * responseData.setContentType("text/html");
+ *
+ * boolean matches = rule.match(responseData); // Returns true
+ * }
+ * </pre>
  *
  */
 public class RegexRule extends AbstractRule {
@@ -115,6 +143,11 @@ public class RegexRule extends AbstractRule {
         return hash;
     }
 
+    /**
+     * Sets the map of regular expressions to be used for matching.
+     *
+     * @param regexMap a map where the key is the field name and the value is the Pattern object
+     */
     public void setRegexMap(final Map<String, Pattern> regexMap) {
         this.regexMap = regexMap;
     }

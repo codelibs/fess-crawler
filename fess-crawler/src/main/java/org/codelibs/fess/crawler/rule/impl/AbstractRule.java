@@ -23,7 +23,19 @@ import org.codelibs.fess.crawler.rule.RuleManager;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * Abstract base class for implementing {@link Rule} interfaces.
+ * Provides common functionality and properties for crawler rules.
+ *
+ * <p>
+ * This class handles the registration of rules with the {@link RuleManager}
+ * and provides getter and setter methods for common properties such as
+ * {@code ruleId} and {@code responseProcessor}.
+ * </p>
+ *
+ * <p>
+ * Subclasses should extend this class and implement the abstract methods
+ * defined in the {@link Rule} interface to provide specific rule logic.
+ * </p>
  *
  */
 public abstract class AbstractRule implements Rule {
@@ -37,6 +49,11 @@ public abstract class AbstractRule implements Rule {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * Registers this rule with the {@link RuleManager}.
+     *
+     * @param index the index at which the rule should be registered
+     */
     public void register(final int index) {
         final RuleManager ruleManager = crawlerContainer.getComponent("ruleManager");
         ruleManager.addRule(index, this);
@@ -47,6 +64,11 @@ public abstract class AbstractRule implements Rule {
         return ruleId;
     }
 
+    /**
+     * Sets the rule ID for this rule.
+     *
+     * @param ruleId the rule ID to set
+     */
     public void setRuleId(final String ruleId) {
         this.ruleId = ruleId;
     }
@@ -56,6 +78,11 @@ public abstract class AbstractRule implements Rule {
         return responseProcessor;
     }
 
+    /**
+     * Sets the response processor for this rule.
+     *
+     * @param responseProcessor the response processor to set
+     */
     public void setResponseProcessor(final ResponseProcessor responseProcessor) {
         this.responseProcessor = responseProcessor;
     }

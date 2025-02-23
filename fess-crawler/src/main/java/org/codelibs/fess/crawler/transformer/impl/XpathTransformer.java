@@ -44,9 +44,52 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
- * XpathTransformer stores WEB data as XML content.
+ * {@link XpathTransformer} is a class that transforms HTML content into XML format based on XPath expressions.
+ * It extracts data from an HTML document by applying XPath rules defined in {@link #fieldRuleMap}.
+ * The extracted data is then formatted into an XML structure and stored in the {@link ResultData}.
+ * <p>
+ * This class extends {@link HtmlTransformer} and overrides the {@link #storeData(ResponseData, ResultData)} method
+ * to parse the HTML content, evaluate XPath expressions, and generate the XML output.
+ * </p>
+ * <p>
+ * The class supports various XPath result types, including BOOLEAN, NUMBER, STRING, NODESET, and NODE.
+ * It also provides options to trim whitespace from extracted values and to specify the character encoding for the output.
+ * </p>
+ * <p>
+ * The {@link #getData(AccessResultData)} method allows retrieving the transformed data as a String (XML content),
+ * a Map, or an instance of a specified class.
+ * </p>
  *
- * @author shinsuke
+ * <p>
+ * Example usage:
+ * </p>
+ *
+ * <pre>
+ * XpathTransformer transformer = new XpathTransformer();
+ * transformer.addFieldRule("title", "//title/text()");
+ * transformer.addFieldRule("body", "//body/p/text()");
+ *
+ * ResponseData responseData = new ResponseData();
+ * responseData.setBody(new ByteArrayInputStream("&lt;html&gt;&lt;head&gt;&lt;title&gt;Example&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;Hello World&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;".getBytes()));
+ * responseData.setUrl("http://example.com");
+ *
+ * ResultData resultData = new ResultData();
+ *
+ * transformer.storeData(responseData, resultData);
+ *
+ * String xmlData = new String(resultData.getData(), resultData.getEncoding());
+ * System.out.println(xmlData);
+ * </pre>
+ *
+ * <p>
+ * Configuration options:
+ * </p>
+ * <ul>
+ *   <li><b>fieldRuleMap:</b> A map of field names to XPath expressions.</li>
+ *   <li><b>trimSpaceEnabled:</b> A flag to enable or disable trimming of whitespace from extracted values.</li>
+ *   <li><b>charsetName:</b> The character encoding for the output XML.</li>
+ *   <li><b>dataClass:</b> The class type to return from the {@link #getData(AccessResultData)} method.</li>
+ * </ul>
  *
  */
 public class XpathTransformer extends HtmlTransformer {
@@ -56,14 +99,14 @@ public class XpathTransformer extends HtmlTransformer {
 
     protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 
-    /** a flag to trim a space characters. */
+    /** Flag to enable or disable trimming of whitespace characters. */
     protected boolean trimSpaceEnabled = true;
 
     protected String charsetName = Constants.UTF_8;
 
     /**
-     * Class type returned by getData() method. The default is null(XML content
-     * of String).
+     * Class type to be returned by the {@link #getData(AccessResultData)} method. Defaults to null, which returns XML content
+     * as a String.
      */
     protected Class<?> dataClass = null;
 
@@ -98,7 +141,7 @@ public class XpathTransformer extends HtmlTransformer {
                     break;
                 case STRING:
                     final String str = (String) xObj.value();
-                    buf.append(getResultDataBody(entry.getKey(), str.trim()));
+                    buf.append(getResultDataBody(entry.getKey(), trimSpaceEnabled ? str.trim() : str));
                     break;
                 case NODESET:
                     final XPathNodes nodeList = (XPathNodes) xObj.value();
@@ -122,7 +165,7 @@ public class XpathTransformer extends HtmlTransformer {
                     break;
                 }
             } catch (final XPathException e) {
-                logger.warn("Could not parse a value of " + entry.getKey() + ":" + entry.getValue(), e);
+                logger.warn("Could not parse value for key: " + entry.getKey() + " with XPath: " + entry.getValue(), e);
             }
         }
         buf.append(getAdditionalData(responseData, document));
@@ -142,13 +185,13 @@ public class XpathTransformer extends HtmlTransformer {
     }
 
     protected String getResultDataHeader() {
-        // TODO support other type
+        // TODO: Support other XML header types
         return "<?xml version=\"1.0\"?>\n<doc>\n";
     }
 
     protected String getResultDataBody(final String name, final String value) {
-        // TODO support other type
-        // TODO trim(default)
+        // TODO: Support other XML footer types
+        // TODO: Support other field types and trimming options
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">" + trimSpace(XmlUtil.escapeXml(value != null ? value : "")) + "</field>\n";
     }
 

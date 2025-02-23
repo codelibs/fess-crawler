@@ -15,6 +15,23 @@
  */
 package org.codelibs.fess.crawler;
 
+/**
+ * Enum representing the status of a crawler.
+ * It can be INITIALIZING, RUNNING, or DONE.
+ */
 public enum CrawlerStatus {
-    INITIALIZING, RUNNING, DONE;
+    /**
+     * The crawler is initializing.
+     */
+    INITIALIZING,
+
+    /**
+     * The crawler is currently running.
+     */
+    RUNNING,
+
+    /**
+     * The crawler has completed its task.
+     */
+    DONE;
 }

@@ -24,12 +24,15 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 
 /**
- * @author shinsuke
+ * SitemapsRule is a rule implementation that extends RegexRule to determine if a given response data
+ * represents a valid sitemap. It uses a SitemapsHelper to validate the response body as an InputStream.
+ * The rule checks if the URL matches the defined regex pattern and then validates the content as a sitemap.
+ * If any exception occurs during the sitemap validation, it logs the error and returns false.
  *
  */
 public class SitemapsRule extends RegexRule {
     /**
-     *
+     * Serial version UID for serialization.
      */
     private static final long serialVersionUID = 1L;
 

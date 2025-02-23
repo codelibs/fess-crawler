@@ -24,7 +24,11 @@ import org.codelibs.fess.crawler.service.UrlFilterService;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link UrlFilterService} interface.
+ * This class provides methods for managing URL filtering rules,
+ * including adding include and exclude URL patterns, deleting patterns,
+ * and retrieving lists of compiled URL patterns. It utilizes a
+ * {@link MemoryDataHelper} to store and manage the URL patterns in memory.
  *
  */
 public class UrlFilterServiceImpl implements UrlFilterService {

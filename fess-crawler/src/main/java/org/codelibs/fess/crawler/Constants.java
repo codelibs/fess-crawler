@@ -19,8 +19,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- * @author shinsuke
- *
+ * Constants used in the fess-crawler.
+ * This class provides a collection of constant values for HTTP methods, status codes,
+ * transformer names, boolean values, character encodings, date/time formats, and XML features.
+ * It is designed to avoid the instantiation.
  */
 public final class Constants {
     public static final String GET_METHOD = "GET";
@@ -63,6 +65,9 @@ public final class Constants {
 
     public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
 
+    /**
+     * Private constructor to prevent instantiation of this class.
+     */
     private Constants() {
     }
 

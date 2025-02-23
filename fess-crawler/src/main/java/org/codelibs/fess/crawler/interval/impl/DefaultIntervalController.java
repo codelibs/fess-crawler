@@ -19,6 +19,14 @@ import java.util.Map;
 
 import org.codelibs.core.lang.ThreadUtil;
 
+/**
+ * Default implementation of the IntervalController.
+ * This class provides a default way to manage delays between crawler operations.
+ * It allows setting delays before processing, after processing, when no URLs are in the queue,
+ * and when waiting for new URLs.
+ * The delays are configurable via constructor parameters.
+ *
+ */
 public class DefaultIntervalController extends AbstractIntervalController {
 
     protected long delayMillisAfterProcessing = 0L;

@@ -81,21 +81,47 @@ public class TemporaryFileInputStream extends InputStream {
         }
     }
 
+    /**
+     * Marks the current position in this input stream. A subsequent call to the reset method repositions this stream at the last marked position so that subsequent reads re-read the same bytes.
+     * This method delegates to {@link FileInputStream#mark(int)}.
+     *
+     * @param readlimit the maximum limit of bytes that can be read before the mark position becomes invalid
+     */
     @Override
     public synchronized void mark(final int readlimit) {
         fileInputStream.mark(readlimit);
     }
 
+    /**
+     * Tests if this input stream supports the mark and reset methods.
+     * This method delegates to {@link FileInputStream#markSupported()}.
+     *
+     * @return {@code true} if this stream type supports the mark and reset method; {@code false} otherwise
+     */
     @Override
     public boolean markSupported() {
         return fileInputStream.markSupported();
     }
 
+    /**
+     * Repositions this stream to the position at the time the mark method was last called on this input stream.
+     * This method delegates to {@link FileInputStream#reset()}.
+     *
+     * @throws IOException if an I/O error occurs.
+     */
     @Override
     public synchronized void reset() throws IOException {
         fileInputStream.reset();
     }
 
+    /**
+     * Skips over and discards {@code n} bytes of data from this input stream.
+     * This method delegates to {@link FileInputStream#skip(long)}.
+     *
+     * @param n the number of bytes to be skipped
+     * @return the actual number of bytes skipped
+     * @throws IOException if an I/O error occurs.
+     */
     @Override
     public long skip(final long n) throws IOException {
         return fileInputStream.skip(n);

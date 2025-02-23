@@ -41,7 +41,28 @@ import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * <p>
+ * {@link DefaultResponseProcessor} is a default implementation of {@link ResponseProcessor}.
+ * It processes the response data based on the HTTP status code and configured transformer.
+ * </p>
+ *
+ * <p>
+ * It handles successful responses by transforming the data using a {@link Transformer}
+ * and storing the result. It also handles "Not Modified" responses by creating an empty
+ * result and storing it. Unsuccessful responses are logged for debugging purposes.
+ * </p>
+ *
+ * <p>
+ * The class uses {@link CrawlerContainer} to access components like {@link AccessResult}
+ * and {@link UrlQueue}. It also uses {@link CrawlingParameterUtil} to access services
+ * like {@link UrlQueueService} and DataService, as well as the {@link CrawlerContext}.
+ * </p>
+ *
+ * <p>
+ * The class provides methods to check if a response is successful or not modified based on
+ * configured HTTP status codes. It also handles the storage of child URLs found in the
+ * response data, respecting the maximum depth and access count limits.
+ * </p>
  *
  */
 public class DefaultResponseProcessor implements ResponseProcessor {

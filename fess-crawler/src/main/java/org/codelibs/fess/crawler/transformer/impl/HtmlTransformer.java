@@ -62,10 +62,53 @@ import org.xml.sax.InputSource;
 import jakarta.annotation.Resource;
 
 /**
- * HtmlTransformer stores WEB data as HTML content.
+ * The {@code HtmlTransformer} class is responsible for transforming HTML responses
+ * during the crawling process. It extracts data, identifies child URLs, and handles
+ * character set encoding.
+ * <p>
+ * This class extends {@link AbstractTransformer} and utilizes various helper classes
+ * and components from the Fess Crawler framework, such as {@link CrawlerContainer},
+ * {@link UrlConvertHelper}, and {@link EncodingHelper}.
+ * </p>
+ * <p>
+ * The transformation process involves:
+ * </p>
+ * <ol>
+ *   <li>Determining the character set encoding of the HTML content.</li>
+ *   <li>Storing the HTML content as data in the {@link ResultData}.</li>
+ *   <li>Extracting child URLs from the HTML content based on configured rules.</li>
+ *   <li>Handling redirect URLs specified in the response headers.</li>
+ * </ol>
+ * <p>
+ * The class also provides methods for configuring features and properties of the
+ * underlying DOM parser, as well as defining rules for extracting child URLs
+ * from specific HTML tags and attributes.
+ * </p>
  *
- * @author shinsuke
+ * <p>
+ * <b>Configuration:</b>
+ * </p>
+ * <ul>
+ *   <li><b>featureMap:</b> A map of features to be set on the DOM parser.</li>
+ *   <li><b>propertyMap:</b> A map of properties to be set on the DOM parser.</li>
+ *   <li><b>childUrlRuleMap:</b> A map of HTML tag names to attribute names, used
+ *       to extract child URLs.</li>
+ *   <li><b>defaultEncoding:</b> The default character encoding to use if none is
+ *       specified in the HTML content.</li>
+ *   <li><b>preloadSizeForCharset:</b> The number of bytes to read from the input
+ *       stream to determine the character set encoding.</li>
+ *   <li><b>invalidUrlPattern:</b> A regular expression pattern used to identify
+ *       invalid URLs.</li>
+ * </ul>
  *
+ * <p>
+ * <b>Usage:</b>
+ * </p>
+ * <p>
+ * The {@code transform} method is the main entry point for transforming an HTML
+ * response. It takes a {@link ResponseData} object as input and returns a
+ * {@link ResultData} object containing the extracted data and child URLs.
+ * </p>
  */
 public class HtmlTransformer extends AbstractTransformer {
 
@@ -131,7 +174,14 @@ public class HtmlTransformer extends AbstractTransformer {
         final Object redirectUrlObj = responseData.getMetaDataMap().get(LOCATION_HEADER);
         if (redirectUrlObj instanceof String) {
             final UrlConvertHelper urlConvertHelper = crawlerContainer.getComponent("urlConvertHelper");
-            resultData.addUrl(RequestDataBuilder.newRequestData().get().url(urlConvertHelper.convert(redirectUrlObj.toString())).build());
+            final String redirectUrl;
+            if (urlConvertHelper != null) {
+                redirectUrl = urlConvertHelper.convert(redirectUrlObj.toString());
+            } else {
+                logger.warn("urlConvertHelper is null.");
+                redirectUrl = redirectUrlObj.toString();
+            }
+            resultData.addUrl(RequestDataBuilder.newRequestData().get().url(redirectUrl).build());
         }
 
         return resultData;

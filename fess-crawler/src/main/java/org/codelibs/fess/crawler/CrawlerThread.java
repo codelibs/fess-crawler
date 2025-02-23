@@ -46,7 +46,39 @@ import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * The {@code CrawlerThread} class represents a thread that executes the crawling process.
+ * It is responsible for fetching URLs from the queue, accessing the content,
+ * processing the response, and extracting child URLs.
+ *
+ * <p>
+ * This class implements the {@link Runnable} interface, allowing it to be executed in a separate thread.
+ * It uses various services and components, such as {@link UrlQueueService}, {@link DataService},
+ * {@link CrawlerContainer}, {@link LogHelper}, {@link CrawlerClientFactory}, and {@link CrawlerContext},
+ * to perform its tasks.
+ * </p>
+ *
+ * <p>
+ * The crawling process involves the following steps:
+ * </p>
+ * <ol>
+ *   <li>Fetching a URL from the queue using {@link UrlQueueService#poll(String)}.</li>
+ *   <li>Checking if the URL is valid using {@link #isValid(UrlQueue)}.</li>
+ *   <li>Accessing the content using a {@link CrawlerClient} obtained from {@link CrawlerClientFactory}.</li>
+ *   <li>Processing the response using a {@link ResponseProcessor} associated with a {@link Rule}.</li>
+ *   <li>Extracting child URLs and adding them to the queue using {@link #storeChildUrls(Set, String, int)}
+ *       or {@link #storeChildUrl(String, String, float, int)}.</li>
+ *   <li>Handling exceptions that may occur during the crawling process.</li>
+ * </ol>
+ *
+ * <p>
+ * The thread also manages the active thread count using {@code crawlerContext.activeThreadCountLock}
+ * and provides methods for logging messages using {@link LogHelper}.
+ * </p>
+ *
+ * <p>
+ * The crawling process continues until the crawler status is {@link CrawlerStatus#DONE} or the
+ * {@link #isContinue(int)} method returns {@code false}.
+ * </p>
  *
  */
 public class CrawlerThread implements Runnable {

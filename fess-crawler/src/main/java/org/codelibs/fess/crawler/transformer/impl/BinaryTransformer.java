@@ -27,10 +27,26 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 
 /**
- * BinaryTransformer stores WEB data as binary data.
+ * The BinaryTransformer class is responsible for transforming binary data from a ResponseData object
+ * into a ResultData object, and for retrieving the binary data from an AccessResultData object.
+ * It extends the AbstractTransformer class.
  *
- * @author shinsuke
+ * <p>
+ * This transformer extracts the binary content from the response body of a web resource,
+ * stores it as a byte array in the ResultData, and provides a method to retrieve this data
+ * as a ByteArrayInputStream.
+ * </p>
  *
+ * <p>
+ * The transform method takes a ResponseData object, checks if it has a response body,
+ * and then reads the body into a byte array. This byte array is then set as the data
+ * in the ResultData object.
+ * </p>
+ *
+ * <p>
+ * The getData method takes an AccessResultData object, checks if the transformer name matches,
+ * and then returns the data as a ByteArrayInputStream.
+ * </p>
  */
 public class BinaryTransformer extends AbstractTransformer {
 

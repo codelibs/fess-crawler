@@ -59,8 +59,59 @@ import com.google.common.cache.LoadingCache;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * <p>
+ * XmlTransformer is a class that extends AbstractTransformer to transform XML documents into a specific format for indexing.
+ * It uses XPath expressions to extract data from the XML and stores it in a ResultData object.
+ * </p>
  *
+ * <p>
+ * This class provides several configuration options to customize the XML parsing process, such as:
+ * </p>
+ * <ul>
+ *   <li>Namespace awareness</li>
+ *   <li>Coalescing</li>
+ *   <li>Entity expansion</li>
+ *   <li>Ignoring comments and whitespace</li>
+ *   <li>Validation</li>
+ *   <li>XInclude awareness</li>
+ * </ul>
+ *
+ * <p>
+ * It also allows defining field rules using XPath expressions to extract specific data from the XML document and map it to fields in the ResultData.
+ * The extracted data is then formatted into an XML structure suitable for indexing.
+ * </p>
+ *
+ * <p>
+ * The class uses a cache for XPathAPI objects to improve performance. The cache duration is configurable.
+ * </p>
+ *
+ * <p>
+ * The transform method takes a ResponseData object containing the XML content and returns a ResultData object with the extracted and formatted data.
+ * </p>
+ *
+ * <p>
+ * The getData method returns the data extracted from AccessResultData. It can return either a String representation of the XML or a Map/Bean representation based on the configured dataClass.
+ * </p>
+ *
+ * <p>
+ * Example Usage:
+ * </p>
+ *
+ * <pre>
+ * XmlTransformer transformer = new XmlTransformer();
+ * transformer.setNamespaceAware(true);
+ * transformer.setCacheDuration(30);
+ * transformer.addFieldRule("title", "/book/title/text()");
+ * transformer.addFieldRule("author", "/book/author/name/text()");
+ *
+ * ResponseData responseData = new ResponseData();
+ * responseData.setResponseBody(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
+ * responseData.setEncoding("UTF-8");
+ *
+ * ResultData resultData = transformer.transform(responseData);
+ * String extractedData = new String(resultData.getData(), StandardCharsets.UTF_8);
+ * System.out.println(extractedData);
+ * </pre>
  */
 public class XmlTransformer extends AbstractTransformer {
     private static final Logger logger = LogManager.getLogger(XmlTransformer.class);
@@ -474,6 +525,11 @@ public class XmlTransformer extends AbstractTransformer {
         this.cacheDuration = cacheDuration;
     }
 
+    /**
+     * DefaultNamespaceContext is a custom implementation of NamespaceContext.
+     * It is used to resolve namespace URIs for XML elements and attributes
+     * within the context of the provided XML document node.
+     */
     private static final class DefaultNamespaceContext implements NamespaceContext {
 
         private final Node doc;

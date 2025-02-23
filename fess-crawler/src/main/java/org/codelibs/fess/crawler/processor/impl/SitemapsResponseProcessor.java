@@ -34,8 +34,22 @@ import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * A response processor implementation that handles sitemaps.
+ * It parses the response body as a SitemapSet, extracts URLs from the sitemaps,
+ * and adds them as child URLs to be crawled.
  *
+ * <p>
+ * This class uses a {@link SitemapsHelper} to parse the sitemap XML or text.
+ * It then iterates through the sitemaps in the SitemapSet, extracts the URL
+ * from each sitemap, and creates a new {@link RequestData} object for each URL.
+ * These RequestData objects are added to a set of child URLs, which are then
+ * passed to a {@link ChildUrlsException} to be processed by the crawler.
+ * </p>
+ *
+ * <p>
+ * The class also handles potential {@link IOException}s that may occur during
+ * the parsing of the response body.
+ * </p>
  */
 public class SitemapsResponseProcessor implements ResponseProcessor {
     @Resource

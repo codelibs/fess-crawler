@@ -32,10 +32,34 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 
 /**
- * FileTransformer stores WEB data as a file path.
+ * <p>
+ * FileTransformer stores the content of a crawled resource as a file on the file system.
+ * It extends HtmlTransformer and provides functionality to:
+ * </p>
+ * <ul>
+ *     <li>Specify a base directory for storing files.</li>
+ *     <li>Generate file paths from URLs, replacing special characters.</li>
+ *     <li>Handle duplicated file paths by appending a counter.</li>
+ *     <li>Store the file path in the result data.</li>
+ *     <li>Retrieve the stored file as a File object.</li>
+ * </ul>
  *
- * @author shinsuke
+ * <p>
+ * The class uses several configurable properties to customize the file storage behavior,
+ * such as the base path, replacement strings for special characters in URLs,
+ * the maximum number of duplicated paths to attempt, and the character set for encoding the file path.
+ * </p>
  *
+ * <p>
+ * It handles potential exceptions during file creation and storage, throwing
+ * {@link org.codelibs.fess.crawler.exception.CrawlerSystemException} in case of errors.
+ * </p>
+ *
+ * <p>
+ * The {@link #storeData(ResponseData, ResultData)} method is the main entry point for storing
+ * the content of a crawled resource. The {@link #getData(AccessResultData)} method retrieves
+ * the stored file path as a File object.
+ * </p>
  */
 public class FileTransformer extends HtmlTransformer {
     private static final Logger logger = LogManager.getLogger(FileTransformer.class);

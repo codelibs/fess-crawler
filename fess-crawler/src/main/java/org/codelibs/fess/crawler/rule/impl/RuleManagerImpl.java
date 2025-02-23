@@ -23,7 +23,9 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link RuleManager} interface.
+ * Manages a list of rules for the crawler.
+ * Provides methods to add, remove, check, and retrieve rules.
  *
  */
 public class RuleManagerImpl implements RuleManager {

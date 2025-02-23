@@ -37,6 +37,30 @@ import io.minio.errors.InvalidResponseException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 
+/**
+ * Handler for the "storage" protocol, allowing access to objects stored in a MinIO-compatible storage service.
+ * This handler extends {@link URLStreamHandler} to provide a way to open connections to storage objects
+ * using URLs with the "storage" protocol.
+ *
+ * <p>
+ * The URL format is expected to be: {@code storage://bucketName/objectName}.
+ * The bucket name and object name are extracted from the URL.
+ * </p>
+ *
+ * <p>
+ * The handler relies on environment variables for configuration:
+ * </p>
+ * <ul>
+ *   <li>{@code STORAGE_ENDPOINT}: The endpoint URL of the MinIO service.</li>
+ *   <li>{@code STORAGE_ACCESS_KEY}: The access key for authentication.</li>
+ *   <li>{@code STORAGE_SECRET_KEY}: The secret key for authentication.</li>
+ *   <li>{@code STORAGE_REGION}: The region of the MinIO service.</li>
+ * </ul>
+ *
+ * <p>
+ * The {@link StorageURLConnection} class handles the actual connection and data retrieval from the storage service.
+ * </p>
+ */
 public class Handler extends URLStreamHandler {
 
     @Override

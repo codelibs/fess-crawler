@@ -35,10 +35,35 @@ import org.codelibs.fess.crawler.service.UrlQueueService;
 import jakarta.annotation.Resource;
 
 /**
- * Crawler manages/controls a crawling information.
+ * The Crawler class is the main class for web crawling. It manages the crawling process,
+ * including adding URLs to the queue, filtering URLs, managing crawler threads,
+ * and handling the overall crawling lifecycle.
  *
- * @author shinsuke
+ * <p>It implements the Runnable interface to be executed in a separate thread,
+ * and the AutoCloseable interface to ensure resources are properly released after use.
  *
+ * <p>The crawler uses several services and components, such as UrlQueueService, DataService,
+ * UrlFilter, RuleManager, CrawlerContainer, IntervalController, and CrawlerClientFactory,
+ * to perform its tasks.
+ *
+ * <p>The crawling process involves the following steps:
+ * <ol>
+ *   <li>Initialization: Sets up the crawler context and initializes the URL filter.</li>
+ *   <li>Thread Creation: Creates a group of crawler threads to perform the actual crawling.</li>
+ *   <li>Execution: Starts the crawler threads and waits for them to complete.</li>
+ *   <li>Cleanup: Deletes the crawled data and clears the URL filter.</li>
+ * </ol>
+ *
+ * <p>The crawler can be configured with various parameters, such as the number of threads,
+ * the maximum depth of crawling, and URL filters.
+ *
+ * <p>Example usage:
+ * <pre>
+ *   Crawler crawler = new Crawler();
+ *   crawler.addUrl("http://example.com/");
+ *   crawler.execute();
+ *   crawler.close();
+ * </pre>
  */
 public class Crawler implements Runnable, AutoCloseable {
 

@@ -24,7 +24,6 @@ import java.io.InputStream;
  *
  * <p>All other methods delegate to the wrapped input stream.</p>
  *
- * @author
  */
 public class IgnoreCloseInputStream extends InputStream {
 

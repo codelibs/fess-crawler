@@ -35,7 +35,32 @@ import org.codelibs.fess.crawler.service.UrlQueueService;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link UrlQueueService} interface.
+ * This class provides methods for managing a queue of URLs to be crawled,
+ * including adding, deleting, and retrieving URLs from the queue.
+ * It uses a {@link MemoryDataHelper} to store the URL queue data in memory.
+ *
+ * <p>
+ * The class is responsible for:
+ * </p>
+ * <ul>
+ *   <li>Updating session IDs for URL queues.</li>
+ *   <li>Adding new URLs to the queue.</li>
+ *   <li>Inserting existing {@link UrlQueueImpl} objects into the queue.</li>
+ *   <li>Deleting URL queues associated with a session.</li>
+ *   <li>Deleting all URL queues.</li>
+ *   <li>Offering a list of URLs to the queue, ensuring duplicates are not added.</li>
+ *   <li>Polling (retrieving and removing) a URL from the queue.</li>
+ *   <li>Saving the session (currently a no-op).</li>
+ *   <li>Checking if a URL has already been visited.</li>
+ *   <li>Generating URL queues from a previous session's access results.</li>
+ * </ul>
+ *
+ * <p>
+ * The class uses synchronization to ensure thread safety when accessing and modifying the URL queue.
+ * It also checks for duplicate URLs before adding them to the queue,
+ * both within the queue itself and against previously accessed URLs stored in the {@link MemoryDataHelper}.
+ * </p>
  *
  */
 public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> {

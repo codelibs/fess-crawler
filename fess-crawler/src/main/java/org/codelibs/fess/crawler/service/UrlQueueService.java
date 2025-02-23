@@ -20,7 +20,8 @@ import java.util.List;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 
 /**
- * @author shinsuke
+ * Service interface for managing URL queues.
+ * Provides methods for adding, retrieving, and managing URLs within a crawling session.
  *
  */
 public interface UrlQueueService<QUEUE extends UrlQueue<?>> {

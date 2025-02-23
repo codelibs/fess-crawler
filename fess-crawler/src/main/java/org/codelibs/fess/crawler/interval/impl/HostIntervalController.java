@@ -15,7 +15,7 @@
  */
 package org.codelibs.fess.crawler.interval.impl;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -28,6 +28,17 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 
+/**
+ * HostIntervalController is an implementation of {@link org.codelibs.fess.crawler.interval.IntervalController}
+ * that controls the interval between requests to the same host.
+ * It uses a ConcurrentMap to store the last access time for each host.
+ * The delayBeforeProcessing method is overridden to introduce a delay before processing a URL,
+ * ensuring that requests to the same host are not made too frequently.
+ * The delay is calculated based on the configured delayMillisBeforeProcessing parameter.
+ * If the time since the last request to the host is less than the configured delay,
+ * the thread waits until the delay has elapsed.
+ * This class is thread-safe.
+ */
 public class HostIntervalController extends DefaultIntervalController {
 
     private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<>();
@@ -59,8 +70,8 @@ public class HostIntervalController extends DefaultIntervalController {
         }
 
         try {
-            final URL u = new URL(url);
-            final String host = u.getHost();
+            final URI uri = new URI(url);
+            final String host = uri.getHost();
             if (host == null) {
                 return;
             }

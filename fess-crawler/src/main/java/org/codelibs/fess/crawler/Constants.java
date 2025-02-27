@@ -55,7 +55,7 @@ public final class Constants {
 
     public static final Charset UTF_8_CHARSET = StandardCharsets.UTF_8;
 
-    public static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
+    public static final Charset DEFAULT_CHARSET;
 
     public static final String ISO_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
@@ -64,6 +64,10 @@ public final class Constants {
     public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
 
     public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+
+    static {
+        DEFAULT_CHARSET = Charset.defaultCharset();
+    }
 
     /**
      * Private constructor to prevent instantiation of this class.

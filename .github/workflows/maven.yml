@@ -17,19 +17,31 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      PARENT_BRANCH: ${{ github.ref_name == 'master' && 'main' || github.ref_name }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up JDK 17
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    - uses: actions/cache@v1
+    - uses: actions/cache@v4
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
+    - name: Checkout fess-parent
+      uses: actions/checkout@v4
+      with:
+        repository: codelibs/fess-parent
+        ref: ${{ env.PARENT_BRANCH }}
+        path: fess-parent
+    - name: Install fess-parent
+      run: |
+        cd fess-parent
+        mvn install
     - name: Build with Maven
-      run: mvn -B source:jar javadoc:jar package --file pom.xml
+      run: mvn -B package --file pom.xml

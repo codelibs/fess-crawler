@@ -103,7 +103,7 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         assertContentType("text/x-chdr", "extractor/program/test.h", "test.h");
         assertContentType("text/x-c++hdr", "extractor/program/test.hpp", "test.hpp");
         assertContentType("text/x-java-source", "extractor/program/test.java", "test.java");
-        assertContentType("application/javascript", "extractor/program/test.js", "test.js");
+        assertContentType("text/javascript", "extractor/program/test.js", "test.js");
     }
 
     public void test_getContentType_content() throws IOException {
@@ -169,7 +169,7 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         assertContentType("text/x-chdr", "extractor/program/test.h", "test.h");
         assertContentType("text/x-c++hdr", "extractor/program/test.hpp", "test.hpp");
         assertContentType("text/x-java-source", "extractor/program/test.java", "test.java");
-        assertContentType("application/javascript", "extractor/program/test.js", "test.js");
+        assertContentType("text/javascript", "extractor/program/test.js", "test.js");
     }
 
     private void assertContentType(final String expect, final String path, final String name) throws IOException {

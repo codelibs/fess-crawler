@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -41,7 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -223,9 +223,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 final String contentType = params == null ? null : params.get(ExtractData.CONTENT_TYPE);
                 String contentEncoding = params == null ? null : params.get(ExtractData.CONTENT_ENCODING);
                 final boolean normalizeText = params == null ? true : !Constants.FALSE.equalsIgnoreCase(params.get(NORMALIZE_TEXT));
-                final String pdfPassword = getPassword(params);
+                final String password = getPassword(params);
 
-                final Metadata metadata = createMetadata(resourceName, contentType, contentEncoding, pdfPassword);
+                final Metadata metadata = createMetadata(resourceName, contentType, contentEncoding, password);
 
                 final Parser parser = new TikaDetectParser();
                 final ParseContext parseContext = createParseContext(parser, params);
@@ -251,7 +251,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         if (logger.isDebugEnabled()) {
                             logger.debug("retry without a resource name: {}", resourceName);
                         }
-                        final Metadata metadata2 = createMetadata(null, contentType, contentEncoding, pdfPassword);
+                        final Metadata metadata2 = createMetadata(null, contentType, contentEncoding, password);
                         content = getContent(writer -> {
                             InputStream in = null;
                             try {
@@ -271,7 +271,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         if (logger.isDebugEnabled()) {
                             logger.debug("retry without a content type: {}", contentType);
                         }
-                        final Metadata metadata3 = createMetadata(null, null, contentEncoding, pdfPassword);
+                        final Metadata metadata3 = createMetadata(null, null, contentEncoding, password);
                         content = getContent(writer -> {
                             InputStream in = null;
                             try {
@@ -555,7 +555,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 throws IOException, SAXException, TikaException {
             final TemporaryResources tmp = new TemporaryResources();
             try {
-                final TikaInputStream tis = TikaInputStream.get(stream, tmp);
+                final TikaInputStream tis = TikaInputStream.get(stream, tmp, metadata);
 
                 // Automatically detect the MIME type of the document
                 final MediaType type = detector.detect(tis, metadata);
@@ -594,15 +594,6 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 tmp.dispose();
             }
         }
-
-        @Override
-        public void parse(final InputStream stream, final ContentHandler handler, final Metadata metadata)
-                throws IOException, SAXException, TikaException {
-            final ParseContext context = new ParseContext();
-            context.set(Parser.class, this);
-            parse(stream, handler, metadata, context);
-        }
-
     }
 
     @FunctionalInterface

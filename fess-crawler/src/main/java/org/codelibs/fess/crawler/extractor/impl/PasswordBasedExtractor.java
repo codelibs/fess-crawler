@@ -90,7 +90,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
             }
         }
 
-        return params != null ? params.get(ExtractData.PDF_PASSWORD) : null;
+        return null;
     }
 
 }

@@ -27,7 +27,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSInputStream;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
@@ -74,7 +76,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
 
         final String password = getPassword(params);
-        try (PDDocument document = PDDocument.load(in, password == null ? null : password)) {
+        try (PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(in), password)) {
             final StringWriter writer = new StringWriter();
             final PDFTextStripper stripper = new PDFTextStripper();
             final AtomicBoolean done = new AtomicBoolean(false);

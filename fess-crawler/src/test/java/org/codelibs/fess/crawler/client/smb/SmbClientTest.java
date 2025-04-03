@@ -53,29 +53,46 @@ public class SmbClientTest extends PlainTestCase {
         super.setUp();
 
         Path tempDir = Files.createTempDirectory("smbdata");
-        Files.writeString(tempDir.resolve("file1.txt"), "file1");
-        Path dir1 = tempDir.resolve("dir1");
+        Path publicDir = tempDir.resolve("public");
+        Files.createDirectory(publicDir);
+        Path usersDir = tempDir.resolve("users");
+        Files.createDirectory(usersDir);
+        Path testuser1Dir = tempDir.resolve("testuser1");
+        Files.createDirectory(testuser1Dir);
+        Path testuser2Dir = tempDir.resolve("testuser2");
+        Files.createDirectory(testuser2Dir);
+
+        Files.writeString(usersDir.resolve("file1.txt"), "file1");
+        Path dir1 = usersDir.resolve("dir1");
         Files.createDirectory(dir1);
         Files.writeString(dir1.resolve("file2.txt"), "file2");
         Path dir2 = dir1.resolve("dir2");
         Files.createDirectory(dir2);
         Files.writeString(dir2.resolve("file3.txt"), "file3");
-        Path dir3 = tempDir.resolve("dir3");
+        Path dir3 = usersDir.resolve("dir3");
         Files.createDirectory(dir3);
         Files.writeString(dir3.resolve("file4.txt"), "file4");
 
-        sambaServer = new GenericContainer<>(IMAGE_NAME).withExposedPorts(139, 445)
-                .withFileSystemBind(tempDir.toAbsolutePath().toString(), "/share", BindMode.READ_WRITE).withCommand("-u",
-                        "testuser1;test123", "-u", "testuser2;test123", "-s", "public;/share", "-s",
-                        "users;/srv;no;no;no;testuser1,testuser2", "-s", "testuser1 private share;/testuser1;no;no;no;testuser1", "-s",
-                        "testuser2 private share;/testuser2;no;no;no;testuser2");
+        sambaServer = new GenericContainer<>(IMAGE_NAME).withExposedPorts(139, 445)//
+                .withFileSystemBind(publicDir.toAbsolutePath().toString(), "/share", BindMode.READ_WRITE)//
+                .withFileSystemBind(usersDir.toAbsolutePath().toString(), "/srv", BindMode.READ_WRITE)//
+                .withFileSystemBind(testuser1Dir.toAbsolutePath().toString(), "/testuser1", BindMode.READ_WRITE)//
+                .withFileSystemBind(testuser2Dir.toAbsolutePath().toString(), "/testuser2", BindMode.READ_WRITE)//
+                .withCommand(//
+                        "-u", "testuser1;test123", //
+                        "-u", "testuser2;test123", //
+                        "-s", "public;/share;yes;no;no;testuser1", //
+                        "-s", "users;/srv;no;no;no;testuser1,testuser2", //
+                        "-s", "testuser1 private share;/testuser1;no;no;no;testuser1", //
+                        "-s", "testuser2 private share;/testuser2;no;no;no;testuser2", //
+                        "-g", "log level = 3");
         logger.info("Starting Samba container with image {}", IMAGE_NAME);
         sambaServer.start();
         logger.info("Samba container started");
 
         String host = sambaServer.getContainerIpAddress();
         Integer port = sambaServer.getMappedPort(445);
-        baseUrl = "smb://" + host + ":" + port + "/public/";
+        baseUrl = "smb://" + host + ":" + port + "/users/";
         logger.info("Base URL: {}", baseUrl);
 
         StandardCrawlerContainer container = new StandardCrawlerContainer()//
@@ -84,7 +101,6 @@ public class SmbClientTest extends PlainTestCase {
         smbClient = container.getComponent("smbClient");
         Map<String, Object> params = new HashMap<>();
         SmbAuthentication auth1 = new SmbAuthentication();
-        auth1.setDomain("");
         auth1.setUsername("testuser1");
         auth1.setPassword("test123");
         SmbAuthentication[] auths = new SmbAuthentication[] { auth1 };
@@ -92,12 +108,12 @@ public class SmbClientTest extends PlainTestCase {
         smbClient.setInitParameterMap(params);
         smbClient.init();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             try {
                 smbClient.doGet(baseUrl);
                 break;
             } catch (final Exception e) {
-                logger.warn("[{}] {}", i + i, e.getMessage());
+                logger.info("[{}] {}", i + i, e.getMessage());
             }
             ThreadUtil.sleep(1000L);
         }

@@ -233,7 +233,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 file = new SmbFile(filePath, cifsContext.withCredentials(getAuthenticator(smbAuthentication)));
             }
         } catch (final MalformedURLException e) {
-            logger.warn("Could not parse url: " + filePath, e);
+            logger.warn("Could not parse url: {}", filePath, e);
         }
 
         if (logger.isDebugEnabled()) {

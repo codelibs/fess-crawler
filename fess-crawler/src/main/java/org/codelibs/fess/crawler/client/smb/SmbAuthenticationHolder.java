@@ -18,6 +18,9 @@ package org.codelibs.fess.crawler.client.smb;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Holds a map of SMB authentication configurations, allowing retrieval of the appropriate
  * authentication based on a given path.
@@ -28,6 +31,8 @@ import java.util.Map;
  * This allows for different SMB shares to use different authentication credentials.</p>
  */
 public class SmbAuthenticationHolder {
+    private static final Logger logger = LogManager.getLogger(SmbAuthenticationHolder.class);
+
     private final Map<String, SmbAuthentication> authMap = new HashMap<>();
 
     /**
@@ -59,6 +64,9 @@ public class SmbAuthenticationHolder {
         }
 
         for (final Map.Entry<String, SmbAuthentication> entry : authMap.entrySet()) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Checking path: {} against entry: {}", path, entry.getKey());
+            }
             if (path.startsWith(entry.getKey())) {
                 return entry.getValue();
             }

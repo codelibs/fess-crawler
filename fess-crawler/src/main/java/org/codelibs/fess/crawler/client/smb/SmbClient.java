@@ -161,6 +161,9 @@ public class SmbClient extends AbstractCrawlerClient {
                 getInitParameter(SMB_AUTHENTICATIONS_PROPERTY, new SmbAuthentication[0], SmbAuthentication[].class);
         if (smbAuthentications != null) {
             for (final SmbAuthentication smbAuthentication : smbAuthentications) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Adding SmbAuthentication: {}", smbAuthentication);
+                }
                 holder.add(smbAuthentication);
             }
         }
@@ -224,7 +227,7 @@ public class SmbClient extends AbstractCrawlerClient {
         SmbFile file = null;
         final SmbAuthentication smbAuthentication = smbAuthenticationHolder.get(filePath);
         if (logger.isDebugEnabled()) {
-            logger.debug("Creating SmbFile: {}", filePath);
+            logger.debug("Creating SmbFile: {} - {}", filePath, smbAuthentication);
         }
         try {
             if (smbAuthentication == null) {

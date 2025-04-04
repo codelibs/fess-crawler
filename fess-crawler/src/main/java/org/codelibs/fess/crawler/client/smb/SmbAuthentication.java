@@ -96,4 +96,9 @@ public class SmbAuthentication {
     public void setDomain(final String domain) {
         this.domain = domain;
     }
+
+    @Override
+    public String toString() {
+        return "[" + domain + "] " + username + "@" + server + ":" + port;
+    }
 }

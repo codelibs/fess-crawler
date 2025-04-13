@@ -136,7 +136,7 @@ public class CrawlerClientFactory implements AutoCloseable {
     }
 
     public void setInitParameterMap(final Map<String, Object> params) {
-        if (params != null && !params.isEmpty()) {
+        if (params != null) {
             for (final CrawlerClient client : clientMap.values()) {
                 client.setInitParameterMap(params);
             }

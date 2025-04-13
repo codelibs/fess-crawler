@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.MountableFile;
 
 /**
  * @author shinsuke
@@ -73,11 +74,15 @@ public class SmbClientTest extends PlainTestCase {
         Files.createDirectory(dir3);
         Files.writeString(dir3.resolve("file4.txt"), "file4");
 
+        MountableFile mountablePublic = MountableFile.forHostPath(publicDir.toAbsolutePath().toString());
+        MountableFile mountableUsers = MountableFile.forHostPath(usersDir.toAbsolutePath().toString());
+        MountableFile mountableTestuser1 = MountableFile.forHostPath(testuser1Dir.toAbsolutePath().toString());
+        MountableFile mountableTestuser2 = MountableFile.forHostPath(testuser2Dir.toAbsolutePath().toString());
+
         sambaServer = new GenericContainer<>(IMAGE_NAME).withExposedPorts(139, 445)//
-                .withFileSystemBind(publicDir.toAbsolutePath().toString(), "/share", BindMode.READ_WRITE)//
-                .withFileSystemBind(usersDir.toAbsolutePath().toString(), "/srv", BindMode.READ_WRITE)//
-                .withFileSystemBind(testuser1Dir.toAbsolutePath().toString(), "/testuser1", BindMode.READ_WRITE)//
-                .withFileSystemBind(testuser2Dir.toAbsolutePath().toString(), "/testuser2", BindMode.READ_WRITE)//
+                .withCopyFileToContainer(mountablePublic, "/share")//
+                .withCopyFileToContainer(mountableUsers, "/srv").withCopyFileToContainer(mountableTestuser1, "/testuser1")//
+                .withCopyFileToContainer(mountableTestuser2, "/testuser2")//
                 .withCommand(//
                         "-u", "testuser1;test123", //
                         "-u", "testuser2;test123", //

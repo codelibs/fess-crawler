@@ -101,7 +101,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
         final OpenSearchResultList<OpenSearchAccessResult> targetList = new OpenSearchResultList<>();
         final SearchHits hits = response.getHits();
         final TotalHits totalHits = hits.getTotalHits();
-        final long totalHitsValue = totalHits != null ? totalHits.value : 0;
+        final long totalHitsValue = totalHits != null ? totalHits.value() : 0;
         targetList.setTotalHits(totalHitsValue);
         targetList.setTookInMillis(response.getTook().getMillis());
         if (totalHitsValue != 0) {

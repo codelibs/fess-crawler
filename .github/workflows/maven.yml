@@ -18,7 +18,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      PARENT_BRANCH: ${{ github.ref_name == 'master' && 'main' || github.ref_name }}
+      PARENT_BRANCH: main
 
     steps:
     - uses: actions/checkout@v4

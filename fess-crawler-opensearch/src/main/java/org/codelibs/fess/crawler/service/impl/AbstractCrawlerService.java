@@ -66,7 +66,7 @@ import org.opensearch.action.index.IndexResponse;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.support.WriteRequest.RefreshPolicy;
-import org.opensearch.action.support.master.AcknowledgedResponse;
+import org.opensearch.action.support.clustermanager.AcknowledgedResponse;
 import org.opensearch.cluster.metadata.MappingMetadata;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.xcontent.XContentType;
@@ -329,7 +329,7 @@ public abstract class AbstractCrawlerService {
             callback.accept(builder);
             return builder.execute();
         }).getHits().getTotalHits();
-        return totalHits != null ? (int) totalHits.value : 0;
+        return totalHits != null ? (int) totalHits.value() : 0;
     }
 
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
@@ -393,7 +393,7 @@ public abstract class AbstractCrawlerService {
         final OpenSearchResultList<T> targetList = new OpenSearchResultList<>();
         final SearchHits hits = response.getHits();
         final TotalHits totalHits = hits.getTotalHits();
-        final long totalHitsValue = totalHits != null ? totalHits.value : 0;
+        final long totalHitsValue = totalHits != null ? totalHits.value() : 0;
         targetList.setTotalHits(totalHitsValue);
         targetList.setTookInMillis(response.getTook().getMillis());
         if (totalHitsValue != 0) {

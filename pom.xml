@@ -8,6 +8,27 @@
 	<name>Fess Crawler Project</name>
 	<description>Fess Crawler is Crawler Framework.</description>
 	<url>https://github.com/codelibs/fess-crawler</url>
+	<inceptionYear>2009</inceptionYear>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<organization>
+		<name>CodeLibs</name>
+		<url>https://fess.codelibs.org/</url>
+	</organization>
+	<developers>
+		<developer>
+			<id>shinsuke</id>
+			<name>Shinsuke Sugaya</name>
+			<email>shinsuke.sugaya@codelibs.co</email>
+			<organization>CodeLibs Inc.</organization>
+			<organizationUrl>https://codelibs.co</organizationUrl>
+		</developer>
+	</developers>
 	<issueManagement>
 		<system>GitHub</system>
 		<url>https://github.com/codelibs/fess-crawler/issues</url>

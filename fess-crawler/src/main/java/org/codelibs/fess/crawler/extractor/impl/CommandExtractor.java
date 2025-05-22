@@ -105,8 +105,8 @@ public class CommandExtractor extends AbstractExtractor {
         File inputFile = null;
         File outputFile = null;
         try {
-            inputFile = File.createTempFile("cmdextin_" + filePrefix + "_", StringUtil.isNotBlank(extention) ? "." + extention : extention,
-                    tempDir);
+            inputFile =
+                    createTempFile("cmdextin_" + filePrefix + "_", StringUtil.isNotBlank(extention) ? "." + extention : extention, tempDir);
             String ext;
             if (outputExtension == null) {
                 if (StringUtil.isNotBlank(extention)) {
@@ -117,7 +117,7 @@ public class CommandExtractor extends AbstractExtractor {
             } else {
                 ext = outputExtension;
             }
-            outputFile = File.createTempFile("cmdextout_" + filePrefix + "_", ext, tempDir);
+            outputFile = createTempFile("cmdextout_" + filePrefix + "_", ext, tempDir);
 
             // store to a file
             CopyUtil.copy(in, inputFile);

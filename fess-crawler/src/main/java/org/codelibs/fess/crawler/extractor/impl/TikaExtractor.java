@@ -204,11 +204,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             inputStream.mark(0); // ByteArrayInputStream
             tempFile = null;
         } else {
-            try {
-                tempFile = File.createTempFile("tikaExtractor-", ".out");
-            } catch (final IOException e) {
-                throw new ExtractException("Could not create a temp file.", e);
-            }
+            tempFile = createTempFile("tikaExtractor-", ".out", null);
         }
 
         try {
@@ -338,7 +334,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 if (isByteStream) {
                     contentLength = ((ByteArrayInputStream) inputStream).available();
                 } else {
-                    contentLength = tempFile.length();
+                    contentLength = tempFile != null ? tempFile.length() : 0;
                 }
                 extractData.putValue("Content-Length", Long.toString(contentLength));
 

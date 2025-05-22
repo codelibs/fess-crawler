@@ -395,7 +395,7 @@ public class FtpClient extends AbstractCrawlerClient {
                 File tempFile = null;
                 File outputFile = null;
                 try {
-                    tempFile = File.createTempFile("ftp-", ".tmp");
+                    tempFile = createTempFile("ftp-", ".tmp", null);
                     try (OutputStream out = new BufferedOutputStream(new FileOutputStream(tempFile))) {
                         if (!client.retrieveFile(ftpInfo.getName(), out)) {
                             throw new CrawlingAccessException("Failed to retrieve: " + ftpInfo.toUrl());
@@ -424,7 +424,7 @@ public class FtpClient extends AbstractCrawlerClient {
                             responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
                         }
                     } else {
-                        outputFile = File.createTempFile("crawler-FtpClient-", ".out");
+                        outputFile = createTempFile("crawler-FtpClient-", ".out", null);
                         CopyUtil.copy(tempFile, outputFile);
                         responseData.setResponseBody(outputFile, true);
                     }

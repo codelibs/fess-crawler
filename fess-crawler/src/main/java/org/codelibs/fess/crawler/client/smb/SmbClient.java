@@ -298,7 +298,7 @@ public class SmbClient extends AbstractCrawlerClient {
                         } else {
                             File outputFile = null;
                             try {
-                                outputFile = File.createTempFile("crawler-SmbClient-", ".out");
+                                outputFile = createTempFile("crawler-SmbClient-", ".out", null);
                                 copy(file, outputFile);
                                 responseData.setResponseBody(outputFile, true);
                             } catch (final Exception e) {

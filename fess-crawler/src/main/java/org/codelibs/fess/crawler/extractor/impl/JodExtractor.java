@@ -159,10 +159,10 @@ public class JodExtractor extends AbstractExtractor {
         File inputFile = null;
         File outputFile = null;
         try {
-            inputFile = File.createTempFile("jodextin_" + filePrefix + "_", StringUtil.isNotBlank(extension) ? "." + extension : extension,
-                    tempDir);
+            inputFile =
+                    createTempFile("jodextin_" + filePrefix + "_", StringUtil.isNotBlank(extension) ? "." + extension : extension, tempDir);
             final String outExt = getOutputExtension(extension);
-            outputFile = File.createTempFile("cmdextout_" + filePrefix + "_", "." + outExt, tempDir);
+            outputFile = createTempFile("cmdextout_" + filePrefix + "_", "." + outExt, tempDir);
 
             // store to a file
             CopyUtil.copy(in, inputFile);
@@ -175,7 +175,7 @@ public class JodExtractor extends AbstractExtractor {
             }
 
             return extractData;
-        } catch (final IOException | OfficeException e) {
+        } catch (final OfficeException e) {
             throw new ExtractException("Could not extract a content.", e);
         } finally {
             FileUtil.deleteInBackground(inputFile);

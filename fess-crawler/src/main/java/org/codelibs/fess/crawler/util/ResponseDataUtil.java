@@ -39,6 +39,10 @@ public final class ResponseDataUtil {
         FileOutputStream fos = null;
         try (final InputStream is = responseData.getResponseBody()) {
             tempFile = File.createTempFile("crawler-", ".tmp");
+            tempFile.setReadable(false, false);
+            tempFile.setReadable(true, true);
+            tempFile.setWritable(false, false);
+            tempFile.setWritable(true, true);
             fos = new FileOutputStream(tempFile);
             CopyUtil.copy(is, fos);
         } catch (final Exception e) {

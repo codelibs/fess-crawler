@@ -217,7 +217,7 @@ public class StorageClient extends AbstractCrawlerClient {
                 } else {
                     File outputFile = null;
                     try {
-                        outputFile = File.createTempFile("crawler-SmbClient-", ".out");
+                        outputFile = createTempFile("crawler-SmbClient-", ".out", null);
                         final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
                         CopyUtil.copy(minioClient.getObject(args), outputFile);
                         responseData.setResponseBody(outputFile, true);

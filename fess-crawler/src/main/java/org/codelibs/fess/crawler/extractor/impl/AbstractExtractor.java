@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -48,5 +50,18 @@ public abstract class AbstractExtractor implements Extractor {
             throw new CrawlerSystemException("ExtractorFactory is unavailable.");
         }
         return extractorFactory;
+    }
+
+    protected File createTempFile(final String prefix, final String suffix, final File directory) {
+        try {
+            final File tempFile = File.createTempFile(prefix, suffix, directory);
+            tempFile.setReadable(false, false);
+            tempFile.setReadable(true, true);
+            tempFile.setWritable(false, false);
+            tempFile.setWritable(true, true);
+            return tempFile;
+        } catch (final IOException e) {
+            throw new CrawlerSystemException("Could not create a temp file.", e);
+        }
     }
 }

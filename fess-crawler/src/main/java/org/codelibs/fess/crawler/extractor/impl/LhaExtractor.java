@@ -64,7 +64,7 @@ public class LhaExtractor extends AbstractExtractor {
         File tempFile = null;
         LhaFile lhaFile = null;
         try {
-            tempFile = File.createTempFile("crawler-", ".lzh");
+            tempFile = createTempFile("crawler-", ".lzh", null);
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {
                 CopyUtil.copy(in, fos);
             }

@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.client;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -23,6 +25,7 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,6 +152,19 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
 
     protected ResponseData doPost(final String url) {
         throw new CrawlerSystemException("POST method is not supported.");
+    }
+
+    protected File createTempFile(final String prefix, final String suffix, final File directory) {
+        try {
+            final File tempFile = File.createTempFile(prefix, suffix, directory);
+            tempFile.setReadable(false, false);
+            tempFile.setReadable(true, true);
+            tempFile.setWritable(false, false);
+            tempFile.setWritable(true, true);
+            return tempFile;
+        } catch (final IOException e) {
+            throw new CrawlerSystemException("Could not create a temp file.", e);
+        }
     }
 
     public void setMaxCachedContentSize(final long maxCachedContentSize) {

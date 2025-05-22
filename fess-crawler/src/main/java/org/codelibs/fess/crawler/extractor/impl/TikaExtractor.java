@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -154,20 +155,17 @@ public class TikaExtractor extends PasswordBasedExtractor {
             throw new CrawlerSystemException("The inputstream is null.");
         }
 
-        final long contentLength;
+        final LongSupplier contentLength;
         final File tempFile;
         final boolean isByteStream = inputStream instanceof ByteArrayInputStream;
         if (isByteStream) {
             inputStream.mark(0);
             tempFile = null;
-            contentLength = ((ByteArrayInputStream) inputStream).available();
+            final long avaiable = ((ByteArrayInputStream) inputStream).available();
+            contentLength = () -> avaiable;
         } else {
-            try {
-                tempFile = File.createTempFile("tikaExtractor-", ".out");
-            } catch (final IOException e) {
-                throw new ExtractException("Could not create a temp file.", e);
-            }
-            contentLength = tempFile.length();
+            tempFile = createTempFile("tikaExtractor-", ".out", null);
+            contentLength = () -> tempFile.length();
         }
 
         try {
@@ -293,7 +291,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                     }
                 }
                 final ExtractData extractData = new ExtractData(content);
-                extractData.putValue("Content-Length", Long.toString(contentLength));
+                extractData.putValue("Content-Length", Long.toString(contentLength.getAsLong()));
 
                 final String[] names = metadata.names();
                 Arrays.sort(names);

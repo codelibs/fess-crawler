@@ -23,14 +23,27 @@ package org.codelibs.fess.crawler.exception;
 public class SitemapsException extends CrawlerSystemException {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a new SitemapsException with the specified detail message and cause.
+     * @param message the detail message
+     * @param cause the cause of the exception
+     */
     public SitemapsException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Constructs a new SitemapsException with the specified detail message.
+     * @param message the detail message
+     */
     public SitemapsException(final String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new SitemapsException with the specified cause.
+     * @param cause the cause of the exception
+     */
     public SitemapsException(final Throwable cause) {
         super(cause);
     }

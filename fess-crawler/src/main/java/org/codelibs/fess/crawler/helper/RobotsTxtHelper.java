@@ -46,23 +46,49 @@ import org.codelibs.fess.crawler.exception.RobotsTxtException;
  */
 public class RobotsTxtHelper {
 
+    /** Pattern for parsing user-agent records. */
     protected static final Pattern USER_AGENT_RECORD =
             Pattern.compile("^user-agent:\\s*([^\\t\\n\\x0B\\f\\r]+)\\s*$", Pattern.CASE_INSENSITIVE);
 
+    /** Pattern for parsing disallow records. */
     protected static final Pattern DISALLOW_RECORD = Pattern.compile("^disallow:\\s*([^\\s]*)\\s*$", Pattern.CASE_INSENSITIVE);
 
+    /** Pattern for parsing allow records. */
     protected static final Pattern ALLOW_RECORD = Pattern.compile("^allow:\\s*([^\\s]*)\\s*$", Pattern.CASE_INSENSITIVE);
 
+    /** Pattern for parsing crawl-delay records. */
     protected static final Pattern CRAWL_DELAY_RECORD = Pattern.compile("^crawl-delay:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Pattern for Sitemap record.
+     */
     protected static final Pattern SITEMAP_RECORD = Pattern.compile("^sitemap:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
 
+    /** Whether robots.txt processing is enabled. */
     protected boolean enabled = true;
 
+    /**
+     * Creates a new RobotsTxtHelper instance.
+     */
+    public RobotsTxtHelper() {
+        // Default constructor
+    }
+
+    /**
+     * Parses a robots.txt file from the given input stream using UTF-8 encoding.
+     * @param stream the input stream to parse
+     * @return the parsed RobotsTxt object, or null if disabled
+     */
     public RobotsTxt parse(final InputStream stream) {
         return parse(stream, Constants.UTF_8);
     }
 
+    /**
+     * Parses a robots.txt file from the given input stream using the specified character encoding.
+     * @param stream the input stream to parse
+     * @param charsetName the character encoding to use
+     * @return the parsed RobotsTxt object, or null if disabled
+     */
     public RobotsTxt parse(final InputStream stream, final String charsetName) {
         if (!enabled) {
             return null;
@@ -133,6 +159,12 @@ public class RobotsTxtHelper {
         }
     }
 
+    /**
+     * Extracts the value from a line using the given pattern.
+     * @param pattern the pattern to match against
+     * @param line the line to extract the value from
+     * @return the extracted value, or null if no match
+     */
     protected String getValue(final Pattern pattern, final String line) {
         final Matcher m = pattern.matcher(line);
         if (m.matches() && m.groupCount() > 0) {
@@ -141,6 +173,11 @@ public class RobotsTxtHelper {
         return null;
     }
 
+    /**
+     * Strips comments from a line (everything after '#' character).
+     * @param line the line to strip comments from
+     * @return the line without comments
+     */
     protected String stripComment(final String line) {
         final int commentIndex = line.indexOf('#');
         if (commentIndex != -1) {
@@ -149,10 +186,18 @@ public class RobotsTxtHelper {
         return line;
     }
 
+    /**
+     * Checks if robots.txt processing is enabled.
+     * @return true if enabled, false otherwise
+     */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Sets whether robots.txt processing is enabled.
+     * @param enabled true to enable, false to disable
+     */
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }

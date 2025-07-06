@@ -42,12 +42,22 @@ public abstract class AbstractRule implements Rule {
 
     private static final long serialVersionUID = 1L;
 
+    /** The rule ID. */
     protected String ruleId;
 
+    /** The response processor. */
     protected ResponseProcessor responseProcessor;
 
+    /** The crawler container. */
     @Resource
     protected CrawlerContainer crawlerContainer;
+
+    /**
+     * Constructs a new AbstractRule.
+     */
+    public AbstractRule() {
+        // NOP
+    }
 
     /**
      * Registers this rule with the {@link RuleManager}.

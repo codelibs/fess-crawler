@@ -37,6 +37,13 @@ public class SitemapUrl implements Sitemap {
     private static final long serialVersionUID = 1L;
 
     /**
+     * Creates a new SitemapUrl instance.
+     */
+    public SitemapUrl() {
+        super();
+    }
+
+    /**
      * URL of the page. This URL must begin with the protocol (such as http) and
      * end with a trailing slash, if your web server requires it. This value
      * must be less than 2,048 characters.
@@ -100,36 +107,68 @@ public class SitemapUrl implements Sitemap {
      */
     private String priority;
 
+    /**
+     * Returns the location URL of this sitemap entry.
+     * @return the location URL
+     */
     @Override
     public String getLoc() {
         return loc;
     }
 
+    /**
+     * Sets the location URL of this sitemap entry.
+     * @param loc the location URL to set
+     */
     public void setLoc(final String loc) {
         this.loc = loc;
     }
 
+    /**
+     * Returns the last modification date of this sitemap entry.
+     * @return the last modification date
+     */
     @Override
     public String getLastmod() {
         return lastmod;
     }
 
+    /**
+     * Sets the last modification date of this sitemap entry.
+     * @param lastmod the last modification date to set
+     */
     public void setLastmod(final String lastmod) {
         this.lastmod = lastmod;
     }
 
+    /**
+     * Returns the change frequency of this sitemap entry.
+     * @return the change frequency
+     */
     public String getChangefreq() {
         return changefreq;
     }
 
+    /**
+     * Sets the change frequency of this sitemap entry.
+     * @param changefreq the change frequency to set
+     */
     public void setChangefreq(final String changefreq) {
         this.changefreq = changefreq;
     }
 
+    /**
+     * Returns the priority of this sitemap entry.
+     * @return the priority
+     */
     public String getPriority() {
         return priority;
     }
 
+    /**
+     * Sets the priority of this sitemap entry.
+     * @param priority the priority to set
+     */
     public void setPriority(final String priority) {
         this.priority = priority;
     }
@@ -154,6 +193,10 @@ public class SitemapUrl implements Sitemap {
         return java.util.Objects.hash(loc, changefreq, lastmod, priority);
     }
 
+    /**
+     * Returns a string representation of this SitemapUrl.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "SitemapUrl [loc=" + loc + ", lastmod=" + lastmod + ", changefreq=" + changefreq + ", priority=" + priority + "]";

@@ -20,23 +20,42 @@ package org.codelibs.fess.crawler.log;
  * Each enum constant represents a specific event or state in the crawler's execution.
  */
 public enum LogType {
-    START_CRAWLING, //
-    CLEANUP_CRAWLING, //
-    UNSUPPORTED_URL_AT_CRAWLING_STARTED, //
-    CHECK_LAST_MODIFIED, //
-    NOT_MODIFIED, //
-    GET_CONTENT, //
-    REDIRECT_LOCATION, //
-    PROCESS_RESPONSE, //
-    FINISHED_CRAWLING, //
-    PROCESS_CHILD_URLS_BY_EXCEPTION, //
-    PROCESS_CHILD_URL_BY_EXCEPTION, //
-    CRAWLING_ACCESS_EXCEPTION, //
-    CRAWLING_EXCEPTION, //
-    NO_URL_IN_QUEUE, //
-    START_THREAD, //
-    FINISHED_THREAD, //
-    NO_RESPONSE_PROCESSOR, //
-    NO_RULE, //
+    /** Indicates the start of a crawling process. */
+    START_CRAWLING,
+    /** Indicates the cleanup phase of crawling. */
+    CLEANUP_CRAWLING,
+    /** Indicates an unsupported URL was encountered when crawling started. */
+    UNSUPPORTED_URL_AT_CRAWLING_STARTED,
+    /** Indicates checking the last modified date of a resource. */
+    CHECK_LAST_MODIFIED,
+    /** Indicates the resource has not been modified. */
+    NOT_MODIFIED,
+    /** Indicates getting content from a resource. */
+    GET_CONTENT,
+    /** Indicates a redirect location was found. */
+    REDIRECT_LOCATION,
+    /** Indicates processing a response. */
+    PROCESS_RESPONSE,
+    /** Indicates the crawling process has finished. */
+    FINISHED_CRAWLING,
+    /** Indicates processing child URLs due to an exception. */
+    PROCESS_CHILD_URLS_BY_EXCEPTION,
+    /** Indicates processing a child URL due to an exception. */
+    PROCESS_CHILD_URL_BY_EXCEPTION,
+    /** Indicates an access exception during crawling. */
+    CRAWLING_ACCESS_EXCEPTION,
+    /** Indicates a general exception during crawling. */
+    CRAWLING_EXCEPTION,
+    /** Indicates no URL is available in the queue. */
+    NO_URL_IN_QUEUE,
+    /** Indicates the start of a crawler thread. */
+    START_THREAD,
+    /** Indicates the finish of a crawler thread. */
+    FINISHED_THREAD,
+    /** Indicates no response processor is available. */
+    NO_RESPONSE_PROCESSOR,
+    /** Indicates no rule is available for processing. */
+    NO_RULE,
+    /** Indicates a system error occurred. */
     SYSTEM_ERROR
 }

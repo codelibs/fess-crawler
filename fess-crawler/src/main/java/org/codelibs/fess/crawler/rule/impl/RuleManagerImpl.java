@@ -30,12 +30,25 @@ import org.codelibs.fess.crawler.rule.RuleManager;
  */
 public class RuleManagerImpl implements RuleManager {
 
+    /** The list of rules managed by this rule manager. */
     protected final List<Rule> ruleList = new ArrayList<>();
+
+    /**
+     * Creates a new RuleManagerImpl instance.
+     */
+    public RuleManagerImpl() {
+        // Default constructor
+    }
 
     /*
      * (non-Javadoc)
      *
      * @see org.codelibs.fess.crawler.rule.RuleManager#getRule(org.codelibs.fess.crawler.entity.ResponseData)
+     */
+    /**
+     * Gets the first rule that matches the given response data.
+     * @param responseData the response data to match against
+     * @return the first matching rule, or null if no rule matches
      */
     @Override
     public Rule getRule(final ResponseData responseData) {
@@ -53,11 +66,20 @@ public class RuleManagerImpl implements RuleManager {
      * @see
      * org.codelibs.fess.crawler.rule.RuleManager#addRule(org.codelibs.fess.crawler.rule.Rule)
      */
+    /**
+     * Adds a rule to the end of the rule list.
+     * @param rule the rule to add
+     */
     @Override
     public void addRule(final Rule rule) {
         ruleList.add(rule);
     }
 
+    /**
+     * Adds a rule at the specified position in the rule list.
+     * @param index the position to insert the rule
+     * @param rule the rule to add
+     */
     @Override
     public void addRule(final int index, final Rule rule) {
         ruleList.add(index, rule);
@@ -69,6 +91,11 @@ public class RuleManagerImpl implements RuleManager {
      * @see
      * org.codelibs.fess.crawler.rule.RuleManager#hasRule(org.codelibs.fess.crawler.rule.Rule)
      */
+    /**
+     * Checks if the rule manager contains the specified rule.
+     * @param rule the rule to check for
+     * @return true if the rule is present, false otherwise
+     */
     @Override
     public boolean hasRule(final Rule rule) {
         return ruleList.contains(rule);
@@ -79,6 +106,11 @@ public class RuleManagerImpl implements RuleManager {
      *
      * @see
      * org.codelibs.fess.crawler.rule.RuleManager#removeRule(org.codelibs.fess.crawler.rule.Rule)
+     */
+    /**
+     * Removes the specified rule from the rule manager.
+     * @param rule The rule to be removed.
+     * @return true if the rule was successfully removed, false otherwise.
      */
     @Override
     public boolean removeRule(final Rule rule) {

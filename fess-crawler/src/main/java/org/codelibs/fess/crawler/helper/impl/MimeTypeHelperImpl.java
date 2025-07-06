@@ -58,14 +58,23 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
  * </pre>
  */
 public class MimeTypeHelperImpl implements MimeTypeHelper {
+    /** The resource name for the MIME types configuration file. */
     protected static final String MIME_TYPES_RESOURCE_NAME = "/org/codelibs/fess/crawler/mime/tika-mimetypes.xml";
 
+    /** The MimeTypes instance for detecting MIME types. */
     protected MimeTypes mimeTypes;
 
+    /** Whether to use the filename for MIME type detection. */
     protected boolean useFilename = false;
 
+    /** Whether to use the filename for MIME type detection when the stream is detected as octet-stream. */
     protected boolean useFilenameOnOctetStream = true;
 
+    /**
+     * Creates a new MimeTypeHelperImpl instance.
+     * Initializes the MimeTypes instance using the default configuration.
+     * @throws CrawlerSystemException if the MIME types configuration cannot be loaded
+     */
     public MimeTypeHelperImpl() {
         try {
             mimeTypes = MimeTypesFactory.create(MIME_TYPES_RESOURCE_NAME);
@@ -110,6 +119,11 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         }
     }
 
+    /**
+     * Normalizes the filename by replacing special characters.
+     * @param filename The filename to normalize.
+     * @return The normalized filename.
+     */
     protected String normalizeFilename(final String filename) {
         if (StringUtil.isBlank(filename)) {
             return filename;

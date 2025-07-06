@@ -224,5 +224,10 @@ public interface AccessResult<IDTYPE> {
      *
      * @param lastModified the last modified time
      */
+    /**
+     * Sets the last modified time of the accessed resource.
+     *
+     * @param lastModified the last modified time
+     */
     void setLastModified(Long lastModified);
 }

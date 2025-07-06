@@ -29,13 +29,25 @@ public class ChildUrlsException extends CrawlerSystemException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The list of child URLs.
+     */
     private final Set<RequestData> childUrlList;
 
+    /**
+     * Creates a new instance of ChildUrlsException.
+     * @param childUrlList The list of child URLs.
+     * @param description The description of the exception.
+     */
     public ChildUrlsException(final Set<RequestData> childUrlList, final String description) {
         super("Threw child urls(" + childUrlList.size() + "). " + description, false, false);
         this.childUrlList = childUrlList;
     }
 
+    /**
+     * Returns the list of child URLs.
+     * @return The list of child URLs.
+     */
     public Set<RequestData> getChildUrlList() {
         return childUrlList;
     }

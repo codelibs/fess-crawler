@@ -36,18 +36,36 @@ import jakarta.annotation.Resource;
  *
  */
 public class CrawlerClientCreator {
+    /**
+     * Constructs a new CrawlerClientCreator.
+     */
+    public CrawlerClientCreator() {
+        // Default constructor
+    }
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(CrawlerClientCreator.class);
 
+    /** Container for managing crawler components */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /** Map of regular expressions to component names */
     protected Map<String, String> clientMap = new LinkedHashMap<>();
 
+    /** List of registered crawler client factories */
     protected List<CrawlerClientFactory> clientFactoryList = new LinkedList<>();
 
+    /**
+     * The maximum size of the client factory list.
+     */
     protected int maxClientFactorySize = 10000;
 
+    /**
+     * Registers a CrawlerClientFactory with this creator.
+     * All existing client mappings will be loaded into the new factory.
+     * @param crawlerClientFactory The CrawlerClientFactory to register.
+     */
     public synchronized void register(final CrawlerClientFactory crawlerClientFactory) {
         clientMap.entrySet().stream().forEach(e -> load(crawlerClientFactory, e.getKey(), e.getValue()));
         clientFactoryList.add(crawlerClientFactory);
@@ -56,6 +74,12 @@ public class CrawlerClientCreator {
         }
     }
 
+    /**
+     * Registers a client component with a regular expression.
+     * The component will be loaded into all registered CrawlerClientFactories.
+     * @param regex The regular expression to match URLs.
+     * @param componentName The name of the component to register.
+     */
     public synchronized void register(final String regex, final String componentName) {
         clientMap.put(regex, componentName);
         clientFactoryList.forEach(f -> load(f, regex, componentName));
@@ -83,6 +107,10 @@ public class CrawlerClientCreator {
         }
     }
 
+    /**
+     * Sets the maximum client factory size.
+     * @param maxClientFactorySize The maximum size.
+     */
     public void setMaxClientFactorySize(final int maxClientFactorySize) {
         if (maxClientFactorySize <= 0) {
             throw new IllegalArgumentException("maxClientFactorySize must be positive.");

@@ -28,6 +28,18 @@ import org.apache.http.protocol.HttpContext;
  */
 public class NTLMSchemeProvider implements AuthSchemeProvider {
 
+    /**
+     * Creates a new NTLMSchemeProvider instance.
+     */
+    public NTLMSchemeProvider() {
+        super();
+    }
+
+    /**
+     * Creates a new NTLMScheme instance.
+     * @param context The HTTP context.
+     * @return A new NTLMScheme instance.
+     */
     @Override
     public AuthScheme create(final HttpContext context) {
         return new NTLMScheme(new SmbjEngine());

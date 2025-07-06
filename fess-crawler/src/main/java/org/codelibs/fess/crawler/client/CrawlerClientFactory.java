@@ -54,11 +54,28 @@ import jakarta.annotation.Resource;
 public class CrawlerClientFactory implements AutoCloseable {
     private static final Logger logger = LogManager.getLogger(CrawlerClientFactory.class);
 
+    /**
+     * The crawler container.
+     */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * A map of regular expression patterns to crawler clients.
+     */
     protected Map<Pattern, CrawlerClient> clientMap = new LinkedHashMap<>();
 
+    /**
+     * Creates a new instance of CrawlerClientFactory.
+     */
+    public CrawlerClientFactory() {
+        // NOP
+    }
+
+    /**
+     * Initializes the CrawlerClientFactory.
+     * Attempts to register itself with a "crawlerClientCreator" component if available.
+     */
     @PostConstruct
     public void init() {
         try {
@@ -73,6 +90,11 @@ public class CrawlerClientFactory implements AutoCloseable {
         }
     }
 
+    /**
+     * Adds a client with a regular expression pattern.
+     * @param regex The regular expression to match URLs.
+     * @param client The CrawlerClient instance.
+     */
     public void addClient(final String regex, final CrawlerClient client) {
         if (StringUtil.isBlank(regex)) {
             throw new CrawlerSystemException("A regular expression is null.");
@@ -83,6 +105,12 @@ public class CrawlerClientFactory implements AutoCloseable {
         clientMap.put(Pattern.compile(regex), client);
     }
 
+    /**
+     * Adds a client with a regular expression pattern at a specific position.
+     * @param regex The regular expression to match URLs.
+     * @param client The CrawlerClient instance.
+     * @param pos The position to add the client.
+     */
     public void addClient(final String regex, final CrawlerClient client, final int pos) {
         if (StringUtil.isBlank(regex)) {
             throw new CrawlerSystemException("A regular expression is null.");
@@ -107,6 +135,11 @@ public class CrawlerClientFactory implements AutoCloseable {
         clientMap = newClientMap;
     }
 
+    /**
+     * Adds a client with a list of regular expression patterns.
+     * @param regexList The list of regular expressions to match URLs.
+     * @param client The CrawlerClient instance.
+     */
     public void addClient(final List<String> regexList, final CrawlerClient client) {
         if (regexList == null || regexList.isEmpty()) {
             throw new CrawlerSystemException("A regular expression list is null or empty.");
@@ -121,6 +154,11 @@ public class CrawlerClientFactory implements AutoCloseable {
         }
     }
 
+    /**
+     * Retrieves a client that matches the given URL key.
+     * @param urlKey The URL key to match.
+     * @return The matching CrawlerClient instance, or null if no match is found.
+     */
     public CrawlerClient getClient(final String urlKey) {
         if (StringUtil.isBlank(urlKey)) {
             return null;
@@ -135,6 +173,10 @@ public class CrawlerClientFactory implements AutoCloseable {
         return null;
     }
 
+    /**
+     * Sets the initialization parameter map for all clients.
+     * @param params The map of parameters.
+     */
     public void setInitParameterMap(final Map<String, Object> params) {
         if (params != null) {
             for (final CrawlerClient client : clientMap.values()) {
@@ -143,10 +185,17 @@ public class CrawlerClientFactory implements AutoCloseable {
         }
     }
 
+    /**
+     * Sets the client map.
+     * @param clientMap The map of clients.
+     */
     public void setClientMap(final Map<Pattern, CrawlerClient> clientMap) {
         this.clientMap = clientMap;
     }
 
+    /**
+     * Closes all clients in the factory.
+     */
     @Override
     public void close() {
         clientMap.values().stream().distinct().forEach(client -> {

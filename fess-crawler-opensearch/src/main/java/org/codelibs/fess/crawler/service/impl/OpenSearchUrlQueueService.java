@@ -50,33 +50,69 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 
+/**
+ * OpenSearchUrlQueueService is an implementation of {@link UrlQueueService} for OpenSearch.
+ *
+ * @author shinsuke
+ *
+ */
 public class OpenSearchUrlQueueService extends AbstractCrawlerService implements UrlQueueService<OpenSearchUrlQueue> {
+    /**
+     * Logger instance.
+     */
     private static final Logger logger = LogManager.getLogger(OpenSearchUrlQueueService.class);
 
+    /**
+     * Data service for checking access results.
+     */
     @Resource
     protected OpenSearchDataService dataService;
 
+    /**
+     * Cache for session queues.
+     */
     protected Map<String, QueueHolder> sessionCache = new ConcurrentHashMap<>();
 
+    /**
+     * The number of URLs to fetch when polling.
+     */
     protected int pollingFetchSize = 1000;
 
+    /**
+     * The maximum size of the crawling queue.
+     */
     protected int maxCrawlingQueueSize = 100;
 
+    /**
+     * Creates a new instance of OpenSearchUrlQueueService.
+     * @param crawlerConfig The crawler configuration.
+     */
     public OpenSearchUrlQueueService(final OpenSearchCrawlerConfig crawlerConfig) {
         index = crawlerConfig.getQueueIndex();
         setNumberOfShards(crawlerConfig.getQueueShards());
         setNumberOfReplicas(crawlerConfig.getQueueReplicas());
     }
 
+    /**
+     * Creates a new instance of OpenSearchUrlQueueService.
+     * @param name The name.
+     * @param type The type.
+     */
     public OpenSearchUrlQueueService(final String name, final String type) {
         index = name + "." + type;
     }
 
+    /**
+     * Initializes the service.
+     */
     @PostConstruct
     public void init() {
         fesenClient.addOnConnectListener(() -> createMapping("queue"));
     }
 
+    /**
+     * Destroys the service.
+     */
     @PreDestroy
     public void destroy() {
         sessionCache.entrySet().stream().map(e -> e.getValue().waitingQueue).forEach(q -> q.forEach(urlQueue -> {
@@ -88,10 +124,19 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         }));
     }
 
+    /**
+     * Clears the cache.
+     */
     public void clearCache() {
         sessionCache.clear();
     }
 
+    /**
+     * Updates the session ID for all URL queue entries.
+     *
+     * @param oldSessionId The old session ID.
+     * @param newSessionId The new session ID.
+     */
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
         SearchResponse response = getClient().get(c -> c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout))
@@ -131,6 +176,12 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         }
     }
 
+    /**
+     * Adds a URL to the queue for the specified session.
+     *
+     * @param sessionId The session ID.
+     * @param url The URL to add.
+     */
     @Override
     public void add(final String sessionId, final String url) {
         if (exists(sessionId, url)) {
@@ -146,6 +197,11 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         insert(urlQueue);
     }
 
+    /**
+     * Inserts a URL queue entry into the OpenSearch index.
+     *
+     * @param urlQueue The URL queue entry to insert.
+     */
     @Override
     public void insert(final OpenSearchUrlQueue urlQueue) {
         try {
@@ -162,11 +218,23 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         }
     }
 
+    /**
+     * Deletes all URL queue entries for the specified session.
+     *
+     * @param sessionId The session ID.
+     */
     @Override
     public void delete(final String sessionId) {
         deleteBySessionId(sessionId);
     }
 
+    /**
+     * Offers multiple URL queue entries for the specified session.
+     * Only URLs that don't already exist will be added.
+     *
+     * @param sessionId The session ID.
+     * @param urlQueueList The list of URL queue entries to offer.
+     */
     @Override
     public void offerAll(final String sessionId, final List<OpenSearchUrlQueue> urlQueueList) {
         if (logger.isDebugEnabled()) {
@@ -191,6 +259,13 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         }
     }
 
+    /**
+     * Polls the next URL queue entry for the specified session.
+     * This method manages local caches and fetches from OpenSearch when needed.
+     *
+     * @param sessionId The session ID.
+     * @return The next URL queue entry, or null if none available.
+     */
     @Override
     public OpenSearchUrlQueue poll(final String sessionId) {
         final QueueHolder queueHolder = getQueueHolder(sessionId);
@@ -252,17 +327,33 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         return urlQueue;
     }
 
+    /**
+     * Fetches a list of URL queues for a given session ID.
+     * @param sessionId The session ID.
+     * @return A list of OpenSearchUrlQueue objects.
+     */
     protected List<OpenSearchUrlQueue> fetchUrlQueueList(final String sessionId) {
         return getList(OpenSearchUrlQueue.class, sessionId, null, 0, pollingFetchSize,
                 SortBuilders.fieldSort(OpenSearchUrlQueue.WEIGHT).order(SortOrder.DESC),
                 SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
     }
 
+    /**
+     * Saves the session state (currently not implemented).
+     *
+     * @param sessionId The session ID.
+     */
     @Override
     public void saveSession(final String sessionId) {
         // TODO use cache
     }
 
+    /**
+     * Checks if a URL has been visited by looking in both the queue and access results.
+     *
+     * @param urlQueue The URL queue entry to check.
+     * @return true if the URL has been visited, false otherwise.
+     */
     @Override
     public boolean visited(final OpenSearchUrlQueue urlQueue) {
         final String url = urlQueue.getUrl();
@@ -282,6 +373,13 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         return accessResult != null;
     }
 
+    /**
+     * Checks if a URL exists in the queue by searching OpenSearch and local caches.
+     *
+     * @param sessionId The session ID.
+     * @param url The URL to check.
+     * @return true if the URL exists in the queue, false otherwise.
+     */
     @Override
     protected boolean exists(final String sessionId, final String url) {
         final boolean ret = super.exists(sessionId, url);
@@ -304,6 +402,12 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         return ret;
     }
 
+    /**
+     * Generates URL queue entries for a new session based on access results from a previous session.
+     *
+     * @param previousSessionId The previous session ID.
+     * @param sessionId The new session ID.
+     */
     @Override
     public void generateUrlQueues(final String previousSessionId, final String sessionId) {
         dataService.iterate(previousSessionId, accessResult -> {
@@ -319,6 +423,11 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         });
     }
 
+    /**
+     * Returns the QueueHolder for a given session ID.
+     * @param sessionId The session ID.
+     * @return The QueueHolder.
+     */
     protected QueueHolder getQueueHolder(final String sessionId) {
         QueueHolder queueHolder = sessionCache.get(sessionId);
         if (queueHolder == null) {
@@ -329,16 +438,40 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         return queueHolder;
     }
 
+    /**
+     * QueueHolder holds the waiting and crawling queues.
+     */
     protected static class QueueHolder {
+        /**
+         * Constructs a new QueueHolder.
+         */
+        public QueueHolder() {
+            // Default constructor
+        }
+
+        /**
+         * The queue for URLs waiting to be crawled.
+         */
         protected Queue<OpenSearchUrlQueue> waitingQueue = new ConcurrentLinkedQueue<>();
 
+        /**
+         * The queue for URLs currently being crawled.
+         */
         protected Queue<OpenSearchUrlQueue> crawlingQueue = new ConcurrentLinkedQueue<>();
     }
 
+    /**
+     * Sets the polling fetch size.
+     * @param pollingFetchSize The polling fetch size.
+     */
     public void setPollingFetchSize(final int pollingFetchSize) {
         this.pollingFetchSize = pollingFetchSize;
     }
 
+    /**
+     * Sets the maximum crawling queue size.
+     * @param maxCrawlingQueueSize The maximum crawling queue size.
+     */
     public void setMaxCrawlingQueueSize(final int maxCrawlingQueueSize) {
         this.maxCrawlingQueueSize = maxCrawlingQueueSize;
     }

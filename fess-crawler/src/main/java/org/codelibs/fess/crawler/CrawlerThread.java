@@ -82,37 +82,75 @@ import jakarta.annotation.Resource;
  *
  */
 public class CrawlerThread implements Runnable {
+    /**
+     * Constructs a new CrawlerThread.
+     */
+    public CrawlerThread() {
+        // Default constructor
+    }
 
+    /**
+     * Service for managing URL queues during crawling.
+     */
     @Resource
     protected UrlQueueService<UrlQueue<?>> urlQueueService;
 
+    /**
+     * Service for managing access result data.
+     */
     @Resource
     protected DataService<AccessResult<?>> dataService;
 
+    /**
+     * Container for managing crawler components.
+     */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * Helper for logging crawler activities.
+     */
     @Resource
     protected LogHelper logHelper;
 
+    /**
+     * Factory for creating crawler clients.
+     */
     protected CrawlerClientFactory clientFactory;
 
+    /**
+     * Context object containing crawler state and configuration.
+     */
     protected CrawlerContext crawlerContext;
 
+    /**
+     * Flag indicating whether to wait on folder operations.
+     */
     protected boolean noWaitOnFolder = false;
 
+    /**
+     * Increments the active thread count.
+     */
     protected void startCrawling() {
         synchronized (crawlerContext.activeThreadCountLock) {
             crawlerContext.activeThreadCount++;
         }
     }
 
+    /**
+     * Decrements the active thread count.
+     */
     protected void finishCrawling() {
         synchronized (crawlerContext.activeThreadCountLock) {
             crawlerContext.activeThreadCount--;
         }
     }
 
+    /**
+     * Checks if the crawling process should continue.
+     * @param tcCount The thread check count.
+     * @return true if the crawling should continue, false otherwise.
+     */
     protected boolean isContinue(final int tcCount) {
         if (!crawlerContainer.available()) {
             // system shutdown
@@ -136,16 +174,22 @@ public class CrawlerThread implements Runnable {
         return isContinue;
     }
 
+    /**
+     * Logs a message using the provided LogHelper.
+     * @param logHelper The LogHelper instance.
+     * @param key The LogType key.
+     * @param objs The objects to log.
+     */
     protected void log(final LogHelper logHelper, final LogType key, final Object... objs) {
         if (logHelper != null) {
             logHelper.log(key, objs);
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Runnable#run()
+    /**
+     * Runs the crawling process in a separate thread.
+     * This method fetches URLs from the queue, accesses content, processes responses,
+     * and extracts child URLs until the crawling process is done or no more URLs are available.
      */
     @Override
     public void run() {
@@ -261,6 +305,10 @@ public class CrawlerThread implements Runnable {
         log(logHelper, LogType.FINISHED_THREAD, crawlerContext);
     }
 
+    /**
+     * Adds sitemaps from robots.txt to the crawling queue.
+     * @param urlQueue The URL queue to add sitemaps to.
+     */
     protected void addSitemapsFromRobotsTxt(final UrlQueue<?> urlQueue) {
         final String[] sitemaps = crawlerContext.removeSitemaps();
         if (sitemaps != null) {
@@ -275,10 +323,21 @@ public class CrawlerThread implements Runnable {
         }
     }
 
+    /**
+     * Gets the appropriate crawler client for the given URL.
+     * @param url The URL to get a client for.
+     * @return The crawler client.
+     */
     protected CrawlerClient getClient(final String url) {
         return clientFactory.getClient(url);
     }
 
+    /**
+     * Checks if the content has been updated since the last crawl.
+     * @param client The crawler client.
+     * @param urlQueue The URL queue entry.
+     * @return true if content is updated, false otherwise.
+     */
     protected boolean isContentUpdated(final CrawlerClient client, final UrlQueue<?> urlQueue) {
         if (urlQueue.getLastModified() != null) {
             log(logHelper, LogType.CHECK_LAST_MODIFIED, crawlerContext, urlQueue);
@@ -311,6 +370,11 @@ public class CrawlerThread implements Runnable {
         return true;
     }
 
+    /**
+     * Processes the response data using the appropriate rule processor.
+     * @param urlQueue The URL queue entry.
+     * @param responseData The response data to process.
+     */
     protected void processResponse(final UrlQueue<?> urlQueue, final ResponseData responseData) {
         // get a rule
         final Rule rule = crawlerContext.ruleManager.getRule(responseData);
@@ -328,6 +392,12 @@ public class CrawlerThread implements Runnable {
 
     }
 
+    /**
+     * Stores child URLs to the crawling queue.
+     * @param childUrlList The set of child URLs to store.
+     * @param url The parent URL.
+     * @param depth The depth of the child URLs.
+     */
     protected void storeChildUrls(final Set<RequestData> childUrlList, final String url, final int depth) {
         if (crawlerContext.getMaxDepth() >= 0 && depth > crawlerContext.getMaxDepth()) {
             return;
@@ -351,6 +421,13 @@ public class CrawlerThread implements Runnable {
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 
+    /**
+     * Stores a single child URL to the crawling queue.
+     * @param childUrl The child URL to store.
+     * @param parentUrl The parent URL.
+     * @param weight The weight of the child URL.
+     * @param depth The depth of the child URL.
+     */
     protected void storeChildUrl(final String childUrl, final String parentUrl, final float weight, final int depth) {
         if (crawlerContext.getMaxDepth() >= 0 && depth > crawlerContext.getMaxDepth()) {
             return;
@@ -372,6 +449,11 @@ public class CrawlerThread implements Runnable {
         }
     }
 
+    /**
+     * Validates whether the URL queue entry is valid for crawling.
+     * @param urlQueue The URL queue entry to validate.
+     * @return true if valid, false otherwise.
+     */
     protected boolean isValid(final UrlQueue<?> urlQueue) {
         if (urlQueue == null || StringUtil.isBlank(urlQueue.getUrl())
                 || crawlerContext.getMaxDepth() >= 0 && urlQueue.getDepth() > crawlerContext.getMaxDepth()) {
@@ -386,18 +468,34 @@ public class CrawlerThread implements Runnable {
         return false;
     }
 
+    /**
+     * Returns whether the crawler waits on folder operations.
+     * @return true if no wait on folder, false otherwise.
+     */
     public boolean isNoWaitOnFolder() {
         return noWaitOnFolder;
     }
 
+    /**
+     * Sets whether the crawler waits on folder operations.
+     * @param noWaitOnFolder true to disable waiting on folder operations.
+     */
     public void setNoWaitOnFolder(final boolean noWaitOnFolder) {
         this.noWaitOnFolder = noWaitOnFolder;
     }
 
+    /**
+     * Sets the client factory.
+     * @param clientFactory The client factory.
+     */
     public void setClientFactory(final CrawlerClientFactory clientFactory) {
         this.clientFactory = clientFactory;
     }
 
+    /**
+     * Sets the crawler context.
+     * @param crawlerContext The CrawlerContext instance.
+     */
     public void setCrawlerContext(final CrawlerContext crawlerContext) {
         this.crawlerContext = crawlerContext;
     }

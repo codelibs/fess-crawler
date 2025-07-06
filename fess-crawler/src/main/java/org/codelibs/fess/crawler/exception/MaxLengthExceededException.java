@@ -24,6 +24,11 @@ public class MaxLengthExceededException extends CrawlingAccessException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a new MaxLengthExceededException with the specified detail message.
+     *
+     * @param message the detail message explaining the reason for the exception
+     */
     public MaxLengthExceededException(final String message) {
         super(message);
     }

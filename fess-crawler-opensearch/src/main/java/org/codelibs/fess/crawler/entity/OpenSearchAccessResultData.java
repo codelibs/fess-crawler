@@ -23,19 +23,44 @@ import org.codelibs.fess.crawler.exception.OpenSearchAccessException;
 import org.opensearch.core.xcontent.ToXContent;
 import org.opensearch.core.xcontent.XContentBuilder;
 
+/**
+ * OpenSearchAccessResultData is an implementation of {@link AccessResultData} for OpenSearch.
+ */
 public class OpenSearchAccessResultData extends AccessResultDataImpl<String> implements ToXContent {
 
+    /**
+     * Field name for ID.
+     */
     public static final String ID = "id";
 
+    /**
+     * Field name for transformer name.
+     */
     public static final String TRANSFORMER_NAME = "transformerName";
 
+    /**
+     * Field name for data.
+     */
     public static final String DATA = "data";
 
+    /**
+     * Field name for encoding.
+     */
     public static final String ENCODING = "encoding";
 
+    /**
+     * Creates a new instance of OpenSearchAccessResultData.
+     */
     public OpenSearchAccessResultData() {
     }
 
+    /**
+     * Creates a new instance of OpenSearchAccessResultData from a source map.
+     * This constructor is used when loading data from OpenSearch.
+     *
+     * @param src The source map containing the access result data fields.
+     * @throws OpenSearchAccessException if the data cannot be decoded.
+     */
     public OpenSearchAccessResultData(final Map<String, Object> src) {
         setTransformerName((String) src.get(TRANSFORMER_NAME));
         setEncoding((String) src.get(ENCODING));
@@ -49,6 +74,14 @@ public class OpenSearchAccessResultData extends AccessResultDataImpl<String> imp
         }
     }
 
+    /**
+     * Converts this access result data to XContent format for OpenSearch indexing.
+     *
+     * @param builder The XContentBuilder to write to.
+     * @param params Additional parameters for the conversion.
+     * @return The XContentBuilder with the access result data.
+     * @throws IOException if the conversion fails.
+     */
     @Override
     public XContentBuilder toXContent(final XContentBuilder builder, final Params params) throws IOException {
         builder.startObject();

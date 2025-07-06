@@ -26,15 +26,39 @@ import org.apache.http.impl.auth.NTLMEngineException;
  */
 public class SmbjEngine implements NTLMEngine {
 
+    /**
+     * Creates a new SmbjEngine instance.
+     */
+    public SmbjEngine() {
+        super();
+    }
+
+    /**
+     * Generates a Type 1 NTLM message.
+     * @param arg0 The domain.
+     * @param arg1 The workstation.
+     * @return The Type 1 message.
+     * @throws NTLMEngineException if an NTLM engine error occurs.
+     */
     @Override
     public String generateType1Msg(final String arg0, final String arg1) throws NTLMEngineException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Generates a Type 3 NTLM message.
+     * @param username The username.
+     * @param password The password.
+     * @param domain The domain.
+     * @param workstation The workstation.
+     * @param challenge The Type 2 challenge message.
+     * @return The Type 3 message.
+     * @throws NTLMEngineException if an NTLM engine error occurs.
+     */
     @Override
-    public String generateType3Msg(final String arg0, final String arg1, final String arg2, final String arg3, final String arg4)
-            throws NTLMEngineException {
+    public String generateType3Msg(final String username, final String password, final String domain, final String workstation,
+            final String challenge) throws NTLMEngineException {
         // TODO Auto-generated method stub
         return null;
     }

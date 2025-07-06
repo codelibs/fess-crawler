@@ -33,7 +33,15 @@ import org.apache.logging.log4j.Logger;
 public class SmbAuthenticationHolder {
     private static final Logger logger = LogManager.getLogger(SmbAuthenticationHolder.class);
 
+    /** Map of path prefixes to SMB authentication configurations. */
     private final Map<String, SmbAuthentication> authMap = new HashMap<>();
+
+    /**
+     * Creates a new SmbAuthenticationHolder instance.
+     */
+    public SmbAuthenticationHolder() {
+        super();
+    }
 
     /**
      * Adds an SMB authentication configuration to the holder.

@@ -52,12 +52,31 @@ import org.xml.sax.helpers.DefaultHandler;
 public class SitemapsHelper {
     private static final Logger logger = LogManager.getLogger(SitemapsHelper.class);
 
+    /** The size of the preload buffer for checking file format. */
     protected int preloadSize = 512;
 
+    /**
+     * Creates a new SitemapsHelper instance.
+     */
+    public SitemapsHelper() {
+        // Default constructor
+    }
+
+    /**
+     * Checks if the given input stream contains valid sitemap data.
+     * @param in the input stream to validate
+     * @return true if the stream contains valid sitemap data, false otherwise
+     */
     public boolean isValid(final InputStream in) {
         return isValid(in, true);
     }
 
+    /**
+     * Checks if the given input stream contains valid sitemap data.
+     * @param in the input stream to validate
+     * @param recursive whether to recursively check compressed files
+     * @return true if the stream contains valid sitemap data, false otherwise
+     */
     protected boolean isValid(final InputStream in, final boolean recursive) {
         final BufferedInputStream bis = new BufferedInputStream(in);
         bis.mark(preloadSize);
@@ -97,6 +116,12 @@ public class SitemapsHelper {
         return parse(in, true);
     }
 
+    /**
+     * Parses a sitemap from the given input stream.
+     * @param in the input stream to parse
+     * @param recursive whether to recursively parse compressed files
+     * @return the parsed sitemap set
+     */
     protected SitemapSet parse(final InputStream in, final boolean recursive) {
         final BufferedInputStream bis = new BufferedInputStream(in);
         bis.mark(preloadSize);
@@ -134,6 +159,11 @@ public class SitemapsHelper {
         }
     }
 
+    /**
+     * Parses a text-based sitemap from the given input stream.
+     * @param in the input stream to parse
+     * @return the parsed sitemap set
+     */
     protected SitemapSet parseTextSitemaps(final InputStream in) {
         final SitemapSet sitemapSet = new SitemapSet();
         sitemapSet.setType(SitemapSet.URLSET);
@@ -156,6 +186,11 @@ public class SitemapsHelper {
 
     }
 
+    /**
+     * Parses an XML sitemap from the given input stream.
+     * @param in the input stream to parse
+     * @return the parsed sitemap set
+     */
     protected SitemapSet parseXmlSitemaps(final InputStream in) {
         final XmlSitemapsHandler handler = new XmlSitemapsHandler();
         try {
@@ -172,6 +207,12 @@ public class SitemapsHelper {
         return handler.getSitemapSet();
     }
 
+    /**
+     * Disables external resources for the SAX parser to prevent XXE attacks.
+     * @param parser the SAX parser to configure
+     * @throws SAXNotRecognizedException if the parser doesn't recognize the feature
+     * @throws SAXNotSupportedException if the parser doesn't support the feature
+     */
     protected void disableExternalResources(final SAXParser parser) throws SAXNotRecognizedException, SAXNotSupportedException {
         try {
             parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
@@ -183,6 +224,9 @@ public class SitemapsHelper {
         }
     }
 
+    /**
+     * SAX handler for parsing XML sitemaps.
+     */
     protected static class XmlSitemapsHandler extends DefaultHandler {
 
         private static final String PRIORITY_ELEMENT = "priority";
@@ -200,6 +244,13 @@ public class SitemapsHelper {
         private SitemapUrl sitemapUrl;
 
         private StringBuilder buf;
+
+        /**
+         * Creates a new XmlSitemapsHandler instance.
+         */
+        public XmlSitemapsHandler() {
+            // Default constructor
+        }
 
         @Override
         public void startDocument() {
@@ -257,12 +308,21 @@ public class SitemapsHelper {
             // nothing
         }
 
+        /**
+         * Gets the parsed sitemap set.
+         * @return the sitemap set
+         */
         public SitemapSet getSitemapSet() {
             return sitemapSet;
         }
 
     }
 
+    /**
+     * Parses an XML sitemap index from the given input stream.
+     * @param in the input stream to parse
+     * @return the parsed sitemap set
+     */
     protected SitemapSet parseXmlSitemapsIndex(final InputStream in) {
         final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
         try {
@@ -279,6 +339,9 @@ public class SitemapsHelper {
         return handler.getSitemapSet();
     }
 
+    /**
+     * SAX handler for parsing XML sitemap indexes.
+     */
     protected static class XmlSitemapsIndexHandler extends DefaultHandler {
 
         private SitemapSet sitemapSet;
@@ -286,6 +349,13 @@ public class SitemapsHelper {
         private SitemapFile sitemapFile;
 
         private StringBuilder buf;
+
+        /**
+         * Creates a new XmlSitemapsIndexHandler instance.
+         */
+        public XmlSitemapsIndexHandler() {
+            // Default constructor
+        }
 
         @Override
         public void startDocument() {
@@ -332,12 +402,20 @@ public class SitemapsHelper {
             // nothing
         }
 
+        /**
+         * Gets the parsed sitemap set.
+         * @return the sitemap set
+         */
         public SitemapSet getSitemapSet() {
             return sitemapSet;
         }
 
     }
 
+    /**
+     * Sets the preload size for checking file format.
+     * @param preloadSize the preload size in bytes
+     */
     public void setPreloadSize(final int preloadSize) {
         this.preloadSize = preloadSize;
     }

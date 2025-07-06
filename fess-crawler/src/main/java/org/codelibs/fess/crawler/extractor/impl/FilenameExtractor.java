@@ -24,11 +24,23 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
- * @author shinsuke
- *
+ * Extracts the filename from the parameters.
  */
 public class FilenameExtractor extends AbstractExtractor {
 
+    /**
+     * Constructs a new FilenameExtractor.
+     */
+    public FilenameExtractor() {
+        // Default constructor
+    }
+
+    /**
+     * Extracts the filename from the parameters.
+     * @param in The input stream (not used).
+     * @param params The parameters, expected to contain ExtractData.RESOURCE_NAME_KEY.
+     * @return An ExtractData object containing the filename as content.
+     */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {

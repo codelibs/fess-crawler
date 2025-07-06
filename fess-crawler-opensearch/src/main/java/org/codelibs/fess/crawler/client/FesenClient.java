@@ -100,35 +100,87 @@ import org.opensearch.transport.client.Client;
 
 import jakarta.annotation.PreDestroy;
 
+/**
+ * FesenClient is a client for OpenSearch.
+ *
+ * @author shinsuke
+ *
+ */
 public class FesenClient implements Client {
+    /**
+     * HTTP address for OpenSearch.
+     */
     public static final String HTTP_ADDRESS = "crawler.opensearch.http_address";
 
+    /**
+     * Target indices for OpenSearch.
+     */
     public static final String TARGET_INDICES = "crawler.opensearch.target_indices";
 
+    /**
+     * Logger instance.
+     */
     private static final Logger logger = LogManager.getLogger(FesenClient.class);
 
+    /**
+     * The OpenSearch client.
+     */
     protected Client client;
 
+    /**
+     * The address of the OpenSearch instance.
+     */
     protected String address;
 
+    /**
+     * List of listeners for connection events.
+     */
     protected List<OnConnectListener> onConnectListenerList = new ArrayList<>();
 
+    /**
+     * Flag indicating whether the client is connected.
+     */
     private volatile boolean connected;
 
+    /**
+     * Scroll for delete operations.
+     */
     protected Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
 
+    /**
+     * Size for delete operations.
+     */
     protected int sizeForDelete = 10;
 
+    /**
+     * Retry interval in milliseconds.
+     */
     protected long retryInterval = 3 * 1000L;
 
+    /**
+     * Maximum retry count.
+     */
     protected int maxRetryCount = 5;
 
+    /**
+     * Connection timeout in milliseconds.
+     */
     protected long connTimeout = 180 * 1000L;
 
+    /**
+     * Search preference.
+     */
     protected String searchPreference;
 
+    /**
+     * Target indices.
+     */
     protected String[] targetIndices;
 
+    /**
+     * Creates a new instance of FesenClient.
+     * Initializes the address and target indices from system properties.
+     */
     public FesenClient() {
         address = System.getProperty(HTTP_ADDRESS, "localhost:9200").trim();
         final String targets = System.getProperty(TARGET_INDICES);
@@ -137,18 +189,36 @@ public class FesenClient implements Client {
         }
     }
 
+    /**
+     * Sets the address of the OpenSearch instance.
+     * @param address The address.
+     */
     public void setAddress(final String address) {
         this.address = address;
     }
 
+    /**
+     * Adds a listener for connection events.
+     *
+     * @param listener The listener to add.
+     */
     public void addOnConnectListener(final OnConnectListener listener) {
         onConnectListenerList.add(listener);
     }
 
+    /**
+     * Checks if the client is connected to OpenSearch.
+     *
+     * @return true if connected, false otherwise.
+     */
     public boolean connected() {
         return connected;
     }
 
+    /**
+     * Connects to the OpenSearch cluster.
+     * Creates a new client and waits for cluster health to be yellow or better.
+     */
     public void connect() {
         destroy();
         client = createClient();
@@ -170,6 +240,11 @@ public class FesenClient implements Client {
         }
     }
 
+    /**
+     * Creates a new OpenSearch client based on the configured address.
+     *
+     * @return The created OpenSearch client.
+     */
     protected Client createClient() {
         final String[] hosts =
                 split(address, ",").get(stream -> stream.map(String::trim).filter(StringUtil::isNotEmpty).toArray(n -> new String[n]));
@@ -177,6 +252,13 @@ public class FesenClient implements Client {
         return new HttpClient(settings, null);
     }
 
+    /**
+     * Executes an OpenSearch operation with retry logic.
+     *
+     * @param <T> The response type.
+     * @param func The function to execute.
+     * @return The response from the operation.
+     */
     public <T> T get(final Function<FesenClient, ActionFuture<T>> func) {
         int retryCount = 0;
         while (true) {
@@ -199,6 +281,9 @@ public class FesenClient implements Client {
         }
     }
 
+    /**
+     * Destroys the client and closes connections.
+     */
     @PreDestroy
     public void destroy() {
         if (client != null) {
@@ -212,26 +297,53 @@ public class FesenClient implements Client {
         connected = false;
     }
 
+    /**
+     * Gets the thread pool from the underlying client.
+     *
+     * @return The thread pool.
+     */
     @Override
     public ThreadPool threadPool() {
         return client.threadPool();
     }
 
+    /**
+     * Gets the admin client for cluster and index operations.
+     *
+     * @return The admin client.
+     */
     @Override
     public AdminClient admin() {
         return client.admin();
     }
 
+    /**
+     * Executes an index request.
+     *
+     * @param request The index request.
+     * @return Future for the index response.
+     */
     @Override
     public ActionFuture<IndexResponse> index(final IndexRequest request) {
         return client.index(request);
     }
 
+    /**
+     * Executes an index request asynchronously.
+     *
+     * @param request The index request.
+     * @param listener The response listener.
+     */
     @Override
     public void index(final IndexRequest request, final ActionListener<IndexResponse> listener) {
         client.index(request, listener);
     }
 
+    /**
+     * Prepares an index request builder.
+     *
+     * @return The index request builder.
+     */
     @Override
     public IndexRequestBuilder prepareIndex() {
         return client.prepareIndex();
@@ -342,6 +454,12 @@ public class FesenClient implements Client {
         client.search(request, listener);
     }
 
+    /**
+     * Prepares a search request builder with optional search preference.
+     *
+     * @param indices The indices to search.
+     * @return The search request builder.
+     */
     @Override
     public SearchRequestBuilder prepareSearch(final String... indices) {
         final SearchRequestBuilder builder = client.prepareSearch(indices);
@@ -474,6 +592,15 @@ public class FesenClient implements Client {
         return this;
     }
 
+    /**
+     * Deletes documents matching the specified query using scroll and bulk delete.
+     *
+     * @param index The index to delete from.
+     * @param type The document type (deprecated).
+     * @param queryBuilder The query to match documents for deletion.
+     * @return The number of deleted documents.
+     * @throws OpenSearchAccessException if the deletion fails.
+     */
     public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
         SearchResponse response =
                 get(c -> c.prepareSearch(index).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
@@ -511,6 +638,11 @@ public class FesenClient implements Client {
         return count;
     }
 
+    /**
+     * Clears a scroll context.
+     *
+     * @param scrollId The scroll ID to clear.
+     */
     public void clearScroll(final String scrollId) {
         if (scrollId != null) {
             prepareClearScroll().addScrollId(scrollId)
@@ -518,30 +650,65 @@ public class FesenClient implements Client {
         }
     }
 
+    /**
+     * Listener for connection events.
+     */
     public interface OnConnectListener {
+        /**
+         * Called when the client connects to OpenSearch.
+         */
         void onConnect();
     }
 
+    /**
+     * Sets the scroll configuration for delete operations.
+     *
+     * @param scrollForDelete The scroll configuration.
+     */
     public void setScrollForDelete(final Scroll scrollForDelete) {
         this.scrollForDelete = scrollForDelete;
     }
 
+    /**
+     * Sets the size for delete operations.
+     * @param sizeForDelete The size.
+     */
     public void setSizeForDelete(final int sizeForDelete) {
         this.sizeForDelete = sizeForDelete;
     }
 
+    /**
+     * Sets the retry interval in milliseconds.
+     *
+     * @param retryInterval The retry interval.
+     */
     public void setRetryInterval(final long retryInterval) {
         this.retryInterval = retryInterval;
     }
 
+    /**
+     * Sets the maximum retry count.
+     *
+     * @param maxRetryCount The maximum retry count.
+     */
     public void setMaxRetryCount(final int maxRetryCount) {
         this.maxRetryCount = maxRetryCount;
     }
 
+    /**
+     * Sets the connection timeout in milliseconds.
+     *
+     * @param connTimeout The connection timeout.
+     */
     public void setConnTimeout(final long connTimeout) {
         this.connTimeout = connTimeout;
     }
 
+    /**
+     * Sets the search preference for search requests.
+     *
+     * @param searchPreference The search preference.
+     */
     public void setSearchPreference(final String searchPreference) {
         this.searchPreference = searchPreference;
     }

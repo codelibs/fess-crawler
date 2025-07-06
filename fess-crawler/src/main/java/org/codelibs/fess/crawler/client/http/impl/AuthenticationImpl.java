@@ -53,11 +53,19 @@ public class AuthenticationImpl implements Authentication {
     /**
      * Initializes the AuthenticationImpl with the provided AuthScope and Credentials,
      * and sets the AuthScheme to null.
+     * @param authScope The authentication scope.
+     * @param credentials The credentials.
      */
     public AuthenticationImpl(final AuthScope authScope, final Credentials credentials) {
         this(authScope, credentials, null);
     }
 
+    /**
+     * Initializes the AuthenticationImpl with the provided AuthScope, Credentials, and AuthScheme.
+     * @param authScope The authentication scope.
+     * @param credentials The credentials.
+     * @param authScheme The authentication scheme.
+     */
     public AuthenticationImpl(final AuthScope authScope, final Credentials credentials, final AuthScheme authScheme) {
         this.authScope = authScope;
         this.credentials = credentials;
@@ -93,6 +101,10 @@ public class AuthenticationImpl implements Authentication {
         this.authScope = authScope;
     }
 
+    /**
+     * Sets the credentials.
+     * @param credentials The credentials to set.
+     */
     public void setCredentials(final Credentials credentials) {
         this.credentials = credentials;
     }
@@ -107,6 +119,10 @@ public class AuthenticationImpl implements Authentication {
         return authScheme;
     }
 
+    /**
+     * Sets the authentication scheme.
+     * @param authScheme The authentication scheme to set.
+     */
     public void setAuthScheme(final AuthScheme authScheme) {
         this.authScheme = authScheme;
     }

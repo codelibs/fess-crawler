@@ -18,8 +18,21 @@ package org.codelibs.fess.crawler.client.smb1;
 import jcifs.smb1.smb1.NtlmPasswordAuthentication;
 
 /**
- * @author shinsuke
+ * Represents SMB1 authentication information, including server details,
+ * credentials, and domain. This class is used to encapsulate the necessary
+ * information for authenticating with an SMB1 server.
  *
+ * <p>
+ * It provides methods to set and retrieve the server address, port, username,
+ * password, and domain. Additionally, it offers a method to construct a path
+ * prefix for SMB1 URLs based on the configured server and port.
+ * </p>
+ *
+ * <p>
+ * The path prefix is in the format "smb1://server:port/", where the port is
+ * included only if it's greater than 0. If the server is not set, the path
+ * prefix will be "smb1://".
+ * </p>
  */
 public class SmbAuthentication {
     private String server;
@@ -32,6 +45,17 @@ public class SmbAuthentication {
 
     private String domain;
 
+    /**
+     * Creates a new SmbAuthentication instance.
+     */
+    public SmbAuthentication() {
+        super();
+    }
+
+    /**
+     * Returns the path prefix for SMB1 URLs.
+     * @return The path prefix.
+     */
     public String getPathPrefix() {
         final StringBuilder buf = new StringBuilder(100);
         buf.append("smb1://");
@@ -46,46 +70,90 @@ public class SmbAuthentication {
         return buf.toString();
     }
 
+    /**
+     * Returns the NTLM password authentication.
+     * @return The NTLM password authentication.
+     */
     public NtlmPasswordAuthentication getAuthentication() {
         return new NtlmPasswordAuthentication(domain == null ? "" : domain, username, password);
     }
 
+    /**
+     * Returns the server address.
+     * @return The server address.
+     */
     public String getServer() {
         return server;
     }
 
+    /**
+     * Sets the server address.
+     * @param server The server address.
+     */
     public void setServer(final String server) {
         this.server = server;
     }
 
+    /**
+     * Returns the port number.
+     * @return The port number.
+     */
     public int getPort() {
         return port;
     }
 
+    /**
+     * Sets the port number.
+     * @param port The port number.
+     */
     public void setPort(final int port) {
         this.port = port;
     }
 
+    /**
+     * Returns the username.
+     * @return The username.
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Sets the username.
+     * @param username The username.
+     */
     public void setUsername(final String username) {
         this.username = username;
     }
 
+    /**
+     * Returns the password.
+     * @return The password.
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Sets the password.
+     * @param password The password.
+     */
     public void setPassword(final String password) {
         this.password = password;
     }
 
+    /**
+     * Returns the domain.
+     * @return The domain.
+     */
     public String getDomain() {
         return domain;
     }
 
+    /**
+     * Sets the domain.
+     * @param domain The domain to set.
+     */
     public void setDomain(final String domain) {
         this.domain = domain;
     }

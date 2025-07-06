@@ -43,6 +43,17 @@ public class SmbAuthentication {
 
     private String domain;
 
+    /**
+     * Creates a new SmbAuthentication instance.
+     */
+    public SmbAuthentication() {
+        super();
+    }
+
+    /**
+     * Returns the path prefix for SMB URLs.
+     * @return The path prefix.
+     */
     public String getPathPrefix() {
         final StringBuilder buf = new StringBuilder(100);
         buf.append("smb://");
@@ -57,46 +68,90 @@ public class SmbAuthentication {
         return buf.toString();
     }
 
+    /**
+     * Returns the SMB server address.
+     * @return the server address
+     */
     public String getServer() {
         return server;
     }
 
+    /**
+     * Sets the SMB server address.
+     * @param server the server address to set
+     */
     public void setServer(final String server) {
         this.server = server;
     }
 
+    /**
+     * Returns the SMB server port.
+     * @return the server port
+     */
     public int getPort() {
         return port;
     }
 
+    /**
+     * Sets the SMB server port.
+     * @param port the server port to set
+     */
     public void setPort(final int port) {
         this.port = port;
     }
 
+    /**
+     * Returns the username for SMB authentication.
+     * @return the username
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Sets the username for SMB authentication.
+     * @param username the username to set
+     */
     public void setUsername(final String username) {
         this.username = username;
     }
 
+    /**
+     * Returns the password for SMB authentication.
+     * @return the password
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Sets the password for SMB authentication.
+     * @param password the password to set
+     */
     public void setPassword(final String password) {
         this.password = password;
     }
 
+    /**
+     * Returns the domain for SMB authentication.
+     * @return the domain
+     */
     public String getDomain() {
         return domain;
     }
 
+    /**
+     * Sets the domain for SMB authentication.
+     * @param domain the domain to set
+     */
     public void setDomain(final String domain) {
         this.domain = domain;
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "[" + domain + "] " + username + "@" + server + ":" + port;

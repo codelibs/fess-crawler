@@ -24,6 +24,16 @@ import org.codelibs.fess.crawler.transformer.Transformer;
  */
 public abstract class AbstractTransformer implements Transformer {
 
+    /**
+     * Creates a new instance of AbstractTransformer.
+     */
+    public AbstractTransformer() {
+        // NOP
+    }
+
+    /**
+     * The name of the transformer.
+     */
     protected String name;
 
     /**

@@ -63,10 +63,23 @@ import jakarta.annotation.Resource;
  * </p>
  *
  */
+/**
+ * This class is an implementation of {@link UrlQueueService}.
+ */
 public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> {
+
+    /**
+     * Creates a new UrlQueueServiceImpl instance.
+     */
+    public UrlQueueServiceImpl() {
+        // NOP
+    }
 
     private static final Logger logger = LogManager.getLogger(UrlQueueServiceImpl.class);
 
+    /**
+     * The memory data helper.
+     */
     @Resource
     protected MemoryDataHelper dataHelper;
 
@@ -162,6 +175,13 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
 
     }
 
+    /**
+     * Checks if a URL is new.
+     *
+     * @param urlQueue The URL queue.
+     * @param urlQueueList The list of URL queues.
+     * @return true if the URL is new, otherwise false.
+     */
     protected boolean isNewUrl(final UrlQueueImpl<Long> urlQueue, final Queue<UrlQueueImpl<Long>> urlQueueList) {
 
         final String url = urlQueue.getUrl();
@@ -232,6 +252,11 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         }
     }
 
+    /**
+     * Generates URL queues from a previous session's access results.
+     * @param previousSessionId The previous session ID.
+     * @param sessionId The current session ID.
+     */
     @Override
     public void generateUrlQueues(final String previousSessionId, final String sessionId) {
         final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);

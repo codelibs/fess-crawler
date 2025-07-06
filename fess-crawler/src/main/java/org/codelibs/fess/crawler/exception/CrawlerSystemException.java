@@ -56,6 +56,13 @@ public class CrawlerSystemException extends RuntimeException {
         super(cause);
     }
 
+    /**
+     * Constructs a new CrawlerSystemException with the specified detail message and controls suppression and stack trace writing.
+     *
+     * @param message the detail message
+     * @param enableSuppression whether or not suppression is enabled
+     * @param writableStackTrace whether or not the stack trace should be writable
+     */
     protected CrawlerSystemException(final String message, final boolean enableSuppression, final boolean writableStackTrace) {
         super(message, null, enableSuppression, writableStackTrace);
     }

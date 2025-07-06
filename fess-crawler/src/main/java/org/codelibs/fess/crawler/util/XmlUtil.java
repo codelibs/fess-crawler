@@ -253,6 +253,10 @@ public final class XmlUtil {
             // nothing
         }
 
+        /**
+         * Returns the data map.
+         * @return The data map.
+         */
         public Map<String, Object> getDataMap() {
             return dataMap;
         }

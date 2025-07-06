@@ -112,27 +112,52 @@ import jcifs.smb.SmbFileInputStream;
 public class SmbClient extends AbstractCrawlerClient {
     private static final Logger logger = LogManager.getLogger(SmbClient.class);
 
+    /** Property key for SMB authentications configuration. */
     public static final String SMB_AUTHENTICATIONS_PROPERTY = "smbAuthentications";
 
+    /** Property key for SMB allowed SID entries. */
     public static final String SMB_ALLOWED_SID_ENTRIES = "smbAllowedSidEntries";
 
+    /** Property key for SMB denied SID entries. */
     public static final String SMB_DENIED_SID_ENTRIES = "smbDeniedSidEntries";
 
+    /** Property key for SMB file creation time. */
     public static final String SMB_CREATE_TIME = "smbCreateTime";
 
+    /** Property key for SMB owner attributes. */
     public static final String SMB_OWNER_ATTRIBUTES = "smbOwnerAttributes";
 
+    /** Character set used for encoding SMB content. */
     protected String charset = Constants.UTF_8;
 
+    /** Flag indicating whether to resolve SIDs to names. */
     protected boolean resolveSids = true;
 
+    /** Helper for content length operations. */
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
+    /**
+     * The SMB authentication holder.
+     */
     protected volatile SmbAuthenticationHolder smbAuthenticationHolder;
 
+    /**
+     * The CIFS context.
+     */
     protected CIFSContext cifsContext;
 
+    /**
+     * Creates a new SmbClient instance.
+     */
+    public SmbClient() {
+        super();
+    }
+
+    /**
+    * Initializes the SMB client.
+    * @see org.codelibs.fess.crawler.client.AbstractCrawlerClient#init()
+    */
     @Override
     public synchronized void init() {
         if (smbAuthenticationHolder != null) {
@@ -188,6 +213,13 @@ public class SmbClient extends AbstractCrawlerClient {
         return processRequest(uri, true);
     }
 
+    /**
+     * Processes an SMB request for the given URI.
+     *
+     * @param uri the URI to process
+     * @param includeContent whether to include content in the response
+     * @return the response data
+     */
     protected ResponseData processRequest(final String uri, final boolean includeContent) {
         if (smbAuthenticationHolder == null) {
             init();
@@ -213,11 +245,24 @@ public class SmbClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Creates an NTLM password authenticator from the given SMB authentication.
+     *
+     * @param smbAuthentication the SMB authentication information
+     * @return the NTLM password authenticator
+     */
     protected NtlmPasswordAuthenticator getAuthenticator(final SmbAuthentication smbAuthentication) {
         return new NtlmPasswordAuthenticator(smbAuthentication.getDomain() == null ? "" : smbAuthentication.getDomain(),
                 smbAuthentication.getUsername(), smbAuthentication.getPassword());
     }
 
+    /**
+     * Retrieves response data for the given URI.
+     *
+     * @param uri the URI to retrieve data from
+     * @param includeContent whether to include content in the response
+     * @return the response data
+     */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         responseData.setMethod(Constants.GET_METHOD);
@@ -368,6 +413,12 @@ public class SmbClient extends AbstractCrawlerClient {
         return responseData;
     }
 
+    /**
+     * Processes access control entries (ACEs) for the given SMB file and adds them to the response data.
+     *
+     * @param responseData the response data to update
+     * @param file the SMB file to process
+     */
     protected void processAccessControlEntries(final ResponseData responseData, final SmbFile file) {
         try {
             final ACE[] aces = file.getSecurity(resolveSids);
@@ -388,6 +439,14 @@ public class SmbClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Processes allowed SIDs (Security Identifiers) and adds them to the SID set.
+     * If the SID is a group, it recursively processes all group members.
+     *
+     * @param file the SMB file
+     * @param sid the SID to process
+     * @param sidSet the set of SIDs to add to
+     */
     protected void processAllowedSIDs(final SmbFile file, final SID sid, final Set<SID> sidSet) {
         if (logger.isDebugEnabled()) {
             logger.debug("SID:{}", sid);
@@ -412,6 +471,13 @@ public class SmbClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Preprocesses the URI before processing the request.
+     *
+     * @param uri the URI to preprocess
+     * @return the preprocessed URI
+     * @throws CrawlerSystemException if the URI is empty
+     */
     protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
             throw new CrawlerSystemException("The uri is empty.");
@@ -420,6 +486,12 @@ public class SmbClient extends AbstractCrawlerClient {
         return uri;
     }
 
+    /**
+     * Returns the character set for the given SMB file.
+     *
+     * @param file the SMB file
+     * @return the character set
+     */
     protected String getCharSet(final SmbFile file) {
         return charset;
     }
@@ -440,6 +512,11 @@ public class SmbClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Copies content from an SmbFile to a File.
+     * @param src The source SmbFile.
+     * @param dest The destination File.
+     */
     private void copy(final SmbFile src, final File dest) {
         if (dest.exists() && !dest.canWrite()) {
             return;
@@ -458,21 +535,23 @@ public class SmbClient extends AbstractCrawlerClient {
     }
 
     /**
-     * @return the resolveSids
+     * Returns whether SIDs (Security Identifiers) should be resolved.
+     * @return true if SIDs should be resolved, false otherwise
      */
     public boolean isResolveSids() {
         return resolveSids;
     }
 
     /**
-     * @param resolveSids
-     *            the resolveSids to set
+     * Sets whether SIDs (Security Identifiers) should be resolved.
+     * @param resolveSids true to resolve SIDs, false otherwise
      */
     public void setResolveSids(final boolean resolveSids) {
         this.resolveSids = resolveSids;
     }
 
     /**
+     * Returns the character set used for SMB operations.
      * @return the charset
      */
     public String getCharset() {
@@ -480,8 +559,8 @@ public class SmbClient extends AbstractCrawlerClient {
     }
 
     /**
-     * @param charset
-     *            the charset to set
+     * Sets the character set used for SMB operations.
+     * @param charset the charset to set
      */
     public void setCharset(final String charset) {
         this.charset = charset;

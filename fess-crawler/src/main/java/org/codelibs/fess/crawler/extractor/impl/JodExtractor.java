@@ -41,22 +41,30 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 /**
- * @author shinsuke
- *
+ * Extracts text content from various document formats using JODConverter.
  */
 public class JodExtractor extends AbstractExtractor {
+    /** Logger for this class. */
     private static final Logger logger = LogManager.getLogger(JodExtractor.class);
 
+    /** Office manager for document conversion. */
     protected OfficeManager officeManager;
 
+    /** Temporary directory for file operations. */
     protected File tempDir = null;
 
+    /** Output encoding for extracted text. */
     protected String outputEncoding = Constants.UTF_8;
 
+    /** Map of input file extensions to output extensions. */
     private final Map<String, String> extensionMap = new HashMap<>();
 
+    /** Map of output extensions to their corresponding extractors. */
     private final Map<String, Extractor> extractorMap = new HashMap<>();
 
+    /**
+     * Constructs a new JodExtractor and initializes the extension and extractor mappings.
+     */
     public JodExtractor() {
         extensionMap.put("", "txt");
         // Text Formats
@@ -91,6 +99,11 @@ public class JodExtractor extends AbstractExtractor {
         extractorMap.put("svg", new XmlExtractor());
     }
 
+    /**
+     * Initializes the extractor by starting the office manager.
+     *
+     * @throws CrawlerSystemException if the office manager is null or fails to start
+     */
     @PostConstruct
     public void init() {
         if (officeManager == null) {
@@ -106,6 +119,11 @@ public class JodExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Destroys the extractor by stopping the office manager.
+     *
+     * @throws CrawlerSystemException if the office manager fails to stop
+     */
     @PreDestroy
     public void destroy() {
         try {
@@ -115,6 +133,12 @@ public class JodExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Adds a conversion rule for mapping input file extensions to output extensions.
+     *
+     * @param inExt the input file extension
+     * @param outExt the output file extension
+     */
     public void addConversionRule(final String inExt, final String outExt) {
         extensionMap.put(inExt, outExt);
     }
@@ -183,6 +207,14 @@ public class JodExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Gets the output content from the converted file.
+     *
+     * @param outputFile the converted output file
+     * @param outExt the output file extension
+     * @return the extracted text content
+     * @throws ExtractException if an error occurs while reading the file
+     */
     protected String getOutputContent(final File outputFile, final String outExt) {
         final Extractor extractor = getExtractor(outExt);
         if (extractor != null) {
@@ -202,19 +234,33 @@ public class JodExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Gets the extractor for the specified file extension.
+     *
+     * @param ext the file extension
+     * @return the extractor for the extension, or null if not found
+     */
     private Extractor getExtractor(final String ext) {
         return extractorMap.get(ext);
     }
 
     /**
-     * @param extension
-     * @return
+     * Gets the output extension for the specified input extension.
+     *
+     * @param extension the input file extension
+     * @return the output extension, or "txt" if not found
      */
     private String getOutputExtension(final String extension) {
         final String outExt = extensionMap.get(extension);
         return outExt == null ? "txt" : outExt;
     }
 
+    /**
+     * Extracts the file name from a resource name.
+     *
+     * @param resourceName the resource name
+     * @return the file name
+     */
     private String getFileName(final String resourceName) {
         final String name = resourceName.replaceAll("/+$", "");
         final int pos = name.lastIndexOf('/');
@@ -224,14 +270,29 @@ public class JodExtractor extends AbstractExtractor {
         return name;
     }
 
+    /**
+     * Sets the office manager for document conversion.
+     *
+     * @param officeManager the office manager to set
+     */
     public void setOfficeManager(final OfficeManager officeManager) {
         this.officeManager = officeManager;
     }
 
+    /**
+     * Sets the temporary directory for file operations.
+     *
+     * @param tempDir the temporary directory to set
+     */
     public void setTempDir(final File tempDir) {
         this.tempDir = tempDir;
     }
 
+    /**
+     * Sets the output encoding for extracted text.
+     *
+     * @param outputEncoding the output encoding to set
+     */
     public void setOutputEncoding(final String outputEncoding) {
         this.outputEncoding = outputEncoding;
     }

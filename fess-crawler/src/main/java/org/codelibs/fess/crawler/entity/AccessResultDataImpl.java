@@ -21,23 +21,30 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link AccessResultData} interface.
  *
+ * @param <IDTYPE> the type of the identifier
  */
 public class AccessResultDataImpl<IDTYPE> implements AccessResultData<IDTYPE> {
+    /** The unique identifier for the access result data. */
     protected IDTYPE id;
 
+    /** The name of the transformer associated with this access result data. */
     protected String transformerName;
 
+    /** The data as a byte array. */
     protected byte[] data;
 
+    /** The encoding used for the access result data. */
     protected String encoding;
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.entity.AccessResultData#getId()
+    /**
+     * Constructs a new AccessResultDataImpl instance.
      */
+    public AccessResultDataImpl() {
+        // NOP
+    }
+
     @Override
     public IDTYPE getId() {
         return id;
@@ -122,6 +129,10 @@ public class AccessResultDataImpl<IDTYPE> implements AccessResultData<IDTYPE> {
         }
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "AccessResultDataImpl [id=" + id + ", transformerName=" + transformerName + ", encoding=" + encoding + "]";

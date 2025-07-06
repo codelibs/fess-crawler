@@ -30,6 +30,9 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
  */
 public final class ResponseDataUtil {
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private ResponseDataUtil() {
     }
 

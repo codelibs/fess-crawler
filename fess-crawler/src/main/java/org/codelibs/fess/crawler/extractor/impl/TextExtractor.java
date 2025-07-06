@@ -25,12 +25,21 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
- * @author shinsuke
- *
+ * Extracts text content from an input stream as plain text.
  */
 public class TextExtractor extends AbstractExtractor {
 
+    /**
+     * The encoding for text.
+     */
     protected String encoding = Constants.UTF_8;
+
+    /**
+     * Creates a new TextExtractor instance.
+     */
+    public TextExtractor() {
+        super();
+    }
 
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
@@ -44,10 +53,18 @@ public class TextExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Returns the encoding used for text extraction.
+     * @return the encoding
+     */
     public String getEncoding() {
         return encoding;
     }
 
+    /**
+     * Sets the encoding.
+     * @param encoding The encoding to set.
+     */
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }

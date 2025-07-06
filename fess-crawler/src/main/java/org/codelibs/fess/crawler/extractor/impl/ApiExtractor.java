@@ -66,38 +66,59 @@ import jakarta.annotation.PreDestroy;
 
 /**
  * Extract a text by using external http server.
- *
- * @author shinsuke
- *
  */
 public class ApiExtractor extends AbstractExtractor {
 
     private static final Logger logger = LogManager.getLogger(ApiExtractor.class);
 
+    /** The URL of the API endpoint. */
     protected String url;
 
+    /** The access timeout in seconds. */
     protected Integer accessTimeout; // sec
 
+    /** The HTTP client used for API calls. */
     protected CloseableHttpClient httpClient;
 
+    /** The connection timeout in milliseconds. */
     protected Integer connectionTimeout;
 
+    /** The socket timeout in milliseconds. */
     protected Integer soTimeout;
 
+    /** The map of authentication scheme providers. */
     protected Map<String, AuthSchemeProvider> authSchemeProviderMap;
 
+    /** The user agent string. */
     protected String userAgent = "Crawler";
 
+    /** The credentials provider. */
     protected CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
+    /** The authentication cache. */
     protected AuthCache authCache = new BasicAuthCache();
 
+    /** The HTTP client context. */
     protected HttpClientContext httpClientContext = HttpClientContext.create();
 
+    /** Map of HTTP client properties */
     private final Map<String, Object> httpClientPropertyMap = new HashMap<>();
 
+    /** List of request headers */
     private final List<Header> requestHeaderList = new ArrayList<>();
 
+    /**
+     * Constructs a new ApiExtractor.
+     */
+    public ApiExtractor() {
+        // NOP
+    }
+
+    /**
+     * Initializes the API extractor, setting up the HTTP client and configuration.
+     * This method is called after construction to initialize the HTTP client with
+     * configured timeouts, authentication, and request headers.
+     */
     @PostConstruct
     public void init() {
         if (logger.isDebugEnabled()) {
@@ -173,6 +194,9 @@ public class ApiExtractor extends AbstractExtractor {
         httpClient = closeableHttpClient;
     }
 
+    /**
+     * Destroys the HTTP client.
+     */
     @PreDestroy
     public void destroy() {
         if (httpClient != null) {
@@ -184,6 +208,14 @@ public class ApiExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Extracts text from the input stream using the API endpoint.
+     *
+     * @param in the input stream to extract text from
+     * @param params additional parameters
+     * @return the extracted data
+     * @throws ExtractException if extraction fails
+     */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (logger.isDebugEnabled()) {
@@ -228,38 +260,74 @@ public class ApiExtractor extends AbstractExtractor {
         return data;
     }
 
+    /**
+     * Sets the URL of the API endpoint.
+     * @param url The URL to set.
+     */
     public void setUrl(final String url) {
         this.url = url;
     }
 
+    /**
+     * Sets the connection timeout.
+     * @param connectionTimeout The connection timeout in milliseconds.
+     */
     public void setConnectionTimeout(final Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
     }
 
+    /**
+     * Sets the socket timeout.
+     * @param soTimeout The socket timeout in milliseconds.
+     */
     public void setSoTimeout(final Integer soTimeout) {
         this.soTimeout = soTimeout;
     }
 
+    /**
+     * Sets the map of authentication scheme providers.
+     * @param authSchemeProviderMap The map of authentication scheme providers.
+     */
     public void setAuthSchemeProviderMap(final Map<String, AuthSchemeProvider> authSchemeProviderMap) {
         this.authSchemeProviderMap = authSchemeProviderMap;
     }
 
+    /**
+     * Sets the user agent string.
+     * @param userAgent The user agent string.
+     */
     public void setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
     }
 
+    /**
+     * Sets the credentials provider.
+     * @param credentialsProvider The credentials provider.
+     */
     public void setCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
     }
 
+    /**
+     * Sets the authentication cache.
+     * @param authCache The authentication cache.
+     */
     public void setAuthCache(final AuthCache authCache) {
         this.authCache = authCache;
     }
 
+    /**
+     * Sets the HTTP client context.
+     * @param httpClientContext The HTTP client context.
+     */
     public void setHttpClientContext(final HttpClientContext httpClientContext) {
         this.httpClientContext = httpClientContext;
     }
 
+    /**
+     * Sets the access timeout.
+     * @param accessTimeout The access timeout to set.
+     */
     public void setAccessTimeout(final Integer accessTimeout) {
         this.accessTimeout = accessTimeout;
     }

@@ -38,58 +38,118 @@ import org.opensearch.search.SearchHits;
 
 import jakarta.annotation.PostConstruct;
 
+/**
+ * OpenSearchDataService is an implementation of {@link DataService} for OpenSearch.
+ */
 public class OpenSearchDataService extends AbstractCrawlerService implements DataService<OpenSearchAccessResult> {
 
+    /**
+     * Creates a new instance of OpenSearchDataService.
+     * @param crawlerConfig The crawler configuration.
+     */
     public OpenSearchDataService(final OpenSearchCrawlerConfig crawlerConfig) {
         index = crawlerConfig.getDataIndex();
         setNumberOfShards(crawlerConfig.getDataShards());
         setNumberOfReplicas(crawlerConfig.getDataReplicas());
     }
 
+    /**
+     * Creates a new instance of OpenSearchDataService.
+     * @param name The name.
+     * @param type The type.
+     */
     public OpenSearchDataService(final String name, final String type) {
         index = name + "." + type;
     }
 
+    /**
+     * Initializes the service.
+     */
     @PostConstruct
     public void init() {
         fesenClient.addOnConnectListener(() -> createMapping("data"));
     }
 
+    /**
+     * Stores an access result in the OpenSearch index.
+     *
+     * @param accessResult The access result to store.
+     */
     @Override
     public void store(final OpenSearchAccessResult accessResult) {
         super.insert(accessResult, accessResult.getId() == null ? OpType.CREATE : OpType.INDEX);
     }
 
+    /**
+     * Updates an access result in the OpenSearch index.
+     *
+     * @param accessResult The access result to update.
+     */
     @Override
     public void update(final OpenSearchAccessResult accessResult) {
         super.insert(accessResult, OpType.INDEX);
     }
 
+    /**
+     * Updates multiple access results in the OpenSearch index.
+     *
+     * @param accessResultList The list of access results to update.
+     */
     @Override
     public void update(final List<OpenSearchAccessResult> accessResultList) {
         insertAll(accessResultList, OpType.INDEX);
     }
 
+    /**
+     * Gets the count of access results for a specific session.
+     *
+     * @param sessionId The session ID.
+     * @return The number of access results for the session.
+     */
     @Override
     public int getCount(final String sessionId) {
         return getCount(builder -> builder.setQuery(QueryBuilders.termQuery(SESSION_ID, sessionId)));
     }
 
+    /**
+     * Deletes all access results for a specific session.
+     *
+     * @param sessionId The session ID.
+     */
     @Override
     public void delete(final String sessionId) {
         deleteBySessionId(sessionId);
     }
 
+    /**
+     * Gets an access result by session ID and URL.
+     *
+     * @param sessionId The session ID.
+     * @param url The URL.
+     * @return The access result, or null if not found.
+     */
     @Override
     public OpenSearchAccessResult getAccessResult(final String sessionId, final String url) {
         return get(OpenSearchAccessResult.class, sessionId, url);
     }
 
+    /**
+     * Gets a list of access results for a specific URL.
+     *
+     * @param url The URL to search for.
+     * @param hasData Whether to include data (currently not used in this implementation).
+     * @return The list of access results.
+     */
     @Override
     public List<OpenSearchAccessResult> getAccessResultList(final String url, final boolean hasData) {
         return getList(OpenSearchAccessResult.class, builder -> builder.setQuery(QueryBuilders.termQuery(URL, url)));
     }
 
+    /**
+     * Returns a list of OpenSearchAccessResult objects.
+     * @param callback The callback to build the search request.
+     * @return A list of OpenSearchAccessResult objects.
+     */
     public List<OpenSearchAccessResult> getAccessResultList(final Consumer<SearchRequestBuilder> callback) {
         final SearchResponse response = getClient().get(c -> {
             final SearchRequestBuilder builder = c.prepareSearch(index);
@@ -132,6 +192,14 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
         return targetList;
     }
 
+    /**
+     * Extracts a field value from OpenSearch results and converts it to the specified type.
+     *
+     * @param <T> The target type.
+     * @param field The field value from OpenSearch.
+     * @param clazz The target class.
+     * @return The converted field value.
+     */
     @SuppressWarnings("unchecked")
     private <T> T getFieldValue(final Object field, final Class<T> clazz) {
         if (field == null) {
@@ -148,6 +216,13 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
         return (T) field;
     }
 
+    /**
+     * Iterates through all access results for a session, calling the callback for each result.
+     * Uses OpenSearch scroll API for efficient iteration over large result sets.
+     *
+     * @param sessionId The session ID.
+     * @param callback The callback to execute for each access result.
+     */
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<OpenSearchAccessResult> callback) {
         SearchResponse response = getClient().get(c -> c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout))

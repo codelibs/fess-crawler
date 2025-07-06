@@ -51,17 +51,41 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 
 /**
- * Gets a text from .doc file.
+ * PdfExtractor extracts text content from PDF files using Apache PDFBox.
+ * It supports password-protected PDFs and can extract embedded documents and annotations.
+ *
+ * <p>The extractor runs text extraction in a separate thread with a configurable timeout
+ * to prevent hanging on problematic PDF files. It also extracts metadata from the PDF
+ * document and includes it in the extraction result.
+ *
+ * <p>Features:
+ * <ul>
+ *   <li>Text extraction from PDF pages</li>
+ *   <li>Embedded document extraction</li>
+ *   <li>Annotation extraction (file attachments)</li>
+ *   <li>Metadata extraction</li>
+ *   <li>Password-protected PDF support</li>
+ *   <li>Configurable timeout for extraction process</li>
+ * </ul>
  *
  * @author shinsuke
- *
  */
 public class PdfExtractor extends PasswordBasedExtractor {
+    /** Logger instance for this class. */
     private static final Logger logger = LogManager.getLogger(PdfExtractor.class);
 
+    /** Timeout for PDF extraction in milliseconds (default: 30 seconds). */
     protected long timeout = 30000; // 30sec
 
+    /** Whether the extraction thread should be a daemon thread. */
     protected boolean isDaemonThread = false;
+
+    /**
+     * Creates a new PdfExtractor instance.
+     */
+    public PdfExtractor() {
+        super();
+    }
 
     /*
      * (non-Javadoc)
@@ -115,6 +139,11 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Extracts text from file attachments in PDF annotations.
+     * @param doc the PDF document
+     * @param writer the writer to append extracted text to
+     */
     protected void extractAnnotations(final PDDocument doc, final StringWriter writer) {
         for (final PDPage page : doc.getPages()) {
             try {
@@ -133,6 +162,12 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Extracts text from an embedded file using the appropriate extractor.
+     * @param filename the filename of the embedded file
+     * @param embeddedFile the embedded file to extract text from
+     * @param writer the writer to append extracted text to
+     */
     protected void extractFile(final String filename, final PDEmbeddedFile embeddedFile, final StringWriter writer) {
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
@@ -155,6 +190,11 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Extracts text from embedded documents in the PDF.
+     * @param document the PDF document
+     * @param writer the writer to append extracted text to
+     */
     protected void extractEmbeddedDocuments(final PDDocument document, final StringWriter writer) {
         final PDDocumentNameDictionary namesDictionary = new PDDocumentNameDictionary(document.getDocumentCatalog());
         final PDEmbeddedFilesNameTreeNode efTree = namesDictionary.getEmbeddedFiles();
@@ -180,6 +220,11 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Processes embedded document names and extracts text from them.
+     * @param embeddedFileNames the map of embedded file names to specifications
+     * @param writer the writer to append extracted text to
+     */
     protected void processEmbeddedDocNames(final Map<String, PDComplexFileSpecification> embeddedFileNames, final StringWriter writer) {
         if (embeddedFileNames == null || embeddedFileNames.isEmpty()) {
             return;
@@ -194,6 +239,11 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Gets the embedded file from a file specification, trying different platform-specific variants.
+     * @param fileSpec the file specification
+     * @return the embedded file, or null if not found
+     */
     protected PDEmbeddedFile getEmbeddedFile(final PDComplexFileSpecification fileSpec) {
         // search for the first available alternative of the embedded file
         PDEmbeddedFile embeddedFile = null;
@@ -215,6 +265,11 @@ public class PdfExtractor extends PasswordBasedExtractor {
         return embeddedFile;
     }
 
+    /**
+     * Extracts metadata from the PDF document and adds it to the extraction result.
+     * @param document the PDF document
+     * @param extractData the extraction data to add metadata to
+     */
     protected void extractMetadata(final PDDocument document, final ExtractData extractData) {
         final PDDocumentInformation info = document.getDocumentInformation();
         if (info == null) {
@@ -227,20 +282,38 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Adds metadata to the extraction data if the value is not null.
+     * @param extractData the extraction data
+     * @param name the metadata name
+     * @param value the metadata value
+     */
     protected void addMetadata(final ExtractData extractData, final String name, final String value) {
         if (value != null) {
             extractData.putValue(name, value);
         }
     }
 
+    /**
+     * Gets the timeout for PDF extraction in milliseconds.
+     * @return the timeout in milliseconds
+     */
     public long getTimeout() {
         return timeout;
     }
 
+    /**
+     * Sets the timeout for PDF extraction in milliseconds.
+     * @param timeout the timeout in milliseconds
+     */
     public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
 
+    /**
+     * Sets whether the extraction thread should be a daemon thread.
+     * @param isDaemonThread true to make it a daemon thread, false otherwise.
+     */
     public void setDaemonThread(final boolean isDaemonThread) {
         this.isDaemonThread = isDaemonThread;
     }

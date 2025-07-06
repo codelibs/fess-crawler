@@ -47,22 +47,55 @@ import org.codelibs.fess.crawler.exception.ExtractException;
  */
 public abstract class AbstractXmlExtractor extends AbstractExtractor {
 
+    /**
+     * Logger for this class.
+     */
     protected static final Logger logger = LogManager.getLogger(AbstractXmlExtractor.class);
 
+    /**
+     * UTF-7 Byte Order Mark definition.
+     */
     protected static final ByteOrderMark BOM_UTF_7 = new ByteOrderMark("UTF-7", 0x2B, 0x2F, 0x76);
 
+    /**
+     * HTML4 unescape translator.
+     */
     protected static final CharSequenceTranslator UNESCAPE_HTML4 = new AggregateTranslator(
             new LookupTranslator(EntityArrays.BASIC_UNESCAPE), new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE),
             new LookupTranslator(EntityArrays.HTML40_EXTENDED_UNESCAPE), new NumericEntityUnescaper());
 
+    /**
+     * Default character encoding for content extraction.
+     */
     protected String encoding = Constants.UTF_8;
 
+    /**
+     * The preload size for charset detection.
+     */
     protected int preloadSizeForCharset = 2048;
 
+    /**
+     * Indicates whether comment tags should be ignored during extraction.
+     */
     protected boolean ignoreCommentTag = false;
 
+    /**
+     * Constructs a new AbstractXmlExtractor.
+     */
+    public AbstractXmlExtractor() {
+        // NOP
+    }
+
+    /**
+     * Returns the pattern used to extract encoding information from content.
+     * @return The encoding pattern.
+     */
     protected abstract Pattern getEncodingPattern();
 
+    /**
+     * Returns the pattern used to identify tags in the content.
+     * @return The tag pattern.
+     */
     protected abstract Pattern getTagPattern();
 
     @Override
@@ -80,10 +113,20 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Creates an ExtractData object from the extracted content.
+     * @param content The extracted content.
+     * @return The ExtractData object.
+     */
     protected ExtractData createExtractData(final String content) {
         return new ExtractData(extractString(content));
     }
 
+    /**
+     * Detects the encoding of the input stream.
+     * @param bis The buffered input stream.
+     * @return The detected encoding.
+     */
     protected String getEncoding(final BufferedInputStream bis) {
         final byte[] b = new byte[preloadSizeForCharset];
         try {
@@ -129,6 +172,11 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
         return encoding;
     }
 
+    /**
+     * Extracts text content from the given content by removing tags and processing attributes.
+     * @param content The content to extract from.
+     * @return The extracted text.
+     */
     protected String extractString(final String content) {
         String input = content.replaceAll("[\\r\\n]", " ");
         if (ignoreCommentTag) {
@@ -152,33 +200,50 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
         return sb.toString().replaceAll("\\s+", " ").trim();
     }
 
+    /**
+     * Returns the current encoding setting.
+     * @return The current encoding.
+     */
     public String getEncoding() {
         return encoding;
     }
 
+    /**
+     * Sets the encoding for content extraction.
+     * @param encoding The encoding to set.
+     */
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 
     /**
-     * @return Returns the preloadSizeForCharset.
+     * Returns the preload size for charset detection.
+     * @return The preload size for charset detection.
      */
     public int getPreloadSizeForCharset() {
         return preloadSizeForCharset;
     }
 
     /**
-     * @param preloadSizeForCharset
-     *            The preloadSizeForCharset to set.
+     * Sets the preload size for charset detection.
+     * @param preloadSizeForCharset The preload size for charset detection to set.
      */
     public void setPreloadSizeForCharset(final int preloadSizeForCharset) {
         this.preloadSizeForCharset = preloadSizeForCharset;
     }
 
+    /**
+     * Returns whether comment tags are ignored during extraction.
+     * @return true if comment tags are ignored, false otherwise.
+     */
     public boolean isIgnoreCommentTag() {
         return ignoreCommentTag;
     }
 
+    /**
+     * Sets whether to ignore comment tags.
+     * @param ignoreCommentTag true to ignore comment tags, false otherwise.
+     */
     public void setIgnoreCommentTag(final boolean ignoreCommentTag) {
         this.ignoreCommentTag = ignoreCommentTag;
     }

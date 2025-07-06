@@ -28,6 +28,13 @@ import org.codelibs.fess.crawler.processor.ResponseProcessor;
 public class NullResponseProcessor implements ResponseProcessor {
 
     /**
+     * Creates a new NullResponseProcessor instance.
+     */
+    public NullResponseProcessor() {
+        super();
+    }
+
+    /**
      * Processes the given response data.
      * This implementation does nothing.
      *

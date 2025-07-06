@@ -23,26 +23,81 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
  * Service interface for managing URL queues.
  * Provides methods for adding, retrieving, and managing URLs within a crawling session.
  *
+ * @param <QUEUE> the type of URL queue
  */
 public interface UrlQueueService<QUEUE extends UrlQueue<?>> {
 
+    /**
+     * Updates the session ID.
+     *
+     * @param oldSessionId The old session ID.
+     * @param newSessionId The new session ID.
+     */
     void updateSessionId(String oldSessionId, String newSessionId);
 
+    /**
+     * Adds a URL to the queue.
+     *
+     * @param sessionId The session ID.
+     * @param url The URL.
+     */
     void add(String sessionId, String url);
 
+    /**
+     * Inserts a URL queue.
+     *
+     * @param urlQueue The URL queue.
+     */
     void insert(QUEUE urlQueue);
 
+    /**
+     * Deletes a URL queue.
+     *
+     * @param sessionId The session ID.
+     */
     void delete(String sessionId);
 
+    /**
+     * Deletes all URL queues.
+     */
     void deleteAll();
 
+    /**
+     * Offers all URL queues.
+     *
+     * @param sessionId The session ID.
+     * @param newUrlQueueList The list of new URL queues.
+     */
     void offerAll(String sessionId, List<QUEUE> newUrlQueueList);
 
+    /**
+     * Polls a URL queue.
+     *
+     * @param sessionId The session ID.
+     * @return The URL queue.
+     */
     QUEUE poll(String sessionId);
 
+    /**
+     * Saves the session.
+     *
+     * @param sessionId The session ID.
+     */
     void saveSession(String sessionId);
 
+    /**
+     * Checks if a URL has been visited.
+     *
+     * @param urlQueue The URL queue.
+     * @return true if the URL has been visited, otherwise false.
+     */
     boolean visited(QUEUE urlQueue);
 
+    /**
+     * Generates URL queues.
+     *
+     * @param previousSessionId The previous session ID.
+     * @param sessionId The session ID.
+     */
     void generateUrlQueues(String previousSessionId, String sessionId);
 }

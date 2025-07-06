@@ -28,16 +28,22 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
- * @author shinsuke
- *
+ * Extracts text content from Microsoft PowerPoint documents.
  */
 public class MsPowerPointExtractor extends AbstractExtractor {
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.extractor.Extractor#getText(java.io.InputStream,
-     * java.util.Map)
+    /**
+     * Creates a new MsPowerPointExtractor instance.
+     */
+    public MsPowerPointExtractor() {
+        super();
+    }
+
+    /**
+     * Extracts text from the PowerPoint input stream.
+     * @param in The input stream.
+     * @param params The parameters.
+     * @return The extracted data.
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {

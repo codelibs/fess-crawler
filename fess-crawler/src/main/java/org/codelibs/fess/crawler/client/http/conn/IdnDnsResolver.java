@@ -45,15 +45,38 @@ import org.apache.http.conn.DnsResolver;
  */
 public class IdnDnsResolver implements DnsResolver {
 
+    /** Flag for IDN conversion. */
     protected int flag = 0;
 
+    /** Encoding for URL decoding. */
     protected String encoding = "UTF-8";
 
+    /**
+     * Creates a new IdnDnsResolver instance with default settings.
+     */
+    public IdnDnsResolver() {
+        super();
+    }
+
+    /**
+     * Resolves the given host name to an array of IP addresses.
+     * The host name is first converted to ASCII using IDN before resolution.
+     *
+     * @param host the host name to resolve
+     * @return an array of IP addresses for the host
+     * @throws UnknownHostException if the host name cannot be resolved
+     */
     @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
         return InetAddress.getAllByName(toAscii(host));
     }
 
+    /**
+     * Decodes the given host string using the specified encoding.
+     *
+     * @param host the host string to decode
+     * @return the decoded host string
+     */
     protected String decode(final String host) {
         if (host.indexOf('%') == -1) {
             return host;
@@ -65,14 +88,30 @@ public class IdnDnsResolver implements DnsResolver {
         }
     }
 
+    /**
+     * Converts the given host string to ASCII using IDN.
+     *
+     * @param host the host string to convert
+     * @return the ASCII representation of the host string
+     */
     protected String toAscii(final String host) {
         return IDN.toASCII(decode(host), flag);
     }
 
+    /**
+     * Sets the flag for IDN conversion.
+     *
+     * @param flag the flag to set
+     */
     public void setFlag(final int flag) {
         this.flag = flag;
     }
 
+    /**
+     * Sets the encoding for URL decoding.
+     *
+     * @param encoding the encoding to set
+     */
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }

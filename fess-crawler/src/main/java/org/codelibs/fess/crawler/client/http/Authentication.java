@@ -44,6 +44,11 @@ public interface Authentication {
      *
      * @return the authentication scheme
      */
+    /**
+     * Retrieves the authentication scheme to be used for HTTP requests.
+     *
+     * @return the authentication scheme
+     */
     AuthScheme getAuthScheme();
 
 }

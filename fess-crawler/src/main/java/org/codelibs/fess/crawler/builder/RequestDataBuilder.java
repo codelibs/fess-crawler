@@ -40,10 +40,18 @@ public final class RequestDataBuilder {
     private RequestDataBuilder() {
     }
 
+    /**
+     * Creates a new RequestDataContext for building RequestData instances.
+     *
+     * @return a new RequestDataContext instance
+     */
     public static RequestDataContext newRequestData() {
         return new RequestDataContext();
     }
 
+    /**
+     * Context class for building RequestData instances using a fluent API.
+     */
     public static class RequestDataContext {
         private final RequestData data;
 
@@ -51,6 +59,12 @@ public final class RequestDataBuilder {
             data = new RequestData();
         }
 
+        /**
+         * Sets the HTTP method for the request.
+         *
+         * @param method the HTTP method (GET, POST, HEAD)
+         * @return this RequestDataContext for method chaining
+         */
         public RequestDataContext method(final String method) {
             if (Constants.GET_METHOD.equalsIgnoreCase(method)) {
                 return get();
@@ -64,19 +78,36 @@ public final class RequestDataBuilder {
             return get();
         }
 
+        /**
+         * Sets the HTTP method for the request.
+         * @param method The HTTP method.
+         * @return The current RequestDataContext instance.
+         */
         public RequestDataContext method(final Method method) {
             data.setMethod(method);
             return this;
         }
 
+        /**
+         * Sets the HTTP method to GET.
+         * @return The current RequestDataContext instance.
+         */
         public RequestDataContext get() {
             return method(Method.GET);
         }
 
+        /**
+         * Sets the HTTP method to HEAD.
+         * @return The current RequestDataContext instance.
+         */
         public RequestDataContext head() {
             return method(Method.HEAD);
         }
 
+        /**
+         * Sets the HTTP method to POST.
+         * @return The current RequestDataContext instance.
+         */
         public RequestDataContext post() {
             return method(Method.POST);
         }

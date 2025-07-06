@@ -110,6 +110,10 @@ public class FormScheme implements AuthScheme {
 
     private final Map<String, String> parameterMap;
 
+    /**
+     * Constructs a FormScheme with the given parameter map.
+     * @param parameterMap The map of parameters.
+     */
     public FormScheme(final Map<String, String> parameterMap) {
         this.parameterMap = parameterMap;
     }
@@ -149,6 +153,11 @@ public class FormScheme implements AuthScheme {
         return null;
     }
 
+    /**
+     * Authenticates using the form scheme.
+     * @param credentials The credentials.
+     * @param executor The executor for HTTP requests.
+     */
     public void authenticate(final Credentials credentials,
             final BiConsumer<HttpUriRequest, BiConsumer<HttpResponse, HttpEntity>> executor) {
         final String tokenUrl = getParameter(TOKEN_URL);
@@ -259,6 +268,12 @@ public class FormScheme implements AuthScheme {
 
     }
 
+    /**
+     * Parses the token page and extracts token information.
+     * @param tokenPattern The regex pattern to extract the token.
+     * @param responseParams The list to store response parameters.
+     * @param entity The HTTP entity containing the token page content.
+     */
     protected void parseTokenPage(final String tokenPattern, final List<Pair<String, String>> responseParams, final HttpEntity entity) {
         try {
             final String tokenName = getParameter(TOKEN_NAME);
@@ -277,6 +292,13 @@ public class FormScheme implements AuthScheme {
         }
     }
 
+    /**
+     * Parses request parameters from a string.
+     * @param params The parameter string.
+     * @param paramList Additional parameters.
+     * @param encoding The encoding.
+     * @return The HttpEntity containing the parsed parameters.
+     */
     protected HttpEntity parseRequestParameters(final String params, final List<Pair<String, String>> paramList, final String encoding) {
         try {
             final List<BasicNameValuePair> parameters =
@@ -303,6 +325,12 @@ public class FormScheme implements AuthScheme {
         }
     }
 
+    /**
+     * Extracts the token value from the content using the given pattern.
+     * @param tokenPattern The regex pattern.
+     * @param content The content to search.
+     * @return The extracted token value.
+     */
     protected String getTokenValue(final String tokenPattern, final String content) {
         final Matcher matcher = Pattern.compile(tokenPattern).matcher(content);
         if (matcher.find()) {
@@ -316,6 +344,12 @@ public class FormScheme implements AuthScheme {
         return null;
     }
 
+    /**
+     * Replaces credentials in the given value.
+     * @param credentials The credentials.
+     * @param value The value to replace.
+     * @return The value with credentials replaced.
+     */
     protected String replaceCredentials(final Credentials credentials, final String value) {
         if (StringUtil.isNotBlank(value)) {
             return value.replace(USERNAME, credentials.getUserPrincipal().getName()).replace(PASSWORD, credentials.getPassword());
@@ -323,6 +357,10 @@ public class FormScheme implements AuthScheme {
         return StringUtil.EMPTY;
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "FormScheme [parameterMap=" + parameterMap + "]";

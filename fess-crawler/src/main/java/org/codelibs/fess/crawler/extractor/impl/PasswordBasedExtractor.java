@@ -32,18 +32,53 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * PasswordBasedExtractor is an abstract base class for extractors that can handle password-protected files.
+ * It provides functionality to manage passwords for different file patterns using regular expressions.
+ *
+ * <p>The extractor supports two types of password management:
+ * <ul>
+ *   <li>Static passwords configured via {@link #addPassword(String, String)}</li>
+ *   <li>Dynamic passwords provided through extraction parameters</li>
+ * </ul>
+ *
+ * <p>Passwords are matched against URLs or resource names using regular expression patterns.
+ * The extractor first tries to match against the URL, then falls back to the resource name if available.
+ *
+ * @author shinsuke
+ */
 public abstract class PasswordBasedExtractor extends AbstractExtractor {
 
+    /** Logger instance for this class. */
     private static final Logger logger = LogManager.getLogger(PasswordBasedExtractor.class);
 
+    /** Map of regex patterns to passwords for static password configuration. */
     protected Map<Pattern, String> passwordMap = new HashMap<>();
 
+    /** Cache for parsed password configurations from extraction parameters. */
     private final Map<String, List<Pair<Pattern, String>>> configPasswordMap = new ConcurrentHashMap<>();
 
+    /**
+     * Creates a new PasswordBasedExtractor instance.
+     */
+    public PasswordBasedExtractor() {
+        super();
+    }
+
+    /**
+     * Adds a password for files matching the given regular expression pattern.
+     * @param regex the regular expression pattern to match against URLs or resource names
+     * @param password the password to use for matching files
+     */
     public void addPassword(final String regex, final String password) {
         passwordMap.put(Pattern.compile(regex), password);
     }
 
+    /**
+     * Returns the password for the given parameters.
+     * @param params The parameters.
+     * @return The password.
+     */
     protected String getPassword(final Map<String, String> params) {
         final String url = params != null ? params.get(ExtractData.URL) : null;
         if (!passwordMap.isEmpty()) {

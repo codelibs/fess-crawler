@@ -28,8 +28,17 @@ public class MultipleCrawlingAccessException extends CrawlingAccessException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The array of throwables that caused this exception.
+     */
     private final Throwable[] throwables;
 
+    /**
+     * Creates a new MultipleCrawlingAccessException with the specified detail message and array of throwables.
+     *
+     * @param message the detail message explaining the reason for the exception
+     * @param throwables the array of throwables that caused this exception
+     */
     public MultipleCrawlingAccessException(final String message, final Throwable[] throwables) {
         super(message);
         if (throwables == null) {
@@ -63,6 +72,10 @@ public class MultipleCrawlingAccessException extends CrawlingAccessException {
         }
     }
 
+    /**
+     * Returns the array of Throwables that caused this exception.
+     * @return The array of Throwables.
+     */
     public Throwable[] getCauses() {
         return throwables;
     }

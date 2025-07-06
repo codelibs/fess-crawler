@@ -93,14 +93,33 @@ public class StorageClient extends AbstractCrawlerClient {
 
     private static final Logger logger = LogManager.getLogger(StorageClient.class);
 
+    /**
+     * The character encoding to use for content. Defaults to UTF-8.
+     */
     protected String charset = Constants.UTF_8;
 
+    /**
+     * Helper for managing content length validation and limits.
+     */
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
+    /**
+     * Flag indicating whether the client has been initialized.
+     */
     protected volatile boolean isInit = false;
 
+    /**
+     * The MinIO client instance for interacting with object storage.
+     */
     protected MinioClient minioClient;
+
+    /**
+     * Creates a new StorageClient instance.
+     */
+    public StorageClient() {
+        super();
+    }
 
     @Override
     public synchronized void init() {
@@ -137,6 +156,12 @@ public class StorageClient extends AbstractCrawlerClient {
         isInit = true;
     }
 
+    /**
+     * Checks if a bucket exists in the object storage.
+     * @param name the name of the bucket to check
+     * @return true if the bucket exists, false otherwise
+     * @throws CrawlingAccessException if an error occurs while checking bucket existence
+     */
     protected boolean bucketExists(final String name) {
         try {
             final BucketExistsArgs args = BucketExistsArgs.builder().bucket(name).build();
@@ -146,6 +171,13 @@ public class StorageClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Processes a storage request with timeout management.
+     * @param uri the URI to process
+     * @param includeContent whether to include the actual content in the response
+     * @return the response data for the request
+     * @throws CrawlingAccessException if an error occurs while processing the request
+     */
     protected ResponseData processRequest(final String uri, final boolean includeContent) {
         if (!isInit) {
             init();
@@ -171,6 +203,12 @@ public class StorageClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Parses a storage path into bucket name and object path components.
+     * @param path the storage path to parse (format: bucket/object/path)
+     * @return an array containing the bucket name and object path
+     * @throws CrawlingAccessException if the path format is invalid
+     */
     protected String[] parsePath(final String path) {
         if (StringUtil.isNotEmpty(path)) {
             final String[] values = path.split("/", 2);
@@ -184,6 +222,14 @@ public class StorageClient extends AbstractCrawlerClient {
         throw new CrawlingAccessException("Invalid path: " + path);
     }
 
+    /**
+     * Retrieves response data for the specified URI.
+     * @param uri the URI to retrieve data for
+     * @param includeContent whether to include the actual content in the response
+     * @return the response data containing metadata and optionally content
+     * @throws CrawlingAccessException if an error occurs while accessing the resource
+     * @throws ChildUrlsException if the URI represents a directory with child URLs
+     */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         try {
@@ -268,6 +314,13 @@ public class StorageClient extends AbstractCrawlerClient {
         return responseData;
     }
 
+    /**
+     * Retrieves metadata information for an object in the specified bucket.
+     * @param bucketName the name of the bucket containing the object
+     * @param path the path to the object within the bucket
+     * @return the object metadata, or null if the object does not exist
+     * @throws CrawlingAccessException if the bucket does not exist
+     */
     protected StatObjectResponse getStatObject(final String bucketName, final String path) {
         if (StringUtil.isEmpty(path)) {
             return null;
@@ -296,6 +349,12 @@ public class StorageClient extends AbstractCrawlerClient {
         return null;
     }
 
+    /**
+     * Retrieves tags associated with an object in the specified bucket.
+     * @param bucketName the name of the bucket containing the object
+     * @param path the path to the object within the bucket
+     * @return the tags associated with the object, or null if no tags exist or object not found
+     */
     protected Tags getObjectTags(final String bucketName, final String path) {
         if (StringUtil.isEmpty(path)) {
             return null;
@@ -324,6 +383,12 @@ public class StorageClient extends AbstractCrawlerClient {
         return null;
     }
 
+    /**
+     * Preprocesses a URI to ensure it has the correct storage protocol prefix.
+     * @param uri the URI to preprocess
+     * @return the preprocessed URI with storage:// prefix
+     * @throws CrawlerSystemException if the URI is empty
+     */
     protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
             throw new CrawlerSystemException("The uri is empty.");
@@ -337,10 +402,18 @@ public class StorageClient extends AbstractCrawlerClient {
         return filePath;
     }
 
+    /**
+     * Returns the character set used for content encoding.
+     * @return the charset
+     */
     public String getCharset() {
         return charset;
     }
 
+    /**
+     * Sets the character set used for content encoding.
+     * @param charset the charset to set
+     */
     public void setCharset(final String charset) {
         this.charset = charset;
     }
@@ -355,10 +428,10 @@ public class StorageClient extends AbstractCrawlerClient {
         return processRequest(uri, true);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.client.CrawlerClient#doHead(java.lang.String)
+    /**
+     * Executes a HEAD request for the given URL.
+     * @param url The URL to request.
+     * @return The ResponseData.
      */
     @Override
     public ResponseData doHead(final String url) {

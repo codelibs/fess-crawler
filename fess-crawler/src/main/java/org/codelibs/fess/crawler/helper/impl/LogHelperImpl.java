@@ -56,7 +56,15 @@ import org.codelibs.fess.crawler.log.LogType;
  */
 public class LogHelperImpl implements LogHelper {
 
+    /** Logger for this class. */
     private static final Logger logger = LogManager.getLogger(LogHelperImpl.class);
+
+    /**
+     * Creates a new LogHelperImpl instance.
+     */
+    public LogHelperImpl() {
+        super();
+    }
 
     /*
      * (non-Javadoc)
@@ -130,9 +138,19 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes default log events (no specific handling).
+     *
+     * @param objs the log objects
+     */
     protected void processDefault(final Object... objs) {
     }
 
+    /**
+     * Processes system error log events.
+     *
+     * @param objs the log objects (should contain a Throwable)
+     */
     protected void processSystemError(final Object... objs) {
         final Throwable t = (Throwable) objs[0];
         if (logger.isErrorEnabled()) {
@@ -140,6 +158,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes no rule found log events.
+     *
+     * @param objs the log objects (should contain ResponseData)
+     */
     protected void processNoRule(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -149,6 +172,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes no response processor found log events.
+     *
+     * @param objs the log objects (should contain ResponseData)
+     */
     protected void processNoResponseProcessor(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -160,10 +188,20 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes finished thread log events.
+     *
+     * @param objs the log objects
+     */
     protected void processFinishedThread(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
     }
 
+    /**
+     * Processes no URL in queue log events.
+     *
+     * @param objs the log objects (should contain UrlQueue and thread check count)
+     */
     protected void processNoUrlInQueue(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -177,6 +215,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes crawling exception log events.
+     *
+     * @param objs the log objects (should contain UrlQueue and Throwable)
+     */
     protected void processCrawlingException(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -184,6 +227,11 @@ public class LogHelperImpl implements LogHelper {
         logger.error("Crawling Exception at " + urlQueue.getUrl(), e);
     }
 
+    /**
+     * Processes crawling access exception log events.
+     *
+     * @param objs the log objects (should contain UrlQueue and CrawlingAccessException)
+     */
     protected void processCrawlingAccessException(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -199,6 +247,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes child URL processing exception log events.
+     *
+     * @param objs the log objects (should contain UrlQueue, URL string, and Throwable)
+     */
     protected void processProcessChildUrlByException(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -209,6 +262,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes child URLs processing exception log events.
+     *
+     * @param objs the log objects (should contain UrlQueue and Set of RequestData)
+     */
     protected void processProcessChildUrlsByException(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -221,6 +279,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes finished crawling log events.
+     *
+     * @param objs the log objects (should contain UrlQueue)
+     */
     protected void processFinishedCrawling(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -229,6 +292,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes response processing log events.
+     *
+     * @param objs the log objects (should contain ResponseData)
+     */
     protected void processProcessResponse(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -239,6 +307,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes redirect location log events.
+     *
+     * @param objs the log objects (should contain ResponseData)
+     */
     protected void processRedirectLocation(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         // final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -248,6 +321,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes get content log events.
+     *
+     * @param objs the log objects (should contain UrlQueue)
+     */
     protected void processGetContent(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -256,6 +334,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes not modified log events.
+     *
+     * @param objs the log objects (should contain UrlQueue)
+     */
     protected void processNotModified(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -264,6 +347,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes check last modified log events.
+     *
+     * @param objs the log objects (should contain UrlQueue)
+     */
     protected void processCheckLastModified(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -272,6 +360,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes unsupported URL log events.
+     *
+     * @param objs the log objects (should contain UrlQueue)
+     */
     protected void processUnsupportedUrlAtCrawlingStarted(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -280,10 +373,20 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes cleanup crawling log events.
+     *
+     * @param objs the log objects
+     */
     protected void processCleanupCrawling(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
     }
 
+    /**
+     * Processes start crawling log events.
+     *
+     * @param objs the log objects (should contain UrlQueue)
+     */
     protected void processStartCrawling(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
@@ -292,6 +395,11 @@ public class LogHelperImpl implements LogHelper {
         }
     }
 
+    /**
+     * Processes start thread log events.
+     *
+     * @param objs the log objects
+     */
     protected void processStartThread(final Object... objs) {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
     }

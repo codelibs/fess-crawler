@@ -39,11 +39,19 @@ import jcifs.ntlmssp.Type3Message;
  */
 public class JcifsEngine implements NTLMEngine {
 
+    /** Flags for Type 1 NTLM message. */
     protected static final int TYPE_1_FLAGS = NtlmFlags.NTLMSSP_NEGOTIATE_56 | NtlmFlags.NTLMSSP_NEGOTIATE_128
             | NtlmFlags.NTLMSSP_NEGOTIATE_NTLM | NtlmFlags.NTLMSSP_NEGOTIATE_ALWAYS_SIGN | NtlmFlags.NTLMSSP_REQUEST_TARGET;
 
+    /** The CIFS context for NTLM authentication. */
     protected BaseContext cifsContext;
 
+    /**
+     * Constructs a JcifsEngine with the specified properties.
+     *
+     * @param props the properties for configuring the CIFS context
+     * @throws CrawlingAccessException if an error occurs during initialization
+     */
     public JcifsEngine(final Properties props) {
         try {
             cifsContext = new BaseContext(new PropertyConfiguration(props));
@@ -52,12 +60,32 @@ public class JcifsEngine implements NTLMEngine {
         }
     }
 
+    /**
+     * Generates a Type 1 NTLM message.
+     *
+     * @param domain the domain name
+     * @param workstation the workstation name
+     * @return the Base64-encoded Type 1 message
+     * @throws NTLMEngineException if an NTLM engine error occurs
+     */
     @Override
     public String generateType1Msg(final String domain, final String workstation) throws NTLMEngineException {
         final Type1Message type1Message = new Type1Message(cifsContext, TYPE_1_FLAGS, domain, workstation);
         return Base64.getEncoder().encodeToString(type1Message.toByteArray());
     }
 
+    /**
+     * Generates a Type 3 NTLM message.
+     *
+     * @param username the username
+     * @param password the password
+     * @param domain the domain
+     * @param workstation the workstation
+     * @param challenge the Type 2 challenge message
+     * @return the Base64-encoded Type 3 message
+     * @throws NTLMEngineException if an NTLM engine error occurs
+     * @throws CrawlingAccessException if an error occurs during message generation
+     */
     @Override
     public String generateType3Msg(final String username, final String password, final String domain, final String workstation,
             final String challenge) throws NTLMEngineException {

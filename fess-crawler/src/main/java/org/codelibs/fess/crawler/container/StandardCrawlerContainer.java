@@ -68,6 +68,9 @@ public class StandardCrawlerContainer implements CrawlerContainer {
 
     private boolean available = true;
 
+    /**
+     * Constructs a new StandardCrawlerContainer and initializes it.
+     */
     public StandardCrawlerContainer() {
         initialize();
     }
@@ -106,15 +109,42 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         }
     }
 
+    /**
+     * Registers a prototype component with the specified name, class, and initializer.
+     * A new instance will be created each time the component is requested.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param cls the class of the component
+     * @param component the initializer consumer for the component
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer prototype(final String name, final Class<T> cls, final Consumer<T> component) {
         prototypeMap.put(name, new ComponentDef<>(cls, component, this));
         return this;
     }
 
+    /**
+     * Registers a prototype component with the specified name and class.
+     * A new instance will be created each time the component is requested.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param cls the class of the component
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer prototype(final String name, final Class<T> cls) {
         return prototype(name, cls, null);
     }
 
+    /**
+     * Registers a singleton component with the specified name, class, initializer, and destroyer.
+     * One instance will be shared throughout the container's lifecycle.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param cls the class of the component
+     * @param initializer the initializer consumer for the component
+     * @param destroyer the destroyer consumer for the component
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer singleton(final String name, final Class<T> cls, final Consumer<T> initializer,
             final Consumer<T> destroyer) {
         final ComponentDef<T> componentDef = new ComponentDef<>(cls, initializer, this);
@@ -123,14 +153,41 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         return this;
     }
 
+    /**
+     * Registers a singleton component with the specified name, class, and initializer.
+     * One instance will be shared throughout the container's lifecycle.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param cls the class of the component
+     * @param initializer the initializer consumer for the component
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer singleton(final String name, final Class<T> cls, final Consumer<T> initializer) {
         return singleton(name, cls, initializer, (Consumer<T>) null);
     }
 
+    /**
+     * Registers a singleton component with the specified name and class.
+     * One instance will be shared throughout the container's lifecycle.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param cls the class of the component
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer singleton(final String name, final Class<T> cls) {
         return singleton(name, cls, (Consumer<T>) null, (Consumer<T>) null);
     }
 
+    /**
+     * Registers a singleton component with the specified name, instance, initializer, and destroyer.
+     * The provided instance will be used and shared throughout the container's lifecycle.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param instance the component instance
+     * @param initializer the initializer consumer for the component
+     * @param destroyer the destroyer consumer for the component
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer singleton(final String name, final T instance, final Consumer<T> initializer,
             final Consumer<T> destroyer) {
         final ComponentDef<T> componentDef = new ComponentDef<>(instance, initializer, this);
@@ -138,10 +195,27 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         return this;
     }
 
+    /**
+     * Registers a singleton component with the specified name, instance, and initializer.
+     * The provided instance will be used and shared throughout the container's lifecycle.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param instance the component instance
+     * @param initializer the initializer consumer for the component
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer singleton(final String name, final T instance, final Consumer<T> initializer) {
         return singleton(name, instance, initializer, null);
     }
 
+    /**
+     * Registers a singleton component with the specified name and instance.
+     * The provided instance will be used and shared throughout the container's lifecycle.
+     * @param <T> the type of the component
+     * @param name the name of the component
+     * @param instance the component instance
+     * @return this container instance for method chaining
+     */
     public <T> StandardCrawlerContainer singleton(final String name, final T instance) {
         return singleton(name, instance, null, null);
     }
@@ -153,19 +227,38 @@ public class StandardCrawlerContainer implements CrawlerContainer {
      * @param <T> the type of the component
      */
     protected static class ComponentHolder<T> {
+        /**
+         * The component instance being held.
+         */
         protected T instance;
 
+        /**
+         * The destroyer function to be called when the component is destroyed.
+         */
         protected Consumer<T> destroyer;
 
+        /**
+         * Creates a new ComponentHolder with the specified instance and destroyer.
+         * @param instance the component instance to hold
+         * @param destroyer the destroyer function for cleanup (can be null)
+         */
         protected ComponentHolder(final T instance, final Consumer<T> destroyer) {
             this.instance = instance;
             this.destroyer = destroyer;
         }
 
+        /**
+         * Returns the component instance.
+         * @return the component instance
+         */
         protected T get() {
             return instance;
         }
 
+        /**
+         * Destroys the component by calling any @PreDestroy annotated methods
+         * and the destroyer function if present.
+         */
         protected void destroy() {
             final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(instance.getClass());
             for (final String methodName : beanDesc.getMethodNames()) {
@@ -185,27 +278,61 @@ public class StandardCrawlerContainer implements CrawlerContainer {
         }
     }
 
+    /**
+     * A definition for a component that can be instantiated on demand.
+     * This class handles component creation, dependency injection, and initialization.
+     *
+     * @param <T> the type of the component
+     */
     protected static class ComponentDef<T> {
+        /**
+         * The class of the component to instantiate.
+         */
         protected Class<T> cls;
 
+        /**
+         * The initializer function to be called after component creation.
+         */
         protected Consumer<T> initializer;
 
+        /**
+         * The container instance.
+         */
         protected StandardCrawlerContainer container;
 
+        /**
+         * The component instance.
+         */
         private T instance;
 
+        /**
+         * Creates a new ComponentDef for a class-based component.
+         * @param cls the class of the component
+         * @param initializer the initializer function (can be null)
+         * @param container the container instance for dependency injection
+         */
         protected ComponentDef(final Class<T> cls, final Consumer<T> initializer, final StandardCrawlerContainer container) {
             this.cls = cls;
             this.initializer = initializer;
             this.container = container;
         }
 
+        /**
+         * Creates a new ComponentDef for an instance-based component.
+         * @param instance the component instance
+         * @param initializer the initializer function (can be null)
+         * @param container the container instance for dependency injection
+         */
         protected ComponentDef(final T instance, final Consumer<T> initializer, final StandardCrawlerContainer container) {
             this.instance = instance;
             this.initializer = initializer;
             this.container = container;
         }
 
+        /**
+         * Creates and returns a component instance with dependency injection and initialization.
+         * @return the fully initialized component instance
+         */
         protected T get() {
             final T component = instance == null ? ClassUtil.newInstance(cls) : instance;
             final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(component.getClass());

@@ -41,16 +41,36 @@ import jp.gr.java_conf.dangan.util.lha.LhaFile;
 import jp.gr.java_conf.dangan.util.lha.LhaHeader;
 
 /**
- * Extractor implementation for LHA.
+ * Extractor implementation for LHA (LZH) archive files.
+ * This extractor can extract text content from files within LHA archives
+ * by using appropriate extractors for each contained file type.
  *
  * @author shinsuke
- *
  */
 public class LhaExtractor extends AbstractExtractor {
+    /** Logger for this class. */
     private static final Logger logger = LogManager.getLogger(LhaExtractor.class);
 
+    /** Maximum content size for extraction. -1 means no limit. */
     protected long maxContentSize = -1;
 
+    /**
+     * Creates a new LhaExtractor instance.
+     */
+    public LhaExtractor() {
+        super();
+    }
+
+    /**
+     * Extracts text content from an LHA archive input stream.
+     *
+     * @param in the input stream containing the LHA archive
+     * @param params extraction parameters
+     * @return the extracted text data
+     * @throws CrawlerSystemException if the input stream is null
+     * @throws ExtractException if an error occurs during extraction
+     * @throws MaxLengthExceededException if the extracted content size exceeds the maximum limit
+     */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
@@ -119,6 +139,11 @@ public class LhaExtractor extends AbstractExtractor {
         return new ExtractData(buf.toString().trim());
     }
 
+    /**
+     * Sets the maximum content size for extraction.
+     *
+     * @param maxContentSize the maximum content size to set (-1 for no limit)
+     */
     public void setMaxContentSize(final long maxContentSize) {
         this.maxContentSize = maxContentSize;
     }

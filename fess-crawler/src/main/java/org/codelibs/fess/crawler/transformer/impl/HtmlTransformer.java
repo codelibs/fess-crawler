@@ -112,24 +112,42 @@ import jakarta.annotation.Resource;
  */
 public class HtmlTransformer extends AbstractTransformer {
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(HtmlTransformer.class);
 
+    /**
+     * Constructs a new HtmlTransformer.
+     */
+    public HtmlTransformer() {
+        // Default constructor
+    }
+
+    /** Header name for location redirects. */
     protected static final String LOCATION_HEADER = "Location";
 
+    /** The crawler container for dependency injection. */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /** Map of parser features to configure the DOM parser. */
     protected Map<String, String> featureMap = new HashMap<>();
 
+    /** Map of parser properties to configure the DOM parser. */
     protected Map<String, String> propertyMap = new HashMap<>();
 
+    /** Map of HTML tag names to attribute names for extracting child URLs. */
     protected Map<String, String> childUrlRuleMap = new LinkedHashMap<>();
 
+    /** Default character encoding to use when none is specified. */
     protected String defaultEncoding;
 
-    // If you want to follow a html spec, use 512.
+    /** Number of bytes to read from input stream to determine character set encoding.
+     * If you want to follow a html spec, use 512. */
     protected int preloadSizeForCharset = 2048;
 
+    /**
+     * Pattern for invalid URLs.
+     */
     protected Pattern invalidUrlPattern = Pattern.compile("^\\s*javascript:|" //
             + "^\\s*mailto:|" //
             + "^\\s*irc:|" //
@@ -145,6 +163,7 @@ public class HtmlTransformer extends AbstractTransformer {
             + "^\\s*ios-app:|" //
             + "^\\s*callto:", Pattern.CASE_INSENSITIVE);
 
+    /** Thread-local XPathAPI instance for thread-safe XPath operations. */
     private final ThreadLocal<XPathAPI> xpathAPI = new ThreadLocal<>();
 
     @Override
@@ -187,6 +206,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return resultData;
     }
 
+    /**
+     * Checks if the response data represents HTML content.
+     *
+     * @param responseData the response data to check
+     * @return true if the content is HTML, false otherwise
+     */
     protected boolean isHtml(final ResponseData responseData) {
         final String mimeType = responseData.getMimeType();
         if ("text/html".equals(mimeType) || "application/xhtml+xml".equals(mimeType)) {
@@ -195,12 +220,23 @@ public class HtmlTransformer extends AbstractTransformer {
         return false;
     }
 
+    /**
+     * Adds a rule for extracting child URLs from HTML tags.
+     *
+     * @param tagName the HTML tag name
+     * @param attrName the attribute name to extract URLs from
+     */
     public void addChildUrlRule(final String tagName, final String attrName) {
         if (StringUtil.isNotBlank(tagName) && StringUtil.isNotBlank(attrName)) {
             childUrlRuleMap.put(tagName, attrName);
         }
     }
 
+    /**
+     * Gets the XPath API instance for this thread.
+     *
+     * @return the XPath API instance
+     */
     protected XPathAPI getXPathAPI() {
         XPathAPI cachedXPathAPI = xpathAPI.get();
         if (cachedXPathAPI == null) {
@@ -210,6 +246,13 @@ public class HtmlTransformer extends AbstractTransformer {
         return cachedXPathAPI;
     }
 
+    /**
+     * Stores child URLs found in the HTML content.
+     *
+     * @param responseData the response data containing the HTML content
+     * @param resultData the result data to store child URLs in
+     * @throws CrawlingAccessException if URL extraction fails
+     */
     protected void storeChildUrls(final ResponseData responseData, final ResultData resultData) {
         try (final InputStream is = responseData.getResponseBody()) {
             final DOMParser parser = getDomParser();
@@ -246,10 +289,23 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Gets the child URL extraction rules as a stream of tag-attribute pairs.
+     *
+     * @param responseData the response data
+     * @param resultData the result data
+     * @return a stream of tag-attribute pairs
+     */
     protected Stream<Pair<String, String>> getChildUrlRules(final ResponseData responseData, final ResultData resultData) {
         return childUrlRuleMap.entrySet().stream().map(e -> new Pair<>(e.getKey(), e.getValue()));
     }
 
+    /**
+     * Converts child URLs using the URL convert helper.
+     *
+     * @param requestDataList the list of request data to convert
+     * @return the converted list of request data
+     */
     protected List<RequestData> convertChildUrlList(final List<RequestData> requestDataList) {
         try {
             final UrlConvertHelper urlConvertHelper = crawlerContainer.getComponent("urlConvertHelper");
@@ -265,6 +321,13 @@ public class HtmlTransformer extends AbstractTransformer {
         return requestDataList;
     }
 
+    /**
+     * Stores the response data content in the result data.
+     *
+     * @param responseData the response data containing the content
+     * @param resultData the result data to store the content in
+     * @throws CrawlerSystemException if storing data fails
+     */
     protected void storeData(final ResponseData responseData, final ResultData resultData) {
         try (final InputStream is = responseData.getResponseBody()) {
             final byte[] data = InputStreamUtil.getBytes(is);
@@ -277,6 +340,11 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Updates the character set of the response data by detecting it from the content.
+     *
+     * @param responseData the response data to update
+     */
     protected void updateCharset(final ResponseData responseData) {
         try (final InputStream is = responseData.getResponseBody()) {
             final String encoding = loadCharset(is);
@@ -300,6 +368,12 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Checks if the specified charset is supported.
+     *
+     * @param charsetName the charset name to check
+     * @return true if the charset is supported, false otherwise
+     */
     protected boolean isSupportedCharset(final String charsetName) {
         if (charsetName == null) {
             return false;
@@ -312,6 +386,13 @@ public class HtmlTransformer extends AbstractTransformer {
         return true;
     }
 
+    /**
+     * Loads and detects the character set from the input stream.
+     *
+     * @param inputStream the input stream to read from
+     * @return the detected character set name, or null if not found
+     * @throws CrawlingAccessException if an error occurs while reading the content
+     */
     protected String loadCharset(final InputStream inputStream) {
         BufferedInputStream bis = null;
         String encoding = null;
@@ -330,6 +411,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return normalizeEncoding(encoding);
     }
 
+    /**
+     * Normalizes the encoding name using the encoding helper.
+     *
+     * @param encoding the encoding name to normalize
+     * @return the normalized encoding name
+     */
     protected String normalizeEncoding(final String encoding) {
         try {
             final EncodingHelper encodingHelper = crawlerContainer.getComponent("encodingHelper");
@@ -340,6 +427,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return encoding;
     }
 
+    /**
+     * Parses the charset from the content string.
+     *
+     * @param content the content to parse
+     * @return the parsed charset name, or null if not found
+     */
     protected String parseCharset(final String content) {
         final Pattern pattern = Pattern.compile("; *charset *= *([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
         final Matcher matcher = pattern.matcher(content);
@@ -349,6 +442,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return null;
     }
 
+    /**
+     * Gets a duplicate URL by adding or removing a trailing slash.
+     *
+     * @param requestData the request data to create a duplicate for
+     * @return the request data with the duplicate URL
+     */
     protected RequestData getDuplicateUrl(final RequestData requestData) {
         final String url = requestData.getUrl();
         if (url.endsWith("/")) {
@@ -359,6 +458,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return requestData;
     }
 
+    /**
+     * Creates and configures a DOM parser with the specified features and properties.
+     *
+     * @return a configured DOM parser
+     * @throws CrawlerSystemException if the parser configuration is invalid
+     */
     protected DOMParser getDomParser() {
         final DOMParser parser = new DOMParser();
         try {
@@ -378,6 +483,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return parser;
     }
 
+    /**
+     * Gets the base href from the document's BASE tag.
+     *
+     * @param document the document to extract base href from
+     * @return the base href URL, or null if not found
+     */
     protected String getBaseHref(final Document document) {
         try {
             final XPathNodes list = getXPathAPI().selectNodeList(document, "//BASE");
@@ -401,6 +512,16 @@ public class HtmlTransformer extends AbstractTransformer {
         return null;
     }
 
+    /**
+     * Extracts URLs from HTML tag attributes using XPath.
+     *
+     * @param url the base URL for resolving relative URLs
+     * @param document the document to extract URLs from
+     * @param xpath the XPath expression to select elements
+     * @param attr the attribute name to extract URLs from
+     * @param encoding the character encoding to use
+     * @return a list of extracted URLs
+     */
     protected List<String> getUrlFromTagAttribute(final URL url, final Document document, final String xpath, final String attr,
             final String encoding) {
         if (logger.isDebugEnabled()) {
@@ -425,6 +546,14 @@ public class HtmlTransformer extends AbstractTransformer {
         return urlList;
     }
 
+    /**
+     * Adds a child URL to the URL list after processing and validation.
+     *
+     * @param urlList the list to add the URL to
+     * @param url the base URL for resolving relative URLs
+     * @param attrValue the attribute value containing the URL
+     * @param encoding the character encoding to use
+     */
     protected void addChildUrlFromTagAttribute(final List<String> urlList, final URL url, final String attrValue, final String encoding) {
         try {
             final String childUrlValue = attrValue.trim();
@@ -447,6 +576,13 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Encodes a URL using the specified character encoding.
+     *
+     * @param url the URL to encode
+     * @param enc the character encoding to use
+     * @return the encoded URL
+     */
     protected String encodeUrl(final String url, final String enc) {
         if (StringUtil.isBlank(url) || StringUtil.isBlank(enc)) {
             return url;
@@ -467,6 +603,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return buf.toString();
     }
 
+    /**
+     * Normalizes a URL by removing fragments, resolving relative paths, and cleaning up.
+     *
+     * @param u the URL to normalize
+     * @return the normalized URL
+     */
     protected String normalizeUrl(final String u) {
         if (u == null) {
             return null;
@@ -500,6 +642,12 @@ public class HtmlTransformer extends AbstractTransformer {
         return url.replaceAll("([^:])/+", "$1/");
     }
 
+    /**
+     * Checks if a path is valid for crawling (not a JavaScript, mailto, or other invalid URL).
+     *
+     * @param path the path to validate
+     * @return true if the path is valid, false otherwise
+     */
     protected boolean isValidPath(final String path) {
         if (StringUtil.isBlank(path)) {
             return false;
@@ -513,6 +661,13 @@ public class HtmlTransformer extends AbstractTransformer {
         return true;
     }
 
+    /**
+     * Adds a parser feature configuration.
+     *
+     * @param key the feature key
+     * @param value the feature value
+     * @throws CrawlerSystemException if key or value is null
+     */
     public void addFeature(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new CrawlerSystemException("key or value is null.");
@@ -521,6 +676,13 @@ public class HtmlTransformer extends AbstractTransformer {
         featureMap.put(key, value);
     }
 
+    /**
+     * Adds a parser property configuration.
+     *
+     * @param key the property key
+     * @param value the property value
+     * @throws CrawlerSystemException if key or value is null
+     */
     public void addProperty(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
             throw new CrawlerSystemException("key or value is null.");
@@ -556,50 +718,110 @@ public class HtmlTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Gets the map of parser features.
+     *
+     * @return the feature map
+     */
     public Map<String, String> getFeatureMap() {
         return featureMap;
     }
 
+    /**
+     * Sets the map of parser features.
+     *
+     * @param featureMap the feature map to set
+     */
     public void setFeatureMap(final Map<String, String> featureMap) {
         this.featureMap = featureMap;
     }
 
+    /**
+     * Gets the map of parser properties.
+     *
+     * @return the property map
+     */
     public Map<String, String> getPropertyMap() {
         return propertyMap;
     }
 
+    /**
+     * Sets the map of parser properties.
+     *
+     * @param propertyMap the property map to set
+     */
     public void setPropertyMap(final Map<String, String> propertyMap) {
         this.propertyMap = propertyMap;
     }
 
+    /**
+     * Gets the map of child URL extraction rules.
+     *
+     * @return the child URL rule map
+     */
     public Map<String, String> getChildUrlRuleMap() {
         return childUrlRuleMap;
     }
 
+    /**
+     * Sets the map of child URL extraction rules.
+     *
+     * @param childUrlRuleMap the child URL rule map to set
+     */
     public void setChildUrlRuleMap(final Map<String, String> childUrlRuleMap) {
         this.childUrlRuleMap = childUrlRuleMap;
     }
 
+    /**
+     * Gets the default character encoding.
+     *
+     * @return the default encoding
+     */
     public String getDefaultEncoding() {
         return defaultEncoding;
     }
 
+    /**
+     * Sets the default character encoding.
+     *
+     * @param defaultEncoding the default encoding to set
+     */
     public void setDefaultEncoding(final String defaultEncoding) {
         this.defaultEncoding = defaultEncoding;
     }
 
+    /**
+     * Gets the preload size for charset detection.
+     *
+     * @return the preload size in bytes
+     */
     public int getPreloadSizeForCharset() {
         return preloadSizeForCharset;
     }
 
+    /**
+     * Sets the preload size for charset detection.
+     *
+     * @param preloadSizeForCharset the preload size in bytes to set
+     */
     public void setPreloadSizeForCharset(final int preloadSizeForCharset) {
         this.preloadSizeForCharset = preloadSizeForCharset;
     }
 
+    /**
+     * Gets the pattern for matching invalid URLs.
+     *
+     * @return the invalid URL pattern
+     */
     public Pattern getInvalidUrlPattern() {
         return invalidUrlPattern;
     }
 
+    /**
+     * Sets the pattern for matching invalid URLs.
+     *
+     * @param invalidUrlPattern the invalid URL pattern to set
+     */
     public void setInvalidUrlPattern(final Pattern invalidUrlPattern) {
         this.invalidUrlPattern = invalidUrlPattern;
     }

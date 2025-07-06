@@ -58,13 +58,24 @@ import org.codelibs.fess.crawler.entity.ResponseData;
  */
 public class RegexRule extends AbstractRule {
 
+    /** Serial version UID for serialization. */
     private static final long serialVersionUID = 1L;
 
+    /** Whether this rule should match all responses by default. */
     protected boolean defaultRule = false;
 
+    /** Whether all regular expressions must match (true) or just one (false). */
     protected boolean allRequired = true;
 
+    /** Map of field names to regular expression patterns. */
     protected Map<String, Pattern> regexMap = new HashMap<>();
+
+    /**
+     * Creates a new RegexRule instance.
+     */
+    public RegexRule() {
+        super();
+    }
 
     /*
      * (non-Javadoc)
@@ -98,26 +109,52 @@ public class RegexRule extends AbstractRule {
         return allRequired;
     }
 
+    /**
+     * Adds a regular expression rule for the specified field.
+     * @param key the field name to match against
+     * @param regex the regular expression pattern
+     */
     public void addRule(final String key, final String regex) {
         regexMap.put(key, Pattern.compile(regex));
     }
 
+    /**
+     * Adds a compiled regular expression rule for the specified field.
+     * @param key the field name to match against
+     * @param pattern the compiled regular expression pattern
+     */
     public void addRule(final String key, final Pattern pattern) {
         regexMap.put(key, pattern);
     }
 
+    /**
+     * Returns whether this rule is a default rule that matches all responses.
+     * @return true if this is a default rule, false otherwise
+     */
     public boolean isDefaultRule() {
         return defaultRule;
     }
 
+    /**
+     * Sets whether this rule should be a default rule that matches all responses.
+     * @param defaultRule true to make this a default rule, false otherwise
+     */
     public void setDefaultRule(final boolean defaultRule) {
         this.defaultRule = defaultRule;
     }
 
+    /**
+     * Returns whether all regular expressions must match for this rule to match.
+     * @return true if all patterns must match, false if only one needs to match
+     */
     public boolean isAllRequired() {
         return allRequired;
     }
 
+    /**
+     * Sets whether all regular expressions must match for this rule to match.
+     * @param allRequired true if all patterns must match, false if only one needs to match
+     */
     public void setAllRequired(final boolean allRequired) {
         this.allRequired = allRequired;
     }
@@ -131,6 +168,10 @@ public class RegexRule extends AbstractRule {
         return false;
     }
 
+    /**
+     * Returns the hash code for this RegexRule.
+     * @return The hash code.
+     */
     @Override
     public int hashCode() {
         int hash = regexMap.hashCode();

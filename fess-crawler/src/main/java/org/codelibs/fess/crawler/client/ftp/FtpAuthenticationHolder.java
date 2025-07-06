@@ -25,12 +25,28 @@ import java.util.List;
 public class FtpAuthenticationHolder {
     List<FtpAuthentication> authenticationList = new ArrayList<>();
 
+    /**
+     * Constructs a new FtpAuthenticationHolder.
+     */
+    public FtpAuthenticationHolder() {
+        // Default constructor
+    }
+
+    /**
+     * Adds an FtpAuthentication object to the holder.
+     * @param auth The FtpAuthentication object to add.
+     */
     public void add(final FtpAuthentication auth) {
         if (auth != null) {
             authenticationList.add(auth);
         }
     }
 
+    /**
+     * Retrieves an FtpAuthentication object that matches the given path.
+     * @param path The path to match.
+     * @return The matching FtpAuthentication object, or null if no match is found.
+     */
     public FtpAuthentication get(final String path) {
         if (path == null) {
             return null;

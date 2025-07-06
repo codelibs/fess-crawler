@@ -125,53 +125,120 @@ import jakarta.annotation.Resource;
  */
 public class FtpClient extends AbstractCrawlerClient {
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(FtpClient.class);
 
+    /** Metadata key for FTP file group */
     public static final String FTP_FILE_GROUP = "ftpFileGroup";
 
+    /** Metadata key for FTP file user */
     public static final String FTP_FILE_USER = "ftpFileUser";
 
+    /** Property name for FTP authentications */
     public static final String FTP_AUTHENTICATIONS_PROPERTY = "ftpAuthentications";
 
+    /**
+     * Constructs a new FtpClient.
+     */
+    public FtpClient() {
+        // Default constructor
+    }
+
+    /** Character encoding for FTP operations */
     protected String charset = Constants.UTF_8;
 
+    /** Helper for managing content length limits */
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
+    /**
+     * The FTP authentication holder.
+     */
     protected volatile FtpAuthenticationHolder ftpAuthenticationHolder;
 
+    /**
+     * The FTP client configuration.
+     */
     protected FTPClientConfig ftpClientConfig;
 
+    /**
+     * The queue of FTPClient instances.
+     */
     protected final Queue<FTPClient> ftpClientQueue = new ConcurrentLinkedQueue<>();
 
+    /**
+     * The active external host.
+     */
     protected String activeExternalHost;
 
+    /**
+     * The active minimum port.
+     */
     protected int activeMinPort;
 
+    /**
+     * The active maximum port.
+     */
     protected int activeMaxPort;
 
+    /**
+     * Whether to autodetect encoding.
+     */
     protected boolean autodetectEncoding;
 
+    /**
+     * The connect timeout.
+     */
     protected int connectTimeout;
 
+    /**
+     * The data timeout.
+     */
     protected int dataTimeout;
 
+    /**
+     * The control encoding.
+     */
     protected String controlEncoding;
 
+    /**
+     * The buffer size.
+     */
     protected int bufferSize;
 
+    /**
+     * The passive local host.
+     */
     protected String passiveLocalHost;
 
+    /**
+     * Whether to use passive NAT workaround.
+     */
     protected boolean passiveNatWorkaround;
 
+    /**
+     * The report active external host.
+     */
     protected String reportActiveExternalHost;
 
+    /**
+     * Whether to use EPSV with IPv4.
+     */
     protected boolean useEPSVwithIPv4;
 
+    /**
+     * Whether to use implicit SSL/TLS encryption.
+     */
     protected Boolean isImplicit;
 
+    /**
+     * The trust manager.
+     */
     protected String trustManager;
 
+    /**
+     * Whether to enter local passive mode.
+     */
     protected boolean enterLocalPassiveMode;
 
     @Override
@@ -249,6 +316,16 @@ public class FtpClient extends AbstractCrawlerClient {
         return processRequest(uri, true);
     }
 
+    /**
+     * Processes an FTP request to retrieve data from the specified URI.
+     * This method handles the complete FTP request lifecycle including timeout management,
+     * connection setup, and data retrieval.
+     *
+     * @param uri The URI to retrieve data from
+     * @param includeContent Whether to include the actual content in the response
+     * @return The response data containing the retrieved information
+     * @throws CrawlingAccessException If the FTP request fails
+     */
     protected ResponseData processRequest(final String uri, final boolean includeContent) {
         if (ftpAuthenticationHolder == null) {
             init();
@@ -274,6 +351,16 @@ public class FtpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Retrieves response data from the FTP server for the specified URI.
+     * This method handles the actual FTP operations including directory listing,
+     * file retrieval, and metadata extraction.
+     *
+     * @param uri The URI to retrieve data from
+     * @param includeContent Whether to include the actual content in the response
+     * @return The response data containing the retrieved information
+     * @throws CrawlingAccessException If the FTP operation fails
+     */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         FTPClient client = null;
@@ -330,6 +417,12 @@ public class FtpClient extends AbstractCrawlerClient {
         return responseData;
     }
 
+    /**
+     * Disconnects the internal FTP client and logs any errors.
+     * This method is used to clean up failed connections.
+     *
+     * @param client The FTP client to disconnect
+     */
     protected void disconnectInternalClient(final FTPClient client) {
         try {
             client.disconnect();
@@ -338,6 +431,18 @@ public class FtpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Updates the response data based on the FTP file information.
+     * This method handles different file types (files, directories, symbolic links)
+     * and populates the response data accordingly.
+     *
+     * @param uri The original URI being accessed
+     * @param includeContent Whether to include the actual content in the response
+     * @param responseData The response data to update
+     * @param client The FTP client used for the operation
+     * @param ftpInfo Information about the FTP connection
+     * @param file The FTP file object, or null if not found
+     */
     protected void updateResponseData(final String uri, final boolean includeContent, final ResponseData responseData,
             final FTPClient client, final FtpInfo ftpInfo, final FTPFile file) {
         if (file == null) {
@@ -480,14 +585,31 @@ public class FtpClient extends AbstractCrawlerClient {
         throw new CrawlingAccessException("Failed FTP request: " + client.getReplyString().trim());
     }
 
+    /**
+     * Determines the character set for the given file.
+     * Currently returns the default charset configured for this client.
+     *
+     * @param file The file to determine the charset for
+     * @return The character set name
+     */
     protected String getCharSet(final File file) {
         return charset;
     }
 
+    /**
+     * Gets the character encoding used for FTP operations.
+     *
+     * @return The character encoding
+     */
     public String getCharset() {
         return charset;
     }
 
+    /**
+     * Sets the character encoding used for FTP operations.
+     *
+     * @param charset The character encoding to set
+     */
     public void setCharset(final String charset) {
         this.charset = charset;
     }
@@ -508,6 +630,15 @@ public class FtpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Gets or creates an FTP client for the specified FTP information.
+     * This method either reuses an existing client from the queue or creates a new one.
+     * It handles SSL/TLS configuration, authentication, and various FTP client settings.
+     *
+     * @param info The FTP information containing host, port, and other connection details
+     * @return A configured FTP client ready for use
+     * @throws IOException If the FTP client cannot be created or connected
+     */
     protected FTPClient getClient(final FtpInfo info) throws IOException {
         FTPClient ftpClient = ftpClientQueue.poll();
         if (ftpClient != null) {
@@ -616,6 +747,15 @@ public class FtpClient extends AbstractCrawlerClient {
 
         private String name;
 
+        /**
+         * Constructs a new FtpInfo from a URL string.
+         * This constructor parses the URL and extracts the host, port, parent directory,
+         * and file name components.
+         *
+         * @param s The URL string to parse
+         * @param c The character encoding (not currently used)
+         * @throws CrawlingAccessException If the URL is invalid or malformed
+         */
         public FtpInfo(final String s, final String c) {
             if (StringUtil.isBlank(s)) {
                 throw new CrawlingAccessException("uri is blank.");
@@ -650,6 +790,13 @@ public class FtpClient extends AbstractCrawlerClient {
             }
         }
 
+        /**
+         * Normalizes the URL string by cleaning up multiple slashes and resolving relative paths.
+         * This method ensures the URL is in a consistent format for FTP operations.
+         *
+         * @param s The URL string to normalize
+         * @return The normalized URL string
+         */
         protected String normalize(final String s) {
             if (s == null) {
                 return null;
@@ -661,14 +808,31 @@ public class FtpClient extends AbstractCrawlerClient {
             return url;
         }
 
+        /**
+         * Gets a cache key for this FTP connection based on host and port.
+         * This key can be used to cache FTP client connections.
+         *
+         * @return The cache key in format "host:port"
+         */
         public String getCacheKey() {
             return getHost() + ":" + getPort();
         }
 
+        /**
+         * Gets the host name from the FTP URL.
+         *
+         * @return The host name
+         */
         public String getHost() {
             return uri.getHost();
         }
 
+        /**
+         * Gets the port number from the FTP URL.
+         * Returns the default FTP port (21) if no port is specified.
+         *
+         * @return The port number
+         */
         public int getPort() {
             int port = uri.getPort();
             if (port == -1) {
@@ -677,6 +841,13 @@ public class FtpClient extends AbstractCrawlerClient {
             return port;
         }
 
+        /**
+         * Constructs a complete FTP URL using the host and port from this FtpInfo
+         * and the specified path.
+         *
+         * @param path The path to append to the URL
+         * @return The complete FTP URL
+         */
         public String toUrl(final String path) {
             final StringBuilder buf = new StringBuilder(100);
             buf.append("ftp://");
@@ -693,10 +864,21 @@ public class FtpClient extends AbstractCrawlerClient {
             return url.replaceAll("/+$", "");
         }
 
+        /**
+         * Constructs a complete FTP URL using the original path from the parsed URI.
+         *
+         * @return The complete FTP URL
+         */
         public String toUrl() {
             return toUrl(uri.getPath());
         }
 
+        /**
+         * Constructs a child URL by appending the specified child path to the current URL.
+         *
+         * @param child The child path to append
+         * @return The complete child URL
+         */
         public String toChildUrl(final String child) {
             final String url = toUrl();
             if (url.endsWith("/")) {
@@ -705,111 +887,245 @@ public class FtpClient extends AbstractCrawlerClient {
             return normalize(toUrl() + "/" + child);
         }
 
+        /**
+         * Gets the parent directory path from the FTP URL.
+         *
+         * @return The parent directory path
+         */
         public String getParent() {
             return parent;
         }
 
+        /**
+         * Gets the file name from the FTP URL.
+         *
+         * @return The file name, or null if this represents a directory
+         */
         public String getName() {
             return name;
         }
     }
 
+    /**
+     * Gets the active external host IP address for active mode FTP.
+     *
+     * @return The active external host IP address
+     */
     public String getActiveExternalHost() {
         return activeExternalHost;
     }
 
+    /**
+     * Sets the active external host IP address for active mode FTP.
+     *
+     * @param activeExternalHost The active external host IP address
+     */
     public void setActiveExternalHost(final String activeExternalHost) {
         this.activeExternalHost = activeExternalHost;
     }
 
+    /**
+     * Gets the minimum port number for active mode FTP.
+     *
+     * @return The minimum port number
+     */
     public int getActiveMinPort() {
         return activeMinPort;
     }
 
+    /**
+     * Sets the minimum port number for active mode FTP.
+     *
+     * @param activeMinPort The minimum port number
+     */
     public void setActiveMinPort(final int activeMinPort) {
         this.activeMinPort = activeMinPort;
     }
 
+    /**
+     * Gets the maximum port number for active mode FTP.
+     *
+     * @return The maximum port number
+     */
     public int getActiveMaxPort() {
         return activeMaxPort;
     }
 
+    /**
+     * Sets the maximum port number for active mode FTP.
+     *
+     * @param activeMaxPort The maximum port number
+     */
     public void setActiveMaxPort(final int activeMaxPort) {
         this.activeMaxPort = activeMaxPort;
     }
 
+    /**
+     * Checks if automatic UTF-8 encoding detection is enabled.
+     *
+     * @return True if auto-detection is enabled, false otherwise
+     */
     public boolean isAutodetectEncoding() {
         return autodetectEncoding;
     }
 
+    /**
+     * Sets whether automatic UTF-8 encoding detection is enabled.
+     *
+     * @param autodetectEncoding True to enable auto-detection, false to disable
+     */
     public void setAutodetectEncoding(final boolean autodetectEncoding) {
         this.autodetectEncoding = autodetectEncoding;
     }
 
+    /**
+     * Gets the connection timeout in milliseconds.
+     *
+     * @return The connection timeout
+     */
     public int getConnectTimeout() {
         return connectTimeout;
     }
 
+    /**
+     * Sets the connection timeout in milliseconds.
+     *
+     * @param connectTimeout The connection timeout
+     */
     public void setConnectTimeout(final int connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
 
+    /**
+     * Gets the data timeout in milliseconds.
+     *
+     * @return The data timeout
+     */
     public int getDataTimeout() {
         return dataTimeout;
     }
 
+    /**
+     * Sets the data timeout in milliseconds.
+     *
+     * @param dataTimeout The data timeout
+     */
     public void setDataTimeout(final int dataTimeout) {
         this.dataTimeout = dataTimeout;
     }
 
+    /**
+     * Gets the control connection encoding.
+     *
+     * @return The control connection encoding
+     */
     public String getControlEncoding() {
         return controlEncoding;
     }
 
+    /**
+     * Sets the control connection encoding.
+     *
+     * @param controlEncoding The control connection encoding
+     */
     public void setControlEncoding(final String controlEncoding) {
         this.controlEncoding = controlEncoding;
     }
 
+    /**
+     * Gets the buffer size for data transfers.
+     *
+     * @return The buffer size
+     */
     public int getBufferSize() {
         return bufferSize;
     }
 
+    /**
+     * Sets the buffer size for data transfers.
+     *
+     * @param bufferSize The buffer size
+     */
     public void setBufferSize(final int bufferSize) {
         this.bufferSize = bufferSize;
     }
 
+    /**
+     * Gets the local IP address for passive mode FTP.
+     *
+     * @return The passive local host IP address
+     */
     public String getPassiveLocalHost() {
         return passiveLocalHost;
     }
 
+    /**
+     * Sets the local IP address for passive mode FTP.
+     *
+     * @param passiveLocalHost The passive local host IP address
+     */
     public void setPassiveLocalHost(final String passiveLocalHost) {
         this.passiveLocalHost = passiveLocalHost;
     }
 
+    /**
+     * Checks if passive NAT workaround is enabled.
+     *
+     * @return True if NAT workaround is enabled, false otherwise
+     */
     public boolean isPassiveNatWorkaround() {
         return passiveNatWorkaround;
     }
 
+    /**
+     * Sets whether passive NAT workaround is enabled.
+     *
+     * @param passiveNatWorkaround True to enable NAT workaround, false to disable
+     */
     public void setPassiveNatWorkaround(final boolean passiveNatWorkaround) {
         this.passiveNatWorkaround = passiveNatWorkaround;
     }
 
+    /**
+     * Gets the external IP address to report in active mode.
+     *
+     * @return The report active external host IP address
+     */
     public String getReportActiveExternalHost() {
         return reportActiveExternalHost;
     }
 
+    /**
+     * Sets the external IP address to report in active mode.
+     *
+     * @param reportActiveExternalHost The report active external host IP address
+     */
     public void setReportActiveExternalHost(final String reportActiveExternalHost) {
         this.reportActiveExternalHost = reportActiveExternalHost;
     }
 
+    /**
+     * Checks if EPSV command should be used with IPv4.
+     *
+     * @return True if EPSV with IPv4 is enabled, false otherwise
+     */
     public boolean isUseEPSVwithIPv4() {
         return useEPSVwithIPv4;
     }
 
+    /**
+     * Sets whether EPSV command should be used with IPv4.
+     *
+     * @param useEPSVwithIPv4 True to enable EPSV with IPv4, false to disable
+     */
     public void setUseEPSVwithIPv4(final boolean useEPSVwithIPv4) {
         this.useEPSVwithIPv4 = useEPSVwithIPv4;
     }
 
+    /**
+     * Sets the FTP authentication holder.
+     * @param ftpAuthenticationHolder The FtpAuthenticationHolder to set.
+     */
     public void setFtpAuthenticationHolder(final FtpAuthenticationHolder ftpAuthenticationHolder) {
         this.ftpAuthenticationHolder = ftpAuthenticationHolder;
     }

@@ -44,10 +44,16 @@ public class AccessTimeoutTarget implements TimeoutTarget {
 
     private static final int MAX_LOOP_COUNT = 10;
 
+    /** The thread being monitored. */
     protected Thread runningThread;
 
+    /** Flag indicating if the thread is still running. */
     protected AtomicBoolean running = new AtomicBoolean();
 
+    /**
+     * Constructs an AccessTimeoutTarget with the specified thread.
+     * @param thread The thread to monitor.
+     */
     public AccessTimeoutTarget(final Thread thread) {
         runningThread = thread;
         running.set(true);
@@ -71,6 +77,9 @@ public class AccessTimeoutTarget implements TimeoutTarget {
         }
     }
 
+    /**
+     * Stops the timeout target by setting the running flag to false.
+     */
     public void stop() {
         if (logger.isDebugEnabled()) {
             logger.debug("Timeout target has been stopped.");

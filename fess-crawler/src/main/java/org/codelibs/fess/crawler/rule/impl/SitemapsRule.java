@@ -38,6 +38,18 @@ public class SitemapsRule extends RegexRule {
 
     private static final Logger logger = LogManager.getLogger(SitemapsRule.class);
 
+    /**
+     * Creates a new SitemapsRule instance.
+     */
+    public SitemapsRule() {
+        super();
+    }
+
+    /**
+     * Matches the given response data against the sitemaps rule.
+     * @param responseData The response data.
+     * @return true if the response data matches the sitemaps rule, false otherwise.
+     */
     @Override
     public boolean match(final ResponseData responseData) {
         if (super.match(responseData)) {

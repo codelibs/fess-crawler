@@ -50,6 +50,9 @@ public class XPathAPI {
 
     private final XPath xPath;
 
+    /**
+     * Creates a new XPathAPI instance.
+     */
     public XPathAPI() {
         xPath = createXPath(f -> {});
     }
@@ -79,7 +82,7 @@ public class XPathAPI {
      *  @param expression A valid XPath string.
      *  @return A XPathNodes, should never be null.
      *
-     * @throws XPathExpressionException
+     * @throws XPathExpressionException if an XPath expression error occurs.
      */
     public XPathNodes selectNodeList(final Node contextNode, final String expression) throws XPathExpressionException {
         return xPath.evaluateExpression(expression, contextNode, XPathNodes.class);
@@ -96,7 +99,7 @@ public class XPathAPI {
      *  @param expression A valid XPath string.
      *  @return An XPathEvaluationResult, which can be used to obtain a string, number, nodelist, etc, should never be null.
      *
-     * @throws XPathExpressionException
+     * @throws XPathExpressionException if an XPath expression error occurs.
      */
     public XPathEvaluationResult<?> eval(final Node contextNode, final String expression) throws XPathExpressionException {
         return xPath.evaluateExpression(expression, contextNode);
@@ -109,7 +112,7 @@ public class XPathAPI {
      * @param expression A valid XPath string.
      * @return The first node found that matches the XPath, or null.
      *
-     * @throws XPathExpressionException
+     * @throws XPathExpressionException if an XPath expression error occurs.
      */
     public Node selectSingleNode(final Node contextNode, final String expression) throws XPathExpressionException {
         return xPath.evaluateExpression(expression, contextNode, Node.class);

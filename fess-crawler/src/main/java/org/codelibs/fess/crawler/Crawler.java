@@ -69,45 +69,92 @@ public class Crawler implements Runnable, AutoCloseable {
 
     private static final Logger logger = LogManager.getLogger(Crawler.class);
 
+    /**
+     * Service for managing URL queues during crawling.
+     */
     @Resource
     protected UrlQueueService<UrlQueue<?>> urlQueueService;
 
+    /**
+     * Service for managing access result data.
+     */
     @Resource
     protected DataService<AccessResult<?>> dataService;
 
+    /**
+     * Filter for URLs to control which URLs are crawled.
+     */
     @Resource
     protected UrlFilter urlFilter;
 
+    /**
+     * Manager for crawling rules and configurations.
+     */
     @Resource
     protected RuleManager ruleManager;
 
+    /**
+     * Container for managing crawler components.
+     */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * Controller for managing crawling intervals and delays.
+     */
     @Resource
     protected IntervalController intervalController;
 
+    /**
+     * Factory for creating crawler clients.
+     */
     @Resource
     protected CrawlerClientFactory clientFactory;
 
+    /**
+     * Context object containing crawler state and configuration.
+     */
     protected CrawlerContext crawlerContext;
 
+    /**
+     * Flag indicating whether the crawler runs in background mode.
+     */
     protected boolean background = false;
 
+    /**
+     * Flag indicating whether crawler threads run as daemon threads.
+     */
     protected boolean daemon = false;
 
+    /**
+     * Priority for crawler threads.
+     */
     protected int threadPriority = Thread.NORM_PRIORITY;
 
+    /**
+     * Reference to the parent thread that started the crawler.
+     */
     protected Thread parentThread;
 
+    /**
+     * The thread group for crawler threads.
+     */
     protected ThreadGroup crawlerThreadGroup;
 
+    /**
+     * Constructs a new Crawler instance.
+     * Initializes the crawler context with a new session ID based on the current timestamp.
+     */
     public Crawler() {
         crawlerContext = new CrawlerContext();
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.ENGLISH);
         crawlerContext.sessionId = sdf.format(new Date());
     }
 
+    /**
+     * Adds a URL to the crawling queue.
+     * @param url The URL to add.
+     */
     public void addUrl(final String url) {
         try {
             urlQueueService.add(crawlerContext.sessionId, url);
@@ -117,10 +164,19 @@ public class Crawler implements Runnable, AutoCloseable {
         urlFilter.processUrl(url);
     }
 
+    /**
+     * Returns the current session ID.
+     * @return The session ID.
+     */
     public String getSessionId() {
         return crawlerContext.sessionId;
     }
 
+    /**
+     * Sets the session ID.
+     * If the new session ID is different from the current one, it updates the session ID in the URL queue service.
+     * @param sessionId The new session ID.
+     */
     public void setSessionId(final String sessionId) {
         if (StringUtil.isNotBlank(sessionId) && !sessionId.equals(crawlerContext.sessionId)) {
             urlQueueService.updateSessionId(crawlerContext.sessionId, sessionId);
@@ -128,6 +184,11 @@ public class Crawler implements Runnable, AutoCloseable {
         }
     }
 
+    /**
+     * Executes the crawling process.
+     * Starts a new thread for the crawler and optionally waits for its termination.
+     * @return The session ID of the crawling process.
+     */
     public String execute() {
         parentThread = new Thread(this, "Crawler-" + crawlerContext.sessionId);
         parentThread.setDaemon(daemon);
@@ -138,10 +199,17 @@ public class Crawler implements Runnable, AutoCloseable {
         return crawlerContext.sessionId;
     }
 
+    /**
+     * Waits for the crawling process to terminate indefinitely.
+     */
     public void awaitTermination() {
         awaitTermination(0);
     }
 
+    /**
+     * Waits for the crawling process to terminate for a specified duration.
+     * @param millis The maximum time to wait in milliseconds. A value of 0 means wait indefinitely.
+     */
     public void awaitTermination(final long millis) {
         if (parentThread != null) {
             try {
@@ -152,6 +220,11 @@ public class Crawler implements Runnable, AutoCloseable {
         }
     }
 
+    /**
+     * Cleans up the crawled data for a given session.
+     * Deletes URL queue data and access result data, and clears the URL filter.
+     * @param sessionId The session ID to clean up.
+     */
     public void cleanup(final String sessionId) {
         // TODO transaction?
         urlQueueService.delete(sessionId);
@@ -159,23 +232,41 @@ public class Crawler implements Runnable, AutoCloseable {
         urlFilter.clear();
     }
 
+    /**
+     * Closes the crawler, releasing resources.
+     * This method is called automatically when the crawler is used in a try-with-resources statement.
+     */
     @Override
     public void close() {
         clientFactory.close();
     }
 
+    /**
+     * Adds an include filter for URLs.
+     * Only URLs matching this regular expression will be crawled.
+     * @param regexp The regular expression for the include filter.
+     */
     public void addIncludeFilter(final String regexp) {
         if (StringUtil.isNotBlank(regexp)) {
             urlFilter.addInclude(regexp);
         }
     }
 
+    /**
+     * Adds an exclude filter for URLs.
+     * URLs matching this regular expression will not be crawled.
+     * @param regexp The regular expression for the exclude filter.
+     */
     public void addExcludeFilter(final String regexp) {
         if (StringUtil.isNotBlank(regexp)) {
             urlFilter.addExclude(regexp);
         }
     }
 
+    /**
+     * Stops the crawling process.
+     * Sets the crawler status to DONE and interrupts all crawler threads.
+     */
     public void stop() {
         crawlerContext.setStatus(CrawlerStatus.DONE);
         try {
@@ -187,54 +278,99 @@ public class Crawler implements Runnable, AutoCloseable {
         }
     }
 
+    /**
+     * Returns the URL filter.
+     * @return The UrlFilter instance.
+     */
     public UrlFilter getUrlFilter() {
         return urlFilter;
     }
 
+    /**
+     * Sets the URL filter.
+     * @param urlFilter The UrlFilter instance to set.
+     */
     public void setUrlFilter(final UrlFilter urlFilter) {
         this.urlFilter = urlFilter;
     }
 
+    /**
+     * Returns the rule manager.
+     * @return The RuleManager instance.
+     */
     public RuleManager getRuleManager() {
         return ruleManager;
     }
 
+    /**
+     * Sets the rule manager.
+     * @param ruleManager The RuleManager instance to set.
+     */
     public void setRuleManager(final RuleManager ruleManager) {
         this.ruleManager = ruleManager;
     }
 
+    /**
+     * Returns the interval controller.
+     * @return The IntervalController instance.
+     */
     public IntervalController getIntervalController() {
         return intervalController;
     }
 
+    /**
+     * Sets the interval controller.
+     * @param intervalController The IntervalController instance to set.
+     */
     public void setIntervalController(final IntervalController intervalController) {
         this.intervalController = intervalController;
     }
 
+    /**
+     * Returns the crawler client factory.
+     * @return The CrawlerClientFactory instance.
+     */
     public CrawlerClientFactory getClientFactory() {
         return clientFactory;
     }
 
+    /**
+     * Checks if the crawler is running in background mode.
+     * @return true if in background mode, false otherwise.
+     */
     public boolean isBackground() {
         return background;
     }
 
+    /**
+     * Sets the background mode for the crawler.
+     * If true, the execute method will not wait for termination.
+     * @param background true to run in background, false otherwise.
+     */
     public void setBackground(final boolean background) {
         this.background = background;
     }
 
+    /**
+     * Checks if the crawler threads are daemon threads.
+     * @return true if daemon threads, false otherwise.
+     */
     public boolean isDaemon() {
         return daemon;
     }
 
+    /**
+     * Sets whether the crawler threads should be daemon threads.
+     * @param daemon true to make threads daemon, false otherwise.
+     */
     public void setDaemon(final boolean daemon) {
         this.daemon = daemon;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Runnable#run()
+    /**
+     * Runs the crawling process in a separate thread.
+     * This method initializes the crawler context, creates and starts crawler threads,
+     * and waits for their completion.
      */
     @Override
     public void run() {
@@ -276,26 +412,50 @@ public class Crawler implements Runnable, AutoCloseable {
         urlQueueService.saveSession(crawlerContext.sessionId);
     }
 
+    /**
+     * Returns the crawler context.
+     * @return The CrawlerContext instance.
+     */
     public CrawlerContext getCrawlerContext() {
         return crawlerContext;
     }
 
+    /**
+     * Sets the number of threads.
+     * @param numOfThread The number of threads.
+     */
     public void setNumOfThread(final int numOfThread) {
         crawlerContext.numOfThread = numOfThread;
     }
 
+    /**
+     * Sets the maximum thread check count.
+     * @param maxThreadCheckCount The maximum thread check count.
+     */
     public void setMaxThreadCheckCount(final int maxThreadCheckCount) {
         crawlerContext.maxThreadCheckCount = maxThreadCheckCount;
     }
 
+    /**
+     * Sets the maximum depth.
+     * @param maxDepth The maximum depth.
+     */
     public void setMaxDepth(final int maxDepth) {
         crawlerContext.maxDepth = maxDepth;
     }
 
+    /**
+     * Sets the maximum access count.
+     * @param maxAccessCount The maximum access count.
+     */
     public void setMaxAccessCount(final long maxAccessCount) {
         crawlerContext.maxAccessCount = maxAccessCount;
     }
 
+    /**
+     * Sets the priority for crawler threads.
+     * @param threadPriority The thread priority.
+     */
     public void setThreadPriority(final int threadPriority) {
         this.threadPriority = threadPriority;
     }

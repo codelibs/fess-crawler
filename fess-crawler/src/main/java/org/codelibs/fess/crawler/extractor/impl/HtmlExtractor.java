@@ -41,26 +41,42 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
- * @author shinsuke
- *
+ * Extracts text content from HTML documents.
  */
 public class HtmlExtractor extends AbstractXmlExtractor {
+    /** Logger for this class. */
     protected static final Logger logger = LogManager.getLogger(HtmlExtractor.class);
 
+    /** Pattern for extracting charset from meta tags. */
     protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Pattern for HTML tags.
+     */
     protected Pattern htmlTagPattern = Pattern.compile("<[^>]+>");
 
+    /** Map of parser features. */
     protected Map<String, String> featureMap = new HashMap<>();
 
+    /** Map of parser properties. */
     protected Map<String, String> propertyMap = new HashMap<>();
 
+    /** XPath expression for extracting content from the document body. */
     protected String contentXpath = "//BODY";
 
+    /** Map of metadata field names to their corresponding XPath expressions. */
     protected Map<String, String> metadataXpathMap = new HashMap<>();
 
+    /** Thread-local instance of XPathAPI for thread-safe XPath evaluation. */
     private final ThreadLocal<XPathAPI> xpathAPI = new ThreadLocal<>();
+
+    /**
+     * Creates a new HtmlExtractor instance.
+     */
+    public HtmlExtractor() {
+        super();
+    }
 
     @Override
     protected ExtractData createExtractData(final String content) {
@@ -85,6 +101,13 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         }
     }
 
+    /**
+     * Extracts strings from a document using the specified XPath expression.
+     *
+     * @param document the DOM document to extract strings from
+     * @param path the XPath expression to evaluate
+     * @return an array of strings extracted from the document
+     */
     protected String[] getStringsByXPath(final Document document, final String path) {
         try {
             final XPathEvaluationResult<?> xObj = getXPathAPI().eval(document, path);
@@ -123,6 +146,12 @@ public class HtmlExtractor extends AbstractXmlExtractor {
 
     }
 
+    /**
+     * Creates and configures a DOM parser for parsing HTML content.
+     *
+     * @return a configured DOMParser instance
+     * @throws CrawlerSystemException if the parser configuration is invalid
+     */
     protected DOMParser getDomParser() {
         final DOMParser parser = new DOMParser();
         try {
@@ -142,6 +171,11 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         return parser;
     }
 
+    /**
+     * Gets a thread-local XPathAPI instance for thread-safe XPath evaluation.
+     *
+     * @return the XPathAPI instance for the current thread
+     */
     protected XPathAPI getXPathAPI() {
         XPathAPI cachedXPathAPI = xpathAPI.get();
         if (cachedXPathAPI == null) {
@@ -151,6 +185,12 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         return cachedXPathAPI;
     }
 
+    /**
+     * Adds a metadata field with its corresponding XPath expression for extraction.
+     *
+     * @param name the name of the metadata field
+     * @param xpath the XPath expression to extract the metadata value
+     */
     public void addMetadata(final String name, final String xpath) {
         metadataXpathMap.put(name, xpath);
     }
@@ -176,34 +216,74 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         return htmlTagPattern;
     }
 
+    /**
+     * Gets the pattern used for extracting charset from meta tags.
+     *
+     * @return the meta charset pattern
+     */
     public Pattern getMetaCharsetPattern() {
         return metaCharsetPattern;
     }
 
+    /**
+     * Sets the pattern used for extracting charset from meta tags.
+     *
+     * @param metaCharsetPattern the meta charset pattern to set
+     */
     public void setMetaCharsetPattern(final Pattern metaCharsetPattern) {
         this.metaCharsetPattern = metaCharsetPattern;
     }
 
+    /**
+     * Gets the pattern used for matching HTML tags.
+     *
+     * @return the HTML tag pattern
+     */
     public Pattern getHtmlTagPattern() {
         return htmlTagPattern;
     }
 
+    /**
+     * Sets the pattern used for matching HTML tags.
+     *
+     * @param htmlTagPattern the HTML tag pattern to set
+     */
     public void setHtmlTagPattern(final Pattern htmlTagPattern) {
         this.htmlTagPattern = htmlTagPattern;
     }
 
+    /**
+     * Gets the map of parser features.
+     *
+     * @return the feature map
+     */
     public Map<String, String> getFeatureMap() {
         return featureMap;
     }
 
+    /**
+     * Sets the map of parser features.
+     *
+     * @param featureMap the feature map to set
+     */
     public void setFeatureMap(final Map<String, String> featureMap) {
         this.featureMap = featureMap;
     }
 
+    /**
+     * Gets the map of parser properties.
+     *
+     * @return the property map
+     */
     public Map<String, String> getPropertyMap() {
         return propertyMap;
     }
 
+    /**
+     * Sets the map of parser properties.
+     *
+     * @param propertyMap the property map to set
+     */
     public void setPropertyMap(final Map<String, String> propertyMap) {
         this.propertyMap = propertyMap;
     }

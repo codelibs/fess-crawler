@@ -24,14 +24,30 @@ public class MimeTypeException extends CrawlerSystemException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a new MimeTypeException with the specified detail message and cause.
+     *
+     * @param message the detail message explaining the reason for the exception
+     * @param cause the underlying cause of the exception
+     */
     public MimeTypeException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Creates a new MimeTypeException with the specified detail message.
+     *
+     * @param message the detail message explaining the reason for the exception
+     */
     public MimeTypeException(final String message) {
         super(message);
     }
 
+    /**
+     * Creates a new MimeTypeException with the specified cause.
+     *
+     * @param cause the underlying cause of the exception
+     */
     public MimeTypeException(final Throwable cause) {
         super(cause);
     }

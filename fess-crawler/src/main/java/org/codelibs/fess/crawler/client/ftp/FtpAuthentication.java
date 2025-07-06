@@ -31,6 +31,13 @@ import org.codelibs.core.lang.StringUtil;
 public class FtpAuthentication {
     private static final Logger logger = LogManager.getLogger(FtpAuthentication.class);
 
+    /**
+     * Constructs a new FtpAuthentication.
+     */
+    public FtpAuthentication() {
+        // Default constructor
+    }
+
     private String server;
 
     private int port;
@@ -39,38 +46,75 @@ public class FtpAuthentication {
 
     private String password;
 
+    /**
+     * Returns the server address.
+     * @return The server address.
+     */
     public String getServer() {
         return server;
     }
 
+    /**
+     * Sets the server address.
+     * @param server The server address.
+     */
     public void setServer(final String server) {
         this.server = server;
     }
 
+    /**
+     * Returns the port number.
+     * @return The port number.
+     */
     public int getPort() {
         return port;
     }
 
+    /**
+     * Sets the port number.
+     * @param port The port number.
+     */
     public void setPort(final int port) {
         this.port = port;
     }
 
+    /**
+     * Returns the username.
+     * @return The username.
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Sets the username.
+     * @param username The username.
+     */
     public void setUsername(final String username) {
         this.username = username;
     }
 
+    /**
+     * Returns the password.
+     * @return The password.
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Sets the password.
+     * @param password The password.
+     */
     public void setPassword(final String password) {
         this.password = password;
     }
 
+    /**
+     * Checks if this authentication matches the given FTP path.
+     * @param path The FTP path to check.
+     * @return true if it matches, false otherwise.
+     */
     boolean matches(final String path) {
         if (StringUtil.isBlank(path)) {
             return false;

@@ -31,12 +31,16 @@ package org.codelibs.fess.crawler.interval;
  * </ul>
  */
 public interface IntervalController {
+    /** Constant representing the pre-processing state. */
     int PRE_PROCESSING = 1;
 
+    /** Constant representing the post-processing state. */
     int POST_PROCESSING = 2;
 
+    /** Constant indicating that there are no URLs in the queue. */
     int NO_URL_IN_QUEUE = 4;
 
+    /** Constant indicating that the crawler is waiting for new URLs. */
     int WAIT_NEW_URL = 8;
 
     /**

@@ -133,40 +133,92 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     private static final Logger logger = LogManager.getLogger(TikaExtractor.class);
 
+    /**
+     * Tesseract config file path.
+     */
     public static final String TIKA_TESSERACT_CONFIG = "tika.tesseract.config";
 
+    /**
+     * PDF config file path.
+     */
     public static final String TIKA_PDF_CONFIG = "tika.pdf.config";
 
+    /**
+     * A parameter key to normalize a text.
+     */
     public static final String NORMALIZE_TEXT = "normalize_text";
 
     private static final String FILE_PASSWORD = "fess.file.password";
 
+    /**
+     * Output encoding.
+     */
     protected String outputEncoding = Constants.UTF_8;
 
+    /**
+     * If true, read a content as a text when an extraction fails.
+     */
     protected boolean readAsTextIfFailed = false;
 
+    /**
+     * Max compression ratio.
+     */
     protected long maxCompressionRatio = 100;
 
+    /**
+     * Max uncompression size.
+     */
     protected long maxUncompressionSize = 1000000;
 
+    /**
+     * Initial buffer size.
+     */
     protected int initialBufferSize = 10000;
 
+    /**
+     * If true, duplicated terms are replaced.
+     */
     protected boolean replaceDuplication = false;
 
+    /**
+     * Space characters. Default includes common space characters.
+     */
     protected int[] spaceChars = { '\u0020', '\u00a0', '\u3000', '\ufffd' };
 
+    /**
+     * Memory size.
+     */
     protected int memorySize = 1024 * 1024; //1mb
 
+    /**
+     * Max size of an alpha-numeric term.
+     */
     protected int maxAlphanumTermSize = -1;
 
+    /**
+     * Max size of a symbol term.
+     */
     protected int maxSymbolTermSize = -1;
 
+    /**
+     * Tika config.
+     */
     protected TikaConfig tikaConfig;
 
     private final Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
 
     private final Map<String, PDFParserConfig> pdfParserConfigMap = new ConcurrentHashMap<>();
 
+    /**
+     * Creates a new TikaExtractor instance.
+     */
+    public TikaExtractor() {
+        super();
+    }
+
+    /**
+     * Initializes this component.
+     */
     @PostConstruct
     public void init() {
         if (tikaConfig == null && crawlerContainer != null) {
@@ -192,6 +244,14 @@ public class TikaExtractor extends PasswordBasedExtractor {
         return getText(inputStream, params, null);
     }
 
+    /**
+     * Returns an extracted text.
+     *
+     * @param inputStream An input stream.
+     * @param params A map of parameters.
+     * @param postFilter A post filter.
+     * @return An extracted data.
+     */
     protected ExtractData getText(final InputStream inputStream, final Map<String, String> params,
             final BiConsumer<ExtractData, InputStream> postFilter) {
         if (inputStream == null) {
@@ -426,6 +486,13 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Creates a parse context.
+     *
+     * @param parser A parser.
+     * @param params A map of parameters.
+     * @return a parse context.
+     */
     protected ParseContext createParseContext(final Parser parser, final Map<String, String> params) {
         final ParseContext parseContext = new ParseContext();
         parseContext.set(Parser.class, parser);
@@ -465,6 +532,13 @@ public class TikaExtractor extends PasswordBasedExtractor {
         return parseContext;
     }
 
+    /**
+     * Returns an input stream from a deferred file output stream.
+     *
+     * @param dfos A deferred file output stream.
+     * @return An input stream.
+     * @throws IOException if an I/O error occurs.
+     */
     protected InputStream getContentStream(final DeferredFileOutputStream dfos) throws IOException {
         if (dfos.isInMemory()) {
             return new ByteArrayInputStream(dfos.getData());
@@ -472,6 +546,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
         return new BufferedInputStream(new FileInputStream(dfos.getFile()));
     }
 
+    /**
+     * Returns a content from a writer.
+     *
+     * @param out A content writer.
+     * @param encoding An encoding.
+     * @param normalizeText If true, normalize a text.
+     * @return a content.
+     * @throws TikaException if a Tika exception occurs.
+     */
     protected String getContent(final ContentWriter out, final String encoding, final boolean normalizeText) throws TikaException {
         File tempFile = null;
         final String enc = encoding == null ? Constants.UTF_8 : encoding;
@@ -500,6 +583,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * Creates a metadata.
+     *
+     * @param resourceName A resource name.
+     * @param contentType A content type.
+     * @param contentEncoding A content encoding.
+     * @param pdfPassword A password for a PDF.
+     * @return a metadata.
+     */
     protected Metadata createMetadata(final String resourceName, final String contentType, final String contentEncoding,
             final String pdfPassword) {
         final Metadata metadata = new Metadata();
@@ -524,6 +616,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
     }
 
     // workaround: Tika does not have extention points.
+    /**
+     * This class is a parser that detects the document type.
+     */
     protected class TikaDetectParser extends CompositeParser {
         private static final long serialVersionUID = 1L;
 
@@ -541,6 +636,10 @@ public class TikaExtractor extends PasswordBasedExtractor {
             this(tikaConfig);
         }
 
+        /**
+         * Constructor.
+         * @param config Tika config.
+         */
         public TikaDetectParser(final TikaConfig config) {
             super(config.getMediaTypeRegistry(), config.getParser());
             detector = config.getDetector();
@@ -592,51 +691,105 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /**
+     * This interface is for writing a content.
+     */
     @FunctionalInterface
     protected interface ContentWriter {
+        /**
+         * Accepts a writer.
+         * @param writer A writer.
+         * @throws IOException if an I/O error occurs.
+         * @throws TikaException if a Tika exception occurs.
+         * @throws SAXException if a SAX exception occurs.
+         */
         void accept(Writer writer) throws IOException, TikaException, SAXException;
     }
 
+    /**
+     * Sets the output encoding.
+     * @param outputEncoding The output encoding.
+     */
     public void setOutputEncoding(final String outputEncoding) {
         this.outputEncoding = outputEncoding;
     }
 
+    /**
+     * Sets whether to read content as text if extraction fails.
+     * @param readAsTextIfFailed If true, read a content as a text when an extraction fails.
+     */
     public void setReadAsTextIfFailed(final boolean readAsTextIfFailed) {
         this.readAsTextIfFailed = readAsTextIfFailed;
     }
 
+    /**
+     * Sets the maximum compression ratio.
+     * @param maxCompressionRatio The max compression ratio.
+     */
     public void setMaxCompressionRatio(final long maxCompressionRatio) {
         this.maxCompressionRatio = maxCompressionRatio;
     }
 
+    /**
+     * Sets the maximum uncompression size.
+     * @param maxUncompressionSize The max uncompression size.
+     */
     public void setMaxUncompressionSize(final long maxUncompressionSize) {
         this.maxUncompressionSize = maxUncompressionSize;
     }
 
+    /**
+     * Sets the initial buffer size.
+     * @param initialBufferSize The initial buffer size.
+     */
     public void setInitialBufferSize(final int initialBufferSize) {
         this.initialBufferSize = initialBufferSize;
     }
 
+    /**
+     * Sets whether duplicated terms are replaced.
+     * @param replaceDuplication If true, duplicated terms are replaced.
+     */
     public void setReplaceDuplication(final boolean replaceDuplication) {
         this.replaceDuplication = replaceDuplication;
     }
 
+    /**
+     * Sets the memory size.
+     * @param memorySize The memory size.
+     */
     public void setMemorySize(final int memorySize) {
         this.memorySize = memorySize;
     }
 
+    /**
+     * Sets the maximum size of an alpha-numeric term.
+     * @param maxAlphanumTermSize The max size of an alpha-numeric term.
+     */
     public void setMaxAlphanumTermSize(final int maxAlphanumTermSize) {
         this.maxAlphanumTermSize = maxAlphanumTermSize;
     }
 
+    /**
+     * Sets the maximum size of a symbol term.
+     * @param maxSymbolTermSize The max size of a symbol term.
+     */
     public void setMaxSymbolTermSize(final int maxSymbolTermSize) {
         this.maxSymbolTermSize = maxSymbolTermSize;
     }
 
+    /**
+     * Sets the space characters.
+     * @param spaceChars The space characters.
+     */
     public void setSpaceChars(final int[] spaceChars) {
         this.spaceChars = spaceChars;
     }
 
+    /**
+     * Sets the Tika configuration.
+     * @param tikaConfig The Tika config.
+     */
     public void setTikaConfig(final TikaConfig tikaConfig) {
         this.tikaConfig = tikaConfig;
     }

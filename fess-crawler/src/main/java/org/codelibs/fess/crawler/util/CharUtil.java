@@ -19,6 +19,9 @@ package org.codelibs.fess.crawler.util;
  * Utility class for character-related operations.
  */
 public final class CharUtil {
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private CharUtil() {
     }
 

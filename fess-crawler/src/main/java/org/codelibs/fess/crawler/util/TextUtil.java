@@ -68,6 +68,9 @@ public final class TextUtil {
     private TextUtil() {
     }
 
+    /**
+     * This class provides a context for normalizing text.
+     */
     public static class TextNormalizeContext {
 
         private final Reader reader;
@@ -80,8 +83,15 @@ public final class TextUtil {
 
         private boolean duplicateTermRemoved = false;
 
+        /**
+         * Array of space characters. Default includes common space characters.
+         */
         private int[] spaceChars = { '\u0020', '\u00a0', '\u3000', '\ufffd' };
 
+        /**
+         * Constructor.
+         * @param reader The reader.
+         */
         public TextNormalizeContext(final Reader reader) {
             this.reader = reader;
         }

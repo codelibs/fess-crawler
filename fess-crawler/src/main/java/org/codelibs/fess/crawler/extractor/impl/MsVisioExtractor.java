@@ -32,11 +32,18 @@ import org.codelibs.fess.crawler.exception.ExtractException;
  */
 public class MsVisioExtractor extends AbstractExtractor {
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.extractor.Extractor#getText(java.io.InputStream,
-     * java.util.Map)
+    /**
+     * Creates a new MsVisioExtractor instance.
+     */
+    public MsVisioExtractor() {
+        super();
+    }
+
+    /**
+     * Extracts text from the Visio input stream.
+     * @param in The input stream.
+     * @param params The parameters.
+     * @return The extracted data.
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {

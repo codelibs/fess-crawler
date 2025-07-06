@@ -29,17 +29,29 @@ import org.codelibs.core.lang.ThreadUtil;
  */
 public class DefaultIntervalController extends AbstractIntervalController {
 
+    /** Delay in milliseconds after processing a URL */
     protected long delayMillisAfterProcessing = 0L;
 
+    /** Delay in milliseconds when no URL is in the queue */
     protected long delayMillisAtNoUrlInQueue = 500L;
 
+    /** Delay in milliseconds before processing a URL */
     protected long delayMillisBeforeProcessing = 0L;
 
+    /** Delay in milliseconds for waiting for new URLs */
     protected long delayMillisForWaitingNewUrl = 1000L;
 
+    /**
+     * Default constructor with default delay values.
+     */
     public DefaultIntervalController() {
     }
 
+    /**
+     * Constructor with configurable delay parameters.
+     *
+     * @param params map containing delay parameters
+     */
     public DefaultIntervalController(final Map<String, Long> params) {
         Long millis = params.get("delayMillisAfterProcessing");
         if (millis != null) {
@@ -63,11 +75,8 @@ public class DefaultIntervalController extends AbstractIntervalController {
 
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.interval.impl.AbstractIntervalController#
-     * delayAfterProcessing()
+    /**
+     * Delays after processing a URL.
      */
     @Override
     protected void delayAfterProcessing() {
@@ -76,12 +85,8 @@ public class DefaultIntervalController extends AbstractIntervalController {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.codelibs.fess.crawler.interval.impl.AbstractIntervalController#delayAtNoUrlInQueue
-     * ()
+    /**
+     * Delays when no URL is in the queue.
      */
     @Override
     protected void delayAtNoUrlInQueue() {
@@ -90,11 +95,8 @@ public class DefaultIntervalController extends AbstractIntervalController {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.interval.impl.AbstractIntervalController#
-     * delayBeforeProcessing()
+    /**
+     * Delays before processing a URL.
      */
     @Override
     protected void delayBeforeProcessing() {
@@ -103,11 +105,8 @@ public class DefaultIntervalController extends AbstractIntervalController {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.interval.impl.AbstractIntervalController#
-     * delayForWaitingNewUrl()
+    /**
+     * Delays for waiting for new URLs.
      */
     @Override
     protected void delayForWaitingNewUrl() {

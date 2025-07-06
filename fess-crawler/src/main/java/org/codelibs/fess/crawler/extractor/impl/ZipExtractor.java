@@ -37,16 +37,28 @@ import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
- *
+ * Extracts text content from ZIP archives.
  */
 public class ZipExtractor extends AbstractExtractor {
     private static final Logger logger = LogManager.getLogger(ZipExtractor.class);
 
+    /**
+     * The archive stream factory.
+     */
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;
 
+    /**
+     * The maximum content size.
+     */
     protected long maxContentSize = -1;
+
+    /**
+     * Creates a new ZipExtractor instance.
+     */
+    public ZipExtractor() {
+        super();
+    }
 
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
@@ -96,6 +108,10 @@ public class ZipExtractor extends AbstractExtractor {
         return new ExtractData(buf.toString().trim());
     }
 
+    /**
+     * Sets the maximum content size.
+     * @param maxContentSize The maximum content size to set.
+     */
     public void setMaxContentSize(final long maxContentSize) {
         this.maxContentSize = maxContentSize;
     }

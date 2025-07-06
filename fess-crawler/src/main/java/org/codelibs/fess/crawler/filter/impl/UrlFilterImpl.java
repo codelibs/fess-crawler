@@ -40,25 +40,59 @@ import jakarta.annotation.Resource;
  * match a URL against the defined patterns, and process a URL to add include or exclude patterns based on predefined filtering patterns.
  *
  */
+/**
+ * This class is an implementation of a URL filter.
+ */
 public class UrlFilterImpl implements UrlFilter {
+
+    /**
+     * Creates a new UrlFilterImpl instance.
+     */
+    public UrlFilterImpl() {
+        // NOP
+    }
 
     private static final Logger logger = LogManager.getLogger(UrlFilterImpl.class);
 
+    /**
+     * The crawler container.
+     */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * The URL pattern.
+     */
     protected String urlPattern = "^(.*:/+)([^/]*)(.*)$";
 
+    /**
+     * The include filtering pattern.
+     */
     protected String includeFilteringPattern;
 
+    /**
+     * The exclude filtering pattern.
+     */
     protected String excludeFilteringPattern;
 
+    /**
+     * The cached include set.
+     */
     protected Set<String> cachedIncludeSet = new LinkedHashSet<>();
 
+    /**
+     * The cached exclude set.
+     */
     protected Set<String> cachedExcludeSet = new LinkedHashSet<>();
 
+    /**
+     * The session ID.
+     */
     protected String sessionId;
 
+    /**
+     * The URL filter service.
+     */
     protected UrlFilterService urlFilterService;
 
     /*
@@ -199,30 +233,58 @@ public class UrlFilterImpl implements UrlFilter {
         }
     }
 
+    /**
+     * Returns the URL pattern.
+     * @return The URL pattern.
+     */
     public String getUrlPattern() {
         return urlPattern;
     }
 
+    /**
+     * Sets the URL pattern.
+     * @param urlPattern The URL pattern.
+     */
     public void setUrlPattern(final String urlPattern) {
         this.urlPattern = urlPattern;
     }
 
+    /**
+     * Returns the include filtering pattern.
+     * @return The include filtering pattern.
+     */
     public String getIncludeFilteringPattern() {
         return includeFilteringPattern;
     }
 
+    /**
+     * Sets the include filtering pattern.
+     * @param includeFilteringPattern The include filtering pattern.
+     */
     public void setIncludeFilteringPattern(final String includeFilteringPattern) {
         this.includeFilteringPattern = includeFilteringPattern;
     }
 
+    /**
+     * Returns the exclude filtering pattern.
+     * @return The exclude filtering pattern.
+     */
     public String getExcludeFilteringPattern() {
         return excludeFilteringPattern;
     }
 
+    /**
+     * Sets the exclude filtering pattern.
+     * @param excludeFilteringPattern The exclude filtering pattern.
+     */
     public void setExcludeFilteringPattern(final String excludeFilteringPattern) {
         this.excludeFilteringPattern = excludeFilteringPattern;
     }
 
+    /**
+     * Returns the URL filter service.
+     * @return The URL filter service.
+     */
     public UrlFilterService getUrlFilterService() {
         if (urlFilterService == null) {
             urlFilterService = crawlerContainer.getComponent("urlFilterService");
@@ -233,6 +295,10 @@ public class UrlFilterImpl implements UrlFilter {
         return urlFilterService;
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "UrlFilterImpl [urlPattern=" + urlPattern + ", includeFilteringPattern=" + includeFilteringPattern

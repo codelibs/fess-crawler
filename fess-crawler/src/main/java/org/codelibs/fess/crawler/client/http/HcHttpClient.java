@@ -152,113 +152,173 @@ import jakarta.annotation.Resource;
  */
 public class HcHttpClient extends AbstractCrawlerClient {
 
+    /**
+     * Constructs a new HcHttpClient.
+     */
+    public HcHttpClient() {
+        // Default constructor
+    }
+
+    /** Property name for connection timeout setting */
     public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
+    /** Property name for socket timeout setting */
     public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
 
+    /** Property name for proxy host setting */
     public static final String PROXY_HOST_PROPERTY = "proxyHost";
 
+    /** Property name for proxy port setting */
     public static final String PROXY_PORT_PROPERTY = "proxyPort";
 
+    /** Property name for proxy authentication scheme setting */
     public static final String PROXY_AUTH_SCHEME_PROPERTY = "proxyAuthScheme";
 
+    /** Property name for proxy credentials setting */
     public static final String PROXY_CREDENTIALS_PROPERTY = "proxyCredentials";
 
+    /** Property name for user agent setting */
     public static final String USER_AGENT_PROPERTY = "userAgent";
 
+    /** Property name for robots.txt enabled setting */
     public static final String ROBOTS_TXT_ENABLED_PROPERTY = "robotsTxtEnabled";
 
+    /** Property name for web authentications setting */
     public static final String AUTHENTICATIONS_PROPERTY = "webAuthentications";
 
+    /** Property name for request headers setting */
     public static final String REQUEST_HEADERS_PROPERTY = "requestHeaders";
 
+    /** Property name for redirects enabled setting */
     public static final String REDIRECTS_ENABLED = "redirectsEnabled";
 
+    /** Property name for cookies setting */
     public static final String COOKIES_PROPERTY = "cookies";
 
+    /** Property name for authentication scheme providers setting */
     public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
 
+    /** Property name for ignore SSL certificate setting */
     public static final String IGNORE_SSL_CERTIFICATE_PROPERTY = "ignoreSslCertificate";
 
+    /** Property name for default maximum connections per route setting */
     public static final String DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY = "defaultMaxConnectionPerRoute";
 
+    /** Property name for maximum total connections setting */
     public static final String MAX_TOTAL_CONNECTION_PROPERTY = "maxTotalConnection";
 
+    /** Property name for time to live time unit setting */
     public static final String TIME_TO_LIVE_TIME_UNIT_PROPERTY = "timeToLiveTimeUnit";
 
+    /** Property name for time to live setting */
     public static final String TIME_TO_LIVE_PROPERTY = "timeToLive";
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(HcHttpClient.class);
 
+    /** Helper for processing robots.txt files */
     @Resource
     protected RobotsTxtHelper robotsTxtHelper;
 
+    /** Helper for managing content length limits */
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
+    /** Helper for determining MIME types */
     @Resource
     protected MimeTypeHelper mimeTypeHelper;
 
+    /** The HTTP client instance */
     protected volatile CloseableHttpClient httpClient;
 
+    /** List of request headers to be sent with each request */
     private final List<Header> requestHeaderList = new ArrayList<>();
 
+    /** Map of HTTP client properties */
     private final Map<String, Object> httpClientPropertyMap = new HashMap<>();
 
+    /** Task for monitoring idle connections */
     private TimeoutTask connectionMonitorTask;
 
+    /** Connection timeout in milliseconds */
     protected Integer connectionTimeout;
 
+    /** Maximum total number of connections */
     protected Integer maxTotalConnections;
 
+    /** Maximum connections per route */
     protected Integer maxConnectionsPerRoute;
 
+    /** Socket timeout in milliseconds */
     protected Integer soTimeout;
 
+    /** Cookie specification to use */
     protected String cookieSpec;
 
+    /** User agent string */
     protected String userAgent = "Crawler";
 
+    /** HTTP client context for requests */
     protected HttpClientContext httpClientContext = HttpClientContext.create();
 
+    /** Proxy host name */
     protected String proxyHost;
 
+    /** Proxy port number */
     protected Integer proxyPort;
 
+    /** Proxy authentication scheme */
     protected AuthScheme proxyAuthScheme = new BasicScheme();
 
+    /** Proxy credentials */
     protected Credentials proxyCredentials;
 
+    /** Default MIME type for unknown content */
     protected String defaultMimeType = APPLICATION_OCTET_STREAM;
 
+    /** Cookie store for managing cookies */
     protected CookieStore cookieStore = new BasicCookieStore();
 
+    /** HTTP client connection manager */
     protected HttpClientConnectionManager clientConnectionManager;
 
+    /** DNS resolver for hostname resolution */
     protected DnsResolver dnsResolver = new IdnDnsResolver();
 
+    /** Map of authentication scheme providers */
     protected Map<String, AuthSchemeProvider> authSchemeProviderMap;
 
+    /** Connection check interval in seconds */
     protected int connectionCheckInterval = 5; // sec
 
+    /** Idle connection timeout in milliseconds */
     protected long idleConnectionTimeout = 60 * 1000L; // 1min
 
+    /** Pattern for matching HTTP redirect status codes */
     protected Pattern redirectHttpStatusPattern = Pattern.compile("[3][0-9][0-9]");
 
+    /** Whether to use robots.txt disallow rules */
     protected boolean useRobotsTxtDisallows = true;
 
+    /** Whether to use robots.txt allow rules */
     protected boolean useRobotsTxtAllows = true;
 
+    /** Credentials provider for authentication */
     protected CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
+    /** Authentication cache */
     protected AuthCache authCache = new BasicAuthCache();
 
+    /** HTTP route planner */
     protected HttpRoutePlanner routePlanner;
 
+    /** Whether HTTP redirects are enabled */
     protected boolean redirectsEnabled = false;
 
+    /** Cookie specification registry */
     protected Lookup<CookieSpecProvider> cookieSpecRegistry;
 
+    /** Cookie date patterns for parsing */
     protected String[] cookieDatePatterns = { //
             DateUtils.PATTERN_RFC1123, //
             DateUtils.PATTERN_RFC1036, //
@@ -266,6 +326,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
             StringUtil.EMPTY//
     };
 
+    /** SSL socket factory for HTTPS connections */
     protected LayeredConnectionSocketFactory sslSocketFactory;
 
     /**
@@ -427,6 +488,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
         httpClient = closeableHttpClient;
     }
 
+    /**
+     * Builds the HTTP client connection manager with SSL and connection pool settings.
+     *
+     * @param httpClientBuilder The HTTP client builder
+     * @return The configured connection manager
+     */
     protected HttpClientConnectionManager buildConnectionManager(final HttpClientBuilder httpClientBuilder) {
         // SSL
         final LayeredConnectionSocketFactory sslSocketFactory = buildSSLSocketFactory(httpClientBuilder);
@@ -446,6 +513,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return connectionManager;
     }
 
+    /**
+     * Builds the SSL socket factory for HTTPS connections.
+     *
+     * @param httpClientBuilder The HTTP client builder
+     * @return The configured SSL socket factory
+     */
     protected LayeredConnectionSocketFactory buildSSLSocketFactory(final HttpClientBuilder httpClientBuilder) {
         if (sslSocketFactory != null) {
             return sslSocketFactory;
@@ -462,6 +535,11 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return SSLConnectionSocketFactory.getSocketFactory();
     }
 
+    /**
+     * Builds the cookie specification registry.
+     *
+     * @return The configured cookie specification registry
+     */
     protected Lookup<CookieSpecProvider> buildCookieSpecRegistry() {
         if (cookieSpecRegistry != null) {
             return cookieSpecRegistry;
@@ -509,12 +587,25 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Adds a property to the HTTP client configuration.
+     *
+     * @param name The property name
+     * @param value The property value
+     */
     public void addHttpClientProperty(final String name, final Object value) {
         if (StringUtil.isNotBlank(name) && value != null) {
             httpClientPropertyMap.put(name, value);
         }
     }
 
+    /**
+     * Processes robots.txt for the given URL.
+     * This method fetches and parses the robots.txt file to extract disallow/allow rules
+     * and sitemap information.
+     *
+     * @param url The URL to process robots.txt for
+     */
     protected void processRobotsTxt(final String url) {
         if (StringUtil.isBlank(url)) {
             throw new CrawlerSystemException("url is null or empty.");
@@ -634,6 +725,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Converts a robots.txt pattern to a regular expression.
+     *
+     * @param path The robots.txt pattern to convert
+     * @return The equivalent regular expression
+     */
     protected String convertRobotsTxtPatternToRegex(final String path) {
         String newPath = path.replace(".", "\\.").replace("?", "\\?").replace("*", ".*");
         if (newPath.charAt(0) != '/') {
@@ -677,6 +774,13 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return doHttpMethod(url, httpHead);
     }
 
+    /**
+     * Executes an HTTP method for the given URL and request.
+     *
+     * @param url The URL to access
+     * @param httpRequest The HTTP request to execute
+     * @return The response data
+     */
     public ResponseData doHttpMethod(final String url, final HttpUriRequest httpRequest) {
         if (httpClient == null) {
             init();
@@ -706,6 +810,15 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Processes an HTTP method request and returns the response data.
+     * This method handles the complete HTTP request lifecycle including content processing,
+     * redirect handling, and error management.
+     *
+     * @param url The URL being accessed
+     * @param httpRequest The HTTP request to process
+     * @return The response data containing the retrieved information
+     */
     protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
         try {
             processRobotsTxt(url);
@@ -881,19 +994,44 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Closes resources associated with the HTTP request.
+     *
+     * @param httpRequest The HTTP request to abort
+     * @param responseData The response data to close
+     */
     protected void closeResources(final HttpUriRequest httpRequest, final ResponseData responseData) {
         CloseableUtil.closeQuietly(responseData);
         httpRequest.abort();
     }
 
+    /**
+     * Checks if the HTTP status code indicates a redirect.
+     *
+     * @param httpStatusCode The HTTP status code to check
+     * @return True if the status code indicates a redirect, false otherwise
+     */
     protected boolean isRedirectHttpStatus(final int httpStatusCode) {
         return redirectHttpStatusPattern.matcher(Integer.toString(httpStatusCode)).matches();
     }
 
+    /**
+     * Executes the HTTP client request.
+     *
+     * @param httpRequest The HTTP request to execute
+     * @return The HTTP response
+     * @throws IOException If an I/O error occurs
+     */
     protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest) throws IOException {
         return httpClient.execute(httpRequest, new BasicHttpContext(httpClientContext));
     }
 
+    /**
+     * Parses the last modified date from a string value.
+     *
+     * @param value The date string to parse
+     * @return The parsed date, or null if parsing fails
+     */
     protected Date parseLastModifiedDate(final String value) {
         final SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
         try {
@@ -903,6 +1041,11 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Builds the HTTP route planner with proxy configuration.
+     *
+     * @return The configured route planner, or null if no proxy is configured
+     */
     protected HttpRoutePlanner buildRoutePlanner() {
         if (routePlanner != null) {
             return routePlanner;
@@ -928,6 +1071,13 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return null;
     }
 
+    /**
+     * Constructs the redirect location from a base URL and location header.
+     *
+     * @param url The base URL
+     * @param location The location header value
+     * @return The constructed redirect location
+     */
     protected static String constructRedirectLocation(final String url, final String location) {
         try {
             URI uri = new URI(url);
@@ -940,110 +1090,244 @@ public class HcHttpClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Sets the connection timeout in milliseconds.
+     *
+     * @param connectionTimeout The connection timeout
+     */
     public void setConnectionTimeout(final Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
     }
 
+    /**
+     * Sets the maximum total number of connections.
+     *
+     * @param maxTotalConnections The maximum total connections
+     */
     public void setMaxTotalConnections(final Integer maxTotalConnections) {
         this.maxTotalConnections = maxTotalConnections;
     }
 
+    /**
+     * Sets the maximum connections per route.
+     *
+     * @param maxConnectionsPerRoute The maximum connections per route
+     */
     public void setMaxConnectionsPerRoute(final Integer maxConnectionsPerRoute) {
         this.maxConnectionsPerRoute = maxConnectionsPerRoute;
     }
 
+    /**
+     * Sets the socket timeout in milliseconds.
+     *
+     * @param soTimeout The socket timeout
+     */
     public void setSoTimeout(final Integer soTimeout) {
         this.soTimeout = soTimeout;
     }
 
+    /**
+     * Sets the cookie specification to use.
+     *
+     * @param cookieSpec The cookie specification
+     */
     public void setCookieSpec(final String cookieSpec) {
         this.cookieSpec = cookieSpec;
     }
 
+    /**
+     * Sets the user agent string.
+     *
+     * @param userAgent The user agent string
+     */
     public void setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
     }
 
+    /**
+     * Sets the proxy host name.
+     *
+     * @param proxyHost The proxy host name
+     */
     public void setProxyHost(final String proxyHost) {
         this.proxyHost = proxyHost;
     }
 
+    /**
+     * Sets the proxy port number.
+     *
+     * @param proxyPort The proxy port number
+     */
     public void setProxyPort(final Integer proxyPort) {
         this.proxyPort = proxyPort;
     }
 
+    /**
+     * Sets the proxy authentication scheme.
+     *
+     * @param proxyAuthScheme The proxy authentication scheme
+     */
     public void setProxyAuthScheme(final AuthScheme proxyAuthScheme) {
         this.proxyAuthScheme = proxyAuthScheme;
     }
 
+    /**
+     * Sets the proxy credentials.
+     *
+     * @param proxyCredentials The proxy credentials
+     */
     public void setProxyCredentials(final Credentials proxyCredentials) {
         this.proxyCredentials = proxyCredentials;
     }
 
+    /**
+     * Sets the default MIME type for unknown content.
+     *
+     * @param defaultMimeType The default MIME type
+     */
     public void setDefaultMimeType(final String defaultMimeType) {
         this.defaultMimeType = defaultMimeType;
     }
 
+    /**
+     * Sets the cookie store for managing cookies.
+     *
+     * @param cookieStore The cookie store
+     */
     public void setCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
     }
 
+    /**
+     * Sets the HTTP client context for requests.
+     *
+     * @param httpClientContext The HTTP client context
+     */
     public void setHttpClientContext(final HttpClientContext httpClientContext) {
         this.httpClientContext = httpClientContext;
     }
 
+    /**
+     * Sets the authentication scheme provider map.
+     *
+     * @param authSchemeProviderMap The authentication scheme provider map
+     */
     public void setAuthSchemeProviderMap(final Map<String, AuthSchemeProvider> authSchemeProviderMap) {
         this.authSchemeProviderMap = authSchemeProviderMap;
     }
 
+    /**
+     * Sets the connection check interval in seconds.
+     *
+     * @param connectionCheckInterval The connection check interval
+     */
     public void setConnectionCheckInterval(final int connectionCheckInterval) {
         this.connectionCheckInterval = connectionCheckInterval;
     }
 
+    /**
+     * Sets the idle connection timeout in milliseconds.
+     *
+     * @param idleConnectionTimeout The idle connection timeout
+     */
     public void setIdleConnectionTimeout(final long idleConnectionTimeout) {
         this.idleConnectionTimeout = idleConnectionTimeout;
     }
 
+    /**
+     * Sets the pattern for matching HTTP redirect status codes.
+     *
+     * @param redirectHttpStatusPattern The redirect HTTP status pattern
+     */
     public void setRedirectHttpStatusPattern(final Pattern redirectHttpStatusPattern) {
         this.redirectHttpStatusPattern = redirectHttpStatusPattern;
     }
 
+    /**
+     * Sets whether to use robots.txt disallow rules.
+     *
+     * @param useRobotsTxtDisallows True to use disallow rules, false otherwise
+     */
     public void setUseRobotsTxtDisallows(final boolean useRobotsTxtDisallows) {
         this.useRobotsTxtDisallows = useRobotsTxtDisallows;
     }
 
+    /**
+     * Sets whether to use robots.txt allow rules.
+     *
+     * @param useRobotsTxtAllows True to use allow rules, false otherwise
+     */
     public void setUseRobotsTxtAllows(final boolean useRobotsTxtAllows) {
         this.useRobotsTxtAllows = useRobotsTxtAllows;
     }
 
+    /**
+     * Sets the credentials provider for authentication.
+     *
+     * @param credentialsProvider The credentials provider
+     */
     public void setCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
     }
 
+    /**
+     * Sets the authentication cache.
+     *
+     * @param authCache The authentication cache
+     */
     public void setAuthCache(final AuthCache authCache) {
         this.authCache = authCache;
     }
 
+    /**
+     * Sets the HTTP route planner.
+     *
+     * @param routePlanner The HTTP route planner
+     */
     public void setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
     }
 
+    /**
+     * Sets whether HTTP redirects are enabled.
+     *
+     * @param redirectsEnabled True to enable redirects, false otherwise
+     */
     public void setRedirectsEnabled(final boolean redirectsEnabled) {
         this.redirectsEnabled = redirectsEnabled;
     }
 
+    /**
+     * Sets the cookie specification registry.
+     *
+     * @param cookieSpecRegistry The cookie specification registry
+     */
     public void setCookieSpecRegistry(final Lookup<CookieSpecProvider> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
     }
 
+    /**
+     * Sets the cookie date patterns for parsing.
+     *
+     * @param cookieDatePatterns The cookie date patterns
+     */
     public void setCookieDatePatterns(final String[] cookieDatePatterns) {
         this.cookieDatePatterns = cookieDatePatterns;
     }
 
+    /**
+     * Sets the DNS resolver for hostname resolution.
+     *
+     * @param dnsResolver The DNS resolver
+     */
     public void setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
     }
 
+    /**
+     * Sets the SSL socket factory.
+     * @param sslSocketFactory The SSL socket factory.
+     */
     public void setSslSocketFactory(final LayeredConnectionSocketFactory sslSocketFactory) {
         this.sslSocketFactory = sslSocketFactory;
     }

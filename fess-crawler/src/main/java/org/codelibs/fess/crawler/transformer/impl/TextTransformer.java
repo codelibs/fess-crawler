@@ -58,10 +58,23 @@ import jakarta.annotation.Resource;
 public class TextTransformer extends AbstractTransformer {
     private static final Logger logger = LogManager.getLogger(TextTransformer.class);
 
+    /**
+     * The crawler container.
+     */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * The name of the charset.
+     */
     protected String charsetName = Constants.UTF_8;
+
+    /**
+     * Creates a new TextTransformer instance.
+     */
+    public TextTransformer() {
+        super();
+    }
 
     /*
      * (non-Javadoc)
@@ -153,10 +166,18 @@ public class TextTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Returns the charset name.
+     * @return the charsetName
+     */
     public String getCharsetName() {
         return charsetName;
     }
 
+    /**
+     * Sets the charset name.
+     * @param charsetName The charset name to set.
+     */
     public void setCharsetName(final String charsetName) {
         this.charsetName = charsetName;
     }

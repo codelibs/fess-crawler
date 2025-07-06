@@ -42,31 +42,44 @@ import org.codelibs.fess.crawler.exception.ExecutionTimeoutException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
- * Extract a text by running a command.
- *
- * @author shinsuke
- *
+ * Extracts text content by executing an external command.
  */
 public class CommandExtractor extends AbstractExtractor {
     private static final Logger logger = LogManager.getLogger(CommandExtractor.class);
 
+    /** The encoding for the output. */
     protected String outputEncoding = Constants.UTF_8;
 
+    /** The extension for the output file. */
     protected String outputExtension = null;
 
+    /** The temporary directory for input/output files. */
     protected File tempDir = null;
 
+    /** The command to execute. */
     protected String command;
 
+    /** The timeout for command execution in milliseconds. */
     protected long executionTimeout = 30L * 1000L; // 30sec
 
+    /** The working directory for the command. */
     protected File workingDirectory = null;
 
+    /** The encoding for the command's output. */
     protected String commandOutputEncoding = Charset.defaultCharset().displayName();
 
+    /** The maximum number of lines to buffer from command output. */
     protected int maxOutputLine = 1000;
 
+    /** Whether to redirect standard output to a file. */
     protected boolean standardOutput = false;
+
+    /**
+     * Constructs a new CommandExtractor.
+     */
+    public CommandExtractor() {
+        // NOP
+    }
 
     /*
      * (non-Javadoc)
@@ -287,6 +300,9 @@ public class CommandExtractor extends AbstractExtractor {
         return value;
     }
 
+    /**
+     * Thread to monitor and terminate processes that exceed the timeout.
+     */
     protected static class MonitorThread extends Thread {
         private final Process process;
 
@@ -296,6 +312,11 @@ public class CommandExtractor extends AbstractExtractor {
 
         private boolean teminated = false;
 
+        /**
+         * Constructs a new MonitorThread.
+         * @param process The process to monitor.
+         * @param timeout The timeout for the process.
+         */
         public MonitorThread(final Process process, final long timeout) {
             this.process = process;
             this.timeout = timeout;
@@ -318,21 +339,25 @@ public class CommandExtractor extends AbstractExtractor {
         }
 
         /**
-         * @param finished
-         *            The finished to set.
+         * Sets the finished flag.
+         * @param finished The finished flag to set.
          */
         public void setFinished(final boolean finished) {
             this.finished = finished;
         }
 
         /**
-         * @return Returns the teminated.
+         * Returns whether the process was terminated.
+         * @return true if terminated, false otherwise.
          */
         public boolean isTeminated() {
             return teminated;
         }
     }
 
+    /**
+     * Thread to read and buffer output from an input stream.
+     */
     protected static class InputStreamThread extends Thread {
 
         private BufferedReader br;
@@ -341,6 +366,12 @@ public class CommandExtractor extends AbstractExtractor {
 
         private final int maxLineBuffer;
 
+        /**
+         * Constructs a new InputStreamThread.
+         * @param is The InputStream to read from.
+         * @param charset The charset to use for reading.
+         * @param maxOutputLineBuffer The maximum number of lines to buffer.
+         */
         public InputStreamThread(final InputStream is, final String charset, final int maxOutputLineBuffer) {
             try {
                 br = new BufferedReader(new InputStreamReader(is, charset));
@@ -371,6 +402,10 @@ public class CommandExtractor extends AbstractExtractor {
             }
         }
 
+        /**
+         * Returns the output as a String.
+         * @return The output string.
+         */
         public String getOutput() {
             final StringBuilder buf = new StringBuilder(100);
             for (final String value : list) {
@@ -381,38 +416,74 @@ public class CommandExtractor extends AbstractExtractor {
 
     }
 
+    /**
+     * Sets the encoding for the output.
+     * @param outputEncoding The output encoding to set.
+     */
     public void setOutputEncoding(final String outputEncoding) {
         this.outputEncoding = outputEncoding;
     }
 
+    /**
+     * Sets the output file extension.
+     * @param outputExtension The output file extension to set.
+     */
     public void setOutputExtension(final String outputExtension) {
         this.outputExtension = outputExtension;
     }
 
+    /**
+     * Sets the temporary directory for file operations.
+     * @param tempDir The temporary directory to set.
+     */
     public void setTempDir(final File tempDir) {
         this.tempDir = tempDir;
     }
 
+    /**
+     * Sets the command to execute for text extraction.
+     * @param command The command to set.
+     */
     public void setCommand(final String command) {
         this.command = command;
     }
 
+    /**
+     * Sets the timeout for command execution.
+     * @param executionTimeout The execution timeout in milliseconds.
+     */
     public void setExecutionTimeout(final long executionTimeout) {
         this.executionTimeout = executionTimeout;
     }
 
+    /**
+     * Sets the working directory for the command.
+     * @param workingDirectory The working directory.
+     */
     public void setWorkingDirectory(final File workingDirectory) {
         this.workingDirectory = workingDirectory;
     }
 
+    /**
+     * Sets the encoding for command output.
+     * @param commandOutputEncoding The command output encoding to set.
+     */
     public void setCommandOutputEncoding(final String commandOutputEncoding) {
         this.commandOutputEncoding = commandOutputEncoding;
     }
 
+    /**
+     * Sets the maximum number of output lines to process.
+     * @param maxOutputLine The maximum output lines to set.
+     */
     public void setMaxOutputLine(final int maxOutputLine) {
         this.maxOutputLine = maxOutputLine;
     }
 
+    /**
+     * Sets whether to redirect standard output.
+     * @param standardOutput true to redirect standard output, false otherwise.
+     */
     public void setStandardOutput(final boolean standardOutput) {
         this.standardOutput = standardOutput;
     }

@@ -24,10 +24,19 @@ public class RobotsTxtException extends CrawlerSystemException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a new RobotsTxtException with the specified detail message and cause.
+     * @param message the detail message
+     * @param cause the cause of the exception
+     */
     public RobotsTxtException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Constructs a new RobotsTxtException with the specified detail message.
+     * @param message the detail message
+     */
     public RobotsTxtException(final String message) {
         super(message);
     }

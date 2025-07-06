@@ -118,29 +118,62 @@ public class XmlTransformer extends AbstractTransformer {
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+", Pattern.MULTILINE);
 
+    /**
+     * If true, the parser will be namespace aware.
+     */
     protected boolean namespaceAware;
 
+    /**
+     * If true, the parser will convert CDATA nodes to Text nodes and append them to the adjacent Text node.
+     */
     protected boolean coalescing;
 
+    /**
+     * If true, the parser will expand entity reference nodes.
+     */
     protected boolean expandEntityRef = false;
 
+    /**
+     * If true, the parser will ignore comments.
+     */
     protected boolean ignoringComments;
 
+    /**
+     * If true, the parser will ignore ignorable whitespace in element content.
+     */
     protected boolean ignoringElementContentWhitespace;
 
+    /**
+     * If true, the parser will validate the document against its grammar.
+     */
     protected boolean validating;
 
+    /**
+     * If true, the parser will be XInclude aware.
+     */
     protected boolean includeAware;
 
+    /**
+     * A map of attributes.
+     */
     protected final Map<String, Object> attributeMap = new HashMap<>();
 
+    /**
+     * A map of features.
+     */
     protected final Map<String, String> featureMap = new HashMap<>();
 
+    /**
+     * A map of field rules.
+     */
     protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 
     /** a flag to trim a space characters. */
     protected boolean trimSpaceEnabled = true;
 
+    /**
+     * The charset name.
+     */
     protected String charsetName = Constants.UTF_8;
 
     /**
@@ -149,10 +182,27 @@ public class XmlTransformer extends AbstractTransformer {
      */
     protected Class<?> dataClass = null;
 
+    /**
+     * The XPathAPI cache.
+     */
     protected LoadingCache<String, XPathAPI> xpathAPICache;
 
+    /**
+     * The cache duration in minutes.
+     */
     protected long cacheDuration = 10; // min
 
+    /**
+     * Constructs a new instance of {@code XmlTransformer}.
+     * This constructor initializes the transformer with default settings.
+     */
+    public XmlTransformer() {
+        super();
+    }
+
+    /**
+     * Initializes this component.
+     */
     @Resource
     public void init() {
         xpathAPICache =
@@ -294,12 +344,24 @@ public class XmlTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Retrieves a list of XPath nodes from the document.
+     *
+     * @param doc The XML document.
+     * @param xpath The XPath expression.
+     * @return A list of XPath nodes.
+     * @throws XPathExpressionException if an XPath expression error occurs.
+     */
     protected XPathNodes getNodeList(final Document doc, final String xpath) throws XPathExpressionException {
         final XPath xPathApi = getXPathAPI().createXPath(f -> {});
         xPathApi.setNamespaceContext(new DefaultNamespaceContext(doc.getNodeType() == Node.DOCUMENT_NODE ? doc.getDocumentElement() : doc));
         return xPathApi.evaluateExpression(xpath, doc, XPathNodes.class);
     }
 
+    /**
+     * Retrieves an XPathAPI instance from the cache or creates a new one.
+     * @return An XPathAPI instance.
+     */
     protected XPathAPI getXPathAPI() {
         try {
             return xpathAPICache.get(Thread.currentThread().getName());
@@ -311,17 +373,33 @@ public class XmlTransformer extends AbstractTransformer {
         }
     }
 
+    /**
+     * Returns the header for the result data.
+     * @return The result data header.
+     */
     protected String getResultDataHeader() {
         // TODO support other type
         return "<?xml version=\"1.0\"?>\n<doc>\n";
     }
 
+    /**
+     * Returns the body of the result data for a single value.
+     * @param name The name of the field.
+     * @param value The value of the field.
+     * @return The result data body.
+     */
     protected String getResultDataBody(final String name, final String value) {
         // TODO support other type
         // TODO trim(default)
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">" + trimSpace(XmlUtil.escapeXml(value != null ? value : "")) + "</field>\n";
     }
 
+    /**
+     * Returns the body of the result data for multiple values.
+     * @param name The name of the field.
+     * @param values The list of values for the field.
+     * @return The result data body.
+     */
     protected String getResultDataBody(final String name, final List<String> values) {
         final StringBuilder buf = new StringBuilder();
         buf.append("<list>");
@@ -338,15 +416,30 @@ public class XmlTransformer extends AbstractTransformer {
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">" + buf.toString().trim() + "</field>\n";
     }
 
+    /**
+     * Returns additional data for the result.
+     * @param responseData The response data.
+     * @param document The XML document.
+     * @return Additional data as a string.
+     */
     protected String getAdditionalData(final ResponseData responseData, final Document document) {
         return "";
     }
 
+    /**
+     * Returns the footer for the result data.
+     * @return The result data footer.
+     */
     protected String getResultDataFooter() {
         // TODO support other type
         return "</doc>";
     }
 
+    /**
+     * Trims space characters from the value.
+     * @param value The value to trim.
+     * @return The trimmed value.
+     */
     protected String trimSpace(final String value) {
         if (trimSpaceEnabled) {
             final Matcher matcher = SPACE_PATTERN.matcher(value);
@@ -355,19 +448,36 @@ public class XmlTransformer extends AbstractTransformer {
         return value;
     }
 
+    /**
+     * Adds an attribute to the factory.
+     * @param name The name of the attribute.
+     * @param value The value of the attribute.
+     */
     public void addAttribute(final String name, final Object value) {
         attributeMap.put(name, value);
     }
 
+    /**
+     * Adds a feature to the factory.
+     * @param key The key of the feature.
+     * @param value The value of the feature.
+     */
     public void addFeature(final String key, final String value) {
         featureMap.put(key, value);
     }
 
+    /**
+     * Adds a field rule.
+     * @param name The name of the field.
+     * @param xpath The XPath expression for the field.
+     */
     public void addFieldRule(final String name, final String xpath) {
         fieldRuleMap.put(name, xpath);
     }
 
     /**
+     * Returns the fieldRuleMap.
+     *
      * @return the fieldRuleMap
      */
     public Map<String, String> getFieldRuleMap() {
@@ -375,6 +485,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the fieldRuleMap.
+     *
      * @param fieldRuleMap the fieldRuleMap to set
      */
     public void setFieldRuleMap(final Map<String, String> fieldRuleMap) {
@@ -382,6 +494,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the trimSpace.
+     *
      * @return the trimSpace
      */
     public boolean isTrimSpace() {
@@ -389,6 +503,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the trimSpace.
+     *
      * @param trimSpace the trimSpace to set
      */
     public void setTrimSpace(final boolean trimSpace) {
@@ -396,6 +512,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the charsetName.
+     *
      * @return the charsetName
      */
     public String getCharsetName() {
@@ -403,6 +521,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the charsetName.
+     *
      * @param charsetName the charsetName to set
      */
     public void setCharsetName(final String charsetName) {
@@ -410,6 +530,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the dataClass.
+     *
      * @return the dataClass
      */
     public Class<?> getDataClass() {
@@ -417,6 +539,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the dataClass.
+     *
      * @param dataClass the dataClass to set
      */
     public void setDataClass(final Class<?> dataClass) {
@@ -424,6 +548,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the namespaceAware.
+     *
      * @return the namespaceAware
      */
     public boolean isNamespaceAware() {
@@ -431,6 +557,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the namespaceAware.
+     *
      * @param namespaceAware the namespaceAware to set
      */
     public void setNamespaceAware(final boolean namespaceAware) {
@@ -438,6 +566,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the coalescing.
+     *
      * @return the coalescing
      */
     public boolean isCoalescing() {
@@ -445,6 +575,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the coalescing.
+     *
      * @param coalescing the coalescing to set
      */
     public void setCoalescing(final boolean coalescing) {
@@ -452,6 +584,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the expandEntityRef.
+     *
      * @return the expandEntityRef
      */
     public boolean isExpandEntityRef() {
@@ -459,6 +593,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the expandEntityRef.
+     *
      * @param expandEntityRef the expandEntityRef to set
      */
     public void setExpandEntityRef(final boolean expandEntityRef) {
@@ -466,6 +602,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the ignoringComments.
+     *
      * @return the ignoringComments
      */
     public boolean isIgnoringComments() {
@@ -473,6 +611,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the ignoringComments.
+     *
      * @param ignoringComments the ignoringComments to set
      */
     public void setIgnoringComments(final boolean ignoringComments) {
@@ -480,6 +620,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the ignoringElementContentWhitespace.
+     *
      * @return the ignoringElementContentWhitespace
      */
     public boolean isIgnoringElementContentWhitespace() {
@@ -487,6 +629,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the ignoringElementContentWhitespace.
+     *
      * @param ignoringElementContentWhitespace the ignoringElementContentWhitespace to set
      */
     public void setIgnoringElementContentWhitespace(final boolean ignoringElementContentWhitespace) {
@@ -494,6 +638,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the validating.
+     *
      * @return the validating
      */
     public boolean isValidating() {
@@ -501,6 +647,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the validating.
+     *
      * @param validating the validating to set
      */
     public void setValidating(final boolean validating) {
@@ -508,6 +656,8 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Returns the includeAware.
+     *
      * @return the includeAware
      */
     public boolean isIncludeAware() {
@@ -515,12 +665,18 @@ public class XmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Sets the includeAware.
+     *
      * @param includeAware the includeAware to set
      */
     public void setIncludeAware(final boolean includeAware) {
         this.includeAware = includeAware;
     }
 
+    /**
+     * Sets the cache duration.
+     * @param cacheDuration The cache duration in minutes.
+     */
     public void setCacheDuration(final long cacheDuration) {
         this.cacheDuration = cacheDuration;
     }

@@ -24,6 +24,10 @@ public class UnsupportedExtractException extends ExtractException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor.
+     * @param message The error message.
+     */
     public UnsupportedExtractException(final String message) {
         super(message, false, false);
     }

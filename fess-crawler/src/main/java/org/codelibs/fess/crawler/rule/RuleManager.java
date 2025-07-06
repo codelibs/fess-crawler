@@ -44,6 +44,12 @@ public interface RuleManager {
      * @param index the position at which the rule should be added
      * @param rule the rule to be added
      */
+    /**
+     * Adds a rule to the specified index.
+     *
+     * @param index the position at which the rule should be added
+     * @param rule the rule to be added
+     */
     void addRule(int index, Rule rule);
 
     /**

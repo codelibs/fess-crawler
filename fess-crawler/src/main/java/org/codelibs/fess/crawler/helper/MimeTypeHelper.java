@@ -23,7 +23,19 @@ import java.util.Map;
  * It allows content type detection based on the stream's content and/or filename.
  */
 public interface MimeTypeHelper {
+    /**
+     * Determines the content type of the given input stream and filename.
+     * @param is the input stream to analyze
+     * @param filename the filename to help determine the content type
+     * @return the detected content type
+     */
     String getContentType(InputStream is, String filename);
 
+    /**
+     * Determines the content type of the given input stream using the provided parameters.
+     * @param is the input stream to analyze
+     * @param params the parameters containing additional information like filename
+     * @return the detected content type
+     */
     String getContentType(InputStream is, Map<String, String> params);
 }

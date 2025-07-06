@@ -64,6 +64,13 @@ public class SitemapFile implements Sitemap {
      */
     private String lastmod;
 
+    /**
+     * Creates a new SitemapFile instance.
+     */
+    public SitemapFile() {
+        // Default constructor
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -74,6 +81,10 @@ public class SitemapFile implements Sitemap {
         return loc;
     }
 
+    /**
+     * Sets the location of the sitemap.
+     * @param loc the location URL to set
+     */
     public void setLoc(final String loc) {
         this.loc = loc;
     }
@@ -88,10 +99,19 @@ public class SitemapFile implements Sitemap {
         return lastmod;
     }
 
+    /**
+     * Sets the last modification time of the sitemap.
+     * @param lastmod the last modification time in W3C Datetime format
+     */
     public void setLastmod(final String lastmod) {
         this.lastmod = lastmod;
     }
 
+    /**
+     * Checks if this SitemapFile is equal to another object.
+     * @param obj the object to compare with
+     * @return true if the objects are equal, false otherwise
+     */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -106,11 +126,19 @@ public class SitemapFile implements Sitemap {
         return false;
     }
 
+    /**
+     * Returns the hash code value for this SitemapFile.
+     * @return the hash code value
+     */
     @Override
     public int hashCode() {
         return java.util.Objects.hash(loc, lastmod);
     }
 
+    /**
+     * Returns a string representation of this SitemapFile.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "SitemapFile [loc=" + loc + ", lastmod=" + lastmod + "]";

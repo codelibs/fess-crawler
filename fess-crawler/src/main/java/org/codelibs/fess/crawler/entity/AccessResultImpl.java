@@ -19,36 +19,59 @@ import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.Constants;
 
 /**
- * @author shinsuke
+ * Implementation of the {@link AccessResult} interface.
  *
+ * @param <IDTYPE> the type of the identifier for the access result
  */
 public class AccessResultImpl<IDTYPE> implements AccessResult<IDTYPE> {
+
+    /**
+     * Creates a new instance of AccessResultImpl.
+     */
+    public AccessResultImpl() {
+        // NOP
+    }
+
+    /** The unique identifier for the access result. */
     protected IDTYPE id;
 
+    /** The session ID associated with the access result. */
     protected String sessionId;
 
+    /** The rule ID that matched the accessed resource. */
     protected String ruleId;
 
+    /** The URL of the accessed resource. */
     protected String url;
 
+    /** The parent URL of the accessed resource. */
     protected String parentUrl;
 
+    /** The status of the access result. */
     protected Integer status = Constants.OK_STATUS;
 
+    /** The HTTP status code of the access result. */
     protected Integer httpStatusCode;
 
+    /** The HTTP method used for the access. */
     protected String method;
 
+    /** The MIME type of the accessed resource. */
     protected String mimeType;
 
+    /** The creation time of the access result. */
     protected Long createTime;
 
+    /** The execution time of the access. */
     protected Integer executionTime;
 
+    /** The content length of the accessed resource. */
     protected Long contentLength;
 
+    /** The last modified time of the accessed resource. */
     protected Long lastModified;
 
+    /** The access result data. */
     protected AccessResultData<IDTYPE> accessResultData;
 
     @Override
@@ -330,6 +353,10 @@ public class AccessResultImpl<IDTYPE> implements AccessResult<IDTYPE> {
         this.lastModified = lastModified;
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "AccessResultImpl [id=" + id + ", sessionId=" + sessionId + ", ruleId=" + ruleId + ", url=" + url + ", parentUrl="

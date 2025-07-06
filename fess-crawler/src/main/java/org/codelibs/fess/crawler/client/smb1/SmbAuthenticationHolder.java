@@ -19,16 +19,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author shinsuke
+ * Holds a map of SMB authentication configurations, allowing retrieval of the appropriate
+ * authentication based on a given path.
+ *
+ * <p>This class manages a collection of {@link SmbAuthentication} objects, each associated
+ * with a specific path prefix. When a path is provided, it iterates through the stored
+ * authentications to find the one whose path prefix matches the beginning of the given path.
+ * This allows for different SMB shares to use different authentication credentials.</p>
  *
  */
 public class SmbAuthenticationHolder {
     private final Map<String, SmbAuthentication> authMap = new HashMap<>();
 
+    /**
+     * Creates a new SmbAuthenticationHolder instance.
+     */
+    public SmbAuthenticationHolder() {
+        super();
+    }
+
+    /**
+     * Adds an SMB authentication configuration to the holder.
+     * @param auth The SMB authentication configuration to add.
+     */
     public void add(final SmbAuthentication auth) {
         authMap.put(auth.getPathPrefix(), auth);
     }
 
+    /**
+     * Retrieves an SMB authentication configuration that matches the given path.
+     * @param path The path to match.
+     * @return The matching SmbAuthentication object, or null if no match is found.
+     */
     public SmbAuthentication get(final String path) {
         if (path == null) {
             return null;

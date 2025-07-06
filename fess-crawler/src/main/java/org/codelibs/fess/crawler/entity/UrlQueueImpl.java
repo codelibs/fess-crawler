@@ -21,35 +21,49 @@ package org.codelibs.fess.crawler.entity;
  * HTTP method, URL, metadata, encoding, parent URL, depth, last modified time,
  * creation time, and weight.
  *
+ * @param <IDTYPE> the type of the identifier for the URL queue entry
  */
 public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
+    /** The unique identifier for the URL queue entry. */
     protected IDTYPE id;
 
+    /** The session ID associated with this URL queue. */
     protected String sessionId;
 
+    /** The HTTP method used for the URL in the queue. */
     protected String method;
 
+    /** The URL from the queue. */
     protected String url;
 
+    /** The metadata associated with the URL queue. */
     protected String metaData;
 
+    /** The encoding of the URL queue. */
     protected String encoding;
 
+    /** The parent URL of the current URL in the queue. */
     protected String parentUrl;
 
+    /** The depth of the URL in the queue. */
     protected Integer depth;
 
+    /** The last modified timestamp of the URL in the queue. */
     protected Long lastModified;
 
+    /** The creation time of the URL queue entry. */
     protected Long createTime;
 
+    /** The weight of the URL queue. */
     protected float weight = 1.0f;
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.entity.UrlQueue#getId()
+    /**
+     * Constructs a new UrlQueueImpl instance.
      */
+    public UrlQueueImpl() {
+        // NOP
+    }
+
     @Override
     public IDTYPE getId() {
         return id;
@@ -235,6 +249,10 @@ public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
         this.weight = weight;
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "UrlQueueImpl [id=" + id + ", sessionId=" + sessionId + ", method=" + method + ", url=" + url + ", encoding=" + encoding

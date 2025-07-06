@@ -41,20 +41,31 @@ import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
  */
 public class HostIntervalController extends DefaultIntervalController {
 
+    /** Map storing the last access time for each host. */
     private final ConcurrentMap<String, AtomicLong> lastTimes = new ConcurrentHashMap<>();
 
+    /**
+     * Constructs a new HostIntervalController with default parameters.
+     */
     public HostIntervalController() {
     }
 
+    /**
+     * Constructs a new HostIntervalController with the specified parameters.
+     *
+     * @param params the parameters to configure the interval controller
+     */
     public HostIntervalController(final Map<String, Long> params) {
         super(params);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Delays before processing a URL, ensuring that requests to the same host are not made too frequently.
+     * This method extracts the host from the URL and enforces a delay based on the configured
+     * delayMillisBeforeProcessing parameter.
      *
-     * @see org.codelibs.fess.crawler.interval.impl.AbstractIntervalController#
-     * delayBeforeProcessing()
+     * @throws InterruptedRuntimeException if the thread is interrupted during the delay
+     * @throws CrawlerSystemException if an error occurs while processing the URL
      */
     @Override
     protected void delayBeforeProcessing() {

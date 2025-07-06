@@ -50,8 +50,16 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
 
     private final HttpClientConnectionManager clientConnectionManager;
 
+    /**
+     * The timeout duration (in milliseconds) for idle connections.
+     */
     private final long idleConnectionTimeout;
 
+    /**
+     * Constructs a new HcConnectionMonitorTarget.
+     * @param clientConnectionManager The HttpClientConnectionManager to monitor.
+     * @param idleConnectionTimeout The idle connection timeout in milliseconds.
+     */
     public HcConnectionMonitorTarget(final HttpClientConnectionManager clientConnectionManager, final long idleConnectionTimeout) {
         this.clientConnectionManager = clientConnectionManager;
         this.idleConnectionTimeout = idleConnectionTimeout;

@@ -72,6 +72,10 @@ public class TemporaryFileInputStream extends InputStream {
         return fileInputStream.available();
     }
 
+    /**
+     * Closes this input stream and releases any system resources associated with the stream.
+     * @throws IOException if an I/O error occurs.
+     */
     @Override
     public void close() throws IOException {
         try {

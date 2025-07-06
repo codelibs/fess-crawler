@@ -17,26 +17,59 @@ package org.codelibs.fess.crawler.util;
 
 import java.util.ArrayList;
 
+/**
+ * OpenSearchResultList is a list of OpenSearch results.
+ *
+ * @param <E> The type of elements in this list.
+ */
 public class OpenSearchResultList<E> extends ArrayList<E> {
+    /**
+     * Constructs a new OpenSearchResultList.
+     */
+    public OpenSearchResultList() {
+        super();
+    }
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Total number of hits.
+     */
     private long totalHits;
 
+    /**
+     * Time taken for the search in milliseconds.
+     */
     private long tookInMillis;
 
+    /**
+     * Sets the total number of hits.
+     * @param totalHits The total number of hits.
+     */
     public void setTotalHits(final long totalHits) {
         this.totalHits = totalHits;
     }
 
+    /**
+     * Returns the total number of hits.
+     * @return The total number of hits.
+     */
     public long getTotalHits() {
         return totalHits;
     }
 
+    /**
+     * Sets the time taken for the search in milliseconds.
+     * @param tookInMillis The time taken in milliseconds.
+     */
     public void setTookInMillis(final long tookInMillis) {
         this.tookInMillis = tookInMillis;
     }
 
+    /**
+     * Returns the time taken for the search in milliseconds.
+     * @return The time taken in milliseconds.
+     */
     public long getTookInMillis() {
         return tookInMillis;
     }

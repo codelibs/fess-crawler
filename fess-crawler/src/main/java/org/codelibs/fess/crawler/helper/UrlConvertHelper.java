@@ -41,10 +41,29 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
  * // convertedUrl will be "http://new-domain.com/path"
  * }</pre>
  */
+/**
+ * This class is a helper for URL conversion.
+ */
 public class UrlConvertHelper {
 
+    /**
+     * Creates a new UrlConvertHelper instance.
+     */
+    public UrlConvertHelper() {
+        // NOP
+    }
+
+    /**
+     * A map for URL conversion.
+     */
     protected Map<String, String> convertMap = new LinkedHashMap<>();
 
+    /**
+     * Converts a URL.
+     *
+     * @param url The URL.
+     * @return A converted URL.
+     */
     public String convert(final String url) {
         if (url == null) {
             return null;
@@ -56,6 +75,12 @@ public class UrlConvertHelper {
         return convertedUrl;
     }
 
+    /**
+     * Adds a conversion rule.
+     *
+     * @param target The target string.
+     * @param replacement The replacement string.
+     */
     public void add(final String target, final String replacement) {
         if (target == null || replacement == null) {
             throw new CrawlerSystemException("Target or replacement cannot be null.");
@@ -63,6 +88,10 @@ public class UrlConvertHelper {
         convertMap.put(target, replacement);
     }
 
+    /**
+     * Sets the conversion map.
+     * @param convertMap The conversion map to set.
+     */
     public void setConvertMap(final Map<String, String> convertMap) {
         if (convertMap == null) {
             throw new CrawlerSystemException("convertMap is null.");

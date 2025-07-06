@@ -28,5 +28,10 @@ public interface AccessResultCallback<RESULT extends AccessResult<?>> {
      *
      * @param accessResult the result of the access operation to be processed
      */
+    /**
+     * Processes the given access result.
+     *
+     * @param accessResult the result of the access operation to be processed
+     */
     void iterate(RESULT accessResult);
 }

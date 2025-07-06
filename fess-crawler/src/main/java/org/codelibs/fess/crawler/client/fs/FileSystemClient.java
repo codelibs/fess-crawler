@@ -64,20 +64,34 @@ import jakarta.annotation.Resource;
  */
 public class FileSystemClient extends AbstractCrawlerClient {
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(FileSystemClient.class);
 
+    /** Key for file attribute view in metadata */
     public static final String FILE_ATTRIBUTE_VIEW = "fileAttributeView";
 
+    /** Key for file user in metadata */
     public static final String FS_FILE_USER = "fsFileUser";
 
+    /** Key for file groups in metadata */
     public static final String FS_FILE_GROUPS = "fsFileGroups";
 
+    /** Character encoding for files */
     protected String charset = Constants.UTF_8;
 
+    /** Helper for managing content length limits */
     @Resource
     protected ContentLengthHelper contentLengthHelper;
 
+    /** Flag to track initialization status */
     protected AtomicBoolean isInit = new AtomicBoolean(false);
+
+    /**
+     * Constructs a new FileSystemClient.
+     */
+    public FileSystemClient() {
+        // Default constructor
+    }
 
     /*
      * (non-Javadoc)
@@ -89,6 +103,14 @@ public class FileSystemClient extends AbstractCrawlerClient {
         return processRequest(uri, true);
     }
 
+    /**
+     * Processes a request for the given URI.
+     *
+     * @param uri the URI to process
+     * @param includeContent whether to include content in the response
+     * @return the response data
+     * @throws CrawlingAccessException if the request fails
+     */
     protected ResponseData processRequest(final String uri, final boolean includeContent) {
         if (!isInit.get()) {
             synchronized (isInit) {
@@ -119,6 +141,15 @@ public class FileSystemClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Gets response data for the given URI.
+     *
+     * @param uri the URI to get response data for
+     * @param includeContent whether to include content in the response
+     * @return the response data
+     * @throws CrawlingAccessException if unable to access the URI
+     * @throws ChildUrlsException if the URI represents a directory with child URLs
+     */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         final ResponseData responseData = new ResponseData();
         try {
@@ -208,6 +239,14 @@ public class FileSystemClient extends AbstractCrawlerClient {
         return responseData;
     }
 
+    /**
+     * Parses file ownership attributes and adds them to the response data.
+     *
+     * @param responseData the response data to add attributes to
+     * @param file the file to parse attributes from
+     * @return the file owner attribute view
+     * @throws CrawlingAccessException if parsing fails
+     */
     protected FileOwnerAttributeView parseFileOwnerAttribute(final ResponseData responseData, final File file) {
         try {
             final FileOwnerAttributeView ownerAttrView = Files.getFileAttributeView(file.toPath(), FileOwnerAttributeView.class);
@@ -237,6 +276,13 @@ public class FileSystemClient extends AbstractCrawlerClient {
         }
     }
 
+    /**
+     * Preprocesses a URI to ensure it's in the correct format for file system access.
+     *
+     * @param uri the URI to preprocess
+     * @return the preprocessed URI
+     * @throws CrawlerSystemException if the URI is empty
+     */
     protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
             throw new CrawlerSystemException("The uri is empty.");
@@ -267,22 +313,38 @@ public class FileSystemClient extends AbstractCrawlerClient {
         return buf.toString();
     }
 
+    /**
+     * Gets the character set for the given file.
+     *
+     * @param file the file to get the character set for
+     * @return the character set
+     */
     protected String getCharSet(final File file) {
         return charset;
     }
 
+    /**
+     * Gets the character encoding used for files.
+     *
+     * @return the character encoding
+     */
     public String getCharset() {
         return charset;
     }
 
+    /**
+     * Sets the character encoding used for files.
+     *
+     * @param charset the character encoding to set
+     */
     public void setCharset(final String charset) {
         this.charset = charset;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.client.CrawlerClient#doHead(java.lang.String)
+    /**
+     * Executes a HEAD request for the given URL.
+     * @param url The URL to request.
+     * @return The ResponseData.
      */
     @Override
     public ResponseData doHead(final String url) {

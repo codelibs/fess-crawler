@@ -15,14 +15,31 @@
  */
 package org.codelibs.fess.crawler.exception;
 
+/**
+ * This exception is thrown when an error occurs during OpenSearch access.
+ *
+ * @author shinsuke
+ *
+ */
 public class OpenSearchAccessException extends CrawlerSystemException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a new instance of OpenSearchAccessException.
+     *
+     * @param message the detail message
+     */
     public OpenSearchAccessException(final String message) {
         super(message);
     }
 
+    /**
+     * Creates a new instance of OpenSearchAccessException.
+     *
+     * @param message the detail message
+     * @param cause the cause
+     */
     public OpenSearchAccessException(final String message, final Throwable cause) {
         super(message, cause);
     }

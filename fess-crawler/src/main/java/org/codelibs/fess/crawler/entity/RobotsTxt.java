@@ -47,9 +47,18 @@ import org.codelibs.core.lang.StringUtil;
 public class RobotsTxt {
     private static final String ALL_BOTS = "*";
 
+    /** Map of user agent patterns to their corresponding directives. */
     protected final Map<Pattern, Directive> directiveMap = new LinkedHashMap<>();
 
+    /** List of sitemap URLs found in the robots.txt file. */
     private final List<String> sitemapList = new ArrayList<>();
+
+    /**
+     * Creates a new RobotsTxt instance.
+     */
+    public RobotsTxt() {
+        // Default constructor
+    }
 
     /**
      * Checks if access to a given path is allowed for a specific user agent according to robots.txt rules.
@@ -174,30 +183,55 @@ public class RobotsTxt {
      * A directive consists of a user agent, crawl delay, allowed paths, and disallowed paths.
      */
     public static class Directive {
+        /** The user agent string this directive applies to. */
         private final String userAgent;
 
+        /** The crawl delay in seconds for this directive. */
         private int crawlDelay;
 
+        /** The list of allowed paths for this directive. */
         private final List<String> allowedPaths = new ArrayList<>();
 
+        /** The list of disallowed paths for this directive. */
         private final List<String> disallowedPaths = new ArrayList<>();
 
+        /**
+         * Constructs a new Directive with the specified user agent.
+         * @param userAgent the user agent string this directive applies to
+         */
         public Directive(final String userAgent) {
             this.userAgent = userAgent;
         }
 
+        /**
+         * Sets the crawl delay for this directive.
+         * @param crawlDelay the crawl delay in seconds
+         */
         public void setCrawlDelay(final int crawlDelay) {
             this.crawlDelay = crawlDelay;
         }
 
+        /**
+         * Gets the crawl delay for this directive.
+         * @return the crawl delay in seconds
+         */
         public int getCrawlDelay() {
             return crawlDelay;
         }
 
+        /**
+         * Gets the user agent for this directive.
+         * @return the user agent string
+         */
         public String getUserAgent() {
             return userAgent;
         }
 
+        /**
+         * Checks if the given path is allowed according to this directive.
+         * @param path the path to check
+         * @return true if the path is allowed, false otherwise
+         */
         public boolean allows(final String path) {
             for (final String allowedPath : allowedPaths) {
                 if (path.startsWith(allowedPath)) {
@@ -212,27 +246,47 @@ public class RobotsTxt {
             return true;
         }
 
+        /**
+         * Adds an allowed path to this directive.
+         * @param path the path to allow
+         */
         public void addAllow(final String path) {
             if (!allowedPaths.contains(path)) {
                 allowedPaths.add(path);
             }
         }
 
+        /**
+         * Adds a disallowed path to this directive.
+         * @param path the path to disallow
+         */
         public void addDisallow(final String path) {
             if (!disallowedPaths.contains(path)) {
                 disallowedPaths.add(path);
             }
         }
 
+        /**
+         * Gets all allowed paths for this directive.
+         * @return an array of allowed paths
+         */
         public String[] getAllows() {
             return allowedPaths.toArray(new String[allowedPaths.size()]);
         }
 
+        /**
+         * Gets all disallowed paths for this directive.
+         * @return an array of disallowed paths
+         */
         public String[] getDisallows() {
             return disallowedPaths.toArray(new String[disallowedPaths.size()]);
         }
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "RobotsTxt [directiveMap=" + directiveMap + ", sitemapList=" + sitemapList + "]";

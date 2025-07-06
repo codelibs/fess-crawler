@@ -53,15 +53,27 @@ import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
  */
 public class FaultTolerantClient implements CrawlerClient {
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(FaultTolerantClient.class);
 
+    /** The underlying crawler client */
     protected CrawlerClient client;
 
+    /** Maximum number of retry attempts */
     protected int maxRetryCount = 5;
 
+    /** Interval between retry attempts in milliseconds */
     protected long retryInterval = 500;
 
+    /** Request listener for monitoring request lifecycle */
     protected RequestListener listener;
+
+    /**
+     * Constructs a new FaultTolerantClient.
+     */
+    public FaultTolerantClient() {
+        // Default constructor
+    }
 
     @Override
     /**
@@ -73,6 +85,11 @@ public class FaultTolerantClient implements CrawlerClient {
         client.setInitParameterMap(params);
     }
 
+    /**
+     * Executes the request with retry logic.
+     * @param request The request data.
+     * @return The response data.
+     */
     @Override
     public ResponseData execute(final RequestData request) {
         if (listener != null) {
@@ -129,46 +146,109 @@ public class FaultTolerantClient implements CrawlerClient {
         client.close();
     }
 
+    /**
+     * Returns the underlying CrawlerClient.
+     * @return The CrawlerClient instance.
+     */
     public CrawlerClient getCrawlerClient() {
         return client;
     }
 
+    /**
+     * Sets the underlying CrawlerClient.
+     * @param client The CrawlerClient instance to set.
+     */
     public void setCrawlerClient(final CrawlerClient client) {
         this.client = client;
     }
 
+    /**
+     * Returns the maximum retry count.
+     * @return The maximum retry count.
+     */
     public int getMaxRetryCount() {
         return maxRetryCount;
     }
 
+    /**
+     * Sets the maximum retry count.
+     * @param maxRetryCount The maximum retry count.
+     */
     public void setMaxRetryCount(final int maxRetryCount) {
         this.maxRetryCount = maxRetryCount;
     }
 
+    /**
+     * Returns the retry interval.
+     * @return The retry interval in milliseconds.
+     */
     public long getRetryInterval() {
         return retryInterval;
     }
 
+    /**
+     * Sets the retry interval.
+     * @param retryInterval The retry interval in milliseconds.
+     */
     public void setRetryInterval(final long retryInterval) {
         this.retryInterval = retryInterval;
     }
 
+    /**
+     * Returns the request listener.
+     * @return The RequestListener instance.
+     */
     public RequestListener getRequestListener() {
         return listener;
     }
 
+    /**
+     * Sets the request listener.
+     * @param listener The RequestListener instance to set.
+     */
     public void setRequestListener(final RequestListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Interface for listening to request lifecycle events.
+     */
     public interface RequestListener {
 
+        /**
+         * Called when a request starts.
+         *
+         * @param client the fault-tolerant client
+         * @param request the request data
+         */
         void onRequestStart(FaultTolerantClient client, RequestData request);
 
+        /**
+         * Called before each request attempt.
+         *
+         * @param client the fault-tolerant client
+         * @param request the request data
+         * @param count the current retry count
+         */
         void onRequest(FaultTolerantClient client, RequestData request, int count);
 
+        /**
+         * Called when a request ends.
+         *
+         * @param client the fault-tolerant client
+         * @param request the request data
+         * @param exceptionList the list of exceptions that occurred during retries
+         */
         void onRequestEnd(FaultTolerantClient client, RequestData request, List<Exception> exceptionList);
 
+        /**
+         * Called when an exception occurs during a request attempt.
+         *
+         * @param client the fault-tolerant client
+         * @param request the request data
+         * @param count the current retry count
+         * @param e the exception that occurred
+         */
         void onException(FaultTolerantClient client, RequestData request, int count, Exception e);
 
     }

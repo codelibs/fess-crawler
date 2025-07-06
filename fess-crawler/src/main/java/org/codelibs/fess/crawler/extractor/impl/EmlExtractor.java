@@ -56,11 +56,21 @@ import jakarta.mail.internet.MimeUtility;
  *
  */
 public class EmlExtractor extends AbstractExtractor {
+    /** Array of day of week abbreviations used for parsing received dates */
     private static final String[] DAY_OF_WEEK = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(EmlExtractor.class);
 
+    /** Properties used for mail processing */
     protected Properties mailProperties = new Properties();
+
+    /**
+     * Constructs a new EmlExtractor.
+     */
+    public EmlExtractor() {
+        // Default constructor
+    }
 
     /* (non-Javadoc)
      * @see org.codelibs.robot.extractor.Extractor#getText(java.io.InputStream, java.util.Map)
@@ -110,6 +120,13 @@ public class EmlExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Puts a value into the extract data with appropriate type conversion.
+     *
+     * @param data the extract data to store the value in
+     * @param key the key for the value
+     * @param value the value to store
+     */
     protected void putValue(final ExtractData data, final String key, final Object value) {
         try {
             if (value instanceof String) {
@@ -144,6 +161,12 @@ public class EmlExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Decodes MIME-encoded text.
+     *
+     * @param value the encoded text to decode
+     * @return the decoded text or empty string if decoding fails
+     */
     protected String getDecodeText(final String value) {
         if (value == null) {
             return StringUtil.EMPTY;
@@ -156,14 +179,31 @@ public class EmlExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Gets the mail properties used for email processing.
+     *
+     * @return the mail properties
+     */
     public Properties getMailProperties() {
         return mailProperties;
     }
 
+    /**
+     * Sets the mail properties used for email processing.
+     *
+     * @param mailProperties the mail properties to set
+     */
     public void setMailProperties(final Properties mailProperties) {
         this.mailProperties = mailProperties;
     }
 
+    /**
+     * Extracts the body text from a MIME message.
+     *
+     * @param message the MIME message to extract text from
+     * @return the extracted body text
+     * @throws ExtractException if extraction fails
+     */
     protected String getBodyText(final MimeMessage message) {
         final StringBuilder buf = new StringBuilder(1000);
         try {
@@ -196,6 +236,12 @@ public class EmlExtractor extends AbstractExtractor {
         return buf.toString();
     }
 
+    /**
+     * Appends attachment content to the buffer if it can be extracted.
+     *
+     * @param buf the buffer to append content to
+     * @param bodyPart the body part containing the attachment
+     */
     protected void appendAttachment(final StringBuilder buf, final BodyPart bodyPart) {
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
@@ -224,6 +270,13 @@ public class EmlExtractor extends AbstractExtractor {
         }
     }
 
+    /**
+     * Gets the received date from a message by parsing the received headers.
+     *
+     * @param message the message to get the received date from
+     * @return the received date or null if not found
+     * @throws MessagingException if message access fails
+     */
     protected static Date getReceivedDate(final Message message) throws MessagingException {
         final Date today = new Date();
         final String[] received = message.getHeader("received");
@@ -244,6 +297,12 @@ public class EmlExtractor extends AbstractExtractor {
         return null;
     }
 
+    /**
+     * Extracts a date string from the received header text.
+     *
+     * @param text the received header text
+     * @return the date string starting from the day of week, or null if not found
+     */
     private static String getDateString(final String text) {
         for (final String dow : DAY_OF_WEEK) {
             final int i = text.lastIndexOf(dow);

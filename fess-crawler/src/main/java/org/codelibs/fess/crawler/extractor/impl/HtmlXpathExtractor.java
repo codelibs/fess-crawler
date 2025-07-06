@@ -63,21 +63,37 @@ import jakarta.annotation.Resource;
  *
  */
 public class HtmlXpathExtractor extends AbstractXmlExtractor {
-    // Regular expression pattern to match the charset attribute in the meta tag of HTML documents.
-    // The pattern captures the charset value specified in the content attribute of the meta tag.
-    // Example: <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    /**
+     * Regular expression pattern to match the charset attribute in the meta tag of HTML documents.
+     * The pattern captures the charset value specified in the content attribute of the meta tag.
+     * Example: &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;
+     */
     protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Map of features for the DOM parser.
+     */
     protected Map<String, String> featureMap = new HashMap<>();
 
+    /** Map of properties for the DOM parser. */
     protected Map<String, String> propertyMap = new HashMap<>();
 
+    /** XPath expression to select target nodes for text extraction. */
     protected String targetNodePath = "//HTML/BODY | //@alt | //@title";
 
+    /** Cache for XPathAPI instances to improve performance. */
     protected LoadingCache<String, XPathAPI> xpathAPICache;
 
+    /** Cache duration in minutes for XPathAPI instances. */
     protected long cacheDuration = 10; // min
+
+    /**
+     * Creates a new HtmlXpathExtractor instance.
+     */
+    public HtmlXpathExtractor() {
+        super();
+    }
 
     /**
      * Initializes the XPathAPI cache with a specified cache duration.
@@ -130,6 +146,11 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
         }
     }
 
+    /**
+     * Gets an XPathAPI instance from the cache for the current thread.
+     *
+     * @return the XPathAPI instance
+     */
     protected XPathAPI getXPathAPI() {
         try {
             return xpathAPICache.get(Thread.currentThread().getName());
@@ -141,6 +162,12 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
         }
     }
 
+    /**
+     * Creates and configures a DOM parser with the specified features and properties.
+     *
+     * @return a configured DOM parser instance
+     * @throws CrawlerSystemException if the parser configuration is invalid
+     */
     protected DOMParser getDomParser() {
         final DOMParser parser = new DOMParser();
         try {
@@ -210,52 +237,83 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
         propertyMap.put(key, value);
     }
 
+    /**
+     * Gets the map of parser features.
+     *
+     * @return the feature map
+     */
     public Map<String, String> getFeatureMap() {
         return featureMap;
     }
 
+    /**
+     * Sets the map of parser features.
+     *
+     * @param featureMap the feature map to set
+     */
     public void setFeatureMap(final Map<String, String> featureMap) {
         this.featureMap = featureMap;
     }
 
+    /**
+     * Gets the map of parser properties.
+     *
+     * @return the property map
+     */
     public Map<String, String> getPropertyMap() {
         return propertyMap;
     }
 
+    /**
+     * Sets the map of parser properties.
+     *
+     * @param propertyMap the property map to set
+     */
     public void setPropertyMap(final Map<String, String> propertyMap) {
         this.propertyMap = propertyMap;
     }
 
     /**
-     * @return Returns the metaCharsetPattern.
+     * Gets the pattern for extracting charset from meta tags.
+     *
+     * @return the meta charset pattern
      */
     public Pattern getMetaCharsetPattern() {
         return metaCharsetPattern;
     }
 
     /**
-     * @param metaCharsetPattern
-     *            The metaCharsetPattern to set.
+     * Sets the pattern for extracting charset from meta tags.
+     *
+     * @param metaCharsetPattern the meta charset pattern to set
      */
     public void setMetaCharsetPattern(final Pattern metaCharsetPattern) {
         this.metaCharsetPattern = metaCharsetPattern;
     }
 
     /**
-     * @return Returns the targetNodePath.
+     * Gets the XPath expression for selecting target nodes.
+     *
+     * @return the target node path
      */
     public String getTargetNodePath() {
         return targetNodePath;
     }
 
     /**
-     * @param targetNodePath
-     *            The targetNodePath to set.
+     * Sets the XPath expression for selecting target nodes.
+     *
+     * @param targetNodePath the target node path to set
      */
     public void setTargetNodePath(final String targetNodePath) {
         this.targetNodePath = targetNodePath;
     }
 
+    /**
+     * Sets the cache duration for XPathAPI instances.
+     *
+     * @param cacheDuration the cache duration in minutes
+     */
     public void setCacheDuration(final long cacheDuration) {
         this.cacheDuration = cacheDuration;
     }

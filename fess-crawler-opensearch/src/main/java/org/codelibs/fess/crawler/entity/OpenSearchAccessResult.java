@@ -23,38 +23,102 @@ import org.lastaflute.di.core.SingletonLaContainer;
 import org.opensearch.core.xcontent.ToXContent;
 import org.opensearch.core.xcontent.XContentBuilder;
 
+/**
+ * OpenSearchAccessResult is an implementation of {@link AccessResult} for OpenSearch.
+ *
+ * @author shinsuke
+ *
+ */
 public class OpenSearchAccessResult extends AccessResultImpl<String> implements ToXContent {
 
+    /**
+     * Creates a new instance of OpenSearchAccessResult.
+     */
+    public OpenSearchAccessResult() {
+        // NOP
+    }
+
+    /**
+     * Field name for ID.
+     */
     public static final String ID = "id";
 
+    /**
+     * Field name for session ID.
+     */
     public static final String SESSION_ID = "sessionId";
 
+    /**
+     * Field name for rule ID.
+     */
     public static final String RULE_ID = "ruleId";
 
+    /**
+     * Field name for URL.
+     */
     public static final String URL = "url";
 
+    /**
+     * Field name for parent URL.
+     */
     public static final String PARENT_URL = "parentUrl";
 
+    /**
+     * Field name for status.
+     */
     public static final String STATUS = "status";
 
+    /**
+     * Field name for HTTP status code.
+     */
     public static final String HTTP_STATUS_CODE = "httpStatusCode";
 
+    /**
+     * Field name for method.
+     */
     public static final String METHOD = "method";
 
+    /**
+     * Field name for MIME type.
+     */
     public static final String MIME_TYPE = "mimeType";
 
+    /**
+     * Field name for creation time.
+     */
     public static final String CREATE_TIME = "createTime";
 
+    /**
+     * Field name for execution time.
+     */
     public static final String EXECUTION_TIME = "executionTime";
 
+    /**
+     * Field name for content length.
+     */
     public static final String CONTENT_LENGTH = "contentLength";
 
+    /**
+     * Field name for last modified timestamp.
+     */
     public static final String LAST_MODIFIED = "lastModified";
 
+    /**
+     * Field name for access result data.
+     */
     public static final String ACCESS_RESULT_DATA = "accessResultData";
 
+    /**
+     * Flag indicating whether the access result data has been initialized.
+     */
     private boolean initializedData = false;
 
+    /**
+     * Initializes the access result with response data and result data.
+     *
+     * @param responseData The response data from the crawl operation.
+     * @param resultData The result data from content processing.
+     */
     @Override
     public void init(final ResponseData responseData, final ResultData resultData) {
 
@@ -70,6 +134,11 @@ public class OpenSearchAccessResult extends AccessResultImpl<String> implements 
         setAccessResultData(accessResultData);
     }
 
+    /**
+     * Gets the access result data, loading it from the data service if not already initialized.
+     *
+     * @return The access result data.
+     */
     @Override
     public AccessResultData<String> getAccessResultData() {
         if (!initializedData) {
@@ -84,12 +153,25 @@ public class OpenSearchAccessResult extends AccessResultImpl<String> implements 
         return accessResultData;
     }
 
+    /**
+     * Sets the access result data and marks it as initialized.
+     *
+     * @param accessResultDataAsOne The access result data to set.
+     */
     @Override
     public void setAccessResultData(final AccessResultData<String> accessResultDataAsOne) {
         accessResultData = accessResultDataAsOne;
         initializedData = true;
     }
 
+    /**
+     * Converts this access result to XContent format for OpenSearch indexing.
+     *
+     * @param builder The XContentBuilder to write to.
+     * @param params Additional parameters for the conversion.
+     * @return The XContentBuilder with the access result data.
+     * @throws IOException if the conversion fails.
+     */
     @Override
     public XContentBuilder toXContent(final XContentBuilder builder, final Params params) throws IOException {
         builder.startObject();

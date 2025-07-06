@@ -53,12 +53,22 @@ import jakarta.annotation.Resource;
  */
 public class ExtractorFactory {
 
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(ExtractorFactory.class);
 
+    /** Container for managing crawler components */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /** Map of keys to arrays of extractors */
     protected Map<String, Extractor[]> extractorMap = new HashMap<>();
+
+    /**
+     * Constructs a new ExtractorFactory.
+     */
+    public ExtractorFactory() {
+        // Default constructor
+    }
 
     /**
      * Adds an extractor to the factory for the specified key.
@@ -95,6 +105,13 @@ public class ExtractorFactory {
         }
     }
 
+    /**
+     * Adds an extractor to the factory for all keys in the provided list.
+     *
+     * @param keyList the list of keys to associate with the extractor
+     * @param extractor the extractor to add
+     * @throws CrawlerSystemException if the key list is null or empty, or if the extractor is null
+     */
     public void addExtractor(final List<String> keyList, final Extractor extractor) {
         if (keyList == null || keyList.isEmpty()) {
             throw new CrawlerSystemException("The key list is empty.");
@@ -102,6 +119,14 @@ public class ExtractorFactory {
         keyList.stream().distinct().forEach(key -> addExtractor(key, extractor));
     }
 
+    /**
+     * Retrieves an extractor for the specified key.
+     * If multiple extractors are associated with the key, returns a composite extractor
+     * that tries each extractor in order until one succeeds.
+     *
+     * @param key the key to look up
+     * @return the extractor for the key, or null if not found
+     */
     public Extractor getExtractor(final String key) {
         final Extractor[] extractors = extractorMap.get(key);
         if (extractors == null || extractors.length == 0) {
@@ -132,6 +157,11 @@ public class ExtractorFactory {
         };
     }
 
+    /**
+     * Retrieves all extractors for the specified key.
+     * @param key The key associated with the extractors.
+     * @return An array of Extractor instances, or an empty array if no extractors are found.
+     */
     public Extractor[] getExtractors(final String key) {
         final Extractor[] extractors = extractorMap.get(key);
         if (extractors == null || extractors.length == 0) {

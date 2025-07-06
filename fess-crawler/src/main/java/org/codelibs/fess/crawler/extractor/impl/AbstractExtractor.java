@@ -47,9 +47,21 @@ import jakarta.annotation.Resource;
  */
 public abstract class AbstractExtractor implements Extractor {
 
+    /** The crawler container. */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * Constructs a new AbstractExtractor.
+     */
+    public AbstractExtractor() {
+        // NOP
+    }
+
+    /**
+     * Registers this extractor with the ExtractorFactory.
+     * @param keyList The list of keys to register this extractor under.
+     */
     public void register(final List<String> keyList) {
         if (keyList == null || keyList.isEmpty()) {
             throw new IllegalArgumentException("keyList must not be null or empty.");
@@ -57,6 +69,10 @@ public abstract class AbstractExtractor implements Extractor {
         getExtractorFactory().addExtractor(keyList, this);
     }
 
+    /**
+     * Returns the MimeTypeHelper instance from the CrawlerContainer.
+     * @return The MimeTypeHelper instance.
+     */
     protected MimeTypeHelper getMimeTypeHelper() {
         final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
         if (mimeTypeHelper == null) {
@@ -65,6 +81,10 @@ public abstract class AbstractExtractor implements Extractor {
         return mimeTypeHelper;
     }
 
+    /**
+     * Returns the ExtractorFactory instance from the CrawlerContainer.
+     * @return The ExtractorFactory instance.
+     */
     protected ExtractorFactory getExtractorFactory() {
         final ExtractorFactory extractorFactory = crawlerContainer.getComponent("extractorFactory");
         if (extractorFactory == null) {
@@ -73,6 +93,13 @@ public abstract class AbstractExtractor implements Extractor {
         return extractorFactory;
     }
 
+    /**
+     * Creates a temporary file.
+     * @param prefix The prefix string to be used in generating the file's name.
+     * @param suffix The suffix string to be used in generating the file's name.
+     * @param directory The directory in which the file is to be created, or null if the default temporary-file directory is to be used.
+     * @return The created temporary file.
+     */
     protected File createTempFile(final String prefix, final String suffix, final File directory) {
         try {
             final File tempFile = File.createTempFile(prefix, suffix, directory);

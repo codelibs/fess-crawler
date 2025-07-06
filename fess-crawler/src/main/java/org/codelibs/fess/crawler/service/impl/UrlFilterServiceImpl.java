@@ -33,6 +33,16 @@ import jakarta.annotation.Resource;
  */
 public class UrlFilterServiceImpl implements UrlFilterService {
 
+    /**
+     * Creates a new UrlFilterServiceImpl instance.
+     */
+    public UrlFilterServiceImpl() {
+        // NOP
+    }
+
+    /**
+     * The memory data helper.
+     */
     @Resource
     protected MemoryDataHelper dataHelper;
 
@@ -127,6 +137,11 @@ public class UrlFilterServiceImpl implements UrlFilterService {
      * @see
      * org.codelibs.fess.crawler.service.impl.UrlFilterService#getExcludeUrlPatternList
      * (java.lang.String)
+     */
+    /**
+     * Retrieves a list of URL patterns to be excluded for a given session.
+     * @param sessionId The ID of the session.
+     * @return A list of compiled regular expression patterns.
      */
     @Override
     public List<Pattern> getExcludeUrlPatternList(final String sessionId) {

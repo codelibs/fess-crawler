@@ -48,8 +48,15 @@ public class ResultData implements Serializable {
     protected Function<Object, byte[]> serializer;
 
     /**
+     * Creates a new ResultData instance.
+     */
+    public ResultData() {
+        super();
+    }
+
+    /**
      * Set the raw data.
-     * @param rawData
+     * @param rawData the raw data object to set
      */
     public void setRawData(final Object rawData) {
         this.rawData = rawData;
@@ -68,7 +75,7 @@ public class ResultData implements Serializable {
 
     /**
      * Set the serializer.
-     * @param serializer
+     * @param serializer the serializer function to convert raw data to byte array
      */
     public void setSerializer(final Function<Object, byte[]> serializer) {
         this.serializer = serializer;
@@ -90,7 +97,7 @@ public class ResultData implements Serializable {
 
     /**
      * Set the data.
-     * @param data
+     * @param data the byte array data to set
      */
     public void setData(final byte[] data) {
         this.data = data;
@@ -98,7 +105,7 @@ public class ResultData implements Serializable {
 
     /**
      * Add a child URL.
-     * @param url
+     * @param url the request data to add to the child URL set
      */
     public void addUrl(final RequestData url) {
         childUrlSet.add(url);
@@ -106,7 +113,7 @@ public class ResultData implements Serializable {
 
     /**
      * Add child URLs.
-     * @param c
+     * @param c the collection of request data to add to the child URL set
      */
     public void addAllUrl(final Collection<RequestData> c) {
         if (c != null) {
@@ -116,7 +123,7 @@ public class ResultData implements Serializable {
 
     /**
      * Remove a child URL.
-     * @param url
+     * @param url the request data to remove from the child URL set
      */
     public void removeUrl(final RequestData url) {
         childUrlSet.remove(url);
@@ -132,7 +139,7 @@ public class ResultData implements Serializable {
 
     /**
      * Set the transformer name.
-     * @param transformerName
+     * @param transformerName the name of the transformer to set
      */
     public void setTransformerName(final String transformerName) {
         this.transformerName = transformerName;
@@ -148,7 +155,7 @@ public class ResultData implements Serializable {
 
     /**
      * Set the child URL set.
-     * @param childUrlSet
+     * @param childUrlSet the set of request data to set as child URLs
      */
     public void setChildUrlSet(final Set<RequestData> childUrlSet) {
         this.childUrlSet = childUrlSet;
@@ -164,12 +171,16 @@ public class ResultData implements Serializable {
 
     /**
      * Set the encoding.
-     * @param encoding
+     * @param encoding the encoding to set
      */
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 
+    /**
+     * Returns a string representation of this object.
+     * @return A string representation.
+     */
     @Override
     public String toString() {
         return "ResultData [transformerName=" + transformerName + ", encoding=" + encoding + ", childUrlSet=" + childUrlSet + "]";

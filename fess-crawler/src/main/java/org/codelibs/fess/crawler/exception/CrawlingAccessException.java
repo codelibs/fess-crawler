@@ -46,44 +46,97 @@ public class CrawlingAccessException extends CrawlerSystemException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Log level constant for debug messages.
+     */
     public static final String DEBUG = "DEBUG";
 
+    /**
+     * Log level constant for info messages.
+     */
     public static final String INFO = "INFO";
 
+    /**
+     * Log level constant for warning messages.
+     */
     public static final String WARN = "WARN";
 
+    /**
+     * Log level constant for error messages.
+     */
     public static final String ERROR = "ERROR";
 
+    /** The log level for this exception, defaults to INFO */
     private String logLevel = INFO;
 
+    /**
+     * Constructs a new CrawlingAccessException with the specified detail message and cause.
+     *
+     * @param message the detail message
+     * @param cause the cause
+     */
     public CrawlingAccessException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Constructs a new CrawlingAccessException with the specified detail message.
+     *
+     * @param message the detail message
+     */
     public CrawlingAccessException(final String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new CrawlingAccessException with the specified cause.
+     *
+     * @param cause the cause
+     */
     public CrawlingAccessException(final Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Sets the log level for this exception.
+     *
+     * @param logLevel the log level to set
+     */
     public void setLogLevel(final String logLevel) {
         this.logLevel = logLevel;
     }
 
+    /**
+     * Checks if the log level is DEBUG.
+     *
+     * @return true if DEBUG, false otherwise
+     */
     public boolean isDebugEnabled() {
         return DEBUG.equals(logLevel);
     }
 
+    /**
+     * Checks if the log level is INFO.
+     *
+     * @return true if INFO, false otherwise
+     */
     public boolean isInfoEnabled() {
         return INFO.equals(logLevel);
     }
 
+    /**
+     * Checks if the log level is WARN.
+     *
+     * @return true if WARN, false otherwise
+     */
     public boolean isWarnEnabled() {
         return WARN.equals(logLevel);
     }
 
+    /**
+     * Checks if the log level is ERROR.
+     * @return true if ERROR, false otherwise.
+     */
     public boolean isErrorEnabled() {
         return ERROR.equals(logLevel);
     }

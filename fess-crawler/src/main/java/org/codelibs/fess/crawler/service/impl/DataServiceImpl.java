@@ -52,18 +52,28 @@ import jakarta.annotation.Resource;
  */
 public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
 
+    /** Counter for generating unique IDs */
     protected static volatile long idCount = 0L;
 
+    /** Lock object for synchronizing access to idCount */
     private static Object idCountLock = new Object();
 
+    /** Helper for managing access result data in memory */
     @Resource
     protected MemoryDataHelper dataHelper;
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Constructs a new DataServiceImpl.
+     */
+    public DataServiceImpl() {
+        // Default constructor
+    }
+
+    /**
+     * Stores an access result in the data store.
      *
-     * @see org.codelibs.fess.crawler.service.DataService#store(org.codelibs.fess.crawler.entity.
-     * AccessResult)
+     * @param accessResult the access result to store
+     * @throws CrawlerSystemException if the access result is null or already exists
      */
     @Override
     public void store(final AccessResultImpl<Long> accessResult) {
@@ -91,65 +101,64 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
 
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Gets the count of access results for the specified session.
      *
-     * @see org.codelibs.fess.crawler.service.DataService#getCount(java.lang.String)
+     * @param sessionId the session ID
+     * @return the count of access results
      */
     @Override
     public int getCount(final String sessionId) {
         return dataHelper.getAccessResultMap(sessionId).size();
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Deletes all access results for the specified session.
      *
-     * @see org.codelibs.fess.crawler.service.DataService#delete(java.lang.String)
+     * @param sessionId the session ID
      */
     @Override
     public void delete(final String sessionId) {
         dataHelper.deleteAccessResultMap(sessionId);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.service.DataService#deleteAll()
+    /**
+     * Deletes all access results from all sessions.
      */
     @Override
     public void deleteAll() {
         dataHelper.clearUrlQueueList();
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Gets an access result for the specified session and URL.
      *
-     * @see
-     * org.codelibs.fess.crawler.service.DataService#getAccessResult(java.lang.String,
-     * java.lang.String)
+     * @param sessionId the session ID
+     * @param url the URL
+     * @return the access result or null if not found
      */
     @Override
     public AccessResultImpl<Long> getAccessResult(final String sessionId, final String url) {
         return dataHelper.getAccessResultMap(sessionId).get(url);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Gets a list of access results for the specified URL.
      *
-     * @see
-     * org.codelibs.fess.crawler.service.DataService#getAccessResultList(java.lang.String
-     * , boolean)
+     * @param url the URL
+     * @param hasData whether the result should have data
+     * @return the list of access results
      */
     @Override
     public List<AccessResultImpl<Long>> getAccessResultList(final String url, final boolean hasData) {
         return dataHelper.getAccessResultList(url);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Iterates over all access results for the specified session.
      *
-     * @see org.codelibs.fess.crawler.service.DataService#iterate(java.lang.String,
-     * org.codelibs.fess.crawler.util.AccessResultCallback)
+     * @param sessionId the session ID
+     * @param accessResultCallback the callback to invoke for each access result
      */
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<AccessResultImpl<Long>> accessResultCallback) {
@@ -159,11 +168,11 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
         }
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Updates an access result in the data store.
      *
-     * @see org.codelibs.fess.crawler.service.DataService#update(org.codelibs.fess.crawler.entity.
-     * AccessResult)
+     * @param accessResult the access result to update
+     * @throws CrawlerSystemException if the access result is not found
      */
     @Override
     public void update(final AccessResultImpl<Long> accessResult) {
@@ -174,10 +183,9 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
         arMap.put(accessResult.getUrl(), accessResult);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.service.DataService#update(java.util.List)
+    /**
+     * Updates the given list of access results.
+     * @param accessResultList The list of access results to update.
      */
     @Override
     public void update(final List<AccessResultImpl<Long>> accessResultList) {

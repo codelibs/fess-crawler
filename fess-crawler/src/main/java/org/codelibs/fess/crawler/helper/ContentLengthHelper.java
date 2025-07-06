@@ -27,11 +27,25 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
  * The class provides methods to add, retrieve, and manage these limits.
  */
 public class ContentLengthHelper {
+    /**
+     * Constructs a new ContentLengthHelper.
+     */
+    public ContentLengthHelper() {
+        // Default constructor
+    }
 
-    protected long defaultMaxLength = 10L * 1024L * 1024L; // Default maximum content length set to 10MB
+    /** Default maximum content length set to 10MB */
+    protected long defaultMaxLength = 10L * 1024L * 1024L;
 
+    /** Map to store maximum content lengths for specific MIME types */
     protected Map<String, Long> maxLengthMap = new HashMap<>();
 
+    /**
+     * Adds a maximum content length for a specific MIME type.
+     * @param mimeType The MIME type for which to set the maximum length
+     * @param maxLength The maximum content length in bytes
+     * @throws CrawlerSystemException if the MIME type is blank or maxLength is negative
+     */
     public void addMaxLength(final String mimeType, final long maxLength) {
         if (StringUtil.isBlank(mimeType)) {
             throw new CrawlerSystemException("MIME type is a blank.");
@@ -42,6 +56,12 @@ public class ContentLengthHelper {
         maxLengthMap.put(mimeType, maxLength);
     }
 
+    /**
+     * Gets the maximum content length for a specific MIME type.
+     * If no specific length is set for the MIME type, returns the default maximum length.
+     * @param mimeType The MIME type to get the maximum length for
+     * @return The maximum content length in bytes
+     */
     public long getMaxLength(final String mimeType) {
         if (StringUtil.isBlank(mimeType)) {
             return defaultMaxLength;
@@ -53,10 +73,18 @@ public class ContentLengthHelper {
         return defaultMaxLength;
     }
 
+    /**
+     * Returns the default maximum content length.
+     * @return The default maximum content length in bytes.
+     */
     public long getDefaultMaxLength() {
         return defaultMaxLength;
     }
 
+    /**
+     * Sets the default maximum content length.
+     * @param defaultMaxLength The default maximum content length to set.
+     */
     public void setDefaultMaxLength(final long defaultMaxLength) {
         if (defaultMaxLength < 0) {
             throw new CrawlerSystemException("The value of defaultMaxLength is invalid.");

@@ -62,7 +62,15 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
  * </p>
  */
 public class FileTransformer extends HtmlTransformer {
+    /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(FileTransformer.class);
+
+    /**
+     * Constructs a new FileTransformer.
+     */
+    public FileTransformer() {
+        // Default constructor
+    }
 
     /**
      * A path to store downloaded files. The default path is a current
@@ -90,8 +98,10 @@ public class FileTransformer extends HtmlTransformer {
      */
     protected String ampersandStr = "_AMP_";
 
+    /** Maximum number of duplicated paths to attempt */
     protected int maxDuplicatedPath = 100;
 
+    /** Character set name for encoding file paths */
     protected String charsetName = Constants.UTF_8;
 
     /**
@@ -99,6 +109,13 @@ public class FileTransformer extends HtmlTransformer {
      */
     protected File baseDir;
 
+    /**
+     * Creates a file with the specified path, handling directory creation and duplicate names.
+     *
+     * @param path the file path to create
+     * @return the created file
+     * @throws CrawlerSystemException if directory creation fails
+     */
     protected File createFile(final String path) {
         final String[] paths = path.split("/");
         File targetFile = baseDir;
@@ -140,6 +157,13 @@ public class FileTransformer extends HtmlTransformer {
         return targetFile;
     }
 
+    /**
+     * Stores response data as a file on the file system.
+     *
+     * @param responseData the response data to store
+     * @param resultData the result data to populate with file information
+     * @throws CrawlerSystemException if file storage fails
+     */
     @Override
     public void storeData(final ResponseData responseData, final ResultData resultData) {
         resultData.setTransformerName(getName());
@@ -171,6 +195,11 @@ public class FileTransformer extends HtmlTransformer {
         resultData.setEncoding(charsetName);
     }
 
+    /**
+     * Initializes the base directory for storing files.
+     *
+     * @throws CrawlerSystemException if directory creation fails
+     */
     private void initBaseDir() {
         if (baseDir == null) {
             if (path == null) {
@@ -222,58 +251,127 @@ public class FileTransformer extends HtmlTransformer {
         return new File(baseDir, filePath);
     }
 
+    /**
+     * Gets the base path for storing files.
+     *
+     * @return the base path
+     */
     public String getPath() {
         return path;
     }
 
+    /**
+     * Sets the base path for storing files.
+     *
+     * @param path the base path to set
+     */
     public void setPath(final String path) {
         this.path = path;
     }
 
+    /**
+     * Gets the replacement string for question marks in URLs.
+     *
+     * @return the question mark replacement string
+     */
     public String getQuestionStr() {
         return questionStr;
     }
 
+    /**
+     * Sets the replacement string for question marks in URLs.
+     *
+     * @param questionStr the question mark replacement string to set
+     */
     public void setQuestionStr(final String questionStr) {
         this.questionStr = questionStr;
     }
 
+    /**
+     * Gets the replacement string for colons in URLs.
+     *
+     * @return the colon replacement string
+     */
     public String getColonStr() {
         return colonStr;
     }
 
+    /**
+     * Sets the replacement string for colons in URLs.
+     *
+     * @param colonStr the colon replacement string to set
+     */
     public void setColonStr(final String colonStr) {
         this.colonStr = colonStr;
     }
 
+    /**
+     * Gets the replacement string for semicolons in URLs.
+     *
+     * @return the semicolon replacement string
+     */
     public String getSemicolonStr() {
         return semicolonStr;
     }
 
+    /**
+     * Sets the replacement string for semicolons in URLs.
+     *
+     * @param semicolonStr the semicolon replacement string to set
+     */
     public void setSemicolonStr(final String semicolonStr) {
         this.semicolonStr = semicolonStr;
     }
 
+    /**
+     * Gets the replacement string for ampersands in URLs.
+     *
+     * @return the ampersand replacement string
+     */
     public String getAmpersandStr() {
         return ampersandStr;
     }
 
+    /**
+     * Sets the replacement string for ampersands in URLs.
+     *
+     * @param ampersandStr the ampersand replacement string to set
+     */
     public void setAmpersandStr(final String ampersandStr) {
         this.ampersandStr = ampersandStr;
     }
 
+    /**
+     * Gets the maximum number of duplicated paths to attempt.
+     *
+     * @return the maximum duplicated path count
+     */
     public int getMaxDuplicatedPath() {
         return maxDuplicatedPath;
     }
 
+    /**
+     * Sets the maximum number of duplicated paths to attempt.
+     *
+     * @param maxDuplicatedPath the maximum duplicated path count to set
+     */
     public void setMaxDuplicatedPath(final int maxDuplicatedPath) {
         this.maxDuplicatedPath = maxDuplicatedPath;
     }
 
+    /**
+     * Gets the character set name used for encoding file paths.
+     *
+     * @return the character set name
+     */
     public String getCharsetName() {
         return charsetName;
     }
 
+    /**
+     * Sets the charset name.
+     * @param charsetName The charset name to set.
+     */
     public void setCharsetName(final String charsetName) {
         this.charsetName = charsetName;
     }

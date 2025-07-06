@@ -31,12 +31,19 @@ import org.codelibs.fess.crawler.exception.ExtractException;
  *
  */
 public class MsExcelExtractor extends AbstractExtractor {
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.codelibs.fess.crawler.extractor.impl.Extractor#getText(java.io.InputStream,
-     * java.util.Map)
+
+    /**
+     * Creates a new MsExcelExtractor instance.
+     */
+    public MsExcelExtractor() {
+        super();
+    }
+
+    /**
+     * Extracts text from the Excel input stream.
+     * @param in The input stream.
+     * @param params The parameters.
+     * @return The extracted data.
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {

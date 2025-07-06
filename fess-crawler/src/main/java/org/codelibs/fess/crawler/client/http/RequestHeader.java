@@ -41,8 +41,14 @@ public class RequestHeader implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The name of the request header.
+     */
     private String name;
 
+    /**
+     * The value of the request header.
+     */
     private String value;
 
     /**
@@ -56,22 +62,43 @@ public class RequestHeader implements Serializable {
         this.value = value;
     }
 
+    /**
+     * Returns the name of the request header.
+     * @return The name of the request header.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the request header.
+     * @param name The name of the request header.
+     */
     public void setName(final String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the value of the request header.
+     * @return The value of the request header.
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * Sets the value of the request header.
+     * @param value The value of the request header.
+     */
     public void setValue(final String value) {
         this.value = value;
     }
 
+    /**
+     * Checks if the request header is valid.
+     * A header is considered valid if its name is not blank and its value is not null.
+     * @return true if the header is valid, false otherwise.
+     */
     public boolean isValid() {
         if (StringUtil.isBlank(name) || value == null) {
             return false;

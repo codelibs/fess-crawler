@@ -52,9 +52,21 @@ import jakarta.annotation.Resource;
  * </p>
  */
 public class SitemapsResponseProcessor implements ResponseProcessor {
+    /** The crawler container for component lookup. */
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /**
+     * Creates a new SitemapsResponseProcessor instance.
+     */
+    public SitemapsResponseProcessor() {
+        super();
+    }
+
+    /**
+     * Processes the given response data, extracting URLs from sitemaps.
+     * @param responseData The response data.
+     */
     @Override
     public void process(final ResponseData responseData) {
         final SitemapsHelper sitemapsHelper = crawlerContainer.getComponent("sitemapsHelper");

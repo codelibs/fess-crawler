@@ -93,15 +93,29 @@ import org.xml.sax.InputSource;
  *
  */
 public class XpathTransformer extends HtmlTransformer {
+
+    /**
+     * Creates a new XpathTransformer instance.
+     */
+    public XpathTransformer() {
+        super();
+    }
+
     private static final Logger logger = LogManager.getLogger(XpathTransformer.class);
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+", Pattern.MULTILINE);
 
+    /**
+     * A map of field rules, where the key is the field name and the value is the XPath expression.
+     */
     protected Map<String, String> fieldRuleMap = new LinkedHashMap<>();
 
     /** Flag to enable or disable trimming of whitespace characters. */
     protected boolean trimSpaceEnabled = true;
 
+    /**
+     * The charset name for the output.
+     */
     protected String charsetName = Constants.UTF_8;
 
     /**
@@ -184,17 +198,33 @@ public class XpathTransformer extends HtmlTransformer {
         resultData.setEncoding(charsetName);
     }
 
+    /**
+     * Returns the result data header.
+     * @return The result data header.
+     */
     protected String getResultDataHeader() {
         // TODO: Support other XML header types
         return "<?xml version=\"1.0\"?>\n<doc>\n";
     }
 
+    /**
+     * Returns the result data body for a single value.
+     * @param name The name of the field.
+     * @param value The value of the field.
+     * @return The result data body.
+     */
     protected String getResultDataBody(final String name, final String value) {
         // TODO: Support other XML footer types
         // TODO: Support other field types and trimming options
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">" + trimSpace(XmlUtil.escapeXml(value != null ? value : "")) + "</field>\n";
     }
 
+    /**
+     * Returns the result data body for multiple values.
+     * @param name The name of the field.
+     * @param values The list of values for the field.
+     * @return The result data body.
+     */
     protected String getResultDataBody(final String name, final List<String> values) {
         final StringBuilder buf = new StringBuilder();
         buf.append("<list>");
@@ -211,15 +241,30 @@ public class XpathTransformer extends HtmlTransformer {
         return "<field name=\"" + XmlUtil.escapeXml(name) + "\">" + buf.toString().trim() + "</field>\n";
     }
 
+    /**
+     * Returns the additional data for the response.
+     * @param responseData The response data.
+     * @param document The document.
+     * @return The additional data.
+     */
     protected String getAdditionalData(final ResponseData responseData, final Document document) {
         return "";
     }
 
+    /**
+     * Returns the result data footer.
+     * @return The result data footer.
+     */
     protected String getResultDataFooter() {
         // TODO support other type
         return "</doc>";
     }
 
+    /**
+     * Trims space characters from the value.
+     * @param value The value to trim.
+     * @return The trimmed value.
+     */
     protected String trimSpace(final String value) {
         if (trimSpaceEnabled) {
             final Matcher matcher = SPACE_PATTERN.matcher(value);
@@ -228,6 +273,11 @@ public class XpathTransformer extends HtmlTransformer {
         return value;
     }
 
+    /**
+     * Adds a field rule to the transformer.
+     * @param name The name of the field.
+     * @param xpath The XPath expression for the field.
+     */
     public void addFieldRule(final String name, final String xpath) {
         fieldRuleMap.put(name, xpath);
     }
@@ -257,34 +307,66 @@ public class XpathTransformer extends HtmlTransformer {
         }
     }
 
+    /**
+     * Returns the field rule map.
+     * @return The field rule map.
+     */
     public Map<String, String> getFieldRuleMap() {
         return fieldRuleMap;
     }
 
+    /**
+     * Sets the field rule map.
+     * @param fieldRuleMap The field rule map to set.
+     */
     public void setFieldRuleMap(final Map<String, String> fieldRuleMap) {
         this.fieldRuleMap = fieldRuleMap;
     }
 
+    /**
+     * Returns whether space trimming is enabled.
+     * @return True if space trimming is enabled, false otherwise.
+     */
     public boolean isTrimSpace() {
         return trimSpaceEnabled;
     }
 
+    /**
+     * Sets whether space trimming is enabled.
+     * @param trimSpace The trim space flag to set.
+     */
     public void setTrimSpace(final boolean trimSpace) {
         trimSpaceEnabled = trimSpace;
     }
 
+    /**
+     * Returns the charset name.
+     * @return The charset name.
+     */
     public String getCharsetName() {
         return charsetName;
     }
 
+    /**
+     * Sets the charset name.
+     * @param charsetName The charset name to set.
+     */
     public void setCharsetName(final String charsetName) {
         this.charsetName = charsetName;
     }
 
+    /**
+     * Returns the data class.
+     * @return The data class.
+     */
     public Class<?> getDataClass() {
         return dataClass;
     }
 
+    /**
+     * Sets the data class.
+     * @param dataClass The data class to set.
+     */
     public void setDataClass(final Class<?> dataClass) {
         this.dataClass = dataClass;
     }

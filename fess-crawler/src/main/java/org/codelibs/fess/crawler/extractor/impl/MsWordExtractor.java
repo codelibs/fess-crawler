@@ -31,11 +31,18 @@ import org.codelibs.fess.crawler.exception.ExtractException;
  */
 public class MsWordExtractor extends AbstractExtractor {
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.extractor.Extractor#getText(java.io.InputStream,
-     * java.util.Map)
+    /**
+     * Creates a new MsWordExtractor instance.
+     */
+    public MsWordExtractor() {
+        super();
+    }
+
+    /**
+     * Extracts text from the Word input stream.
+     * @param in The input stream.
+     * @param params The parameters.
+     * @return The extracted data.
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {

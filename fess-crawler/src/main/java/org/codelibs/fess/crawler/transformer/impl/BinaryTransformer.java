@@ -50,12 +50,17 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
  */
 public class BinaryTransformer extends AbstractTransformer {
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.codelibs.fess.crawler.transformer.Transformer#getData(org.codelibs.fess.crawler.entity
-     * .AccessResultData)
+    /**
+     * Constructs a new BinaryTransformer.
+     */
+    public BinaryTransformer() {
+        // NOP
+    }
+
+    /**
+     * Transforms the given ResponseData into a ResultData containing binary content.
+     * @param responseData The response data to be transformed.
+     * @return The transformed ResultData.
      */
     @Override
     public ResultData transform(final ResponseData responseData) {
@@ -76,12 +81,10 @@ public class BinaryTransformer extends AbstractTransformer {
 
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.codelibs.fess.crawler.transformer.Transformer#getData(org.codelibs.fess.crawler.entity
-     * .AccessResultData)
+    /**
+     * Retrieves data from the given AccessResultData object as a ByteArrayInputStream.
+     * @param accessResultData The AccessResultData object.
+     * @return A ByteArrayInputStream containing the data.
      */
     @Override
     public Object getData(final AccessResultData<?> accessResultData) {

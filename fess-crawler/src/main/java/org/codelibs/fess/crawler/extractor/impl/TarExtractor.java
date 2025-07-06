@@ -37,16 +37,28 @@ import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
 import jakarta.annotation.Resource;
 
 /**
- * @author shinsuke
- *
+ * Extracts text content from TAR archives.
  */
 public class TarExtractor extends AbstractExtractor {
     private static final Logger logger = LogManager.getLogger(TarExtractor.class);
 
+    /**
+     * The archive stream factory.
+     */
     @Resource
     protected ArchiveStreamFactory archiveStreamFactory;
 
+    /**
+     * Maximum content size.
+     */
     protected long maxContentSize = -1;
+
+    /**
+     * Creates a new TarExtractor instance.
+     */
+    public TarExtractor() {
+        super();
+    }
 
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
@@ -59,6 +71,14 @@ public class TarExtractor extends AbstractExtractor {
         return new ExtractData(getTextInternal(in, mimeTypeHelper, extractorFactory));
     }
 
+    /**
+     * Returns a text from the input stream.
+     *
+     * @param in The input stream.
+     * @param mimeTypeHelper The mime type helper.
+     * @param extractorFactory The extractor factory.
+     * @return A text.
+     */
     protected String getTextInternal(final InputStream in, final MimeTypeHelper mimeTypeHelper, final ExtractorFactory extractorFactory) {
 
         final StringBuilder buf = new StringBuilder(1000);
@@ -105,6 +125,10 @@ public class TarExtractor extends AbstractExtractor {
         return buf.toString().trim();
     }
 
+    /**
+     * Sets the maximum content size.
+     * @param maxContentSize The maximum content size to set.
+     */
     public void setMaxContentSize(final long maxContentSize) {
         this.maxContentSize = maxContentSize;
     }

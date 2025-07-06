@@ -56,6 +56,13 @@ public abstract class AbstractIntervalController implements IntervalController {
      */
     protected boolean ignoreException = true;
 
+    /**
+     * Constructs a new AbstractIntervalController.
+     */
+    public AbstractIntervalController() {
+        // NOP
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -92,18 +99,38 @@ public abstract class AbstractIntervalController implements IntervalController {
         }
     }
 
+    /**
+     * Delays the crawling process before processing a URL.
+     */
     protected abstract void delayBeforeProcessing();
 
+    /**
+     * Delays the crawling process after processing a URL.
+     */
     protected abstract void delayAfterProcessing();
 
+    /**
+     * Delays the crawling process when there are no URLs in the queue.
+     */
     protected abstract void delayAtNoUrlInQueue();
 
+    /**
+     * Delays the crawling process while waiting for new URLs to be added to the queue.
+     */
     protected abstract void delayForWaitingNewUrl();
 
+    /**
+     * Checks if exceptions during the delay process should be ignored.
+     * @return true if exceptions should be ignored, false otherwise.
+     */
     public boolean isIgnoreException() {
         return ignoreException;
     }
 
+    /**
+     * Sets whether to ignore exceptions.
+     * @param ignoreException true to ignore exceptions, false otherwise.
+     */
     public void setIgnoreException(final boolean ignoreException) {
         this.ignoreException = ignoreException;
     }

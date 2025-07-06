@@ -17,8 +17,17 @@ package org.codelibs.fess.crawler.container;
 
 import org.lastaflute.di.core.factory.SingletonLaContainerFactory;
 
+/**
+ * LastaFlute implementation of {@link CrawlerContainer}.
+ *
+ * @author shinsuke
+ *
+ */
 public class LastaCrawlerContainer implements CrawlerContainer {
 
+    /**
+     * Creates a new instance of LastaCrawlerContainer.
+     */
     public LastaCrawlerContainer() {
         initialize();
     }

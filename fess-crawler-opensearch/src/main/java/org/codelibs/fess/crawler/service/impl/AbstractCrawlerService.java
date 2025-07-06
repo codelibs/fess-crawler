@@ -85,46 +85,111 @@ import com.google.common.hash.Hashing;
 
 import jakarta.annotation.Resource;
 
+/**
+ * Abstract base class for crawler services that interact with OpenSearch.
+ *
+ * @author shinsuke
+ *
+ */
 public abstract class AbstractCrawlerService {
+    /**
+     * Creates a new instance of AbstractCrawlerService.
+     */
+    public AbstractCrawlerService() {
+        // NOP
+    }
+
     private static final Logger logger = LogManager.getLogger(AbstractCrawlerService.class);
 
     private static final String ID_SEPARATOR = ".";
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
+    /**
+     * Field name for ID.
+     */
     protected static final String ID = "id";
 
+    /**
+     * Field name for session ID.
+     */
     protected static final String SESSION_ID = "sessionId";
 
+    /**
+     * Field name for URL.
+     */
     protected static final String URL = "url";
 
+    /**
+     * Field name for last modified timestamp.
+     */
     protected static final String LAST_MODIFIED = "lastModified";
 
+    /**
+     * Field name for creation time timestamp.
+     */
     protected static final String CREATE_TIME = "createTime";
 
+    /**
+     * Document type.
+     */
     protected static final String _DOC = "_doc";
 
+    /**
+     * Fields that store timestamps.
+     */
     protected static final String[] timestampFields = { LAST_MODIFIED, CREATE_TIME };
 
+    /**
+     * Hash function for generating IDs.
+     */
     protected static final HashFunction murmur3Hash = Hashing.murmur3_128(0);
 
+    /**
+     * FesenClient instance.
+     */
     @Resource
     protected volatile FesenClient fesenClient;
 
+    /**
+     * Index name.
+     */
     protected String index;
 
+    /**
+     * Scroll timeout in milliseconds.
+     */
     protected int scrollTimeout = 60000;
 
+    /**
+     * Scroll size for search requests.
+     */
     protected int scrollSize = 100;
 
+    /**
+     * Buffer size for bulk operations.
+     */
     protected int bulkBufferSize = 10;
 
+    /**
+     * Number of shards for the index.
+     */
     protected int numberOfShards = 5;
 
+    /**
+     * Number of replicas for the index.
+     */
     protected int numberOfReplicas = 1;
 
+    /**
+     * Prefix length for generated IDs.
+     */
     protected int idPrefixLength = 445;
 
+    /**
+     * Returns the FesenClient instance, connecting if not already connected.
+     * @return The FesenClient instance.
+     */
     protected FesenClient getClient() {
         if (!fesenClient.connected()) {
             synchronized (fesenClient) {
@@ -136,6 +201,13 @@ public abstract class AbstractCrawlerService {
         return fesenClient;
     }
 
+    /**
+     * Creates the OpenSearch index mapping for the specified mapping name.
+     * If the index doesn't exist, it will be created with the configured number of shards and replicas.
+     * If the mapping doesn't exist, it will be created from the JSON file in the mapping directory.
+     *
+     * @param mappingName The name of the mapping to create.
+     */
     protected void createMapping(final String mappingName) {
         boolean exists = false;
         try {
@@ -180,6 +252,14 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Extracts a Date object from the source map using the specified field name.
+     * Handles various date formats including Date objects, timestamp numbers, and ISO date strings.
+     *
+     * @param sourceMap The source map containing the date field.
+     * @param name The name of the date field.
+     * @return The Date object, or null if the field doesn't contain a valid date.
+     */
     protected Date getDateFromSource(final Map<String, Object> sourceMap, final String name) {
         final Object obj = sourceMap.get(name);
         if (obj instanceof Date) {
@@ -202,6 +282,13 @@ public abstract class AbstractCrawlerService {
         return null;
     }
 
+    /**
+     * Converts the target object to an XContentBuilder for OpenSearch indexing.
+     *
+     * @param target The object to convert to JSON.
+     * @return The XContentBuilder containing the JSON representation of the target.
+     * @throws OpenSearchAccessException if the conversion fails.
+     */
     protected XContentBuilder getXContentBuilder(final Object target) {
         try {
             final XContentBuilder builder = jsonBuilder().value(target);
@@ -212,6 +299,12 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Refreshes the OpenSearch index to make recent changes visible for search.
+     *
+     * @return The RefreshResponse from OpenSearch.
+     * @throws OpenSearchAccessException if the refresh operation fails.
+     */
     protected RefreshResponse refresh() {
         try {
             return getClient().get(c -> c.admin().indices().prepareRefresh(index).execute());
@@ -220,6 +313,15 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Inserts a single document into the OpenSearch index.
+     *
+     * @param target The object to insert.
+     * @param opType The operation type (CREATE, INDEX, etc.).
+     * @return The IndexResponse from OpenSearch.
+     * @throws OpenSearchAccessException if the insertion fails.
+     * @throws CrawlingAccessException if there's a conflict during insertion.
+     */
     protected IndexResponse insert(final Object target, final OpType opType) {
         final String url = getUrl(target);
         if (url == null) {
@@ -241,10 +343,27 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Inserts multiple documents into the OpenSearch index using bulk operations.
+     *
+     * @param <T> The type of objects to insert.
+     * @param list The list of objects to insert.
+     * @param opType The operation type (CREATE, INDEX, etc.).
+     * @throws OpenSearchAccessException if the bulk insertion fails.
+     */
     protected <T> void insertAll(final List<T> list, final OpType opType) {
         insertAll(list, opType, false);
     }
 
+    /**
+     * Inserts multiple documents into the OpenSearch index using bulk operations.
+     *
+     * @param <T> The type of objects to insert.
+     * @param list The list of objects to insert.
+     * @param opType The operation type (CREATE, INDEX, etc.).
+     * @param ignoreAlreadyExists Whether to ignore conflicts when documents already exist.
+     * @throws OpenSearchAccessException if the bulk insertion fails.
+     */
     protected <T> void insertAll(final List<T> list, final OpType opType, final boolean ignoreAlreadyExists) {
         final List<T> bufferedList = new ArrayList<>(bulkBufferSize);
         final StringBuilder failureBuf = new StringBuilder(100);
@@ -275,6 +394,13 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Builds a failure message from a bulk response containing failed operations.
+     *
+     * @param bulkResponse The bulk response containing potential failures.
+     * @param ignoreAlreadyExists Whether to ignore already existing document failures.
+     * @return The formatted failure message, or empty string if no failures to report.
+     */
     protected String buildFailureMessage(final BulkResponse bulkResponse, final boolean ignoreAlreadyExists) {
         final StringBuilder sb = new StringBuilder(100);
         final BulkItemResponse[] responses = bulkResponse.getItems();
@@ -294,6 +420,15 @@ public abstract class AbstractCrawlerService {
         return StringUtil.EMPTY;
     }
 
+    /**
+     * Performs the actual bulk insertion of documents into the OpenSearch index.
+     *
+     * @param <T> The type of objects to insert.
+     * @param list The list of objects to insert.
+     * @param opType The operation type (CREATE, INDEX, etc.).
+     * @return The BulkResponse from OpenSearch.
+     * @throws OpenSearchAccessException if the bulk insertion fails.
+     */
     protected <T> BulkResponse doInsertAll(final List<T> list, final OpType opType) {
         try {
             return getClient().get(c -> {
@@ -313,6 +448,14 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Checks if a document exists in the OpenSearch index for the given session ID and URL.
+     *
+     * @param sessionId The session ID of the document.
+     * @param url The URL of the document.
+     * @return true if the document exists, false otherwise.
+     * @throws OpenSearchAccessException if the existence check fails.
+     */
     protected boolean exists(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
@@ -323,6 +466,12 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Gets the count of documents matching the search criteria.
+     *
+     * @param callback The callback to configure the search request.
+     * @return The number of matching documents.
+     */
     public int getCount(final Consumer<SearchRequestBuilder> callback) {
         final TotalHits totalHits = getClient().get(c -> {
             final SearchRequestBuilder builder = c.prepareSearch(index).setSize(0).setTrackTotalHits(true);
@@ -332,6 +481,16 @@ public abstract class AbstractCrawlerService {
         return totalHits != null ? (int) totalHits.value() : 0;
     }
 
+    /**
+     * Retrieves a single document from the OpenSearch index by session ID and URL.
+     *
+     * @param <T> The type of the object to retrieve.
+     * @param clazz The class of the object to retrieve.
+     * @param sessionId The session ID of the document.
+     * @param url The URL of the document.
+     * @return The retrieved object, or null if not found.
+     * @throws OpenSearchAccessException if the retrieval fails.
+     */
     protected <T> T get(final Class<T> clazz, final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         final GetResponse response = getClient().get(c -> c.prepareGet().setIndex(index).setId(id).execute());
@@ -352,6 +511,18 @@ public abstract class AbstractCrawlerService {
         return null;
     }
 
+    /**
+     * Retrieves a list of documents from the OpenSearch index based on the specified criteria.
+     *
+     * @param <T> The type of objects to retrieve.
+     * @param clazz The class of the objects to retrieve.
+     * @param sessionId The session ID to filter by (optional).
+     * @param queryBuilder The query builder for search criteria (optional).
+     * @param from The starting index for pagination (optional).
+     * @param size The maximum number of results to return (optional).
+     * @param sortBuilders The sort builders for ordering results (optional).
+     * @return The list of retrieved objects.
+     */
     protected <T> List<T> getList(final Class<T> clazz, final String sessionId, final QueryBuilder queryBuilder, final Integer from,
             final Integer size, final SortBuilder<?>... sortBuilders) {
         return getList(clazz, builder -> {
@@ -384,6 +555,14 @@ public abstract class AbstractCrawlerService {
         });
     }
 
+    /**
+     * Retrieves a list of documents from the OpenSearch index using a custom search request builder.
+     *
+     * @param <T> The type of objects to retrieve.
+     * @param clazz The class of the objects to retrieve.
+     * @param callback The callback to configure the search request.
+     * @return The list of retrieved objects with search metadata.
+     */
     protected <T> List<T> getList(final Class<T> clazz, final Consumer<SearchRequestBuilder> callback) {
         final SearchResponse response = getClient().get(c -> {
             final SearchRequestBuilder builder = c.prepareSearch(index);
@@ -419,6 +598,14 @@ public abstract class AbstractCrawlerService {
         return targetList;
     }
 
+    /**
+     * Deletes a document from the OpenSearch index by session ID and URL.
+     *
+     * @param sessionId The session ID of the document to delete.
+     * @param url The URL of the document to delete.
+     * @return true if the document was deleted, false otherwise.
+     * @throws OpenSearchAccessException if the deletion fails.
+     */
     protected boolean delete(final String sessionId, final String url) {
         final String id = getId(sessionId, url);
         try {
@@ -430,14 +617,29 @@ public abstract class AbstractCrawlerService {
         }
     }
 
+    /**
+     * Deletes all documents with the specified session ID from the OpenSearch index.
+     *
+     * @param sessionId The session ID of the documents to delete.
+     */
     protected void deleteBySessionId(final String sessionId) {
         delete(builder -> builder.setQuery(QueryBuilders.termQuery(SESSION_ID, sessionId)));
     }
 
+    /**
+     * Deletes all documents from the OpenSearch index.
+     */
     public void deleteAll() {
         delete(builder -> builder.setQuery(QueryBuilders.matchAllQuery()));
     }
 
+    /**
+     * Deletes documents from the OpenSearch index based on the specified search criteria.
+     * Uses scroll and bulk delete operations for efficient deletion of large result sets.
+     *
+     * @param callback The callback to configure the search request for identifying documents to delete.
+     * @throws OpenSearchAccessException if the deletion fails.
+     */
     public void delete(final Consumer<SearchRequestBuilder> callback) {
         SearchResponse response = getClient().get(c -> {
             final SearchRequestBuilder builder = c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
@@ -478,6 +680,14 @@ public abstract class AbstractCrawlerService {
         refresh();
     }
 
+    /**
+     * Generates a unique ID for a document based on session ID and URL.
+     * Uses hashing for long IDs to ensure they fit within OpenSearch limits.
+     *
+     * @param sessionId The session ID.
+     * @param url The URL.
+     * @return The generated unique ID.
+     */
     private String getId(final String sessionId, final String url) {
         final String id = sessionId + ID_SEPARATOR + new String(Base64.getUrlEncoder().withoutPadding().encode(url.getBytes(UTF_8)), UTF_8);
         if (id.length() <= idPrefixLength) {
@@ -486,6 +696,12 @@ public abstract class AbstractCrawlerService {
         return id.substring(0, idPrefixLength) + MessageDigestUtil.digest("SHA-256", id.substring(idPrefixLength));
     }
 
+    /**
+     * Extracts the URL from the target object using reflection.
+     *
+     * @param target The target object.
+     * @return The URL string, or null if not found.
+     */
     private String getUrl(final Object target) {
         final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(target.getClass());
         final PropertyDesc sessionIdProp = beanDesc.getPropertyDesc(URL);
@@ -493,6 +709,12 @@ public abstract class AbstractCrawlerService {
         return sessionId == null ? null : sessionId.toString();
     }
 
+    /**
+     * Extracts the session ID from the target object using reflection.
+     *
+     * @param target The target object.
+     * @return The session ID string, or null if not found.
+     */
     private String getSessionId(final Object target) {
         final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(target.getClass());
         final PropertyDesc sessionIdProp = beanDesc.getPropertyDesc(SESSION_ID);
@@ -500,39 +722,93 @@ public abstract class AbstractCrawlerService {
         return sessionId == null ? null : sessionId.toString();
     }
 
+    /**
+     * Sets the ID on the target object using reflection.
+     *
+     * @param target The target object.
+     * @param id The ID to set.
+     */
     protected void setId(final Object target, final String id) {
         final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(target.getClass());
         final PropertyDesc idProp = beanDesc.getPropertyDesc(ID);
         idProp.setValue(target, id);
     }
 
+    /**
+     * Gets the OpenSearch index name.
+     *
+     * @return The index name.
+     */
     public String getIndex() {
         return index;
     }
 
+    /**
+     * Sets the OpenSearch index name.
+     *
+     * @param index The index name.
+     */
     public void setIndex(final String index) {
         this.index = index;
     }
 
+    /**
+     * Gets the scroll timeout in milliseconds.
+     *
+     * @return The scroll timeout.
+     */
     public int getScrollTimeout() {
         return scrollTimeout;
     }
 
+    /**
+     * Sets the scroll timeout.
+     * @param scrollTimeout The scroll timeout.
+     */
     public void setScrollTimeout(final int scrollTimeout) {
         this.scrollTimeout = scrollTimeout;
     }
 
+    /**
+     * Gets the scroll size for search operations.
+     *
+     * @return The scroll size.
+     */
     public int getScrollSize() {
         return scrollSize;
     }
 
+    /**
+     * Sets the scroll size for search operations.
+     *
+     * @param scrollSize The scroll size.
+     */
     public void setScrollSize(final int scrollSize) {
         this.scrollSize = scrollSize;
     }
 
+    /**
+     * Converter for handling timestamps in OpenSearch.
+     */
     protected static class EsTimestampConverter implements Converter {
+        /**
+         * Creates a new instance of EsTimestampConverter.
+         */
+        public EsTimestampConverter() {
+            // NOP
+        }
+
+        /**
+         * Default date time formatter for ISO 8601 format with UTC timezone.
+         */
         public static final DateTimeFormatter DEFAULT_DATE_PRINTER = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
 
+        /**
+         * Converts a Date object to its string representation in ISO 8601 format.
+         *
+         * @param value The Date object to convert.
+         * @return The ISO 8601 formatted date string, or null if value is not a Date.
+         */
         @Override
         public String getAsString(final Object value) {
             if (value instanceof Date) {
@@ -541,6 +817,12 @@ public abstract class AbstractCrawlerService {
             return null;
         }
 
+        /**
+         * Converts a string representation of a date to a Timestamp object.
+         *
+         * @param value The ISO 8601 formatted date string.
+         * @return The Timestamp object, or null if the string is empty.
+         */
         @Override
         public Object getAsObject(final String value) {
             if (StringUtil.isEmpty(value)) {
@@ -549,6 +831,12 @@ public abstract class AbstractCrawlerService {
             return new Timestamp(DEFAULT_DATE_PRINTER.parseMillis(value));
         }
 
+        /**
+         * Determines if this converter can handle the specified class.
+         *
+         * @param clazz The class to check.
+         * @return true if the class is Date.class, false otherwise.
+         */
         @Override
         public boolean isTarget(@SuppressWarnings("rawtypes") final Class clazz) {
             return clazz == Date.class;
@@ -556,22 +844,47 @@ public abstract class AbstractCrawlerService {
 
     }
 
+    /**
+     * Gets the bulk buffer size for batch operations.
+     *
+     * @return The bulk buffer size.
+     */
     public int getBulkBufferSize() {
         return bulkBufferSize;
     }
 
+    /**
+     * Sets the bulk buffer size for batch operations.
+     *
+     * @param bulkBufferSize The bulk buffer size.
+     */
     public void setBulkBufferSize(final int bulkBufferSize) {
         this.bulkBufferSize = bulkBufferSize;
     }
 
+    /**
+     * Sets the number of shards for the OpenSearch index.
+     *
+     * @param numberOfShards The number of shards.
+     */
     public void setNumberOfShards(final int numberOfShards) {
         this.numberOfShards = numberOfShards;
     }
 
+    /**
+     * Sets the number of replicas for the OpenSearch index.
+     *
+     * @param numberOfReplicas The number of replicas.
+     */
     public void setNumberOfReplicas(final int numberOfReplicas) {
         this.numberOfReplicas = numberOfReplicas;
     }
 
+    /**
+     * Sets the prefix length for generated document IDs.
+     *
+     * @param idPrefixLength The prefix length.
+     */
     public void setIdPrefixLength(final int idPrefixLength) {
         this.idPrefixLength = idPrefixLength;
     }

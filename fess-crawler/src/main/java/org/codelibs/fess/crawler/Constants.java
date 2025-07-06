@@ -25,44 +25,104 @@ import java.nio.charset.StandardCharsets;
  * It is designed to avoid the instantiation.
  */
 public final class Constants {
+    /**
+     * The GET method.
+     */
     public static final String GET_METHOD = "GET";
 
+    /**
+     * The HEAD method.
+     */
     public static final String HEAD_METHOD = "HEAD";
 
+    /**
+     * The POST method.
+     */
     public static final String POST_METHOD = "POST";
 
+    /**
+     * The status code for OK.
+     */
     public static final int OK_STATUS = 0;
 
+    /**
+     * The status code for Not Modified.
+     */
     public static final int NOT_MODIFIED_STATUS = 304;
 
+    /**
+     * The HTTP status code for OK.
+     */
     public static final int OK_STATUS_CODE = 200;
 
+    /**
+     * The HTTP status code for Not Modified.
+     */
     public static final int NOT_MODIFIED_STATUS_CODE = 304;
 
+    /**
+     * The HTTP status code for Bad Request.
+     */
     public static final int BAD_REQUEST_STATUS_CODE = 400;
 
+    /**
+     * The HTTP status code for Forbidden.
+     */
     public static final int FORBIDDEN_STATUS_CODE = 403;
 
+    /**
+     * The HTTP status code for Not Found.
+     */
     public static final int NOT_FOUND_STATUS_CODE = 404;
 
+    /**
+     * The HTTP status code for Server Error.
+     */
     public static final int SERVER_ERROR_STATUS_CODE = 500;
 
+    /**
+     * A constant for no transformer.
+     */
     public static final String NO_TRANSFORMER = "NONE";
 
+    /**
+     * A constant for "false".
+     */
     public static final String FALSE = "false";
 
+    /**
+     * A constant for "UTF-8".
+     */
     public static final String UTF_8 = "UTF-8";
 
+    /**
+     * A constant for UTF-8 charset.
+     */
     public static final Charset UTF_8_CHARSET = StandardCharsets.UTF_8;
 
+    /**
+     * The default charset.
+     */
     public static final Charset DEFAULT_CHARSET;
 
+    /**
+     * The ISO date-time format.
+     */
     public static final String ISO_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
+    /**
+     * The feature for secure processing in XML.
+     */
     public static final String FEATURE_SECURE_PROCESSING = "http://javax.xml.XMLConstants/feature/secure-processing";
 
+    /**
+     * The feature for external general entities in XML.
+     */
     public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
 
+    /**
+     * Feature for external parameter entities in XML.
+     */
     public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
 
     static {

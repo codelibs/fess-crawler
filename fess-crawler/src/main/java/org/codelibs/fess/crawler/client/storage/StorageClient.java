@@ -243,8 +243,13 @@ public class StorageClient extends AbstractCrawlerClient {
             final StatObjectResponse statObject = getStatObject(bucketName, path);
             if (statObject == null) {
                 final Set<RequestData> requestDataSet = new HashSet<>();
-                final ListObjectsArgs args = ListObjectsArgs.builder().bucket(bucketName).prefix(path).recursive(false)
-                        .includeUserMetadata(false).useApiVersion1(false).build();
+                final ListObjectsArgs args = ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .prefix(path)
+                        .recursive(false)
+                        .includeUserMetadata(false)
+                        .useApiVersion1(false)
+                        .build();
                 for (final Result<Item> result : minioClient.listObjects(args)) {
                     final Item item = result.get();
                     final String objectName = item.objectName();

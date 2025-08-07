@@ -329,8 +329,13 @@ public abstract class AbstractCrawlerService {
         }
         final String id = getId(getSessionId(target), url);
         try (final XContentBuilder source = getXContentBuilder(target)) {
-            final IndexResponse response = getClient().get(c -> c.prepareIndex().setIndex(index).setId(id).setSource(source)
-                    .setOpType(opType).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute());
+            final IndexResponse response = getClient().get(c -> c.prepareIndex()
+                    .setIndex(index)
+                    .setId(id)
+                    .setSource(source)
+                    .setOpType(opType)
+                    .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
+                    .execute());
             setId(target, id);
             return response;
         } catch (final OpenSearchStatusException e) {
@@ -410,8 +415,15 @@ public abstract class AbstractCrawlerService {
                 if (ignoreAlreadyExists) {
                     continue;
                 }
-                sb.append("\n[").append(i).append("]: index [").append(response.getIndex()).append("], id [").append(response.getId())
-                        .append("], message [").append(response.getFailureMessage()).append("]");
+                sb.append("\n[")
+                        .append(i)
+                        .append("]: index [")
+                        .append(response.getIndex())
+                        .append("], id [")
+                        .append(response.getId())
+                        .append("], message [")
+                        .append(response.getFailureMessage())
+                        .append("]");
             }
         }
         if (sb.length() > 0) {

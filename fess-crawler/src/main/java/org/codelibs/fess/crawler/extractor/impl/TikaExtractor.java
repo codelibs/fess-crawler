@@ -569,8 +569,13 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
             try (Reader reader = new InputStreamReader(getContentStream(dfos), enc)) {
                 if (normalizeText) {
-                    return TextUtil.normalizeText(reader).initialCapacity(initialBufferSize).maxAlphanumTermSize(maxAlphanumTermSize)
-                            .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(replaceDuplication).spaceChars(spaceChars).execute();
+                    return TextUtil.normalizeText(reader)
+                            .initialCapacity(initialBufferSize)
+                            .maxAlphanumTermSize(maxAlphanumTermSize)
+                            .maxSymbolTermSize(maxSymbolTermSize)
+                            .duplicateTermRemoved(replaceDuplication)
+                            .spaceChars(spaceChars)
+                            .execute();
                 }
                 return ReaderUtil.readText(reader);
             }

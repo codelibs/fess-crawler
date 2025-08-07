@@ -227,8 +227,11 @@ public class CrawlerThread implements Runnable {
                             log(logHelper, LogType.GET_CONTENT, crawlerContext, urlQueue);
                             // access an url
                             final long startTime = SystemUtil.currentTimeMillis();
-                            responseData = client.execute(RequestDataBuilder.newRequestData().method(urlQueue.getMethod())
-                                    .url(urlQueue.getUrl()).weight(urlQueue.getWeight()).build());
+                            responseData = client.execute(RequestDataBuilder.newRequestData()
+                                    .method(urlQueue.getMethod())
+                                    .url(urlQueue.getUrl())
+                                    .weight(urlQueue.getWeight())
+                                    .build());
                             responseData.setExecutionTime(SystemUtil.currentTimeMillis() - startTime);
                             responseData.setParentUrl(urlQueue.getParentUrl());
                             responseData.setSessionId(crawlerContext.sessionId);
@@ -417,7 +420,8 @@ public class CrawlerThread implements Runnable {
                     uq.setUrl(d.getUrl());
                     uq.setWeight(d.getWeight());
                     return uq;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 

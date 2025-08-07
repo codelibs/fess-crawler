@@ -140,7 +140,10 @@ public class TextUtilTest extends PlainTestCase {
 
     public static String normalizeText(final Reader reader, final int initialCapacity, final int maxAlphanumTermSize,
             final int maxSymbolTermSize, final boolean removeDuplication) {
-        return new TextNormalizeContext(reader).initialCapacity(initialCapacity).maxAlphanumTermSize(maxAlphanumTermSize)
-                .maxSymbolTermSize(maxSymbolTermSize).duplicateTermRemoved(removeDuplication).execute();
+        return new TextNormalizeContext(reader).initialCapacity(initialCapacity)
+                .maxAlphanumTermSize(maxAlphanumTermSize)
+                .maxSymbolTermSize(maxSymbolTermSize)
+                .duplicateTermRemoved(removeDuplication)
+                .execute();
     }
 }

@@ -42,7 +42,8 @@ public class LhaExtractorTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class).singleton("tikaExtractor", TikaExtractor.class)
+        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
                 .singleton("lhaExtractor", LhaExtractor.class)
                 .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
                     TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");

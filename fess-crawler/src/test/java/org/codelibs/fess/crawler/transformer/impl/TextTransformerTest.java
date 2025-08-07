@@ -36,7 +36,8 @@ public class TextTransformerTest extends PlainTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("extractorFactory", ExtractorFactory.class)
-                .singleton("textTransformer", TextTransformer.class).singleton("tikaExtractor", TikaExtractor.class);
+                .singleton("textTransformer", TextTransformer.class)
+                .singleton("tikaExtractor", TikaExtractor.class);
         textTransformer = container.getComponent("textTransformer");
         textTransformer.setName("textTransformer");
         ExtractorFactory extractorFactory = container.getComponent("extractorFactory");

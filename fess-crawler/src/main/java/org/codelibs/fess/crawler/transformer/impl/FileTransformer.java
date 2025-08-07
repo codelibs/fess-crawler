@@ -221,8 +221,14 @@ public class FileTransformer extends HtmlTransformer {
      * @return path File path
      */
     protected String getFilePath(final String url) {
-        return url.replaceAll("/+", "/").replace("./", "").replace("../", "").replaceAll("/$", "/index.html").replaceAll("\\?", questionStr)
-                .replaceAll(":", colonStr).replaceAll(";", semicolonStr).replaceAll("&", ampersandStr);
+        return url.replaceAll("/+", "/")
+                .replace("./", "")
+                .replace("../", "")
+                .replaceAll("/$", "/index.html")
+                .replaceAll("\\?", questionStr)
+                .replaceAll(":", colonStr)
+                .replaceAll(";", semicolonStr)
+                .replaceAll("&", ampersandStr);
     }
 
     /**

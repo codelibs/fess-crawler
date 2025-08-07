@@ -126,7 +126,9 @@ public class OpenSearchUrlFilterService extends AbstractCrawlerService implement
                     @Override
                     public List<Pattern> load(final String key) {
                         return getList(OpenSearchUrlFilter.class, key, QueryBuilders.termQuery(FILTER_TYPE, type), null, maxLoadSize, null)
-                                .stream().map(f -> Pattern.compile(f.getUrl())).collect(Collectors.toList());
+                                .stream()
+                                .map(f -> Pattern.compile(f.getUrl()))
+                                .collect(Collectors.toList());
                     }
                 });
     }

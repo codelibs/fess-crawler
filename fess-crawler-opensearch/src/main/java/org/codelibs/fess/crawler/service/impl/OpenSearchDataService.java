@@ -225,8 +225,11 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
      */
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<OpenSearchAccessResult> callback) {
-        SearchResponse response = getClient().get(c -> c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout))
-                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId))).setSize(scrollSize).execute());
+        SearchResponse response = getClient().get(c -> c.prepareSearch(index)
+                .setScroll(new TimeValue(scrollTimeout))
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
+                .setSize(scrollSize)
+                .execute());
         String scrollId = response.getScrollId();
         try {
             while (scrollId != null) {

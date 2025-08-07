@@ -92,24 +92,35 @@ public class CrawlerTest extends PlainTestCase {
         }).prototype("fsClient", FileSystemClient.class).prototype("ruleManager", RuleManagerImpl.class, manager -> {
             manager.addRule(container.getComponent("sitemapsRule"));
             manager.addRule(container.getComponent("fileRule"));
-        }).prototype("accessResult", AccessResultImpl.class).prototype("urlQueue", UrlQueueImpl.class)
-                .prototype("crawlerThread", CrawlerThread.class).prototype("crawler", Crawler.class)
-                .prototype("urlFilterService", UrlFilterServiceImpl.class).prototype("urlQueueService", UrlQueueServiceImpl.class)
-                .prototype("dataService", DataServiceImpl.class).prototype("urlFilter", UrlFilterImpl.class)
-                .singleton("urlConvertHelper", UrlConvertHelper.class).singleton("intervalController", DefaultIntervalController.class)
-                .singleton("sitemapsHelper", SitemapsHelper.class).singleton("logHelper", LogHelperImpl.class)
-                .singleton("encodingHelper", EncodingHelper.class).singleton("contentLengthHelper", ContentLengthHelper.class)
+        })
+                .prototype("accessResult", AccessResultImpl.class)
+                .prototype("urlQueue", UrlQueueImpl.class)
+                .prototype("crawlerThread", CrawlerThread.class)
+                .prototype("crawler", Crawler.class)
+                .prototype("urlFilterService", UrlFilterServiceImpl.class)
+                .prototype("urlQueueService", UrlQueueServiceImpl.class)
+                .prototype("dataService", DataServiceImpl.class)
+                .prototype("urlFilter", UrlFilterImpl.class)
+                .singleton("urlConvertHelper", UrlConvertHelper.class)
+                .singleton("intervalController", DefaultIntervalController.class)
+                .singleton("sitemapsHelper", SitemapsHelper.class)
+                .singleton("logHelper", LogHelperImpl.class)
+                .singleton("encodingHelper", EncodingHelper.class)
+                .singleton("contentLengthHelper", ContentLengthHelper.class)
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
                 .<FileTransformer> singleton("fileTransformer", FileTransformer.class, transformer -> {
                     transformer.setName("fileTransformer");
                     transformer.setFeatureMap(featureMap);
                     transformer.setPropertyMap(propertyMap);
                     transformer.setChildUrlRuleMap(childUrlRuleMap);
-                }).singleton("dataHelper", MemoryDataHelper.class).singleton("robotsTxtHelper", RobotsTxtHelper.class)
+                })
+                .singleton("dataHelper", MemoryDataHelper.class)
+                .singleton("robotsTxtHelper", RobotsTxtHelper.class)
                 .<CrawlerClientFactory> singleton("clientFactory", CrawlerClientFactory.class, factory -> {
                     factory.addClient("http:.*", container.getComponent("httpClient"));
                     factory.addClient("file:.*", container.getComponent("fsClient"));
-                }).singleton("tikaExtractor", TikaExtractor.class)
+                })
+                .singleton("tikaExtractor", TikaExtractor.class)
                 .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
                     TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
                     factory.addExtractor("text/plain", tikaExtractor);

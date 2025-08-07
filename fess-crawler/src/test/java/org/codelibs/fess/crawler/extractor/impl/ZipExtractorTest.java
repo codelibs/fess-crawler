@@ -45,8 +45,10 @@ public class ZipExtractorTest extends PlainTestCase {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.singleton("archiveStreamFactory", ArchiveStreamFactory.class)
-                .singleton("compressorStreamFactory", CompressorStreamFactory.class).singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
-                .singleton("tikaExtractor", TikaExtractor.class).singleton("zipExtractor", ZipExtractor.class)
+                .singleton("compressorStreamFactory", CompressorStreamFactory.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
+                .singleton("zipExtractor", ZipExtractor.class)
                 .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
                     TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
                     ZipExtractor zipExtractor = container.getComponent("zipExtractor");

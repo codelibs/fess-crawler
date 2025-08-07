@@ -48,7 +48,8 @@ public class TikaExtractorTest extends PlainTestCase {
         super.setUp();
 
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class).singleton("tikaExtractor", TikaExtractor.class)
+        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
                 .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
                     TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
                     factory.addExtractor("text/plain", tikaExtractor);

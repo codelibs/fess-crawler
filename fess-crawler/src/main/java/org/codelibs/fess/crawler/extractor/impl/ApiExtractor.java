@@ -232,8 +232,11 @@ public class ApiExtractor extends AbstractExtractor {
 
         final ExtractData data = new ExtractData();
         final HttpPost httpPost = new HttpPost(url);
-        final HttpEntity postEntity = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .setCharset(Charset.forName("UTF-8")).addBinaryBody("filedata", in).build();
+        final HttpEntity postEntity = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                .setCharset(Charset.forName("UTF-8"))
+                .addBinaryBody("filedata", in)
+                .build();
         httpPost.setEntity(postEntity);
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {

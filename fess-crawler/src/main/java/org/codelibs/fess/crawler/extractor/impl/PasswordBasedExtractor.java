@@ -109,7 +109,9 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                         final ObjectMapper mapper = new ObjectMapper();
                         final Map<String, String> passwordMap = mapper.readValue(value, new TypeReference<Map<String, String>>() {
                         });
-                        list = passwordMap.entrySet().stream().map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
+                        list = passwordMap.entrySet()
+                                .stream()
+                                .map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (final Exception e) {
                         logger.warn("Failed to parse passwords for " + url, e);

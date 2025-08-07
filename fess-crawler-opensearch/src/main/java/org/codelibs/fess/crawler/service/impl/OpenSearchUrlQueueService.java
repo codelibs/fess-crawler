@@ -139,8 +139,10 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
      */
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
-        SearchResponse response = getClient().get(c -> c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout))
-                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId))).setSize(scrollSize)
+        SearchResponse response = getClient().get(c -> c.prepareSearch(index)
+                .setScroll(new TimeValue(scrollTimeout))
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
+                .setSize(scrollSize)
                 .execute());
         String scrollId = response.getScrollId();
         try {

@@ -443,11 +443,14 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
         clientConnectionManager = buildConnectionManager(httpClientBuilder);
 
-        connectionMonitorTask = TimeoutManager.getInstance().addTimeoutTarget(
-                new HcConnectionMonitorTarget(clientConnectionManager, idleConnectionTimeout), connectionCheckInterval, true);
+        connectionMonitorTask = TimeoutManager.getInstance()
+                .addTimeoutTarget(new HcConnectionMonitorTarget(clientConnectionManager, idleConnectionTimeout), connectionCheckInterval,
+                        true);
 
         final CloseableHttpClient closeableHttpClient = httpClientBuilder.setDnsResolver(dnsResolver)
-                .setConnectionManager(clientConnectionManager).setDefaultRequestConfig(requestConfigBuilder.build()).build();
+                .setConnectionManager(clientConnectionManager)
+                .setDefaultRequestConfig(requestConfigBuilder.build())
+                .build();
         if (!httpClientPropertyMap.isEmpty()) {
             final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(closeableHttpClient.getClass());
             for (final Map.Entry<String, Object> entry : httpClientPropertyMap.entrySet()) {
@@ -499,7 +502,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
         final LayeredConnectionSocketFactory sslSocketFactory = buildSSLSocketFactory(httpClientBuilder);
         final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create()//
                 .register("http", PlainConnectionSocketFactory.getSocketFactory())//
-                .register("https", sslSocketFactory).build();
+                .register("https", sslSocketFactory)
+                .build();
 
         final long timeToLive = getInitParameter(TIME_TO_LIVE_PROPERTY, 5L, Long.class);
         final TimeUnit timeUnit = TimeUnit.valueOf(getInitParameter(TIME_TO_LIVE_TIME_UNIT_PROPERTY, "MINUTES", String.class));
@@ -886,8 +890,12 @@ public class HcHttpClient extends AbstractCrawlerClient {
                 }
             } else {
                 final InputStream responseBodyStream = httpEntity.getContent();
-                try (final DeferredFileOutputStream dfos = DeferredFileOutputStream.builder().setThreshold((int) maxCachedContentSize)
-                        .setPrefix("crawler-HcHttpClient-").setSuffix(".out").setDirectory(SystemUtils.getJavaIoTmpDir()).get()) {
+                try (final DeferredFileOutputStream dfos = DeferredFileOutputStream.builder()
+                        .setThreshold((int) maxCachedContentSize)
+                        .setPrefix("crawler-HcHttpClient-")
+                        .setSuffix(".out")
+                        .setDirectory(SystemUtils.getJavaIoTmpDir())
+                        .get()) {
                     CopyUtil.copy(responseBodyStream, dfos);
                     dfos.flush();
 

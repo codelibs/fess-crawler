@@ -265,7 +265,8 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     uq.setUrl(d.getUrl());
                     uq.setWeight(d.getWeight());
                     return uq;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
 
         if (!childList.isEmpty()) {
             CrawlingParameterUtil.getUrlQueueService().offerAll(crawlerContext.getSessionId(), childList);

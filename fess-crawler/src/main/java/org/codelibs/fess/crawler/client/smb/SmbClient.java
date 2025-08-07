@@ -456,8 +456,9 @@ public class SmbClient extends AbstractCrawlerClient {
         if (type == SID.SID_TYPE_DOM_GRP || type == SID.SID_TYPE_ALIAS) {
             try {
                 final CIFSContext context = file.getContext();
-                final SID[] children = context.getSIDResolver().getGroupMemberSids(context, file.getServer(), sid.getDomainSid(),
-                        sid.getRid(), jcifs.smb.SID.SID_FLAG_RESOLVE_SIDS);
+                final SID[] children = context.getSIDResolver()
+                        .getGroupMemberSids(context, file.getServer(), sid.getDomainSid(), sid.getRid(),
+                                jcifs.smb.SID.SID_FLAG_RESOLVE_SIDS);
                 for (final SID child : children) {
                     if (!sidSet.contains(child)) {
                         processAllowedSIDs(file, child, sidSet);

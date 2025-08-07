@@ -81,7 +81,8 @@ public class SmbClientTest extends PlainTestCase {
 
         sambaServer = new GenericContainer<>(IMAGE_NAME).withExposedPorts(139, 445)//
                 .withCopyFileToContainer(mountablePublic, "/share")//
-                .withCopyFileToContainer(mountableUsers, "/srv").withCopyFileToContainer(mountableTestuser1, "/testuser1")//
+                .withCopyFileToContainer(mountableUsers, "/srv")
+                .withCopyFileToContainer(mountableTestuser1, "/testuser1")//
                 .withCopyFileToContainer(mountableTestuser2, "/testuser2")//
                 .withCommand(//
                         "-u", "testuser1;test123", //

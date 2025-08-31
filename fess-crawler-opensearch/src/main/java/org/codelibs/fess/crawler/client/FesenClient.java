@@ -469,6 +469,20 @@ public class FesenClient implements Client {
         return builder;
     }
 
+    /**
+     * Prepares a stream search request builder with the given indices.
+     *
+     * @param indices The indices to search.
+     * @return The stream search request builder.
+     */
+    @Override
+    public SearchRequestBuilder prepareStreamSearch(final String... indices) {
+        if (searchPreference != null) {
+            return client.prepareSearch(indices).setPreference(searchPreference);
+        }
+        return client.prepareSearch(indices);
+    }
+
     @Override
     public ActionFuture<SearchResponse> searchScroll(final SearchScrollRequest request) {
         return client.searchScroll(request);

@@ -13,3 +13,5 @@
 .project
 .idea
 *.iml
+/.vscode
+/.serena

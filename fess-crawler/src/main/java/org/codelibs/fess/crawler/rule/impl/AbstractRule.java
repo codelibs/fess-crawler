@@ -50,7 +50,7 @@ public abstract class AbstractRule implements Rule {
 
     /** The crawler container. */
     @Resource
-    protected CrawlerContainer crawlerContainer;
+    protected transient CrawlerContainer crawlerContainer;
 
     /**
      * Constructs a new AbstractRule.

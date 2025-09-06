@@ -120,7 +120,6 @@ public class HcHttpClientTest extends PlainTestCase {
         final String url = "http://localhost:7070/";
         try {
             final ResponseData responseData = httpClient.doHead(url);
-            Thread.sleep(100);
             assertNotNull(responseData.getLastModified());
             assertTrue(responseData.getLastModified().getTime() < new Date().getTime());
         } finally {
@@ -133,7 +132,7 @@ public class HcHttpClientTest extends PlainTestCase {
             @Override
             protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new CrawlingAccessException(e);
                 }
@@ -154,7 +153,7 @@ public class HcHttpClientTest extends PlainTestCase {
             @Override
             protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new CrawlingAccessException(e);
                 }

@@ -30,7 +30,7 @@ public class SmbClientTest extends PlainTestCase {
             @Override
             protected ResponseData getResponseData(final String uri, final boolean includeContent) {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new CrawlingAccessException(e);
                 }
@@ -51,11 +51,11 @@ public class SmbClientTest extends PlainTestCase {
             @Override
             protected ResponseData getResponseData(final String uri, final boolean includeContent) {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new CrawlingAccessException(e);
                 }
-                return null;
+                return new ResponseData();
             }
         };
         client.setAccessTimeout(1);

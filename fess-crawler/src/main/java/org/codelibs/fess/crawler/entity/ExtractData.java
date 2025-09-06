@@ -28,7 +28,6 @@ import org.apache.tika.metadata.Message;
 import org.apache.tika.metadata.TIFF;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.metadata.TikaMimeKeys;
-import org.apache.tika.parser.pdf.PDFParser;
 
 /**
  * Represents extracted data from a crawled resource, including content and metadata.

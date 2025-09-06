@@ -158,8 +158,6 @@ public class CrawlerTest extends LastaDiTestCase {
             crawler1.getCrawlerContext().setMaxAccessCount(maxCount);
             crawler1.getCrawlerContext().setNumOfThread(numOfThread);
 
-            Thread.sleep(100);
-
             final Crawler crawler2 = getComponent(Crawler.class);
             crawler2.setBackground(true);
             ((UrlFilterImpl) crawler2.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
@@ -173,18 +171,18 @@ public class CrawlerTest extends LastaDiTestCase {
             assertNotSame(sessionId1, sessionId2);
             assertNotSame(crawler1.crawlerContext, crawler2.crawlerContext);
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 100; i++) {
                 if (crawler1.crawlerContext.getStatus() == CrawlerStatus.RUNNING) {
                     break;
                 }
-                Thread.sleep(500);
+                Thread.sleep(50);
             }
             assertEquals(CrawlerStatus.RUNNING, crawler1.crawlerContext.getStatus());
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 100; i++) {
                 if (crawler2.crawlerContext.getStatus() == CrawlerStatus.RUNNING) {
                     break;
                 }
-                Thread.sleep(500);
+                Thread.sleep(50);
             }
             assertEquals(CrawlerStatus.RUNNING, crawler2.crawlerContext.getStatus());
 

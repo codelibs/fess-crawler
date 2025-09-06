@@ -329,7 +329,17 @@ public class CrawlerTest extends PlainTestCase {
             crawler.getCrawlerContext().setMaxAccessCount(maxCount);
             crawler.getCrawlerContext().setNumOfThread(numOfThread);
             final String sessionId = crawler.execute();
-            Thread.sleep(3000);
+
+            // Wait for crawler to start running with polling
+            long startTime = System.currentTimeMillis();
+            while (crawler.crawlerContext.getStatus() != CrawlerStatus.RUNNING && System.currentTimeMillis() - startTime < 5000) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
             assertEquals(CrawlerStatus.RUNNING, crawler.crawlerContext.getStatus());
             crawler.awaitTermination();
             assertEquals(maxCount, dataService.getCount(sessionId));
@@ -379,7 +389,17 @@ public class CrawlerTest extends PlainTestCase {
             assertNotSame(sessionId1, sessionId2);
             assertNotSame(crawler1.crawlerContext, crawler2.crawlerContext);
 
-            Thread.sleep(1000);
+            // Wait for both crawlers to start with polling
+            long startTime = System.currentTimeMillis();
+            while ((crawler1.crawlerContext.getStatus() != CrawlerStatus.RUNNING
+                    || crawler2.crawlerContext.getStatus() != CrawlerStatus.RUNNING) && System.currentTimeMillis() - startTime < 5000) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
 
             assertEquals(CrawlerStatus.RUNNING, crawler1.crawlerContext.getStatus());
             assertEquals(CrawlerStatus.RUNNING, crawler2.crawlerContext.getStatus());

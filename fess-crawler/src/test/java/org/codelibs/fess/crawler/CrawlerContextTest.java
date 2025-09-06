@@ -24,7 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.codelibs.core.collection.LruHashSet;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -715,14 +714,23 @@ public class CrawlerContextTest extends PlainTestCase {
             public void run() {
                 try {
                     statusSetLatch.countDown();
-                    // Wait a bit for writer to update
-                    Thread.sleep(100);
-                    if (CrawlerStatus.DONE == crawlerContext.getStatus()) {
-                        successCount.incrementAndGet();
+                    // Poll for status change instead of fixed sleep
+                    long startTime = System.currentTimeMillis();
+                    while (System.currentTimeMillis() - startTime < 500) {
+                        if (CrawlerStatus.DONE == crawlerContext.getStatus()) {
+                            successCount.incrementAndGet();
+                            break;
+                        }
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
                     }
                     statusReadLatch.countDown();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                    statusReadLatch.countDown();
                 }
             }
         });

@@ -25,7 +25,6 @@ import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
-import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 
 import jakarta.annotation.Resource;

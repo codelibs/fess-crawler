@@ -31,7 +31,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.MountableFile;
 
@@ -277,7 +276,7 @@ public class SmbClientTest extends PlainTestCase {
             @Override
             protected ResponseData getResponseData(final String uri, final boolean includeContent) {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new CrawlingAccessException(e);
                 }
@@ -298,11 +297,11 @@ public class SmbClientTest extends PlainTestCase {
             @Override
             protected ResponseData getResponseData(final String uri, final boolean includeContent) {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new CrawlingAccessException(e);
                 }
-                return null;
+                return new ResponseData();
             }
         };
         client.setAccessTimeout(1);

@@ -54,14 +54,14 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 
 import jakarta.annotation.Resource;
-import jcifs.smb1.Config;
-import jcifs.smb1.smb1.ACE;
-import jcifs.smb1.smb1.NtlmPasswordAuthentication;
-import jcifs.smb1.smb1.SID;
-import jcifs.smb1.smb1.SmbException;
-import jcifs.smb1.smb1.SmbFile;
-import jcifs.smb1.smb1.SmbFileInputStream;
-import jcifs.smb1.util.LogStream;
+import org.codelibs.jcifs.smb1.Config;
+import org.codelibs.jcifs.smb1.ACE;
+import org.codelibs.jcifs.smb1.NtlmPasswordAuthentication;
+import org.codelibs.jcifs.smb1.SID;
+import org.codelibs.jcifs.smb1.SmbException;
+import org.codelibs.jcifs.smb1.SmbFile;
+import org.codelibs.jcifs.smb1.SmbFileInputStream;
+import org.codelibs.jcifs.smb1.util.LogStream;
 
 /**
  * The {@link SmbClient} class is a crawler client implementation for accessing files and directories

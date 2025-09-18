@@ -52,16 +52,16 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 
 import jakarta.annotation.Resource;
-import jcifs.ACE;
-import jcifs.CIFSContext;
-import jcifs.CIFSException;
-import jcifs.SID;
-import jcifs.config.PropertyConfiguration;
-import jcifs.context.BaseContext;
-import jcifs.smb.NtlmPasswordAuthenticator;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileInputStream;
+import org.codelibs.jcifs.smb.ACE;
+import org.codelibs.jcifs.smb.CIFSContext;
+import org.codelibs.jcifs.smb.CIFSException;
+import org.codelibs.jcifs.smb.SID;
+import org.codelibs.jcifs.smb.config.PropertyConfiguration;
+import org.codelibs.jcifs.smb.context.BaseContext;
+import org.codelibs.jcifs.smb.impl.NtlmPasswordAuthenticator;
+import org.codelibs.jcifs.smb.impl.SmbException;
+import org.codelibs.jcifs.smb.impl.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFileInputStream;
 
 /**
  * The {@link SmbClient} class is a crawler client implementation for accessing files and directories
@@ -458,7 +458,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 final CIFSContext context = file.getContext();
                 final SID[] children = context.getSIDResolver()
                         .getGroupMemberSids(context, file.getServer(), sid.getDomainSid(), sid.getRid(),
-                                jcifs.smb.SID.SID_FLAG_RESOLVE_SIDS);
+                                org.codelibs.jcifs.smb.impl.SID.SID_FLAG_RESOLVE_SIDS);
                 for (final SID child : children) {
                     if (!sidSet.contains(child)) {
                         processAllowedSIDs(file, child, sidSet);

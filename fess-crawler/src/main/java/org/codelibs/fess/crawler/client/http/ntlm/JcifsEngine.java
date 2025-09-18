@@ -23,13 +23,13 @@ import org.apache.http.impl.auth.NTLMEngine;
 import org.apache.http.impl.auth.NTLMEngineException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 
-import jcifs.CIFSException;
-import jcifs.config.PropertyConfiguration;
-import jcifs.context.BaseContext;
-import jcifs.ntlmssp.NtlmFlags;
-import jcifs.ntlmssp.Type1Message;
-import jcifs.ntlmssp.Type2Message;
-import jcifs.ntlmssp.Type3Message;
+import org.codelibs.jcifs.smb.CIFSException;
+import org.codelibs.jcifs.smb.config.PropertyConfiguration;
+import org.codelibs.jcifs.smb.context.BaseContext;
+import org.codelibs.jcifs.smb.ntlmssp.NtlmFlags;
+import org.codelibs.jcifs.smb.ntlmssp.Type1Message;
+import org.codelibs.jcifs.smb.ntlmssp.Type2Message;
+import org.codelibs.jcifs.smb.ntlmssp.Type3Message;
 
 /**
  * JcifsEngine is a NTLM Engine implementation based on JCIFS.

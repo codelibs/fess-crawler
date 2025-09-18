@@ -15,7 +15,7 @@
  */
 package org.codelibs.fess.crawler.client.smb1;
 
-import jcifs.smb1.smb1.NtlmPasswordAuthentication;
+import org.codelibs.jcifs.smb1.NtlmPasswordAuthentication;
 
 /**
  * Represents SMB1 authentication information, including server details,

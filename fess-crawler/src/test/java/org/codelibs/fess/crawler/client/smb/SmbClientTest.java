@@ -29,6 +29,8 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.testcontainers.containers.GenericContainer;
@@ -47,6 +49,8 @@ public class SmbClientTest extends PlainTestCase {
     private SmbClient smbClient;
     private GenericContainer<?> sambaServer;
     private String baseUrl;
+    private String host;
+    private Integer port;
 
     @Override
     protected void setUp() throws Exception {
@@ -62,6 +66,7 @@ public class SmbClientTest extends PlainTestCase {
         Path testuser2Dir = tempDir.resolve("testuser2");
         Files.createDirectory(testuser2Dir);
 
+        // Basic files for existing tests
         Files.writeString(usersDir.resolve("file1.txt"), "file1");
         Path dir1 = usersDir.resolve("dir1");
         Files.createDirectory(dir1);
@@ -72,6 +77,42 @@ public class SmbClientTest extends PlainTestCase {
         Path dir3 = usersDir.resolve("dir3");
         Files.createDirectory(dir3);
         Files.writeString(dir3.resolve("file4.txt"), "file4");
+
+        // Large file for test_doGet_largeFile
+        Path largeDir = publicDir.resolve("large");
+        Files.createDirectory(largeDir);
+        byte[] largeContent = new byte[10 * 1024 * 1024]; // 10MB
+        for (int i = 0; i < largeContent.length; i++) {
+            largeContent[i] = (byte) (i % 256);
+        }
+        Files.write(largeDir.resolve("largefile.bin"), largeContent);
+
+        // Special character files for test_specialCharactersInFileName
+        Path specialDir = publicDir.resolve("special");
+        Files.createDirectory(specialDir);
+        Files.writeString(specialDir.resolve("file with spaces.txt"), "spaces");
+        Files.writeString(specialDir.resolve("file-with-dashes.txt"), "dashes");
+        Files.writeString(specialDir.resolve("file_with_underscores.txt"), "underscores");
+        Files.writeString(specialDir.resolve("file.multiple.dots.txt"), "dots");
+
+        // Empty directory for test_emptyDirectory
+        Path emptyDir = publicDir.resolve("empty");
+        Files.createDirectory(emptyDir);
+
+        // Deeply nested directories for test_deeplyNestedDirectories
+        Path deepDir = publicDir.resolve("deep");
+        Files.createDirectory(deepDir);
+        Path currentDir = deepDir;
+        for (int i = 1; i <= 5; i++) {
+            currentDir = currentDir.resolve("level" + i);
+            Files.createDirectory(currentDir);
+        }
+        Files.writeString(currentDir.resolve("deepfile.txt"), "deep content");
+
+        // Zero byte file for test_zeroByteFile
+        Path zeroDir = publicDir.resolve("zero");
+        Files.createDirectory(zeroDir);
+        Files.createFile(zeroDir.resolve("empty.txt"));
 
         MountableFile mountablePublic = MountableFile.forHostPath(publicDir.toAbsolutePath().toString());
         MountableFile mountableUsers = MountableFile.forHostPath(usersDir.toAbsolutePath().toString());
@@ -86,7 +127,8 @@ public class SmbClientTest extends PlainTestCase {
                 .withCommand(//
                         "-u", "testuser1;test123", //
                         "-u", "testuser2;test123", //
-                        "-s", "public;/share;yes;no;no;testuser1", //
+                        "-u", "testuser;test123", // Additional user for various tests
+                        "-s", "public;/share;yes;no;no;testuser1,testuser", //
                         "-s", "users;/srv;no;no;no;testuser1,testuser2", //
                         "-s", "testuser1 private share;/testuser1;no;no;no;testuser1", //
                         "-s", "testuser2 private share;/testuser2;no;no;no;testuser2", //
@@ -95,8 +137,8 @@ public class SmbClientTest extends PlainTestCase {
         sambaServer.start();
         logger.info("Samba container started");
 
-        String host = sambaServer.getContainerIpAddress();
-        Integer port = sambaServer.getMappedPort(445);
+        host = sambaServer.getContainerIpAddress();
+        port = sambaServer.getMappedPort(445);
         baseUrl = "smb://" + host + ":" + port + "/users/";
         logger.info("Base URL: {}", baseUrl);
 
@@ -113,14 +155,20 @@ public class SmbClientTest extends PlainTestCase {
         smbClient.setInitParameterMap(params);
         smbClient.init();
 
+        boolean connected = false;
         for (int i = 0; i < 30; i++) {
             try {
                 smbClient.doGet(baseUrl);
+            } catch (final ChildUrlsException e) {
+                connected = true;
                 break;
             } catch (final Exception e) {
                 logger.info("[{}] {}", i + i, e.getMessage());
             }
-            ThreadUtil.sleep(1000L);
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
         }
     }
 
@@ -311,6 +359,403 @@ public class SmbClientTest extends PlainTestCase {
         } catch (CrawlingAccessException e) {
             assertTrue(e.getCause() instanceof InterruptedException);
         }
+    }
+
+    public void test_authenticationWithDomain() throws Exception {
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser1");
+        auth.setPassword("test123");
+        auth.setDomain("WORKGROUP");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet(baseUrl);
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+
+        try (ResponseData responseData = client.doGet(baseUrl + "file1.txt")) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals("file1", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
+        }
+    }
+
+    public void test_wrongCredentials() throws Exception {
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("wronguser");
+        auth.setPassword("wrongpass");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        try {
+            client.doGet(baseUrl + "file1.txt");
+            fail("Should throw CrawlingAccessException");
+        } catch (CrawlingAccessException e) {
+            // Expected
+        }
+    }
+
+    public void test_malformedUrl() throws Exception {
+        ResponseData responseData = smbClient.doGet("not-a-valid-smb-url");
+        assertEquals(0, responseData.getStatus());
+        assertEquals(404, responseData.getHttpStatusCode());
+
+        responseData = smbClient.doGet("smb://[invalid]:445/share");
+        assertEquals(0, responseData.getStatus());
+        assertEquals(404, responseData.getHttpStatusCode());
+    }
+
+    public void test_maxContentLengthExceeded() throws Exception {
+        ContentLengthHelper helper = new ContentLengthHelper();
+        helper.setDefaultMaxLength(3L);
+        smbClient.contentLengthHelper = helper;
+
+        try {
+            smbClient.doGet(baseUrl + "file1.txt");
+            fail("Should throw MaxLengthExceededException");
+        } catch (MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("over 3 byte"));
+        }
+    }
+
+    public void test_doGet_largeFile() throws Exception {
+        String largeFileUrl = "smb://" + host + ":" + port + "/public/large/largefile.bin";
+
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.setMaxCachedContentSize(1024 * 1024); // 1MB
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet("smb://" + host + ":" + port + "/public/");
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+
+        byte[] largeContent = new byte[10 * 1024 * 1024]; // 10MB
+        for (int i = 0; i < largeContent.length; i++) {
+            largeContent[i] = (byte) (i % 256);
+        }
+
+        try (ResponseData responseData = client.doGet(largeFileUrl)) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals(largeContent.length, responseData.getContentLength());
+            assertNotNull(responseData.getResponseBody());
+            byte[] result = InputStreamUtil.getBytes(responseData.getResponseBody());
+            assertEquals(largeContent.length, result.length);
+        }
+    }
+
+    public void test_specialCharactersInFileName() throws Exception {
+        String shareUrl = "smb://" + host + ":" + port + "/public/special/";
+
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet(shareUrl);
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+
+        try (ResponseData responseData = client.doGet(shareUrl + "file with spaces.txt")) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals("spaces", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
+        }
+
+        try (ResponseData responseData = client.doGet(shareUrl + "file-with-dashes.txt")) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals("dashes", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
+        }
+
+        try (ResponseData responseData = client.doGet(shareUrl + "file_with_underscores.txt")) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals("underscores", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
+        }
+
+        try (ResponseData responseData = client.doGet(shareUrl + "file.multiple.dots.txt")) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals("dots", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
+        }
+    }
+
+    public void test_emptyDirectory() throws Exception {
+        String emptyUrl = "smb://" + host + ":" + port + "/public/empty/";
+
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet(emptyUrl);
+                break;
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                assertEquals(0, e.getChildUrlList().size());
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+    }
+
+    public void test_deeplyNestedDirectories() throws Exception {
+        String deepUrl = "smb://" + host + ":" + port + "/public/deep/level1/level2/level3/level4/level5/deepfile.txt";
+
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet("smb://" + host + ":" + port + "/public/deep/");
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+
+        try (ResponseData responseData = client.doGet(deepUrl)) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals("deep content", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
+        }
+    }
+
+    public void test_zeroByteFile() throws Exception {
+        String emptyFileUrl = "smb://" + host + ":" + port + "/public/zero/empty.txt";
+
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet("smb://" + host + ":" + port + "/public/");
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+
+        try (ResponseData responseData = client.doGet(emptyFileUrl)) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals(0, responseData.getContentLength());
+            assertEquals("", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
+        }
+
+        try (ResponseData responseData = client.doHead(emptyFileUrl)) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals(0, responseData.getContentLength());
+            assertNull(responseData.getResponseBody());
+        }
+    }
+
+    public void test_resolveSidsDisabled() throws Exception {
+        SmbClient client = new SmbClient();
+        client.setResolveSids(false);
+        assertFalse(client.isResolveSids());
+
+        StandardCrawlerContainer container =
+                new StandardCrawlerContainer().singleton("smbClient", client).singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser1");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet(baseUrl);
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+
+        try (ResponseData responseData = client.doGet(baseUrl + "file1.txt")) {
+            assertEquals(200, responseData.getHttpStatusCode());
+        }
+    }
+
+    public void test_customCharset() throws Exception {
+        SmbClient client = new SmbClient();
+        client.setCharset("ISO-8859-1");
+        assertEquals("ISO-8859-1", client.getCharset());
+
+        StandardCrawlerContainer container =
+                new StandardCrawlerContainer().singleton("smbClient", client).singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser1");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        boolean connected = false;
+        for (int i = 0; i < 30; i++) {
+            try {
+                client.doGet(baseUrl);
+            } catch (final ChildUrlsException e) {
+                connected = true;
+                break;
+            } catch (final Exception e) {
+                logger.info("[{}] {}", i + 1, e.getMessage());
+            }
+            ThreadUtil.sleep(200L);
+        }
+        if (!connected) {
+            throw new IllegalStateException("Could not connect to the Samba server");
+        }
+
+        try (ResponseData responseData = client.doGet(baseUrl + "file1.txt")) {
+            assertEquals("ISO-8859-1", responseData.getCharSet());
+        }
+    }
+
+    public void test_fileMetadata() throws Exception {
+        try (ResponseData responseData = smbClient.doGet(baseUrl + "file1.txt")) {
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertNotNull(responseData.getLastModified());
+            assertNotNull(responseData.getMetaDataMap().get(SmbClient.SMB_CREATE_TIME));
+            assertEquals("text/plain", responseData.getMimeType());
+        }
+    }
+
+    public void test_closeResources() throws Exception {
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        SmbClient client = container.getComponent("smbClient");
+
+        Map<String, Object> params = new HashMap<>();
+        SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername("testuser1");
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+
+        assertNotNull(client.smbAuthenticationHolder);
+        assertNotNull(client.cifsContext);
+
+        client.close();
+
+        assertNull(client.smbAuthenticationHolder);
     }
 
 }

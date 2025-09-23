@@ -163,7 +163,7 @@ public class SmbClientTest extends PlainTestCase {
                 connected = true;
                 break;
             } catch (final Exception e) {
-                logger.info("[{}] {}", i + i, e.getMessage());
+                logger.info("[{}] {}", i + 1, e.getMessage());
             }
             ThreadUtil.sleep(200L);
         }

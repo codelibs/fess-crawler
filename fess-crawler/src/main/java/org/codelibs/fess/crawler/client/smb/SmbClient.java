@@ -473,7 +473,6 @@ public class SmbClient extends AbstractCrawlerClient {
                         logger.debug("Could not resolve group SIDs: {}", sid);
                     } else {
                         logger.debug("CIFSException on SID processing.", e);
-
                     }
                 }
             } catch (final Exception e) {

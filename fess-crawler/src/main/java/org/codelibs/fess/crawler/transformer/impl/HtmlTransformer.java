@@ -465,8 +465,8 @@ public class HtmlTransformer extends AbstractTransformer {
      * @throws CrawlerSystemException if the parser configuration is invalid
      */
     protected DOMParser getDomParser() {
-        final DOMParser parser = new DOMParser();
         try {
+            final DOMParser parser = new DOMParser();
             // feature
             for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
                 parser.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()));
@@ -476,11 +476,11 @@ public class HtmlTransformer extends AbstractTransformer {
             for (final Map.Entry<String, String> entry : propertyMap.entrySet()) {
                 parser.setProperty(entry.getKey(), entry.getValue());
             }
+
+            return parser;
         } catch (final Exception e) {
             throw new CrawlerSystemException("Invalid parser configuration.", e);
         }
-
-        return parser;
     }
 
     /**

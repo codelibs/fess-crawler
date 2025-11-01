@@ -61,6 +61,8 @@ public class IdnDnsResolver implements DnsResolver {
     /**
      * Resolves the given host name to an array of IP addresses.
      * The host name is first converted to ASCII using IDN before resolution.
+     * IPv6 addresses in bracket notation (e.g., [::1] or [2001:db8::1]) are
+     * handled specially by removing the brackets before resolution.
      *
      * @param host the host name to resolve
      * @return an array of IP addresses for the host
@@ -68,6 +70,12 @@ public class IdnDnsResolver implements DnsResolver {
      */
     @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
+        // Handle IPv6 addresses in bracket notation
+        if (host != null && host.startsWith("[") && host.endsWith("]")) {
+            // Remove brackets for IPv6 address resolution
+            final String ipv6Address = host.substring(1, host.length() - 1);
+            return InetAddress.getAllByName(ipv6Address);
+        }
         return InetAddress.getAllByName(toAscii(host));
     }
 

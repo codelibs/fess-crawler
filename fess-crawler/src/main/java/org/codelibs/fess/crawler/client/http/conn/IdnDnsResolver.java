@@ -71,7 +71,7 @@ public class IdnDnsResolver implements DnsResolver {
     @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
         // Handle IPv6 addresses in bracket notation
-        if (host != null && host.startsWith("[") && host.endsWith("]")) {
+        if (host != null && host.length() > 2 && host.startsWith("[") && host.endsWith("]")) {
             // Remove brackets for IPv6 address resolution
             final String ipv6Address = host.substring(1, host.length() - 1);
             return InetAddress.getAllByName(ipv6Address);

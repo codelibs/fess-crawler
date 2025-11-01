@@ -87,4 +87,16 @@ public class IdnDnsResolverTest extends PlainTestCase {
         assertNotNull(addresses);
         assertTrue(addresses.length > 0);
     }
+
+    public void test_resolve_invalid_brackets() {
+        IdnDnsResolver resolver = new IdnDnsResolver();
+
+        // Test empty brackets - should be treated as invalid hostname
+        try {
+            resolver.resolve("[]");
+            fail("Should throw UnknownHostException for empty brackets");
+        } catch (UnknownHostException e) {
+            // Expected behavior
+        }
+    }
 }

@@ -15,6 +15,9 @@
  */
 package org.codelibs.fess.crawler.client.http.conn;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class IdnDnsResolverTest extends PlainTestCase {
@@ -38,5 +41,62 @@ public class IdnDnsResolverTest extends PlainTestCase {
         expected = "xn--zckzah.org";
         assertEquals(expected, resolver.toAscii(host));
 
+    }
+
+    public void test_resolve_ipv6() throws UnknownHostException {
+        IdnDnsResolver resolver = new IdnDnsResolver();
+
+        // Test IPv6 loopback address with brackets
+        String host = "[::1]";
+        InetAddress[] addresses = resolver.resolve(host);
+        assertNotNull(addresses);
+        assertTrue(addresses.length > 0);
+        // IPv6 loopback can be represented as ::1 or 0:0:0:0:0:0:0:1
+        String hostAddress = addresses[0].getHostAddress();
+        assertTrue(hostAddress.contains(":"));
+        assertTrue(hostAddress.equals("::1") || hostAddress.equals("0:0:0:0:0:0:0:1"));
+
+        // Test IPv6 address with brackets
+        host = "[2001:db8::1]";
+        addresses = resolver.resolve(host);
+        assertNotNull(addresses);
+        assertTrue(addresses.length > 0);
+        // The address may be normalized differently depending on the system
+        hostAddress = addresses[0].getHostAddress();
+        assertTrue(hostAddress.contains(":"));
+        assertTrue(hostAddress.contains("2001") || hostAddress.toLowerCase().contains("2001"));
+    }
+
+    public void test_resolve_ipv4() throws UnknownHostException {
+        IdnDnsResolver resolver = new IdnDnsResolver();
+
+        // Test IPv4 loopback address
+        String host = "127.0.0.1";
+        InetAddress[] addresses = resolver.resolve(host);
+        assertNotNull(addresses);
+        assertTrue(addresses.length > 0);
+        assertEquals("127.0.0.1", addresses[0].getHostAddress());
+    }
+
+    public void test_resolve_hostname() throws UnknownHostException {
+        IdnDnsResolver resolver = new IdnDnsResolver();
+
+        // Test localhost hostname
+        String host = "localhost";
+        InetAddress[] addresses = resolver.resolve(host);
+        assertNotNull(addresses);
+        assertTrue(addresses.length > 0);
+    }
+
+    public void test_resolve_invalid_brackets() {
+        IdnDnsResolver resolver = new IdnDnsResolver();
+
+        // Test empty brackets - should be treated as invalid hostname
+        try {
+            resolver.resolve("[]");
+            fail("Should throw UnknownHostException for empty brackets");
+        } catch (UnknownHostException e) {
+            // Expected behavior
+        }
     }
 }

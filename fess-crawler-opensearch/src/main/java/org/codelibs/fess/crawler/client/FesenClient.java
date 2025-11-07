@@ -94,7 +94,13 @@ import org.opensearch.index.engine.VersionConflictEngineException;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
+import org.opensearch.search.builder.PointInTimeBuilder;
+import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.threadpool.ThreadPool;
+
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import org.opensearch.transport.client.AdminClient;
 import org.opensearch.transport.client.Client;
 
@@ -143,12 +149,12 @@ public class FesenClient implements Client {
     private volatile boolean connected;
 
     /**
-     * Scroll for delete operations.
+     * PIT keep-alive timeout for delete operations (formerly scroll for delete).
      */
     protected Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
 
     /**
-     * Size for delete operations.
+     * Page size for PIT delete operations (formerly size for delete).
      */
     protected int sizeForDelete = 10;
 
@@ -607,7 +613,7 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Deletes documents matching the specified query using scroll and bulk delete.
+     * Deletes documents matching the specified query using PIT and bulk delete.
      *
      * @param index The index to delete from.
      * @param type The document type (deprecated).
@@ -616,12 +622,56 @@ public class FesenClient implements Client {
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
-        SearchResponse response =
-                get(c -> c.prepareSearch(index).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
-        String scrollId = response.getScrollId();
+        // Create PIT
+        final CreatePitRequest createPitRequest = new CreatePitRequest(scrollForDelete.keepAlive(), true, index);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AtomicReference<String> pitIdRef = new AtomicReference<>();
+        final AtomicReference<Exception> exceptionRef = new AtomicReference<>();
+
+        createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
+            @Override
+            public void onResponse(final CreatePitResponse response) {
+                pitIdRef.set(response.getId());
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(final Exception e) {
+                exceptionRef.set(e);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new OpenSearchAccessException("Failed to create PIT", e);
+        }
+
+        if (exceptionRef.get() != null) {
+            throw new OpenSearchAccessException("Failed to create PIT", exceptionRef.get());
+        }
+
+        final String pitId = pitIdRef.get();
         int count = 0;
         try {
-            while (scrollId != null) {
+            Object[] searchAfter = null;
+            while (true) {
+                final SearchResponse response = get(c -> {
+                    final var builder = c.prepareSearch()
+                            .setSize(sizeForDelete)
+                            .setQuery(queryBuilder)
+                            .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(scrollForDelete.keepAlive()))
+                            .addSort(SortBuilders.fieldSort("_id"));
+
+                    if (searchAfter != null) {
+                        builder.searchAfter(searchAfter);
+                    }
+
+                    return builder.execute();
+                });
+
                 final SearchHit[] hits = response.getHits().getHits();
                 if (hits.length == 0) {
                     break;
@@ -639,15 +689,24 @@ public class FesenClient implements Client {
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
 
-                final String sid = scrollId;
-                response = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                // Update searchAfter for next iteration
+                final SearchHit lastHit = hits[hits.length - 1];
+                searchAfter = lastHit.getSortValues();
             }
         } finally {
-            clearScroll(scrollId);
+            // Delete PIT
+            final DeletePitRequest deletePitRequest = new DeletePitRequest(Collections.singletonList(pitId));
+            deletePits(deletePitRequest, new ActionListener<DeletePitResponse>() {
+                @Override
+                public void onResponse(final DeletePitResponse response) {
+                    // PIT deleted successfully
+                }
+
+                @Override
+                public void onFailure(final Exception e) {
+                    logger.warn("Failed to delete PIT: {}", pitId, e);
+                }
+            });
         }
         return count;
     }
@@ -675,17 +734,17 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Sets the scroll configuration for delete operations.
+     * Sets the PIT keep-alive timeout for delete operations (formerly scroll configuration).
      *
-     * @param scrollForDelete The scroll configuration.
+     * @param scrollForDelete The PIT timeout configuration.
      */
     public void setScrollForDelete(final Scroll scrollForDelete) {
         this.scrollForDelete = scrollForDelete;
     }
 
     /**
-     * Sets the size for delete operations.
-     * @param sizeForDelete The size.
+     * Sets the page size for PIT delete operations (formerly size for delete).
+     * @param sizeForDelete The page size.
      */
     public void setSizeForDelete(final int sizeForDelete) {
         this.sizeForDelete = sizeForDelete;

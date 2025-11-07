@@ -36,15 +36,28 @@ import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
 import org.opensearch.action.DocWriteRequest.OpType;
 import org.opensearch.action.bulk.BulkRequestBuilder;
 import org.opensearch.action.bulk.BulkResponse;
+import org.opensearch.action.search.CreatePitRequest;
+import org.opensearch.action.search.CreatePitResponse;
+import org.opensearch.action.search.DeletePitInfo;
+import org.opensearch.action.search.DeletePitRequest;
+import org.opensearch.action.search.DeletePitResponse;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.support.WriteRequest.RefreshPolicy;
 import org.opensearch.action.update.UpdateRequestBuilder;
 import org.opensearch.common.unit.TimeValue;
+import org.opensearch.core.action.ActionListener;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+import org.opensearch.search.builder.PointInTimeBuilder;
 import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortOrder;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -139,14 +152,55 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
      */
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
-        SearchResponse response = getClient().get(c -> c.prepareSearch(index)
-                .setScroll(new TimeValue(scrollTimeout))
-                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
-                .setSize(scrollSize)
-                .execute());
-        String scrollId = response.getScrollId();
+        // Create PIT
+        final CreatePitRequest createPitRequest = new CreatePitRequest(new TimeValue(scrollTimeout), true, index);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AtomicReference<String> pitIdRef = new AtomicReference<>();
+        final AtomicReference<Exception> exceptionRef = new AtomicReference<>();
+
+        getClient().createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
+            @Override
+            public void onResponse(final CreatePitResponse response) {
+                pitIdRef.set(response.getId());
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(final Exception e) {
+                exceptionRef.set(e);
+                latch.countDown();
+            }
+        });
+
         try {
-            while (scrollId != null) {
+            latch.await();
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new OpenSearchAccessException("Failed to create PIT", e);
+        }
+
+        if (exceptionRef.get() != null) {
+            throw new OpenSearchAccessException("Failed to create PIT", exceptionRef.get());
+        }
+
+        final String pitId = pitIdRef.get();
+        try {
+            Object[] searchAfter = null;
+            while (true) {
+                final SearchResponse response = getClient().get(c -> {
+                    final var builder = c.prepareSearch()
+                            .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
+                            .setSize(scrollSize)
+                            .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(new TimeValue(scrollTimeout)))
+                            .addSort(SortBuilders.fieldSort("_id"));
+
+                    if (searchAfter != null) {
+                        builder.searchAfter(searchAfter);
+                    }
+
+                    return builder.execute();
+                });
+
                 final SearchHits searchHits = response.getHits();
                 if (searchHits.getHits().length == 0) {
                     break;
@@ -166,15 +220,24 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
 
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                // Update searchAfter for next iteration
+                final SearchHit lastHit = searchHits.getHits()[searchHits.getHits().length - 1];
+                searchAfter = lastHit.getSortValues();
             }
         } finally {
-            getClient().clearScroll(scrollId);
+            // Delete PIT
+            final DeletePitRequest deletePitRequest = new DeletePitRequest(Collections.singletonList(pitId));
+            getClient().deletePits(deletePitRequest, new ActionListener<DeletePitResponse>() {
+                @Override
+                public void onResponse(final DeletePitResponse response) {
+                    // PIT deleted successfully
+                }
+
+                @Override
+                public void onFailure(final Exception e) {
+                    logger.warn("Failed to delete PIT: {}", pitId, e);
+                }
+            });
         }
     }
 

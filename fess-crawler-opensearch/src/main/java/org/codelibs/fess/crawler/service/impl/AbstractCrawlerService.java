@@ -699,14 +699,15 @@ public abstract class AbstractCrawlerService {
         try {
             Object[] searchAfter = null;
             while (true) {
+                final Object[] currentSearchAfter = searchAfter; // Create final copy for lambda
                 final SearchResponse response = getClient().get(c -> {
                     final SearchRequestBuilder builder = c.prepareSearch()
                             .setSize(scrollSize)
                             .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(new TimeValue(scrollTimeout)))
                             .addSort(SortBuilders.fieldSort("_id"));
                     callback.accept(builder);
-                    if (searchAfter != null) {
-                        builder.searchAfter(searchAfter);
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
                     }
                     return builder.execute();
                 });

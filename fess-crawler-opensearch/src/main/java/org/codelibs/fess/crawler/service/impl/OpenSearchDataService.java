@@ -274,6 +274,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
         try {
             Object[] searchAfter = null;
             while (true) {
+                final Object[] currentSearchAfter = searchAfter; // Create final copy for lambda
                 final SearchResponse response = getClient().get(c -> {
                     final SearchRequestBuilder builder = c.prepareSearch()
                             .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
@@ -281,8 +282,8 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
                             .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(new TimeValue(scrollTimeout)))
                             .addSort(SortBuilders.fieldSort("_id"));
 
-                    if (searchAfter != null) {
-                        builder.searchAfter(searchAfter);
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
                     }
 
                     return builder.execute();

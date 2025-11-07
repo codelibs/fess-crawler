@@ -658,6 +658,7 @@ public class FesenClient implements Client {
         try {
             Object[] searchAfter = null;
             while (true) {
+                final Object[] currentSearchAfter = searchAfter; // Create final copy for lambda
                 final SearchResponse response = get(c -> {
                     final var builder = c.prepareSearch()
                             .setSize(sizeForDelete)
@@ -665,8 +666,8 @@ public class FesenClient implements Client {
                             .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(scrollForDelete.keepAlive()))
                             .addSort(SortBuilders.fieldSort("_id"));
 
-                    if (searchAfter != null) {
-                        builder.searchAfter(searchAfter);
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
                     }
 
                     return builder.execute();

@@ -41,6 +41,7 @@ import org.opensearch.action.support.WriteRequest.RefreshPolicy;
 import org.opensearch.action.update.UpdateRequestBuilder;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.sort.SortBuilders;
@@ -139,10 +140,11 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
      */
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
+        final Scroll scroll = new Scroll(TimeValue.timeValueMillis(scrollTimeout));
         SearchResponse response = getClient().get(c -> c.prepareSearch(index)
-                .setScroll(new TimeValue(scrollTimeout))
-                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
+                .setScroll(scroll)
                 .setSize(scrollSize)
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
                 .execute());
         String scrollId = response.getScrollId();
         try {
@@ -167,7 +169,7 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
                 }
 
                 final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
+                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(scroll).execute());
                 if (!scrollId.equals(response.getScrollId())) {
                     getClient().clearScroll(scrollId);
                 }

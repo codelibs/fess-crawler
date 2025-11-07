@@ -76,6 +76,7 @@ import org.opensearch.index.IndexNotFoundException;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.sort.SortBuilder;
@@ -162,7 +163,7 @@ public abstract class AbstractCrawlerService {
     protected int scrollTimeout = 60000;
 
     /**
-     * Scroll size for search requests.
+     * Page size for scroll search requests.
      */
     protected int scrollSize = 100;
 
@@ -647,14 +648,15 @@ public abstract class AbstractCrawlerService {
 
     /**
      * Deletes documents from the OpenSearch index based on the specified search criteria.
-     * Uses scroll and bulk delete operations for efficient deletion of large result sets.
+     * Uses Scroll and bulk delete operations for efficient deletion of large result sets.
      *
      * @param callback The callback to configure the search request for identifying documents to delete.
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public void delete(final Consumer<SearchRequestBuilder> callback) {
+        final Scroll scroll = new Scroll(TimeValue.timeValueMillis(scrollTimeout));
         SearchResponse response = getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
+            final SearchRequestBuilder builder = c.prepareSearch(index).setScroll(scroll).setSize(scrollSize);
             callback.accept(builder);
             return builder.execute();
         });
@@ -679,7 +681,7 @@ public abstract class AbstractCrawlerService {
                 }
 
                 final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
+                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(scroll).execute());
                 if (!scrollId.equals(response.getScrollId())) {
                     getClient().clearScroll(scrollId);
                 }
@@ -782,18 +784,18 @@ public abstract class AbstractCrawlerService {
     }
 
     /**
-     * Gets the scroll size for search operations.
+     * Gets the page size for scroll search operations.
      *
-     * @return The scroll size.
+     * @return The page size.
      */
     public int getScrollSize() {
         return scrollSize;
     }
 
     /**
-     * Sets the scroll size for search operations.
+     * Sets the page size for scroll search operations.
      *
-     * @param scrollSize The scroll size.
+     * @param scrollSize The page size.
      */
     public void setScrollSize(final int scrollSize) {
         this.scrollSize = scrollSize;

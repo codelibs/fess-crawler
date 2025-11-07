@@ -94,6 +94,7 @@ import org.opensearch.index.engine.VersionConflictEngineException;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
+import org.opensearch.search.SearchHits;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.client.AdminClient;
 import org.opensearch.transport.client.Client;
@@ -143,12 +144,12 @@ public class FesenClient implements Client {
     private volatile boolean connected;
 
     /**
-     * Scroll for delete operations.
+     * Scroll timeout for delete operations.
      */
     protected Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
 
     /**
-     * Size for delete operations.
+     * Page size for scroll delete operations.
      */
     protected int sizeForDelete = 10;
 
@@ -607,7 +608,7 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Deletes documents matching the specified query using scroll and bulk delete.
+     * Deletes documents matching the specified query using Scroll and bulk delete.
      *
      * @param index The index to delete from.
      * @param type The document type (deprecated).
@@ -616,21 +617,23 @@ public class FesenClient implements Client {
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
-        SearchResponse response =
-                get(c -> c.prepareSearch(index).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
+        SearchResponse response = get(c -> c.prepareSearch(index)
+                .setScroll(scrollForDelete)
+                .setSize(sizeForDelete)
+                .setQuery(queryBuilder)
+                .execute());
         String scrollId = response.getScrollId();
         int count = 0;
         try {
             while (scrollId != null) {
-                final SearchHit[] hits = response.getHits().getHits();
-                if (hits.length == 0) {
+                final SearchHits searchHits = response.getHits();
+                if (searchHits.getHits().length == 0) {
                     break;
                 }
-
-                count += hits.length;
+                count += searchHits.getHits().length;
                 final BulkResponse bulkResponse = get(c -> {
                     final BulkRequestBuilder bulkRequest = client.prepareBulk();
-                    for (final SearchHit hit : hits) {
+                    for (final SearchHit hit : searchHits.getHits()) {
                         bulkRequest.add(client.prepareDelete().setIndex(hit.getIndex()).setId(hit.getId()));
                     }
                     return bulkRequest.execute();
@@ -638,7 +641,6 @@ public class FesenClient implements Client {
                 if (bulkResponse.hasFailures()) {
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
-
                 final String sid = scrollId;
                 response = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
                 if (!scrollId.equals(response.getScrollId())) {
@@ -675,17 +677,17 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Sets the scroll configuration for delete operations.
+     * Sets the scroll timeout for delete operations.
      *
-     * @param scrollForDelete The scroll configuration.
+     * @param scrollForDelete The scroll timeout configuration.
      */
     public void setScrollForDelete(final Scroll scrollForDelete) {
         this.scrollForDelete = scrollForDelete;
     }
 
     /**
-     * Sets the size for delete operations.
-     * @param sizeForDelete The size.
+     * Sets the page size for scroll delete operations.
+     * @param sizeForDelete The page size.
      */
     public void setSizeForDelete(final int sizeForDelete) {
         this.sizeForDelete = sizeForDelete;

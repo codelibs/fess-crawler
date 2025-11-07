@@ -33,6 +33,7 @@ import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 
@@ -218,17 +219,18 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
 
     /**
      * Iterates through all access results for a session, calling the callback for each result.
-     * Uses OpenSearch scroll API for efficient iteration over large result sets.
+     * Uses OpenSearch Scroll API for efficient iteration over large result sets.
      *
      * @param sessionId The session ID.
      * @param callback The callback to execute for each access result.
      */
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<OpenSearchAccessResult> callback) {
+        final Scroll scroll = new Scroll(TimeValue.timeValueMillis(scrollTimeout));
         SearchResponse response = getClient().get(c -> c.prepareSearch(index)
-                .setScroll(new TimeValue(scrollTimeout))
-                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
+                .setScroll(scroll)
                 .setSize(scrollSize)
+                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
                 .execute());
         String scrollId = response.getScrollId();
         try {
@@ -253,7 +255,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
                 }
 
                 final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
+                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(scroll).execute());
                 if (!scrollId.equals(response.getScrollId())) {
                     getClient().clearScroll(scrollId);
                 }

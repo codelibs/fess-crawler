@@ -187,6 +187,7 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         try {
             Object[] searchAfter = null;
             while (true) {
+                final Object[] currentSearchAfter = searchAfter; // Create final copy for lambda
                 final SearchResponse response = getClient().get(c -> {
                     final var builder = c.prepareSearch()
                             .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
@@ -194,8 +195,8 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
                             .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(new TimeValue(scrollTimeout)))
                             .addSort(SortBuilders.fieldSort("_id"));
 
-                    if (searchAfter != null) {
-                        builder.searchAfter(searchAfter);
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
                     }
 
                     return builder.execute();

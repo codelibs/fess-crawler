@@ -63,6 +63,9 @@ import org.opensearch.action.bulk.BulkResponse;
 import org.opensearch.action.delete.DeleteResponse;
 import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexResponse;
+import org.opensearch.action.search.CreatePitRequest;
+import org.opensearch.action.search.CreatePitResponse;
+import org.opensearch.action.search.DeletePitRequest;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.support.WriteRequest.RefreshPolicy;
@@ -70,6 +73,7 @@ import org.opensearch.action.support.clustermanager.AcknowledgedResponse;
 import org.opensearch.cluster.metadata.MappingMetadata;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.xcontent.XContentType;
+import org.opensearch.core.action.ActionListener;
 import org.opensearch.core.rest.RestStatus;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.index.IndexNotFoundException;
@@ -78,7 +82,10 @@ import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+import org.opensearch.search.builder.PointInTimeBuilder;
+import org.opensearch.search.sort.FieldSortBuilder;
 import org.opensearch.search.sort.SortBuilder;
+import org.opensearch.search.sort.SortOrder;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -157,12 +164,12 @@ public abstract class AbstractCrawlerService {
     protected String index;
 
     /**
-     * Scroll timeout in milliseconds.
+     * Keep alive timeout in milliseconds for PIT.
      */
     protected int scrollTimeout = 60000;
 
     /**
-     * Scroll size for search requests.
+     * Page size for PIT search requests.
      */
     protected int scrollSize = 100;
 
@@ -647,20 +654,72 @@ public abstract class AbstractCrawlerService {
 
     /**
      * Deletes documents from the OpenSearch index based on the specified search criteria.
-     * Uses scroll and bulk delete operations for efficient deletion of large result sets.
+     * Uses PIT and bulk delete operations for efficient deletion of large result sets.
      *
      * @param callback The callback to configure the search request for identifying documents to delete.
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public void delete(final Consumer<SearchRequestBuilder> callback) {
-        SearchResponse response = getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
-            callback.accept(builder);
-            return builder.execute();
+        // Create PIT
+        final CreatePitRequest createPitRequest = new CreatePitRequest(new TimeValue(scrollTimeout), true, index);
+        final CreatePitResponse[] createPitResponseHolder = new CreatePitResponse[1];
+        final Exception[] exceptionHolder = new Exception[1];
+        final Object lock = new Object();
+        final boolean[] done = {false};
+
+        fesenClient.createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
+            @Override
+            public void onResponse(CreatePitResponse response) {
+                createPitResponseHolder[0] = response;
+                synchronized (lock) {
+                    done[0] = true;
+                    lock.notifyAll();
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                exceptionHolder[0] = e;
+                synchronized (lock) {
+                    done[0] = true;
+                    lock.notifyAll();
+                }
+            }
         });
-        String scrollId = response.getScrollId();
+
+        synchronized (lock) {
+            while (!done[0]) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new OpenSearchAccessException("Interrupted while creating PIT", e);
+                }
+            }
+        }
+
+        if (exceptionHolder[0] != null) {
+            throw new OpenSearchAccessException("Failed to create PIT", exceptionHolder[0]);
+        }
+
+        final String pitId = createPitResponseHolder[0].getId();
+
         try {
-            while (scrollId != null) {
+            Object[] searchAfter = null;
+            while (true) {
+                final Object[] currentSearchAfter = searchAfter;
+                SearchResponse response = getClient().get(c -> {
+                    final SearchRequestBuilder builder = c.prepareSearch()
+                            .setSize(scrollSize)
+                            .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(new TimeValue(scrollTimeout)))
+                            .addSort(new FieldSortBuilder("_shard_doc").order(SortOrder.ASC));
+                    callback.accept(builder);
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
+                    }
+                    return builder.execute();
+                });
+
                 final SearchHits searchHits = response.getHits();
                 if (searchHits.getHits().length == 0) {
                     break;
@@ -678,15 +737,13 @@ public abstract class AbstractCrawlerService {
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
 
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                // Get the sort values from the last hit for search_after
+                final SearchHit[] hits = searchHits.getHits();
+                searchAfter = hits[hits.length - 1].getSortValues();
             }
         } finally {
-            getClient().clearScroll(scrollId);
+            // Delete PIT
+            getClient().deletePit(pitId);
         }
 
         refresh();

@@ -58,9 +58,6 @@ import org.opensearch.action.get.MultiGetResponse;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.action.index.IndexRequestBuilder;
 import org.opensearch.action.index.IndexResponse;
-import org.opensearch.action.search.ClearScrollRequest;
-import org.opensearch.action.search.ClearScrollRequestBuilder;
-import org.opensearch.action.search.ClearScrollResponse;
 import org.opensearch.action.search.CreatePitRequest;
 import org.opensearch.action.search.CreatePitResponse;
 import org.opensearch.action.search.DeletePitRequest;
@@ -73,8 +70,6 @@ import org.opensearch.action.search.MultiSearchResponse;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchScrollRequest;
-import org.opensearch.action.search.SearchScrollRequestBuilder;
 import org.opensearch.action.termvectors.MultiTermVectorsRequest;
 import org.opensearch.action.termvectors.MultiTermVectorsRequestBuilder;
 import org.opensearch.action.termvectors.MultiTermVectorsResponse;
@@ -92,8 +87,10 @@ import org.opensearch.core.action.ActionResponse;
 import org.opensearch.index.IndexNotFoundException;
 import org.opensearch.index.engine.VersionConflictEngineException;
 import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
+import org.opensearch.search.builder.PointInTimeBuilder;
+import org.opensearch.search.sort.FieldSortBuilder;
+import org.opensearch.search.sort.SortOrder;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.client.AdminClient;
 import org.opensearch.transport.client.Client;
@@ -143,9 +140,9 @@ public class FesenClient implements Client {
     private volatile boolean connected;
 
     /**
-     * Scroll for delete operations.
+     * Keep alive time for PIT in delete operations.
      */
-    protected Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
+    protected TimeValue keepAliveForDelete = TimeValue.timeValueMinutes(1);
 
     /**
      * Size for delete operations.
@@ -483,20 +480,6 @@ public class FesenClient implements Client {
         return client.prepareSearch(indices);
     }
 
-    @Override
-    public ActionFuture<SearchResponse> searchScroll(final SearchScrollRequest request) {
-        return client.searchScroll(request);
-    }
-
-    @Override
-    public void searchScroll(final SearchScrollRequest request, final ActionListener<SearchResponse> listener) {
-        client.searchScroll(request, listener);
-    }
-
-    @Override
-    public SearchScrollRequestBuilder prepareSearchScroll(final String scrollId) {
-        return client.prepareSearchScroll(scrollId);
-    }
 
     @Override
     public ActionFuture<MultiSearchResponse> multiSearch(final MultiSearchRequest request) {
@@ -528,20 +511,6 @@ public class FesenClient implements Client {
         client.explain(request, listener);
     }
 
-    @Override
-    public ClearScrollRequestBuilder prepareClearScroll() {
-        return client.prepareClearScroll();
-    }
-
-    @Override
-    public ActionFuture<ClearScrollResponse> clearScroll(final ClearScrollRequest request) {
-        return client.clearScroll(request);
-    }
-
-    @Override
-    public void clearScroll(final ClearScrollRequest request, final ActionListener<ClearScrollResponse> listener) {
-        client.clearScroll(request, listener);
-    }
 
     @Override
     public Settings settings() {
@@ -607,7 +576,7 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Deletes documents matching the specified query using scroll and bulk delete.
+     * Deletes documents matching the specified query using PIT and bulk delete.
      *
      * @param index The index to delete from.
      * @param type The document type (deprecated).
@@ -616,12 +585,91 @@ public class FesenClient implements Client {
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
-        SearchResponse response =
-                get(c -> c.prepareSearch(index).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
-        String scrollId = response.getScrollId();
+        // Create PIT
+        final CreatePitRequest createPitRequest = new CreatePitRequest(keepAliveForDelete, true, index);
+        final CreatePitResponse createPitResponse = get(c -> {
+            final ActionFuture<CreatePitResponse> future = new ActionFuture<CreatePitResponse>() {
+                private volatile CreatePitResponse response;
+                private volatile Exception exception;
+                private volatile boolean done = false;
+
+                {
+                    client.createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
+                        @Override
+                        public void onResponse(CreatePitResponse resp) {
+                            response = resp;
+                            done = true;
+                            synchronized (this) {
+                                notifyAll();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            exception = e;
+                            done = true;
+                            synchronized (this) {
+                                notifyAll();
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public CreatePitResponse actionGet() {
+                    try {
+                        synchronized (this) {
+                            while (!done) {
+                                wait();
+                            }
+                        }
+                        if (exception != null) {
+                            if (exception instanceof RuntimeException) {
+                                throw (RuntimeException) exception;
+                            }
+                            throw new RuntimeException(exception);
+                        }
+                        return response;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                @Override
+                public CreatePitResponse actionGet(long timeoutMillis) {
+                    return actionGet();
+                }
+
+                @Override
+                public CreatePitResponse actionGet(long timeout, TimeUnit unit) {
+                    return actionGet();
+                }
+
+                @Override
+                public CreatePitResponse actionGet(String timeout) {
+                    return actionGet();
+                }
+            };
+            return future;
+        });
+        final String pitId = createPitResponse.getId();
+
         int count = 0;
         try {
-            while (scrollId != null) {
+            Object[] searchAfter = null;
+            while (true) {
+                final SearchRequestBuilder searchBuilder = client.prepareSearch()
+                        .setSize(sizeForDelete)
+                        .setQuery(queryBuilder)
+                        .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(keepAliveForDelete))
+                        .addSort(new FieldSortBuilder("_shard_doc").order(SortOrder.ASC));
+
+                if (searchAfter != null) {
+                    searchBuilder.searchAfter(searchAfter);
+                }
+
+                final SearchResponse response = get(c -> searchBuilder.execute());
                 final SearchHit[] hits = response.getHits().getHits();
                 if (hits.length == 0) {
                     break;
@@ -639,28 +687,26 @@ public class FesenClient implements Client {
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
 
-                final String sid = scrollId;
-                response = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                // Get the sort values from the last hit for search_after
+                searchAfter = hits[hits.length - 1].getSortValues();
             }
         } finally {
-            clearScroll(scrollId);
+            // Delete PIT
+            deletePit(pitId);
         }
         return count;
     }
 
     /**
-     * Clears a scroll context.
+     * Deletes a PIT context.
      *
-     * @param scrollId The scroll ID to clear.
+     * @param pitId The PIT ID to delete.
      */
-    public void clearScroll(final String scrollId) {
-        if (scrollId != null) {
-            prepareClearScroll().addScrollId(scrollId)
-                    .execute(ActionListener.wrap(res -> {}, e -> logger.warn("Failed to clear " + scrollId, e)));
+    public void deletePit(final String pitId) {
+        if (pitId != null) {
+            final DeletePitRequest deletePitRequest = new DeletePitRequest(pitId);
+            client.deletePits(deletePitRequest,
+                    ActionListener.wrap(res -> {}, e -> logger.warn("Failed to delete PIT " + pitId, e)));
         }
     }
 
@@ -675,12 +721,12 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Sets the scroll configuration for delete operations.
+     * Sets the keep alive time for PIT in delete operations.
      *
-     * @param scrollForDelete The scroll configuration.
+     * @param keepAliveForDelete The keep alive time.
      */
-    public void setScrollForDelete(final Scroll scrollForDelete) {
-        this.scrollForDelete = scrollForDelete;
+    public void setKeepAliveForDelete(final TimeValue keepAliveForDelete) {
+        this.keepAliveForDelete = keepAliveForDelete;
     }
 
     /**

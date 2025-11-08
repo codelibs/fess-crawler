@@ -29,12 +29,18 @@ import org.codelibs.fess.crawler.util.AccessResultCallback;
 import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
 import org.codelibs.fess.crawler.util.OpenSearchResultList;
 import org.opensearch.action.DocWriteRequest.OpType;
+import org.opensearch.action.search.CreatePitRequest;
+import org.opensearch.action.search.CreatePitResponse;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.common.unit.TimeValue;
+import org.opensearch.core.action.ActionListener;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+import org.opensearch.search.builder.PointInTimeBuilder;
+import org.opensearch.search.sort.FieldSortBuilder;
+import org.opensearch.search.sort.SortOrder;
 
 import jakarta.annotation.PostConstruct;
 
@@ -218,21 +224,73 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
 
     /**
      * Iterates through all access results for a session, calling the callback for each result.
-     * Uses OpenSearch scroll API for efficient iteration over large result sets.
+     * Uses OpenSearch PIT API for efficient iteration over large result sets.
      *
      * @param sessionId The session ID.
      * @param callback The callback to execute for each access result.
      */
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<OpenSearchAccessResult> callback) {
-        SearchResponse response = getClient().get(c -> c.prepareSearch(index)
-                .setScroll(new TimeValue(scrollTimeout))
-                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
-                .setSize(scrollSize)
-                .execute());
-        String scrollId = response.getScrollId();
+        // Create PIT
+        final CreatePitRequest createPitRequest = new CreatePitRequest(new TimeValue(scrollTimeout), true, index);
+        final CreatePitResponse[] createPitResponseHolder = new CreatePitResponse[1];
+        final Exception[] exceptionHolder = new Exception[1];
+        final Object lock = new Object();
+        final boolean[] done = {false};
+
+        fesenClient.createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
+            @Override
+            public void onResponse(CreatePitResponse response) {
+                createPitResponseHolder[0] = response;
+                synchronized (lock) {
+                    done[0] = true;
+                    lock.notifyAll();
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                exceptionHolder[0] = e;
+                synchronized (lock) {
+                    done[0] = true;
+                    lock.notifyAll();
+                }
+            }
+        });
+
+        synchronized (lock) {
+            while (!done[0]) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new OpenSearchAccessException("Interrupted while creating PIT", e);
+                }
+            }
+        }
+
+        if (exceptionHolder[0] != null) {
+            throw new OpenSearchAccessException("Failed to create PIT", exceptionHolder[0]);
+        }
+
+        final String pitId = createPitResponseHolder[0].getId();
+
         try {
-            while (scrollId != null) {
+            Object[] searchAfter = null;
+            while (true) {
+                final Object[] currentSearchAfter = searchAfter;
+                SearchResponse response = getClient().get(c -> {
+                    final SearchRequestBuilder builder = c.prepareSearch()
+                            .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
+                            .setSize(scrollSize)
+                            .setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(new TimeValue(scrollTimeout)))
+                            .addSort(new FieldSortBuilder("_shard_doc").order(SortOrder.ASC));
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
+                    }
+                    return builder.execute();
+                });
+
                 final SearchHits searchHits = response.getHits();
                 if (searchHits.getHits().length == 0) {
                     break;
@@ -252,15 +310,13 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
                     callback.iterate(accessResult);
                 }
 
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                // Get the sort values from the last hit for search_after
+                final SearchHit[] hits = searchHits.getHits();
+                searchAfter = hits[hits.length - 1].getSortValues();
             }
         } finally {
-            getClient().clearScroll(scrollId);
+            // Delete PIT
+            getClient().deletePit(pitId);
         }
     }
 }

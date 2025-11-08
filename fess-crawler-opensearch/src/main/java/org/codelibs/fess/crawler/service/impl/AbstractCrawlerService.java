@@ -63,6 +63,9 @@ import org.opensearch.action.bulk.BulkResponse;
 import org.opensearch.action.delete.DeleteResponse;
 import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexResponse;
+import org.opensearch.action.search.CreatePitRequest;
+import org.opensearch.action.search.CreatePitResponse;
+import org.opensearch.action.search.DeletePitRequest;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.support.WriteRequest.RefreshPolicy;
@@ -70,6 +73,7 @@ import org.opensearch.action.support.clustermanager.AcknowledgedResponse;
 import org.opensearch.cluster.metadata.MappingMetadata;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.xcontent.XContentType;
+import org.opensearch.core.action.ActionListener;
 import org.opensearch.core.rest.RestStatus;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.index.IndexNotFoundException;
@@ -78,7 +82,10 @@ import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+import org.opensearch.search.builder.PointInTimeBuilder;
 import org.opensearch.search.sort.SortBuilder;
+import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.search.sort.SortOrder;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -647,20 +654,65 @@ public abstract class AbstractCrawlerService {
 
     /**
      * Deletes documents from the OpenSearch index based on the specified search criteria.
-     * Uses scroll and bulk delete operations for efficient deletion of large result sets.
+     * Uses PIT and bulk delete operations for efficient deletion of large result sets.
      *
      * @param callback The callback to configure the search request for identifying documents to delete.
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public void delete(final Consumer<SearchRequestBuilder> callback) {
-        SearchResponse response = getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
-            callback.accept(builder);
-            return builder.execute();
+        // Create PIT
+        final CreatePitRequest createPitRequest = new CreatePitRequest(new TimeValue(scrollTimeout), true, index);
+        final CreatePitResponse[] createPitResponseHolder = new CreatePitResponse[1];
+        getClient().createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
+            @Override
+            public void onResponse(CreatePitResponse response) {
+                createPitResponseHolder[0] = response;
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                throw new OpenSearchAccessException("Failed to create PIT", e);
+            }
         });
-        String scrollId = response.getScrollId();
+
+        // Wait for PIT creation (blocking call)
+        int waitCount = 0;
+        while (createPitResponseHolder[0] == null && waitCount < 100) {
+            try {
+                Thread.sleep(100);
+                waitCount++;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new OpenSearchAccessException("Interrupted while creating PIT", e);
+            }
+        }
+
+        if (createPitResponseHolder[0] == null) {
+            throw new OpenSearchAccessException("Failed to create PIT: timeout");
+        }
+
+        final String pitId = createPitResponseHolder[0].getId();
+
         try {
-            while (scrollId != null) {
+            Object[] searchAfter = null;
+            while (true) {
+                final Object[] currentSearchAfter = searchAfter;
+                SearchResponse response = getClient().get(c -> {
+                    final SearchRequestBuilder builder = c.prepareSearch()
+                            .setSize(scrollSize)
+                            .addSort(SortBuilders.fieldSort("_id").order(SortOrder.ASC));
+                    callback.accept(builder);
+
+                    // Set PIT
+                    builder.setPointInTime(new PointInTimeBuilder(pitId));
+
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
+                    }
+
+                    return builder.execute();
+                });
+
                 final SearchHits searchHits = response.getHits();
                 if (searchHits.getHits().length == 0) {
                     break;
@@ -678,15 +730,28 @@ public abstract class AbstractCrawlerService {
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
 
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
+                // Get the last hit's sort values for next iteration
+                final SearchHit[] hits = searchHits.getHits();
+                if (hits.length > 0) {
+                    searchAfter = hits[hits.length - 1].getSortValues();
+                } else {
+                    break;
                 }
-                scrollId = response.getScrollId();
             }
         } finally {
-            getClient().clearScroll(scrollId);
+            // Delete PIT
+            final DeletePitRequest deletePitRequest = new DeletePitRequest(pitId);
+            getClient().deletePits(deletePitRequest, new ActionListener<org.opensearch.action.search.DeletePitResponse>() {
+                @Override
+                public void onResponse(org.opensearch.action.search.DeletePitResponse response) {
+                    // PIT deleted successfully
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    logger.warn("Failed to delete PIT: " + pitId, e);
+                }
+            });
         }
 
         refresh();

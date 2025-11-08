@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
@@ -29,12 +31,19 @@ import org.codelibs.fess.crawler.util.AccessResultCallback;
 import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
 import org.codelibs.fess.crawler.util.OpenSearchResultList;
 import org.opensearch.action.DocWriteRequest.OpType;
+import org.opensearch.action.search.CreatePitRequest;
+import org.opensearch.action.search.CreatePitResponse;
+import org.opensearch.action.search.DeletePitRequest;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.common.unit.TimeValue;
+import org.opensearch.core.action.ActionListener;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+import org.opensearch.search.builder.PointInTimeBuilder;
+import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.search.sort.SortOrder;
 
 import jakarta.annotation.PostConstruct;
 
@@ -42,6 +51,11 @@ import jakarta.annotation.PostConstruct;
  * OpenSearchDataService is an implementation of {@link DataService} for OpenSearch.
  */
 public class OpenSearchDataService extends AbstractCrawlerService implements DataService<OpenSearchAccessResult> {
+
+    /**
+     * Logger instance.
+     */
+    private static final Logger logger = LogManager.getLogger(OpenSearchDataService.class);
 
     /**
      * Creates a new instance of OpenSearchDataService.
@@ -218,21 +232,66 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
 
     /**
      * Iterates through all access results for a session, calling the callback for each result.
-     * Uses OpenSearch scroll API for efficient iteration over large result sets.
+     * Uses OpenSearch PIT API for efficient iteration over large result sets.
      *
      * @param sessionId The session ID.
      * @param callback The callback to execute for each access result.
      */
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<OpenSearchAccessResult> callback) {
-        SearchResponse response = getClient().get(c -> c.prepareSearch(index)
-                .setScroll(new TimeValue(scrollTimeout))
-                .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
-                .setSize(scrollSize)
-                .execute());
-        String scrollId = response.getScrollId();
+        // Create PIT
+        final CreatePitRequest createPitRequest = new CreatePitRequest(new TimeValue(scrollTimeout), true, index);
+        final CreatePitResponse[] createPitResponseHolder = new CreatePitResponse[1];
+        getClient().createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
+            @Override
+            public void onResponse(CreatePitResponse response) {
+                createPitResponseHolder[0] = response;
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                throw new OpenSearchAccessException("Failed to create PIT", e);
+            }
+        });
+
+        // Wait for PIT creation (blocking call)
+        int waitCount = 0;
+        while (createPitResponseHolder[0] == null && waitCount < 100) {
+            try {
+                Thread.sleep(100);
+                waitCount++;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new OpenSearchAccessException("Interrupted while creating PIT", e);
+            }
+        }
+
+        if (createPitResponseHolder[0] == null) {
+            throw new OpenSearchAccessException("Failed to create PIT: timeout");
+        }
+
+        final String pitId = createPitResponseHolder[0].getId();
+
         try {
-            while (scrollId != null) {
+            Object[] searchAfter = null;
+            while (true) {
+                final Object[] currentSearchAfter = searchAfter;
+                SearchResponse response = getClient().get(c -> {
+                    final SearchRequestBuilder builder = c.prepareSearch()
+                            .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
+                            .setSize(scrollSize)
+                            .addSort(SortBuilders.fieldSort("_id").order(SortOrder.ASC));
+
+                    // Set PIT
+                    builder.setPointInTime(new PointInTimeBuilder(pitId));
+
+                    if (currentSearchAfter != null) {
+                        builder.searchAfter(currentSearchAfter);
+                    }
+
+                    return builder.execute();
+                });
+
                 final SearchHits searchHits = response.getHits();
                 if (searchHits.getHits().length == 0) {
                     break;
@@ -252,15 +311,28 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
                     callback.iterate(accessResult);
                 }
 
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
+                // Get the last hit's sort values for next iteration
+                final SearchHit[] hits = searchHits.getHits();
+                if (hits.length > 0) {
+                    searchAfter = hits[hits.length - 1].getSortValues();
+                } else {
+                    break;
                 }
-                scrollId = response.getScrollId();
             }
         } finally {
-            getClient().clearScroll(scrollId);
+            // Delete PIT
+            final DeletePitRequest deletePitRequest = new DeletePitRequest(pitId);
+            getClient().deletePits(deletePitRequest, new ActionListener<org.opensearch.action.search.DeletePitResponse>() {
+                @Override
+                public void onResponse(org.opensearch.action.search.DeletePitResponse response) {
+                    // PIT deleted successfully
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    logger.warn("Failed to delete PIT: " + pitId, e);
+                }
+            });
         }
     }
 }

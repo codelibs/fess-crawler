@@ -15,89 +15,84 @@
  */
 package org.codelibs.fess.crawler.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.codelibs.opensearch.runner.OpenSearchRunner.newConfigs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchUrlQueue;
-import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.codelibs.opensearch.runner.OpenSearchRunner;
+import org.dbflute.utflute.lastadi.LastaDiTestCase;
 import org.opensearch.index.query.QueryBuilders;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
+
+import jakarta.annotation.Resource;
 
 /**
  * Integration tests for PIT (Point in Time) API implementation.
- * Uses TestContainers to run OpenSearch 3.3.2 for testing.
+ * Uses OpenSearchRunner to test PIT API functionality.
  *
  * @author shinsuke
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PitApiIntegrationTest {
+public class PitApiIntegrationTest extends LastaDiTestCase {
 
-    private GenericContainer<?> opensearchContainer;
-    private FesenClient fesenClient;
+    @Resource
     private OpenSearchDataService dataService;
+
+    @Resource
     private OpenSearchUrlQueueService urlQueueService;
 
-    @BeforeAll
-    public void setUp() throws Exception {
-        // Start OpenSearch 3.3.2 container
-        opensearchContainer = new GenericContainer<>(DockerImageName.parse("opensearchproject/opensearch:3.3.2"))
-                .withExposedPorts(9200)
-                .withEnv("discovery.type", "single-node")
-                .withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
-                .withEnv("DISABLE_SECURITY_PLUGIN", "true")
-                .waitingFor(Wait.forHttp("/_cluster/health").forStatusCode(200));
+    @Resource
+    private FesenClient fesenClient;
 
-        opensearchContainer.start();
+    private OpenSearchRunner runner;
 
-        // Configure client
-        String address = "localhost:" + opensearchContainer.getMappedPort(9200);
-        System.setProperty(FesenClient.HTTP_ADDRESS, address);
-
-        // Initialize services
-        fesenClient = new FesenClient();
-        fesenClient.setAddress(address);
-        fesenClient.connect();
-
-        OpenSearchCrawlerConfig config = new OpenSearchCrawlerConfig();
-        dataService = new OpenSearchDataService(config);
-        dataService.fesenClient = fesenClient;
-        dataService.init();
-
-        urlQueueService = new OpenSearchUrlQueueService(config);
-        urlQueueService.fesenClient = fesenClient;
-        urlQueueService.init();
-
-        // Wait a bit for indices to be created
-        Thread.sleep(2000);
+    @Override
+    protected String prepareConfigFile() {
+        return "app.xml";
     }
 
-    @AfterAll
-    public void tearDown() {
-        if (fesenClient != null) {
-            fesenClient.destroy();
-        }
-        if (opensearchContainer != null) {
-            opensearchContainer.stop();
-        }
+    @Override
+    protected boolean isUseOneTimeContainer() {
+        return true;
+    }
+
+    @Override
+    public void setUp() throws Exception {
+        // create runner instance
+        runner = new OpenSearchRunner();
+        // create ES nodes
+        final String clusterName = UUID.randomUUID().toString();
+        runner.onBuild((number, settingsBuilder) -> {
+            settingsBuilder.put("http.cors.enabled", true);
+            settingsBuilder.put("discovery.type", "single-node");
+        }).build(newConfigs().clusterName(clusterName).numOfNode(1));
+
+        // wait for yellow status
+        runner.ensureYellow();
+
+        System.setProperty(FesenClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
+
+        super.setUp();
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+        super.tearDown();
+        // close runner
+        runner.close();
+        // delete all files
+        runner.clean();
     }
 
     /**
      * Test PIT API usage in OpenSearchDataService.iterate() method.
      * Verifies that iteration works correctly with large datasets.
      */
-    @Test
-    public void testDataServiceIterateWithPitApi() throws Exception {
+    public void test_DataServiceIterateWithPitApi() throws Exception {
         final String sessionId = "test-session-iterate";
         final int totalRecords = 250; // More than default scroll size
 
@@ -129,7 +124,7 @@ public class PitApiIntegrationTest {
         });
 
         // Verify all records were iterated
-        assertEquals(totalRecords, counter.get(), "All records should be iterated using PIT API");
+        assertEquals("All records should be iterated using PIT API", totalRecords, counter.get());
 
         // Cleanup
         dataService.delete(sessionId);
@@ -139,8 +134,7 @@ public class PitApiIntegrationTest {
      * Test PIT API usage in OpenSearchUrlQueueService.updateSessionId() method.
      * Verifies that session ID update works correctly with PIT pagination.
      */
-    @Test
-    public void testUrlQueueUpdateSessionIdWithPitApi() throws Exception {
+    public void test_UrlQueueUpdateSessionIdWithPitApi() throws Exception {
         final String oldSessionId = "test-session-old";
         final String newSessionId = "test-session-new";
         final int totalRecords = 150;
@@ -170,7 +164,7 @@ public class PitApiIntegrationTest {
                 .getHits()
                 .getTotalHits()
                 .value();
-        assertEquals(totalRecords, oldCount, "Should have records with old session ID");
+        assertEquals("Should have records with old session ID", totalRecords, oldCount);
 
         // Update session ID using PIT API
         urlQueueService.updateSessionId(oldSessionId, newSessionId);
@@ -187,7 +181,7 @@ public class PitApiIntegrationTest {
                 .getHits()
                 .getTotalHits()
                 .value();
-        assertEquals(totalRecords, newCount, "Should have all records with new session ID");
+        assertEquals("Should have all records with new session ID", totalRecords, newCount);
 
         // Verify old session ID doesn't exist
         long remainingOldCount = fesenClient.prepareSearch("fess_crawler.queue")
@@ -198,7 +192,7 @@ public class PitApiIntegrationTest {
                 .getHits()
                 .getTotalHits()
                 .value();
-        assertEquals(0, remainingOldCount, "Should have no records with old session ID");
+        assertEquals("Should have no records with old session ID", 0L, remainingOldCount);
 
         // Cleanup
         urlQueueService.delete(newSessionId);
@@ -208,8 +202,7 @@ public class PitApiIntegrationTest {
      * Test PIT API usage in AbstractCrawlerService.delete() method.
      * Verifies that bulk deletion works correctly with PIT pagination.
      */
-    @Test
-    public void testBulkDeleteWithPitApi() throws Exception {
+    public void test_BulkDeleteWithPitApi() throws Exception {
         final String sessionId = "test-session-delete";
         final int totalRecords = 300;
 
@@ -241,7 +234,7 @@ public class PitApiIntegrationTest {
                 .getHits()
                 .getTotalHits()
                 .value();
-        assertEquals(totalRecords, beforeCount, "Should have all records before deletion");
+        assertEquals("Should have all records before deletion", totalRecords, beforeCount);
 
         // Delete using PIT API
         dataService.delete(sessionId);
@@ -258,15 +251,14 @@ public class PitApiIntegrationTest {
                 .getHits()
                 .getTotalHits()
                 .value();
-        assertEquals(0, afterCount, "Should have no records after deletion using PIT API");
+        assertEquals("Should have no records after deletion using PIT API", 0L, afterCount);
     }
 
     /**
      * Test PIT API with concurrent operations.
      * Verifies that PIT maintains data consistency during iteration.
      */
-    @Test
-    public void testPitDataConsistency() throws Exception {
+    public void test_PitDataConsistency() throws Exception {
         final String sessionId = "test-session-consistency";
         final int initialRecords = 100;
 
@@ -296,8 +288,7 @@ public class PitApiIntegrationTest {
         });
 
         // Verify PIT returned all records from the snapshot
-        assertEquals(initialRecords, pitCount.get(),
-                "PIT should return consistent count from snapshot");
+        assertEquals("PIT should return consistent count from snapshot", initialRecords, pitCount.get());
 
         // Cleanup
         dataService.delete(sessionId);
@@ -307,8 +298,7 @@ public class PitApiIntegrationTest {
      * Test FesenClient.deleteByQuery with PIT API.
      * Verifies query-based deletion works with PIT pagination.
      */
-    @Test
-    public void testDeleteByQueryWithPitApi() throws Exception {
+    public void test_DeleteByQueryWithPitApi() throws Exception {
         final String sessionId = "test-session-query-delete";
         final String index = dataService.getIndex();
         final int totalRecords = 200;
@@ -336,8 +326,7 @@ public class PitApiIntegrationTest {
         int deletedCount = fesenClient.deleteByQuery(index, null,
                 QueryBuilders.termQuery("sessionId", sessionId));
 
-        assertEquals(totalRecords, deletedCount,
-                "Should delete all matching records using PIT API");
+        assertEquals("Should delete all matching records using PIT API", totalRecords, deletedCount);
 
         // Wait for deletion
         Thread.sleep(2000);
@@ -351,6 +340,6 @@ public class PitApiIntegrationTest {
                 .getHits()
                 .getTotalHits()
                 .value();
-        assertEquals(0, remainingCount, "Should have no remaining records");
+        assertEquals("Should have no remaining records", 0L, remainingCount);
     }
 }

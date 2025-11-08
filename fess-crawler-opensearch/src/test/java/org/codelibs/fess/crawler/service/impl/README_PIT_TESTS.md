@@ -10,9 +10,8 @@ This directory contains integration tests for the Point in Time (PIT) API implem
 
 ## Prerequisites
 
-1. **Docker**: TestContainers requires Docker to be installed and running
-2. **Java 17+**: Required for running the tests
-3. **Maven 3.6+**: For building and running tests
+1. **Java 17+**: Required for running the tests
+2. **Maven 3.6+**: For building and running tests
 
 ## Running the Tests
 
@@ -75,18 +74,25 @@ Tests the `FesenClient.deleteByQuery()` method which uses PIT API for query-base
   - Deleted count matches total records
   - No records remain in index
 
-## Test Container Configuration
+## Test Configuration
 
-The tests use OpenSearch 3.3.2 running in a Docker container:
+The tests use OpenSearchRunner (similar to existing tests in the project):
 
 ```java
-opensearchContainer = new GenericContainer<>(DockerImageName.parse("opensearchproject/opensearch:3.3.2"))
-    .withExposedPorts(9200)
-    .withEnv("discovery.type", "single-node")
-    .withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
-    .withEnv("DISABLE_SECURITY_PLUGIN", "true")
-    .waitingFor(Wait.forHttp("/_cluster/health").forStatusCode(200));
+runner = new OpenSearchRunner();
+final String clusterName = UUID.randomUUID().toString();
+runner.onBuild((number, settingsBuilder) -> {
+    settingsBuilder.put("http.cors.enabled", true);
+    settingsBuilder.put("discovery.type", "single-node");
+}).build(newConfigs().clusterName(clusterName).numOfNode(1));
+runner.ensureYellow();
 ```
+
+This approach:
+- Uses the same test infrastructure as existing tests
+- Automatically manages OpenSearch lifecycle
+- Ensures consistent test environment
+- No Docker required
 
 ## Key Features Tested
 
@@ -107,13 +113,13 @@ opensearchContainer = new GenericContainer<>(DockerImageName.parse("opensearchpr
 
 ## Troubleshooting
 
-### Docker not running
+### PIT API not supported error
 
 ```
-Error: Could not find a valid Docker environment
+Error: UnsupportedOperationException: Action: indices:data/read/point_in_time/create
 ```
 
-**Solution**: Start Docker daemon before running tests
+**Solution**: This indicates the OpenSearch client library doesn't fully support PIT API. The current implementation uses an async approach with ActionListener to work around this limitation.
 
 ### Port already in use
 
@@ -121,7 +127,7 @@ Error: Could not find a valid Docker environment
 Error: Port 9200 is already allocated
 ```
 
-**Solution**: Stop any existing OpenSearch/Elasticsearch instances or let TestContainers assign a random port
+**Solution**: Stop any existing OpenSearch/Elasticsearch instances. OpenSearchRunner will automatically find an available port.
 
 ### Test timeout
 
@@ -129,35 +135,42 @@ Error: Port 9200 is already allocated
 Error: Test timeout after 60 seconds
 ```
 
-**Solution**: Increase wait times in test setup or check Docker resources
+**Solution**: Increase wait times in test setup. The tests use Thread.sleep() to ensure data is indexed before assertions.
 
 ## Performance Considerations
 
-- **Container startup**: ~10-15 seconds
+- **OpenSearch startup**: ~5-10 seconds (via OpenSearchRunner)
 - **Index creation**: ~2 seconds
 - **Per test execution**: ~5-10 seconds
-- **Total test suite**: ~2-3 minutes
+- **Total test suite**: ~1-2 minutes
 
 ## CI/CD Integration
 
-For CI/CD pipelines, ensure:
-
-1. Docker is available in the build environment
-2. Sufficient memory allocated (at least 1GB for OpenSearch)
-3. Network access for pulling Docker images
-4. Appropriate timeouts configured
+The tests use OpenSearchRunner, which:
+- Automatically downloads and manages OpenSearch binaries
+- Works in any CI/CD environment without Docker
+- Cleans up resources automatically after tests
 
 Example GitHub Actions:
 
 ```yaml
 - name: Run PIT API Integration Tests
   run: mvn test -Dtest=PitApiIntegrationTest -pl fess-crawler-opensearch
-  env:
-    TESTCONTAINERS_RYUK_DISABLED: false
 ```
+
+No special Docker or container configuration required.
 
 ## Related Documentation
 
 - [OpenSearch PIT API Documentation](https://opensearch.org/docs/latest/search-plugins/point-in-time/)
-- [TestContainers Java Documentation](https://www.testcontainers.org/)
+- [OpenSearch Runner](https://github.com/codelibs/opensearch-runner)
 - [PIT API Implementation Details](../../../../main/java/org/codelibs/fess/crawler/service/impl/)
+
+## Test Structure
+
+The tests follow the same pattern as existing OpenSearch tests in the project:
+- Extend `LastaDiTestCase` for dependency injection
+- Use `@Resource` annotation for service injection
+- Follow JUnit 4 naming convention: `test_MethodName`
+- Use OpenSearchRunner for test infrastructure
+- Clean up resources in tearDown method

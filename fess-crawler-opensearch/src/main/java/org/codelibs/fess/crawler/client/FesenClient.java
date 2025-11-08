@@ -94,9 +94,6 @@ import org.opensearch.index.engine.VersionConflictEngineException;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
-import org.opensearch.search.builder.PointInTimeBuilder;
-import org.opensearch.search.sort.SortBuilders;
-import org.opensearch.search.sort.SortOrder;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.client.AdminClient;
 import org.opensearch.transport.client.Client;
@@ -610,7 +607,7 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Deletes documents matching the specified query using PIT and bulk delete.
+     * Deletes documents matching the specified query using scroll and bulk delete.
      *
      * @param index The index to delete from.
      * @param type The document type (deprecated).
@@ -619,60 +616,12 @@ public class FesenClient implements Client {
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
-        // Create PIT
-        final CreatePitRequest createPitRequest = new CreatePitRequest(scrollForDelete.keepAlive(), true, index);
-        final CreatePitResponse[] createPitResponseHolder = new CreatePitResponse[1];
-        createPit(createPitRequest, new ActionListener<CreatePitResponse>() {
-            @Override
-            public void onResponse(CreatePitResponse response) {
-                createPitResponseHolder[0] = response;
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                throw new OpenSearchAccessException("Failed to create PIT", e);
-            }
-        });
-
-        // Wait for PIT creation (blocking call)
-        int waitCount = 0;
-        while (createPitResponseHolder[0] == null && waitCount < 100) {
-            try {
-                Thread.sleep(100);
-                waitCount++;
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new OpenSearchAccessException("Interrupted while creating PIT", e);
-            }
-        }
-
-        if (createPitResponseHolder[0] == null) {
-            throw new OpenSearchAccessException("Failed to create PIT: timeout");
-        }
-
-        final String pitId = createPitResponseHolder[0].getId();
+        SearchResponse response =
+                get(c -> c.prepareSearch(index).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
+        String scrollId = response.getScrollId();
         int count = 0;
-
         try {
-            Object[] searchAfter = null;
-            while (true) {
-                final Object[] currentSearchAfter = searchAfter;
-                SearchResponse response = get(c -> {
-                    final SearchRequestBuilder builder = c.prepareSearch()
-                            .setSize(sizeForDelete)
-                            .setQuery(queryBuilder)
-                            .addSort(SortBuilders.fieldSort("_id").order(SortOrder.ASC));
-
-                    // Set PIT
-                    builder.setPointInTime(new PointInTimeBuilder(pitId));
-
-                    if (currentSearchAfter != null) {
-                        builder.searchAfter(currentSearchAfter);
-                    }
-
-                    return builder.execute();
-                });
-
+            while (scrollId != null) {
                 final SearchHit[] hits = response.getHits().getHits();
                 if (hits.length == 0) {
                     break;
@@ -690,27 +639,15 @@ public class FesenClient implements Client {
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
 
-                // Get the last hit's sort values for next iteration
-                if (hits.length > 0) {
-                    searchAfter = hits[hits.length - 1].getSortValues();
-                } else {
-                    break;
+                final String sid = scrollId;
+                response = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
+                if (!scrollId.equals(response.getScrollId())) {
+                    clearScroll(scrollId);
                 }
+                scrollId = response.getScrollId();
             }
         } finally {
-            // Delete PIT
-            final DeletePitRequest deletePitRequest = new DeletePitRequest(pitId);
-            deletePits(deletePitRequest, new ActionListener<DeletePitResponse>() {
-                @Override
-                public void onResponse(DeletePitResponse response) {
-                    // PIT deleted successfully
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    logger.warn("Failed to delete PIT: " + pitId, e);
-                }
-            });
+            clearScroll(scrollId);
         }
         return count;
     }

@@ -543,6 +543,9 @@ public class CrawlerTest extends PlainTestCase {
     public void test_addIncludeFilter() throws Exception {
         crawler.addIncludeFilter("http://example\\.com/.*");
 
+        // Initialize the filter
+        crawler.urlFilter.init(crawler.getSessionId());
+
         // Add a URL that matches the filter
         crawler.addUrl("http://example.com/page");
 
@@ -552,6 +555,9 @@ public class CrawlerTest extends PlainTestCase {
     public void test_addExcludeFilter() throws Exception {
         crawler.addIncludeFilter("http://example\\.com/.*");
         crawler.addExcludeFilter("http://example\\.com/exclude/.*");
+
+        // Initialize the filter
+        crawler.urlFilter.init(crawler.getSessionId());
 
         assertTrue(crawler.urlFilter.match("http://example.com/page"));
         assertFalse(crawler.urlFilter.match("http://example.com/exclude/page"));

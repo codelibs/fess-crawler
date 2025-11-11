@@ -417,7 +417,8 @@ public class CrawlerThreadTest extends PlainTestCase {
      */
     public void test_run_noUrlsInQueue() throws Exception {
         when(urlQueueService.poll(anyString())).thenReturn(null);
-        crawlerContext.setStatus(CrawlerStatus.DONE);
+        crawlerContext.setStatus(CrawlerStatus.RUNNING);
+        crawlerContext.maxThreadCheckCount = 1; // Will exit after 1 check
 
         crawlerThread.run();
 
@@ -456,7 +457,8 @@ public class CrawlerThreadTest extends PlainTestCase {
         crawlerContext.intervalController = intervalController;
 
         when(urlQueueService.poll(anyString())).thenReturn(null);
-        crawlerContext.setStatus(CrawlerStatus.DONE);
+        crawlerContext.setStatus(CrawlerStatus.RUNNING);
+        crawlerContext.maxThreadCheckCount = 1; // Will exit after 1 check
 
         crawlerThread.run();
 

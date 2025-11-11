@@ -438,4 +438,205 @@ public class CrawlerTest extends PlainTestCase {
         }
     }
 
+    public void test_cleanup() throws Exception {
+        final String sessionId = crawler.getSessionId();
+
+        // Add some test data
+        crawler.addUrl("http://example.com/");
+
+        // Perform cleanup - should not throw exception
+        crawler.cleanup(sessionId);
+    }
+
+    public void test_stop() throws Exception {
+        final CrawlerWebServer server = new CrawlerWebServer(7070);
+        server.start();
+
+        try {
+            final String url = "http://localhost:7070/";
+            final int numOfThread = 5;
+
+            final File file = File.createTempFile("crawler-", "");
+            file.delete();
+            file.mkdirs();
+            file.deleteOnExit();
+            fileTransformer.setPath(file.getAbsolutePath());
+
+            crawler.setBackground(true);
+            ((UrlFilterImpl) crawler.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
+            crawler.addUrl(url);
+            crawler.getCrawlerContext().setNumOfThread(numOfThread);
+            crawler.getCrawlerContext().setMaxAccessCount(100);
+
+            final String sessionId = crawler.execute();
+
+            // Wait for crawler to start
+            long startTime = System.currentTimeMillis();
+            while (crawler.crawlerContext.getStatus() != CrawlerStatus.RUNNING && System.currentTimeMillis() - startTime < 5000) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+
+            assertEquals(CrawlerStatus.RUNNING, crawler.crawlerContext.getStatus());
+
+            // Stop the crawler
+            crawler.stop();
+
+            // Wait for crawler to finish
+            crawler.awaitTermination(5000);
+
+            assertEquals(CrawlerStatus.DONE, crawler.crawlerContext.getStatus());
+            dataService.delete(sessionId);
+        } finally {
+            server.stop();
+        }
+    }
+
+    public void test_close() throws Exception {
+        final Crawler testCrawler = container.getComponent("crawler");
+
+        // close should not throw exception
+        testCrawler.close();
+    }
+
+    public void test_setSessionId() throws Exception {
+        final String originalSessionId = crawler.getSessionId();
+        assertNotNull(originalSessionId);
+
+        final String newSessionId = "new-test-session-id";
+        crawler.setSessionId(newSessionId);
+
+        assertEquals(newSessionId, crawler.getSessionId());
+    }
+
+    public void test_setSessionId_blank() throws Exception {
+        final String originalSessionId = crawler.getSessionId();
+
+        crawler.setSessionId("");
+
+        // Should not change session ID
+        assertEquals(originalSessionId, crawler.getSessionId());
+    }
+
+    public void test_setSessionId_null() throws Exception {
+        final String originalSessionId = crawler.getSessionId();
+
+        crawler.setSessionId(null);
+
+        // Should not change session ID
+        assertEquals(originalSessionId, crawler.getSessionId());
+    }
+
+    public void test_setSessionId_same() throws Exception {
+        final String originalSessionId = crawler.getSessionId();
+
+        crawler.setSessionId(originalSessionId);
+
+        // Should remain the same
+        assertEquals(originalSessionId, crawler.getSessionId());
+    }
+
+    public void test_addIncludeFilter() throws Exception {
+        crawler.addIncludeFilter("http://example\\.com/.*");
+
+        // Initialize the filter
+        crawler.urlFilter.init(crawler.getSessionId());
+
+        // Add a URL that matches the filter
+        crawler.addUrl("http://example.com/page");
+
+        assertTrue(crawler.urlFilter.match("http://example.com/page"));
+    }
+
+    public void test_addExcludeFilter() throws Exception {
+        crawler.addIncludeFilter("http://example\\.com/.*");
+        crawler.addExcludeFilter("http://example\\.com/exclude/.*");
+
+        // Initialize the filter
+        crawler.urlFilter.init(crawler.getSessionId());
+
+        assertTrue(crawler.urlFilter.match("http://example.com/page"));
+        assertFalse(crawler.urlFilter.match("http://example.com/exclude/page"));
+    }
+
+    public void test_daemon_mode() throws Exception {
+        final Crawler testCrawler = container.getComponent("crawler");
+
+        assertFalse(testCrawler.isDaemon());
+
+        testCrawler.setDaemon(true);
+        assertTrue(testCrawler.isDaemon());
+
+        testCrawler.setDaemon(false);
+        assertFalse(testCrawler.isDaemon());
+    }
+
+    public void test_threadPriority() throws Exception {
+        final Crawler testCrawler = container.getComponent("crawler");
+
+        testCrawler.setThreadPriority(Thread.MAX_PRIORITY);
+        // Cannot directly verify thread priority, but ensure no exception
+    }
+
+    public void test_setters() throws Exception {
+        final Crawler testCrawler = container.getComponent("crawler");
+
+        testCrawler.setNumOfThread(5);
+        assertEquals(5, testCrawler.getCrawlerContext().getNumOfThread());
+
+        testCrawler.setMaxThreadCheckCount(15);
+        assertEquals(15, testCrawler.getCrawlerContext().getMaxThreadCheckCount());
+
+        testCrawler.setMaxDepth(10);
+        assertEquals(10, testCrawler.getCrawlerContext().getMaxDepth());
+
+        testCrawler.setMaxAccessCount(100);
+        assertEquals(100, testCrawler.getCrawlerContext().getMaxAccessCount());
+    }
+
+    public void test_getters() throws Exception {
+        assertNotNull(crawler.getUrlFilter());
+        assertNotNull(crawler.getRuleManager());
+        assertNotNull(crawler.getIntervalController());
+        assertNotNull(crawler.getClientFactory());
+        assertNotNull(crawler.getCrawlerContext());
+    }
+
+    public void test_awaitTermination_withTimeout() throws Exception {
+        final CrawlerWebServer server = new CrawlerWebServer(7070);
+        server.start();
+
+        try {
+            final String url = "http://localhost:7070/";
+            final int maxCount = 10;
+            final int numOfThread = 2;
+
+            final File file = File.createTempFile("crawler-", "");
+            file.delete();
+            file.mkdirs();
+            file.deleteOnExit();
+            fileTransformer.setPath(file.getAbsolutePath());
+
+            crawler.setBackground(true);
+            ((UrlFilterImpl) crawler.urlFilter).setIncludeFilteringPattern("$1$2$3.*");
+            crawler.addUrl(url);
+            crawler.getCrawlerContext().setMaxAccessCount(maxCount);
+            crawler.getCrawlerContext().setNumOfThread(numOfThread);
+
+            final String sessionId = crawler.execute();
+
+            // Wait with timeout
+            crawler.awaitTermination(10000);
+
+            assertEquals(CrawlerStatus.DONE, crawler.crawlerContext.getStatus());
+            dataService.delete(sessionId);
+        } finally {
+            server.stop();
+        }
+    }
+
 }

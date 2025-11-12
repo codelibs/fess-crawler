@@ -86,8 +86,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify ChildUrlsException is thrown
@@ -128,8 +128,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify
@@ -163,8 +163,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify
@@ -195,8 +195,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify
@@ -220,8 +220,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenThrow(new IOException("Parse error"));
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify IORuntimeException is thrown
@@ -251,8 +251,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify exception message
@@ -282,8 +282,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify
@@ -322,8 +322,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
-        } catch (IOException e) {
-            fail("Should not throw IOException in test setup");
+        } catch (Exception e) {
+            fail("Should not throw exception in test setup");
         }
 
         // Execute and verify

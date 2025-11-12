@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -212,7 +213,7 @@ public class ResponseDataTest extends PlainTestCase {
             byte[] buffer = new byte[content.length];
             int bytesRead = is.read(buffer);
             assertEquals(content.length, bytesRead);
-            assertArrayEquals(content, buffer);
+            assertTrue(Arrays.equals(content, buffer));
         } catch (IOException e) {
             fail("IOException should not occur: " + e.getMessage());
         }

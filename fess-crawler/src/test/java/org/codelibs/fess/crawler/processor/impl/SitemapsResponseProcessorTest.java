@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.Sitemap;
 import org.codelibs.fess.crawler.entity.SitemapSet;
+import org.codelibs.fess.crawler.entity.SitemapUrl;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
@@ -76,14 +77,11 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         byte[] content = "<sitemap></sitemap>".getBytes();
         responseData.setResponseBody(content);
 
-        Sitemap sitemap = new Sitemap();
+        SitemapUrl sitemap = new SitemapUrl();
         sitemap.setLoc("https://example.com/page1");
 
-        List<Sitemap> sitemapList = new ArrayList<>();
-        sitemapList.add(sitemap);
-
         SitemapSet sitemapSet = new SitemapSet();
-        sitemapSet.setSitemaps(sitemapList);
+        sitemapSet.addSitemap(sitemap);
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
@@ -113,22 +111,19 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         byte[] content = "<sitemapindex></sitemapindex>".getBytes();
         responseData.setResponseBody(content);
 
-        Sitemap sitemap1 = new Sitemap();
+        SitemapUrl sitemap1 = new SitemapUrl();
         sitemap1.setLoc("https://example.com/page1");
 
-        Sitemap sitemap2 = new Sitemap();
+        SitemapUrl sitemap2 = new SitemapUrl();
         sitemap2.setLoc("https://example.com/page2");
 
-        Sitemap sitemap3 = new Sitemap();
+        SitemapUrl sitemap3 = new SitemapUrl();
         sitemap3.setLoc("https://example.com/page3");
 
-        List<Sitemap> sitemapList = new ArrayList<>();
-        sitemapList.add(sitemap1);
-        sitemapList.add(sitemap2);
-        sitemapList.add(sitemap3);
-
         SitemapSet sitemapSet = new SitemapSet();
-        sitemapSet.setSitemaps(sitemapList);
+        sitemapSet.addSitemap(sitemap1);
+        sitemapSet.addSitemap(sitemap2);
+        sitemapSet.addSitemap(sitemap3);
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
@@ -164,7 +159,6 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         responseData.setResponseBody(content);
 
         SitemapSet sitemapSet = new SitemapSet();
-        sitemapSet.setSitemaps(new ArrayList<>());
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
@@ -190,16 +184,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         byte[] content = "<sitemapindex></sitemapindex>".getBytes();
         responseData.setResponseBody(content);
 
-        Sitemap sitemap1 = new Sitemap();
+        SitemapUrl sitemap1 = new SitemapUrl();
         sitemap1.setLoc("https://example.com/page1");
 
-        List<Sitemap> sitemapList = new ArrayList<>();
-        sitemapList.add(sitemap1);
-        sitemapList.add(null); // Null entry
-        sitemapList.add(new Sitemap()); // Sitemap with null loc
-
         SitemapSet sitemapSet = new SitemapSet();
-        sitemapSet.setSitemaps(sitemapList);
+        sitemapSet.addSitemap(sitemap1);
+        sitemapSet.addSitemap(null); // Null entry
+        sitemapSet.addSitemap(new SitemapUrl()); // Sitemap with null loc
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
@@ -251,14 +242,11 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         byte[] content = "<sitemap></sitemap>".getBytes();
         responseData.setResponseBody(content);
 
-        Sitemap sitemap = new Sitemap();
+        SitemapUrl sitemap = new SitemapUrl();
         sitemap.setLoc("https://example.com/test");
 
-        List<Sitemap> sitemapList = new ArrayList<>();
-        sitemapList.add(sitemap);
-
         SitemapSet sitemapSet = new SitemapSet();
-        sitemapSet.setSitemaps(sitemapList);
+        sitemapSet.addSitemap(sitemap);
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
@@ -285,14 +273,11 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         byte[] content = "<sitemap></sitemap>".getBytes();
         responseData.setResponseBody(content);
 
-        Sitemap sitemap = new Sitemap();
+        SitemapUrl sitemap = new SitemapUrl();
         sitemap.setLoc("https://example.com/page");
 
-        List<Sitemap> sitemapList = new ArrayList<>();
-        sitemapList.add(sitemap);
-
         SitemapSet sitemapSet = new SitemapSet();
-        sitemapSet.setSitemaps(sitemapList);
+        sitemapSet.addSitemap(sitemap);
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
@@ -320,22 +305,19 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         byte[] content = "<sitemap></sitemap>".getBytes();
         responseData.setResponseBody(content);
 
-        Sitemap sitemap1 = new Sitemap();
+        SitemapUrl sitemap1 = new SitemapUrl();
         sitemap1.setLoc("https://example.com/duplicate");
 
-        Sitemap sitemap2 = new Sitemap();
+        SitemapUrl sitemap2 = new SitemapUrl();
         sitemap2.setLoc("https://example.com/duplicate");
 
-        Sitemap sitemap3 = new Sitemap();
+        SitemapUrl sitemap3 = new SitemapUrl();
         sitemap3.setLoc("https://example.com/unique");
 
-        List<Sitemap> sitemapList = new ArrayList<>();
-        sitemapList.add(sitemap1);
-        sitemapList.add(sitemap2);
-        sitemapList.add(sitemap3);
-
         SitemapSet sitemapSet = new SitemapSet();
-        sitemapSet.setSitemaps(sitemapList);
+        sitemapSet.addSitemap(sitemap1);
+        sitemapSet.addSitemap(sitemap2);
+        sitemapSet.addSitemap(sitemap3);
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {

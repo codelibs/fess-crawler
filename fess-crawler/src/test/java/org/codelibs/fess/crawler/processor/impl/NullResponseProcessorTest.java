@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.processor.impl;
 
+import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;

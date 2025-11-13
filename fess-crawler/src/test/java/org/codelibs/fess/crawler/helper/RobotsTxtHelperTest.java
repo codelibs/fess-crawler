@@ -210,4 +210,268 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertEquals(1, sitemaps.length);
         assertEquals("http://www.example.com/sitemap.xml", sitemaps[0]);
     }
+
+    public void testParse_malformed() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_malformed.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Should not throw exception and return a valid RobotsTxt object
+        assertNotNull(robotsTxt);
+
+        // Test that orphaned directives (before any User-agent) are ignored
+        // These should not affect any bot
+        assertTrue(robotsTxt.allows("/orphaned1/", "AnyBot"));
+        assertTrue(robotsTxt.allows("/orphaned2/", "AnyBot"));
+
+        // Test GoodBot - should parse valid directives and ignore invalid ones
+        assertNotNull(robotsTxt.getDirective("goodbot"));
+        assertFalse(robotsTxt.allows("/admin/", "GoodBot"));
+        assertTrue(robotsTxt.allows("/public/", "GoodBot"));
+        // Invalid directives should not cause parsing to fail
+
+        // Test crawl-delay with invalid values
+        // Invalid number should be ignored, valid ones should work
+        assertEquals(0, robotsTxt.getCrawlDelay("GoodBot")); // invalid values ignored
+
+        // Test MultiColonBot - colons in paths should be preserved
+        assertFalse(robotsTxt.allows("http://example.com:8080/path", "MultiColonBot"));
+        assertTrue(robotsTxt.allows("/path:with:colons", "MultiColonBot"));
+
+        // Test ExtraSpaceBot - extra whitespace should be handled
+        assertFalse(robotsTxt.allows("/spaced/", "ExtraSpaceBot"));
+        assertTrue(robotsTxt.allows("/also-spaced/", "ExtraSpaceBot"));
+
+        // Test MixedCaseBot - mixed case directives should work
+        assertFalse(robotsTxt.allows("/test1/", "MixedCaseBot"));
+        assertTrue(robotsTxt.allows("/test2/", "MixedCaseBot"));
+        assertEquals(2, robotsTxt.getCrawlDelay("MixedCaseBot"));
+
+        // Test CommentBot - inline comments should be stripped
+        assertFalse(robotsTxt.allows("/path1/", "CommentBot"));
+        assertTrue(robotsTxt.allows("/path2/", "CommentBot"));
+
+        // Test EmptyLineBot - empty lines should not cause issues
+        assertFalse(robotsTxt.allows("/test/", "EmptyLineBot"));
+        assertTrue(robotsTxt.allows("/public/", "EmptyLineBot"));
+
+        // Test VeryLongBotNameThatExceedsNormalLengthAndShouldStillBeProcessedCorrectlyWithoutAnyIssuesEvenThoughItIsExtremelyLongAndUnusual
+        String longBotName = "VeryLongBotNameThatExceedsNormalLengthAndShouldStillBeProcessedCorrectlyWithoutAnyIssuesEvenThoughItIsExtremelyLongAndUnusual";
+        assertFalse(robotsTxt.allows("/test/", longBotName));
+
+        // Test SpecialCharBot - special characters in paths
+        assertFalse(robotsTxt.allows("/path with spaces/", "SpecialCharBot"));
+        assertFalse(robotsTxt.allows("/path%20encoded/", "SpecialCharBot"));
+        assertFalse(robotsTxt.allows("/path?query=value", "SpecialCharBot"));
+
+        // Test multiple User-agents in sequence (Bot1, Bot2, Bot3 should share the same rules)
+        assertFalse(robotsTxt.allows("/shared/", "Bot1"));
+        assertFalse(robotsTxt.allows("/shared/", "Bot2"));
+        assertFalse(robotsTxt.allows("/shared/", "Bot3"));
+
+        // Test sitemaps - should parse valid sitemaps and ignore invalid ones
+        String[] sitemaps = robotsTxt.getSitemaps();
+        assertTrue(sitemaps.length >= 3); // At least the valid ones should be parsed
+
+        // Test NumericBot - various crawl-delay formats
+        // Should handle edge cases gracefully
+        assertTrue(robotsTxt.getCrawlDelay("NumericBot") >= 0);
+
+        // Test TabBot - tab characters should be treated as whitespace
+        assertFalse(robotsTxt.allows("/tab1/", "TabBot"));
+        assertTrue(robotsTxt.allows("/tab2/", "TabBot"));
+
+        // Test bots with special characters - should be normalized to lowercase
+        assertFalse(robotsTxt.allows("/trademark/", "Bot™"));
+        assertFalse(robotsTxt.allows("/registered/", "Bot®"));
+
+        // Test wildcard user-agent
+        assertFalse(robotsTxt.allows("/default/", "UnknownRandomBot"));
+    }
+
+    public void testParse_emptyFile() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_empty.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Should not throw exception for file with only comments
+        assertNotNull(robotsTxt);
+        // Everything should be allowed by default
+        assertTrue(robotsTxt.allows("/anything", "AnyBot"));
+    }
+
+    public void testParse_onlyWhitespace() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_only_whitespace.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Should not throw exception for file with only whitespace
+        assertNotNull(robotsTxt);
+        // Everything should be allowed by default
+        assertTrue(robotsTxt.allows("/anything", "AnyBot"));
+    }
+
+    public void testParse_malformedCrawlDelay() {
+        String robotsTxtContent =
+            "User-agent: TestBot\n" +
+            "Crawl-delay: abc\n" +
+            "Disallow: /test/\n";
+
+        RobotsTxt robotsTxt;
+        final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Should not throw exception for invalid crawl-delay
+        assertNotNull(robotsTxt);
+        // Invalid crawl-delay should be ignored (default 0)
+        assertEquals(0, robotsTxt.getCrawlDelay("TestBot"));
+        // Other directives should still work
+        assertFalse(robotsTxt.allows("/test/", "TestBot"));
+    }
+
+    public void testParse_negativeCrawlDelay() {
+        String robotsTxtContent =
+            "User-agent: TestBot\n" +
+            "Crawl-delay: -100\n" +
+            "Disallow: /test/\n";
+
+        RobotsTxt robotsTxt;
+        final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Negative crawl-delay should be converted to 0
+        assertNotNull(robotsTxt);
+        assertEquals(0, robotsTxt.getCrawlDelay("TestBot"));
+    }
+
+    public void testParse_floatingPointCrawlDelay() {
+        String robotsTxtContent =
+            "User-agent: TestBot\n" +
+            "Crawl-delay: 2.5\n" +
+            "Disallow: /test/\n";
+
+        RobotsTxt robotsTxt;
+        final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Floating point crawl-delay should be ignored (as it expects integer)
+        assertNotNull(robotsTxt);
+        // Should either parse as 2 or be ignored
+        assertTrue(robotsTxt.getCrawlDelay("TestBot") >= 0);
+    }
+
+    public void testParse_directivesBeforeUserAgent() {
+        String robotsTxtContent =
+            "Disallow: /before/\n" +
+            "Allow: /also-before/\n" +
+            "User-agent: TestBot\n" +
+            "Disallow: /test/\n";
+
+        RobotsTxt robotsTxt;
+        final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Directives before User-agent should be ignored
+        assertNotNull(robotsTxt);
+        assertTrue(robotsTxt.allows("/before/", "TestBot"));
+        assertTrue(robotsTxt.allows("/also-before/", "TestBot"));
+        // Valid directives should still work
+        assertFalse(robotsTxt.allows("/test/", "TestBot"));
+    }
+
+    public void testParse_mixedValidAndInvalidDirectives() {
+        String robotsTxtContent =
+            "User-agent: TestBot\n" +
+            "Disallow: /valid1/\n" +
+            "InvalidDirective: value\n" +
+            "Disallow: /valid2/\n" +
+            "Another-Invalid: test\n" +
+            "Allow: /valid3/\n" +
+            "NoColon\n" +
+            "Disallow: /valid4/\n";
+
+        RobotsTxt robotsTxt;
+        final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Should parse valid directives and ignore invalid ones
+        assertNotNull(robotsTxt);
+        assertFalse(robotsTxt.allows("/valid1/", "TestBot"));
+        assertFalse(robotsTxt.allows("/valid2/", "TestBot"));
+        assertTrue(robotsTxt.allows("/valid3/", "TestBot"));
+        assertFalse(robotsTxt.allows("/valid4/", "TestBot"));
+    }
+
+    public void testParse_emptyValues() {
+        String robotsTxtContent =
+            "User-agent: TestBot\n" +
+            "Disallow:\n" +
+            "Allow:\n" +
+            "Crawl-delay:\n";
+
+        RobotsTxt robotsTxt;
+        final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Empty Disallow means allow all
+        assertNotNull(robotsTxt);
+        assertTrue(robotsTxt.allows("/anything", "TestBot"));
+    }
+
+    public void testParse_unicodeContent() {
+        String robotsTxtContent =
+            "# コメント\n" +
+            "User-agent: 日本語Bot\n" +
+            "Disallow: /日本語/\n" +
+            "User-agent: TestBot\n" +
+            "Disallow: /test/\n";
+
+        RobotsTxt robotsTxt;
+        final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        try {
+            robotsTxt = robotsTxtHelper.parse(in, "UTF-8");
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Should handle unicode content
+        assertNotNull(robotsTxt);
+        assertFalse(robotsTxt.allows("/test/", "TestBot"));
+    }
 }

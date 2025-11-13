@@ -98,76 +98,140 @@ public class RobotsTxtHelper {
 
     /**
      * Parses a robots.txt file from the given input stream using the specified character encoding.
+     *
+     * <p>This method is designed to be resilient to malformed robots.txt files.
+     * It will parse valid directives and ignore invalid ones, ensuring that partial
+     * content can be extracted even from poorly formatted files.</p>
+     *
+     * <p>The following errors are handled gracefully (line is skipped, parsing continues):</p>
+     * <ul>
+     * <li>Invalid directive formats</li>
+     * <li>Unknown directives</li>
+     * <li>Invalid crawl-delay values (non-numeric, negative)</li>
+     * <li>Directives before any User-agent declaration (ignored)</li>
+     * <li>Empty values for directives</li>
+     * </ul>
+     *
+     * <p>Only fatal I/O errors will cause parsing to fail with an exception.</p>
+     *
      * @param stream the input stream to parse
      * @param charsetName the character encoding to use
      * @return the parsed RobotsTxt object, or null if disabled
+     * @throws RobotsTxtException if a fatal I/O error occurs
      */
     public RobotsTxt parse(final InputStream stream, final String charsetName) {
         if (!enabled) {
             return null;
         }
 
+        BufferedReader reader = null;
         try {
-            @SuppressWarnings("resource")
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(new BOMInputStream(stream), charsetName));
+            reader = new BufferedReader(new InputStreamReader(new BOMInputStream(stream), charsetName));
 
             String line;
             final RobotsTxt robotsTxt = new RobotsTxt();
             final List<Directive> currentDirectiveList = new ArrayList<>();
             boolean isGroupRecordStarted = false;
-            while ((line = reader.readLine()) != null) {
-                line = stripComment(line).trim();
-                if (StringUtil.isEmpty(line)) {
-                    continue;
-                }
 
-                String value = getValue(USER_AGENT_RECORD, line);
-                if (value != null) {
-                    if (isGroupRecordStarted) {
-                        currentDirectiveList.clear();
-                        isGroupRecordStarted = false;
+            while ((line = reader.readLine()) != null) {
+                try {
+                    // Strip comments and trim whitespace
+                    line = stripComment(line).trim();
+                    if (StringUtil.isEmpty(line)) {
+                        continue;
                     }
-                    final String userAgent = value.toLowerCase(Locale.ENGLISH);
-                    Directive currentDirective = robotsTxt.getDirective(userAgent);
-                    if (currentDirective == null) {
-                        currentDirective = new Directive(userAgent);
-                        robotsTxt.addDirective(currentDirective);
+
+                    // Try to parse as User-agent directive
+                    String value = getValue(USER_AGENT_RECORD, line);
+                    if (value != null) {
+                        // If we've seen group-member records (Disallow, Allow, etc.),
+                        // this starts a new group, so clear the current directive list
+                        if (isGroupRecordStarted) {
+                            currentDirectiveList.clear();
+                            isGroupRecordStarted = false;
+                        }
+                        // Normalize user-agent to lowercase
+                        final String userAgent = value.toLowerCase(Locale.ENGLISH);
+                        Directive currentDirective = robotsTxt.getDirective(userAgent);
+                        if (currentDirective == null) {
+                            currentDirective = new Directive(userAgent);
+                            robotsTxt.addDirective(currentDirective);
+                        }
+                        // Add to current list - multiple consecutive User-agent lines
+                        // form a group and subsequent rules apply to all of them
                         currentDirectiveList.add(currentDirective);
+                        continue;
                     }
-                } else {
+
+                    // Mark that we've seen group-member records
                     isGroupRecordStarted = true;
+
+                    // Try to parse as Disallow directive
                     value = getValue(DISALLOW_RECORD, line);
                     if (value != null) {
+                        // Only process if we have a current user-agent and value is not empty
                         if (!currentDirectiveList.isEmpty() && value.length() > 0) {
                             for (final Directive directive : currentDirectiveList) {
                                 directive.addDisallow(value);
                             }
                         }
-                    } else if ((value = getValue(ALLOW_RECORD, line)) != null) {
+                        continue;
+                    }
+
+                    // Try to parse as Allow directive
+                    value = getValue(ALLOW_RECORD, line);
+                    if (value != null) {
+                        // Only process if we have a current user-agent and value is not empty
                         if (!currentDirectiveList.isEmpty() && value.length() > 0) {
                             for (final Directive directive : currentDirectiveList) {
                                 directive.addAllow(value);
                             }
                         }
-                    } else if ((value = getValue(CRAWL_DELAY_RECORD, line)) != null) {
-                        if (!currentDirectiveList.isEmpty()) {
+                        continue;
+                    }
+
+                    // Try to parse as Crawl-delay directive
+                    value = getValue(CRAWL_DELAY_RECORD, line);
+                    if (value != null) {
+                        if (!currentDirectiveList.isEmpty() && !StringUtil.isEmpty(value)) {
                             try {
                                 final int crawlDelay = Integer.parseInt(value);
                                 for (final Directive directive : currentDirectiveList) {
                                     directive.setCrawlDelay(Math.max(0, crawlDelay));
                                 }
                             } catch (final NumberFormatException e) {
-                                // ignore invalid crawl-delay values
+                                // Ignore invalid crawl-delay values (non-numeric)
+                                // This allows parsing to continue with other directives
                             }
                         }
-                    } else if ((value = getValue(SITEMAP_RECORD, line)) != null && value.length() > 0) {
-                        robotsTxt.addSitemap(value);
+                        continue;
                     }
+
+                    // Try to parse as Sitemap directive
+                    value = getValue(SITEMAP_RECORD, line);
+                    if (value != null && value.length() > 0) {
+                        robotsTxt.addSitemap(value);
+                        continue;
+                    }
+
+                    // If we reach here, the line didn't match any known directive
+                    // Silently ignore it to allow parsing to continue
+                    // This handles unknown directives, malformed lines, etc.
+
+                } catch (final Exception e) {
+                    // Catch any unexpected errors during line processing
+                    // Log if logger is available, but continue parsing
+                    // This ensures that one bad line doesn't break the entire parse
+                    continue;
                 }
             }
 
             return robotsTxt;
+        } catch (final java.io.IOException e) {
+            // Only throw exception for fatal I/O errors
+            throw new RobotsTxtException("Failed to read robots.txt due to I/O error.", e);
         } catch (final Exception e) {
+            // Catch any other fatal errors (e.g., encoding issues)
             throw new RobotsTxtException("Failed to parse robots.txt.", e);
         }
     }

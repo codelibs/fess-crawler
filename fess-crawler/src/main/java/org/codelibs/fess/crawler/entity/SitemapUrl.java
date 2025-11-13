@@ -15,6 +15,9 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.codelibs.core.lang.StringUtil;
 
 /**
@@ -23,6 +26,7 @@ import org.codelibs.core.lang.StringUtil;
  * <p>
  * This class encapsulates the properties of a URL as defined in the sitemap XML format,
  * including its location, last modification date, change frequency, and priority.
+ * It also supports sitemap extensions such as images, videos, news, and alternate links.
  * It implements the {@link Sitemap} interface.
  * </p>
  *
@@ -108,6 +112,30 @@ public class SitemapUrl implements Sitemap {
     private String priority;
 
     /**
+     * List of images associated with this URL.
+     * Used for Google Image Sitemap extension.
+     */
+    private List<SitemapImage> images;
+
+    /**
+     * List of videos associated with this URL.
+     * Used for Video Sitemap extension.
+     */
+    private List<SitemapVideo> videos;
+
+    /**
+     * News information associated with this URL.
+     * Used for Google News Sitemap extension.
+     */
+    private SitemapNews news;
+
+    /**
+     * List of alternate language/region versions of this URL.
+     * Used for hreflang annotation.
+     */
+    private List<SitemapAlternateLink> alternateLinks;
+
+    /**
      * Returns the location URL of this sitemap entry.
      * @return the location URL
      */
@@ -171,6 +199,79 @@ public class SitemapUrl implements Sitemap {
      */
     public void setPriority(final String priority) {
         this.priority = priority;
+    }
+
+    /**
+     * Gets the list of images associated with this URL.
+     * @return the list of images, or an empty list if none
+     */
+    public List<SitemapImage> getImages() {
+        if (images == null) {
+            images = new ArrayList<>();
+        }
+        return images;
+    }
+
+    /**
+     * Adds an image to this sitemap URL.
+     * @param image the image to add
+     */
+    public void addImage(final SitemapImage image) {
+        getImages().add(image);
+    }
+
+    /**
+     * Gets the list of videos associated with this URL.
+     * @return the list of videos, or an empty list if none
+     */
+    public List<SitemapVideo> getVideos() {
+        if (videos == null) {
+            videos = new ArrayList<>();
+        }
+        return videos;
+    }
+
+    /**
+     * Adds a video to this sitemap URL.
+     * @param video the video to add
+     */
+    public void addVideo(final SitemapVideo video) {
+        getVideos().add(video);
+    }
+
+    /**
+     * Gets the news information associated with this URL.
+     * @return the news information, or null if none
+     */
+    public SitemapNews getNews() {
+        return news;
+    }
+
+    /**
+     * Sets the news information for this sitemap URL.
+     * @param news the news information to set
+     */
+    public void setNews(final SitemapNews news) {
+        this.news = news;
+    }
+
+    /**
+     * Gets the list of alternate links associated with this URL.
+     * @return the list of alternate links, or an empty list if none
+     */
+    public List<SitemapAlternateLink> getAlternateLinks() {
+        if (alternateLinks == null) {
+            alternateLinks = new ArrayList<>();
+        }
+        return alternateLinks;
+    }
+
+    /**
+     * Adds an alternate link to this sitemap URL.
+     * @param alternateLink the alternate link to add
+     */
+    public void addAlternateLink(final SitemapAlternateLink alternateLink) {
+        getAlternateLinks().add(alternateLink);
     }
 
     @Override

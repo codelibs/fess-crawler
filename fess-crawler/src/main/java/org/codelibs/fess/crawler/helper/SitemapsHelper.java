@@ -55,6 +55,15 @@ public class SitemapsHelper {
     /** The size of the preload buffer for checking file format. */
     protected int preloadSize = 512;
 
+    /** Enable validation of sitemap entries. */
+    protected boolean enableValidation = false;
+
+    /** Maximum URL length according to sitemap specification. */
+    protected static final int MAX_URL_LENGTH = 2048;
+
+    /** Valid changefreq values. */
+    protected static final String[] VALID_CHANGEFREQ = { "always", "hourly", "daily", "weekly", "monthly", "yearly", "never" };
+
     /**
      * Creates a new SitemapsHelper instance.
      */
@@ -195,6 +204,7 @@ public class SitemapsHelper {
         final XmlSitemapsHandler handler = new XmlSitemapsHandler();
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
+            spfactory.setNamespaceAware(true); // Enable namespace awareness
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             spfactory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
             spfactory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
@@ -225,7 +235,7 @@ public class SitemapsHelper {
     }
 
     /**
-     * SAX handler for parsing XML sitemaps.
+     * SAX handler for parsing XML sitemaps with extension support.
      */
     protected static class XmlSitemapsHandler extends DefaultHandler {
 
@@ -239,9 +249,83 @@ public class SitemapsHelper {
 
         private static final String URL_ELEMENT = "url";
 
+        // Image extension elements
+        private static final String IMAGE_IMAGE_ELEMENT = "image:image";
+
+        private static final String IMAGE_LOC_ELEMENT = "image:loc";
+
+        private static final String IMAGE_CAPTION_ELEMENT = "image:caption";
+
+        private static final String IMAGE_GEO_LOCATION_ELEMENT = "image:geo_location";
+
+        private static final String IMAGE_TITLE_ELEMENT = "image:title";
+
+        private static final String IMAGE_LICENSE_ELEMENT = "image:license";
+
+        // Video extension elements
+        private static final String VIDEO_VIDEO_ELEMENT = "video:video";
+
+        private static final String VIDEO_THUMBNAIL_LOC_ELEMENT = "video:thumbnail_loc";
+
+        private static final String VIDEO_TITLE_ELEMENT = "video:title";
+
+        private static final String VIDEO_DESCRIPTION_ELEMENT = "video:description";
+
+        private static final String VIDEO_CONTENT_LOC_ELEMENT = "video:content_loc";
+
+        private static final String VIDEO_PLAYER_LOC_ELEMENT = "video:player_loc";
+
+        private static final String VIDEO_DURATION_ELEMENT = "video:duration";
+
+        private static final String VIDEO_PUBLICATION_DATE_ELEMENT = "video:publication_date";
+
+        private static final String VIDEO_CATEGORY_ELEMENT = "video:category";
+
+        private static final String VIDEO_FAMILY_FRIENDLY_ELEMENT = "video:family_friendly";
+
+        private static final String VIDEO_RESTRICTION_ELEMENT = "video:restriction";
+
+        private static final String VIDEO_PRICE_ELEMENT = "video:price";
+
+        private static final String VIDEO_REQUIRES_SUBSCRIPTION_ELEMENT = "video:requires_subscription";
+
+        private static final String VIDEO_UPLOADER_ELEMENT = "video:uploader";
+
+        private static final String VIDEO_PLATFORM_ELEMENT = "video:platform";
+
+        private static final String VIDEO_LIVE_ELEMENT = "video:live";
+
+        // News extension elements
+        private static final String NEWS_NEWS_ELEMENT = "news:news";
+
+        private static final String NEWS_PUBLICATION_ELEMENT = "news:publication";
+
+        private static final String NEWS_NAME_ELEMENT = "news:name";
+
+        private static final String NEWS_LANGUAGE_ELEMENT = "news:language";
+
+        private static final String NEWS_PUBLICATION_DATE_ELEMENT = "news:publication_date";
+
+        private static final String NEWS_TITLE_ELEMENT = "news:title";
+
+        private static final String NEWS_KEYWORDS_ELEMENT = "news:keywords";
+
+        private static final String NEWS_STOCK_TICKERS_ELEMENT = "news:stock_tickers";
+
+        // Alternate link element (hreflang)
+        private static final String XHTML_LINK_ELEMENT = "xhtml:link";
+
         private SitemapSet sitemapSet;
 
         private SitemapUrl sitemapUrl;
+
+        private SitemapImage currentImage;
+
+        private SitemapVideo currentVideo;
+
+        private SitemapNews currentNews;
+
+        private boolean inNewsPublication;
 
         private StringBuilder buf;
 
@@ -260,12 +344,65 @@ public class SitemapsHelper {
 
         @Override
         public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
-            if (URL_ELEMENT.equals(qName)) {
+            // Support both with and without namespace prefixes
+            final String elementName = getElementName(localName, qName);
+
+            if (URL_ELEMENT.equals(elementName)) {
                 sitemapUrl = new SitemapUrl();
-            } else if (LOC_ELEMENT.equals(qName) || LASTMOD_ELEMENT.equals(qName) || CHANGEFREQ_ELEMENT.equals(qName)
-                    || PRIORITY_ELEMENT.equals(qName)) {
+            } else if (LOC_ELEMENT.equals(elementName) || LASTMOD_ELEMENT.equals(elementName) || CHANGEFREQ_ELEMENT.equals(elementName)
+                    || PRIORITY_ELEMENT.equals(elementName)) {
                 buf = new StringBuilder();
+            } else if (IMAGE_IMAGE_ELEMENT.equals(elementName)) {
+                currentImage = new SitemapImage();
+            } else if (IMAGE_LOC_ELEMENT.equals(elementName) || IMAGE_CAPTION_ELEMENT.equals(elementName)
+                    || IMAGE_GEO_LOCATION_ELEMENT.equals(elementName) || IMAGE_TITLE_ELEMENT.equals(elementName)
+                    || IMAGE_LICENSE_ELEMENT.equals(elementName)) {
+                buf = new StringBuilder();
+            } else if (VIDEO_VIDEO_ELEMENT.equals(elementName)) {
+                currentVideo = new SitemapVideo();
+            } else if (VIDEO_THUMBNAIL_LOC_ELEMENT.equals(elementName) || VIDEO_TITLE_ELEMENT.equals(elementName)
+                    || VIDEO_DESCRIPTION_ELEMENT.equals(elementName) || VIDEO_CONTENT_LOC_ELEMENT.equals(elementName)
+                    || VIDEO_PLAYER_LOC_ELEMENT.equals(elementName) || VIDEO_DURATION_ELEMENT.equals(elementName)
+                    || VIDEO_PUBLICATION_DATE_ELEMENT.equals(elementName) || VIDEO_CATEGORY_ELEMENT.equals(elementName)
+                    || VIDEO_FAMILY_FRIENDLY_ELEMENT.equals(elementName) || VIDEO_RESTRICTION_ELEMENT.equals(elementName)
+                    || VIDEO_PRICE_ELEMENT.equals(elementName) || VIDEO_REQUIRES_SUBSCRIPTION_ELEMENT.equals(elementName)
+                    || VIDEO_UPLOADER_ELEMENT.equals(elementName) || VIDEO_PLATFORM_ELEMENT.equals(elementName)
+                    || VIDEO_LIVE_ELEMENT.equals(elementName)) {
+                buf = new StringBuilder();
+            } else if (NEWS_NEWS_ELEMENT.equals(elementName)) {
+                currentNews = new SitemapNews();
+                inNewsPublication = false;
+            } else if (NEWS_PUBLICATION_ELEMENT.equals(elementName)) {
+                inNewsPublication = true;
+            } else if (NEWS_NAME_ELEMENT.equals(elementName) || NEWS_LANGUAGE_ELEMENT.equals(elementName)
+                    || NEWS_PUBLICATION_DATE_ELEMENT.equals(elementName) || NEWS_TITLE_ELEMENT.equals(elementName)
+                    || NEWS_KEYWORDS_ELEMENT.equals(elementName) || NEWS_STOCK_TICKERS_ELEMENT.equals(elementName)) {
+                buf = new StringBuilder();
+            } else if (XHTML_LINK_ELEMENT.equals(elementName)) {
+                // Handle hreflang alternate links
+                final String rel = attributes.getValue("rel");
+                final String hreflang = attributes.getValue("hreflang");
+                final String href = attributes.getValue("href");
+                if ("alternate".equals(rel) && hreflang != null && href != null) {
+                    final SitemapAlternateLink alternateLink = new SitemapAlternateLink();
+                    alternateLink.setHreflang(hreflang);
+                    alternateLink.setHref(href);
+                    if (sitemapUrl != null) {
+                        sitemapUrl.addAlternateLink(alternateLink);
+                    }
+                }
             }
+        }
+
+        /**
+         * Gets the element name to use for comparison.
+         * Prefers qName (which includes namespace prefix) but falls back to localName if qName is empty.
+         * @param localName the local name without namespace prefix
+         * @param qName the qualified name with namespace prefix
+         * @return the element name to use
+         */
+        private String getElementName(final String localName, final String qName) {
+            return StringUtil.isNotBlank(qName) ? qName : localName;
         }
 
         @Override
@@ -277,29 +414,180 @@ public class SitemapsHelper {
 
         @Override
         public void endElement(final String uri, final String localName, final String qName) {
-            if (URL_ELEMENT.equals(qName)) {
+            // Support both with and without namespace prefixes
+            final String elementName = getElementName(localName, qName);
+
+            if (URL_ELEMENT.equals(elementName)) {
                 if (sitemapUrl != null) {
                     sitemapSet.addSitemap(sitemapUrl);
                 }
                 sitemapUrl = null;
-            } else if (LOC_ELEMENT.equals(qName)) {
-                if (buf != null) {
+            } else if (LOC_ELEMENT.equals(elementName)) {
+                if (buf != null && sitemapUrl != null) {
                     sitemapUrl.setLoc(buf.toString().trim());
                     buf = null;
                 }
-            } else if (LASTMOD_ELEMENT.equals(qName)) {
-                if (buf != null) {
+            } else if (LASTMOD_ELEMENT.equals(elementName)) {
+                if (buf != null && sitemapUrl != null) {
                     sitemapUrl.setLastmod(buf.toString().trim());
                     buf = null;
                 }
-            } else if (CHANGEFREQ_ELEMENT.equals(qName)) {
-                if (buf != null) {
+            } else if (CHANGEFREQ_ELEMENT.equals(elementName)) {
+                if (buf != null && sitemapUrl != null) {
                     sitemapUrl.setChangefreq(buf.toString().trim());
                     buf = null;
                 }
-            } else if (PRIORITY_ELEMENT.equals(qName) && buf != null) {
+            } else if (PRIORITY_ELEMENT.equals(elementName) && buf != null && sitemapUrl != null) {
                 sitemapUrl.setPriority(buf.toString().trim());
                 buf = null;
+            } else if (IMAGE_IMAGE_ELEMENT.equals(elementName)) {
+                if (currentImage != null && sitemapUrl != null) {
+                    sitemapUrl.addImage(currentImage);
+                }
+                currentImage = null;
+            } else if (IMAGE_LOC_ELEMENT.equals(elementName)) {
+                if (buf != null && currentImage != null) {
+                    currentImage.setLoc(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (IMAGE_CAPTION_ELEMENT.equals(elementName)) {
+                if (buf != null && currentImage != null) {
+                    currentImage.setCaption(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (IMAGE_GEO_LOCATION_ELEMENT.equals(elementName)) {
+                if (buf != null && currentImage != null) {
+                    currentImage.setGeoLocation(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (IMAGE_TITLE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentImage != null) {
+                    currentImage.setTitle(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (IMAGE_LICENSE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentImage != null) {
+                    currentImage.setLicense(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_VIDEO_ELEMENT.equals(elementName)) {
+                if (currentVideo != null && sitemapUrl != null) {
+                    sitemapUrl.addVideo(currentVideo);
+                }
+                currentVideo = null;
+            } else if (VIDEO_THUMBNAIL_LOC_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setThumbnailLoc(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_TITLE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setTitle(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_DESCRIPTION_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setDescription(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_CONTENT_LOC_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setContentLoc(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_PLAYER_LOC_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setPlayerLoc(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_DURATION_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setDuration(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_PUBLICATION_DATE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setPublicationDate(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_CATEGORY_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setCategory(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_FAMILY_FRIENDLY_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setFamilyFriendly(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_RESTRICTION_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setRestriction(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_PRICE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setPrice(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_REQUIRES_SUBSCRIPTION_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setRequiresSubscription(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_UPLOADER_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setUploader(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_PLATFORM_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setPlatform(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (VIDEO_LIVE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentVideo != null) {
+                    currentVideo.setLive(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (NEWS_NEWS_ELEMENT.equals(elementName)) {
+                if (currentNews != null && sitemapUrl != null) {
+                    sitemapUrl.setNews(currentNews);
+                }
+                currentNews = null;
+                inNewsPublication = false;
+            } else if (NEWS_PUBLICATION_ELEMENT.equals(elementName)) {
+                inNewsPublication = false;
+            } else if (NEWS_NAME_ELEMENT.equals(elementName)) {
+                if (buf != null && currentNews != null) {
+                    currentNews.setPublicationName(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (NEWS_LANGUAGE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentNews != null) {
+                    currentNews.setPublicationLanguage(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (NEWS_PUBLICATION_DATE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentNews != null) {
+                    currentNews.setPublicationDate(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (NEWS_TITLE_ELEMENT.equals(elementName)) {
+                if (buf != null && currentNews != null) {
+                    currentNews.setTitle(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (NEWS_KEYWORDS_ELEMENT.equals(elementName)) {
+                if (buf != null && currentNews != null) {
+                    currentNews.setKeywords(buf.toString().trim());
+                    buf = null;
+                }
+            } else if (NEWS_STOCK_TICKERS_ELEMENT.equals(elementName)) {
+                if (buf != null && currentNews != null) {
+                    currentNews.setStockTickers(buf.toString().trim());
+                    buf = null;
+                }
             }
         }
 
@@ -327,6 +615,7 @@ public class SitemapsHelper {
         final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
+            spfactory.setNamespaceAware(true); // Enable namespace awareness
             spfactory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
             spfactory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
             spfactory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
@@ -418,5 +707,133 @@ public class SitemapsHelper {
      */
     public void setPreloadSize(final int preloadSize) {
         this.preloadSize = preloadSize;
+    }
+
+    /**
+     * Enables or disables validation of sitemap entries.
+     * @param enableValidation true to enable validation, false to disable
+     */
+    public void setEnableValidation(final boolean enableValidation) {
+        this.enableValidation = enableValidation;
+    }
+
+    /**
+     * Validates a URL length according to sitemap specification.
+     * @param url the URL to validate
+     * @return true if valid, false otherwise
+     */
+    protected boolean isValidUrl(final String url) {
+        if (url == null || url.isEmpty()) {
+            return false;
+        }
+        if (url.length() > MAX_URL_LENGTH) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("URL exceeds maximum length of {} characters: {}", MAX_URL_LENGTH, url);
+            }
+            return false;
+        }
+        return url.startsWith("http://") || url.startsWith("https://");
+    }
+
+    /**
+     * Validates a priority value according to sitemap specification.
+     * @param priority the priority to validate
+     * @return true if valid, false otherwise
+     */
+    protected boolean isValidPriority(final String priority) {
+        if (priority == null || priority.isEmpty()) {
+            return true; // Priority is optional
+        }
+        try {
+            final double value = Double.parseDouble(priority);
+            if (value < 0.0 || value > 1.0) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Priority value out of range (0.0-1.0): {}", priority);
+                }
+                return false;
+            }
+            return true;
+        } catch (final NumberFormatException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Invalid priority format: {}", priority);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Validates a changefreq value according to sitemap specification.
+     * @param changefreq the changefreq to validate
+     * @return true if valid, false otherwise
+     */
+    protected boolean isValidChangefreq(final String changefreq) {
+        if (changefreq == null || changefreq.isEmpty()) {
+            return true; // Changefreq is optional
+        }
+        for (final String valid : VALID_CHANGEFREQ) {
+            if (valid.equals(changefreq)) {
+                return true;
+            }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Invalid changefreq value: {}", changefreq);
+        }
+        return false;
+    }
+
+    /**
+     * Validates a date format (W3C Datetime format).
+     * @param date the date to validate
+     * @return true if valid, false otherwise
+     */
+    protected boolean isValidDateFormat(final String date) {
+        if (date == null || date.isEmpty()) {
+            return true; // Date is optional
+        }
+        // Basic validation for W3C Datetime format (YYYY-MM-DD or YYYY-MM-DDThh:mm:ss+00:00)
+        // This is a simplified validation
+        if (date.length() < 10) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Invalid date format (too short): {}", date);
+            }
+            return false;
+        }
+        // Check if it starts with a valid year format
+        if (!date.matches("^\\d{4}-\\d{2}-\\d{2}.*")) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Invalid date format: {}", date);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Validates a sitemap URL entry.
+     * @param sitemapUrl the sitemap URL to validate
+     * @return true if valid, false otherwise
+     */
+    protected boolean validateSitemapUrl(final SitemapUrl sitemapUrl) {
+        if (!enableValidation) {
+            return true;
+        }
+        if (sitemapUrl == null) {
+            return false;
+        }
+        // Validate required fields
+        if (!isValidUrl(sitemapUrl.getLoc())) {
+            return false;
+        }
+        // Validate optional fields
+        if (!isValidPriority(sitemapUrl.getPriority())) {
+            return false;
+        }
+        if (!isValidChangefreq(sitemapUrl.getChangefreq())) {
+            return false;
+        }
+        if (!isValidDateFormat(sitemapUrl.getLastmod())) {
+            return false;
+        }
+        return true;
     }
 }

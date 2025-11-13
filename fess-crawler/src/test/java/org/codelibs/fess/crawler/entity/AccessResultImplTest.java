@@ -227,6 +227,7 @@ public class AccessResultImplTest extends PlainTestCase {
 
         ResultData resultData = new ResultData();
         resultData.setTransformerName("TestTransformer");
+        resultData.setData(new byte[0]); // Set data to avoid getData() error
 
         result.init(null, resultData);
 
@@ -248,6 +249,7 @@ public class AccessResultImplTest extends PlainTestCase {
 
         ResultData resultData = new ResultData();
         resultData.setTransformerName("TestTransformer");
+        resultData.setData(new byte[0]); // Set data to avoid getData() error
 
         result.init(responseData, resultData);
 
@@ -317,6 +319,7 @@ public class AccessResultImplTest extends PlainTestCase {
         // Create ResultData
         ResultData resultData = new ResultData();
         resultData.setTransformerName("JsonTransformer");
+        resultData.setData(new byte[0]); // Set data to avoid getData() error
 
         // Initialize
         long beforeInit = System.currentTimeMillis();

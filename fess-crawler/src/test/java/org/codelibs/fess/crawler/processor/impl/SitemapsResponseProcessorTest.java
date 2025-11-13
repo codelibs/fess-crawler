@@ -220,8 +220,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenThrow(new IOException("Parse error"));
-        } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+        } catch (IOException e) {
+            // Mock setup for throwing exception
         }
 
         // Execute and verify IORuntimeException is thrown

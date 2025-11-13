@@ -382,7 +382,7 @@ public class RobotsTxtTest extends PlainTestCase {
 
         // Test BingBot
         assertFalse(robotsTxt.allows("/api/endpoint", "BingBot"));
-        assertFalse(robotsTxt.allows("/admin/", "BingBot")); // From * directive
+        assertTrue(robotsTxt.allows("/admin/", "BingBot")); // BingBot directive is more specific than * directive
         assertTrue(robotsTxt.allows("/public/", "BingBot"));
         assertEquals(2, robotsTxt.getCrawlDelay("BingBot"));
 

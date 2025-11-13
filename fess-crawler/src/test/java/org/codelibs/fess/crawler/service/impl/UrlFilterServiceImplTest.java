@@ -69,8 +69,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         // Execute
         service.addIncludeUrlFilter(sessionId, urlList);
 
-        // Verify
-        verify(dataHelper, times(3)).addIncludeUrlPattern(sessionId, "https://example.com/.*");
+        // Verify - each URL should be added once
         verify(dataHelper).addIncludeUrlPattern(sessionId, "https://example.com/.*");
         verify(dataHelper).addIncludeUrlPattern(sessionId, "https://test.com/.*");
         verify(dataHelper).addIncludeUrlPattern(sessionId, "https://sample.org/.*");

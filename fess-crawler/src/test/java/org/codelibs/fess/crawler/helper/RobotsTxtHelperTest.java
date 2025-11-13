@@ -123,4 +123,91 @@ public class RobotsTxtHelperTest extends PlainTestCase {
             CloseableUtil.closeQuietly(in);
         }
     }
+
+    public void testParse_wildcard() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_wildcard.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // Test WildcardBot - wildcard patterns
+        // Disallow: /*.pdf$ - should block .pdf files but not .pdf with query params
+        assertFalse(robotsTxt.allows("/document.pdf", "WildcardBot"));
+        assertFalse(robotsTxt.allows("/files/report.pdf", "WildcardBot"));
+        assertTrue(robotsTxt.allows("/document.pdf?download=true", "WildcardBot")); // $ means exact end
+
+        // Disallow: /admin/*.php - should block PHP files in admin directory
+        assertFalse(robotsTxt.allows("/admin/login.php", "WildcardBot"));
+        assertFalse(robotsTxt.allows("/admin/users.php", "WildcardBot"));
+        assertTrue(robotsTxt.allows("/admin/", "WildcardBot")); // no .php extension
+        assertTrue(robotsTxt.allows("/admin/login.html", "WildcardBot")); // not .php
+
+        // Disallow: /*/private/ - should block private directories under any parent
+        assertFalse(robotsTxt.allows("/users/private/", "WildcardBot"));
+        assertFalse(robotsTxt.allows("/admin/private/", "WildcardBot"));
+        assertFalse(robotsTxt.allows("/users/private/data.txt", "WildcardBot"));
+        assertTrue(robotsTxt.allows("/private/", "WildcardBot")); // no parent directory
+
+        // Allow: /public/*.html - should allow HTML files in public directory
+        assertTrue(robotsTxt.allows("/public/index.html", "WildcardBot"));
+        assertTrue(robotsTxt.allows("/public/about.html", "WildcardBot"));
+
+        // Test EndPathBot - end-of-path ($) patterns
+        // Disallow: /fish$ - should block exactly /fish but not /fishing
+        assertFalse(robotsTxt.allows("/fish", "EndPathBot"));
+        assertTrue(robotsTxt.allows("/fishing", "EndPathBot"));
+        assertTrue(robotsTxt.allows("/fish/", "EndPathBot"));
+
+        // Disallow: /temp$ but Allow: /fishing
+        assertFalse(robotsTxt.allows("/temp", "EndPathBot"));
+        assertTrue(robotsTxt.allows("/temporary", "EndPathBot"));
+        assertTrue(robotsTxt.allows("/fishing", "EndPathBot"));
+
+        // Test ComplexBot - complex patterns
+        // Disallow: / but Allow: /$ (only root), Allow: /index.html$, Allow: /public/
+        assertFalse(robotsTxt.allows("/about", "ComplexBot"));
+        assertTrue(robotsTxt.allows("/", "ComplexBot")); // Allow: /$
+        assertTrue(robotsTxt.allows("/index.html", "ComplexBot")); // Allow: /index.html$
+        assertFalse(robotsTxt.allows("/index.html?page=1", "ComplexBot")); // $ means exact end
+        assertTrue(robotsTxt.allows("/public/", "ComplexBot"));
+        assertTrue(robotsTxt.allows("/public/page.html", "ComplexBot"));
+
+        // Test PriorityBot - longest match wins
+        // Disallow: /store, Allow: /store/public, Disallow: /store/public/sale
+        assertFalse(robotsTxt.allows("/store", "PriorityBot"));
+        assertFalse(robotsTxt.allows("/store/items", "PriorityBot"));
+        assertTrue(robotsTxt.allows("/store/public", "PriorityBot")); // Allow is more specific
+        assertTrue(robotsTxt.allows("/store/public/items", "PriorityBot"));
+        assertFalse(robotsTxt.allows("/store/public/sale", "PriorityBot")); // Most specific disallow
+        assertFalse(robotsTxt.allows("/store/public/sale/item", "PriorityBot"));
+
+        // Test SameLengthBot - Allow wins when same length as Disallow
+        // Disallow: /page, Allow: /page
+        assertTrue(robotsTxt.allows("/page", "SameLengthBot")); // Allow takes precedence
+        assertTrue(robotsTxt.allows("/page.html", "SameLengthBot"));
+
+        // Test MultiWildcardBot - multiple wildcards in pattern
+        // Disallow: /*.cgi* - should block URLs with .cgi anywhere
+        assertFalse(robotsTxt.allows("/script.cgi", "MultiWildcardBot"));
+        assertFalse(robotsTxt.allows("/path/script.cgi?param=value", "MultiWildcardBot"));
+        assertFalse(robotsTxt.allows("/test.cgi.bak", "MultiWildcardBot"));
+
+        // Disallow: /*?*id=* - should block URLs with ?...id=...
+        assertFalse(robotsTxt.allows("/page?id=123", "MultiWildcardBot"));
+        assertFalse(robotsTxt.allows("/article?name=test&id=456", "MultiWildcardBot"));
+        assertTrue(robotsTxt.allows("/page?name=test", "MultiWildcardBot")); // no id=
+
+        // Test DollarBot - literal $ in middle of pattern
+        // Disallow: /price$info - $ in middle should be treated as literal
+        assertFalse(robotsTxt.allows("/price$info", "DollarBot"));
+        assertTrue(robotsTxt.allows("/priceinfo", "DollarBot"));
+
+        // Test sitemaps
+        String[] sitemaps = robotsTxt.getSitemaps();
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/sitemap.xml", sitemaps[0]);
+    }
 }

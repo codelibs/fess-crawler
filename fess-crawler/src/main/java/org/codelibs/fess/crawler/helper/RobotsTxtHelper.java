@@ -32,12 +32,25 @@ import org.codelibs.fess.crawler.entity.RobotsTxt.Directive;
 import org.codelibs.fess.crawler.exception.RobotsTxtException;
 
 /**
- * Robots.txt Specifications:
+ * Robots.txt Parser following RFC 9309 specification.
+ *
+ * <p>This implementation supports the following features:</p>
  * <ul>
- * <li><a href=
- * "https://developers.google.com/webmasters/control-crawl-index/docs/robots_txt"
- * >https://developers.google.com/webmasters/control-crawl-index/docs/robots_txt
- * </a></li>
+ * <li>User-agent directive with wildcard (*) matching</li>
+ * <li>Disallow and Allow directives with pattern matching</li>
+ * <li>Wildcard (*) in paths - matches any sequence of characters</li>
+ * <li>End-of-path ($) matching - matches the end of URL path</li>
+ * <li>Crawl-delay directive</li>
+ * <li>Sitemap directive</li>
+ * <li>Comment support (#)</li>
+ * <li>Priority-based matching (longest match wins, Allow beats Disallow at equal length)</li>
+ * </ul>
+ *
+ * <p>References:</p>
+ * <ul>
+ * <li><a href="https://datatracker.ietf.org/doc/html/rfc9309">RFC 9309 - Robots Exclusion Protocol</a></li>
+ * <li><a href="https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt">
+ * Google's robots.txt Specification</a></li>
  * </ul>
  *
  * @author bowez

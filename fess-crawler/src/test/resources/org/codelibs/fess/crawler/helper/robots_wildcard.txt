@@ -1,0 +1,44 @@
+# Test robots.txt for wildcard (*) and end-of-path ($) support
+# Based on RFC 9309 specification
+
+# Test wildcard patterns
+User-agent: WildcardBot
+Disallow: /*.pdf$
+Disallow: /admin/*.php
+Disallow: /*/private/
+Allow: /public/*.html
+
+# Test end-of-path ($) patterns
+User-agent: EndPathBot
+Disallow: /fish$
+Disallow: /temp$
+Allow: /fishing
+
+# Test complex patterns
+User-agent: ComplexBot
+Disallow: /
+Allow: /$
+Allow: /index.html$
+Allow: /public/
+
+# Test priority rules (longer match wins)
+User-agent: PriorityBot
+Disallow: /store
+Allow: /store/public
+Disallow: /store/public/sale
+
+# Test Allow vs Disallow with same length (Allow wins)
+User-agent: SameLengthBot
+Disallow: /page
+Allow: /page
+
+# Test multiple wildcards
+User-agent: MultiWildcardBot
+Disallow: /*.cgi*
+Disallow: /*?*id=*
+
+# Test literal $ in middle of pattern
+User-agent: DollarBot
+Disallow: /price$info
+
+sitemap: http://www.example.com/sitemap.xml

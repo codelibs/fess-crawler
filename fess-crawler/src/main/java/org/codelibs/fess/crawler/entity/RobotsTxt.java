@@ -179,6 +179,145 @@ public class RobotsTxt {
     }
 
     /**
+     * Represents a path pattern used in robots.txt allow/disallow rules.
+     * Supports wildcard (*) and end-of-path ($) matching according to RFC 9309.
+     */
+    public static class PathPattern implements Comparable<PathPattern> {
+        /** The original path pattern string. */
+        private final String pattern;
+
+        /** The compiled regular expression pattern for matching. */
+        private final Pattern regexPattern;
+
+        /** The priority length used for sorting (patterns without wildcards are prioritized by length). */
+        private final int priorityLength;
+
+        /**
+         * Constructs a new PathPattern from the given robots.txt path pattern.
+         * @param pattern the path pattern string from robots.txt (may contain * and $)
+         */
+        public PathPattern(final String pattern) {
+            this.pattern = pattern;
+            this.regexPattern = compilePattern(pattern);
+            this.priorityLength = calculatePriorityLength(pattern);
+        }
+
+        /**
+         * Compiles a robots.txt path pattern into a regular expression pattern.
+         * According to RFC 9309:
+         * - '*' matches any sequence of characters (including the empty sequence)
+         * - '$' matches the end of the URL path
+         * - All other characters are matched literally
+         *
+         * @param pattern the robots.txt path pattern
+         * @return the compiled Pattern object
+         */
+        private static Pattern compilePattern(final String pattern) {
+            final StringBuilder regex = new StringBuilder();
+            regex.append("^"); // Match from the start
+
+            for (int i = 0; i < pattern.length(); i++) {
+                final char c = pattern.charAt(i);
+                if (c == '*') {
+                    // Wildcard: matches any sequence of characters
+                    regex.append(".*");
+                } else if (c == '$') {
+                    // End-of-path: matches the end of the URL
+                    if (i == pattern.length() - 1) {
+                        regex.append("$");
+                    } else {
+                        // $ in the middle is treated as a literal character
+                        regex.append("\\$");
+                    }
+                } else {
+                    // Escape special regex characters
+                    if ("\\[]{}()+?.^|".indexOf(c) != -1) {
+                        regex.append('\\');
+                    }
+                    regex.append(c);
+                }
+            }
+
+            // If pattern doesn't end with $, it implicitly matches anything after it
+            if (pattern.isEmpty() || pattern.charAt(pattern.length() - 1) != '$') {
+                // This makes "/fish" match "/fish", "/fishing", "/fish/", etc.
+                // No need to add anything - the pattern naturally continues
+            }
+
+            return Pattern.compile(regex.toString());
+        }
+
+        /**
+         * Calculates the priority length for this pattern.
+         * According to RFC 9309, longer patterns have higher priority.
+         * The priority length is the number of characters before any wildcard.
+         *
+         * @param pattern the path pattern
+         * @return the priority length
+         */
+        private static int calculatePriorityLength(final String pattern) {
+            // For priority, we count the pattern length, treating * as having length 0
+            // and $ as having length 1
+            int length = 0;
+            for (int i = 0; i < pattern.length(); i++) {
+                final char c = pattern.charAt(i);
+                if (c == '*') {
+                    // Wildcard doesn't contribute to priority length
+                    continue;
+                } else if (c == '$') {
+                    // $ at the end adds to specificity
+                    length++;
+                } else {
+                    length++;
+                }
+            }
+            return length;
+        }
+
+        /**
+         * Checks if the given path matches this pattern.
+         * @param path the path to check
+         * @return true if the path matches, false otherwise
+         */
+        public boolean matches(final String path) {
+            return regexPattern.matcher(path).find();
+        }
+
+        /**
+         * Gets the original pattern string.
+         * @return the pattern string
+         */
+        public String getPattern() {
+            return pattern;
+        }
+
+        /**
+         * Gets the priority length of this pattern.
+         * @return the priority length
+         */
+        public int getPriorityLength() {
+            return priorityLength;
+        }
+
+        /**
+         * Compares this pattern with another for priority ordering.
+         * Longer patterns (higher priority length) come first.
+         * @param other the other pattern to compare with
+         * @return negative if this has higher priority, positive if other has higher priority
+         */
+        @Override
+        public int compareTo(final PathPattern other) {
+            // Higher priority length comes first (descending order)
+            return Integer.compare(other.priorityLength, this.priorityLength);
+        }
+
+        @Override
+        public String toString() {
+            return "PathPattern{pattern='" + pattern + "', priorityLength=" + priorityLength + "}";
+        }
+    }
+
+    /**
      * Represents a directive in a robots.txt file.
      * A directive consists of a user agent, crawl delay, allowed paths, and disallowed paths.
      */
@@ -189,11 +328,11 @@ public class RobotsTxt {
         /** The crawl delay in seconds for this directive. */
         private int crawlDelay;
 
-        /** The list of allowed paths for this directive. */
-        private final List<String> allowedPaths = new ArrayList<>();
+        /** The list of allowed path patterns for this directive. */
+        private final List<PathPattern> allowedPaths = new ArrayList<>();
 
-        /** The list of disallowed paths for this directive. */
-        private final List<String> disallowedPaths = new ArrayList<>();
+        /** The list of disallowed path patterns for this directive. */
+        private final List<PathPattern> disallowedPaths = new ArrayList<>();
 
         /**
          * Constructs a new Directive with the specified user agent.
@@ -229,57 +368,127 @@ public class RobotsTxt {
 
         /**
          * Checks if the given path is allowed according to this directive.
+         * According to RFC 9309:
+         * 1. Find the longest matching pattern (by priority length)
+         * 2. If both Allow and Disallow patterns match with the same length, Allow takes precedence
+         * 3. If no pattern matches, the path is allowed by default
+         *
          * @param path the path to check
          * @return true if the path is allowed, false otherwise
          */
         public boolean allows(final String path) {
-            for (final String allowedPath : allowedPaths) {
-                if (path.startsWith(allowedPath)) {
+            PathPattern longestAllowMatch = null;
+            PathPattern longestDisallowMatch = null;
+
+            // Find the longest matching Allow pattern
+            for (final PathPattern allowPattern : allowedPaths) {
+                if (allowPattern.matches(path)) {
+                    if (longestAllowMatch == null || allowPattern.getPriorityLength() > longestAllowMatch.getPriorityLength()) {
+                        longestAllowMatch = allowPattern;
+                    }
+                }
+            }
+
+            // Find the longest matching Disallow pattern
+            for (final PathPattern disallowPattern : disallowedPaths) {
+                if (disallowPattern.matches(path)) {
+                    if (longestDisallowMatch == null
+                            || disallowPattern.getPriorityLength() > longestDisallowMatch.getPriorityLength()) {
+                        longestDisallowMatch = disallowPattern;
+                    }
+                }
+            }
+
+            // Apply RFC 9309 priority rules
+            if (longestAllowMatch == null && longestDisallowMatch == null) {
+                // No matching rules, allow by default
+                return true;
+            } else if (longestAllowMatch != null && longestDisallowMatch == null) {
+                // Only Allow matches
+                return true;
+            } else if (longestAllowMatch == null && longestDisallowMatch != null) {
+                // Only Disallow matches
+                return false;
+            } else {
+                // Both match - compare lengths
+                final int allowLength = longestAllowMatch.getPriorityLength();
+                final int disallowLength = longestDisallowMatch.getPriorityLength();
+
+                if (allowLength > disallowLength) {
+                    // Allow is more specific
+                    return true;
+                } else if (disallowLength > allowLength) {
+                    // Disallow is more specific
+                    return false;
+                } else {
+                    // Same length - Allow takes precedence (RFC 9309)
                     return true;
                 }
             }
-            for (final String disallowedPath : disallowedPaths) {
-                if (path.startsWith(disallowedPath)) {
-                    return false;
-                }
-            }
-            return true;
         }
 
         /**
-         * Adds an allowed path to this directive.
-         * @param path the path to allow
+         * Adds an allowed path pattern to this directive.
+         * Supports wildcards (*) and end-of-path ($) according to RFC 9309.
+         * @param path the path pattern to allow
          */
         public void addAllow(final String path) {
-            if (!allowedPaths.contains(path)) {
-                allowedPaths.add(path);
+            final PathPattern pattern = new PathPattern(path);
+            // Check if pattern already exists
+            boolean exists = false;
+            for (final PathPattern existing : allowedPaths) {
+                if (existing.getPattern().equals(path)) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                allowedPaths.add(pattern);
             }
         }
 
         /**
-         * Adds a disallowed path to this directive.
-         * @param path the path to disallow
+         * Adds a disallowed path pattern to this directive.
+         * Supports wildcards (*) and end-of-path ($) according to RFC 9309.
+         * @param path the path pattern to disallow
          */
         public void addDisallow(final String path) {
-            if (!disallowedPaths.contains(path)) {
-                disallowedPaths.add(path);
+            final PathPattern pattern = new PathPattern(path);
+            // Check if pattern already exists
+            boolean exists = false;
+            for (final PathPattern existing : disallowedPaths) {
+                if (existing.getPattern().equals(path)) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                disallowedPaths.add(pattern);
             }
         }
 
         /**
-         * Gets all allowed paths for this directive.
-         * @return an array of allowed paths
+         * Gets all allowed path patterns for this directive.
+         * @return an array of allowed path pattern strings
          */
         public String[] getAllows() {
-            return allowedPaths.toArray(new String[allowedPaths.size()]);
+            final String[] result = new String[allowedPaths.size()];
+            for (int i = 0; i < allowedPaths.size(); i++) {
+                result[i] = allowedPaths.get(i).getPattern();
+            }
+            return result;
         }
 
         /**
-         * Gets all disallowed paths for this directive.
-         * @return an array of disallowed paths
+         * Gets all disallowed path patterns for this directive.
+         * @return an array of disallowed path pattern strings
          */
         public String[] getDisallows() {
-            return disallowedPaths.toArray(new String[disallowedPaths.size()]);
+            final String[] result = new String[disallowedPaths.size()];
+            for (int i = 0; i < disallowedPaths.size(); i++) {
+                result[i] = disallowedPaths.get(i).getPattern();
+            }
+            return result;
         }
     }
 

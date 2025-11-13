@@ -21,8 +21,12 @@ import java.io.InputStream;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.Sitemap;
+import org.codelibs.fess.crawler.entity.SitemapAlternateLink;
+import org.codelibs.fess.crawler.entity.SitemapImage;
+import org.codelibs.fess.crawler.entity.SitemapNews;
 import org.codelibs.fess.crawler.entity.SitemapSet;
 import org.codelibs.fess.crawler.entity.SitemapUrl;
+import org.codelibs.fess.crawler.entity.SitemapVideo;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -220,5 +224,169 @@ public class SitemapsHelperTest extends PlainTestCase {
         } catch (final CrawlingAccessException e) {
             // NOP
         }
+    }
+
+    public void test_parseXmlSitemapsWithImages() {
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:image=\"http://www.google.com/schemas/sitemap-image/1.1\">\n" + "  <url>\n"
+                + "    <loc>http://www.example.com/sample.html</loc>\n" + "    <image:image>\n"
+                + "      <image:loc>http://www.example.com/image.jpg</image:loc>\n"
+                + "      <image:caption>Sample image caption</image:caption>\n"
+                + "      <image:title>Sample image title</image:title>\n"
+                + "      <image:geo_location>Tokyo, Japan</image:geo_location>\n"
+                + "      <image:license>http://www.example.com/license.txt</image:license>\n" + "    </image:image>\n" + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        assertEquals(1, sitemaps.length);
+
+        final SitemapUrl sitemapUrl = (SitemapUrl) sitemaps[0];
+        assertEquals("http://www.example.com/sample.html", sitemapUrl.getLoc());
+        assertEquals(1, sitemapUrl.getImages().size());
+
+        final SitemapImage image = sitemapUrl.getImages().get(0);
+        assertEquals("http://www.example.com/image.jpg", image.getLoc());
+        assertEquals("Sample image caption", image.getCaption());
+        assertEquals("Sample image title", image.getTitle());
+        assertEquals("Tokyo, Japan", image.getGeoLocation());
+        assertEquals("http://www.example.com/license.txt", image.getLicense());
+    }
+
+    public void test_parseXmlSitemapsWithVideos() {
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:video=\"http://www.google.com/schemas/sitemap-video/1.1\">\n" + "  <url>\n"
+                + "    <loc>http://www.example.com/videos/sample.html</loc>\n" + "    <video:video>\n"
+                + "      <video:thumbnail_loc>http://www.example.com/thumbs/123.jpg</video:thumbnail_loc>\n"
+                + "      <video:title>Sample video title</video:title>\n"
+                + "      <video:description>Sample video description</video:description>\n"
+                + "      <video:content_loc>http://www.example.com/video123.mp4</video:content_loc>\n"
+                + "      <video:duration>600</video:duration>\n" + "    </video:video>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        assertEquals(1, sitemaps.length);
+
+        final SitemapUrl sitemapUrl = (SitemapUrl) sitemaps[0];
+        assertEquals("http://www.example.com/videos/sample.html", sitemapUrl.getLoc());
+        assertEquals(1, sitemapUrl.getVideos().size());
+
+        final SitemapVideo video = sitemapUrl.getVideos().get(0);
+        assertEquals("http://www.example.com/thumbs/123.jpg", video.getThumbnailLoc());
+        assertEquals("Sample video title", video.getTitle());
+        assertEquals("Sample video description", video.getDescription());
+        assertEquals("http://www.example.com/video123.mp4", video.getContentLoc());
+        assertEquals("600", video.getDuration());
+    }
+
+    public void test_parseXmlSitemapsWithNews() {
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:news=\"http://www.google.com/schemas/sitemap-news/0.9\">\n" + "  <url>\n"
+                + "    <loc>http://www.example.com/news/article.html</loc>\n" + "    <news:news>\n" + "      <news:publication>\n"
+                + "        <news:name>Example Times</news:name>\n" + "        <news:language>en</news:language>\n"
+                + "      </news:publication>\n" + "      <news:publication_date>2025-01-01</news:publication_date>\n"
+                + "      <news:title>Sample news title</news:title>\n" + "      <news:keywords>sample, news, test</news:keywords>\n"
+                + "    </news:news>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        assertEquals(1, sitemaps.length);
+
+        final SitemapUrl sitemapUrl = (SitemapUrl) sitemaps[0];
+        assertEquals("http://www.example.com/news/article.html", sitemapUrl.getLoc());
+        assertNotNull(sitemapUrl.getNews());
+
+        final SitemapNews news = sitemapUrl.getNews();
+        assertEquals("Example Times", news.getPublicationName());
+        assertEquals("en", news.getPublicationLanguage());
+        assertEquals("2025-01-01", news.getPublicationDate());
+        assertEquals("Sample news title", news.getTitle());
+        assertEquals("sample, news, test", news.getKeywords());
+    }
+
+    public void test_parseXmlSitemapsWithAlternateLinks() {
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n" + "  <url>\n"
+                + "    <loc>http://www.example.com/page.html</loc>\n"
+                + "    <xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"http://www.example.com/en/page.html\" />\n"
+                + "    <xhtml:link rel=\"alternate\" hreflang=\"ja\" href=\"http://www.example.com/ja/page.html\" />\n"
+                + "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"http://www.example.com/page.html\" />\n"
+                + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+        assertEquals(1, sitemaps.length);
+
+        final SitemapUrl sitemapUrl = (SitemapUrl) sitemaps[0];
+        assertEquals("http://www.example.com/page.html", sitemapUrl.getLoc());
+        assertEquals(3, sitemapUrl.getAlternateLinks().size());
+
+        final SitemapAlternateLink link1 = sitemapUrl.getAlternateLinks().get(0);
+        assertEquals("en", link1.getHreflang());
+        assertEquals("http://www.example.com/en/page.html", link1.getHref());
+
+        final SitemapAlternateLink link2 = sitemapUrl.getAlternateLinks().get(1);
+        assertEquals("ja", link2.getHreflang());
+        assertEquals("http://www.example.com/ja/page.html", link2.getHref());
+
+        final SitemapAlternateLink link3 = sitemapUrl.getAlternateLinks().get(2);
+        assertEquals("x-default", link3.getHreflang());
+        assertEquals("http://www.example.com/page.html", link3.getHref());
+    }
+
+    public void test_validation() {
+        sitemapsHelper.setEnableValidation(true);
+
+        // Valid URL
+        assertTrue(sitemapsHelper.isValidUrl("http://www.example.com"));
+        assertTrue(sitemapsHelper.isValidUrl("https://www.example.com"));
+
+        // Invalid URL
+        assertFalse(sitemapsHelper.isValidUrl(null));
+        assertFalse(sitemapsHelper.isValidUrl(""));
+        assertFalse(sitemapsHelper.isValidUrl("ftp://www.example.com"));
+        assertFalse(sitemapsHelper.isValidUrl("http://" + "a".repeat(2048)));
+
+        // Valid priority
+        assertTrue(sitemapsHelper.isValidPriority("0.0"));
+        assertTrue(sitemapsHelper.isValidPriority("0.5"));
+        assertTrue(sitemapsHelper.isValidPriority("1.0"));
+        assertTrue(sitemapsHelper.isValidPriority(null));
+        assertTrue(sitemapsHelper.isValidPriority(""));
+
+        // Invalid priority
+        assertFalse(sitemapsHelper.isValidPriority("-0.1"));
+        assertFalse(sitemapsHelper.isValidPriority("1.1"));
+        assertFalse(sitemapsHelper.isValidPriority("abc"));
+
+        // Valid changefreq
+        assertTrue(sitemapsHelper.isValidChangefreq("always"));
+        assertTrue(sitemapsHelper.isValidChangefreq("hourly"));
+        assertTrue(sitemapsHelper.isValidChangefreq("daily"));
+        assertTrue(sitemapsHelper.isValidChangefreq("weekly"));
+        assertTrue(sitemapsHelper.isValidChangefreq("monthly"));
+        assertTrue(sitemapsHelper.isValidChangefreq("yearly"));
+        assertTrue(sitemapsHelper.isValidChangefreq("never"));
+        assertTrue(sitemapsHelper.isValidChangefreq(null));
+        assertTrue(sitemapsHelper.isValidChangefreq(""));
+
+        // Invalid changefreq
+        assertFalse(sitemapsHelper.isValidChangefreq("sometimes"));
+        assertFalse(sitemapsHelper.isValidChangefreq("invalid"));
+
+        // Valid date format
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01"));
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01T12:00:00+00:00"));
+        assertTrue(sitemapsHelper.isValidDateFormat(null));
+        assertTrue(sitemapsHelper.isValidDateFormat(""));
+
+        // Invalid date format
+        assertFalse(sitemapsHelper.isValidDateFormat("2025-1-1"));
+        assertFalse(sitemapsHelper.isValidDateFormat("01-01-2025"));
+        assertFalse(sitemapsHelper.isValidDateFormat("invalid"));
     }
 }

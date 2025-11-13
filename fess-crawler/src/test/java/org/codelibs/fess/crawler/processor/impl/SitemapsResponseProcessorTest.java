@@ -211,18 +211,14 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
-    public void test_processIOException() {
+    public void test_processIOException() throws Exception {
         // Setup - test IOException handling
         ResponseData responseData = new ResponseData();
         byte[] content = "invalid xml".getBytes();
         responseData.setResponseBody(content);
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
-        try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenThrow(new IOException("Parse error"));
-        } catch (IOException e) {
-            // Mock setup for throwing exception
-        }
+        when(sitemapsHelper.parse(any(InputStream.class))).thenThrow(new IOException("Parse error"));
 
         // Execute and verify IORuntimeException is thrown
         try {

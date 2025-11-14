@@ -591,7 +591,8 @@ public class SitemapsHelperTest extends PlainTestCase {
     public void test_parseXmlSitemaps_withUnknownElements() {
         // Sitemap with unknown/custom elements should ignore them and parse known elements
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:custom=\"http://www.example.com/custom\">\n"
                 + "  <url>\n"
                 + "    <loc>http://www.example.com/page1.html</loc>\n"
                 + "    <custom:tag>Some custom value</custom:tag>\n"

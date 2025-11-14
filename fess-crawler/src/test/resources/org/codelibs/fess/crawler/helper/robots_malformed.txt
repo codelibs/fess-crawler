@@ -1,0 +1,109 @@
+# Test file for malformed robots.txt parsing
+# This file contains various malformed directives that should be handled gracefully
+
+# Case 1: Directives before any User-agent (should be ignored)
+Disallow: /orphaned1/
+Allow: /orphaned2/
+
+# Case 2: Valid user-agent with various malformed directives
+User-agent: GoodBot
+Disallow: /admin/
+InvalidDirective: some-value
+unknown-field: test
+Disallow /missing-colon
+Disallow:    # empty value (should be treated as allowing all)
+Allow: /public/
+Crawl-delay: invalid-number
+Crawl-delay: -10
+Crawl-delay: 5.5
+Crawl-delay:
+Allow:    # empty value
+
+# Case 3: Multiple colons in directive
+User-agent: MultiColonBot
+Disallow: http://example.com:8080/path
+Allow: /path:with:colons
+
+# Case 4: Extra whitespace
+User-agent:    ExtraSpaceBot
+Disallow:     /spaced/
+   Allow:   /also-spaced/
+
+# Case 5: Mixed case directives (should still work)
+UsEr-AgEnT: MixedCaseBot
+DiSaLlOw: /test1/
+AlLoW: /test2/
+CrAwL-dElAy: 2
+SiTeMaP: http://example.com/sitemap.xml
+
+# Case 6: Comments in various positions
+User-agent: CommentBot # inline comment
+Disallow: /path1/ # another comment
+# Full line comment
+Allow: /path2/
+
+# Case 7: Empty lines and whitespace-only lines
+User-agent: EmptyLineBot
+
+
+Disallow: /test/
+
+Allow: /public/
+
+# Case 8: Very long user-agent
+User-agent: VeryLongBotNameThatExceedsNormalLengthAndShouldStillBeProcessedCorrectlyWithoutAnyIssuesEvenThoughItIsExtremelyLongAndUnusual
+Disallow: /test/
+
+# Case 9: Special characters in paths
+User-agent: SpecialCharBot
+Disallow: /path with spaces/
+Disallow: /path%20encoded/
+Disallow: /path?query=value
+Disallow: /path#fragment
+Allow: /unicode/日本語/
+
+# Case 10: Multiple User-agents in sequence
+User-agent: Bot1
+User-agent: Bot2
+User-agent: Bot3
+Disallow: /shared/
+
+# Case 11: Sitemap with various formats
+Sitemap: http://example.com/sitemap.xml
+sitemap: http://example.com/sitemap2.xml
+SITEMAP: http://example.com/sitemap3.xml
+Sitemap:    # empty sitemap (should be ignored)
+Sitemap: not-a-valid-url
+
+# Case 12: Malformed lines that should be completely ignored
+This line is completely invalid
+:NoKey
+NoValue:
+:::
+   :
+
+# Case 13: Numeric crawl-delay edge cases
+User-agent: NumericBot
+Crawl-delay: 0
+Crawl-delay: 999999999
+Crawl-delay: 1.23e10
+
+# Case 14: Tab characters instead of spaces
+User-agent:	TabBot
+Disallow:	/tab1/
+Allow:	/tab2/
+
+# Case 15: Unicode and special characters in user-agent
+User-agent: Bot™
+Disallow: /trademark/
+
+User-agent: Bot®
+Disallow: /registered/
+
+# Case 16: Multiple wildcards user agent
+User-agent: *
+Disallow: /default/
+
+# Case 17: Empty file handling (just comments and whitespace after this)
+# This should still result in a valid but mostly empty RobotsTxt object
+

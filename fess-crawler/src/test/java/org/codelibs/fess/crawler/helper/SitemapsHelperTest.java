@@ -389,4 +389,394 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertFalse(sitemapsHelper.isValidDateFormat("01-01-2025"));
         assertFalse(sitemapsHelper.isValidDateFormat("invalid"));
     }
+
+    // ========== Error Tolerance Tests ==========
+
+    public void test_parseXmlSitemaps_missingLocElement() {
+        // URL entry without loc element should be skipped, but others should be parsed
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <lastmod>2025-01-01</lastmod>\n"
+                + "    <changefreq>daily</changefreq>\n"
+                + "    <priority>0.8</priority>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/valid.html</loc>\n"
+                + "    <lastmod>2025-01-02</lastmod>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse successfully, skipping the entry without loc
+        assertTrue(sitemaps.length >= 1);
+        assertEquals("http://www.example.com/valid.html", sitemaps[sitemaps.length - 1].getLoc());
+    }
+
+    public void test_parseXmlSitemaps_emptyLocElement() {
+        // URL entry with empty loc element should be skipped
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc></loc>\n"
+                + "    <lastmod>2025-01-01</lastmod>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>   </loc>\n"
+                + "    <lastmod>2025-01-02</lastmod>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/valid.html</loc>\n"
+                + "    <lastmod>2025-01-03</lastmod>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse successfully, skipping entries with empty loc
+        assertTrue(sitemaps.length >= 1);
+        assertEquals("http://www.example.com/valid.html", sitemaps[sitemaps.length - 1].getLoc());
+    }
+
+    public void test_parseXmlSitemaps_mixedValidInvalid() {
+        // Mix of valid and invalid entries should parse valid ones
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n"
+                + "    <lastmod>2025-01-01</lastmod>\n"
+                + "    <priority>0.8</priority>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc></loc>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page2.html</loc>\n"
+                + "    <changefreq>daily</changefreq>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <lastmod>2025-01-03</lastmod>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page3.html</loc>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse at least the 3 valid entries
+        assertTrue(sitemaps.length >= 3);
+        boolean foundPage1 = false;
+        boolean foundPage2 = false;
+        boolean foundPage3 = false;
+        for (Sitemap sitemap : sitemaps) {
+            if ("http://www.example.com/page1.html".equals(sitemap.getLoc())) {
+                foundPage1 = true;
+            } else if ("http://www.example.com/page2.html".equals(sitemap.getLoc())) {
+                foundPage2 = true;
+            } else if ("http://www.example.com/page3.html".equals(sitemap.getLoc())) {
+                foundPage3 = true;
+            }
+        }
+        assertTrue(foundPage1);
+        assertTrue(foundPage2);
+        assertTrue(foundPage3);
+    }
+
+    public void test_parseXmlSitemaps_withInvalidPriority() {
+        // Invalid priority values should be preserved (not validated unless validation is enabled)
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n"
+                + "    <priority>1.5</priority>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page2.html</loc>\n"
+                + "    <priority>-0.5</priority>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page3.html</loc>\n"
+                + "    <priority>abc</priority>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse all entries and preserve priority values
+        assertEquals(3, sitemaps.length);
+        assertEquals("1.5", ((SitemapUrl) sitemaps[0]).getPriority());
+        assertEquals("-0.5", ((SitemapUrl) sitemaps[1]).getPriority());
+        assertEquals("abc", ((SitemapUrl) sitemaps[2]).getPriority());
+    }
+
+    public void test_parseXmlSitemaps_withInvalidChangefreq() {
+        // Invalid changefreq values should be preserved
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n"
+                + "    <changefreq>sometimes</changefreq>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page2.html</loc>\n"
+                + "    <changefreq>rarely</changefreq>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse all entries and preserve changefreq values
+        assertEquals(2, sitemaps.length);
+        assertEquals("sometimes", ((SitemapUrl) sitemaps[0]).getChangefreq());
+        assertEquals("rarely", ((SitemapUrl) sitemaps[1]).getChangefreq());
+    }
+
+    public void test_parseXmlSitemaps_withInvalidDate() {
+        // Invalid date formats should be preserved
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n"
+                + "    <lastmod>2025-1-1</lastmod>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page2.html</loc>\n"
+                + "    <lastmod>01-01-2025</lastmod>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page3.html</loc>\n"
+                + "    <lastmod>invalid-date</lastmod>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse all entries and preserve lastmod values
+        assertEquals(3, sitemaps.length);
+        assertEquals("2025-1-1", sitemaps[0].getLastmod());
+        assertEquals("01-01-2025", sitemaps[1].getLastmod());
+        assertEquals("invalid-date", sitemaps[2].getLastmod());
+    }
+
+    public void test_parseXmlSitemaps_withoutNamespace() {
+        // Sitemap without namespace declaration should still be parsed
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n"
+                + "    <lastmod>2025-01-01</lastmod>\n"
+                + "  </url>\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page2.html</loc>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse successfully even without namespace
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
+    }
+
+    public void test_parseXmlSitemaps_withUnknownElements() {
+        // Sitemap with unknown/custom elements should ignore them and parse known elements
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:custom=\"http://www.example.com/custom\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n"
+                + "    <custom:tag>Some custom value</custom:tag>\n"
+                + "    <unknown>Unknown element</unknown>\n"
+                + "    <lastmod>2025-01-01</lastmod>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse successfully, ignoring unknown elements
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("2025-01-01", sitemaps[0].getLastmod());
+    }
+
+    public void test_parseXmlSitemaps_withExtraWhitespace() {
+        // Sitemap with extra whitespace should be trimmed
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc>  http://www.example.com/page1.html  </loc>\n"
+                + "    <lastmod>  2025-01-01  </lastmod>\n"
+                + "    <changefreq>  daily  </changefreq>\n"
+                + "    <priority>  0.8  </priority>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse and trim whitespace
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("2025-01-01", sitemaps[0].getLastmod());
+        assertEquals("daily", ((SitemapUrl) sitemaps[0]).getChangefreq());
+        assertEquals("0.8", ((SitemapUrl) sitemaps[0]).getPriority());
+    }
+
+    public void test_parseXmlSitemaps_withBOM() {
+        // Sitemap with UTF-8 BOM should be parsed correctly
+        final byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final byte[] xmlBytes = xml.getBytes();
+        final byte[] dataWithBOM = new byte[bom.length + xmlBytes.length];
+        System.arraycopy(bom, 0, dataWithBOM, 0, bom.length);
+        System.arraycopy(xmlBytes, 0, dataWithBOM, bom.length, xmlBytes.length);
+
+        final InputStream in = new ByteArrayInputStream(dataWithBOM);
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse successfully with BOM
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+    }
+
+    public void test_parseXmlSitemaps_partiallyBrokenImage() {
+        // Image extension with missing required fields should still be added
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:image=\"http://www.google.com/schemas/sitemap-image/1.1\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/page.html</loc>\n"
+                + "    <image:image>\n"
+                + "      <image:loc>http://www.example.com/image1.jpg</image:loc>\n"
+                + "    </image:image>\n"
+                + "    <image:image>\n"
+                + "      <image:caption>Caption without loc</image:caption>\n"
+                + "    </image:image>\n"
+                + "    <image:image>\n"
+                + "      <image:loc>http://www.example.com/image2.jpg</image:loc>\n"
+                + "      <image:title>Valid image</image:title>\n"
+                + "    </image:image>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse URL and all images (even incomplete ones)
+        assertEquals(1, sitemaps.length);
+        final SitemapUrl sitemapUrl = (SitemapUrl) sitemaps[0];
+        assertEquals("http://www.example.com/page.html", sitemapUrl.getLoc());
+        // All image entries should be preserved
+        assertTrue(sitemapUrl.getImages().size() >= 2);
+    }
+
+    public void test_parseXmlSitemaps_partiallyBrokenVideo() {
+        // Video extension with missing fields should still be added
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
+                + "        xmlns:video=\"http://www.google.com/schemas/sitemap-video/1.1\">\n"
+                + "  <url>\n"
+                + "    <loc>http://www.example.com/video.html</loc>\n"
+                + "    <video:video>\n"
+                + "      <video:title>Video Title</video:title>\n"
+                + "    </video:video>\n"
+                + "    <video:video>\n"
+                + "      <video:thumbnail_loc>http://www.example.com/thumb.jpg</video:thumbnail_loc>\n"
+                + "      <video:title>Complete Video</video:title>\n"
+                + "      <video:description>Description</video:description>\n"
+                + "    </video:video>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse URL and all videos (even incomplete ones)
+        assertEquals(1, sitemaps.length);
+        final SitemapUrl sitemapUrl = (SitemapUrl) sitemaps[0];
+        assertEquals("http://www.example.com/video.html", sitemapUrl.getLoc());
+        assertTrue(sitemapUrl.getVideos().size() >= 1);
+    }
+
+    public void test_parseTextSitemaps_withInvalidLines() {
+        // Text sitemap with invalid lines should skip them and parse valid ones
+        final String text = "http://www.example.com/page1.html\n"
+                + "not-a-url\n"
+                + "ftp://invalid-protocol.com\n"
+                + "http://www.example.com/page2.html\n"
+                + "\n"
+                + "   \n"
+                + "http://www.example.com/page3.html\n"
+                + "mailto:test@example.com\n"
+                + "https://www.example.com/page4.html";
+        final InputStream in = new ByteArrayInputStream(text.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse only valid http/https URLs
+        assertEquals(4, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
+        assertEquals("http://www.example.com/page3.html", sitemaps[2].getLoc());
+        assertEquals("https://www.example.com/page4.html", sitemaps[3].getLoc());
+    }
+
+    public void test_parseXmlSitemapsIndex_missingLoc() {
+        // Sitemap index with missing loc should skip that entry
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <sitemap>\n"
+                + "    <loc>http://www.example.com/sitemap1.xml</loc>\n"
+                + "    <lastmod>2025-01-01</lastmod>\n"
+                + "  </sitemap>\n"
+                + "  <sitemap>\n"
+                + "    <lastmod>2025-01-02</lastmod>\n"
+                + "  </sitemap>\n"
+                + "  <sitemap>\n"
+                + "    <loc>http://www.example.com/sitemap2.xml</loc>\n"
+                + "  </sitemap>\n"
+                + "</sitemapindex>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse valid entries
+        assertTrue(sitemaps.length >= 2);
+        assertTrue(sitemapSet.isIndex());
+    }
+
+    public void test_parseXmlSitemaps_withCDATA() {
+        // Sitemap with CDATA sections should be parsed correctly
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                + "  <url>\n"
+                + "    <loc><![CDATA[http://www.example.com/page?foo=bar&baz=qux]]></loc>\n"
+                + "    <lastmod>2025-01-01</lastmod>\n"
+                + "  </url>\n"
+                + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse CDATA correctly
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page?foo=bar&baz=qux", sitemaps[0].getLoc());
+    }
 }

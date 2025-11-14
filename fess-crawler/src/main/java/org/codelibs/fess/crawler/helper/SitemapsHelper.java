@@ -423,7 +423,15 @@ public class SitemapsHelper {
 
             if (URL_ELEMENT.equals(elementName)) {
                 if (sitemapUrl != null) {
-                    sitemapSet.addSitemap(sitemapUrl);
+                    // Only add sitemap URL if loc is not empty
+                    final String loc = sitemapUrl.getLoc();
+                    if (loc != null && !loc.trim().isEmpty()) {
+                        sitemapSet.addSitemap(sitemapUrl);
+                    } else {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping sitemap URL entry without loc element");
+                        }
+                    }
                 }
                 sitemapUrl = null;
             } else if (LOC_ELEMENT.equals(elementName)) {
@@ -658,11 +666,23 @@ public class SitemapsHelper {
 
         @Override
         public void startElement(final String uri, final String localName, final String qName, final Attributes attributes) {
-            if ("sitemap".equals(qName)) {
+            final String elementName = getElementName(localName, qName);
+            if ("sitemap".equals(elementName)) {
                 sitemapFile = new SitemapFile();
-            } else if ("loc".equals(qName) || "lastmod".equals(qName)) {
+            } else if ("loc".equals(elementName) || "lastmod".equals(elementName)) {
                 buf = new StringBuilder();
             }
+        }
+
+        /**
+         * Gets the element name to use for comparison.
+         * Prefers qName (which includes namespace prefix) but falls back to localName if qName is empty.
+         * @param localName the local name without namespace prefix
+         * @param qName the qualified name with namespace prefix
+         * @return the element name to use
+         */
+        private String getElementName(final String localName, final String qName) {
+            return StringUtil.isNotBlank(qName) ? qName : localName;
         }
 
         @Override
@@ -674,17 +694,26 @@ public class SitemapsHelper {
 
         @Override
         public void endElement(final String uri, final String localName, final String qName) {
-            if ("sitemap".equals(qName)) {
+            final String elementName = getElementName(localName, qName);
+            if ("sitemap".equals(elementName)) {
                 if (sitemapFile != null) {
-                    sitemapSet.addSitemap(sitemapFile);
+                    // Only add sitemap file if loc is not empty
+                    final String loc = sitemapFile.getLoc();
+                    if (loc != null && !loc.trim().isEmpty()) {
+                        sitemapSet.addSitemap(sitemapFile);
+                    } else {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping sitemap index entry without loc element");
+                        }
+                    }
                 }
                 sitemapFile = null;
-            } else if ("loc".equals(qName)) {
-                if (buf != null) {
+            } else if ("loc".equals(elementName)) {
+                if (buf != null && sitemapFile != null) {
                     sitemapFile.setLoc(buf.toString().trim());
                     buf = null;
                 }
-            } else if ("lastmod".equals(qName) && buf != null) {
+            } else if ("lastmod".equals(elementName) && buf != null && sitemapFile != null) {
                 sitemapFile.setLastmod(buf.toString().trim());
                 buf = null;
             }

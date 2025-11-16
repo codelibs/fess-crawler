@@ -99,13 +99,9 @@ public class HostIntervalController extends DefaultIntervalController {
                 return;
             }
 
-            // Atomically get or create the AtomicLong for this host
-            final AtomicLong lastTime = lastTimes.asMap()
-                    .putIfAbsent(host, new AtomicLong(SystemUtil.currentTimeMillis()));
-            if (lastTime == null) {
-                // This is the first access to this host - no delay needed
-                return;
-            }
+            // Atomically get or create the AtomicLong for this host using Cache.get()
+            // This ensures thread-safe, atomic get-or-create behavior
+            final AtomicLong lastTime = lastTimes.get(host, () -> new AtomicLong(SystemUtil.currentTimeMillis()));
 
             synchronized (lastTime) {
                 long currentTime = SystemUtil.currentTimeMillis();
@@ -116,7 +112,6 @@ public class HostIntervalController extends DefaultIntervalController {
                     delayTime = lastTime.get() + delayMillisBeforeProcessing - currentTime;
                 }
                 lastTime.set(currentTime);
-                lastTime.notifyAll(); // Notify other waiting threads
             }
         } catch (final InterruptedException e) {
             throw new InterruptedRuntimeException(e);

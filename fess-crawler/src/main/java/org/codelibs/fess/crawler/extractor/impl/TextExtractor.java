@@ -43,13 +43,12 @@ public class TextExtractor extends AbstractExtractor {
 
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
-        }
+        validateInputStream(in);
         try {
-            return new ExtractData(new String(InputStreamUtil.getBytes(in), getEncoding()));
+            final String content = new String(InputStreamUtil.getBytes(in), getEncoding());
+            return new ExtractData(content);
         } catch (final Exception e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text content using encoding: " + getEncoding(), e);
         }
     }
 

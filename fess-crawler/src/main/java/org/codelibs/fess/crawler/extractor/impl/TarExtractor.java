@@ -24,7 +24,6 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -62,9 +61,7 @@ public class TarExtractor extends AbstractExtractor {
 
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
-        }
+        validateInputStream(in);
 
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
@@ -80,13 +77,11 @@ public class TarExtractor extends AbstractExtractor {
      * @return A text.
      */
     protected String getTextInternal(final InputStream in, final MimeTypeHelper mimeTypeHelper, final ExtractorFactory extractorFactory) {
-
         final StringBuilder buf = new StringBuilder(1000);
+        int processedEntries = 0;
+        int failedEntries = 0;
 
-        ArchiveInputStream ais = null;
-
-        try {
-            ais = archiveStreamFactory.createArchiveInputStream("tar", in);
+        try (final ArchiveInputStream ais = archiveStreamFactory.createArchiveInputStream("tar", in)) {
             TarArchiveEntry entry = null;
             long contentSize = 0;
             while ((entry = (TarArchiveEntry) ais.getNextEntry()) != null) {
@@ -104,9 +99,11 @@ public class TarExtractor extends AbstractExtractor {
                             map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                             buf.append(extractor.getText(new IgnoreCloseInputStream(ais), map).getContent());
                             buf.append('\n');
+                            processedEntries++;
                         } catch (final Exception e) {
+                            failedEntries++;
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Exception in an internal extractor.", e);
+                                logger.debug("Failed to extract content from archive entry: {}", filename, e);
                             }
                         }
                     }
@@ -116,10 +113,11 @@ public class TarExtractor extends AbstractExtractor {
             throw e;
         } catch (final Exception e) {
             if (buf.length() == 0) {
-                throw new ExtractException("Could not extract a content.", e);
+                throw new ExtractException("Failed to extract content from TAR archive. No entries could be processed.", e);
             }
-        } finally {
-            CloseableUtil.closeQuietly(ais);
+            if (logger.isWarnEnabled()) {
+                logger.warn("Partial extraction from TAR archive. Processed: {}, Failed: {}", processedEntries, failedEntries, e);
+            }
         }
 
         return buf.toString().trim();

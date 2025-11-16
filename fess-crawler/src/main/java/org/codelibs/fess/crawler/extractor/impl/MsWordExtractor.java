@@ -49,12 +49,10 @@ public class MsWordExtractor extends AbstractExtractor {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
-        try {
-            @SuppressWarnings("resource")
-            final org.apache.poi.hwpf.extractor.WordExtractor wordExtractor = new org.apache.poi.hwpf.extractor.WordExtractor(in);
+        try (final org.apache.poi.hwpf.extractor.WordExtractor wordExtractor = new org.apache.poi.hwpf.extractor.WordExtractor(in)) {
             return new ExtractData(wordExtractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text from Word document.", e);
         }
     }
 

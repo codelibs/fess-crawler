@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import org.codelibs.fess.crawler.container.CrawlerContainer;
@@ -110,6 +111,19 @@ public abstract class AbstractExtractor implements Extractor {
             return tempFile;
         } catch (final IOException e) {
             throw new CrawlerSystemException("Could not create a temp file.", e);
+        }
+    }
+
+    /**
+     * Validates that the input stream is not null.
+     * This is a common validation performed by most extractors.
+     *
+     * @param in The input stream to validate
+     * @throws CrawlerSystemException if the input stream is null
+     */
+    protected void validateInputStream(final InputStream in) {
+        if (in == null) {
+            throw new CrawlerSystemException("The inputstream is null.");
         }
     }
 }

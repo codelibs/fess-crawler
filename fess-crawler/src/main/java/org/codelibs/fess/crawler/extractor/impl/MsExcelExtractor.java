@@ -50,13 +50,12 @@ public class MsExcelExtractor extends AbstractExtractor {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
-        try {
-            @SuppressWarnings("resource")
-            final org.apache.poi.hssf.extractor.ExcelExtractor excelExtractor =
-                    new org.apache.poi.hssf.extractor.ExcelExtractor(new HSSFWorkbook(in));
+        try (final HSSFWorkbook workbook = new HSSFWorkbook(in);
+             final org.apache.poi.hssf.extractor.ExcelExtractor excelExtractor =
+                     new org.apache.poi.hssf.extractor.ExcelExtractor(workbook)) {
             return new ExtractData(excelExtractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text from Excel document.", e);
         }
     }
 }

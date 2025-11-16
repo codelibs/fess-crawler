@@ -50,12 +50,11 @@ public class MsPowerPointExtractor extends AbstractExtractor {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
-        try {
-            @SuppressWarnings("resource")
-            final SlideShowExtractor<HSLFShape, HSLFTextParagraph> extractor = new SlideShowExtractor<>(new HSLFSlideShow(in));
+        try (final HSLFSlideShow slideShow = new HSLFSlideShow(in);
+             final SlideShowExtractor<HSLFShape, HSLFTextParagraph> extractor = new SlideShowExtractor<>(slideShow)) {
             return new ExtractData(extractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text from PowerPoint document.", e);
         }
     }
 

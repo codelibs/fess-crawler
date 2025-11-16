@@ -35,12 +35,12 @@ import org.dbflute.utflute.core.PlainTestCase;
 public class HostIntervalControllerTest extends PlainTestCase {
 
     /**
-     * 同一ホストに対するクローリングのインターバルが正しく動作すること
+     * Test that crawling intervals for the same host work correctly.
      */
     public void test_delayBeforeProcessing() {
-        // 同時実行数
+        // Number of concurrent tasks
         final int numTasks = 100;
-        // インターバル
+        // Interval in milliseconds
         final Long waittime = 100L;
 
         CrawlingParameterUtil.setUrlQueue(new UrlQueueImpl());
@@ -63,16 +63,16 @@ public class HostIntervalControllerTest extends PlainTestCase {
             }
         };
 
-        // Callableタスクを複数生成
+        // Generate multiple callable tasks
         final List<Callable<Integer>> tasks = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < numTasks; i++) {
             tasks.add(testCallable);
         }
 
-        // 時間取得
+        // Get start time
         final long time = System.nanoTime();
 
-        // Callableタスク(複数)を実行する
+        // Execute callable tasks concurrently
         final ExecutorService executor = Executors.newFixedThreadPool(numTasks);
         try {
             final List<Future<Integer>> futures = executor.invokeAll(tasks);
@@ -80,9 +80,18 @@ public class HostIntervalControllerTest extends PlainTestCase {
                 future.get();
             }
         } catch (final InterruptedException e) {
-            // no thing to do
+            // Interrupted while waiting
         } catch (final ExecutionException e) {
-            // no thing to do
+            // Execution failed
+        } finally {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (final InterruptedException e) {
+                executor.shutdownNow();
+            }
         }
 
         long elapsed = (System.nanoTime() - time) / 1000000;

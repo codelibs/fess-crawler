@@ -53,26 +53,23 @@ public class DefaultIntervalController extends AbstractIntervalController {
      * @param params map containing delay parameters
      */
     public DefaultIntervalController(final Map<String, Long> params) {
-        Long millis = params.get("delayMillisAfterProcessing");
-        if (millis != null) {
-            delayMillisAfterProcessing = millis;
-        }
+        delayMillisAfterProcessing = getParamValue(params, "delayMillisAfterProcessing", delayMillisAfterProcessing);
+        delayMillisAtNoUrlInQueue = getParamValue(params, "delayMillisAtNoUrlInQueue", delayMillisAtNoUrlInQueue);
+        delayMillisBeforeProcessing = getParamValue(params, "delayMillisBeforeProcessing", delayMillisBeforeProcessing);
+        delayMillisForWaitingNewUrl = getParamValue(params, "delayMillisForWaitingNewUrl", delayMillisForWaitingNewUrl);
+    }
 
-        millis = params.get("delayMillisAtNoUrlInQueue");
-        if (millis != null) {
-            delayMillisAtNoUrlInQueue = millis;
-        }
-
-        millis = params.get("delayMillisBeforeProcessing");
-        if (millis != null) {
-            delayMillisBeforeProcessing = millis;
-        }
-
-        millis = params.get("delayMillisForWaitingNewUrl");
-        if (millis != null) {
-            delayMillisForWaitingNewUrl = millis;
-        }
-
+    /**
+     * Helper method to get parameter value from map with default fallback.
+     *
+     * @param params parameter map
+     * @param key parameter key
+     * @param defaultValue default value if parameter not found
+     * @return parameter value or default value
+     */
+    private long getParamValue(final Map<String, Long> params, final String key, final long defaultValue) {
+        final Long value = params.get(key);
+        return value != null ? value : defaultValue;
     }
 
     /**
@@ -113,6 +110,70 @@ public class DefaultIntervalController extends AbstractIntervalController {
         if (delayMillisForWaitingNewUrl > 0) {
             ThreadUtil.sleep(delayMillisForWaitingNewUrl);
         }
+    }
+
+    /**
+     * Gets the delay in milliseconds after processing a URL.
+     * @return delay in milliseconds
+     */
+    public long getDelayMillisAfterProcessing() {
+        return delayMillisAfterProcessing;
+    }
+
+    /**
+     * Sets the delay in milliseconds after processing a URL.
+     * @param delayMillisAfterProcessing delay in milliseconds
+     */
+    public void setDelayMillisAfterProcessing(final long delayMillisAfterProcessing) {
+        this.delayMillisAfterProcessing = delayMillisAfterProcessing;
+    }
+
+    /**
+     * Gets the delay in milliseconds when no URL is in the queue.
+     * @return delay in milliseconds
+     */
+    public long getDelayMillisAtNoUrlInQueue() {
+        return delayMillisAtNoUrlInQueue;
+    }
+
+    /**
+     * Sets the delay in milliseconds when no URL is in the queue.
+     * @param delayMillisAtNoUrlInQueue delay in milliseconds
+     */
+    public void setDelayMillisAtNoUrlInQueue(final long delayMillisAtNoUrlInQueue) {
+        this.delayMillisAtNoUrlInQueue = delayMillisAtNoUrlInQueue;
+    }
+
+    /**
+     * Gets the delay in milliseconds before processing a URL.
+     * @return delay in milliseconds
+     */
+    public long getDelayMillisBeforeProcessing() {
+        return delayMillisBeforeProcessing;
+    }
+
+    /**
+     * Sets the delay in milliseconds before processing a URL.
+     * @param delayMillisBeforeProcessing delay in milliseconds
+     */
+    public void setDelayMillisBeforeProcessing(final long delayMillisBeforeProcessing) {
+        this.delayMillisBeforeProcessing = delayMillisBeforeProcessing;
+    }
+
+    /**
+     * Gets the delay in milliseconds for waiting for new URLs.
+     * @return delay in milliseconds
+     */
+    public long getDelayMillisForWaitingNewUrl() {
+        return delayMillisForWaitingNewUrl;
+    }
+
+    /**
+     * Sets the delay in milliseconds for waiting for new URLs.
+     * @param delayMillisForWaitingNewUrl delay in milliseconds
+     */
+    public void setDelayMillisForWaitingNewUrl(final long delayMillisForWaitingNewUrl) {
+        this.delayMillisForWaitingNewUrl = delayMillisForWaitingNewUrl;
     }
 
 }

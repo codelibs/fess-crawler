@@ -196,7 +196,7 @@ public class StorageClient extends AbstractCrawlerClient {
         } finally {
             if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
-                if (!accessTimeoutTask.isCanceled()) {
+                if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
                     accessTimeoutTask.cancel();
                 }
             }
@@ -291,7 +291,7 @@ public class StorageClient extends AbstractCrawlerClient {
                 } else {
                     File outputFile = null;
                     try {
-                        outputFile = createTempFile("crawler-SmbClient-", ".out", null);
+                        outputFile = createTempFile("crawler-StorageClient-", ".out", null);
                         final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
                         CopyUtil.copy(minioClient.getObject(args), outputFile);
                         responseData.setResponseBody(outputFile, true);

@@ -16,9 +16,7 @@
 package org.codelibs.fess.crawler.service.impl;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -157,7 +155,6 @@ public class OpenSearchUrlFilterService extends AbstractCrawlerService implement
      */
     @Override
     public void addIncludeUrlFilter(final String sessionId, final List<String> urlList) {
-        final Set<String> invalidateSet = new HashSet<>();
         final List<OpenSearchUrlFilter> urlFilterList = new ArrayList<>(urlList.size());
         for (final String url : urlList) {
             final OpenSearchUrlFilter esUrlFilter = new OpenSearchUrlFilter();
@@ -165,10 +162,9 @@ public class OpenSearchUrlFilterService extends AbstractCrawlerService implement
             esUrlFilter.setFilterType(INCLUDE);
             esUrlFilter.setUrl(url);
             urlFilterList.add(esUrlFilter);
-            invalidateSet.add(sessionId);
         }
         insertAll(urlFilterList, OpType.INDEX);
-        invalidateSet.forEach(s -> includeFilterCache.invalidate(s));
+        includeFilterCache.invalidate(sessionId);
     }
 
     /**
@@ -195,7 +191,6 @@ public class OpenSearchUrlFilterService extends AbstractCrawlerService implement
      */
     @Override
     public void addExcludeUrlFilter(final String sessionId, final List<String> urlList) {
-        final Set<String> invalidateSet = new HashSet<>();
         final List<OpenSearchUrlFilter> urlFilterList = new ArrayList<>(urlList.size());
         for (final String url : urlList) {
             final OpenSearchUrlFilter esUrlFilter = new OpenSearchUrlFilter();
@@ -205,7 +200,7 @@ public class OpenSearchUrlFilterService extends AbstractCrawlerService implement
             urlFilterList.add(esUrlFilter);
         }
         insertAll(urlFilterList, OpType.INDEX);
-        invalidateSet.forEach(s -> excludeFilterCache.invalidate(s));
+        excludeFilterCache.invalidate(sessionId);
     }
 
     /**

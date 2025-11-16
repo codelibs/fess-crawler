@@ -273,27 +273,20 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
         final QueueHolder queueHolder = getQueueHolder(sessionId);
         final Queue<OpenSearchUrlQueue> waitingQueue = queueHolder.waitingQueue;
         final Queue<OpenSearchUrlQueue> crawlingQueue = queueHolder.crawlingQueue;
+
         OpenSearchUrlQueue urlQueue = waitingQueue.poll();
-        if (urlQueue != null) {
-            if (crawlingQueue.size() > maxCrawlingQueueSize) {
-                crawlingQueue.poll();
-            }
-            crawlingQueue.add(urlQueue);
-            return urlQueue;
-        }
+        if (urlQueue == null) {
+            synchronized (queueHolder) {
+                urlQueue = waitingQueue.poll();
+                if (urlQueue == null) {
+                    final List<OpenSearchUrlQueue> urlQueueList = fetchUrlQueueList(sessionId);
+                    if (urlQueueList.isEmpty()) {
+                        return null;
+                    }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Queued URL: {}", urlQueueList);
+                    }
 
-        synchronized (queueHolder) {
-            urlQueue = waitingQueue.poll();
-            if (urlQueue == null) {
-                final List<OpenSearchUrlQueue> urlQueueList = fetchUrlQueueList(sessionId);
-                if (urlQueueList.isEmpty()) {
-                    return null;
-                }
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Queued URL: {}", urlQueueList);
-                }
-
-                if (!urlQueueList.isEmpty()) {
                     try {
                         // delete from es
                         final BulkResponse response = getClient().get(c -> {
@@ -301,7 +294,6 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
                             for (final OpenSearchUrlQueue uq : urlQueueList) {
                                 bulkBuilder.add(c.prepareDelete().setIndex(index).setId(uq.getId()));
                             }
-
                             return bulkBuilder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute();
                         });
                         if (response.hasFailures()) {
@@ -310,18 +302,17 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
                     } catch (final Exception e) {
                         throw new OpenSearchAccessException("Failed to delete " + urlQueueList, e);
                     }
-                }
 
-                waitingQueue.addAll(urlQueueList);
-
-                urlQueue = waitingQueue.poll();
-                if (urlQueue == null) {
-                    return null;
+                    waitingQueue.addAll(urlQueueList);
+                    urlQueue = waitingQueue.poll();
+                    if (urlQueue == null) {
+                        return null;
+                    }
                 }
             }
-
         }
 
+        // Add to crawling queue
         if (crawlingQueue.size() > maxCrawlingQueueSize) {
             crawlingQueue.poll();
         }

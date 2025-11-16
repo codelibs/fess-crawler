@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
@@ -46,9 +45,7 @@ public class MsWordExtractor extends AbstractExtractor {
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
-        }
+        validateInputStream(in);
         try (final org.apache.poi.hwpf.extractor.WordExtractor wordExtractor = new org.apache.poi.hwpf.extractor.WordExtractor(in)) {
             return new ExtractData(wordExtractor.getText());
         } catch (final IOException e) {

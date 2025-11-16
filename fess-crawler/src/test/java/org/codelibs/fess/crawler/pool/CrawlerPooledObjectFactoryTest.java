@@ -202,9 +202,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         try {
             invalidFactory.create();
             fail("Should throw IllegalStateException for invalid component name");
-        } catch (Exception e) {
-            assertTrue(e instanceof IllegalStateException);
+        } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("nonExistentComponent"));
+        } catch (Exception e) {
+            fail("Expected IllegalStateException but got: " + e.getClass().getName());
         }
     }
 

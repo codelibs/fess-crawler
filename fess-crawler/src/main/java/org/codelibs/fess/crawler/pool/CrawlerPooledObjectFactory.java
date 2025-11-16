@@ -15,8 +15,6 @@
  */
 package org.codelibs.fess.crawler.pool;
 
-import java.io.Closeable;
-
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -120,8 +118,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
 
     /**
      * Destroys a pooled object and notifies the destroy listener if set.
-     * If the object implements {@link Closeable} or {@link AutoCloseable},
-     * it will be closed automatically.
+     * If the object implements {@link AutoCloseable}, it will be closed automatically.
      *
      * @param p The pooled object to destroy
      * @throws Exception if destruction fails

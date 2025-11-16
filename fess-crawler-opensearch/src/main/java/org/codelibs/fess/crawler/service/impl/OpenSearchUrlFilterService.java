@@ -155,6 +155,9 @@ public class OpenSearchUrlFilterService extends AbstractCrawlerService implement
      */
     @Override
     public void addIncludeUrlFilter(final String sessionId, final List<String> urlList) {
+        if (urlList.isEmpty()) {
+            return;
+        }
         final List<OpenSearchUrlFilter> urlFilterList = new ArrayList<>(urlList.size());
         for (final String url : urlList) {
             final OpenSearchUrlFilter esUrlFilter = new OpenSearchUrlFilter();
@@ -191,6 +194,9 @@ public class OpenSearchUrlFilterService extends AbstractCrawlerService implement
      */
     @Override
     public void addExcludeUrlFilter(final String sessionId, final List<String> urlList) {
+        if (urlList.isEmpty()) {
+            return;
+        }
         final List<OpenSearchUrlFilter> urlFilterList = new ArrayList<>(urlList.size());
         for (final String url : urlList) {
             final OpenSearchUrlFilter esUrlFilter = new OpenSearchUrlFilter();

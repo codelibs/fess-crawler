@@ -112,16 +112,13 @@ public class Handler extends URLStreamHandler {
          */
         protected StorageURLConnection(final URL url) {
             super(url);
-            final String[] values = url.toExternalForm().split("/", 2);
-            if (values.length == 2) {
-                bucketName = values[0];
-                objectName = values[1];
+            // Extract bucket name from host
+            bucketName = url.getHost() != null ? url.getHost() : StringUtil.EMPTY;
+            // Extract object name from path, removing leading slash if present
+            final String path = url.getPath();
+            if (path != null && !path.isEmpty()) {
+                objectName = path.startsWith("/") ? path.substring(1) : path;
             } else {
-                if (values.length == 1) {
-                    bucketName = values[0];
-                } else {
-                    bucketName = StringUtil.EMPTY;
-                }
                 objectName = StringUtil.EMPTY;
             }
         }
@@ -134,10 +131,13 @@ public class Handler extends URLStreamHandler {
          */
         @Override
         public void connect() throws IOException {
+            if (connected) {
+                return;
+            }
             final String endpoint = System.getenv().get("STORAGE_ENDPOINT");
             final String accessKey = System.getenv().get("STORAGE_ACCESS_KEY");
             final String secretKey = System.getenv().get("STORAGE_SECRET_KEY");
-            final String region = System.getenv().get("STORAGE_SECRET_KEY");
+            final String region = System.getenv().get("STORAGE_REGION");
             try {
                 if (StringUtil.isBlank(endpoint)) {
                     throw new IOException("endpoint is blank.");
@@ -150,6 +150,7 @@ public class Handler extends URLStreamHandler {
                     builder.region(region);
                 }
                 minioClient = builder.build();
+                connected = true;
             } catch (final Exception e) {
                 throw new IOException("Failed to create MinioClient.", e);
             }
@@ -163,8 +164,8 @@ public class Handler extends URLStreamHandler {
          */
         @Override
         public InputStream getInputStream() throws IOException {
-            if (minioClient == null) {
-                throw new IOException("Access is not ready.");
+            if (!connected) {
+                connect();
             }
             try {
                 final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(objectName).build();
@@ -208,10 +209,10 @@ public class Handler extends URLStreamHandler {
          */
         @Override
         public long getContentLengthLong() {
-            if (minioClient == null) {
-                return -1;
-            }
             try {
+                if (!connected) {
+                    connect();
+                }
                 return getStatObject().size();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
                     | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | IOException | ServerException e) {
@@ -226,10 +227,10 @@ public class Handler extends URLStreamHandler {
          */
         @Override
         public String getContentType() {
-            if (minioClient == null) {
-                return null;
-            }
             try {
+                if (!connected) {
+                    connect();
+                }
                 return getStatObject().contentType();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
                     | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | IOException | ServerException e) {
@@ -250,15 +251,15 @@ public class Handler extends URLStreamHandler {
 
         /**
          * Returns the last modified date of the storage object.
-         * @return The last modified date.
+         * @return The last modified date in milliseconds since epoch.
          */
         @Override
         public long getLastModified() {
-            if (minioClient == null) {
-                return 0;
-            }
             try {
-                return getStatObject().lastModified().toEpochSecond();
+                if (!connected) {
+                    connect();
+                }
+                return getStatObject().lastModified().toInstant().toEpochMilli();
             } catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException | InternalException
                     | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | IOException | ServerException e) {
                 return 0;

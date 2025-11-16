@@ -126,11 +126,12 @@ public class Handler extends URLStreamHandler {
         /**
          * Establishes a connection to the storage service.
          * This method creates a MinIO client using environment variables for configuration.
+         * This method is synchronized to ensure thread-safe connection initialization.
          *
          * @throws IOException If the connection cannot be established
          */
         @Override
-        public void connect() throws IOException {
+        public synchronized void connect() throws IOException {
             if (connected) {
                 return;
             }

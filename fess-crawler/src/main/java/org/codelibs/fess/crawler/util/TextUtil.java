@@ -20,7 +20,6 @@ import java.io.Reader;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
@@ -297,7 +296,7 @@ public final class TextUtil {
 
     private static String rightString(final StringBuilder buf, final int length) {
         if (length <= 0) {
-            return StringUtils.EMPTY;
+            return StringUtil.EMPTY;
         }
         if (length >= buf.length()) {
             return buf.toString();

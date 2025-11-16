@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -45,21 +44,18 @@ public final class ResponseDataUtil {
      */
     public static File createResponseBodyFile(final ResponseData responseData) {
         File tempFile = null;
-        FileOutputStream fos = null;
         try (final InputStream is = responseData.getResponseBody()) {
             tempFile = File.createTempFile("crawler-", ".tmp");
             tempFile.setReadable(false, false);
             tempFile.setReadable(true, true);
             tempFile.setWritable(false, false);
             tempFile.setWritable(true, true);
-            fos = new FileOutputStream(tempFile);
-            CopyUtil.copy(is, fos);
+            try (final FileOutputStream fos = new FileOutputStream(tempFile)) {
+                CopyUtil.copy(is, fos);
+            }
         } catch (final Exception e) {
-            CloseableUtil.closeQuietly(fos); // for deleting file
             FileUtil.deleteInBackground(tempFile); // clean up
             throw new CrawlingAccessException("Could not read a response body: " + responseData.getUrl(), e);
-        } finally {
-            CloseableUtil.closeQuietly(fos);
         }
         return tempFile;
     }

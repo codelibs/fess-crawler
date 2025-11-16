@@ -43,14 +43,15 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Reset counters before each test
         TestComponent.resetCounter();
         SingletonTestComponent.resetInstanceCount();
+        CloseableTestComponent.resetCounters();
 
         // Initialize container with test components
         container = new StandardCrawlerContainer().prototype("testComponent", TestComponent.class)
                 .singleton("singletonComponent", SingletonTestComponent.class)
-                .singleton("factory", CrawlerPooledObjectFactory.class);
+                .prototype("closeableComponent", CloseableTestComponent.class);
 
-        factory = new CrawlerPooledObjectFactory<>();
-        factory.crawlerContainer = container;
+        // Initialize factory with constructor
+        factory = new CrawlerPooledObjectFactory<>(container, "testComponent");
     }
 
     /**
@@ -102,11 +103,48 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     }
 
     /**
+     * Closeable test component for testing AutoCloseable resource handling
+     */
+    public static class CloseableTestComponent implements AutoCloseable {
+        private static AtomicInteger instanceCounter = new AtomicInteger(0);
+        private static AtomicInteger closeCounter = new AtomicInteger(0);
+        private final int id;
+        private boolean closed = false;
+
+        public CloseableTestComponent() {
+            this.id = instanceCounter.incrementAndGet();
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public boolean isClosed() {
+            return closed;
+        }
+
+        @Override
+        public void close() throws Exception {
+            if (!closed) {
+                closed = true;
+                closeCounter.incrementAndGet();
+            }
+        }
+
+        public static int getCloseCount() {
+            return closeCounter.get();
+        }
+
+        public static void resetCounters() {
+            instanceCounter.set(0);
+            closeCounter.set(0);
+        }
+    }
+
+    /**
      * Test basic object creation
      */
     public void test_create_basic() throws Exception {
-        factory.setComponentName("testComponent");
-
         TestComponent component = factory.create();
         assertNotNull(component);
         assertEquals(1, component.getId());
@@ -120,33 +158,53 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     }
 
     /**
-     * Test creation with null component name
+     * Test constructor with null container
      */
-    public void test_create_nullComponentName() {
-        factory.setComponentName(null);
-
+    public void test_constructor_nullContainer() {
         try {
-            factory.create();
-            fail("Should throw exception for null component name");
-        } catch (Exception e) {
-            // Expected behavior
-            assertTrue(true);
+            new CrawlerPooledObjectFactory<>(null, "testComponent");
+            fail("Should throw IllegalArgumentException for null container");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("crawlerContainer"));
         }
     }
 
     /**
-     * Test creation with invalid component name
+     * Test constructor with null component name
+     */
+    public void test_constructor_nullComponentName() {
+        try {
+            new CrawlerPooledObjectFactory<>(container, null);
+            fail("Should throw IllegalArgumentException for null component name");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("componentName"));
+        }
+    }
+
+    /**
+     * Test constructor with empty component name
+     */
+    public void test_constructor_emptyComponentName() {
+        try {
+            new CrawlerPooledObjectFactory<>(container, "");
+            fail("Should throw IllegalArgumentException for empty component name");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("componentName"));
+        }
+    }
+
+    /**
+     * Test creation with invalid component name throws exception
      */
     public void test_create_invalidComponentName() {
-        factory.setComponentName("nonExistentComponent");
+        CrawlerPooledObjectFactory<Object> invalidFactory = new CrawlerPooledObjectFactory<>(container, "nonExistentComponent");
 
         try {
-            Object result = factory.create();
-            // The container may return null for non-existent components
-            assertNull("Should return null for invalid component name", result);
+            invalidFactory.create();
+            fail("Should throw IllegalStateException for invalid component name");
         } catch (Exception e) {
-            // Exception is also acceptable behavior
-            assertTrue(true);
+            assertTrue(e instanceof IllegalStateException);
+            assertTrue(e.getMessage().contains("nonExistentComponent"));
         }
     }
 
@@ -154,10 +212,11 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      * Test creation with singleton component
      */
     public void test_create_singletonComponent() throws Exception {
-        factory.setComponentName("singletonComponent");
+        CrawlerPooledObjectFactory<SingletonTestComponent> singletonFactory = new CrawlerPooledObjectFactory<>(container,
+                "singletonComponent");
 
-        Object component1 = factory.create();
-        Object component2 = factory.create();
+        SingletonTestComponent component1 = singletonFactory.create();
+        SingletonTestComponent component2 = singletonFactory.create();
 
         assertNotNull(component1);
         assertNotNull(component2);
@@ -209,22 +268,25 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      * Test destroyObject with listener
      */
     public void test_destroyObject_withListener() throws Exception {
-        TestComponent component = new TestComponent();
-        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
-
         AtomicBoolean listenerCalled = new AtomicBoolean(false);
         final PooledObject<TestComponent>[] capturedObject = new PooledObject[1];
 
-        factory.setOnDestroyListener(new OnDestroyListener<TestComponent>() {
+        OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
             @Override
             public void onDestroy(PooledObject<TestComponent> p) {
                 listenerCalled.set(true);
                 capturedObject[0] = p;
                 p.getObject().destroy();
             }
-        });
+        };
 
-        factory.destroyObject(pooledObject);
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
+                listener);
+
+        TestComponent component = new TestComponent();
+        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        factoryWithListener.destroyObject(pooledObject);
 
         assertTrue(listenerCalled.get());
         assertSame(pooledObject, capturedObject[0]);
@@ -232,66 +294,86 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     }
 
     /**
-     * Test destroyObject with null pooled object
+     * Test destroyObject with listener exception - should not prevent resource cleanup
      */
-    public void test_destroyObject_nullPooledObject() throws Exception {
-        AtomicBoolean listenerCalled = new AtomicBoolean(false);
+    public void test_destroyObject_listenerException() throws Exception {
+        CloseableTestComponent.resetCounters();
 
-        factory.setOnDestroyListener(new OnDestroyListener<TestComponent>() {
+        OnDestroyListener<CloseableTestComponent> listener = new OnDestroyListener<CloseableTestComponent>() {
             @Override
-            public void onDestroy(PooledObject<TestComponent> p) {
-                listenerCalled.set(true);
-            }
-        });
-
-        factory.destroyObject(null);
-
-        // Listener should be called even with null
-        assertTrue(listenerCalled.get());
-    }
-
-    /**
-     * Test destroyObject with exception in listener
-     */
-    public void test_destroyObject_listenerException() {
-        TestComponent component = new TestComponent();
-        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
-
-        factory.setOnDestroyListener(new OnDestroyListener<TestComponent>() {
-            @Override
-            public void onDestroy(PooledObject<TestComponent> p) {
+            public void onDestroy(PooledObject<CloseableTestComponent> p) {
                 throw new RuntimeException("Test exception in listener");
             }
-        });
+        };
 
-        try {
-            factory.destroyObject(pooledObject);
-            fail("Should propagate exception from listener");
-        } catch (Exception e) {
-            assertTrue(e.getMessage().contains("Test exception"));
-        }
+        CrawlerPooledObjectFactory<CloseableTestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container,
+                "closeableComponent", listener);
+
+        CloseableTestComponent component = new CloseableTestComponent();
+        PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        // destroyObject should continue and close the resource even if listener throws
+        factoryWithListener.destroyObject(pooledObject);
+
+        // Resource should still be closed despite listener exception
+        assertTrue("Component should be closed even if listener throws", component.isClosed());
     }
 
     /**
-     * Test getter and setter for componentName
+     * Test destroyObject with AutoCloseable component
      */
-    public void test_componentName_getterSetter() {
-        assertNull(factory.getComponentName());
+    public void test_destroyObject_autoCloseable() throws Exception {
+        CloseableTestComponent.resetCounters();
 
-        factory.setComponentName("testName");
-        assertEquals("testName", factory.getComponentName());
+        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = new CrawlerPooledObjectFactory<>(container,
+                "closeableComponent");
 
-        factory.setComponentName(null);
-        assertNull(factory.getComponentName());
+        CloseableTestComponent component = new CloseableTestComponent();
+        PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
 
-        factory.setComponentName("");
-        assertEquals("", factory.getComponentName());
+        assertFalse(component.isClosed());
+        assertEquals(0, CloseableTestComponent.getCloseCount());
+
+        closeableFactory.destroyObject(pooledObject);
+
+        assertTrue(component.isClosed());
+        assertEquals(1, CloseableTestComponent.getCloseCount());
     }
 
     /**
-     * Test getter and setter for onDestroyListener
+     * Test destroyObject with AutoCloseable and listener
      */
-    public void test_onDestroyListener_getterSetter() {
+    public void test_destroyObject_autoCloseableWithListener() throws Exception {
+        CloseableTestComponent.resetCounters();
+        AtomicBoolean listenerCalled = new AtomicBoolean(false);
+
+        OnDestroyListener<CloseableTestComponent> listener = new OnDestroyListener<CloseableTestComponent>() {
+            @Override
+            public void onDestroy(PooledObject<CloseableTestComponent> p) {
+                listenerCalled.set(true);
+                assertFalse("Component should not be closed yet when listener is called", p.getObject().isClosed());
+            }
+        };
+
+        CrawlerPooledObjectFactory<CloseableTestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container,
+                "closeableComponent", listener);
+
+        CloseableTestComponent component = new CloseableTestComponent();
+        PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        factoryWithListener.destroyObject(pooledObject);
+
+        assertTrue("Listener should be called", listenerCalled.get());
+        assertTrue("Component should be closed after listener", component.isClosed());
+        assertEquals(1, CloseableTestComponent.getCloseCount());
+    }
+
+    /**
+     * Test getters
+     */
+    public void test_getters() {
+        assertEquals("testComponent", factory.getComponentName());
+        assertSame(container, factory.getCrawlerContainer());
         assertNull(factory.getOnDestroyListener());
 
         OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
@@ -301,50 +383,11 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        factory.setOnDestroyListener(listener);
-        assertSame(listener, factory.getOnDestroyListener());
-
-        factory.setOnDestroyListener(null);
-        assertNull(factory.getOnDestroyListener());
-    }
-
-    /**
-     * Test multiple listener changes
-     */
-    public void test_multipleListenerChanges() throws Exception {
-        TestComponent component = new TestComponent();
-        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
-
-        List<String> callOrder = new ArrayList<>();
-
-        // First listener
-        factory.setOnDestroyListener(new OnDestroyListener<TestComponent>() {
-            @Override
-            public void onDestroy(PooledObject<TestComponent> p) {
-                callOrder.add("listener1");
-            }
-        });
-
-        factory.destroyObject(pooledObject);
-        assertEquals(1, callOrder.size());
-        assertEquals("listener1", callOrder.get(0));
-
-        // Change listener
-        factory.setOnDestroyListener(new OnDestroyListener<TestComponent>() {
-            @Override
-            public void onDestroy(PooledObject<TestComponent> p) {
-                callOrder.add("listener2");
-            }
-        });
-
-        factory.destroyObject(pooledObject);
-        assertEquals(2, callOrder.size());
-        assertEquals("listener2", callOrder.get(1));
-
-        // Remove listener
-        factory.setOnDestroyListener(null);
-        factory.destroyObject(pooledObject);
-        assertEquals(2, callOrder.size()); // Should not add more
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
+                listener);
+        assertEquals("testComponent", factoryWithListener.getComponentName());
+        assertSame(container, factoryWithListener.getCrawlerContainer());
+        assertSame(listener, factoryWithListener.getOnDestroyListener());
     }
 
     /**
@@ -352,31 +395,33 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      */
     public void test_fullLifecycle() throws Exception {
         TestComponent.resetCounter();
-        factory.setComponentName("testComponent");
 
         final List<TestComponent> destroyedComponents = new ArrayList<>();
-        factory.setOnDestroyListener(new OnDestroyListener<TestComponent>() {
+        OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
             @Override
             public void onDestroy(PooledObject<TestComponent> p) {
                 TestComponent component = p.getObject();
                 component.destroy();
                 destroyedComponents.add(component);
             }
-        });
+        };
+
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
+                listener);
 
         // Create
-        TestComponent component = factory.create();
+        TestComponent component = factoryWithListener.create();
         assertNotNull(component);
         assertEquals(1, component.getId());
         assertFalse(component.isDestroyed());
 
         // Wrap
-        PooledObject<TestComponent> pooledObject = factory.wrap(component);
+        PooledObject<TestComponent> pooledObject = factoryWithListener.wrap(component);
         assertNotNull(pooledObject);
         assertSame(component, pooledObject.getObject());
 
         // Destroy
-        factory.destroyObject(pooledObject);
+        factoryWithListener.destroyObject(pooledObject);
         assertTrue(component.isDestroyed());
         assertEquals(1, destroyedComponents.size());
         assertSame(component, destroyedComponents.get(0));
@@ -387,7 +432,6 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      */
     public void test_concurrentCreation() throws Exception {
         TestComponent.resetCounter();
-        factory.setComponentName("testComponent");
 
         final int threadCount = 10;
         final int objectsPerThread = 10;
@@ -443,7 +487,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_concurrentDestroy() throws Exception {
         final AtomicInteger destroyCount = new AtomicInteger(0);
 
-        factory.setOnDestroyListener(new OnDestroyListener<TestComponent>() {
+        OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
             @Override
             public void onDestroy(PooledObject<TestComponent> p) {
                 destroyCount.incrementAndGet();
@@ -451,7 +495,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
                     p.getObject().destroy();
                 }
             }
-        });
+        };
+
+        final CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container,
+                "testComponent", listener);
 
         final int threadCount = 10;
         final int destroysPerThread = 10;
@@ -466,7 +513,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
                         for (int j = 0; j < destroysPerThread; j++) {
                             TestComponent component = new TestComponent();
                             PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
-                            factory.destroyObject(pooledObject);
+                            factoryWithListener.destroyObject(pooledObject);
                         }
                     } catch (Exception e) {
                         synchronized (exceptions) {
@@ -498,9 +545,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_differentComponentTypes() throws Exception {
         // Test with String component
         container.singleton("stringComponent", "TestString");
-        CrawlerPooledObjectFactory<String> stringFactory = new CrawlerPooledObjectFactory<>();
-        stringFactory.crawlerContainer = container;
-        stringFactory.setComponentName("stringComponent");
+        CrawlerPooledObjectFactory<String> stringFactory = new CrawlerPooledObjectFactory<>(container, "stringComponent");
 
         String stringComponent = stringFactory.create();
         assertEquals("TestString", stringComponent);
@@ -527,66 +572,29 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     }
 
     /**
-     * Test factory reusability
+     * Test immutability of factory configuration
      */
-    public void test_factoryReusability() throws Exception {
-        TestComponent.resetCounter();
+    public void test_immutability() {
+        // Factory configuration is immutable after construction
+        assertEquals("testComponent", factory.getComponentName());
+        assertSame(container, factory.getCrawlerContainer());
 
-        // Use factory with first component type
-        factory.setComponentName("testComponent");
-        TestComponent comp1 = factory.create();
-        assertEquals(1, comp1.getId());
-
-        // Change component name and reuse factory
-        factory.setComponentName("testComponent");
-        TestComponent comp2 = factory.create();
-        assertEquals(2, comp2.getId());
-
-        // Components should be different instances
-        assertNotSame(comp1, comp2);
-    }
-
-    /**
-     * Test listener state consistency
-     */
-    public void test_listenerStateConsistency() throws Exception {
-        final List<String> events = new ArrayList<>();
-
-        OnDestroyListener<TestComponent> listener1 = new OnDestroyListener<TestComponent>() {
+        // Create another factory with different settings
+        OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
             @Override
             public void onDestroy(PooledObject<TestComponent> p) {
-                events.add("listener1");
+                // Empty implementation
             }
         };
 
-        OnDestroyListener<TestComponent> listener2 = new OnDestroyListener<TestComponent>() {
-            @Override
-            public void onDestroy(PooledObject<TestComponent> p) {
-                events.add("listener2");
-            }
-        };
+        CrawlerPooledObjectFactory<TestComponent> factory2 = new CrawlerPooledObjectFactory<>(container, "singletonComponent",
+                listener);
 
-        TestComponent component = new TestComponent();
-        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
-
-        // Test with listener1
-        factory.setOnDestroyListener(listener1);
-        assertEquals(listener1, factory.getOnDestroyListener());
-        factory.destroyObject(pooledObject);
-        assertEquals(1, events.size());
-        assertEquals("listener1", events.get(0));
-
-        // Switch to listener2
-        factory.setOnDestroyListener(listener2);
-        assertEquals(listener2, factory.getOnDestroyListener());
-        factory.destroyObject(pooledObject);
-        assertEquals(2, events.size());
-        assertEquals("listener2", events.get(1));
-
-        // Clear listener
-        factory.setOnDestroyListener(null);
+        // Each factory retains its own configuration
+        assertEquals("testComponent", factory.getComponentName());
         assertNull(factory.getOnDestroyListener());
-        factory.destroyObject(pooledObject);
-        assertEquals(2, events.size()); // No new events
+
+        assertEquals("singletonComponent", factory2.getComponentName());
+        assertSame(listener, factory2.getOnDestroyListener());
     }
 }

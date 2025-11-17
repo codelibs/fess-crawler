@@ -159,7 +159,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test that input stream content is not read (only validated).
      */
-    public void test_getText_doesNotReadInputStream() {
+    public void test_getText_doesNotReadInputStream() throws Exception {
         final byte[] testData = "This data should not be read".getBytes();
         final InputStream in = new ByteArrayInputStream(testData);
         final Map<String, String> params = new HashMap<>();

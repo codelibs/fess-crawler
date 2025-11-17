@@ -85,7 +85,8 @@ public class XmlUtilTest extends PlainTestCase {
 
     public void test_stripInvalidXMLCharacters_validRanges() {
         // Test valid character ranges
-        String input = "Test\u0020\u0009\u000A\u000D\uD7FF\uE000\uFFFD";
+        String input = "Test\u0020\u0009\u000A\u000D" +
+                       (char)0xD7FF + (char)0xE000 + (char)0xFFFD;
         String result = XmlUtil.stripInvalidXMLCharacters(input);
         assertNotNull(result);
     }

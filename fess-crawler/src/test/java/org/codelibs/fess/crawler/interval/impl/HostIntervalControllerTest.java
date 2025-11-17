@@ -16,7 +16,9 @@
 package org.codelibs.fess.crawler.interval.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -98,4 +100,219 @@ public class HostIntervalControllerTest extends PlainTestCase {
         long wait = waittime * (numTasks - 1);
         assertTrue(elapsed + " >= " + wait, elapsed + 1L >= wait);
     }
+
+    /**
+     * Test that different hosts can be accessed concurrently without delay
+     */
+    public void test_multipleHosts_concurrent() {
+        final int numTasks = 10;
+        final Long waittime = 100L;
+
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = waittime;
+        controller.delayMillisAfterProcessing = 0L;
+        controller.delayMillisForWaitingNewUrl = 0L;
+        controller.delayMillisAtNoUrlInQueue = 0L;
+
+        final List<Callable<Integer>> tasks = new ArrayList<Callable<Integer>>();
+        for (int i = 0; i < numTasks; i++) {
+            final int index = i;
+            tasks.add(new Callable<Integer>() {
+                public Integer call() throws Exception {
+                    final UrlQueue q = new UrlQueueImpl();
+                    q.setUrl("http://example" + index + ".com");
+                    CrawlingParameterUtil.setUrlQueue(q);
+                    controller.delayBeforeProcessing();
+                    return 0;
+                }
+            });
+        }
+
+        // Get start time
+        final long time = System.nanoTime();
+
+        // Execute callable tasks concurrently
+        final ExecutorService executor = Executors.newFixedThreadPool(numTasks);
+        try {
+            final List<Future<Integer>> futures = executor.invokeAll(tasks);
+            for (final Future<Integer> future : futures) {
+                future.get();
+            }
+        } catch (final InterruptedException e) {
+            // Interrupted while waiting
+        } catch (final ExecutionException e) {
+            // Execution failed
+        } finally {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (final InterruptedException e) {
+                executor.shutdownNow();
+            }
+        }
+
+        long elapsed = (System.nanoTime() - time) / 1000000;
+        // Different hosts should NOT wait for each other
+        assertTrue(elapsed + " should be much less than " + (waittime * numTasks), elapsed < waittime * numTasks / 2);
+    }
+
+    /**
+     * Test that file:// URLs are not delayed
+     */
+    public void test_fileUrl_noDelay() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 1000L;
+
+        final UrlQueue q = new UrlQueueImpl();
+        q.setUrl("file:///path/to/file.txt");
+        CrawlingParameterUtil.setUrlQueue(q);
+
+        final long start = System.nanoTime();
+        controller.delayBeforeProcessing();
+        final long elapsed = (System.nanoTime() - start) / 1000000;
+
+        assertTrue("file:// URLs should not be delayed", elapsed < 50);
+    }
+
+    /**
+     * Test that null URL queue is handled gracefully
+     */
+    public void test_nullUrlQueue() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 1000L;
+
+        CrawlingParameterUtil.setUrlQueue(null);
+
+        final long start = System.nanoTime();
+        controller.delayBeforeProcessing();
+        final long elapsed = (System.nanoTime() - start) / 1000000;
+
+        assertTrue("null URL queue should not cause delay", elapsed < 50);
+    }
+
+    /**
+     * Test that blank URL is handled gracefully
+     */
+    public void test_blankUrl() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 1000L;
+
+        final UrlQueue q = new UrlQueueImpl();
+        q.setUrl("");
+        CrawlingParameterUtil.setUrlQueue(q);
+
+        final long start = System.nanoTime();
+        controller.delayBeforeProcessing();
+        final long elapsed = (System.nanoTime() - start) / 1000000;
+
+        assertTrue("blank URL should not cause delay", elapsed < 50);
+    }
+
+    /**
+     * Test that URL without host is handled gracefully
+     */
+    public void test_urlWithoutHost() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 1000L;
+
+        final UrlQueue q = new UrlQueueImpl();
+        q.setUrl("mailto:test@example.com");
+        CrawlingParameterUtil.setUrlQueue(q);
+
+        final long start = System.nanoTime();
+        controller.delayBeforeProcessing();
+        final long elapsed = (System.nanoTime() - start) / 1000000;
+
+        assertTrue("URL without host should not cause delay", elapsed < 50);
+    }
+
+    /**
+     * Test constructor with parameters
+     */
+    public void test_constructorWithParams() {
+        final Map<String, Long> params = new HashMap<>();
+        params.put("delayMillisBeforeProcessing", 200L);
+
+        final HostIntervalController controller = new HostIntervalController(params);
+
+        assertEquals(200L, controller.getDelayMillisBeforeProcessing());
+    }
+
+    /**
+     * Test that second access to same host is delayed
+     */
+    public void test_sameHost_sequentialAccess() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 100L;
+
+        final UrlQueue q = new UrlQueueImpl();
+        q.setUrl("http://example.com/page1");
+        CrawlingParameterUtil.setUrlQueue(q);
+
+        // First access - should not delay
+        final long start1 = System.nanoTime();
+        controller.delayBeforeProcessing();
+        final long elapsed1 = (System.nanoTime() - start1) / 1000000;
+        assertTrue("First access should not delay", elapsed1 < 50);
+
+        // Second access to same host - should delay
+        q.setUrl("http://example.com/page2");
+        final long start2 = System.nanoTime();
+        controller.delayBeforeProcessing();
+        final long elapsed2 = (System.nanoTime() - start2) / 1000000;
+        assertTrue("Second access should delay at least 100ms", elapsed2 >= 90);
+    }
+
+    /**
+     * Test that cache is thread-safe with concurrent access
+     */
+    public void test_cacheThreadSafety() {
+        final int numTasks = 50;
+        final Long waittime = 50L;
+
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = waittime;
+
+        final List<Callable<Integer>> tasks = new ArrayList<Callable<Integer>>();
+        // Mix of same and different hosts
+        for (int i = 0; i < numTasks; i++) {
+            final int index = i;
+            tasks.add(new Callable<Integer>() {
+                public Integer call() throws Exception {
+                    final UrlQueue q = new UrlQueueImpl();
+                    // Use modulo to create multiple accesses to same hosts
+                    q.setUrl("http://host" + (index % 5) + ".com/page" + index);
+                    CrawlingParameterUtil.setUrlQueue(q);
+                    controller.delayBeforeProcessing();
+                    return 0;
+                }
+            });
+        }
+
+        final ExecutorService executor = Executors.newFixedThreadPool(numTasks);
+        try {
+            final List<Future<Integer>> futures = executor.invokeAll(tasks);
+            for (final Future<Integer> future : futures) {
+                future.get();
+            }
+            // If we reach here without exceptions, thread-safety is maintained
+            assertTrue(true);
+        } catch (final InterruptedException e) {
+            fail("Interrupted during execution");
+        } catch (final ExecutionException e) {
+            fail("Execution failed: " + e.getMessage());
+        } finally {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (final InterruptedException e) {
+                executor.shutdownNow();
+            }
+        }
+    }
 }
+

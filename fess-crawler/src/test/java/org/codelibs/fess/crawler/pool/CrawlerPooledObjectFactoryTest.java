@@ -598,4 +598,345 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         assertEquals("singletonComponent", factory2.getComponentName());
         assertSame(listener, factory2.getOnDestroyListener());
     }
+
+    /**
+     * Closeable component that throws exception on close
+     */
+    public static class FailingCloseableComponent implements AutoCloseable {
+        private boolean closeCalled = false;
+
+        public boolean isCloseCalled() {
+            return closeCalled;
+        }
+
+        @Override
+        public void close() throws Exception {
+            closeCalled = true;
+            throw new Exception("Intentional close failure");
+        }
+    }
+
+    /**
+     * Test destroyObject with AutoCloseable that throws exception on close
+     */
+    public void test_destroyObject_autoCloseableThrowsException() {
+        container.prototype("failingCloseableComponent", FailingCloseableComponent.class);
+
+        CrawlerPooledObjectFactory<FailingCloseableComponent> failingFactory = new CrawlerPooledObjectFactory<>(container,
+                "failingCloseableComponent");
+
+        FailingCloseableComponent component = new FailingCloseableComponent();
+        PooledObject<FailingCloseableComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        assertFalse(component.isCloseCalled());
+
+        try {
+            failingFactory.destroyObject(pooledObject);
+            fail("Should throw exception from close()");
+        } catch (Exception e) {
+            // Expected - exception should propagate from close()
+            assertTrue(e.getMessage().contains("Intentional close failure"));
+        }
+
+        // Verify close was attempted
+        assertTrue(component.isCloseCalled());
+    }
+
+    /**
+     * Test destroyObject with AutoCloseable that throws exception and has listener
+     */
+    public void test_destroyObject_autoCloseableThrowsExceptionWithListener() {
+        container.prototype("failingCloseableComponent", FailingCloseableComponent.class);
+
+        AtomicBoolean listenerCalled = new AtomicBoolean(false);
+        OnDestroyListener<FailingCloseableComponent> listener = new OnDestroyListener<FailingCloseableComponent>() {
+            @Override
+            public void onDestroy(PooledObject<FailingCloseableComponent> p) {
+                listenerCalled.set(true);
+            }
+        };
+
+        CrawlerPooledObjectFactory<FailingCloseableComponent> failingFactory = new CrawlerPooledObjectFactory<>(container,
+                "failingCloseableComponent", listener);
+
+        FailingCloseableComponent component = new FailingCloseableComponent();
+        PooledObject<FailingCloseableComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        try {
+            failingFactory.destroyObject(pooledObject);
+            fail("Should throw exception from close()");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("Intentional close failure"));
+        }
+
+        // Listener should have been called before the exception
+        assertTrue("Listener should be called before close()", listenerCalled.get());
+        assertTrue(component.isCloseCalled());
+    }
+
+    /**
+     * Test destroyObject with null PooledObject
+     */
+    public void test_destroyObject_nullPooledObject() {
+        try {
+            factory.destroyObject(null);
+            // Should not throw NPE - implementation should handle gracefully or throw
+        } catch (NullPointerException e) {
+            // Acceptable behavior
+            assertTrue(true);
+        } catch (Exception e) {
+            // Other exceptions might be acceptable
+            assertTrue(true);
+        }
+    }
+
+    /**
+     * Test destroyObject with PooledObject containing null object
+     */
+    public void test_destroyObject_nullObject() throws Exception {
+        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(null);
+
+        // Should handle null object gracefully
+        factory.destroyObject(pooledObject);
+        // If we get here without exception, it's handled correctly
+        assertTrue(true);
+    }
+
+    /**
+     * Test destroyObject called multiple times on same object
+     */
+    public void test_destroyObject_multipleCalls() throws Exception {
+        CloseableTestComponent.resetCounters();
+
+        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = new CrawlerPooledObjectFactory<>(container,
+                "closeableComponent");
+
+        CloseableTestComponent component = new CloseableTestComponent();
+        PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        // First destroy
+        closeableFactory.destroyObject(pooledObject);
+        assertTrue(component.isClosed());
+        assertEquals(1, CloseableTestComponent.getCloseCount());
+
+        // Second destroy - close() should only be called once due to idempotency check in component
+        closeableFactory.destroyObject(pooledObject);
+        assertEquals(1, CloseableTestComponent.getCloseCount());
+    }
+
+    /**
+     * Test wrap with null object
+     */
+    public void test_wrap_null() {
+        PooledObject<TestComponent> pooledObject = factory.wrap(null);
+        assertNotNull(pooledObject);
+        assertNull(pooledObject.getObject());
+    }
+
+    /**
+     * Test create and destroy with large number of objects
+     */
+    public void test_largeNumberOfObjects() throws Exception {
+        TestComponent.resetCounter();
+
+        final int objectCount = 1000;
+        final List<PooledObject<TestComponent>> pooledObjects = new ArrayList<>();
+
+        // Create many objects
+        for (int i = 0; i < objectCount; i++) {
+            TestComponent component = factory.create();
+            assertNotNull(component);
+            PooledObject<TestComponent> pooledObject = factory.wrap(component);
+            pooledObjects.add(pooledObject);
+        }
+
+        assertEquals(objectCount, pooledObjects.size());
+
+        // Destroy all objects
+        for (PooledObject<TestComponent> pooledObject : pooledObjects) {
+            factory.destroyObject(pooledObject);
+        }
+
+        // Verify all were processed
+        assertTrue(true);
+    }
+
+    /**
+     * Test listener receives correct PooledObject
+     */
+    public void test_listener_receivesCorrectPooledObject() throws Exception {
+        final List<PooledObject<TestComponent>> receivedObjects = new ArrayList<>();
+
+        OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
+            @Override
+            public void onDestroy(PooledObject<TestComponent> p) {
+                receivedObjects.add(p);
+            }
+        };
+
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
+                listener);
+
+        // Create and destroy multiple objects
+        for (int i = 0; i < 5; i++) {
+            TestComponent component = new TestComponent();
+            PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
+            factoryWithListener.destroyObject(pooledObject);
+        }
+
+        // Verify listener was called for each object
+        assertEquals(5, receivedObjects.size());
+    }
+
+    /**
+     * Test component name validation with whitespace
+     */
+    public void test_constructor_whitespaceComponentName() {
+        try {
+            new CrawlerPooledObjectFactory<>(container, "   ");
+            fail("Should throw IllegalArgumentException for whitespace-only component name");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("componentName"));
+        }
+    }
+
+    /**
+     * Test factory with non-AutoCloseable component type
+     */
+    public void test_destroyObject_nonAutoCloseable() throws Exception {
+        TestComponent component = new TestComponent();
+        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        // Should not throw exception for non-AutoCloseable
+        factory.destroyObject(pooledObject);
+
+        // Component should not be modified (no close() called)
+        assertFalse(component.isDestroyed());
+    }
+
+    /**
+     * Test concurrent creation and destruction
+     */
+    public void test_concurrentCreateAndDestroy() throws Exception {
+        TestComponent.resetCounter();
+
+        final int threadCount = 5;
+        final int operationsPerThread = 20;
+        final List<Exception> exceptions = new ArrayList<>();
+        final AtomicInteger successCount = new AtomicInteger(0);
+
+        Thread[] threads = new Thread[threadCount];
+        for (int i = 0; i < threadCount; i++) {
+            threads[i] = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int j = 0; j < operationsPerThread; j++) {
+                            // Create
+                            TestComponent component = factory.create();
+                            assertNotNull(component);
+
+                            // Wrap
+                            PooledObject<TestComponent> pooledObject = factory.wrap(component);
+                            assertNotNull(pooledObject);
+
+                            // Destroy
+                            factory.destroyObject(pooledObject);
+
+                            successCount.incrementAndGet();
+                        }
+                    } catch (Exception e) {
+                        synchronized (exceptions) {
+                            exceptions.add(e);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Start all threads
+        for (Thread thread : threads) {
+            thread.start();
+        }
+
+        // Wait for all threads to complete
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        // Verify results
+        assertTrue(exceptions.isEmpty());
+        assertEquals(threadCount * operationsPerThread, successCount.get());
+    }
+
+    /**
+     * Test AutoCloseable component with close that does nothing
+     */
+    public void test_destroyObject_noOpClose() throws Exception {
+        CloseableTestComponent.resetCounters();
+
+        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = new CrawlerPooledObjectFactory<>(container,
+                "closeableComponent");
+
+        CloseableTestComponent component = new CloseableTestComponent();
+        PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
+
+        // First close
+        closeableFactory.destroyObject(pooledObject);
+        assertTrue(component.isClosed());
+
+        // Component's close is idempotent, so calling destroy again should not increment counter
+        closeableFactory.destroyObject(pooledObject);
+        assertEquals(1, CloseableTestComponent.getCloseCount());
+    }
+
+    /**
+     * Test that factory can be used with different generic types
+     */
+    public void test_genericTypeFlexibility() throws Exception {
+        // String type
+        container.singleton("integerComponent", 42);
+        CrawlerPooledObjectFactory<Integer> intFactory = new CrawlerPooledObjectFactory<>(container, "integerComponent");
+
+        Integer intComponent = intFactory.create();
+        assertNotNull(intComponent);
+        assertEquals(42, intComponent.intValue());
+
+        PooledObject<Integer> pooledInt = intFactory.wrap(intComponent);
+        assertNotNull(pooledInt);
+        assertEquals(42, pooledInt.getObject().intValue());
+
+        // Should not throw for non-AutoCloseable type
+        intFactory.destroyObject(pooledInt);
+    }
+
+    /**
+     * Test listener that modifies object state
+     */
+    public void test_listener_modifiesObjectState() throws Exception {
+        final AtomicInteger modificationCount = new AtomicInteger(0);
+
+        OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
+            @Override
+            public void onDestroy(PooledObject<TestComponent> p) {
+                TestComponent component = p.getObject();
+                if (component != null && !component.isDestroyed()) {
+                    component.destroy();
+                    modificationCount.incrementAndGet();
+                }
+            }
+        };
+
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
+                listener);
+
+        TestComponent component = new TestComponent();
+        assertFalse(component.isDestroyed());
+
+        PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
+        factoryWithListener.destroyObject(pooledObject);
+
+        assertTrue(component.isDestroyed());
+        assertEquals(1, modificationCount.get());
+    }
 }

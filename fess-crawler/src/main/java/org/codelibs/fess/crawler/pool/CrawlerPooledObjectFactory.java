@@ -18,9 +18,9 @@ package org.codelibs.fess.crawler.pool;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A thread-safe factory for creating and managing pooled crawler objects.
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> the type of the pooled object
  */
 public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
-    private static final Logger logger = LoggerFactory.getLogger(CrawlerPooledObjectFactory.class);
+    private static final Logger logger = LogManager.getLogger(CrawlerPooledObjectFactory.class);
 
     /**
      * The container that provides crawler components.
@@ -78,7 +78,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
         if (crawlerContainer == null) {
             throw new IllegalArgumentException("crawlerContainer must not be null");
         }
-        if (componentName == null || componentName.isEmpty()) {
+        if (componentName == null || componentName.trim().isEmpty()) {
             throw new IllegalArgumentException("componentName must not be null or empty");
         }
         this.crawlerContainer = crawlerContainer;

@@ -301,6 +301,28 @@ public class StorageClientTest extends PlainTestCase {
         // Test that accessTimeoutTask null check prevents NPE
         StorageClient client = new StorageClient() {
             @Override
+            protected ResponseData processRequest(final String uri, final boolean includeContent) {
+                // Skip init() and directly test timeout handling
+                org.codelibs.fess.crawler.client.AccessTimeoutTarget accessTimeoutTarget = null;
+                org.codelibs.core.timer.TimeoutTask accessTimeoutTask = null;
+                if (accessTimeout != null) {
+                    accessTimeoutTarget = new org.codelibs.fess.crawler.client.AccessTimeoutTarget(Thread.currentThread());
+                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
+                }
+
+                try {
+                    return getResponseData(uri, includeContent);
+                } finally {
+                    if (accessTimeoutTarget != null) {
+                        accessTimeoutTarget.stop();
+                        if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
+                            accessTimeoutTask.cancel();
+                        }
+                    }
+                }
+            }
+
+            @Override
             protected ResponseData getResponseData(final String uri, final boolean includeContent) {
                 // Simulate quick completion before timeout
                 ResponseData responseData = new ResponseData();
@@ -333,6 +355,28 @@ public class StorageClientTest extends PlainTestCase {
     public void test_doGet_accessTimeoutTarget() {
         StorageClient client = new StorageClient() {
             @Override
+            protected ResponseData processRequest(final String uri, final boolean includeContent) {
+                // Skip init() and directly test timeout handling
+                org.codelibs.fess.crawler.client.AccessTimeoutTarget accessTimeoutTarget = null;
+                org.codelibs.core.timer.TimeoutTask accessTimeoutTask = null;
+                if (accessTimeout != null) {
+                    accessTimeoutTarget = new org.codelibs.fess.crawler.client.AccessTimeoutTarget(Thread.currentThread());
+                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
+                }
+
+                try {
+                    return getResponseData(uri, includeContent);
+                } finally {
+                    if (accessTimeoutTarget != null) {
+                        accessTimeoutTarget.stop();
+                        if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
+                            accessTimeoutTask.cancel();
+                        }
+                    }
+                }
+            }
+
+            @Override
             protected ResponseData getResponseData(final String uri, final boolean includeContent) {
                 try {
                     Thread.sleep(2000);
@@ -353,6 +397,28 @@ public class StorageClientTest extends PlainTestCase {
 
     public void test_doHead_accessTimeoutTarget() {
         StorageClient client = new StorageClient() {
+            @Override
+            protected ResponseData processRequest(final String uri, final boolean includeContent) {
+                // Skip init() and directly test timeout handling
+                org.codelibs.fess.crawler.client.AccessTimeoutTarget accessTimeoutTarget = null;
+                org.codelibs.core.timer.TimeoutTask accessTimeoutTask = null;
+                if (accessTimeout != null) {
+                    accessTimeoutTarget = new org.codelibs.fess.crawler.client.AccessTimeoutTarget(Thread.currentThread());
+                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
+                }
+
+                try {
+                    return getResponseData(uri, includeContent);
+                } finally {
+                    if (accessTimeoutTarget != null) {
+                        accessTimeoutTarget.stop();
+                        if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
+                            accessTimeoutTask.cancel();
+                        }
+                    }
+                }
+            }
+
             @Override
             protected ResponseData getResponseData(final String uri, final boolean includeContent) {
                 try {

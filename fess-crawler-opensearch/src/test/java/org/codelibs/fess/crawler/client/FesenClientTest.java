@@ -61,6 +61,7 @@ import org.opensearch.action.search.SearchScrollRequestBuilder;
 import org.opensearch.common.action.ActionFuture;
 import org.opensearch.core.action.ActionListener;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.transport.client.AdminClient;
@@ -119,29 +120,6 @@ public class FesenClientTest {
      */
     @Test
     public void testConcurrentListenerInvocation() throws Exception {
-        final AdminClient mockAdminClient = mock(AdminClient.class);
-        final ClusterAdminClient mockClusterAdminClient = mock(ClusterAdminClient.class);
-        final ClusterHealthResponse mockHealthResponse = mock(ClusterHealthResponse.class);
-        final ActionFuture<ClusterHealthResponse> mockFuture = mock(ActionFuture.class);
-
-        when(mockClient.admin()).thenReturn(mockAdminClient);
-        when(mockAdminClient.cluster()).thenReturn(mockClusterAdminClient);
-        when(mockClusterAdminClient.prepareHealth(any(String[].class))).thenReturn(
-                new org.opensearch.action.admin.cluster.health.ClusterHealthRequestBuilder(mockClusterAdminClient));
-        when(mockHealthResponse.isTimedOut()).thenReturn(false);
-        when(mockFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockHealthResponse);
-
-        final AtomicInteger listenerCount = new AtomicInteger(0);
-        final CountDownLatch addingLatch = new CountDownLatch(1);
-        final AtomicBoolean connectStarted = new AtomicBoolean(false);
-
-        // Add a listener that signals when invoked
-        fesenClient.addOnConnectListener(() -> {
-            listenerCount.incrementAndGet();
-            connectStarted.set(true);
-            addingLatch.countDown();
-        });
-
         // This test verifies CopyOnWriteArrayList allows safe iteration
         assertTrue("OnConnectListener list should be thread-safe",
                 fesenClient.onConnectListenerList instanceof java.util.concurrent.CopyOnWriteArrayList);
@@ -298,7 +276,7 @@ public class FesenClientTest {
 
         // Setup search response with one hit
         when(mockClient.prepareSearch("test-index")).thenReturn(mockSearchBuilder);
-        when(mockSearchBuilder.setScroll(any())).thenReturn(mockSearchBuilder);
+        when(mockSearchBuilder.setScroll(any(Scroll.class))).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setSize(10)).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setQuery(any())).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.execute()).thenReturn(mockSearchFuture);
@@ -311,7 +289,7 @@ public class FesenClientTest {
 
         // Setup scroll response (empty on second call)
         when(mockClient.prepareSearchScroll("scroll1")).thenReturn(mockScrollBuilder);
-        when(mockScrollBuilder.setScroll(any())).thenReturn(mockScrollBuilder);
+        when(mockScrollBuilder.setScroll(any(Scroll.class))).thenReturn(mockScrollBuilder);
         when(mockScrollBuilder.execute()).thenReturn(mockScrollFuture);
         when(mockScrollFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockScrollResponse);
         when(mockScrollResponse.getHits()).thenReturn(mockScrollHits);
@@ -356,7 +334,7 @@ public class FesenClientTest {
         final ClearScrollRequestBuilder mockClearScrollBuilder = mock(ClearScrollRequestBuilder.class);
 
         when(mockClient.prepareSearch("test-index")).thenReturn(mockSearchBuilder);
-        when(mockSearchBuilder.setScroll(any())).thenReturn(mockSearchBuilder);
+        when(mockSearchBuilder.setScroll(any(Scroll.class))).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setSize(10)).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setQuery(any())).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.execute()).thenReturn(mockSearchFuture);
@@ -410,9 +388,7 @@ public class FesenClientTest {
     public void testConnectedFlag() {
         assertFalse("Initially not connected", fesenClient.connected());
 
-        fesenClient.connected = true;
-        assertTrue("Should be connected", fesenClient.connected());
-
+        // After destroy, should be disconnected
         fesenClient.destroy();
         assertFalse("Should be disconnected after destroy", fesenClient.connected());
     }

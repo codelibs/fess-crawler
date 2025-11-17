@@ -365,10 +365,20 @@ public class HandlerTest extends PlainTestCase {
 
     /**
      * Helper method to get private field value using reflection.
+     * Searches the class hierarchy to find the field.
      */
     private Object getField(Object obj, String fieldName) throws Exception {
-        java.lang.reflect.Field field = obj.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        return field.get(obj);
+        Class<?> clazz = obj.getClass();
+        while (clazz != null) {
+            try {
+                java.lang.reflect.Field field = clazz.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                return field.get(obj);
+            } catch (NoSuchFieldException e) {
+                // Try parent class
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException("Field " + fieldName + " not found in class hierarchy");
     }
 }

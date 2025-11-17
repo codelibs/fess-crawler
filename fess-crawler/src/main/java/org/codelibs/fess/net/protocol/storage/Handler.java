@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.net.URLStreamHandler;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -114,10 +116,12 @@ public class Handler extends URLStreamHandler {
             super(url);
             // Extract bucket name from host
             bucketName = url.getHost() != null ? url.getHost() : StringUtil.EMPTY;
-            // Extract object name from path, removing leading slash if present
+            // Extract object name from path, removing leading slash if present and decoding URL encoding
             final String path = url.getPath();
             if (path != null && !path.isEmpty()) {
-                objectName = path.startsWith("/") ? path.substring(1) : path;
+                final String pathWithoutLeadingSlash = path.startsWith("/") ? path.substring(1) : path;
+                // Decode URL-encoded characters (e.g., %20 -> space)
+                objectName = URLDecoder.decode(pathWithoutLeadingSlash, StandardCharsets.UTF_8);
             } else {
                 objectName = StringUtil.EMPTY;
             }

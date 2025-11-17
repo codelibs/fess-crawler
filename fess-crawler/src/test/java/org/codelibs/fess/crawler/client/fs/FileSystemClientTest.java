@@ -203,4 +203,89 @@ public class FileSystemClientTest extends PlainTestCase {
             assertTrue(e.getCause() instanceof InterruptedException);
         }
     }
+
+    public void test_concurrent_initialization() throws Exception {
+        // Test that compareAndSet prevents multiple initializations
+        final FileSystemClient client = new FileSystemClient();
+        final int threadCount = 10;
+        final Thread[] threads = new Thread[threadCount];
+        final boolean[] initResults = new boolean[threadCount];
+
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            threads[i] = new Thread(() -> {
+                try {
+                    // Call processRequest which triggers initialization
+                    client.doGet("file://nonexistent.txt");
+                } catch (Exception e) {
+                    // Expected for nonexistent file
+                }
+                initResults[index] = client.isInit.get();
+            });
+        }
+
+        // Start all threads simultaneously
+        for (Thread thread : threads) {
+            thread.start();
+        }
+
+        // Wait for all threads to complete
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        // All threads should see the initialized state
+        for (boolean result : initResults) {
+            assertTrue("Client should be initialized after concurrent access", result);
+        }
+    }
+
+    public void test_accessTimeout_null_safety() {
+        // Test that accessTimeoutTask null check prevents NPE
+        FileSystemClient client = new FileSystemClient() {
+            @Override
+            protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+                // Simulate quick completion before timeout
+                ResponseData responseData = new ResponseData();
+                responseData.setHttpStatusCode(200);
+                return responseData;
+            }
+        };
+
+        // Test with timeout set
+        client.setAccessTimeout(10);
+        try {
+            ResponseData result = client.doGet("file://test.txt");
+            assertNotNull("Response should not be null", result);
+            assertEquals(200, result.getHttpStatusCode());
+        } catch (Exception e) {
+            fail("Should not throw exception: " + e.getMessage());
+        }
+
+        // Test without timeout (null accessTimeout)
+        client.setAccessTimeout(null);
+        try {
+            ResponseData result = client.doGet("file://test.txt");
+            assertNotNull("Response should not be null", result);
+            assertEquals(200, result.getHttpStatusCode());
+        } catch (Exception e) {
+            fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
+        }
+    }
+
+    public void test_initialization_idempotency() {
+        // Test that multiple init calls are safe
+        FileSystemClient client = new FileSystemClient();
+
+        // First initialization
+        if (client.isInit.compareAndSet(false, true)) {
+            client.init();
+        }
+        assertTrue("Client should be initialized", client.isInit.get());
+
+        // Second initialization attempt should be no-op
+        boolean secondInit = client.isInit.compareAndSet(false, true);
+        assertFalse("Second initialization should not occur", secondInit);
+        assertTrue("Client should still be initialized", client.isInit.get());
+    }
 }

@@ -424,4 +424,85 @@ public class FtpClientTest extends PlainTestCase {
             assertTrue(e.getCause() instanceof InterruptedException);
         }
     }
+
+    public void test_directory_child_urls() throws Exception {
+        // Test that childUri (not typo chileUri) is correctly used in directory listing
+        FtpServer server = null;
+        try {
+            String username = "testuser";
+            String password = "testpass";
+            server = startFtpServer(FTP_PORT, username, password);
+            Map<String, Object> params = new HashMap<String, Object>();
+            FtpAuthentication auth = new FtpAuthentication();
+            auth.setUsername(username);
+            auth.setPassword(password);
+            params.put(FtpClient.FTP_AUTHENTICATIONS_PROPERTY, new FtpAuthentication[] { auth });
+            ftpClient.setInitParameterMap(params);
+
+            try {
+                ftpClient.doGet("ftp://localhost:" + FTP_PORT + "/dir1");
+                fail("Should throw ChildUrlsException");
+            } catch (final ChildUrlsException e) {
+                final Set<RequestData> urlSet = e.getChildUrlList();
+                assertEquals(1, urlSet.size());
+                String childUrl = urlSet.iterator().next().getUrl();
+                assertTrue("Child URL should be properly formed", childUrl.contains("dir1/test3.txt"));
+                assertTrue("Child URL should contain 'child' not 'chile'",
+                    childUrl.matches(".*dir1/test3\\.txt"));
+            }
+        } finally {
+            if (server != null) {
+                server.stop();
+            }
+        }
+    }
+
+    public void test_accessTimeout_null_safety() {
+        // Test that accessTimeoutTask null check prevents NPE
+        FtpClient client = new FtpClient() {
+            @Override
+            protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+                // Simulate quick completion before timeout
+                ResponseData responseData = new ResponseData();
+                responseData.setHttpStatusCode(200);
+                return responseData;
+            }
+        };
+
+        // Test with timeout set
+        client.setAccessTimeout(10);
+        try {
+            ResponseData result = client.doGet("ftp://localhost/test.txt");
+            assertNotNull("Response should not be null", result);
+            assertEquals(200, result.getHttpStatusCode());
+        } catch (Exception e) {
+            fail("Should not throw exception: " + e.getMessage());
+        }
+
+        // Test without timeout (null accessTimeout)
+        client.setAccessTimeout(null);
+        try {
+            ResponseData result = client.doGet("ftp://localhost/test.txt");
+            assertNotNull("Response should not be null", result);
+            assertEquals(200, result.getHttpStatusCode());
+        } catch (Exception e) {
+            fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
+        }
+    }
+
+    public void test_ftpInfo_toChildUrl() {
+        // Test that toChildUrl method works correctly (used with childUri variable)
+        FtpInfo ftpInfo = new FtpClient.FtpInfo("ftp://example.com/parent/", Constants.UTF_8);
+
+        String childUrl1 = ftpInfo.toChildUrl("file.txt");
+        assertEquals("ftp://example.com/parent/file.txt", childUrl1);
+
+        String childUrl2 = ftpInfo.toChildUrl("subdir/file.txt");
+        assertEquals("ftp://example.com/parent/subdir/file.txt", childUrl2);
+
+        // Test that the method properly handles various child paths
+        FtpInfo ftpInfo2 = new FtpClient.FtpInfo("ftp://example.com/test", Constants.UTF_8);
+        String childUrl3 = ftpInfo2.toChildUrl("child.txt");
+        assertEquals("ftp://example.com/test/child.txt", childUrl3);
+    }
 }

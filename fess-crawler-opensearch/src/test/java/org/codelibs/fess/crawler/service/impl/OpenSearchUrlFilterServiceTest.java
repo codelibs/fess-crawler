@@ -187,36 +187,34 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
         final String sessionId = "session5";
         final List<String> emptyList = Collections.emptyList();
 
-        // Should not throw exception and should not create any entries
-        urlFilterService.addIncludeUrlFilter(sessionId, emptyList);
+        // Should not throw exception when adding empty list
+        // This validates the early return optimization
+        try {
+            urlFilterService.addIncludeUrlFilter(sessionId, emptyList);
+        } catch (final Exception e) {
+            fail("Should not throw exception for empty list: " + e.getMessage());
+        }
 
-        // Verify no filters are stored
-        assertEquals(0, fesenClient.prepareSearch("fess_crawler.filter")
-                .setQuery(QueryBuilders.termQuery("sessionId", sessionId))
-                .setSize(0)
-                .execute()
-                .actionGet()
-                .getHits()
-                .getTotalHits()
-                .value());
+        // Since no items were added, the pattern list should be empty
+        final List<Pattern> patterns = urlFilterService.getIncludeUrlPatternList(sessionId);
+        assertEquals(0, patterns.size());
     }
 
     public void test_addExcludeUrlFilter_emptyListTx() {
         final String sessionId = "session6";
         final List<String> emptyList = new ArrayList<>();
 
-        // Should not throw exception and should not create any entries
-        urlFilterService.addExcludeUrlFilter(sessionId, emptyList);
+        // Should not throw exception when adding empty list
+        // This validates the early return optimization
+        try {
+            urlFilterService.addExcludeUrlFilter(sessionId, emptyList);
+        } catch (final Exception e) {
+            fail("Should not throw exception for empty list: " + e.getMessage());
+        }
 
-        // Verify no filters are stored
-        assertEquals(0, fesenClient.prepareSearch("fess_crawler.filter")
-                .setQuery(QueryBuilders.termQuery("sessionId", sessionId))
-                .setSize(0)
-                .execute()
-                .actionGet()
-                .getHits()
-                .getTotalHits()
-                .value());
+        // Since no items were added, the pattern list should be empty
+        final List<Pattern> patterns = urlFilterService.getExcludeUrlPatternList(sessionId);
+        assertEquals(0, patterns.size());
     }
 
     public void test_delete_multipleSessions() {

@@ -143,10 +143,13 @@ public class Handler extends URLStreamHandler {
             final String accessKey = System.getenv().get("STORAGE_ACCESS_KEY");
             final String secretKey = System.getenv().get("STORAGE_SECRET_KEY");
             final String region = System.getenv().get("STORAGE_REGION");
+
+            // Validate endpoint before attempting connection
+            if (StringUtil.isBlank(endpoint)) {
+                throw new IOException("endpoint is blank.");
+            }
+
             try {
-                if (StringUtil.isBlank(endpoint)) {
-                    throw new IOException("endpoint is blank.");
-                }
                 final Builder builder = MinioClient.builder().endpoint(endpoint);
                 if (StringUtil.isNotBlank(accessKey) && StringUtil.isNotBlank(secretKey)) {
                     builder.credentials(accessKey, secretKey);

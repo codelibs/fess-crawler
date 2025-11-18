@@ -22,6 +22,7 @@
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<argLine>--add-opens java.base/java.net=ALL-UNNAMED</argLine>
 					<excludes>
 						<exclude>**/JodExtractorTest.java</exclude>
 					</excludes>

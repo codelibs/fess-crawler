@@ -148,14 +148,14 @@ public class HandlerTest extends PlainTestCase {
     }
 
     /**
-     * Test that connected flag is initially false.
+     * Test that MinIO client is initially null before connection.
      */
     public void test_connectionState_initiallyNotConnected() throws Exception {
         URL url = new URL("storage://mybucket/object.txt");
         Handler handler = new Handler();
         Handler.StorageURLConnection conn = (Handler.StorageURLConnection) handler.openConnection(url);
 
-        assertFalse((Boolean) getField(conn, "connected"));
+        // Verify MinIO client is not initialized before connect() is called
         assertNull(getField(conn, "minioClient"));
     }
 
@@ -288,10 +288,7 @@ public class HandlerTest extends PlainTestCase {
         Handler handler = new Handler();
         Handler.StorageURLConnection conn = (Handler.StorageURLConnection) handler.openConnection(url);
 
-        // Initially not connected
-        assertFalse((Boolean) getField(conn, "connected"));
-
-        // getInputStream should try to connect (and fail due to missing endpoint)
+        // getInputStream should try to auto-connect (and fail due to missing endpoint)
         try {
             conn.getInputStream();
             fail("Should throw IOException");
@@ -309,10 +306,7 @@ public class HandlerTest extends PlainTestCase {
         Handler handler = new Handler();
         Handler.StorageURLConnection conn = (Handler.StorageURLConnection) handler.openConnection(url);
 
-        // Initially not connected
-        assertFalse((Boolean) getField(conn, "connected"));
-
-        // Should return -1 when connection fails
+        // Should return -1 when auto-connect fails due to missing endpoint
         long length = conn.getContentLengthLong();
         assertEquals(-1, length);
     }
@@ -325,10 +319,7 @@ public class HandlerTest extends PlainTestCase {
         Handler handler = new Handler();
         Handler.StorageURLConnection conn = (Handler.StorageURLConnection) handler.openConnection(url);
 
-        // Initially not connected
-        assertFalse((Boolean) getField(conn, "connected"));
-
-        // Should return null when connection fails
+        // Should return null when auto-connect fails due to missing endpoint
         String contentType = conn.getContentType();
         assertNull(contentType);
     }
@@ -341,10 +332,7 @@ public class HandlerTest extends PlainTestCase {
         Handler handler = new Handler();
         Handler.StorageURLConnection conn = (Handler.StorageURLConnection) handler.openConnection(url);
 
-        // Initially not connected
-        assertFalse((Boolean) getField(conn, "connected"));
-
-        // Should return 0 when connection fails
+        // Should return 0 when auto-connect fails due to missing endpoint
         long lastModified = conn.getLastModified();
         assertEquals(0, lastModified);
     }

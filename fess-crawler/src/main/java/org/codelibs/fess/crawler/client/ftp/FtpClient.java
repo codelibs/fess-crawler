@@ -344,7 +344,7 @@ public class FtpClient extends AbstractCrawlerClient {
         } finally {
             if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
-                if (!accessTimeoutTask.isCanceled()) {
+                if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
                     accessTimeoutTask.cancel();
                 }
             }
@@ -552,8 +552,8 @@ public class FtpClient extends AbstractCrawlerClient {
                     final FTPFile[] ftpFiles = client.listFiles(ftpInfo.getName(), FTPFileFilters.NON_NULL);
                     validateRequest(client);
                     for (final FTPFile f : ftpFiles) {
-                        final String chileUri = ftpInfo.toChildUrl(f.getName());
-                        requestDataSet.add(RequestDataBuilder.newRequestData().get().url(chileUri).build());
+                        final String childUri = ftpInfo.toChildUrl(f.getName());
+                        requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                     }
                 } catch (final IOException e) {
                     disconnectInternalClient(client);

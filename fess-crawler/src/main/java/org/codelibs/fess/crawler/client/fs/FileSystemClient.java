@@ -112,13 +112,8 @@ public class FileSystemClient extends AbstractCrawlerClient {
      * @throws CrawlingAccessException if the request fails
      */
     protected ResponseData processRequest(final String uri, final boolean includeContent) {
-        if (!isInit.get()) {
-            synchronized (isInit) {
-                if (!isInit.get()) {
-                    init();
-                    isInit.set(true);
-                }
-            }
+        if (isInit.compareAndSet(false, true)) {
+            init();
         }
 
         // start
@@ -134,7 +129,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
         } finally {
             if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
-                if (!accessTimeoutTask.isCanceled()) {
+                if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
                     accessTimeoutTask.cancel();
                 }
             }

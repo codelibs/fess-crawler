@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
@@ -47,16 +46,13 @@ public class MsExcelExtractor extends AbstractExtractor {
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
-        }
-        try {
-            @SuppressWarnings("resource")
-            final org.apache.poi.hssf.extractor.ExcelExtractor excelExtractor =
-                    new org.apache.poi.hssf.extractor.ExcelExtractor(new HSSFWorkbook(in));
+        validateInputStream(in);
+        try (final HSSFWorkbook workbook = new HSSFWorkbook(in);
+             final org.apache.poi.hssf.extractor.ExcelExtractor excelExtractor =
+                     new org.apache.poi.hssf.extractor.ExcelExtractor(workbook)) {
             return new ExtractData(excelExtractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text from Excel document.", e);
         }
     }
 }

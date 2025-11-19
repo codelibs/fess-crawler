@@ -62,13 +62,13 @@ public class ZipExtractor extends AbstractExtractor {
 
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
-        }
+        validateInputStream(in);
 
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
         final StringBuilder buf = new StringBuilder(1000);
+        int processedEntries = 0;
+        int failedEntries = 0;
 
         try (final ArchiveInputStream ais =
                 archiveStreamFactory.createArchiveInputStream(in.markSupported() ? in : new BufferedInputStream(in))) {
@@ -89,9 +89,11 @@ public class ZipExtractor extends AbstractExtractor {
                             map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                             buf.append(extractor.getText(new IgnoreCloseInputStream(ais), map).getContent());
                             buf.append('\n');
+                            processedEntries++;
                         } catch (final Exception e) {
+                            failedEntries++;
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Exception in an internal extractor.", e);
+                                logger.debug("Failed to extract content from archive entry: {}", filename, e);
                             }
                         }
                     }
@@ -101,7 +103,10 @@ public class ZipExtractor extends AbstractExtractor {
             throw e;
         } catch (final Exception e) {
             if (buf.length() == 0) {
-                throw new ExtractException("Could not extract a content.", e);
+                throw new ExtractException("Failed to extract content from ZIP archive. No entries could be processed.", e);
+            }
+            if (logger.isWarnEnabled()) {
+                logger.warn("Partial extraction from ZIP archive. Processed: {}, Failed: {}", processedEntries, failedEntries, e);
             }
         }
 

@@ -24,7 +24,6 @@ import org.apache.poi.hslf.usermodel.HSLFSlideShow;
 import org.apache.poi.hslf.usermodel.HSLFTextParagraph;
 import org.apache.poi.sl.extractor.SlideShowExtractor;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
@@ -47,15 +46,12 @@ public class MsPowerPointExtractor extends AbstractExtractor {
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
-        }
-        try {
-            @SuppressWarnings("resource")
-            final SlideShowExtractor<HSLFShape, HSLFTextParagraph> extractor = new SlideShowExtractor<>(new HSLFSlideShow(in));
+        validateInputStream(in);
+        try (final HSLFSlideShow slideShow = new HSLFSlideShow(in);
+             final SlideShowExtractor<HSLFShape, HSLFTextParagraph> extractor = new SlideShowExtractor<>(slideShow)) {
             return new ExtractData(extractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text from PowerPoint document.", e);
         }
     }
 

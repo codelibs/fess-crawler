@@ -101,13 +101,20 @@ public class HostIntervalController extends DefaultIntervalController {
 
             // Atomically get or create the AtomicLong for this host using Cache.get()
             // This ensures thread-safe, atomic get-or-create behavior
-            // For first access, set past time to avoid initial delay
-            final AtomicLong lastTime = lastTimes.get(host,
-                    () -> new AtomicLong(SystemUtil.currentTimeMillis() - delayMillisBeforeProcessing));
+            // Initialize with 0 to mark uninitialized state
+            final AtomicLong lastTime = lastTimes.get(host, () -> new AtomicLong(0));
 
             synchronized (lastTime) {
+                final long lastValue = lastTime.get();
+                if (lastValue == 0) {
+                    // First access to this host - no delay needed
+                    // Set current time to allow proper delay for next access
+                    lastTime.set(SystemUtil.currentTimeMillis());
+                    return;
+                }
+
                 long currentTime = SystemUtil.currentTimeMillis();
-                long delayTime = lastTime.get() + delayMillisBeforeProcessing - currentTime;
+                long delayTime = lastValue + delayMillisBeforeProcessing - currentTime;
                 while (delayTime > 0) {
                     lastTime.wait(delayTime);
                     currentTime = SystemUtil.currentTimeMillis();

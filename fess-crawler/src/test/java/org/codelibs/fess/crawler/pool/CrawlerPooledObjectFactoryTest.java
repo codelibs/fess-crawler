@@ -50,8 +50,31 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
                 .singleton("singletonComponent", SingletonTestComponent.class)
                 .prototype("closeableComponent", CloseableTestComponent.class);
 
-        // Initialize factory with constructor
-        factory = new CrawlerPooledObjectFactory<>(container, "testComponent");
+        // Initialize factory with setter injection
+        factory = new CrawlerPooledObjectFactory<>();
+        factory.setCrawlerContainer(container);
+        factory.setComponentName("testComponent");
+    }
+
+    /**
+     * Helper method to create a factory with specific settings
+     */
+    private <U> CrawlerPooledObjectFactory<U> createFactory(String componentName) {
+        CrawlerPooledObjectFactory<U> f = new CrawlerPooledObjectFactory<>();
+        f.setCrawlerContainer(container);
+        f.setComponentName(componentName);
+        return f;
+    }
+
+    /**
+     * Helper method to create a factory with listener
+     */
+    private <U> CrawlerPooledObjectFactory<U> createFactory(String componentName, OnDestroyListener<U> listener) {
+        CrawlerPooledObjectFactory<U> f = new CrawlerPooledObjectFactory<>();
+        f.setCrawlerContainer(container);
+        f.setComponentName(componentName);
+        f.setOnDestroyListener(listener);
+        return f;
     }
 
     /**
@@ -158,38 +181,38 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     }
 
     /**
-     * Test constructor with null container
+     * Test creation with null container
      */
-    public void test_constructor_nullContainer() {
+    public void test_create_nullContainer() {
+        CrawlerPooledObjectFactory<TestComponent> nullContainerFactory = new CrawlerPooledObjectFactory<>();
+        nullContainerFactory.setComponentName("testComponent");
+        // crawlerContainer is not set
+
         try {
-            new CrawlerPooledObjectFactory<>(null, "testComponent");
-            fail("Should throw IllegalArgumentException for null container");
-        } catch (IllegalArgumentException e) {
+            nullContainerFactory.create();
+            fail("Should throw IllegalStateException for null container");
+        } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("crawlerContainer"));
+        } catch (Exception e) {
+            fail("Expected IllegalStateException but got: " + e.getClass().getName());
         }
     }
 
     /**
-     * Test constructor with null component name
+     * Test creation with null component name
      */
-    public void test_constructor_nullComponentName() {
-        try {
-            new CrawlerPooledObjectFactory<>(container, null);
-            fail("Should throw IllegalArgumentException for null component name");
-        } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("componentName"));
-        }
-    }
+    public void test_create_nullComponentName() {
+        CrawlerPooledObjectFactory<TestComponent> nullNameFactory = new CrawlerPooledObjectFactory<>();
+        nullNameFactory.setCrawlerContainer(container);
+        // componentName is not set
 
-    /**
-     * Test constructor with empty component name
-     */
-    public void test_constructor_emptyComponentName() {
         try {
-            new CrawlerPooledObjectFactory<>(container, "");
-            fail("Should throw IllegalArgumentException for empty component name");
-        } catch (IllegalArgumentException e) {
+            nullNameFactory.create();
+            fail("Should throw IllegalStateException for null component name");
+        } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("componentName"));
+        } catch (Exception e) {
+            fail("Expected IllegalStateException but got: " + e.getClass().getName());
         }
     }
 
@@ -197,7 +220,9 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      * Test creation with invalid component name throws exception
      */
     public void test_create_invalidComponentName() {
-        CrawlerPooledObjectFactory<Object> invalidFactory = new CrawlerPooledObjectFactory<>(container, "nonExistentComponent");
+        CrawlerPooledObjectFactory<Object> invalidFactory = new CrawlerPooledObjectFactory<>();
+        invalidFactory.setCrawlerContainer(container);
+        invalidFactory.setComponentName("nonExistentComponent");
 
         try {
             invalidFactory.create();
@@ -213,8 +238,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      * Test creation with singleton component
      */
     public void test_create_singletonComponent() throws Exception {
-        CrawlerPooledObjectFactory<SingletonTestComponent> singletonFactory = new CrawlerPooledObjectFactory<>(container,
-                "singletonComponent");
+        CrawlerPooledObjectFactory<SingletonTestComponent> singletonFactory = createFactory("singletonComponent");
 
         SingletonTestComponent component1 = singletonFactory.create();
         SingletonTestComponent component2 = singletonFactory.create();
@@ -573,10 +597,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     }
 
     /**
-     * Test immutability of factory configuration
+     * Test factory configuration independence
      */
-    public void test_immutability() {
-        // Factory configuration is immutable after construction
+    public void test_factoryConfigurationIndependence() {
+        // Each factory instance has independent configuration
         assertEquals("testComponent", factory.getComponentName());
         assertSame(container, factory.getCrawlerContainer());
 
@@ -588,8 +612,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<TestComponent> factory2 = new CrawlerPooledObjectFactory<>(container, "singletonComponent",
-                listener);
+        CrawlerPooledObjectFactory<TestComponent> factory2 = createFactory("singletonComponent", listener);
 
         // Each factory retains its own configuration
         assertEquals("testComponent", factory.getComponentName());
@@ -597,6 +620,42 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         assertEquals("singletonComponent", factory2.getComponentName());
         assertSame(listener, factory2.getOnDestroyListener());
+    }
+
+    /**
+     * Test that factory configuration can be changed via setters
+     */
+    public void test_factoryReconfiguration() {
+        CrawlerPooledObjectFactory<TestComponent> testFactory = new CrawlerPooledObjectFactory<>();
+        testFactory.setCrawlerContainer(container);
+        testFactory.setComponentName("testComponent");
+
+        assertEquals("testComponent", testFactory.getComponentName());
+
+        // Change component name
+        testFactory.setComponentName("singletonComponent");
+        assertEquals("singletonComponent", testFactory.getComponentName());
+
+        // Change listener
+        OnDestroyListener<TestComponent> listener1 = new OnDestroyListener<TestComponent>() {
+            @Override
+            public void onDestroy(PooledObject<TestComponent> p) {
+                // Listener 1
+            }
+        };
+
+        OnDestroyListener<TestComponent> listener2 = new OnDestroyListener<TestComponent>() {
+            @Override
+            public void onDestroy(PooledObject<TestComponent> p) {
+                // Listener 2
+            }
+        };
+
+        testFactory.setOnDestroyListener(listener1);
+        assertSame(listener1, testFactory.getOnDestroyListener());
+
+        testFactory.setOnDestroyListener(listener2);
+        assertSame(listener2, testFactory.getOnDestroyListener());
     }
 
     /**
@@ -789,15 +848,30 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     }
 
     /**
-     * Test component name validation with whitespace
+     * Test setter methods
      */
-    public void test_constructor_whitespaceComponentName() {
-        try {
-            new CrawlerPooledObjectFactory<>(container, "   ");
-            fail("Should throw IllegalArgumentException for whitespace-only component name");
-        } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("componentName"));
-        }
+    public void test_setters() {
+        CrawlerPooledObjectFactory<TestComponent> testFactory = new CrawlerPooledObjectFactory<>();
+
+        assertNull(testFactory.getCrawlerContainer());
+        assertNull(testFactory.getComponentName());
+        assertNull(testFactory.getOnDestroyListener());
+
+        testFactory.setCrawlerContainer(container);
+        testFactory.setComponentName("testComponent");
+
+        assertSame(container, testFactory.getCrawlerContainer());
+        assertEquals("testComponent", testFactory.getComponentName());
+
+        OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
+            @Override
+            public void onDestroy(PooledObject<TestComponent> p) {
+                // Empty implementation
+            }
+        };
+
+        testFactory.setOnDestroyListener(listener);
+        assertSame(listener, testFactory.getOnDestroyListener());
     }
 
     /**

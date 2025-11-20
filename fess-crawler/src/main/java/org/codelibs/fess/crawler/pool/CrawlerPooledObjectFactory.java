@@ -18,30 +18,27 @@ package org.codelibs.fess.crawler.pool;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 
-import jakarta.annotation.Resource;
-
 /**
- * A factory for creating and managing pooled crawler objects.
+ * A thread-safe factory for creating and managing pooled crawler objects.
  * This class extends {@link BasePooledObjectFactory} and provides
  * methods for creating, wrapping, and destroying crawler components
  * obtained from a {@link CrawlerContainer}.
  *
+ * <p>This implementation provides proper resource management for closeable objects
+ * and supports destruction listeners.</p>
+ *
  * @param <T> the type of the pooled object
  */
 public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
-    /**
-     * Constructs a new CrawlerPooledObjectFactory.
-     */
-    public CrawlerPooledObjectFactory() {
-        // Default constructor
-    }
+    private static final Logger logger = LogManager.getLogger(CrawlerPooledObjectFactory.class);
 
     /**
      * The container that provides crawler components.
      */
-    @Resource
     protected CrawlerContainer crawlerContainer;
 
     /**
@@ -55,17 +52,40 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     protected OnDestroyListener<T> onDestroyListener;
 
     /**
+     * Constructs a new CrawlerPooledObjectFactory.
+     */
+    public CrawlerPooledObjectFactory() {
+        // Default constructor for DI
+    }
+
+    /**
      * Creates a new object instance from the crawler container.
+     *
      * @return A new instance of the component specified by componentName
      * @throws Exception if the component cannot be created
      */
     @Override
+    @SuppressWarnings("unchecked")
     public T create() throws Exception {
-        return (T) crawlerContainer.getComponent(componentName);
+        if (crawlerContainer == null) {
+            throw new IllegalStateException("crawlerContainer is not set");
+        }
+        if (componentName == null) {
+            throw new IllegalStateException("componentName is not set");
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating new pooled object for component: {}", componentName);
+        }
+        final Object component = crawlerContainer.getComponent(componentName);
+        if (component == null) {
+            throw new IllegalStateException("Component '" + componentName + "' not found in crawler container");
+        }
+        return (T) component;
     }
 
     /**
      * Wraps an object instance into a pooled object.
+     *
      * @param obj The object to wrap
      * @return A PooledObject wrapping the given object
      */
@@ -76,23 +96,50 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
 
     /**
      * Destroys a pooled object and notifies the destroy listener if set.
+     * If the object implements {@link AutoCloseable}, it will be closed automatically.
+     *
      * @param p The pooled object to destroy
      * @throws Exception if destruction fails
      */
     @Override
     public void destroyObject(final PooledObject<T> p) throws Exception {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Destroying pooled object for component: {}", componentName);
+        }
+
+        // Notify the listener first
         if (onDestroyListener != null) {
-            onDestroyListener.onDestroy(p);
+            try {
+                onDestroyListener.onDestroy(p);
+            } catch (final Exception e) {
+                logger.warn("Error occurred in onDestroy listener for component: {}", componentName, e);
+                // Continue with destruction even if listener fails
+            }
+        }
+
+        // Close the object if it implements AutoCloseable or Closeable
+        final T obj = p.getObject();
+        if (obj instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) obj).close();
+            } catch (final Exception e) {
+                logger.warn("Error closing pooled object for component: {}", componentName, e);
+                throw e;
+            }
         }
     }
 
     /**
      * Listener interface for handling object destruction events.
+     *
      * @param <T> The type of the pooled object
      */
+    @FunctionalInterface
     public interface OnDestroyListener<T> {
         /**
          * Called when a pooled object is being destroyed.
+         * This method is invoked before the object is closed (if it implements AutoCloseable).
+         *
          * @param p The pooled object being destroyed
          */
         void onDestroy(PooledObject<T> p);
@@ -100,6 +147,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
 
     /**
      * Gets the component name.
+     *
      * @return The component name
      */
     public String getComponentName() {
@@ -108,6 +156,7 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
 
     /**
      * Sets the component name.
+     *
      * @param componentName The component name to set
      */
     public void setComponentName(final String componentName) {
@@ -115,8 +164,27 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     }
 
     /**
-     * Returns the onDestroy listener.
-     * @return The onDestroy listener.
+     * Gets the crawler container.
+     *
+     * @return The crawler container
+     */
+    public CrawlerContainer getCrawlerContainer() {
+        return crawlerContainer;
+    }
+
+    /**
+     * Sets the crawler container.
+     *
+     * @param crawlerContainer The crawler container to set
+     */
+    public void setCrawlerContainer(final CrawlerContainer crawlerContainer) {
+        this.crawlerContainer = crawlerContainer;
+    }
+
+    /**
+     * Gets the onDestroy listener.
+     *
+     * @return The onDestroy listener, or null if not set
      */
     public OnDestroyListener<T> getOnDestroyListener() {
         return onDestroyListener;
@@ -124,7 +192,8 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
 
     /**
      * Sets the onDestroy listener.
-     * @param onDestroyListener The OnDestroyListener to set.
+     *
+     * @param onDestroyListener The onDestroy listener to set
      */
     public void setOnDestroyListener(final OnDestroyListener<T> onDestroyListener) {
         this.onDestroyListener = onDestroyListener;

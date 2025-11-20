@@ -237,7 +237,8 @@ public abstract class AbstractCrawlerService {
 
         final GetMappingsResponse getMappingsResponse = fesenClient.get(c -> c.admin().indices().prepareGetMappings(index).execute());
         final Map<String, MappingMetadata> indexMappings = getMappingsResponse.mappings();
-        if (indexMappings == null || !indexMappings.containsKey("properties")) {
+        final MappingMetadata mappingMetadata = indexMappings != null ? indexMappings.get(index) : null;
+        if (mappingMetadata == null || mappingMetadata.sourceAsMap().isEmpty()) {
             final AcknowledgedResponse putMappingResponse = fesenClient.get(c -> {
                 final String source = FileUtil.readText("mapping/" + mappingName + ".json");
                 return c.admin().indices().preparePutMapping(index).setSource(source, XContentType.JSON).execute();

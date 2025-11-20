@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
+import org.opensearch.index.query.QueryBuilders;
 
 import jakarta.annotation.Resource;
 
@@ -177,6 +178,226 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
 
         assertNull(dataService.getAccessResult("id1", "http://www.id1.com/"));
         assertNull(dataService.getAccessResult("id2", "http://www.id2.com/"));
+    }
+
+    public void test_getAccessResultList_withCallbackTx() {
+        final String sessionId = "callback_session1";
+
+        // Insert test data
+        for (int i = 1; i <= 5; i++) {
+            final OpenSearchAccessResult accessResult = new OpenSearchAccessResult();
+            accessResult.setContentLength(Long.valueOf(100 * i));
+            accessResult.setCreateTime(System.currentTimeMillis());
+            accessResult.setExecutionTime(10 * i);
+            accessResult.setHttpStatusCode(200);
+            accessResult.setLastModified(System.currentTimeMillis());
+            accessResult.setMethod("GET");
+            accessResult.setMimeType("text/html");
+            accessResult.setParentUrl("http://www.parent.com/");
+            accessResult.setRuleId("htmlRule");
+            accessResult.setSessionId(sessionId);
+            accessResult.setStatus(200);
+            accessResult.setUrl("http://www.example.com/page" + i);
+
+            dataService.store(accessResult);
+        }
+
+        // Test getAccessResultList with callback
+        final List<OpenSearchAccessResult> results = dataService.getAccessResultList(builder -> {
+            builder.setQuery(QueryBuilders.termQuery("sessionId", sessionId));
+            builder.setSize(10);
+        });
+
+        assertNotNull(results);
+        assertEquals(5, results.size());
+
+        // Verify fields are properly fetched
+        for (final OpenSearchAccessResult result : results) {
+            assertNotNull(result.getUrl());
+            assertNotNull(result.getSessionId());
+            assertNotNull(result.getMimeType());
+            assertNotNull(result.getMethod());
+            assertEquals("text/html", result.getMimeType());
+            assertEquals("GET", result.getMethod());
+            assertEquals(sessionId, result.getSessionId());
+        }
+
+        dataService.delete(sessionId);
+    }
+
+    public void test_getAccessResultList_emptyResultTx() {
+        final String sessionId = "callback_session2";
+
+        // Test with non-existent session
+        final List<OpenSearchAccessResult> results = dataService.getAccessResultList(builder -> {
+            builder.setQuery(QueryBuilders.termQuery("sessionId", sessionId));
+            builder.setSize(10);
+        });
+
+        assertNotNull(results);
+        assertEquals(0, results.size());
+    }
+
+    public void test_getAccessResultList_withFilterTx() {
+        final String sessionId = "callback_session3";
+
+        // Insert test data with different MIME types
+        final OpenSearchAccessResult htmlResult = new OpenSearchAccessResult();
+        htmlResult.setContentLength(Long.valueOf(100));
+        htmlResult.setCreateTime(System.currentTimeMillis());
+        htmlResult.setExecutionTime(10);
+        htmlResult.setHttpStatusCode(200);
+        htmlResult.setLastModified(System.currentTimeMillis());
+        htmlResult.setMethod("GET");
+        htmlResult.setMimeType("text/html");
+        htmlResult.setParentUrl("http://www.parent.com/");
+        htmlResult.setRuleId("htmlRule");
+        htmlResult.setSessionId(sessionId);
+        htmlResult.setStatus(200);
+        htmlResult.setUrl("http://www.example.com/page1.html");
+        dataService.store(htmlResult);
+
+        final OpenSearchAccessResult pdfResult = new OpenSearchAccessResult();
+        pdfResult.setContentLength(Long.valueOf(200));
+        pdfResult.setCreateTime(System.currentTimeMillis());
+        pdfResult.setExecutionTime(20);
+        pdfResult.setHttpStatusCode(200);
+        pdfResult.setLastModified(System.currentTimeMillis());
+        pdfResult.setMethod("GET");
+        pdfResult.setMimeType("application/pdf");
+        pdfResult.setParentUrl("http://www.parent.com/");
+        pdfResult.setRuleId("pdfRule");
+        pdfResult.setSessionId(sessionId);
+        pdfResult.setStatus(200);
+        pdfResult.setUrl("http://www.example.com/document.pdf");
+        dataService.store(pdfResult);
+
+        // Filter by MIME type
+        final List<OpenSearchAccessResult> htmlResults = dataService.getAccessResultList(builder -> {
+            builder.setQuery(QueryBuilders.boolQuery()
+                    .must(QueryBuilders.termQuery("sessionId", sessionId))
+                    .must(QueryBuilders.termQuery("mimeType", "text/html")));
+            builder.setSize(10);
+        });
+
+        assertNotNull(htmlResults);
+        assertEquals(1, htmlResults.size());
+        assertEquals("text/html", htmlResults.get(0).getMimeType());
+
+        dataService.delete(sessionId);
+    }
+
+    public void test_getAccessResultList_withPaginationTx() {
+        final String sessionId = "callback_session4";
+
+        // Insert 10 test data
+        for (int i = 1; i <= 10; i++) {
+            final OpenSearchAccessResult accessResult = new OpenSearchAccessResult();
+            accessResult.setContentLength(Long.valueOf(100));
+            accessResult.setCreateTime(System.currentTimeMillis());
+            accessResult.setExecutionTime(10);
+            accessResult.setHttpStatusCode(200);
+            accessResult.setLastModified(System.currentTimeMillis());
+            accessResult.setMethod("GET");
+            accessResult.setMimeType("text/html");
+            accessResult.setParentUrl("http://www.parent.com/");
+            accessResult.setRuleId("htmlRule");
+            accessResult.setSessionId(sessionId);
+            accessResult.setStatus(200);
+            accessResult.setUrl("http://www.example.com/page" + i);
+
+            dataService.store(accessResult);
+        }
+
+        // Get first page (5 items)
+        final List<OpenSearchAccessResult> page1 = dataService.getAccessResultList(builder -> {
+            builder.setQuery(QueryBuilders.termQuery("sessionId", sessionId));
+            builder.setFrom(0);
+            builder.setSize(5);
+        });
+
+        assertEquals(5, page1.size());
+
+        // Get second page (5 items)
+        final List<OpenSearchAccessResult> page2 = dataService.getAccessResultList(builder -> {
+            builder.setQuery(QueryBuilders.termQuery("sessionId", sessionId));
+            builder.setFrom(5);
+            builder.setSize(5);
+        });
+
+        assertEquals(5, page2.size());
+
+        dataService.delete(sessionId);
+    }
+
+    public void test_iterate_withCallbackTx() {
+        final String sessionId = "iterate_session1";
+
+        // Insert test data
+        for (int i = 1; i <= 10; i++) {
+            final OpenSearchAccessResult accessResult = new OpenSearchAccessResult();
+            accessResult.setContentLength(Long.valueOf(100));
+            accessResult.setCreateTime(System.currentTimeMillis());
+            accessResult.setExecutionTime(10);
+            accessResult.setHttpStatusCode(200);
+            accessResult.setLastModified(System.currentTimeMillis());
+            accessResult.setMethod("GET");
+            accessResult.setMimeType("text/html");
+            accessResult.setParentUrl("http://www.parent.com/");
+            accessResult.setRuleId("htmlRule");
+            accessResult.setSessionId(sessionId);
+            accessResult.setStatus(200);
+            accessResult.setUrl("http://www.example.com/page" + i);
+
+            dataService.store(accessResult);
+        }
+
+        // Test iterate
+        final List<String> urls = new ArrayList<>();
+        dataService.iterate(sessionId, accessResult -> {
+            urls.add(accessResult.getUrl());
+        });
+
+        assertEquals(10, urls.size());
+        for (int i = 1; i <= 10; i++) {
+            assertTrue(urls.contains("http://www.example.com/page" + i));
+        }
+
+        dataService.delete(sessionId);
+    }
+
+    public void test_getCount_Tx() {
+        final String sessionId = "count_session1";
+
+        // Initially no data
+        assertEquals(0, dataService.getCount(sessionId));
+
+        // Insert test data
+        for (int i = 1; i <= 5; i++) {
+            final OpenSearchAccessResult accessResult = new OpenSearchAccessResult();
+            accessResult.setContentLength(Long.valueOf(100));
+            accessResult.setCreateTime(System.currentTimeMillis());
+            accessResult.setExecutionTime(10);
+            accessResult.setHttpStatusCode(200);
+            accessResult.setLastModified(System.currentTimeMillis());
+            accessResult.setMethod("GET");
+            accessResult.setMimeType("text/html");
+            accessResult.setParentUrl("http://www.parent.com/");
+            accessResult.setRuleId("htmlRule");
+            accessResult.setSessionId(sessionId);
+            accessResult.setStatus(200);
+            accessResult.setUrl("http://www.example.com/page" + i);
+
+            dataService.store(accessResult);
+        }
+
+        // Verify count
+        assertEquals(5, dataService.getCount(sessionId));
+
+        dataService.delete(sessionId);
+
+        // After delete, count should be 0
+        assertEquals(0, dataService.getCount(sessionId));
     }
 
 }

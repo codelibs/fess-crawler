@@ -44,6 +44,14 @@ import jakarta.annotation.PostConstruct;
 public class OpenSearchDataService extends AbstractCrawlerService implements DataService<OpenSearchAccessResult> {
 
     /**
+     * Fields to fetch for access result list without data.
+     */
+    private static final String[] ACCESS_RESULT_FIELDS = {
+        "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime",
+        "createTime", "contentLength", "lastModified", "ruleId", "httpStatusCode", "status"
+    };
+
+    /**
      * Creates a new instance of OpenSearchDataService.
      * @param crawlerConfig The crawler configuration.
      */
@@ -154,8 +162,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
         final SearchResponse response = getClient().get(c -> {
             final SearchRequestBuilder builder = c.prepareSearch(index);
             callback.accept(builder);
-            builder.setFetchSource(new String[] { "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime", "createTime",
-                    "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" }, null);
+            builder.setFetchSource(ACCESS_RESULT_FIELDS, null);
             return builder.execute();
         });
         final OpenSearchResultList<OpenSearchAccessResult> targetList = new OpenSearchResultList<>();

@@ -42,23 +42,62 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         super.tearDown();
     }
 
+    // Helper method to create a simple mock UrlQueue
+    private UrlQueue<?> createMockUrlQueue(final String sessionId, final String url) {
+        return new UrlQueue<Object>() {
+            @Override
+            public Object getId() { return null; }
+            @Override
+            public void setId(Object id) {}
+            @Override
+            public String getSessionId() { return sessionId; }
+            @Override
+            public void setSessionId(String sid) {}
+            @Override
+            public String getMethod() { return null; }
+            @Override
+            public void setMethod(String method) {}
+            @Override
+            public String getUrl() { return url; }
+            @Override
+            public void setUrl(String u) {}
+            @Override
+            public String getMetaData() { return null; }
+            @Override
+            public void setMetaData(String metaData) {}
+            @Override
+            public String getEncoding() { return null; }
+            @Override
+            public void setEncoding(String encoding) {}
+            @Override
+            public String getParentUrl() { return null; }
+            @Override
+            public void setParentUrl(String parentUrl) {}
+            @Override
+            public Integer getDepth() { return null; }
+            @Override
+            public void setDepth(Integer depth) {}
+            @Override
+            public Long getLastModified() { return null; }
+            @Override
+            public void setLastModified(Long lastModified) {}
+            @Override
+            public Long getCreateTime() { return null; }
+            @Override
+            public void setCreateTime(Long createTime) {}
+            @Override
+            public float getWeight() { return 0; }
+            @Override
+            public void setWeight(float weight) {}
+        };
+    }
+
     public void test_urlQueue_setAndGet() {
         // Initially should be null
         assertNull(CrawlingParameterUtil.getUrlQueue());
 
         // Create and set a mock UrlQueue
-        UrlQueue<?> urlQueue = new UrlQueue<Object>() {
-            @Override
-            public String getSessionId() {
-                return "test-session";
-            }
-
-            @Override
-            public String getUrl() {
-                return "http://example.com";
-            }
-        };
-
+        UrlQueue<?> urlQueue = createMockUrlQueue("test-session", "http://example.com");
         CrawlingParameterUtil.setUrlQueue(urlQueue);
 
         // Verify it can be retrieved
@@ -70,17 +109,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
 
     public void test_urlQueue_setNull() {
         // Set a UrlQueue first
-        UrlQueue<?> urlQueue = new UrlQueue<Object>() {
-            @Override
-            public String getSessionId() {
-                return "test";
-            }
-
-            @Override
-            public String getUrl() {
-                return "http://test.com";
-            }
-        };
+        UrlQueue<?> urlQueue = createMockUrlQueue("test", "http://test.com");
         CrawlingParameterUtil.setUrlQueue(urlQueue);
         assertNotNull(CrawlingParameterUtil.getUrlQueue());
 
@@ -95,20 +124,9 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Initially should be null
         assertNull(CrawlingParameterUtil.getCrawlerContext());
 
-        // Create and set a mock CrawlerContext
-        CrawlerContext context = new CrawlerContext() {
-            private String sessionId = "test-context-session";
-
-            @Override
-            public String getSessionId() {
-                return sessionId;
-            }
-
-            @Override
-            public void setSessionId(String sessionId) {
-                this.sessionId = sessionId;
-            }
-        };
+        // Create and set a CrawlerContext
+        CrawlerContext context = new CrawlerContext();
+        context.setSessionId("test-context-session");
 
         CrawlingParameterUtil.setCrawlerContext(context);
 
@@ -120,12 +138,8 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
 
     public void test_crawlerContext_setNull() {
         // Set a CrawlerContext first
-        CrawlerContext context = new CrawlerContext() {
-            @Override
-            public String getSessionId() {
-                return "test";
-            }
-        };
+        CrawlerContext context = new CrawlerContext();
+        context.setSessionId("test");
         CrawlingParameterUtil.setCrawlerContext(context);
         assertNotNull(CrawlingParameterUtil.getCrawlerContext());
 
@@ -144,9 +158,23 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Create a mock UrlQueueService
         UrlQueueService<UrlQueue<?>> service = new UrlQueueService<UrlQueue<?>>() {
             @Override
-            public void insert(UrlQueue<?> urlQueue) {
-                // Mock implementation
-            }
+            public void updateSessionId(String oldSessionId, String newSessionId) {}
+            @Override
+            public void add(String sessionId, String url) {}
+            @Override
+            public void insert(UrlQueue<?> urlQueue) {}
+            @Override
+            public void delete(String sessionId) {}
+            @Override
+            public void deleteAll() {}
+            @Override
+            public void offerAll(String sessionId, List<UrlQueue<?>> newUrlQueueList) {}
+            @Override
+            public UrlQueue<?> poll(String sessionId) { return null; }
+            @Override
+            public void saveSession(String sessionId) {}
+            @Override
+            public void generateUrlQueues(String previousSessionId, String sessionId) {}
         };
 
         CrawlingParameterUtil.setUrlQueueService(service);
@@ -162,8 +190,23 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         @SuppressWarnings("unchecked")
         UrlQueueService<UrlQueue<?>> service = new UrlQueueService<UrlQueue<?>>() {
             @Override
-            public void insert(UrlQueue<?> urlQueue) {
-            }
+            public void updateSessionId(String oldSessionId, String newSessionId) {}
+            @Override
+            public void add(String sessionId, String url) {}
+            @Override
+            public void insert(UrlQueue<?> urlQueue) {}
+            @Override
+            public void delete(String sessionId) {}
+            @Override
+            public void deleteAll() {}
+            @Override
+            public void offerAll(String sessionId, List<UrlQueue<?>> newUrlQueueList) {}
+            @Override
+            public UrlQueue<?> poll(String sessionId) { return null; }
+            @Override
+            public void saveSession(String sessionId) {}
+            @Override
+            public void generateUrlQueues(String previousSessionId, String sessionId) {}
         };
         CrawlingParameterUtil.setUrlQueueService(service);
         assertNotNull(CrawlingParameterUtil.getUrlQueueService());
@@ -183,9 +226,21 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Create a mock DataService
         DataService<AccessResult<?>> service = new DataService<AccessResult<?>>() {
             @Override
-            public void store(AccessResult<?> accessResult) {
-                // Mock implementation
-            }
+            public void store(AccessResult<?> accessResult) {}
+            @Override
+            public void update(AccessResult<?> accessResult) {}
+            @Override
+            public void update(List<AccessResult<?>> accessResults) {}
+            @Override
+            public void delete(String sessionId) {}
+            @Override
+            public void deleteAll() {}
+            @Override
+            public AccessResult<?> getAccessResult(String sessionId, String url) { return null; }
+            @Override
+            public List<AccessResult<?>> getAccessResultList(String url, boolean hasData) { return null; }
+            @Override
+            public void iterate(String sessionId, AccessResultCallback<AccessResult<?>> callback) {}
         };
 
         CrawlingParameterUtil.setDataService(service);
@@ -201,8 +256,21 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         @SuppressWarnings("unchecked")
         DataService<AccessResult<?>> service = new DataService<AccessResult<?>>() {
             @Override
-            public void store(AccessResult<?> accessResult) {
-            }
+            public void store(AccessResult<?> accessResult) {}
+            @Override
+            public void update(AccessResult<?> accessResult) {}
+            @Override
+            public void update(List<AccessResult<?>> accessResults) {}
+            @Override
+            public void delete(String sessionId) {}
+            @Override
+            public void deleteAll() {}
+            @Override
+            public AccessResult<?> getAccessResult(String sessionId, String url) { return null; }
+            @Override
+            public List<AccessResult<?>> getAccessResultList(String url, boolean hasData) { return null; }
+            @Override
+            public void iterate(String sessionId, AccessResultCallback<AccessResult<?>> callback) {}
         };
         CrawlingParameterUtil.setDataService(service);
         assertNotNull(CrawlingParameterUtil.getDataService());
@@ -216,25 +284,11 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
 
     public void test_threadLocal_isolation() throws Exception {
         // Set values in main thread
-        UrlQueue<?> mainUrlQueue = new UrlQueue<Object>() {
-            @Override
-            public String getSessionId() {
-                return "main-thread";
-            }
-
-            @Override
-            public String getUrl() {
-                return "http://main.com";
-            }
-        };
+        UrlQueue<?> mainUrlQueue = createMockUrlQueue("main-thread", "http://main.com");
         CrawlingParameterUtil.setUrlQueue(mainUrlQueue);
 
-        CrawlerContext mainContext = new CrawlerContext() {
-            @Override
-            public String getSessionId() {
-                return "main-context";
-            }
-        };
+        CrawlerContext mainContext = new CrawlerContext();
+        mainContext.setSessionId("main-context");
         CrawlingParameterUtil.setCrawlerContext(mainContext);
 
         // Verify main thread values
@@ -253,25 +307,11 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
                 assertNull(CrawlingParameterUtil.getCrawlerContext());
 
                 // Set different values in other thread
-                UrlQueue<?> otherUrlQueue = new UrlQueue<Object>() {
-                    @Override
-                    public String getSessionId() {
-                        return "other-thread";
-                    }
-
-                    @Override
-                    public String getUrl() {
-                        return "http://other.com";
-                    }
-                };
+                UrlQueue<?> otherUrlQueue = createMockUrlQueue("other-thread", "http://other.com");
                 CrawlingParameterUtil.setUrlQueue(otherUrlQueue);
 
-                CrawlerContext otherContext = new CrawlerContext() {
-                    @Override
-                    public String getSessionId() {
-                        return "other-context";
-                    }
-                };
+                CrawlerContext otherContext = new CrawlerContext();
+                otherContext.setSessionId("other-context");
                 CrawlingParameterUtil.setCrawlerContext(otherContext);
 
                 // Store values for verification

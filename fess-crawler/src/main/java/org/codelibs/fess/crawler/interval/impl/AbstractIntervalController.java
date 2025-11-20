@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.interval.impl;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.interval.IntervalController;
 
@@ -47,6 +49,8 @@ import org.codelibs.fess.crawler.interval.IntervalController;
  *
  */
 public abstract class AbstractIntervalController implements IntervalController {
+
+    private static final Logger logger = LogManager.getLogger(AbstractIntervalController.class);
 
     /**
      * Indicates whether exceptions during the delay process should be ignored.
@@ -85,7 +89,9 @@ public abstract class AbstractIntervalController implements IntervalController {
                 delayForWaitingNewUrl();
                 break;
             default:
-                // No operation
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Unknown delay type: {}", type);
+                }
                 break;
             }
         } catch (final CrawlerSystemException e) {

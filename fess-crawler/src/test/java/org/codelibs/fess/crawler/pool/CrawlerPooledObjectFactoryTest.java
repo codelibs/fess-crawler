@@ -305,8 +305,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
-                listener);
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>();
+        factoryWithListener.setCrawlerContainer(container);
+        factoryWithListener.setComponentName("testComponent");
+        factoryWithListener.setOnDestroyListener(listener);
 
         TestComponent component = new TestComponent();
         PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -331,8 +333,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<CloseableTestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container,
-                "closeableComponent", listener);
+        CrawlerPooledObjectFactory<CloseableTestComponent> factoryWithListener = createFactory("closeableComponent", listener);
 
         CloseableTestComponent component = new CloseableTestComponent();
         PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -350,8 +351,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_destroyObject_autoCloseable() throws Exception {
         CloseableTestComponent.resetCounters();
 
-        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = new CrawlerPooledObjectFactory<>(container,
-                "closeableComponent");
+        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = createFactory("closeableComponent");
 
         CloseableTestComponent component = new CloseableTestComponent();
         PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -380,8 +380,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<CloseableTestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container,
-                "closeableComponent", listener);
+        CrawlerPooledObjectFactory<CloseableTestComponent> factoryWithListener = createFactory("closeableComponent", listener);
 
         CloseableTestComponent component = new CloseableTestComponent();
         PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -408,8 +407,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
-                listener);
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>();
+        factoryWithListener.setCrawlerContainer(container);
+        factoryWithListener.setComponentName("testComponent");
+        factoryWithListener.setOnDestroyListener(listener);
         assertEquals("testComponent", factoryWithListener.getComponentName());
         assertSame(container, factoryWithListener.getCrawlerContainer());
         assertSame(listener, factoryWithListener.getOnDestroyListener());
@@ -431,8 +432,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
-                listener);
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>();
+        factoryWithListener.setCrawlerContainer(container);
+        factoryWithListener.setComponentName("testComponent");
+        factoryWithListener.setOnDestroyListener(listener);
 
         // Create
         TestComponent component = factoryWithListener.create();
@@ -522,8 +525,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        final CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container,
-                "testComponent", listener);
+        final CrawlerPooledObjectFactory<TestComponent> factoryWithListener = createFactory("testComponent", listener);
 
         final int threadCount = 10;
         final int destroysPerThread = 10;
@@ -570,7 +572,9 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_differentComponentTypes() throws Exception {
         // Test with String component
         container.singleton("stringComponent", "TestString");
-        CrawlerPooledObjectFactory<String> stringFactory = new CrawlerPooledObjectFactory<>(container, "stringComponent");
+        CrawlerPooledObjectFactory<String> stringFactory = new CrawlerPooledObjectFactory<>();
+        stringFactory.setCrawlerContainer(container);
+        stringFactory.setComponentName("stringComponent");
 
         String stringComponent = stringFactory.create();
         assertEquals("TestString", stringComponent);
@@ -681,8 +685,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_destroyObject_autoCloseableThrowsException() {
         container.prototype("failingCloseableComponent", FailingCloseableComponent.class);
 
-        CrawlerPooledObjectFactory<FailingCloseableComponent> failingFactory = new CrawlerPooledObjectFactory<>(container,
-                "failingCloseableComponent");
+        CrawlerPooledObjectFactory<FailingCloseableComponent> failingFactory = createFactory("failingCloseableComponent");
 
         FailingCloseableComponent component = new FailingCloseableComponent();
         PooledObject<FailingCloseableComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -715,8 +718,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<FailingCloseableComponent> failingFactory = new CrawlerPooledObjectFactory<>(container,
-                "failingCloseableComponent", listener);
+        CrawlerPooledObjectFactory<FailingCloseableComponent> failingFactory = createFactory("failingCloseableComponent", listener);
 
         FailingCloseableComponent component = new FailingCloseableComponent();
         PooledObject<FailingCloseableComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -767,8 +769,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_destroyObject_multipleCalls() throws Exception {
         CloseableTestComponent.resetCounters();
 
-        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = new CrawlerPooledObjectFactory<>(container,
-                "closeableComponent");
+        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = createFactory("closeableComponent");
 
         CloseableTestComponent component = new CloseableTestComponent();
         PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -833,8 +834,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
-                listener);
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>();
+        factoryWithListener.setCrawlerContainer(container);
+        factoryWithListener.setComponentName("testComponent");
+        factoryWithListener.setOnDestroyListener(listener);
 
         // Create and destroy multiple objects
         for (int i = 0; i < 5; i++) {
@@ -949,8 +952,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_destroyObject_noOpClose() throws Exception {
         CloseableTestComponent.resetCounters();
 
-        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = new CrawlerPooledObjectFactory<>(container,
-                "closeableComponent");
+        CrawlerPooledObjectFactory<CloseableTestComponent> closeableFactory = createFactory("closeableComponent");
 
         CloseableTestComponent component = new CloseableTestComponent();
         PooledObject<CloseableTestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -970,7 +972,9 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_genericTypeFlexibility() throws Exception {
         // String type
         container.singleton("integerComponent", 42);
-        CrawlerPooledObjectFactory<Integer> intFactory = new CrawlerPooledObjectFactory<>(container, "integerComponent");
+        CrawlerPooledObjectFactory<Integer> intFactory = new CrawlerPooledObjectFactory<>();
+        intFactory.setCrawlerContainer(container);
+        intFactory.setComponentName("integerComponent");
 
         Integer intComponent = intFactory.create();
         assertNotNull(intComponent);
@@ -1001,8 +1005,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             }
         };
 
-        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>(container, "testComponent",
-                listener);
+        CrawlerPooledObjectFactory<TestComponent> factoryWithListener = new CrawlerPooledObjectFactory<>();
+        factoryWithListener.setCrawlerContainer(container);
+        factoryWithListener.setComponentName("testComponent");
+        factoryWithListener.setOnDestroyListener(listener);
 
         TestComponent component = new TestComponent();
         assertFalse(component.isDestroyed());

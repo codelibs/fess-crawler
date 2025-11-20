@@ -17,10 +17,10 @@ package org.codelibs.fess.crawler.client;
 
 import static org.codelibs.core.stream.StreamUtil.split;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -135,7 +135,7 @@ public class FesenClient implements Client {
     /**
      * List of listeners for connection events.
      */
-    protected List<OnConnectListener> onConnectListenerList = new ArrayList<>();
+    protected List<OnConnectListener> onConnectListenerList = new CopyOnWriteArrayList<>();
 
     /**
      * Flag indicating whether the client is connected.
@@ -223,8 +223,9 @@ public class FesenClient implements Client {
         destroy();
         client = createClient();
 
+        final String[] indices = targetIndices != null ? targetIndices : new String[0];
         final ClusterHealthResponse healthResponse =
-                get(c -> c.admin().cluster().prepareHealth(targetIndices).setWaitForYellowStatus().execute());
+                get(c -> c.admin().cluster().prepareHealth(indices).setWaitForYellowStatus().execute());
         if (!healthResponse.isTimedOut()) {
             onConnectListenerList.forEach(l -> {
                 try {
@@ -268,14 +269,16 @@ public class FesenClient implements Client {
                 logger.debug("{} occurs.", e.getClass().getName(), e);
                 throw e;
             } catch (final Exception e) {
-                if (retryCount > maxRetryCount) {
+                if (retryCount >= maxRetryCount) {
                     throw e;
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug("Failed to invoke actionGet. count:{}", retryCount, e);
                 }
 
-                ThreadUtil.sleep(RandomUtils.nextLong(retryInterval + retryCount * 1000L, retryInterval + retryCount * 1000L * 2L));
+                final long minSleep = retryInterval + retryCount * 1000L;
+                final long maxSleep = retryInterval + retryCount * 2000L;
+                ThreadUtil.sleep(RandomUtils.nextLong(minSleep, maxSleep));
                 retryCount++;
             }
         }
@@ -292,7 +295,7 @@ public class FesenClient implements Client {
             } catch (final OpenSearchException e) {
                 logger.warn("Failed to close client.", e);
             }
-            logger.info("Disconnected to {}", address);
+            logger.info("Disconnected from {}", address);
         }
         connected = false;
     }
@@ -477,10 +480,7 @@ public class FesenClient implements Client {
      */
     @Override
     public SearchRequestBuilder prepareStreamSearch(final String... indices) {
-        if (searchPreference != null) {
-            return client.prepareSearch(indices).setPreference(searchPreference);
-        }
-        return client.prepareSearch(indices);
+        return prepareSearch(indices);
     }
 
     @Override
@@ -602,7 +602,7 @@ public class FesenClient implements Client {
 
     @Override
     public Client filterWithHeader(final Map<String, String> headers) {
-        client.filterWithHeader(headers);
+        client = client.filterWithHeader(headers);
         return this;
     }
 
@@ -610,12 +610,26 @@ public class FesenClient implements Client {
      * Deletes documents matching the specified query using scroll and bulk delete.
      *
      * @param index The index to delete from.
-     * @param type The document type (deprecated).
+     * @param type The document type (deprecated, no longer used).
+     * @param queryBuilder The query to match documents for deletion.
+     * @return The number of deleted documents.
+     * @throws OpenSearchAccessException if the deletion fails.
+     * @deprecated Use {@link #deleteByQuery(String, QueryBuilder)} instead. The type parameter is no longer used.
+     */
+    @Deprecated
+    public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
+        return deleteByQuery(index, queryBuilder);
+    }
+
+    /**
+     * Deletes documents matching the specified query using scroll and bulk delete.
+     *
+     * @param index The index to delete from.
      * @param queryBuilder The query to match documents for deletion.
      * @return The number of deleted documents.
      * @throws OpenSearchAccessException if the deletion fails.
      */
-    public int deleteByQuery(final String index, final String type, final QueryBuilder queryBuilder) {
+    public int deleteByQuery(final String index, final QueryBuilder queryBuilder) {
         SearchResponse response =
                 get(c -> c.prepareSearch(index).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
         String scrollId = response.getScrollId();
@@ -639,12 +653,12 @@ public class FesenClient implements Client {
                     throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
                 }
 
-                final String sid = scrollId;
-                response = get(c -> c.prepareSearchScroll(sid).setScroll(scrollForDelete).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    clearScroll(scrollId);
-                }
+                final String previousScrollId = scrollId;
+                response = get(c -> c.prepareSearchScroll(previousScrollId).setScroll(scrollForDelete).execute());
                 scrollId = response.getScrollId();
+                if (!previousScrollId.equals(scrollId)) {
+                    clearScroll(previousScrollId);
+                }
             }
         } finally {
             clearScroll(scrollId);

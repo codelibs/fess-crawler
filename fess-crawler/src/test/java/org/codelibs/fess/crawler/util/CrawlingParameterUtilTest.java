@@ -233,6 +233,8 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
             @Override
             public void update(List<AccessResult<?>> accessResults) {}
             @Override
+            public int getCount(String sessionId) { return 0; }
+            @Override
             public void delete(String sessionId) {}
             @Override
             public void deleteAll() {}
@@ -262,6 +264,8 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
             public void update(AccessResult<?> accessResult) {}
             @Override
             public void update(List<AccessResult<?>> accessResults) {}
+            @Override
+            public int getCount(String sessionId) { return 0; }
             @Override
             public void delete(String sessionId) {}
             @Override

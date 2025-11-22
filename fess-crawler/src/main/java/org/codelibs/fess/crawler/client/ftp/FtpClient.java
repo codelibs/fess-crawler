@@ -301,8 +301,13 @@ public class FtpClient extends AbstractCrawlerClient {
             try {
                 ftpClient.disconnect();
             } catch (final IOException e) {
-                logger.debug("Failed to disconnect FTPClient.", e);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to disconnect FTP client: connected={}", ftpClient.isConnected(), e);
+                }
             }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("FTP client closed");
         }
     }
 
@@ -427,7 +432,7 @@ public class FtpClient extends AbstractCrawlerClient {
         try {
             client.disconnect();
         } catch (final IOException e) {
-            logger.warn("Failed to close FTPClient", e);
+            logger.warn("Failed to disconnect FTP client: connected={}", client.isConnected(), e);
         }
     }
 
@@ -538,7 +543,8 @@ public class FtpClient extends AbstractCrawlerClient {
                     ftpClientQueue.offer(client);
                     throw e;
                 } catch (final Exception e) {
-                    logger.warn("I/O Exception.", e);
+                    logger.warn("Failed to retrieve FTP file content: uri={}, fileName={}, fileSize={}", uri, file.getName(), file.getSize(),
+                            e);
                     disconnectInternalClient(client);
                     responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                 } finally {

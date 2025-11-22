@@ -540,7 +540,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                         "SSL certificate validation is disabled. This configuration is insecure and should only be used in development/testing environments.");
                 return new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
             } catch (final Exception e) {
-                logger.error("Failed to create SSL context with trust-all strategy: property={}", IGNORE_SSL_CERTIFICATE_PROPERTY, e);
+                logger.warn("Failed to create SSL context with trust-all strategy: property={}", IGNORE_SSL_CERTIFICATE_PROPERTY, e);
             }
         }
         return SSLConnectionSocketFactory.getSocketFactory();
@@ -595,7 +595,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     logger.debug("HTTP client closed successfully");
                 }
             } catch (final IOException e) {
-                logger.error("Failed to close HTTP client", e);
+                logger.warn("Failed to close HTTP client", e);
             }
             httpClient = null;
             if (clientConnectionManager != null) {

@@ -254,7 +254,7 @@ public class Crawler implements Runnable, AutoCloseable {
                 logger.info("Completed crawler cleanup: sessionId={}", sessionId);
             }
         } catch (final Exception e) {
-            logger.error("Failed to cleanup crawler data: sessionId={}", sessionId, e);
+            logger.warn("Failed to cleanup crawler data: sessionId={}", sessionId, e);
         }
     }
 
@@ -461,7 +461,7 @@ public class Crawler implements Runnable, AutoCloseable {
                 logger.debug("Saved crawler session: sessionId={}", crawlerContext.sessionId);
             }
         } catch (final Exception e) {
-            logger.error("Failed to save crawler session: sessionId={}", crawlerContext.sessionId, e);
+            logger.warn("Failed to save crawler session: sessionId={}", crawlerContext.sessionId, e);
         }
     }
 

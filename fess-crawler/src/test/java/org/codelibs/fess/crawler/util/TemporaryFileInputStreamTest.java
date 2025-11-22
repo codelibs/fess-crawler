@@ -92,23 +92,25 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         }
 
         try (TemporaryFileInputStream stream = new TemporaryFileInputStream(tempFile)) {
-            assertTrue(stream.markSupported());
+            // FileInputStream does not support mark/reset
+            assertFalse(stream.markSupported());
 
             assertEquals('A', stream.read());
             assertEquals('B', stream.read());
 
-            // Mark current position
+            // Mark is not supported, so calling mark has no effect
             stream.mark(10);
 
             assertEquals('C', stream.read());
             assertEquals('D', stream.read());
 
-            // Reset to marked position
-            stream.reset();
-
-            // Should read from marked position again
-            assertEquals('C', stream.read());
-            assertEquals('D', stream.read());
+            // Reset will throw IOException because mark is not supported
+            try {
+                stream.reset();
+                fail("reset() should throw IOException when mark is not supported");
+            } catch (IOException e) {
+                // Expected - FileInputStream does not support mark/reset
+            }
         }
     }
 

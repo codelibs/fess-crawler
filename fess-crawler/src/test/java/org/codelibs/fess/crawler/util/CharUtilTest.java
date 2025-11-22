@@ -94,7 +94,7 @@ public class CharUtilTest extends PlainTestCase {
         assertFalse(CharUtil.isUrlChar('>'));  // greater than
         assertFalse(CharUtil.isUrlChar('"'));  // double quote
         assertFalse(CharUtil.isUrlChar('\\'));  // backslash
-        assertFalse(CharUtil.isUrlChar('`'));  // backtick (already tested as allowed, so remove this)
+        assertFalse(CharUtil.isUrlChar('`'));  // backtick
     }
 
     public void test_isUrlChar_controlCharacters() {

@@ -175,6 +175,8 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
             @Override
             public void saveSession(String sessionId) {}
             @Override
+            public boolean visited(UrlQueue<?> urlQueue) { return false; }
+            @Override
             public void generateUrlQueues(String previousSessionId, String sessionId) {}
         };
 
@@ -206,6 +208,8 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
             public UrlQueue<?> poll(String sessionId) { return null; }
             @Override
             public void saveSession(String sessionId) {}
+            @Override
+            public boolean visited(UrlQueue<?> urlQueue) { return false; }
             @Override
             public void generateUrlQueues(String previousSessionId, String sessionId) {}
         };

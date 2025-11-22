@@ -28,7 +28,7 @@ import java.io.InputStream;
 public class IgnoreCloseInputStream extends InputStream {
 
     /** The wrapped input stream. */
-    private transient InputStream inputStream;
+    private InputStream inputStream;
 
     /**
      * Constructs a new IgnoreCloseInputStream that wraps the specified input stream.
@@ -59,27 +59,6 @@ public class IgnoreCloseInputStream extends InputStream {
     @Override
     public int available() throws IOException {
         return inputStream.available();
-    }
-
-    /**
-     * Indicates whether some other object is equal to this one.
-     *
-     * @param obj the reference object with which to compare
-     * @return true if this object is the same as the obj argument; false otherwise
-     */
-    @Override
-    public boolean equals(final Object obj) {
-        return inputStream.equals(obj);
-    }
-
-    /**
-     * Returns a hash code value for the object.
-     *
-     * @return a hash code value for this object
-     */
-    @Override
-    public int hashCode() {
-        return inputStream.hashCode();
     }
 
     /**

@@ -59,7 +59,7 @@ import org.codelibs.fess.crawler.service.UrlQueueService;
 public final class CrawlingParameterUtil {
     private static final ThreadLocal<UrlQueue<?>> URL_QUEUE_THREAD_LOCAL = new ThreadLocal<>();
 
-    private static final ThreadLocal<CrawlerContext> ROBOT_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
+    private static final ThreadLocal<CrawlerContext> CRAWLER_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
 
     private static final ThreadLocal<UrlQueueService<UrlQueue<?>>> URL_QUEUE_SERVICE_THREAD_LOCAL = new ThreadLocal<>();
 
@@ -97,7 +97,7 @@ public final class CrawlingParameterUtil {
      * @return the {@link CrawlerContext} for the current thread, or {@code null} if no context is set.
      */
     public static CrawlerContext getCrawlerContext() {
-        return ROBOT_CONTEXT_THREAD_LOCAL.get();
+        return CRAWLER_CONTEXT_THREAD_LOCAL.get();
     }
 
     /**
@@ -109,9 +109,9 @@ public final class CrawlingParameterUtil {
      */
     public static void setCrawlerContext(final CrawlerContext crawlerContext) {
         if (crawlerContext == null) {
-            ROBOT_CONTEXT_THREAD_LOCAL.remove();
+            CRAWLER_CONTEXT_THREAD_LOCAL.remove();
         } else {
-            ROBOT_CONTEXT_THREAD_LOCAL.set(crawlerContext);
+            CRAWLER_CONTEXT_THREAD_LOCAL.set(crawlerContext);
         }
     }
 

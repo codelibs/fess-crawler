@@ -193,7 +193,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
                     targetList.add(target);
                 }
             } catch (final Exception e) {
-                throw new OpenSearchAccessException("response: " + response, e);
+                throw new OpenSearchAccessException("Failed to parse access result from OpenSearch response: totalHits=" + totalHitsValue, e);
             }
         }
         return targetList;

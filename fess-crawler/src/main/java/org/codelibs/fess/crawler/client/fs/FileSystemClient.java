@@ -146,6 +146,9 @@ public class FileSystemClient extends AbstractCrawlerClient {
      * @throws ChildUrlsException if the URI represents a directory with child URLs
      */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Accessing file system resource: uri={}, includeContent={}", uri, includeContent);
+        }
         final ResponseData responseData = new ResponseData();
         try {
             responseData.setMethod(Constants.GET_METHOD);
@@ -156,7 +159,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
             try {
                 file = new File(new URI(filePath));
             } catch (final URISyntaxException e) {
-                logger.warn("Could not parse url: " + filePath, e);
+                logger.warn("Failed to parse file URI: uri={}, filePath={}", uri, filePath, e);
             }
 
             if (file == null) {
@@ -194,31 +197,45 @@ public class FileSystemClient extends AbstractCrawlerClient {
                             try (InputStream contentStream = new BufferedInputStream(new FileInputStream(file))) {
                                 responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
                             } catch (final Exception e) {
-                                logger.warn("I/O Exception.", e);
+                                logger.warn("Failed to read file content: file={}, size={}", file.getAbsolutePath(), file.length(), e);
                                 responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                             }
                         } else {
                             responseData.setResponseBody(file, false);
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("File size exceeds cache threshold, using file reference: file={}, size={}, threshold={}",
+                                        file.getAbsolutePath(), file.length(), maxCachedContentSize);
+                            }
                         }
                     }
                 } else {
                     // Forbidden
+                    logger.warn("Access denied to file: file={}", file.getAbsolutePath());
                     responseData.setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
                     responseData.setMimeType(APPLICATION_OCTET_STREAM);
                 }
             } else if (file.isDirectory()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Processing directory: directory={}", file.getAbsolutePath());
+                }
                 final Set<RequestData> requestDataSet = new HashSet<>();
                 if (includeContent) {
                     final File[] files = file.listFiles();
                     if (files != null) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Found {} child entries in directory: directory={}", files.length, file.getAbsolutePath());
+                        }
                         for (final File f : files) {
                             final String childUri = f.toURI().toASCIIString();
                             requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                         }
+                    } else {
+                        logger.warn("Unable to list directory contents: directory={}", file.getAbsolutePath());
                     }
                 }
                 throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData");
             } else {
+                logger.warn("File not found or is special file: path={}", file != null ? file.getAbsolutePath() : uri);
                 responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
@@ -267,7 +284,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
             }
             return ownerAttrView;
         } catch (final Exception e) {
-            throw new CrawlingAccessException("Failed to parse FileAttributeView.", e);
+            throw new CrawlingAccessException("Failed to parse file ownership attributes: file=" + file.getAbsolutePath(), e);
         }
     }
 

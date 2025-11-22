@@ -135,12 +135,10 @@ public class CharUtilTest extends PlainTestCase {
         assertTrue(CharUtil.isUrlChar('0'));   // first digit
         assertTrue(CharUtil.isUrlChar('9'));   // last digit
 
-        // Characters just outside ranges should not be valid
-        assertFalse(CharUtil.isUrlChar((char)('a' - 1))); // '`' is actually valid, so test differently
-        assertFalse(CharUtil.isUrlChar((char)('z' + 1))); // '{'
-        assertFalse(CharUtil.isUrlChar((char)('A' - 1))); // '@' is valid, so test differently
-        assertFalse(CharUtil.isUrlChar((char)('Z' + 1))); // '['  is valid, so test differently
-        assertFalse(CharUtil.isUrlChar((char)('0' - 1))); // '/'  is valid, so test differently
-        assertFalse(CharUtil.isUrlChar((char)('9' + 1))); // ':'  is valid, so test differently
+        // Test characters just outside ranges that are not valid
+        assertFalse(CharUtil.isUrlChar('`'));  // backtick (just before 'a')
+        assertFalse(CharUtil.isUrlChar('{'));  // left brace (just after 'z')
+        assertFalse(CharUtil.isUrlChar('^'));  // caret (before 'a' range)
+        assertFalse(CharUtil.isUrlChar('|'));  // pipe (not in valid set)
     }
 }

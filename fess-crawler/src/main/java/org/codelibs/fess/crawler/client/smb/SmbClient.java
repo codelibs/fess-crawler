@@ -569,22 +569,13 @@ public class SmbClient extends AbstractCrawlerClient {
             final java.net.URL url = smbFile.getURL();
             // Preferred: Use URI for modern URL handling
             return url.toURI().toASCIIString();
-        } catch (final MalformedURLException e) {
-            // Fallback: If URL retrieval fails, use path directly
-            logger.warn("Failed to get SMB URL for {}", smbFile, e);
-            return smbFile.getPath();
         } catch (final URISyntaxException e) {
             // Fallback: Use legacy URL.toExternalForm()
-            try {
-                final java.net.URL url = smbFile.getURL();
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to convert SMB URL to URI for {}, using toExternalForm()", url, e);
-                }
-                return url.toExternalForm();
-            } catch (final MalformedURLException ex) {
-                logger.warn("Failed to get SMB URL for fallback, using path: {}", smbFile, ex);
-                return smbFile.getPath();
+            final java.net.URL url = smbFile.getURL();
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to convert SMB URL to URI for {}, using toExternalForm()", url, e);
             }
+            return url.toExternalForm();
         }
     }
 

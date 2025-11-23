@@ -136,7 +136,7 @@ public class CsvExtractorTest extends PlainTestCase {
         CloseableUtil.closeQuietly(in);
 
         final String rowCount = extractData.getValues("row_count")[0];
-        // Should only extract 1 data row (header doesn't count)
-        assertEquals("1", rowCount);
+        // Should extract 2 data rows (header doesn't count toward maxRows)
+        assertEquals("2", rowCount);
     }
 }

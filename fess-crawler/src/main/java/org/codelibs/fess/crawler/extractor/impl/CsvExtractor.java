@@ -76,6 +76,9 @@ public class CsvExtractor extends AbstractExtractor {
     /** Line separator for rows in text output. */
     protected String lineSeparator = "\n";
 
+    /** Separator for header-value association in text output. */
+    protected String headerValueSeparator = ": ";
+
     /** Pattern for detecting quoted fields. */
     private static final Pattern QUOTED_FIELD_PATTERN = Pattern.compile("^\".*\"$");
 
@@ -101,34 +104,40 @@ public class CsvExtractor extends AbstractExtractor {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, charset))) {
             String line;
-            int rowCount = 0;
             Character detectedDelimiter = delimiter;
 
-            while ((line = reader.readLine()) != null && rowCount < maxRows) {
+            // Read header row if needed
+            if (hasHeader) {
+                while ((line = reader.readLine()) != null) {
+                    if (StringUtil.isBlank(line)) {
+                        continue;
+                    }
+                    // Auto-detect delimiter from first non-blank line
+                    if (detectedDelimiter == null && autoDetectDelimiter) {
+                        detectedDelimiter = detectDelimiter(line);
+                    }
+                    headers = parseCsvLine(line, detectedDelimiter != null ? detectedDelimiter : ',');
+                    break;
+                }
+            }
+
+            // Read data rows
+            int dataRowCount = 0;
+            while (dataRowCount < maxRows && (line = reader.readLine()) != null) {
                 if (StringUtil.isBlank(line)) {
                     continue;
                 }
-
-                // Auto-detect delimiter from first line
-                if (detectedDelimiter == null && autoDetectDelimiter && rowCount == 0) {
+                // Auto-detect delimiter from first data row if not already set (when no header)
+                if (detectedDelimiter == null && autoDetectDelimiter) {
                     detectedDelimiter = detectDelimiter(line);
                 }
-
                 final String[] fields = parseCsvLine(line, detectedDelimiter != null ? detectedDelimiter : ',');
-
-                if (rowCount == 0 && hasHeader) {
-                    headers = fields;
-                } else {
-                    rows.add(fields);
-                }
-
-                rowCount++;
+                rows.add(fields);
+                dataRowCount++;
             }
 
-            if (rowCount >= maxRows) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("CSV file exceeded max rows ({}), only first {} rows extracted", maxRows, rowCount);
-                }
+            if (dataRowCount >= maxRows && logger.isDebugEnabled()) {
+                logger.debug("CSV file exceeded max rows ({}), only first {} data rows extracted", maxRows, dataRowCount);
             }
 
             return buildExtractData(headers, rows);
@@ -260,7 +269,7 @@ public class CsvExtractor extends AbstractExtractor {
                 final int minLength = Math.min(headers.length, row.length);
                 for (int i = 0; i < minLength; i++) {
                     if (StringUtil.isNotBlank(row[i])) {
-                        textBuilder.append(headers[i]).append(": ").append(row[i]).append(fieldSeparator);
+                        textBuilder.append(headers[i]).append(headerValueSeparator).append(row[i]).append(fieldSeparator);
                     }
                 }
                 textBuilder.append(lineSeparator);
@@ -375,5 +384,14 @@ public class CsvExtractor extends AbstractExtractor {
      */
     public void setLineSeparator(final String lineSeparator) {
         this.lineSeparator = lineSeparator;
+    }
+
+    /**
+     * Sets the separator for header-value association in text output.
+     *
+     * @param headerValueSeparator the header-value separator
+     */
+    public void setHeaderValueSeparator(final String headerValueSeparator) {
+        this.headerValueSeparator = headerValueSeparator;
     }
 }

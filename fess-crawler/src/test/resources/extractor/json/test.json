@@ -1,0 +1,15 @@
+{
+  "title": "Sample Document",
+  "author": "John Doe",
+  "version": "1.0",
+  "published": "2025-01-15",
+  "tags": ["crawler", "extractor", "json"],
+  "content": {
+    "summary": "This is a sample JSON document for testing",
+    "body": "The extractor should handle nested objects and arrays properly"
+  },
+  "metadata": {
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-15T12:00:00Z"
+  }
+}

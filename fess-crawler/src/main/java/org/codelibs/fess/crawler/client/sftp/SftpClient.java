@@ -502,10 +502,10 @@ public class SftpClient extends AbstractCrawlerClient {
 
             if (auth != null && StringUtil.isNotBlank(auth.getPrivateKey())) {
                 if (StringUtil.isNotBlank(auth.getPassphrase())) {
-                    jsch.addIdentity("sftp-key", auth.getPrivateKey().getBytes(Constants.UTF_8), null,
-                            auth.getPassphrase().getBytes(Constants.UTF_8));
+                    jsch.addIdentity("sftp-key", auth.getPrivateKey().getBytes(Constants.UTF_8_CHARSET), null,
+                            auth.getPassphrase().getBytes(Constants.UTF_8_CHARSET));
                 } else {
-                    jsch.addIdentity("sftp-key", auth.getPrivateKey().getBytes(Constants.UTF_8), null, null);
+                    jsch.addIdentity("sftp-key", auth.getPrivateKey().getBytes(Constants.UTF_8_CHARSET), null, null);
                 }
             }
 

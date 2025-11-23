@@ -87,6 +87,11 @@ public class MarkdownExtractor extends AbstractExtractor {
         initializeParser();
     }
 
+    @Override
+    public int getWeight() {
+        return 2; // Higher priority than TikaExtractor (weight=1)
+    }
+
     /**
      * Initializes the Markdown parser with extensions.
      */

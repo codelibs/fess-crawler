@@ -87,6 +87,11 @@ public class CsvExtractor extends AbstractExtractor {
     }
 
     @Override
+    public int getWeight() {
+        return 2; // Higher priority than TikaExtractor (weight=1)
+    }
+
+    @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         validateInputStream(in);
 

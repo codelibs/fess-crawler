@@ -46,10 +46,8 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
     /**
      * Fields to fetch for access result list without data.
      */
-    private static final String[] ACCESS_RESULT_FIELDS = {
-        "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime",
-        "createTime", "contentLength", "lastModified", "ruleId", "httpStatusCode", "status"
-    };
+    private static final String[] ACCESS_RESULT_FIELDS = { "parentUrl", "method", "mimeType", "sessionId", "url", "executionTime",
+            "createTime", "contentLength", "lastModified", "ruleId", "httpStatusCode", "status" };
 
     /**
      * Creates a new instance of OpenSearchDataService.
@@ -193,7 +191,8 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
                     targetList.add(target);
                 }
             } catch (final Exception e) {
-                throw new OpenSearchAccessException("Failed to parse access result from OpenSearch response: totalHits=" + totalHitsValue, e);
+                throw new OpenSearchAccessException("Failed to parse access result from OpenSearch response: totalHits=" + totalHitsValue,
+                        e);
             }
         }
         return targetList;

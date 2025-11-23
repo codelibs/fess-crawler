@@ -543,8 +543,8 @@ public class FtpClient extends AbstractCrawlerClient {
                     ftpClientQueue.offer(client);
                     throw e;
                 } catch (final Exception e) {
-                    logger.warn("Failed to retrieve FTP file content: uri={}, fileName={}, fileSize={}", uri, file.getName(), file.getSize(),
-                            e);
+                    logger.warn("Failed to retrieve FTP file content: uri={}, fileName={}, fileSize={}", uri, file.getName(),
+                            file.getSize(), e);
                     disconnectInternalClient(client);
                     responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                 } finally {
@@ -774,7 +774,8 @@ public class FtpClient extends AbstractCrawlerClient {
             }
 
             if (!"ftp".equals(uri.getScheme())) {
-                throw new CrawlingAccessException("Invalid FTP scheme: expected 'ftp://' but got '" + uri.getScheme() + "://' for URI: " + s);
+                throw new CrawlingAccessException(
+                        "Invalid FTP scheme: expected 'ftp://' but got '" + uri.getScheme() + "://' for URI: " + s);
             }
 
             final String path = uri.getPath();

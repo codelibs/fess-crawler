@@ -260,7 +260,8 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertTrue(robotsTxt.allows("/public/", "EmptyLineBot"));
 
         // Test VeryLongBotNameThatExceedsNormalLengthAndShouldStillBeProcessedCorrectlyWithoutAnyIssuesEvenThoughItIsExtremelyLongAndUnusual
-        String longBotName = "VeryLongBotNameThatExceedsNormalLengthAndShouldStillBeProcessedCorrectlyWithoutAnyIssuesEvenThoughItIsExtremelyLongAndUnusual";
+        String longBotName =
+                "VeryLongBotNameThatExceedsNormalLengthAndShouldStillBeProcessedCorrectlyWithoutAnyIssuesEvenThoughItIsExtremelyLongAndUnusual";
         assertFalse(robotsTxt.allows("/test/", longBotName));
 
         // Test SpecialCharBot - special characters in paths
@@ -324,10 +325,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     public void testParse_malformedCrawlDelay() {
-        String robotsTxtContent =
-            "User-agent: TestBot\n" +
-            "Crawl-delay: abc\n" +
-            "Disallow: /test/\n";
+        String robotsTxtContent = "User-agent: TestBot\n" + "Crawl-delay: abc\n" + "Disallow: /test/\n";
 
         RobotsTxt robotsTxt;
         final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
@@ -346,10 +344,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     public void testParse_negativeCrawlDelay() {
-        String robotsTxtContent =
-            "User-agent: TestBot\n" +
-            "Crawl-delay: -100\n" +
-            "Disallow: /test/\n";
+        String robotsTxtContent = "User-agent: TestBot\n" + "Crawl-delay: -100\n" + "Disallow: /test/\n";
 
         RobotsTxt robotsTxt;
         final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
@@ -365,10 +360,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     public void testParse_floatingPointCrawlDelay() {
-        String robotsTxtContent =
-            "User-agent: TestBot\n" +
-            "Crawl-delay: 2.5\n" +
-            "Disallow: /test/\n";
+        String robotsTxtContent = "User-agent: TestBot\n" + "Crawl-delay: 2.5\n" + "Disallow: /test/\n";
 
         RobotsTxt robotsTxt;
         final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
@@ -385,11 +377,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     public void testParse_directivesBeforeUserAgent() {
-        String robotsTxtContent =
-            "Disallow: /before/\n" +
-            "Allow: /also-before/\n" +
-            "User-agent: TestBot\n" +
-            "Disallow: /test/\n";
+        String robotsTxtContent = "Disallow: /before/\n" + "Allow: /also-before/\n" + "User-agent: TestBot\n" + "Disallow: /test/\n";
 
         RobotsTxt robotsTxt;
         final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
@@ -408,15 +396,8 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     public void testParse_mixedValidAndInvalidDirectives() {
-        String robotsTxtContent =
-            "User-agent: TestBot\n" +
-            "Disallow: /valid1/\n" +
-            "InvalidDirective: value\n" +
-            "Disallow: /valid2/\n" +
-            "Another-Invalid: test\n" +
-            "Allow: /valid3/\n" +
-            "NoColon\n" +
-            "Disallow: /valid4/\n";
+        String robotsTxtContent = "User-agent: TestBot\n" + "Disallow: /valid1/\n" + "InvalidDirective: value\n" + "Disallow: /valid2/\n"
+                + "Another-Invalid: test\n" + "Allow: /valid3/\n" + "NoColon\n" + "Disallow: /valid4/\n";
 
         RobotsTxt robotsTxt;
         final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
@@ -435,11 +416,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     public void testParse_emptyValues() {
-        String robotsTxtContent =
-            "User-agent: TestBot\n" +
-            "Disallow:\n" +
-            "Allow:\n" +
-            "Crawl-delay:\n";
+        String robotsTxtContent = "User-agent: TestBot\n" + "Disallow:\n" + "Allow:\n" + "Crawl-delay:\n";
 
         RobotsTxt robotsTxt;
         final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes());
@@ -456,11 +433,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
 
     public void testParse_unicodeContent() {
         String robotsTxtContent =
-            "# コメント\n" +
-            "User-agent: 日本語Bot\n" +
-            "Disallow: /日本語/\n" +
-            "User-agent: TestBot\n" +
-            "Disallow: /test/\n";
+                "# コメント\n" + "User-agent: 日本語Bot\n" + "Disallow: /日本語/\n" + "User-agent: TestBot\n" + "Disallow: /test/\n";
 
         RobotsTxt robotsTxt;
         final InputStream in = new java.io.ByteArrayInputStream(robotsTxtContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));

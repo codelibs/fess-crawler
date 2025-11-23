@@ -392,8 +392,7 @@ public class RobotsTxt {
             // Find the longest matching Disallow pattern
             for (final PathPattern disallowPattern : disallowedPaths) {
                 if (disallowPattern.matches(path)) {
-                    if (longestDisallowMatch == null
-                            || disallowPattern.getPriorityLength() > longestDisallowMatch.getPriorityLength()) {
+                    if (longestDisallowMatch == null || disallowPattern.getPriorityLength() > longestDisallowMatch.getPriorityLength()) {
                         longestDisallowMatch = disallowPattern;
                     }
                 }

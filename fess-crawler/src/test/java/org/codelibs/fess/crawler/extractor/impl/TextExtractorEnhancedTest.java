@@ -36,8 +36,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        final StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("textExtractor", TextExtractor.class);
+        final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("textExtractor", TextExtractor.class);
         textExtractor = container.getComponent("textExtractor");
     }
 
@@ -100,12 +99,9 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
             textExtractor.getText(errorStream, null);
             fail("Expected ExtractException");
         } catch (final ExtractException e) {
-            assertTrue("Error message should contain encoding information",
-                    e.getMessage().contains("encoding"));
-            assertTrue("Error message should contain the specific encoding",
-                    e.getMessage().contains(customEncoding));
-            assertTrue("Error message should indicate extraction failure",
-                    e.getMessage().contains("Failed to extract"));
+            assertTrue("Error message should contain encoding information", e.getMessage().contains("encoding"));
+            assertTrue("Error message should contain the specific encoding", e.getMessage().contains(customEncoding));
+            assertTrue("Error message should indicate extraction failure", e.getMessage().contains("Failed to extract"));
         } finally {
             // Reset to default encoding
             textExtractor.setEncoding("UTF-8");
@@ -203,10 +199,8 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
             final String message = e.getMessage();
             assertNotNull("Error message should not be null", message);
             assertFalse("Error message should not be empty", message.trim().isEmpty());
-            assertTrue("Error message should start with action verb",
-                    message.startsWith("Failed to extract"));
-            assertTrue("Error message should contain 'text content'",
-                    message.contains("text content"));
+            assertTrue("Error message should start with action verb", message.startsWith("Failed to extract"));
+            assertTrue("Error message should contain 'text content'", message.contains("text content"));
         }
     }
 

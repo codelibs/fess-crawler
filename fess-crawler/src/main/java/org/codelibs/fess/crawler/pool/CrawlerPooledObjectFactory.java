@@ -71,14 +71,16 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
             throw new IllegalStateException("crawlerContainer is not set. Please configure the container before creating pooled objects.");
         }
         if (componentName == null) {
-            throw new IllegalStateException("componentName is not set. Please specify a valid component name for the pooled object factory.");
+            throw new IllegalStateException(
+                    "componentName is not set. Please specify a valid component name for the pooled object factory.");
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Creating new pooled object for component: {}", componentName);
         }
         final Object component = crawlerContainer.getComponent(componentName);
         if (component == null) {
-            throw new IllegalStateException("Component '" + componentName + "' not found in crawler container. Please verify the component is registered.");
+            throw new IllegalStateException(
+                    "Component '" + componentName + "' not found in crawler container. Please verify the component is registered.");
         }
         return (T) component;
     }

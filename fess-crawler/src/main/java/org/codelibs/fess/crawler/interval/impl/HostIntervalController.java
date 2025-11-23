@@ -54,9 +54,7 @@ public class HostIntervalController extends DefaultIntervalController {
      * Constructs a new HostIntervalController with default parameters.
      */
     public HostIntervalController() {
-        this.lastTimes = CacheBuilder.newBuilder()
-                .expireAfterAccess(DEFAULT_CACHE_EXPIRE_HOURS, TimeUnit.HOURS)
-                .build();
+        this.lastTimes = CacheBuilder.newBuilder().expireAfterAccess(DEFAULT_CACHE_EXPIRE_HOURS, TimeUnit.HOURS).build();
     }
 
     /**
@@ -66,9 +64,7 @@ public class HostIntervalController extends DefaultIntervalController {
      */
     public HostIntervalController(final Map<String, Long> params) {
         super(params);
-        this.lastTimes = CacheBuilder.newBuilder()
-                .expireAfterAccess(DEFAULT_CACHE_EXPIRE_HOURS, TimeUnit.HOURS)
-                .build();
+        this.lastTimes = CacheBuilder.newBuilder().expireAfterAccess(DEFAULT_CACHE_EXPIRE_HOURS, TimeUnit.HOURS).build();
     }
 
     /**

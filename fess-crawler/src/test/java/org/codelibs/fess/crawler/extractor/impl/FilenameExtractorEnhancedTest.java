@@ -35,8 +35,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        final StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("filenameExtractor", FilenameExtractor.class);
+        final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("filenameExtractor", FilenameExtractor.class);
         filenameExtractor = container.getComponent("filenameExtractor");
     }
 

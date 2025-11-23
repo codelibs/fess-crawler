@@ -315,4 +315,3 @@ public class HostIntervalControllerTest extends PlainTestCase {
         }
     }
 }
-

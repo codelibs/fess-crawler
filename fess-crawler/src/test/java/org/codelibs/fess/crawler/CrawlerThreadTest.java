@@ -322,8 +322,7 @@ public class CrawlerThreadTest extends PlainTestCase {
         when(crawlerContainer.getComponent("urlQueue")).thenReturn(new UrlQueueImpl<>(), new UrlQueueImpl<>());
 
         // Use reflection to access protected method
-        final java.lang.reflect.Method method =
-                CrawlerThread.class.getDeclaredMethod("storeChildUrls", Set.class, String.class, int.class);
+        final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("storeChildUrls", Set.class, String.class, int.class);
         method.setAccessible(true);
         method.invoke(crawlerThread, childUrlList, "http://example.com/", 2);
 
@@ -340,8 +339,7 @@ public class CrawlerThreadTest extends PlainTestCase {
         when(urlFilter.match(anyString())).thenReturn(true);
 
         // Use reflection to access protected method
-        final java.lang.reflect.Method method =
-                CrawlerThread.class.getDeclaredMethod("storeChildUrls", Set.class, String.class, int.class);
+        final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("storeChildUrls", Set.class, String.class, int.class);
         method.setAccessible(true);
         method.invoke(crawlerThread, childUrlList, "http://example.com/", 5); // Exceeds maxDepth
 

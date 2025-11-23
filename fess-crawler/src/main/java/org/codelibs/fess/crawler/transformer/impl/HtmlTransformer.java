@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -260,16 +261,16 @@ public class HtmlTransformer extends AbstractTransformer {
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            URI uri;
+            URI baseUri;
             try {
-                uri = new URI(baseHref == null ? responseData.getUrl() : baseHref);
+                baseUri = new URI(baseHref == null ? responseData.getUrl() : baseHref);
             } catch (final Exception e) {
-                uri = new URI(responseData.getUrl());
+                baseUri = new URI(responseData.getUrl());
             }
-            final URL url = uri.toURL();
+            // Use URI-based method (modern approach)
             getChildUrlRules(responseData, resultData).forEach(entry -> {
                 List<RequestData> requestDataList = new ArrayList<>();
-                for (final String childUrl : getUrlFromTagAttribute(url, document, entry.getFirst(), entry.getSecond(),
+                for (final String childUrl : getUrlFromTagAttribute(baseUri, document, entry.getFirst(), entry.getSecond(),
                         responseData.getCharSet())) {
                     requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
                 }
@@ -514,18 +515,24 @@ public class HtmlTransformer extends AbstractTransformer {
 
     /**
      * Extracts URLs from HTML tag attributes using XPath.
+     * <p>
+     * This is the modern URI-based version. It uses {@link URI} for URL resolution,
+     * which provides better RFC 3986 compliance and eliminates the need for special handling
+     * of query-only URLs.
+     * </p>
      *
-     * @param url the base URL for resolving relative URLs
+     * @param baseUri the base URI for resolving relative URLs
      * @param document the document to extract URLs from
      * @param xpath the XPath expression to select elements
      * @param attr the attribute name to extract URLs from
      * @param encoding the character encoding to use
      * @return a list of extracted URLs
+     * @since 15.3.0
      */
-    protected List<String> getUrlFromTagAttribute(final URL url, final Document document, final String xpath, final String attr,
+    protected List<String> getUrlFromTagAttribute(final URI baseUri, final Document document, final String xpath, final String attr,
             final String encoding) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Base URL: {}", url);
+            logger.debug("Base URI: {}", baseUri);
         }
         final List<String> urlList = new ArrayList<>();
         try {
@@ -536,7 +543,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 if (attrNode != null) {
                     final String attrValue = attrNode.getNodeValue();
                     if (isValidPath(attrValue)) {
-                        addChildUrlFromTagAttribute(urlList, url, attrValue, encoding);
+                        addChildUrlFromTagAttribute(urlList, baseUri, attrValue, encoding);
                     }
                 }
             }
@@ -547,19 +554,63 @@ public class HtmlTransformer extends AbstractTransformer {
     }
 
     /**
+     * Extracts URLs from HTML tag attributes using XPath.
+     * <p>
+     * <strong>Deprecated:</strong> This method uses the legacy {@link URL} class.
+     * Use {@link #getUrlFromTagAttribute(URI, Document, String, String, String)} instead.
+     * </p>
+     *
+     * @param url the base URL for resolving relative URLs
+     * @param document the document to extract URLs from
+     * @param xpath the XPath expression to select elements
+     * @param attr the attribute name to extract URLs from
+     * @param encoding the character encoding to use
+     * @return a list of extracted URLs
+     * @deprecated Use {@link #getUrlFromTagAttribute(URI, Document, String, String, String)} instead.
+     *             The {@link URL} class constructors are deprecated. This method will be removed in a future version.
+     * @see #getUrlFromTagAttribute(URI, Document, String, String, String)
+     */
+    @Deprecated(since = "15.3.0", forRemoval = true)
+    protected List<String> getUrlFromTagAttribute(final URL url, final Document document, final String xpath, final String attr,
+            final String encoding) {
+        try {
+            // Delegate to URI-based implementation
+            return getUrlFromTagAttribute(url.toURI(), document, xpath, attr, encoding);
+        } catch (final URISyntaxException e) {
+            // Fallback: attempt conversion via string
+            logger.warn("Failed to convert URL to URI: {}, attempting with string conversion", url, e);
+            try {
+                return getUrlFromTagAttribute(new URI(url.toExternalForm()), document, xpath, attr, encoding);
+            } catch (final URISyntaxException ex) {
+                // Final fallback: return empty list
+                logger.error("Could not convert URL to URI: {}", url, ex);
+                return new ArrayList<>();
+            }
+        }
+    }
+
+    /**
      * Adds a child URL to the URL list after processing and validation.
+     * <p>
+     * This is the modern URI-based version. It uses {@link URI#resolve(String)} for URL resolution,
+     * which handles all cases uniformly (query-only, relative paths, absolute paths, etc.) without
+     * requiring special conditional logic.
+     * </p>
      *
      * @param urlList the list to add the URL to
-     * @param url the base URL for resolving relative URLs
+     * @param baseUri the base URI for resolving relative URLs
      * @param attrValue the attribute value containing the URL
      * @param encoding the character encoding to use
+     * @since 15.3.0
      */
-    protected void addChildUrlFromTagAttribute(final List<String> urlList, final URL url, final String attrValue, final String encoding) {
+    protected void addChildUrlFromTagAttribute(final List<String> urlList, final URI baseUri, final String attrValue,
+            final String encoding) {
         try {
             final String childUrlValue = attrValue.trim();
-            final URL childUrl =
-                    childUrlValue.startsWith("?") ? new URL(url.toExternalForm() + childUrlValue) : new URL(url, childUrlValue);
-            final String u = encodeUrl(normalizeUrl(childUrl.toExternalForm()), encoding);
+            // URI.resolve() handles all cases uniformly: query-only (?param=value),
+            // relative paths (../path), absolute paths (/path), fragments (#section), etc.
+            final URI childUri = baseUri.resolve(childUrlValue);
+            final String u = encodeUrl(normalizeUrl(childUri.toASCIIString()), encoding);
             if (logger.isDebugEnabled()) {
                 logger.debug("{} -> {}", attrValue, u);
             }
@@ -571,8 +622,40 @@ public class HtmlTransformer extends AbstractTransformer {
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Skip Child: {}", u);
             }
-        } catch (final MalformedURLException e) {
-            logger.warn("Malformed URL: " + attrValue, e);
+        } catch (final IllegalArgumentException e) {
+            // URI syntax error
+            logger.warn("Malformed URI: " + attrValue, e);
+        }
+    }
+
+    /**
+     * Adds a child URL to the URL list after processing and validation.
+     * <p>
+     * <strong>Deprecated:</strong> This method uses the legacy {@link URL} class.
+     * Use {@link #addChildUrlFromTagAttribute(List, URI, String, String)} instead.
+     * </p>
+     *
+     * @param urlList the list to add the URL to
+     * @param url the base URL for resolving relative URLs
+     * @param attrValue the attribute value containing the URL
+     * @param encoding the character encoding to use
+     * @deprecated Use {@link #addChildUrlFromTagAttribute(List, URI, String, String)} instead.
+     *             The {@link URL} class constructors are deprecated. This method will be removed in a future version.
+     * @see #addChildUrlFromTagAttribute(List, URI, String, String)
+     */
+    @Deprecated(since = "15.3.0", forRemoval = true)
+    protected void addChildUrlFromTagAttribute(final List<String> urlList, final URL url, final String attrValue, final String encoding) {
+        try {
+            // Delegate to URI-based implementation
+            addChildUrlFromTagAttribute(urlList, url.toURI(), attrValue, encoding);
+        } catch (final URISyntaxException e) {
+            // Fallback: attempt conversion via string
+            logger.warn("Failed to convert URL to URI: {}, attempting with string conversion", url, e);
+            try {
+                addChildUrlFromTagAttribute(urlList, new URI(url.toExternalForm()), attrValue, encoding);
+            } catch (final URISyntaxException ex) {
+                logger.error("Could not convert URL to URI, skipping: {}", url, ex);
+            }
         }
     }
 

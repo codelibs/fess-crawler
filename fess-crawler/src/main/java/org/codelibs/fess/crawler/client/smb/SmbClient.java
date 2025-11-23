@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -392,7 +393,7 @@ public class SmbClient extends AbstractCrawlerClient {
                     final SmbFile[] files = file.listFiles();
                     if (files != null) {
                         for (final SmbFile f : files) {
-                            final String childUri = f.getURL().toExternalForm();
+                            final String childUri = convertSmbFileToUri(f);
                             requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                         }
                     }
@@ -544,6 +545,35 @@ public class SmbClient extends AbstractCrawlerClient {
             }
         } catch (final IOException e) {
             throw new IORuntimeException(e);
+        }
+    }
+
+    /**
+     * Converts an SmbFile to a URI string representation.
+     * <p>
+     * This method attempts to use the modern {@link java.net.URI} class for URL handling,
+     * with automatic fallback to the legacy {@link java.net.URL#toExternalForm()} method
+     * if URI conversion fails.
+     * </p>
+     * <p>
+     * The URI-based approach is preferred because it provides better RFC 3986 compliance
+     * and ASCII encoding of non-ASCII characters.
+     * </p>
+     *
+     * @param smbFile the SMB file to convert
+     * @return the URI string representation of the SMB file location
+     * @since 15.3.0
+     */
+    private String convertSmbFileToUri(final SmbFile smbFile) {
+        try {
+            // Preferred: Use URI for modern URL handling
+            return smbFile.getURL().toURI().toASCIIString();
+        } catch (final URISyntaxException e) {
+            // Fallback: Use legacy URL.toExternalForm()
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to convert SMB URL to URI for {}, using toExternalForm()", smbFile.getPath(), e);
+            }
+            return smbFile.getURL().toExternalForm();
         }
     }
 

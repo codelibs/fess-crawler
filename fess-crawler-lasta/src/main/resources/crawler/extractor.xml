@@ -57,6 +57,23 @@
 		class="org.codelibs.fess.crawler.extractor.impl.EmlExtractor"/>
 	<component name="filenameExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.FilenameExtractor" />
+	<component name="jsonExtractor"
+		class="org.codelibs.fess.crawler.extractor.impl.JsonExtractor">
+		<property name="maxDepth">10</property>
+		<property name="extractMetadata">true</property>
+	</component>
+	<component name="csvExtractor"
+		class="org.codelibs.fess.crawler.extractor.impl.CsvExtractor">
+		<property name="hasHeader">true</property>
+		<property name="autoDetectDelimiter">true</property>
+		<property name="extractColumnMetadata">true</property>
+	</component>
+	<component name="markdownExtractor"
+		class="org.codelibs.fess.crawler.extractor.impl.MarkdownExtractor">
+		<property name="extractFrontMatter">true</property>
+		<property name="extractHeadings">true</property>
+		<property name="extractLinks">false</property>
+	</component>
 	<!--
 	<component name="jodExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.JodExtractor">
@@ -1543,6 +1560,26 @@
 				"application/xquery"
 				]</arg>
 			<arg>tikaExtractor</arg>
+		</postConstruct>
+		<postConstruct name="addExtractor">
+			<arg>[
+				"application/json"
+				]</arg>
+			<arg>jsonExtractor</arg>
+		</postConstruct>
+		<postConstruct name="addExtractor">
+			<arg>[
+				"text/csv",
+				"text/tab-separated-values"
+				]</arg>
+			<arg>csvExtractor</arg>
+		</postConstruct>
+		<postConstruct name="addExtractor">
+			<arg>[
+				"text/x-web-markdown",
+				"text/markdown"
+				]</arg>
+			<arg>markdownExtractor</arg>
 		</postConstruct>
 	</component>
 

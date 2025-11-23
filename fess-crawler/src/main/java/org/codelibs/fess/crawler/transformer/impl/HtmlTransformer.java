@@ -604,6 +604,11 @@ public class HtmlTransformer extends AbstractTransformer {
      * which handles all cases uniformly (query-only, relative paths, absolute paths, etc.) without
      * requiring special conditional logic.
      * </p>
+     * <p>
+     * <strong>Note:</strong> For query-only URLs (starting with '?'), this method preserves the
+     * base URI's full path including the file name, matching the behavior of the legacy URL-based
+     * implementation. This differs from standard URI.resolve() which would remove the last path segment.
+     * </p>
      *
      * @param urlList the list to add the URL to
      * @param baseUri the base URI for resolving relative URLs
@@ -615,9 +620,20 @@ public class HtmlTransformer extends AbstractTransformer {
             final String encoding) {
         try {
             final String childUrlValue = attrValue.trim();
-            // URI.resolve() handles all cases uniformly: query-only (?param=value),
-            // relative paths (../path), absolute paths (/path), fragments (#section), etc.
-            final URI childUri = baseUri.resolve(childUrlValue);
+            final URI childUri;
+
+            // Special handling for query-only URLs to preserve backward compatibility
+            // Standard URI.resolve("?query") removes the last path segment (file name)
+            // but we want to keep it, matching the legacy URL behavior
+            if (childUrlValue.startsWith("?")) {
+                // Construct URI by appending query to base URI string
+                childUri = new URI(baseUri.toASCIIString() + childUrlValue);
+            } else {
+                // URI.resolve() handles all other cases uniformly:
+                // relative paths (../path), absolute paths (/path), fragments (#section), etc.
+                childUri = baseUri.resolve(childUrlValue);
+            }
+
             final String u = encodeUrl(normalizeUrl(childUri.toASCIIString()), encoding);
             if (logger.isDebugEnabled()) {
                 logger.debug("{} -> {}", attrValue, u);
@@ -630,7 +646,7 @@ public class HtmlTransformer extends AbstractTransformer {
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Skip Child: {}", u);
             }
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | URISyntaxException e) {
             // URI syntax error
             logger.warn("Malformed URI: " + attrValue, e);
         }

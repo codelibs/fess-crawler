@@ -97,10 +97,10 @@ public class CrawlerClientFactory implements AutoCloseable {
      */
     public void addClient(final String regex, final CrawlerClient client) {
         if (StringUtil.isBlank(regex)) {
-            throw new CrawlerSystemException("A regular expression is null.");
+            throw new CrawlerSystemException("URL pattern regular expression is null or blank. Cannot register client without a valid pattern.");
         }
         if (client == null) {
-            throw new CrawlerSystemException("CrawlerClient is null.");
+            throw new CrawlerSystemException("CrawlerClient instance is null. Cannot register null client.");
         }
         clientMap.put(Pattern.compile(regex), client);
     }
@@ -113,10 +113,10 @@ public class CrawlerClientFactory implements AutoCloseable {
      */
     public void addClient(final String regex, final CrawlerClient client, final int pos) {
         if (StringUtil.isBlank(regex)) {
-            throw new CrawlerSystemException("A regular expression is null.");
+            throw new CrawlerSystemException("URL pattern regular expression is null or blank. Cannot register client without a valid pattern.");
         }
         if (client == null) {
-            throw new CrawlerSystemException("CrawlerClient is null.");
+            throw new CrawlerSystemException("CrawlerClient instance is null. Cannot register null client.");
         }
         int current = 0;
         boolean added = false;

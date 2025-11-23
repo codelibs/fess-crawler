@@ -94,7 +94,7 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
     public String getContentType(final InputStream is, final Map<String, String> params) {
         final String filename = params.get(ExtractData.RESOURCE_NAME_KEY);
         if (StringUtil.isEmpty(filename) && is == null) {
-            throw new MimeTypeException("The filename and input stream is empty.");
+            throw new MimeTypeException("Cannot detect MIME type: both filename and input stream are empty. At least one is required.");
         }
 
         final Metadata metadata = new Metadata();

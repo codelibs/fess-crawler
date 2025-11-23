@@ -163,7 +163,7 @@ public class CommandExtractor extends AbstractExtractor {
     private void executeCommand(final File inputFile, final File outputFile) {
 
         if (StringUtil.isBlank(command)) {
-            throw new CrawlerSystemException("command is empty.");
+            throw new CrawlerSystemException("External command is empty. Please configure a valid command for CommandExtractor.");
         }
 
         final Map<String, String> params = new HashMap<>();

@@ -132,16 +132,16 @@ public class StorageClient extends AbstractCrawlerClient {
         final Builder builder = MinioClient.builder();
         final String endpoint = getInitParameter("endpoint", null, String.class);
         if (StringUtil.isBlank(endpoint)) {
-            throw new CrawlingAccessException("endpoint is blank.");
+            throw new CrawlingAccessException("Storage endpoint is blank. Please set the STORAGE_ENDPOINT environment variable or endpoint parameter.");
         }
         builder.endpoint(endpoint);
         final String accessKey = getInitParameter("accessKey", null, String.class);
         if (StringUtil.isBlank(accessKey)) {
-            throw new CrawlingAccessException("accessKey is blank.");
+            throw new CrawlingAccessException("Storage access key is blank. Please set the STORAGE_ACCESS_KEY environment variable or accessKey parameter.");
         }
         final String secretKey = getInitParameter("secretKey", null, String.class);
         if (StringUtil.isBlank(secretKey)) {
-            throw new CrawlingAccessException("secretKey is blank.");
+            throw new CrawlingAccessException("Storage secret key is blank. Please set the STORAGE_SECRET_KEY environment variable or secretKey parameter.");
         }
         builder.credentials(accessKey, secretKey);
         try {
@@ -416,7 +416,7 @@ public class StorageClient extends AbstractCrawlerClient {
      */
     protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
-            throw new CrawlerSystemException("The uri is empty.");
+            throw new CrawlerSystemException("Storage URI is empty. Please provide a valid storage URI (storage://...).");
         }
 
         String filePath = uri;

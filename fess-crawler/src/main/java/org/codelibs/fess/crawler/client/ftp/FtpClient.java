@@ -764,17 +764,17 @@ public class FtpClient extends AbstractCrawlerClient {
          */
         public FtpInfo(final String s, final String c) {
             if (StringUtil.isBlank(s)) {
-                throw new CrawlingAccessException("uri is blank.");
+                throw new CrawlingAccessException("FTP URI is blank. Please provide a valid FTP URI (ftp://...).");
             }
 
             try {
                 uri = new URI(normalize(s).replace("%", "%25").replace(" ", "%20"));
             } catch (final URISyntaxException e) {
-                throw new CrawlingAccessException("Invalid URL: " + s, e);
+                throw new CrawlingAccessException("Invalid FTP URL: " + s, e);
             }
 
             if (!"ftp".equals(uri.getScheme())) {
-                throw new CrawlingAccessException("Invalid scheme: " + uri.getScheme());
+                throw new CrawlingAccessException("Invalid FTP scheme: expected 'ftp://' but got '" + uri.getScheme() + "://' for URI: " + s);
             }
 
             final String path = uri.getPath();

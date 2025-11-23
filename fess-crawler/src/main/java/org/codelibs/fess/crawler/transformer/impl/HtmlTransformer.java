@@ -670,7 +670,7 @@ public class HtmlTransformer extends AbstractTransformer {
      */
     public void addFeature(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
-            throw new CrawlerSystemException("key or value is null.");
+            throw new CrawlerSystemException("HTML parser feature key or value is null or blank. Both key and value are required.");
         }
 
         featureMap.put(key, value);
@@ -685,7 +685,7 @@ public class HtmlTransformer extends AbstractTransformer {
      */
     public void addProperty(final String key, final String value) {
         if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
-            throw new CrawlerSystemException("key or value is null.");
+            throw new CrawlerSystemException("HTML parser property key or value is null or blank. Both key and value are required.");
         }
 
         propertyMap.put(key, value);

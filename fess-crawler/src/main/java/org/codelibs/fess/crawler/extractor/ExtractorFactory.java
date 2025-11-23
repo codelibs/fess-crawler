@@ -81,10 +81,10 @@ public class ExtractorFactory {
      */
     public void addExtractor(final String key, final Extractor extractor) {
         if (StringUtil.isBlank(key)) {
-            throw new CrawlerSystemException("The key is null.");
+            throw new CrawlerSystemException("Extractor key (MIME type) is null or blank. Cannot register extractor without a valid key.");
         }
         if (extractor == null) {
-            throw new CrawlerSystemException("The extractor is null.");
+            throw new CrawlerSystemException("Extractor instance is null. Cannot register null extractor.");
         }
         if (extractorMap.containsKey(key)) {
             final Extractor[] existingExtractors = extractorMap.get(key);

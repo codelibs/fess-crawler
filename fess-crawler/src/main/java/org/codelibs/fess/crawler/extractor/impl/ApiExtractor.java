@@ -203,7 +203,7 @@ public class ApiExtractor extends AbstractExtractor {
             try {
                 httpClient.close();
             } catch (final IOException e) {
-                logger.error("Failed to close httpClient.", e);
+                logger.warn("Failed to close HTTP client for API extractor", e);
             }
         }
     }
@@ -241,7 +241,7 @@ public class ApiExtractor extends AbstractExtractor {
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
             if (response.getStatusLine().getStatusCode() != Constants.OK_STATUS_CODE) {
-                logger.error("Failed to access {}, code: {}.", url, response.getStatusLine().getStatusCode());
+                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}", url, response.getStatusLine().getStatusCode());
                 return null;
             }
 

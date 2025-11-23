@@ -459,7 +459,8 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     final PropertyDesc propertyDesc = beanDesc.getPropertyDesc(propertyName);
                     propertyDesc.setValue(closeableHttpClient, entry.getValue());
                 } else {
-                    logger.warn("DefaultHttpClient does not have {}.", propertyName);
+                    logger.warn("Property not found in HTTP client: propertyName={}, clientClass={}", propertyName,
+                            closeableHttpClient.getClass().getName());
                 }
             }
         }
@@ -481,7 +482,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
                     consumer.accept(response, httpEntity);
                 } catch (final Exception e) {
                     request.abort();
-                    logger.warn("Failed to authenticate on " + scheme, e);
+                    logger.warn("Failed to authenticate with form-based authentication: scheme={}, url={}", scheme, request.getURI(), e);
                 } finally {
                     EntityUtils.consumeQuietly(httpEntity);
                 }
@@ -489,6 +490,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
         });
 
         httpClient = closeableHttpClient;
+        if (logger.isInfoEnabled()) {
+            logger.info("HTTP client initialized successfully: userAgent={}, maxTotal={}, defaultMaxPerRoute={}", userAgent,
+                    maxTotalConnections, maxConnectionsPerRoute);
+        }
     }
 
     /**
@@ -531,9 +536,11 @@ public class HcHttpClient extends AbstractCrawlerClient {
             try {
                 final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, (arg0, arg1) -> true).build();
                 httpClientBuilder.setSSLContext(sslContext);
+                logger.warn(
+                        "SSL certificate validation is disabled. This configuration is insecure and should only be used in development/testing environments.");
                 return new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
             } catch (final Exception e) {
-                logger.warn("Failed to create TrustSelfSignedStrategy.", e);
+                logger.warn("Failed to create SSL context with trust-all strategy: property={}", IGNORE_SSL_CERTIFICATE_PROPERTY, e);
             }
         }
         return SSLConnectionSocketFactory.getSocketFactory();
@@ -573,20 +580,29 @@ public class HcHttpClient extends AbstractCrawlerClient {
             return;
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("Closing HcHttpClient...");
+            logger.debug("Closing HTTP client...");
         }
         if (connectionMonitorTask != null) {
             connectionMonitorTask.cancel();
+            if (logger.isDebugEnabled()) {
+                logger.debug("Connection monitor task cancelled");
+            }
         }
         if (httpClient != null) {
             try {
                 httpClient.close();
+                if (logger.isDebugEnabled()) {
+                    logger.debug("HTTP client closed successfully");
+                }
             } catch (final IOException e) {
-                logger.error("Failed to close httpClient.", e);
+                logger.warn("Failed to close HTTP client", e);
             }
             httpClient = null;
             if (clientConnectionManager != null) {
                 clientConnectionManager.shutdown();
+                if (logger.isDebugEnabled()) {
+                    logger.debug("HTTP client connection manager shutdown complete");
+                }
             }
         }
     }
@@ -906,7 +922,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
                             try (InputStream is = new ByteArrayInputStream(dfos.getData())) {
                                 contentType = mimeTypeHelper.getContentType(is, url);
                             } catch (final Exception e) {
-                                logger.debug("Failed to detect mime-type.", e);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Failed to detect MIME type, using default: url={}, defaultMimeType={}", url,
+                                            defaultMimeType, e);
+                                }
                                 contentType = defaultMimeType;
                             }
                         }
@@ -918,7 +937,10 @@ public class HcHttpClient extends AbstractCrawlerClient {
                             try (InputStream is = new FileInputStream(outputFile)) {
                                 contentType = mimeTypeHelper.getContentType(is, url);
                             } catch (final Exception e) {
-                                logger.debug("Failed to detect mime-type.", e);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Failed to detect MIME type from file, using default: url={}, file={}, defaultMimeType={}",
+                                            url, outputFile.getAbsolutePath(), defaultMimeType, e);
+                                }
                                 contentType = defaultMimeType;
                             }
                         }

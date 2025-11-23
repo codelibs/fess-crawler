@@ -224,7 +224,7 @@ public class LogHelperImpl implements LogHelper {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         final Throwable e = (Throwable) objs[2];
-        logger.error("Crawling Exception at " + urlQueue.getUrl(), e);
+        logger.error("Crawling exception at url: {}", urlQueue.getUrl(), e);
     }
 
     /**
@@ -237,13 +237,13 @@ public class LogHelperImpl implements LogHelper {
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         final CrawlingAccessException e = (CrawlingAccessException) objs[2];
         if (e.isDebugEnabled()) {
-            logger.debug("Crawling Access Exception at {}", urlQueue.getUrl(), e);
+            logger.debug("Crawling access exception at url: {}", urlQueue.getUrl(), e);
         } else if (e.isInfoEnabled()) {
             logger.info(e.getMessage());
         } else if (e.isWarnEnabled()) {
-            logger.warn("Crawling Access Exception at " + urlQueue.getUrl(), e);
+            logger.warn("Crawling access exception at url: {}", urlQueue.getUrl(), e);
         } else if (e.isErrorEnabled()) {
-            logger.error("Crawling Access Exception at " + urlQueue.getUrl(), e);
+            logger.error("Crawling access exception at url: {}", urlQueue.getUrl(), e);
         }
     }
 

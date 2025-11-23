@@ -147,13 +147,20 @@ public class StorageClient extends AbstractCrawlerClient {
         try {
             minioClient = builder.build();
         } catch (final Exception e) {
-            throw new CrawlingAccessException("Failed to create MinioClient(" + endpoint + ")", e);
+            throw new CrawlingAccessException("Failed to create MinIO client: endpoint=" + endpoint, e);
         }
 
-        minioClient.setTimeout(getInitParameter("connectTimeout", (long) 10000, Long.class),
-                getInitParameter("writeTimeout", (long) 10000, Long.class), getInitParameter("readTimeout", (long) 10000, Long.class));
+        final long connectTimeout = getInitParameter("connectTimeout", (long) 10000, Long.class);
+        final long writeTimeout = getInitParameter("writeTimeout", (long) 10000, Long.class);
+        final long readTimeout = getInitParameter("readTimeout", (long) 10000, Long.class);
+        minioClient.setTimeout(connectTimeout, writeTimeout, readTimeout);
 
         isInit = true;
+        if (logger.isInfoEnabled()) {
+            logger.info(
+                    "Storage client initialized successfully: endpoint={}, connectTimeout={}ms, writeTimeout={}ms, readTimeout={}ms",
+                    endpoint, connectTimeout, writeTimeout, readTimeout);
+        }
     }
 
     /**
@@ -167,7 +174,7 @@ public class StorageClient extends AbstractCrawlerClient {
             final BucketExistsArgs args = BucketExistsArgs.builder().bucket(name).build();
             return minioClient.bucketExists(args);
         } catch (final Exception e) {
-            throw new CrawlingAccessException("Could not access bucket:" + name, e);
+            throw new CrawlingAccessException("Failed to check bucket existence: bucket=" + name, e);
         }
     }
 
@@ -231,6 +238,9 @@ public class StorageClient extends AbstractCrawlerClient {
      * @throws ChildUrlsException if the URI represents a directory with child URLs
      */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Accessing storage object: uri={}, includeContent={}", uri, includeContent);
+        }
         final ResponseData responseData = new ResponseData();
         try {
             responseData.setMethod(includeContent ? Constants.GET_METHOD : Constants.HEAD_METHOD);
@@ -240,6 +250,9 @@ public class StorageClient extends AbstractCrawlerClient {
             final String[] paths = parsePath(filePath.replaceFirst("^storage:/+", StringUtil.EMPTY));
             final String bucketName = paths[0];
             final String path = paths[1];
+            if (logger.isDebugEnabled()) {
+                logger.debug("Parsed storage path: bucket={}, objectPath={}", bucketName, path);
+            }
             final StatObjectResponse statObject = getStatObject(bucketName, path);
             if (statObject == null) {
                 final Set<RequestData> requestDataSet = new HashSet<>();
@@ -285,7 +298,8 @@ public class StorageClient extends AbstractCrawlerClient {
                     try (InputStream contentStream = new BufferedInputStream(minioClient.getObject(args))) {
                         responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
                     } catch (final Exception e) {
-                        logger.warn("I/O Exception.", e);
+                        logger.warn("Failed to read storage object content: bucket={}, path={}, size={}", bucketName, path,
+                                statObject.size(), e);
                         responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                     }
                 } else {
@@ -295,8 +309,14 @@ public class StorageClient extends AbstractCrawlerClient {
                         final GetObjectArgs args = GetObjectArgs.builder().bucket(bucketName).object(path).build();
                         CopyUtil.copy(minioClient.getObject(args), outputFile);
                         responseData.setResponseBody(outputFile, true);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(
+                                    "Object size exceeds cache threshold, using temp file: bucket={}, path={}, size={}, threshold={}, tempFile={}",
+                                    bucketName, path, statObject.size(), maxCachedContentSize, outputFile.getAbsolutePath());
+                        }
                     } catch (final Exception e) {
-                        logger.warn("I/O Exception.", e);
+                        logger.warn("Failed to write storage object to temp file: bucket={}, path={}, size={}, tempFile={}", bucketName,
+                                path, statObject.size(), outputFile != null ? outputFile.getAbsolutePath() : "null", e);
                         responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                         FileUtil.deleteInBackground(outputFile);
                     }
@@ -338,18 +358,18 @@ public class StorageClient extends AbstractCrawlerClient {
             final String code = e.errorResponse().code();
             switch (code) {
             case "NoSuchBucket":
-                throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
+                throw new CrawlingAccessException("Bucket not found: bucket=" + bucketName, e);
             case "NoSuchKey", "NoSuchObject":
                 if (logger.isDebugEnabled()) {
-                    logger.debug("{} is not an object.", path);
+                    logger.debug("Object not found: bucket={}, path={}", bucketName, path);
                 }
                 break;
             default:
-                logger.warn(path + " is not an object.", e);
+                logger.warn("Failed to access object with error code {}: bucket={}, path={}", code, bucketName, path, e);
                 break;
             }
         } catch (final Exception e) {
-            logger.warn(path + " is not an object.", e);
+            logger.warn("Failed to get object stat: bucket={}, path={}", bucketName, path, e);
         }
         return null;
     }
@@ -372,18 +392,18 @@ public class StorageClient extends AbstractCrawlerClient {
             final String code = e.errorResponse().code();
             switch (code) {
             case "NoSuchBucket":
-                throw new CrawlingAccessException("Bucket " + bucketName + " is not found.", e);
+                throw new CrawlingAccessException("Bucket not found: bucket=" + bucketName, e);
             case "NoSuchKey", "NoSuchObject":
                 if (logger.isDebugEnabled()) {
-                    logger.debug("{} is not an object.", path);
+                    logger.debug("Object not found when retrieving tags: bucket={}, path={}", bucketName, path);
                 }
                 break;
             default:
-                logger.warn(path + " is not an object.", e);
+                logger.warn("Failed to retrieve object tags with error code {}: bucket={}, path={}", code, bucketName, path, e);
                 break;
             }
         } catch (final Exception e) {
-            logger.warn(path + " is not an object.", e);
+            logger.warn("Failed to get object tags: bucket={}, path={}", bucketName, path, e);
         }
         return null;
     }

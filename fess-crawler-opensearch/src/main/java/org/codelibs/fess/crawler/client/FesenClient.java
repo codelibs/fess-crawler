@@ -231,7 +231,7 @@ public class FesenClient implements Client {
                 try {
                     l.onConnect();
                 } catch (final Exception e) {
-                    logger.warn("Failed to invoke " + l, e);
+                    logger.warn("Failed to invoke onConnect listener: listener={}", l.getClass().getName(), e);
                 }
             });
 
@@ -293,7 +293,7 @@ public class FesenClient implements Client {
             try {
                 client.close();
             } catch (final OpenSearchException e) {
-                logger.warn("Failed to close client.", e);
+                logger.warn("Failed to close OpenSearch client: address={}", address, e);
             }
             logger.info("Disconnected from {}", address);
         }
@@ -674,7 +674,7 @@ public class FesenClient implements Client {
     public void clearScroll(final String scrollId) {
         if (scrollId != null) {
             prepareClearScroll().addScrollId(scrollId)
-                    .execute(ActionListener.wrap(res -> {}, e -> logger.warn("Failed to clear " + scrollId, e)));
+                    .execute(ActionListener.wrap(res -> {}, e -> logger.warn("Failed to clear scroll context: scrollId={}", scrollId, e)));
         }
     }
 

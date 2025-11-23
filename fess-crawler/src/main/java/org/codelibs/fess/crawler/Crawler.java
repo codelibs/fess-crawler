@@ -158,8 +158,11 @@ public class Crawler implements Runnable, AutoCloseable {
     public void addUrl(final String url) {
         try {
             urlQueueService.add(crawlerContext.sessionId, url);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Added URL to queue: url={}, sessionId={}", url, crawlerContext.sessionId);
+            }
         } catch (final Exception e) {
-            logger.warn("Failed to add url: " + url, e);
+            logger.warn("Failed to add URL to crawling queue: url={}, sessionId={}", url, crawlerContext.sessionId, e);
         }
         urlFilter.processUrl(url);
     }
@@ -179,8 +182,12 @@ public class Crawler implements Runnable, AutoCloseable {
      */
     public void setSessionId(final String sessionId) {
         if (StringUtil.isNotBlank(sessionId) && !sessionId.equals(crawlerContext.sessionId)) {
+            final String oldSessionId = crawlerContext.sessionId;
             urlQueueService.updateSessionId(crawlerContext.sessionId, sessionId);
             crawlerContext.sessionId = sessionId;
+            if (logger.isInfoEnabled()) {
+                logger.info("Updated crawler session ID: oldSessionId={}, newSessionId={}", oldSessionId, sessionId);
+            }
         }
     }
 
@@ -190,6 +197,10 @@ public class Crawler implements Runnable, AutoCloseable {
      * @return The session ID of the crawling process.
      */
     public String execute() {
+        if (logger.isInfoEnabled()) {
+            logger.info("Starting crawler execution: sessionId={}, background={}, daemon={}", crawlerContext.sessionId, background,
+                    daemon);
+        }
         parentThread = new Thread(this, "Crawler-" + crawlerContext.sessionId);
         parentThread.setDaemon(daemon);
         parentThread.start();
@@ -213,9 +224,14 @@ public class Crawler implements Runnable, AutoCloseable {
     public void awaitTermination(final long millis) {
         if (parentThread != null) {
             try {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Waiting for crawler termination: thread={}, timeout={}ms", parentThread.getName(), millis);
+                }
                 parentThread.join(millis);
             } catch (final InterruptedException e) {
-                logger.warn("Interrupted job at {}", parentThread.getName());
+                logger.warn("Crawler thread was interrupted while waiting for termination: thread={}, sessionId={}", parentThread.getName(),
+                        crawlerContext.sessionId, e);
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -226,10 +242,20 @@ public class Crawler implements Runnable, AutoCloseable {
      * @param sessionId The session ID to clean up.
      */
     public void cleanup(final String sessionId) {
-        // TODO transaction?
-        urlQueueService.delete(sessionId);
-        dataService.delete(sessionId);
-        urlFilter.clear();
+        if (logger.isInfoEnabled()) {
+            logger.info("Starting crawler cleanup: sessionId={}", sessionId);
+        }
+        try {
+            // TODO transaction?
+            urlQueueService.delete(sessionId);
+            dataService.delete(sessionId);
+            urlFilter.clear();
+            if (logger.isInfoEnabled()) {
+                logger.info("Completed crawler cleanup: sessionId={}", sessionId);
+            }
+        } catch (final Exception e) {
+            logger.warn("Failed to cleanup crawler data: sessionId={}", sessionId, e);
+        }
     }
 
     /**
@@ -268,13 +294,20 @@ public class Crawler implements Runnable, AutoCloseable {
      * Sets the crawler status to DONE and interrupts all crawler threads.
      */
     public void stop() {
+        if (logger.isInfoEnabled()) {
+            logger.info("Stopping crawler: sessionId={}, status={}", crawlerContext.sessionId, crawlerContext.getStatus());
+        }
         crawlerContext.setStatus(CrawlerStatus.DONE);
         try {
             if (crawlerThreadGroup != null) {
                 crawlerThreadGroup.interrupt();
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Interrupted all crawler threads: sessionId={}, activeCount={}", crawlerContext.sessionId,
+                            crawlerThreadGroup.activeCount());
+                }
             }
         } catch (final Exception e) {
-            // ignore
+            logger.warn("Failed to interrupt crawler thread group: sessionId={}", crawlerContext.sessionId, e);
         }
     }
 
@@ -374,6 +407,11 @@ public class Crawler implements Runnable, AutoCloseable {
      */
     @Override
     public void run() {
+        if (logger.isInfoEnabled()) {
+            logger.info("Initializing crawler: sessionId={}, numOfThread={}, maxDepth={}, maxAccessCount={}", crawlerContext.sessionId,
+                    crawlerContext.getNumOfThread(), crawlerContext.maxDepth, crawlerContext.maxAccessCount);
+        }
+
         // context
         crawlerContext.urlFilter = urlFilter;
         crawlerContext.ruleManager = ruleManager;
@@ -395,6 +433,9 @@ public class Crawler implements Runnable, AutoCloseable {
 
         // run
         crawlerContext.setStatus(CrawlerStatus.RUNNING);
+        if (logger.isInfoEnabled()) {
+            logger.info("Starting crawler threads: sessionId={}, numOfThread={}", crawlerContext.sessionId, crawlerContext.numOfThread);
+        }
         for (int i = 0; i < crawlerContext.numOfThread; i++) {
             threads[i].start();
         }
@@ -404,12 +445,24 @@ public class Crawler implements Runnable, AutoCloseable {
             try {
                 threads[i].join();
             } catch (final InterruptedException e) {
-                logger.warn("Interrupted job at {}", threads[i].getName());
+                logger.warn("Crawler thread was interrupted while waiting for completion: thread={}, sessionId={}", threads[i].getName(),
+                        crawlerContext.sessionId, e);
+                Thread.currentThread().interrupt();
             }
         }
         crawlerContext.setStatus(CrawlerStatus.DONE);
+        if (logger.isInfoEnabled()) {
+            logger.info("Crawler execution completed: sessionId={}, status={}", crawlerContext.sessionId, CrawlerStatus.DONE);
+        }
 
-        urlQueueService.saveSession(crawlerContext.sessionId);
+        try {
+            urlQueueService.saveSession(crawlerContext.sessionId);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Saved crawler session: sessionId={}", crawlerContext.sessionId);
+            }
+        } catch (final Exception e) {
+            logger.warn("Failed to save crawler session: sessionId={}", crawlerContext.sessionId, e);
+        }
     }
 
     /**

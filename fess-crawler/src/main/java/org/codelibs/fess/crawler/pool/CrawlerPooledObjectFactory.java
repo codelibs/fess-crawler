@@ -68,10 +68,10 @@ public class CrawlerPooledObjectFactory<T> extends BasePooledObjectFactory<T> {
     @SuppressWarnings("unchecked")
     public T create() throws Exception {
         if (crawlerContainer == null) {
-            throw new IllegalStateException("Crawler container is not set. Please configure the container before creating pooled objects.");
+            throw new IllegalStateException("crawlerContainer is not set. Please configure the container before creating pooled objects.");
         }
         if (componentName == null) {
-            throw new IllegalStateException("Component name is not set. Please specify a valid component name for the pooled object factory.");
+            throw new IllegalStateException("componentName is not set. Please specify a valid component name for the pooled object factory.");
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Creating new pooled object for component: {}", componentName);

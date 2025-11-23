@@ -364,7 +364,7 @@ public class WebDavClient extends AbstractCrawlerClient {
      * @return The file name
      */
     protected String getFileName(final String uri) {
-        if (uri == null) {
+        if (uri == null || uri.endsWith("/")) {
             return "";
         }
         final int index = uri.lastIndexOf('/');

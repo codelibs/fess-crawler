@@ -136,7 +136,7 @@ public class GitClientTest extends PlainTestCase {
         gitClient.init();
 
         assertEquals("text/plain", gitClient.getMimeType("file.txt"));
-        assertEquals("text/x-java", gitClient.getMimeType("Main.java"));
+        assertEquals("text/x-java-source", gitClient.getMimeType("Main.java"));
         assertEquals("application/xml", gitClient.getMimeType("config.xml"));
         assertEquals("application/json", gitClient.getMimeType("data.json"));
         assertEquals("application/octet-stream", gitClient.getMimeType("file.bin"));

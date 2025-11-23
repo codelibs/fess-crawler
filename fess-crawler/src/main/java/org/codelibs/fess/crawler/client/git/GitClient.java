@@ -298,8 +298,6 @@ public class GitClient extends AbstractCrawlerClient {
             CloseableUtil.closeQuietly(responseData);
             throw new CrawlingAccessException("Could not access " + uri, e);
         }
-
-        return responseData;
     }
 
     /**
@@ -470,20 +468,8 @@ public class GitClient extends AbstractCrawlerClient {
      * Gets the MIME type for a filename.
      */
     protected String getMimeType(final String filename) {
-        if (StringUtil.isBlank(filename)) {
-            return APPLICATION_OCTET_STREAM;
-        }
-        // Basic MIME type detection - can be enhanced
-        if (filename.endsWith(".txt")) {
-            return "text/plain";
-        } else if (filename.endsWith(".java")) {
-            return "text/x-java";
-        } else if (filename.endsWith(".xml")) {
-            return "application/xml";
-        } else if (filename.endsWith(".json")) {
-            return "application/json";
-        }
-        return APPLICATION_OCTET_STREAM;
+        final MimeTypeHelper mimeTypeHelper = crawlerContainer.getComponent("mimeTypeHelper");
+        return mimeTypeHelper.getContentType(null, filename);
     }
 
     /**

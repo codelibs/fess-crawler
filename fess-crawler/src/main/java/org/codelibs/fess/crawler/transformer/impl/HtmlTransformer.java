@@ -261,11 +261,12 @@ public class HtmlTransformer extends AbstractTransformer {
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            final URI baseUri;
+            URI baseUri;
             try {
                 baseUri = new URI(baseHref == null ? responseData.getUrl() : baseHref);
             } catch (final URISyntaxException e) {
                 // Fallback to response URL if base href is malformed
+                logger.warn("Failed to create URI from base href: {}, falling back to response URL", baseHref, e);
                 try {
                     baseUri = new URI(responseData.getUrl());
                 } catch (final URISyntaxException ex) {
@@ -273,10 +274,11 @@ public class HtmlTransformer extends AbstractTransformer {
                     throw new CrawlerSystemException("Invalid URI in response: " + responseData.getUrl(), ex);
                 }
             }
+            final URI finalBaseUri = baseUri; // Make effectively final for lambda
             // Use URI-based method (modern approach)
             getChildUrlRules(responseData, resultData).forEach(entry -> {
                 List<RequestData> requestDataList = new ArrayList<>();
-                for (final String childUrl : getUrlFromTagAttribute(baseUri, document, entry.getFirst(), entry.getSecond(),
+                for (final String childUrl : getUrlFromTagAttribute(finalBaseUri, document, entry.getFirst(), entry.getSecond(),
                         responseData.getCharSet())) {
                     requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
                 }

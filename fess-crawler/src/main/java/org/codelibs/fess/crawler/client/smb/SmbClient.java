@@ -566,14 +566,25 @@ public class SmbClient extends AbstractCrawlerClient {
      */
     private String convertSmbFileToUri(final SmbFile smbFile) {
         try {
+            final java.net.URL url = smbFile.getURL();
             // Preferred: Use URI for modern URL handling
-            return smbFile.getURL().toURI().toASCIIString();
+            return url.toURI().toASCIIString();
+        } catch (final MalformedURLException e) {
+            // Fallback: If URL retrieval fails, use path directly
+            logger.warn("Failed to get SMB URL for {}", smbFile, e);
+            return smbFile.getPath();
         } catch (final URISyntaxException e) {
             // Fallback: Use legacy URL.toExternalForm()
-            if (logger.isDebugEnabled()) {
-                logger.debug("Failed to convert SMB URL to URI for {}, using toExternalForm()", smbFile.getPath(), e);
+            try {
+                final java.net.URL url = smbFile.getURL();
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to convert SMB URL to URI for {}, using toExternalForm()", url, e);
+                }
+                return url.toExternalForm();
+            } catch (final MalformedURLException ex) {
+                logger.warn("Failed to get SMB URL for fallback, using path: {}", smbFile, ex);
+                return smbFile.getPath();
             }
-            return smbFile.getURL().toExternalForm();
         }
     }
 

@@ -261,11 +261,17 @@ public class HtmlTransformer extends AbstractTransformer {
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            URI baseUri;
+            final URI baseUri;
             try {
                 baseUri = new URI(baseHref == null ? responseData.getUrl() : baseHref);
-            } catch (final Exception e) {
-                baseUri = new URI(responseData.getUrl());
+            } catch (final URISyntaxException e) {
+                // Fallback to response URL if base href is malformed
+                try {
+                    baseUri = new URI(responseData.getUrl());
+                } catch (final URISyntaxException ex) {
+                    logger.error("Failed to create base URI from response URL: {}", responseData.getUrl(), ex);
+                    throw new CrawlerSystemException("Invalid URI in response: " + responseData.getUrl(), ex);
+                }
             }
             // Use URI-based method (modern approach)
             getChildUrlRules(responseData, resultData).forEach(entry -> {

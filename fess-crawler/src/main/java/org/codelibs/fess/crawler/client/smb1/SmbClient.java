@@ -495,7 +495,7 @@ public class SmbClient extends AbstractCrawlerClient {
      */
     protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
-            throw new CrawlerSystemException("The uri is empty.");
+            throw new CrawlerSystemException("SMB1 URI is empty. Please provide a valid SMB1 URI (smb1://...).");
         }
 
         return uri;

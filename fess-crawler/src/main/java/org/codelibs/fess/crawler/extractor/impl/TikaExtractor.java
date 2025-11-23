@@ -255,7 +255,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
     protected ExtractData getText(final InputStream inputStream, final Map<String, String> params,
             final BiConsumer<ExtractData, InputStream> postFilter) {
         if (inputStream == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
+            throw new CrawlerSystemException("Tika input stream is null. Cannot extract text from null input.");
         }
 
         final File tempFile;

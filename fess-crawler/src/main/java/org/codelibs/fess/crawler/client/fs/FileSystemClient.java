@@ -297,7 +297,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
      */
     protected String preprocessUri(final String uri) {
         if (StringUtil.isEmpty(uri)) {
-            throw new CrawlerSystemException("The uri is empty.");
+            throw new CrawlerSystemException("File system URI is empty. Please provide a valid file path or file:// URI.");
         }
 
         String filePath = uri;

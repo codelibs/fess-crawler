@@ -628,7 +628,7 @@ public class HcHttpClient extends AbstractCrawlerClient {
      */
     protected void processRobotsTxt(final String url) {
         if (StringUtil.isBlank(url)) {
-            throw new CrawlerSystemException("url is null or empty.");
+            throw new CrawlerSystemException("HTTP URL is null or empty. Cannot process robots.txt without a valid URL.");
         }
 
         if (robotsTxtHelper == null || !robotsTxtHelper.isEnabled()) {

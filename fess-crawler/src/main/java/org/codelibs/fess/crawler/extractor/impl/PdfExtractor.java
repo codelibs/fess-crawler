@@ -96,7 +96,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
+            throw new CrawlerSystemException("PDF input stream is null. Cannot extract text from null input.");
         }
 
         final String password = getPassword(params);

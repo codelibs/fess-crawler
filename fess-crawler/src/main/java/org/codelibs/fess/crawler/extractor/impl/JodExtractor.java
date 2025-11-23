@@ -152,7 +152,7 @@ public class JodExtractor extends AbstractExtractor {
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
-            throw new CrawlerSystemException("in is null.");
+            throw new CrawlerSystemException("JODConverter input stream is null. Cannot extract text from null input.");
         }
 
         final String resourceName = params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);

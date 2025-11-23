@@ -48,7 +48,7 @@ public class MsVisioExtractor extends AbstractExtractor {
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
-            throw new CrawlerSystemException("The inputstream is null.");
+            throw new CrawlerSystemException("Microsoft Visio input stream is null. Cannot extract text from null input.");
         }
         try {
             @SuppressWarnings("resource")

@@ -85,24 +85,18 @@ public class XmlUtilTest extends PlainTestCase {
 
     public void test_stripInvalidXMLCharacters_validRanges() {
         // Test valid character ranges
-        String input = "Test"
-                + String.valueOf((char)0x0020)  // space
-                + String.valueOf((char)0x0009)  // tab
-                + String.valueOf((char)0x000A)  // line feed
-                + String.valueOf((char)0x000D)  // carriage return
-                + String.valueOf((char)0xD7FF)
-                + String.valueOf((char)0xE000)
-                + String.valueOf((char)0xFFFD);
+        String input = "Test" + String.valueOf((char) 0x0020) // space
+                + String.valueOf((char) 0x0009) // tab
+                + String.valueOf((char) 0x000A) // line feed
+                + String.valueOf((char) 0x000D) // carriage return
+                + String.valueOf((char) 0xD7FF) + String.valueOf((char) 0xE000) + String.valueOf((char) 0xFFFD);
         String result = XmlUtil.stripInvalidXMLCharacters(input);
         assertNotNull(result);
     }
 
     public void test_getDataMap_simpleField() throws Exception {
         // Test parsing simple field
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<doc>\n"
-                + "  <field name=\"title\">Test Title</field>\n"
-                + "</doc>";
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"title\">Test Title</field>\n" + "</doc>";
 
         AccessResultDataImpl<?> accessResultData = new AccessResultDataImpl<>();
         accessResultData.setData(xml.getBytes("UTF-8"));
@@ -115,12 +109,8 @@ public class XmlUtilTest extends PlainTestCase {
 
     public void test_getDataMap_multipleFields() throws Exception {
         // Test parsing multiple fields
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<doc>\n"
-                + "  <field name=\"title\">Test Title</field>\n"
-                + "  <field name=\"content\">Test Content</field>\n"
-                + "  <field name=\"author\">Test Author</field>\n"
-                + "</doc>";
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"title\">Test Title</field>\n"
+                + "  <field name=\"content\">Test Content</field>\n" + "  <field name=\"author\">Test Author</field>\n" + "</doc>";
 
         AccessResultDataImpl<?> accessResultData = new AccessResultDataImpl<>();
         accessResultData.setData(xml.getBytes("UTF-8"));
@@ -136,15 +126,8 @@ public class XmlUtilTest extends PlainTestCase {
 
     public void test_getDataMap_withList() throws Exception {
         // Test parsing field with list
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<doc>\n"
-                + "  <field name=\"tags\">\n"
-                + "    <list>\n"
-                + "      <item>tag1</item>\n"
-                + "      <item>tag2</item>\n"
-                + "      <item>tag3</item>\n"
-                + "    </list>\n"
-                + "  </field>\n"
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"tags\">\n" + "    <list>\n"
+                + "      <item>tag1</item>\n" + "      <item>tag2</item>\n" + "      <item>tag3</item>\n" + "    </list>\n" + "  </field>\n"
                 + "</doc>";
 
         AccessResultDataImpl<?> accessResultData = new AccessResultDataImpl<>();
@@ -164,10 +147,7 @@ public class XmlUtilTest extends PlainTestCase {
 
     public void test_getDataMap_emptyField() throws Exception {
         // Test parsing empty field
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<doc>\n"
-                + "  <field name=\"empty\"></field>\n"
-                + "</doc>";
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"empty\"></field>\n" + "</doc>";
 
         AccessResultDataImpl<?> accessResultData = new AccessResultDataImpl<>();
         accessResultData.setData(xml.getBytes("UTF-8"));
@@ -180,11 +160,8 @@ public class XmlUtilTest extends PlainTestCase {
 
     public void test_getDataMap_noNameAttribute() throws Exception {
         // Test parsing field without name attribute (should be ignored)
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<doc>\n"
-                + "  <field>No Name</field>\n"
-                + "  <field name=\"valid\">Valid Field</field>\n"
-                + "</doc>";
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field>No Name</field>\n"
+                + "  <field name=\"valid\">Valid Field</field>\n" + "</doc>";
 
         AccessResultDataImpl<?> accessResultData = new AccessResultDataImpl<>();
         accessResultData.setData(xml.getBytes("UTF-8"));
@@ -199,17 +176,9 @@ public class XmlUtilTest extends PlainTestCase {
 
     public void test_getDataMap_mixedFieldsAndLists() throws Exception {
         // Test parsing mixed fields and lists
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<doc>\n"
-                + "  <field name=\"title\">Test Title</field>\n"
-                + "  <field name=\"tags\">\n"
-                + "    <list>\n"
-                + "      <item>java</item>\n"
-                + "      <item>xml</item>\n"
-                + "    </list>\n"
-                + "  </field>\n"
-                + "  <field name=\"content\">Test Content</field>\n"
-                + "</doc>";
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"title\">Test Title</field>\n"
+                + "  <field name=\"tags\">\n" + "    <list>\n" + "      <item>java</item>\n" + "      <item>xml</item>\n" + "    </list>\n"
+                + "  </field>\n" + "  <field name=\"content\">Test Content</field>\n" + "</doc>";
 
         AccessResultDataImpl<?> accessResultData = new AccessResultDataImpl<>();
         accessResultData.setData(xml.getBytes("UTF-8"));

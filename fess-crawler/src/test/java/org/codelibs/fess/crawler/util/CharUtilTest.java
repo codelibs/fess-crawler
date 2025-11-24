@@ -86,15 +86,15 @@ public class CharUtilTest extends PlainTestCase {
 
     public void test_isUrlChar_notAllowed() {
         // Test characters that are not allowed
-        assertFalse(CharUtil.isUrlChar(' '));  // space
+        assertFalse(CharUtil.isUrlChar(' ')); // space
         assertFalse(CharUtil.isUrlChar('\t')); // tab
         assertFalse(CharUtil.isUrlChar('\n')); // newline
         assertFalse(CharUtil.isUrlChar('\r')); // carriage return
-        assertFalse(CharUtil.isUrlChar('<'));  // less than
-        assertFalse(CharUtil.isUrlChar('>'));  // greater than
-        assertFalse(CharUtil.isUrlChar('"'));  // double quote
-        assertFalse(CharUtil.isUrlChar('\\'));  // backslash
-        assertFalse(CharUtil.isUrlChar('`'));  // backtick
+        assertFalse(CharUtil.isUrlChar('<')); // less than
+        assertFalse(CharUtil.isUrlChar('>')); // greater than
+        assertFalse(CharUtil.isUrlChar('"')); // double quote
+        assertFalse(CharUtil.isUrlChar('\\')); // backslash
+        assertFalse(CharUtil.isUrlChar('`')); // backtick
     }
 
     public void test_isUrlChar_controlCharacters() {
@@ -128,17 +128,17 @@ public class CharUtilTest extends PlainTestCase {
 
     public void test_isUrlChar_boundaryChars() {
         // Test boundary characters for ranges
-        assertTrue(CharUtil.isUrlChar('a'));   // first lowercase
-        assertTrue(CharUtil.isUrlChar('z'));   // last lowercase
-        assertTrue(CharUtil.isUrlChar('A'));   // first uppercase
-        assertTrue(CharUtil.isUrlChar('Z'));   // last uppercase
-        assertTrue(CharUtil.isUrlChar('0'));   // first digit
-        assertTrue(CharUtil.isUrlChar('9'));   // last digit
+        assertTrue(CharUtil.isUrlChar('a')); // first lowercase
+        assertTrue(CharUtil.isUrlChar('z')); // last lowercase
+        assertTrue(CharUtil.isUrlChar('A')); // first uppercase
+        assertTrue(CharUtil.isUrlChar('Z')); // last uppercase
+        assertTrue(CharUtil.isUrlChar('0')); // first digit
+        assertTrue(CharUtil.isUrlChar('9')); // last digit
 
         // Test characters just outside ranges that are not valid
-        assertFalse(CharUtil.isUrlChar('`'));  // backtick (just before 'a')
-        assertFalse(CharUtil.isUrlChar('{'));  // left brace (just after 'z')
-        assertFalse(CharUtil.isUrlChar('^'));  // caret (before 'a' range)
-        assertFalse(CharUtil.isUrlChar('|'));  // pipe (not in valid set)
+        assertFalse(CharUtil.isUrlChar('`')); // backtick (just before 'a')
+        assertFalse(CharUtil.isUrlChar('{')); // left brace (just after 'z')
+        assertFalse(CharUtil.isUrlChar('^')); // caret (before 'a' range)
+        assertFalse(CharUtil.isUrlChar('|')); // pipe (not in valid set)
     }
 }

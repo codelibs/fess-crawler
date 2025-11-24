@@ -142,14 +142,15 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
         urlFilterService.addIncludeUrlFilter(sessionId, urlPatterns);
 
         // Verify all filters are stored
-        assertEquals(3, fesenClient.prepareSearch("fess_crawler.filter")
-                .setQuery(QueryBuilders.termQuery("sessionId", sessionId))
-                .setSize(0)
-                .execute()
-                .actionGet()
-                .getHits()
-                .getTotalHits()
-                .value());
+        assertEquals(3,
+                fesenClient.prepareSearch("fess_crawler.filter")
+                        .setQuery(QueryBuilders.termQuery("sessionId", sessionId))
+                        .setSize(0)
+                        .execute()
+                        .actionGet()
+                        .getHits()
+                        .getTotalHits()
+                        .value());
 
         // Verify all patterns can be retrieved
         final List<Pattern> patterns = urlFilterService.getIncludeUrlPatternList(sessionId);
@@ -167,14 +168,15 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
         urlFilterService.addExcludeUrlFilter(sessionId, urlPatterns);
 
         // Verify all filters are stored
-        assertEquals(2, fesenClient.prepareSearch("fess_crawler.filter")
-                .setQuery(QueryBuilders.termQuery("sessionId", sessionId))
-                .setSize(0)
-                .execute()
-                .actionGet()
-                .getHits()
-                .getTotalHits()
-                .value());
+        assertEquals(2,
+                fesenClient.prepareSearch("fess_crawler.filter")
+                        .setQuery(QueryBuilders.termQuery("sessionId", sessionId))
+                        .setSize(0)
+                        .execute()
+                        .actionGet()
+                        .getHits()
+                        .getTotalHits()
+                        .value());
 
         // Verify all patterns can be retrieved
         final List<Pattern> patterns = urlFilterService.getExcludeUrlPatternList(sessionId);
@@ -246,14 +248,15 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
         urlFilterService.delete(sessionId1);
 
         // Verify session1 is deleted but session2 remains
-        assertEquals(0, fesenClient.prepareSearch("fess_crawler.filter")
-                .setQuery(QueryBuilders.termQuery("sessionId", sessionId1))
-                .setSize(0)
-                .execute()
-                .actionGet()
-                .getHits()
-                .getTotalHits()
-                .value());
+        assertEquals(0,
+                fesenClient.prepareSearch("fess_crawler.filter")
+                        .setQuery(QueryBuilders.termQuery("sessionId", sessionId1))
+                        .setSize(0)
+                        .execute()
+                        .actionGet()
+                        .getHits()
+                        .getTotalHits()
+                        .value());
         assertTrue(fesenClient.prepareSearch("fess_crawler.filter")
                 .setQuery(QueryBuilders.termQuery("sessionId", sessionId2))
                 .setSize(0)

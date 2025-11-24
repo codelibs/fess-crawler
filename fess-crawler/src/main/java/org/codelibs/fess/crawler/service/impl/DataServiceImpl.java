@@ -94,7 +94,8 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
 
             final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(accessResult.getSessionId());
             if (arMap.containsKey(accessResult.getUrl())) {
-                throw new CrawlerSystemException("AccessResult for URL '" + accessResult.getUrl() + "' already exists. Duplicate URLs are not allowed.");
+                throw new CrawlerSystemException(
+                        "AccessResult for URL '" + accessResult.getUrl() + "' already exists. Duplicate URLs are not allowed.");
             }
             arMap.put(accessResult.getUrl(), accessResult);
         }

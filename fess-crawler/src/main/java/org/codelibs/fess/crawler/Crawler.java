@@ -198,8 +198,7 @@ public class Crawler implements Runnable, AutoCloseable {
      */
     public String execute() {
         if (logger.isInfoEnabled()) {
-            logger.info("Starting crawler execution: sessionId={}, background={}, daemon={}", crawlerContext.sessionId, background,
-                    daemon);
+            logger.info("Starting crawler execution: sessionId={}, background={}, daemon={}", crawlerContext.sessionId, background, daemon);
         }
         parentThread = new Thread(this, "Crawler-" + crawlerContext.sessionId);
         parentThread.setDaemon(daemon);

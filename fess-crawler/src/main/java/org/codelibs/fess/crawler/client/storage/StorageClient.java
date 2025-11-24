@@ -132,16 +132,19 @@ public class StorageClient extends AbstractCrawlerClient {
         final Builder builder = MinioClient.builder();
         final String endpoint = getInitParameter("endpoint", null, String.class);
         if (StringUtil.isBlank(endpoint)) {
-            throw new CrawlingAccessException("Storage endpoint is blank. Please set the STORAGE_ENDPOINT environment variable or endpoint parameter.");
+            throw new CrawlingAccessException(
+                    "Storage endpoint is blank. Please set the STORAGE_ENDPOINT environment variable or endpoint parameter.");
         }
         builder.endpoint(endpoint);
         final String accessKey = getInitParameter("accessKey", null, String.class);
         if (StringUtil.isBlank(accessKey)) {
-            throw new CrawlingAccessException("Storage access key is blank. Please set the STORAGE_ACCESS_KEY environment variable or accessKey parameter.");
+            throw new CrawlingAccessException(
+                    "Storage access key is blank. Please set the STORAGE_ACCESS_KEY environment variable or accessKey parameter.");
         }
         final String secretKey = getInitParameter("secretKey", null, String.class);
         if (StringUtil.isBlank(secretKey)) {
-            throw new CrawlingAccessException("Storage secret key is blank. Please set the STORAGE_SECRET_KEY environment variable or secretKey parameter.");
+            throw new CrawlingAccessException(
+                    "Storage secret key is blank. Please set the STORAGE_SECRET_KEY environment variable or secretKey parameter.");
         }
         builder.credentials(accessKey, secretKey);
         try {
@@ -157,8 +160,7 @@ public class StorageClient extends AbstractCrawlerClient {
 
         isInit = true;
         if (logger.isInfoEnabled()) {
-            logger.info(
-                    "Storage client initialized successfully: endpoint={}, connectTimeout={}ms, writeTimeout={}ms, readTimeout={}ms",
+            logger.info("Storage client initialized successfully: endpoint={}, connectTimeout={}ms, writeTimeout={}ms, readTimeout={}ms",
                     endpoint, connectTimeout, writeTimeout, readTimeout);
         }
     }

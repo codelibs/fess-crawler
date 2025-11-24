@@ -44,104 +44,76 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_methodWithStringGet() {
         // Test method(String) with GET
-        RequestData data = RequestDataBuilder.newRequestData()
-                .method(Constants.GET_METHOD)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().method(Constants.GET_METHOD).build();
 
         assertEquals(Method.GET, data.getMethod());
     }
 
     public void test_methodWithStringPost() {
         // Test method(String) with POST
-        RequestData data = RequestDataBuilder.newRequestData()
-                .method(Constants.POST_METHOD)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().method(Constants.POST_METHOD).build();
 
         assertEquals(Method.POST, data.getMethod());
     }
 
     public void test_methodWithStringHead() {
         // Test method(String) with HEAD
-        RequestData data = RequestDataBuilder.newRequestData()
-                .method(Constants.HEAD_METHOD)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().method(Constants.HEAD_METHOD).build();
 
         assertEquals(Method.HEAD, data.getMethod());
     }
 
     public void test_methodWithStringCaseInsensitive() {
         // Test method(String) case-insensitive
-        RequestData data1 = RequestDataBuilder.newRequestData()
-                .method("get")
-                .build();
+        RequestData data1 = RequestDataBuilder.newRequestData().method("get").build();
         assertEquals(Method.GET, data1.getMethod());
 
-        RequestData data2 = RequestDataBuilder.newRequestData()
-                .method("GET")
-                .build();
+        RequestData data2 = RequestDataBuilder.newRequestData().method("GET").build();
         assertEquals(Method.GET, data2.getMethod());
 
-        RequestData data3 = RequestDataBuilder.newRequestData()
-                .method("post")
-                .build();
+        RequestData data3 = RequestDataBuilder.newRequestData().method("post").build();
         assertEquals(Method.POST, data3.getMethod());
 
-        RequestData data4 = RequestDataBuilder.newRequestData()
-                .method("HEAD")
-                .build();
+        RequestData data4 = RequestDataBuilder.newRequestData().method("HEAD").build();
         assertEquals(Method.HEAD, data4.getMethod());
     }
 
     public void test_methodWithStringUnknown() {
         // Test method(String) with unknown method defaults to GET
-        RequestData data = RequestDataBuilder.newRequestData()
-                .method("PUT")
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().method("PUT").build();
 
         assertEquals(Method.GET, data.getMethod());
     }
 
     public void test_methodWithEnum() {
         // Test method(Method) with enum
-        RequestData data1 = RequestDataBuilder.newRequestData()
-                .method(Method.GET)
-                .build();
+        RequestData data1 = RequestDataBuilder.newRequestData().method(Method.GET).build();
         assertEquals(Method.GET, data1.getMethod());
 
-        RequestData data2 = RequestDataBuilder.newRequestData()
-                .method(Method.POST)
-                .build();
+        RequestData data2 = RequestDataBuilder.newRequestData().method(Method.POST).build();
         assertEquals(Method.POST, data2.getMethod());
 
-        RequestData data3 = RequestDataBuilder.newRequestData()
-                .method(Method.HEAD)
-                .build();
+        RequestData data3 = RequestDataBuilder.newRequestData().method(Method.HEAD).build();
         assertEquals(Method.HEAD, data3.getMethod());
     }
 
     public void test_getMethod() {
         // Test get() convenience method
-        RequestData data = RequestDataBuilder.newRequestData()
-                .get()
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().get().build();
 
         assertEquals(Method.GET, data.getMethod());
     }
 
     public void test_postMethod() {
         // Test post() convenience method
-        RequestData data = RequestDataBuilder.newRequestData()
-                .post()
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().post().build();
 
         assertEquals(Method.POST, data.getMethod());
     }
 
     public void test_headMethod() {
         // Test head() convenience method
-        RequestData data = RequestDataBuilder.newRequestData()
-                .head()
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().head().build();
 
         assertEquals(Method.HEAD, data.getMethod());
     }
@@ -149,29 +121,22 @@ public class RequestDataBuilderTest extends PlainTestCase {
     public void test_url() {
         // Test url() method
         String url = "https://example.com/path";
-        RequestData data = RequestDataBuilder.newRequestData()
-                .url(url)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().url(url).build();
 
         assertEquals(url, data.getUrl());
     }
 
     public void test_weight() {
         // Test weight() method
-        RequestData data = RequestDataBuilder.newRequestData()
-                .weight(2.5f)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().weight(2.5f).build();
 
         assertEquals(2.5f, data.getWeight(), 0.001f);
     }
 
     public void test_fluentApiChaining() {
         // Test fluent API method chaining
-        RequestData data = RequestDataBuilder.newRequestData()
-                .method(Constants.GET_METHOD)
-                .url("https://example.com/page")
-                .weight(1.5f)
-                .build();
+        RequestData data =
+                RequestDataBuilder.newRequestData().method(Constants.GET_METHOD).url("https://example.com/page").weight(1.5f).build();
 
         assertEquals(Method.GET, data.getMethod());
         assertEquals("https://example.com/page", data.getUrl());
@@ -180,28 +145,17 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_fluentApiWithConvenienceMethods() {
         // Test fluent API with convenience methods
-        RequestData data1 = RequestDataBuilder.newRequestData()
-                .get()
-                .url("https://example.com/get")
-                .weight(1.0f)
-                .build();
+        RequestData data1 = RequestDataBuilder.newRequestData().get().url("https://example.com/get").weight(1.0f).build();
 
         assertEquals(Method.GET, data1.getMethod());
         assertEquals("https://example.com/get", data1.getUrl());
 
-        RequestData data2 = RequestDataBuilder.newRequestData()
-                .post()
-                .url("https://example.com/post")
-                .weight(2.0f)
-                .build();
+        RequestData data2 = RequestDataBuilder.newRequestData().post().url("https://example.com/post").weight(2.0f).build();
 
         assertEquals(Method.POST, data2.getMethod());
         assertEquals("https://example.com/post", data2.getUrl());
 
-        RequestData data3 = RequestDataBuilder.newRequestData()
-                .head()
-                .url("https://example.com/head")
-                .build();
+        RequestData data3 = RequestDataBuilder.newRequestData().head().url("https://example.com/head").build();
 
         assertEquals(Method.HEAD, data3.getMethod());
         assertEquals("https://example.com/head", data3.getUrl());
@@ -209,9 +163,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_buildMultipleTimes() {
         // Test that context can be used to build multiple times
-        RequestDataBuilder.RequestDataContext context = RequestDataBuilder.newRequestData()
-                .get()
-                .url("https://example.com");
+        RequestDataBuilder.RequestDataContext context = RequestDataBuilder.newRequestData().get().url("https://example.com");
 
         RequestData data1 = context.build();
         RequestData data2 = context.build();
@@ -222,9 +174,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_modifyAfterBuild() {
         // Test modifying context after build
-        RequestDataBuilder.RequestDataContext context = RequestDataBuilder.newRequestData()
-                .get()
-                .url("https://example.com");
+        RequestDataBuilder.RequestDataContext context = RequestDataBuilder.newRequestData().get().url("https://example.com");
 
         RequestData data1 = context.build();
         assertEquals("https://example.com", data1.getUrl());
@@ -241,11 +191,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_complexScenarioWithGet() {
         // Test complex scenario with GET method
-        RequestData data = RequestDataBuilder.newRequestData()
-                .get()
-                .url("https://api.example.com/users/123")
-                .weight(0.8f)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().get().url("https://api.example.com/users/123").weight(0.8f).build();
 
         assertEquals(Method.GET, data.getMethod());
         assertEquals("https://api.example.com/users/123", data.getUrl());
@@ -254,11 +200,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_complexScenarioWithPost() {
         // Test complex scenario with POST method
-        RequestData data = RequestDataBuilder.newRequestData()
-                .post()
-                .url("https://api.example.com/users")
-                .weight(1.2f)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().post().url("https://api.example.com/users").weight(1.2f).build();
 
         assertEquals(Method.POST, data.getMethod());
         assertEquals("https://api.example.com/users", data.getUrl());
@@ -267,23 +209,11 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_orderIndependence() {
         // Test that order of method calls doesn't matter
-        RequestData data1 = RequestDataBuilder.newRequestData()
-                .url("https://example.com")
-                .weight(1.5f)
-                .get()
-                .build();
+        RequestData data1 = RequestDataBuilder.newRequestData().url("https://example.com").weight(1.5f).get().build();
 
-        RequestData data2 = RequestDataBuilder.newRequestData()
-                .get()
-                .url("https://example.com")
-                .weight(1.5f)
-                .build();
+        RequestData data2 = RequestDataBuilder.newRequestData().get().url("https://example.com").weight(1.5f).build();
 
-        RequestData data3 = RequestDataBuilder.newRequestData()
-                .weight(1.5f)
-                .get()
-                .url("https://example.com")
-                .build();
+        RequestData data3 = RequestDataBuilder.newRequestData().weight(1.5f).get().url("https://example.com").build();
 
         assertEquals(data1.getMethod(), data2.getMethod());
         assertEquals(data1.getUrl(), data2.getUrl());
@@ -312,9 +242,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_minimalUsage() {
         // Test minimal usage (just URL)
-        RequestData data = RequestDataBuilder.newRequestData()
-                .url("https://example.com")
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().url("https://example.com").build();
 
         assertNull(data.getMethod());
         assertEquals("https://example.com", data.getUrl());
@@ -323,20 +251,14 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_buildWithNullValues() {
         // Test building with null values
-        RequestData data = RequestDataBuilder.newRequestData()
-                .url(null)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().url(null).build();
 
         assertNull(data.getUrl());
     }
 
     public void test_realWorldUsageExample1() {
         // Real-world example: crawling a web page
-        RequestData data = RequestDataBuilder.newRequestData()
-                .get()
-                .url("https://example.com/article/12345")
-                .weight(1.0f)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().get().url("https://example.com/article/12345").weight(1.0f).build();
 
         assertNotNull(data);
         assertEquals(Method.GET, data.getMethod());
@@ -345,11 +267,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_realWorldUsageExample2() {
         // Real-world example: posting data
-        RequestData data = RequestDataBuilder.newRequestData()
-                .post()
-                .url("https://api.example.com/data")
-                .weight(2.0f)
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().post().url("https://api.example.com/data").weight(2.0f).build();
 
         assertNotNull(data);
         assertEquals(Method.POST, data.getMethod());
@@ -359,10 +277,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
     public void test_realWorldUsageExample3() {
         // Real-world example: checking headers
-        RequestData data = RequestDataBuilder.newRequestData()
-                .head()
-                .url("https://example.com/large-file.zip")
-                .build();
+        RequestData data = RequestDataBuilder.newRequestData().head().url("https://example.com/large-file.zip").build();
 
         assertNotNull(data);
         assertEquals(Method.HEAD, data.getMethod());

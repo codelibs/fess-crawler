@@ -37,8 +37,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        final StandardCrawlerContainer container =
-                new StandardCrawlerContainer().singleton("markdownExtractor", MarkdownExtractor.class);
+        final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("markdownExtractor", MarkdownExtractor.class);
         markdownExtractor = container.getComponent("markdownExtractor");
     }
 

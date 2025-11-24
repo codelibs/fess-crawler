@@ -48,8 +48,8 @@ public class MsExcelExtractor extends AbstractExtractor {
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         validateInputStream(in);
         try (final HSSFWorkbook workbook = new HSSFWorkbook(in);
-             final org.apache.poi.hssf.extractor.ExcelExtractor excelExtractor =
-                     new org.apache.poi.hssf.extractor.ExcelExtractor(workbook)) {
+                final org.apache.poi.hssf.extractor.ExcelExtractor excelExtractor =
+                        new org.apache.poi.hssf.extractor.ExcelExtractor(workbook)) {
             return new ExtractData(excelExtractor.getText());
         } catch (final IOException e) {
             throw new ExtractException("Failed to extract text from Excel document.", e);

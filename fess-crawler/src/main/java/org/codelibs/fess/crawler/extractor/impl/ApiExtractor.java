@@ -241,7 +241,8 @@ public class ApiExtractor extends AbstractExtractor {
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
             if (response.getStatusLine().getStatusCode() != Constants.OK_STATUS_CODE) {
-                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}", url, response.getStatusLine().getStatusCode());
+                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}", url,
+                        response.getStatusLine().getStatusCode());
                 return null;
             }
 

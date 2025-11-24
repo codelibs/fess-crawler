@@ -447,8 +447,7 @@ public class FtpClientTest extends PlainTestCase {
                 assertEquals(1, urlSet.size());
                 String childUrl = urlSet.iterator().next().getUrl();
                 assertTrue("Child URL should be properly formed", childUrl.contains("dir1/test3.txt"));
-                assertTrue("Child URL should contain 'child' not 'chile'",
-                    childUrl.matches(".*dir1/test3\\.txt"));
+                assertTrue("Child URL should contain 'child' not 'chile'", childUrl.matches(".*dir1/test3\\.txt"));
             }
         } finally {
             if (server != null) {

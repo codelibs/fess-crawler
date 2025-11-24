@@ -59,7 +59,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
                 .singleton("textExtractor", TextExtractor.class)
                 .singleton("zipExtractor", ZipExtractor.class)
                 .singleton("tarExtractor", TarExtractor.class)
-                .<ExtractorFactory>singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
                     final TikaExtractor tikaExtractor = container.getComponent("tikaExtractor");
                     final TextExtractor textExtractor = container.getComponent("textExtractor");
                     final ZipExtractor zipExtractor = container.getComponent("zipExtractor");
@@ -108,8 +108,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
             zipExtractor.getText(invalidStream, null);
             fail("Expected ExtractException");
         } catch (final ExtractException e) {
-            assertTrue("Error message should mention ZIP archive",
-                    e.getMessage().contains("ZIP archive"));
+            assertTrue("Error message should mention ZIP archive", e.getMessage().contains("ZIP archive"));
             assertTrue("Error message should indicate failure",
                     e.getMessage().contains("Failed to extract") || e.getMessage().contains("No entries could be processed"));
         }

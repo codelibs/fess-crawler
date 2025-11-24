@@ -47,49 +47,103 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
     private UrlQueue<?> createMockUrlQueue(final String sessionId, final String url) {
         return new UrlQueue<Object>() {
             @Override
-            public Object getId() { return null; }
+            public Object getId() {
+                return null;
+            }
+
             @Override
-            public void setId(Object id) {}
+            public void setId(Object id) {
+            }
+
             @Override
-            public String getSessionId() { return sessionId; }
+            public String getSessionId() {
+                return sessionId;
+            }
+
             @Override
-            public void setSessionId(String sid) {}
+            public void setSessionId(String sid) {
+            }
+
             @Override
-            public String getMethod() { return null; }
+            public String getMethod() {
+                return null;
+            }
+
             @Override
-            public void setMethod(String method) {}
+            public void setMethod(String method) {
+            }
+
             @Override
-            public String getUrl() { return url; }
+            public String getUrl() {
+                return url;
+            }
+
             @Override
-            public void setUrl(String u) {}
+            public void setUrl(String u) {
+            }
+
             @Override
-            public String getMetaData() { return null; }
+            public String getMetaData() {
+                return null;
+            }
+
             @Override
-            public void setMetaData(String metaData) {}
+            public void setMetaData(String metaData) {
+            }
+
             @Override
-            public String getEncoding() { return null; }
+            public String getEncoding() {
+                return null;
+            }
+
             @Override
-            public void setEncoding(String encoding) {}
+            public void setEncoding(String encoding) {
+            }
+
             @Override
-            public String getParentUrl() { return null; }
+            public String getParentUrl() {
+                return null;
+            }
+
             @Override
-            public void setParentUrl(String parentUrl) {}
+            public void setParentUrl(String parentUrl) {
+            }
+
             @Override
-            public Integer getDepth() { return null; }
+            public Integer getDepth() {
+                return null;
+            }
+
             @Override
-            public void setDepth(Integer depth) {}
+            public void setDepth(Integer depth) {
+            }
+
             @Override
-            public Long getLastModified() { return null; }
+            public Long getLastModified() {
+                return null;
+            }
+
             @Override
-            public void setLastModified(Long lastModified) {}
+            public void setLastModified(Long lastModified) {
+            }
+
             @Override
-            public Long getCreateTime() { return null; }
+            public Long getCreateTime() {
+                return null;
+            }
+
             @Override
-            public void setCreateTime(Long createTime) {}
+            public void setCreateTime(Long createTime) {
+            }
+
             @Override
-            public float getWeight() { return 0; }
+            public float getWeight() {
+                return 0;
+            }
+
             @Override
-            public void setWeight(float weight) {}
+            public void setWeight(float weight) {
+            }
         };
     }
 
@@ -159,25 +213,46 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Create a mock UrlQueueService
         UrlQueueService<UrlQueue<?>> service = new UrlQueueService<UrlQueue<?>>() {
             @Override
-            public void updateSessionId(String oldSessionId, String newSessionId) {}
+            public void updateSessionId(String oldSessionId, String newSessionId) {
+            }
+
             @Override
-            public void add(String sessionId, String url) {}
+            public void add(String sessionId, String url) {
+            }
+
             @Override
-            public void insert(UrlQueue<?> urlQueue) {}
+            public void insert(UrlQueue<?> urlQueue) {
+            }
+
             @Override
-            public void delete(String sessionId) {}
+            public void delete(String sessionId) {
+            }
+
             @Override
-            public void deleteAll() {}
+            public void deleteAll() {
+            }
+
             @Override
-            public void offerAll(String sessionId, List<UrlQueue<?>> newUrlQueueList) {}
+            public void offerAll(String sessionId, List<UrlQueue<?>> newUrlQueueList) {
+            }
+
             @Override
-            public UrlQueue<?> poll(String sessionId) { return null; }
+            public UrlQueue<?> poll(String sessionId) {
+                return null;
+            }
+
             @Override
-            public void saveSession(String sessionId) {}
+            public void saveSession(String sessionId) {
+            }
+
             @Override
-            public boolean visited(UrlQueue<?> urlQueue) { return false; }
+            public boolean visited(UrlQueue<?> urlQueue) {
+                return false;
+            }
+
             @Override
-            public void generateUrlQueues(String previousSessionId, String sessionId) {}
+            public void generateUrlQueues(String previousSessionId, String sessionId) {
+            }
         };
 
         CrawlingParameterUtil.setUrlQueueService(service);
@@ -193,25 +268,46 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         @SuppressWarnings("unchecked")
         UrlQueueService<UrlQueue<?>> service = new UrlQueueService<UrlQueue<?>>() {
             @Override
-            public void updateSessionId(String oldSessionId, String newSessionId) {}
+            public void updateSessionId(String oldSessionId, String newSessionId) {
+            }
+
             @Override
-            public void add(String sessionId, String url) {}
+            public void add(String sessionId, String url) {
+            }
+
             @Override
-            public void insert(UrlQueue<?> urlQueue) {}
+            public void insert(UrlQueue<?> urlQueue) {
+            }
+
             @Override
-            public void delete(String sessionId) {}
+            public void delete(String sessionId) {
+            }
+
             @Override
-            public void deleteAll() {}
+            public void deleteAll() {
+            }
+
             @Override
-            public void offerAll(String sessionId, List<UrlQueue<?>> newUrlQueueList) {}
+            public void offerAll(String sessionId, List<UrlQueue<?>> newUrlQueueList) {
+            }
+
             @Override
-            public UrlQueue<?> poll(String sessionId) { return null; }
+            public UrlQueue<?> poll(String sessionId) {
+                return null;
+            }
+
             @Override
-            public void saveSession(String sessionId) {}
+            public void saveSession(String sessionId) {
+            }
+
             @Override
-            public boolean visited(UrlQueue<?> urlQueue) { return false; }
+            public boolean visited(UrlQueue<?> urlQueue) {
+                return false;
+            }
+
             @Override
-            public void generateUrlQueues(String previousSessionId, String sessionId) {}
+            public void generateUrlQueues(String previousSessionId, String sessionId) {
+            }
         };
         CrawlingParameterUtil.setUrlQueueService(service);
         assertNotNull(CrawlingParameterUtil.getUrlQueueService());
@@ -231,23 +327,43 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Create a mock DataService
         DataService<AccessResult<?>> service = new DataService<AccessResult<?>>() {
             @Override
-            public void store(AccessResult<?> accessResult) {}
+            public void store(AccessResult<?> accessResult) {
+            }
+
             @Override
-            public void update(AccessResult<?> accessResult) {}
+            public void update(AccessResult<?> accessResult) {
+            }
+
             @Override
-            public void update(List<AccessResult<?>> accessResults) {}
+            public void update(List<AccessResult<?>> accessResults) {
+            }
+
             @Override
-            public int getCount(String sessionId) { return 0; }
+            public int getCount(String sessionId) {
+                return 0;
+            }
+
             @Override
-            public void delete(String sessionId) {}
+            public void delete(String sessionId) {
+            }
+
             @Override
-            public void deleteAll() {}
+            public void deleteAll() {
+            }
+
             @Override
-            public AccessResult<?> getAccessResult(String sessionId, String url) { return null; }
+            public AccessResult<?> getAccessResult(String sessionId, String url) {
+                return null;
+            }
+
             @Override
-            public List<AccessResult<?>> getAccessResultList(String url, boolean hasData) { return null; }
+            public List<AccessResult<?>> getAccessResultList(String url, boolean hasData) {
+                return null;
+            }
+
             @Override
-            public void iterate(String sessionId, AccessResultCallback<AccessResult<?>> callback) {}
+            public void iterate(String sessionId, AccessResultCallback<AccessResult<?>> callback) {
+            }
         };
 
         CrawlingParameterUtil.setDataService(service);
@@ -263,23 +379,43 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         @SuppressWarnings("unchecked")
         DataService<AccessResult<?>> service = new DataService<AccessResult<?>>() {
             @Override
-            public void store(AccessResult<?> accessResult) {}
+            public void store(AccessResult<?> accessResult) {
+            }
+
             @Override
-            public void update(AccessResult<?> accessResult) {}
+            public void update(AccessResult<?> accessResult) {
+            }
+
             @Override
-            public void update(List<AccessResult<?>> accessResults) {}
+            public void update(List<AccessResult<?>> accessResults) {
+            }
+
             @Override
-            public int getCount(String sessionId) { return 0; }
+            public int getCount(String sessionId) {
+                return 0;
+            }
+
             @Override
-            public void delete(String sessionId) {}
+            public void delete(String sessionId) {
+            }
+
             @Override
-            public void deleteAll() {}
+            public void deleteAll() {
+            }
+
             @Override
-            public AccessResult<?> getAccessResult(String sessionId, String url) { return null; }
+            public AccessResult<?> getAccessResult(String sessionId, String url) {
+                return null;
+            }
+
             @Override
-            public List<AccessResult<?>> getAccessResultList(String url, boolean hasData) { return null; }
+            public List<AccessResult<?>> getAccessResultList(String url, boolean hasData) {
+                return null;
+            }
+
             @Override
-            public void iterate(String sessionId, AccessResultCallback<AccessResult<?>> callback) {}
+            public void iterate(String sessionId, AccessResultCallback<AccessResult<?>> callback) {
+            }
         };
         CrawlingParameterUtil.setDataService(service);
         assertNotNull(CrawlingParameterUtil.getDataService());

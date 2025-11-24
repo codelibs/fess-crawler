@@ -48,7 +48,7 @@ public class MsPowerPointExtractor extends AbstractExtractor {
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         validateInputStream(in);
         try (final HSLFSlideShow slideShow = new HSLFSlideShow(in);
-             final SlideShowExtractor<HSLFShape, HSLFTextParagraph> extractor = new SlideShowExtractor<>(slideShow)) {
+                final SlideShowExtractor<HSLFShape, HSLFTextParagraph> extractor = new SlideShowExtractor<>(slideShow)) {
             return new ExtractData(extractor.getText());
         } catch (final IOException e) {
             throw new ExtractException("Failed to extract text from PowerPoint document.", e);

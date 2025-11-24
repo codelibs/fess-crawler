@@ -82,7 +82,7 @@ public class ExtractDataTest extends PlainTestCase {
         // Test putValues method
         ExtractData data = new ExtractData();
 
-        String[] keywords = {"java", "crawler", "testing"};
+        String[] keywords = { "java", "crawler", "testing" };
         data.putValues("keywords", keywords);
 
         String[] retrievedKeywords = data.getValues("keywords");
@@ -102,7 +102,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals(1, oldValues.length);
         assertEquals("old_value", oldValues[0]);
 
-        String[] newValues = {"new_value1", "new_value2"};
+        String[] newValues = { "new_value1", "new_value2" };
         data.putValues("key", newValues);
 
         String[] retrievedValues = data.getValues("key");
@@ -157,7 +157,7 @@ public class ExtractDataTest extends PlainTestCase {
 
         data.putValue(ExtractData.RESOURCE_NAME_KEY, "test.pdf");
         data.putValue(ExtractData.URL, "https://example.com/test.pdf");
-        data.putValues(ExtractData.FILE_PASSWORDS, new String[]{"pass1", "pass2"});
+        data.putValues(ExtractData.FILE_PASSWORDS, new String[] { "pass1", "pass2" });
 
         assertEquals("test.pdf", data.getValues(ExtractData.RESOURCE_NAME_KEY)[0]);
         assertEquals("https://example.com/test.pdf", data.getValues(ExtractData.URL)[0]);
@@ -191,8 +191,7 @@ public class ExtractDataTest extends PlainTestCase {
         ExtractData data = new ExtractData();
 
         // Set content
-        String content = "This is a long extracted content from a PDF document. " +
-                        "It contains multiple paragraphs and rich text.";
+        String content = "This is a long extracted content from a PDF document. " + "It contains multiple paragraphs and rich text.";
         data.setContent(content);
 
         // Add single values
@@ -203,10 +202,10 @@ public class ExtractDataTest extends PlainTestCase {
         data.putValue("date", "2025-01-15");
 
         // Add multiple values
-        String[] keywords = {"business", "report", "analysis", "2025"};
+        String[] keywords = { "business", "report", "analysis", "2025" };
         data.putValues("keywords", keywords);
 
-        String[] passwords = {"secret123", "pass456"};
+        String[] passwords = { "secret123", "pass456" };
         data.putValues(ExtractData.FILE_PASSWORDS, passwords);
 
         // Verify content
@@ -274,7 +273,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals(1, data.getValues("key").length);
 
         // Third operation with array (overwrite)
-        data.putValues("key", new String[]{"value3", "value4", "value5"});
+        data.putValues("key", new String[] { "value3", "value4", "value5" });
         assertEquals(3, data.getValues("key").length);
         assertEquals("value3", data.getValues("key")[0]);
         assertEquals("value5", data.getValues("key")[2]);

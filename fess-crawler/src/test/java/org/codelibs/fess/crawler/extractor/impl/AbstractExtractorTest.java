@@ -118,8 +118,7 @@ public class AbstractExtractorTest extends PlainTestCase {
             assertEquals("The inputstream is null.", e.getMessage());
             // Note: validateCalled will be false because exception is thrown
             // before the flag can be set, which is the expected behavior
-            assertFalse("validateCalled should be false as exception thrown before flag set",
-                    extractor.isValidateCalled());
+            assertFalse("validateCalled should be false as exception thrown before flag set", extractor.isValidateCalled());
         }
     }
 
@@ -173,10 +172,8 @@ public class AbstractExtractorTest extends PlainTestCase {
             final String message = e.getMessage();
             assertNotNull("Exception message should not be null", message);
             assertFalse("Exception message should not be empty", message.trim().isEmpty());
-            assertTrue("Exception message should mention 'inputstream'",
-                    message.toLowerCase().contains("inputstream"));
-            assertTrue("Exception message should mention 'null'",
-                    message.toLowerCase().contains("null"));
+            assertTrue("Exception message should mention 'inputstream'", message.toLowerCase().contains("inputstream"));
+            assertTrue("Exception message should mention 'null'", message.toLowerCase().contains("null"));
         }
     }
 
@@ -227,8 +224,7 @@ public class AbstractExtractorTest extends PlainTestCase {
             fail("Expected CrawlerSystemException");
         } catch (final CrawlerSystemException e) {
             // Verify it's exactly CrawlerSystemException, not a subclass
-            assertEquals("Should throw CrawlerSystemException",
-                    CrawlerSystemException.class, e.getClass());
+            assertEquals("Should throw CrawlerSystemException", CrawlerSystemException.class, e.getClass());
         } catch (final Exception e) {
             fail("Should throw CrawlerSystemException, not " + e.getClass().getName());
         }

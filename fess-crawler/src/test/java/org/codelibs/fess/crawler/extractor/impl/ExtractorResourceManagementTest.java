@@ -43,8 +43,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        container = new StandardCrawlerContainer()
-                .singleton("msWordExtractor", MsWordExtractor.class)
+        container = new StandardCrawlerContainer().singleton("msWordExtractor", MsWordExtractor.class)
                 .singleton("msExcelExtractor", MsExcelExtractor.class)
                 .singleton("msPowerPointExtractor", MsPowerPointExtractor.class)
                 .singleton("textExtractor", TextExtractor.class);
@@ -197,8 +196,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
             extractor.getText(errorStream, null);
             fail("Expected ExtractException");
         } catch (final ExtractException e) {
-            assertTrue("Error message should contain encoding information",
-                    e.getMessage().contains("encoding"));
+            assertTrue("Error message should contain encoding information", e.getMessage().contains("encoding"));
         }
     }
 

@@ -307,7 +307,8 @@ public class StorageClientTest extends PlainTestCase {
                 org.codelibs.core.timer.TimeoutTask accessTimeoutTask = null;
                 if (accessTimeout != null) {
                     accessTimeoutTarget = new org.codelibs.fess.crawler.client.AccessTimeoutTarget(Thread.currentThread());
-                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
+                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance()
+                            .addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
                 }
 
                 try {
@@ -361,7 +362,8 @@ public class StorageClientTest extends PlainTestCase {
                 org.codelibs.core.timer.TimeoutTask accessTimeoutTask = null;
                 if (accessTimeout != null) {
                     accessTimeoutTarget = new org.codelibs.fess.crawler.client.AccessTimeoutTarget(Thread.currentThread());
-                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
+                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance()
+                            .addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
                 }
 
                 try {
@@ -404,7 +406,8 @@ public class StorageClientTest extends PlainTestCase {
                 org.codelibs.core.timer.TimeoutTask accessTimeoutTask = null;
                 if (accessTimeout != null) {
                     accessTimeoutTarget = new org.codelibs.fess.crawler.client.AccessTimeoutTarget(Thread.currentThread());
-                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
+                    accessTimeoutTask = org.codelibs.core.timer.TimeoutManager.getInstance()
+                            .addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
                 }
 
                 try {
@@ -444,8 +447,7 @@ public class StorageClientTest extends PlainTestCase {
             @Override
             protected java.io.File createTempFile(String prefix, String suffix, java.io.File directory) {
                 // Verify the prefix is correct
-                assertTrue("Temp file prefix should be 'crawler-StorageClient-'",
-                    prefix.equals("crawler-StorageClient-"));
+                assertTrue("Temp file prefix should be 'crawler-StorageClient-'", prefix.equals("crawler-StorageClient-"));
                 assertEquals("Temp file suffix should be '.out'", ".out", suffix);
                 assertNull("Directory should be null", directory);
                 return super.createTempFile(prefix, suffix, directory);

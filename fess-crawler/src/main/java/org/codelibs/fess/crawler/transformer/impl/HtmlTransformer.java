@@ -19,8 +19,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -266,10 +266,10 @@ public class HtmlTransformer extends AbstractTransformer {
             } catch (final Exception e) {
                 uri = new URI(responseData.getUrl());
             }
-            final URL url = uri.toURL();
+            final URI baseUri = uri;
             getChildUrlRules(responseData, resultData).forEach(entry -> {
                 List<RequestData> requestDataList = new ArrayList<>();
-                for (final String childUrl : getUrlFromTagAttribute(url, document, entry.getFirst(), entry.getSecond(),
+                for (final String childUrl : getUrlFromTagAttribute(baseUri, document, entry.getFirst(), entry.getSecond(),
                         responseData.getCharSet())) {
                     requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
                 }
@@ -521,11 +521,33 @@ public class HtmlTransformer extends AbstractTransformer {
      * @param attr the attribute name to extract URLs from
      * @param encoding the character encoding to use
      * @return a list of extracted URLs
+     * @deprecated Use {@link #getUrlFromTagAttribute(URI, Document, String, String, String)} instead.
      */
+    @Deprecated
     protected List<String> getUrlFromTagAttribute(final URL url, final Document document, final String xpath, final String attr,
             final String encoding) {
+        try {
+            return getUrlFromTagAttribute(url.toURI(), document, xpath, attr, encoding);
+        } catch (final URISyntaxException e) {
+            logger.warn("Could not convert URL to URI: url={}", url, e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Extracts URLs from HTML tag attributes using XPath.
+     *
+     * @param uri the base URI for resolving relative URLs
+     * @param document the document to extract URLs from
+     * @param xpath the XPath expression to select elements
+     * @param attr the attribute name to extract URLs from
+     * @param encoding the character encoding to use
+     * @return a list of extracted URLs
+     */
+    protected List<String> getUrlFromTagAttribute(final URI uri, final Document document, final String xpath, final String attr,
+            final String encoding) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Base URL: {}", url);
+            logger.debug("Base URI: {}", uri);
         }
         final List<String> urlList = new ArrayList<>();
         try {
@@ -536,7 +558,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 if (attrNode != null) {
                     final String attrValue = attrNode.getNodeValue();
                     if (isValidPath(attrValue)) {
-                        addChildUrlFromTagAttribute(urlList, url, attrValue, encoding);
+                        addChildUrlFromTagAttribute(urlList, uri, attrValue, encoding);
                     }
                 }
             }
@@ -553,13 +575,30 @@ public class HtmlTransformer extends AbstractTransformer {
      * @param url the base URL for resolving relative URLs
      * @param attrValue the attribute value containing the URL
      * @param encoding the character encoding to use
+     * @deprecated Use {@link #addChildUrlFromTagAttribute(List, URI, String, String)} instead.
      */
+    @Deprecated
     protected void addChildUrlFromTagAttribute(final List<String> urlList, final URL url, final String attrValue, final String encoding) {
         try {
+            addChildUrlFromTagAttribute(urlList, url.toURI(), attrValue, encoding);
+        } catch (final URISyntaxException e) {
+            logger.warn("Could not convert URL to URI: url={}", url, e);
+        }
+    }
+
+    /**
+     * Adds a child URL to the URL list after processing and validation.
+     *
+     * @param urlList the list to add the URL to
+     * @param uri the base URI for resolving relative URLs
+     * @param attrValue the attribute value containing the URL
+     * @param encoding the character encoding to use
+     */
+    protected void addChildUrlFromTagAttribute(final List<String> urlList, final URI uri, final String attrValue, final String encoding) {
+        try {
             final String childUrlValue = attrValue.trim();
-            final URL childUrl =
-                    childUrlValue.startsWith("?") ? new URL(url.toExternalForm() + childUrlValue) : new URL(url, childUrlValue);
-            final String u = encodeUrl(normalizeUrl(childUrl.toExternalForm()), encoding);
+            final URI childUri = childUrlValue.startsWith("?") ? new URI(uri.toString() + childUrlValue) : uri.resolve(childUrlValue);
+            final String u = encodeUrl(normalizeUrl(childUri.toString()), encoding);
             if (logger.isDebugEnabled()) {
                 logger.debug("{} -> {}", attrValue, u);
             }
@@ -571,8 +610,8 @@ public class HtmlTransformer extends AbstractTransformer {
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Skip Child: {}", u);
             }
-        } catch (final MalformedURLException e) {
-            logger.warn("Malformed URL: " + attrValue, e);
+        } catch (final URISyntaxException e) {
+            logger.warn("Malformed URI: " + attrValue, e);
         }
     }
 

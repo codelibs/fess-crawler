@@ -402,3 +402,9 @@ CrawlerContext ctx = CrawlingParameterUtil.getCrawlerContext();
 CrawlingParameterUtil.clearAll();
 ```
 
+## Log Message Guidelines
+
+- Format parameters as `key=value` (e.g., `sessionId={}`, `url={}`)
+- Prefix with `[name]` when context identification is needed
+- Use full words, not abbreviations (e.g., "documents" not "docs")
+- Log only identifying fields, not entire objects

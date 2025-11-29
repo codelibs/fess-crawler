@@ -610,7 +610,7 @@ public class HtmlTransformer extends AbstractTransformer {
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Skip Child: {}", u);
             }
-        } catch (final URISyntaxException e) {
+        } catch (final URISyntaxException | IllegalArgumentException e) {
             logger.warn("Malformed URI: " + attrValue, e);
         }
     }

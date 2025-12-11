@@ -46,6 +46,11 @@
 		<property name="charset">"UTF-8"</property>
 	</component>
 
+	<component name="s3Client"
+		class="org.codelibs.fess.crawler.client.s3.S3Client" instance="prototype">
+		<property name="charset">"UTF-8"</property>
+	</component>
+
 	<component name="crawlerClientCreator"
 		class="org.codelibs.fess.crawler.client.CrawlerClientCreator">
 	</component>
@@ -79,6 +84,10 @@
 		<postConstruct name="addClient">
 			<arg>"storage:.*"</arg>
 			<arg>storageClient</arg>
+		</postConstruct>
+		<postConstruct name="addClient">
+			<arg>"s3:.*"</arg>
+			<arg>s3Client</arg>
 		</postConstruct>
 	</component>
 

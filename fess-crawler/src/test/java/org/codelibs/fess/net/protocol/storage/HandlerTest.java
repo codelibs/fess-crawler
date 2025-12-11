@@ -268,6 +268,7 @@ public class HandlerTest extends PlainTestCase {
 
     /**
      * Test URL with multiple consecutive slashes.
+     * Note: Java's URL class does NOT normalize multiple slashes in the path.
      */
     public void test_urlParsing_multipleSlashes() throws Exception {
         URL url = new URL("storage://mybucket//path//to//object.txt");
@@ -275,9 +276,9 @@ public class HandlerTest extends PlainTestCase {
         Handler.StorageURLConnection conn = (Handler.StorageURLConnection) handler.openConnection(url);
 
         assertEquals("mybucket", getField(conn, "bucketName"));
-        // URL class normalizes the path
+        // URL class does NOT normalize multiple slashes - they are preserved after removing leading slash
         String objectName = (String) getField(conn, "objectName");
-        assertTrue(objectName.contains("path") && objectName.contains("object.txt"));
+        assertEquals("/path//to//object.txt", objectName);
     }
 
     /**

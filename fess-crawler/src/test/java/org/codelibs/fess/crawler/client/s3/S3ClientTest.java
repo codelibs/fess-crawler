@@ -98,7 +98,7 @@ public class S3ClientTest extends PlainTestCase {
                 setupMinioClient(bucketName, endpoint);
                 break;
             } catch (final Exception e) {
-                logger.warn("[{}] {}", i + i, e.getMessage());
+                logger.warn("[{}] {}", i + 1, e.getMessage());
             }
             ThreadUtil.sleep(1000L);
         }
@@ -447,7 +447,7 @@ public class S3ClientTest extends PlainTestCase {
             @Override
             protected java.io.File createTempFile(String prefix, String suffix, java.io.File directory) {
                 // Verify the prefix is correct
-                assertTrue("Temp file prefix should be 'crawler-S3Client-'", prefix.equals("crawler-S3Client-"));
+                assertEquals("crawler-S3Client-", prefix);
                 assertEquals("Temp file suffix should be '.out'", ".out", suffix);
                 assertNull("Directory should be null", directory);
                 return super.createTempFile(prefix, suffix, directory);

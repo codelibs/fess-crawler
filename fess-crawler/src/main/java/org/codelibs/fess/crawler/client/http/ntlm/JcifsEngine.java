@@ -22,7 +22,6 @@ import java.util.Properties;
 import org.apache.http.impl.auth.NTLMEngine;
 import org.apache.http.impl.auth.NTLMEngineException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
-
 import org.codelibs.jcifs.smb.CIFSException;
 import org.codelibs.jcifs.smb.config.PropertyConfiguration;
 import org.codelibs.jcifs.smb.context.BaseContext;

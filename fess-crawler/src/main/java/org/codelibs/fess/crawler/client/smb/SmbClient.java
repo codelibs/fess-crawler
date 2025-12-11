@@ -50,8 +50,6 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-
-import jakarta.annotation.Resource;
 import org.codelibs.jcifs.smb.ACE;
 import org.codelibs.jcifs.smb.CIFSContext;
 import org.codelibs.jcifs.smb.CIFSException;
@@ -62,6 +60,8 @@ import org.codelibs.jcifs.smb.impl.NtlmPasswordAuthenticator;
 import org.codelibs.jcifs.smb.impl.SmbException;
 import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.codelibs.jcifs.smb.impl.SmbFileInputStream;
+
+import jakarta.annotation.Resource;
 
 /**
  * The {@link SmbClient} class is a crawler client implementation for accessing files and directories

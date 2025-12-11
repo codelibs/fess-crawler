@@ -51,6 +51,11 @@
 		<property name="charset">"UTF-8"</property>
 	</component>
 
+	<component name="gcsClient"
+		class="org.codelibs.fess.crawler.client.gcs.GcsClient" instance="prototype">
+		<property name="charset">"UTF-8"</property>
+	</component>
+
 	<component name="crawlerClientCreator"
 		class="org.codelibs.fess.crawler.client.CrawlerClientCreator">
 	</component>
@@ -88,6 +93,10 @@
 		<postConstruct name="addClient">
 			<arg>"s3:.*"</arg>
 			<arg>s3Client</arg>
+		</postConstruct>
+		<postConstruct name="addClient">
+			<arg>"gcs:.*"</arg>
+			<arg>gcsClient</arg>
 		</postConstruct>
 	</component>
 

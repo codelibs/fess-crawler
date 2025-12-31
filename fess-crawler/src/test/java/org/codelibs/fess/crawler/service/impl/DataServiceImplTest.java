@@ -108,7 +108,7 @@ public class DataServiceImplTest extends PlainTestCase {
                         accessResult.setStatus(200);
                         accessResult.setUrl("http://example.com/" + threadIndex + "/" + i);
                         dataService.store(accessResult);
-                        ids.add(accessResult.getId());
+                        ids.add((Long) accessResult.getId());
                     }
                 } catch (final Throwable e) {
                     errors.add(e);

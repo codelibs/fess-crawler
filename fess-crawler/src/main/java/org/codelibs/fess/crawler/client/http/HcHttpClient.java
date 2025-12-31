@@ -26,10 +26,13 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -1053,15 +1056,30 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return httpClient.execute(httpRequest, new BasicHttpContext(httpClientContext));
     }
 
+    /** Thread-local SimpleDateFormat for parsing non-standard date formats */
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT_HOLDER = ThreadLocal
+            .withInitial(() -> new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH));
+
     /**
      * Parses the last modified date from a string value.
-     * Uses Apache DateUtils to avoid creating SimpleDateFormat instances.
+     * First attempts to parse using Apache DateUtils (which supports RFC 1123, RFC 1036, and ANSI C formats).
+     * Falls back to a custom pattern for non-standard formats.
      *
      * @param value The date string to parse
      * @return The parsed date, or null if parsing fails
      */
     protected Date parseLastModifiedDate(final String value) {
-        return DateUtils.parseDate(value);
+        // Try Apache DateUtils first (handles standard HTTP date formats)
+        final Date date = DateUtils.parseDate(value);
+        if (date != null) {
+            return date;
+        }
+        // Fallback to custom pattern for non-standard formats (e.g., single-digit day)
+        try {
+            return DATE_FORMAT_HOLDER.get().parse(value);
+        } catch (final ParseException e) {
+            return null;
+        }
     }
 
     /**

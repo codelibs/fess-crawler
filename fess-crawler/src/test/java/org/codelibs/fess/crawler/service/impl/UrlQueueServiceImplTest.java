@@ -22,10 +22,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
@@ -58,14 +60,17 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         String sessionId = "session123";
         String url = "https://example.com/page";
         Queue<UrlQueueImpl<Long>> mockQueue = new LinkedList<>();
+        Set<String> mockUrlSet = new HashSet<>();
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(mockQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(mockUrlSet);
 
         // Execute
         service.add(sessionId, url);
 
         // Verify
         assertEquals(1, mockQueue.size());
+        assertTrue(mockUrlSet.contains(url));
         UrlQueueImpl<Long> added = mockQueue.peek();
         assertNotNull(added);
         assertEquals(sessionId, added.getSessionId());
@@ -78,12 +83,15 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
     public void test_insert() {
         // Setup
         String sessionId = "session123";
+        String url = "https://example.com";
         UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
         urlQueue.setSessionId(sessionId);
-        urlQueue.setUrl("https://example.com");
+        urlQueue.setUrl(url);
 
         Queue<UrlQueueImpl<Long>> mockQueue = new LinkedList<>();
+        Set<String> mockUrlSet = new HashSet<>();
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(mockQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(mockUrlSet);
 
         // Execute
         service.insert(urlQueue);
@@ -91,6 +99,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         // Verify
         assertEquals(1, mockQueue.size());
         assertTrue(mockQueue.contains(urlQueue));
+        assertTrue(mockUrlSet.contains(url));
     }
 
     public void test_delete() {
@@ -132,29 +141,36 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
     public void test_poll() {
         // Setup
         String sessionId = "session123";
+        String url = "https://example.com";
         UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
-        urlQueue.setUrl("https://example.com");
+        urlQueue.setUrl(url);
 
         Queue<UrlQueueImpl<Long>> mockQueue = new LinkedList<>();
         mockQueue.add(urlQueue);
+        Set<String> mockUrlSet = new HashSet<>();
+        mockUrlSet.add(url);
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(mockQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(mockUrlSet);
 
         // Execute
         UrlQueueImpl<Long> result = service.poll(sessionId);
 
         // Verify
         assertNotNull(result);
-        assertEquals("https://example.com", result.getUrl());
+        assertEquals(url, result.getUrl());
         assertTrue(mockQueue.isEmpty());
+        assertFalse(mockUrlSet.contains(url));
     }
 
     public void test_pollEmptyQueue() {
         // Setup
         String sessionId = "session123";
         Queue<UrlQueueImpl<Long>> mockQueue = new LinkedList<>();
+        Set<String> mockUrlSet = new HashSet<>();
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(mockQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(mockUrlSet);
 
         // Execute
         UrlQueueImpl<Long> result = service.poll(sessionId);
@@ -167,6 +183,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         // Setup
         String sessionId = "session123";
         Queue<UrlQueueImpl<Long>> existingQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         UrlQueueImpl<Long> newUrl1 = new UrlQueueImpl<>();
@@ -182,6 +199,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         newUrlList.add(newUrl2);
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(existingQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(sessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -189,16 +207,20 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
 
         // Verify
         assertEquals(2, existingQueue.size());
+        assertTrue(urlInQueueSet.contains("https://example.com/new1"));
+        assertTrue(urlInQueueSet.contains("https://example.com/new2"));
     }
 
     public void test_offerAllWithDuplicatesInQueue() {
         // Setup
         String sessionId = "session123";
         Queue<UrlQueueImpl<Long>> existingQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
 
         UrlQueueImpl<Long> existing = new UrlQueueImpl<>();
         existing.setUrl("https://example.com/existing");
         existingQueue.add(existing);
+        urlInQueueSet.add("https://example.com/existing");
 
         UrlQueueImpl<Long> newUrl = new UrlQueueImpl<>();
         newUrl.setSessionId(sessionId);
@@ -215,6 +237,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(existingQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(sessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -222,12 +245,14 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
 
         // Verify - only the new URL should be added, duplicate should be skipped
         assertEquals(2, existingQueue.size());
+        assertTrue(urlInQueueSet.contains("https://example.com/new"));
     }
 
     public void test_offerAllWithDuplicatesInAccessResult() {
         // Setup
         String sessionId = "session123";
         Queue<UrlQueueImpl<Long>> existingQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         AccessResultImpl<Long> accessResult = new AccessResultImpl<>();
@@ -247,6 +272,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         newUrlList.add(visited);
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(existingQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(sessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -254,12 +280,14 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
 
         // Verify - only new URL should be added, visited should be skipped
         assertEquals(1, existingQueue.size());
+        assertTrue(urlInQueueSet.contains("https://example.com/new"));
     }
 
     public void test_offerAllWithBlankUrl() {
         // Setup
         String sessionId = "session123";
         Queue<UrlQueueImpl<Long>> existingQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         UrlQueueImpl<Long> blankUrl = new UrlQueueImpl<>();
@@ -280,6 +308,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         newUrlList.add(validUrl);
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(existingQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(sessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -287,16 +316,19 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
 
         // Verify - only valid URL should be added
         assertEquals(1, existingQueue.size());
+        assertTrue(urlInQueueSet.contains("https://example.com"));
     }
 
     public void test_visited() {
         // Setup
         String sessionId = "session123";
         Queue<UrlQueueImpl<Long>> existingQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
 
         UrlQueueImpl<Long> existing = new UrlQueueImpl<>();
         existing.setUrl("https://example.com/existing");
         existingQueue.add(existing);
+        urlInQueueSet.add("https://example.com/existing");
 
         UrlQueueImpl<Long> visitedUrl = new UrlQueueImpl<>();
         visitedUrl.setSessionId(sessionId);
@@ -305,6 +337,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(existingQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(sessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -318,6 +351,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         // Setup
         String sessionId = "session123";
         Queue<UrlQueueImpl<Long>> existingQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         UrlQueueImpl<Long> newUrl = new UrlQueueImpl<>();
@@ -325,6 +359,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         newUrl.setUrl("https://example.com/new");
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(existingQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(sessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -346,6 +381,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         String previousSessionId = "prevSession";
         String sessionId = "newSession";
         Queue<UrlQueueImpl<Long>> newQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         AccessResultImpl<Long> result1 = new AccessResultImpl<>();
@@ -363,6 +399,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         accessResultMap.put("https://example.com/page2", result2);
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(newQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(previousSessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -370,6 +407,8 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
 
         // Verify
         assertEquals(2, newQueue.size());
+        assertTrue(urlInQueueSet.contains("https://example.com/page1"));
+        assertTrue(urlInQueueSet.contains("https://example.com/page2"));
 
         // Verify the generated queues have correct properties
         List<UrlQueueImpl<Long>> queueList = new ArrayList<>(newQueue);
@@ -403,9 +442,11 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         String previousSessionId = "prevSession";
         String sessionId = "newSession";
         Queue<UrlQueueImpl<Long>> newQueue = new LinkedList<>();
+        Set<String> urlInQueueSet = new HashSet<>();
         Map<String, AccessResultImpl<Long>> accessResultMap = new HashMap<>();
 
         when(dataHelper.getUrlQueueList(sessionId)).thenReturn(newQueue);
+        when(dataHelper.getUrlInQueueSet(sessionId)).thenReturn(urlInQueueSet);
         when(dataHelper.getAccessResultMap(previousSessionId)).thenReturn(accessResultMap);
 
         // Execute
@@ -413,5 +454,6 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
 
         // Verify
         assertEquals(0, newQueue.size());
+        assertTrue(urlInQueueSet.isEmpty());
     }
 }

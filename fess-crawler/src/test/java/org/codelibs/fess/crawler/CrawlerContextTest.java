@@ -133,7 +133,7 @@ public class CrawlerContextTest extends PlainTestCase {
         CrawlerContext context = new CrawlerContext();
         assertNotNull(context);
         assertNull(context.getSessionId());
-        assertEquals(0, context.getActiveThreadCount().intValue());
+        assertEquals(0, context.getActiveThreadCount());
         assertEquals(0L, context.getAccessCount());
         assertEquals(CrawlerStatus.INITIALIZING, context.getStatus());
         assertNull(context.getUrlFilter());
@@ -167,25 +167,64 @@ public class CrawlerContextTest extends PlainTestCase {
     }
 
     /**
-     * Test activeThreadCount getter and setter
+     * Test activeThreadCount getter and atomic operations
      */
     public void test_activeThreadCount() {
-        assertEquals(0, crawlerContext.getActiveThreadCount().intValue());
+        assertEquals(0, crawlerContext.getActiveThreadCount());
 
-        crawlerContext.setActiveThreadCount(5);
-        assertEquals(5, crawlerContext.getActiveThreadCount().intValue());
+        // Test increment
+        assertEquals(1, crawlerContext.incrementAndGetActiveThreadCount());
+        assertEquals(1, crawlerContext.getActiveThreadCount());
 
-        crawlerContext.setActiveThreadCount(0);
-        assertEquals(0, crawlerContext.getActiveThreadCount().intValue());
+        assertEquals(2, crawlerContext.incrementAndGetActiveThreadCount());
+        assertEquals(2, crawlerContext.getActiveThreadCount());
 
-        crawlerContext.setActiveThreadCount(-1);
-        assertEquals(-1, crawlerContext.getActiveThreadCount().intValue());
+        // Test decrement
+        assertEquals(1, crawlerContext.decrementAndGetActiveThreadCount());
+        assertEquals(1, crawlerContext.getActiveThreadCount());
 
-        crawlerContext.setActiveThreadCount(Integer.MAX_VALUE);
-        assertEquals(Integer.MAX_VALUE, crawlerContext.getActiveThreadCount().intValue());
+        assertEquals(0, crawlerContext.decrementAndGetActiveThreadCount());
+        assertEquals(0, crawlerContext.getActiveThreadCount());
 
-        crawlerContext.setActiveThreadCount(null);
-        assertNull(crawlerContext.getActiveThreadCount());
+        // Test decrement below zero
+        assertEquals(-1, crawlerContext.decrementAndGetActiveThreadCount());
+        assertEquals(-1, crawlerContext.getActiveThreadCount());
+    }
+
+    /**
+     * Test concurrent activeThreadCount operations
+     */
+    public void test_activeThreadCount_concurrent() throws Exception {
+        final int threadCount = 100;
+        final int operationsPerThread = 100;
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch endLatch = new CountDownLatch(threadCount);
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        startLatch.await();
+                        for (int j = 0; j < operationsPerThread; j++) {
+                            crawlerContext.incrementAndGetActiveThreadCount();
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        endLatch.countDown();
+                    }
+                }
+            });
+        }
+
+        startLatch.countDown();
+        endLatch.await(10, TimeUnit.SECONDS);
+        executor.shutdown();
+
+        assertEquals(threadCount * operationsPerThread, crawlerContext.getActiveThreadCount());
     }
 
     /**
@@ -350,18 +389,6 @@ public class CrawlerContextTest extends PlainTestCase {
         assertEquals(10000, urlSet.size());
         assertTrue(urlSet.contains("http://overflow.com/robots.txt"));
         assertFalse(urlSet.contains("http://example0.com/robots.txt")); // First one should be evicted
-    }
-
-    /**
-     * Test activeThreadCountLock getter
-     */
-    public void test_activeThreadCountLock() {
-        Object lock = crawlerContext.getActiveThreadCountLock();
-        assertNotNull(lock);
-
-        // Should return same instance
-        Object sameLock = crawlerContext.getActiveThreadCountLock();
-        assertSame(lock, sameLock);
     }
 
     /**
@@ -548,7 +575,8 @@ public class CrawlerContextTest extends PlainTestCase {
                         for (int j = 0; j < operationsPerThread; j++) {
                             // Perform various operations
                             crawlerContext.setSessionId("session-" + threadId + "-" + j);
-                            crawlerContext.setActiveThreadCount(threadId);
+                            crawlerContext.incrementAndGetActiveThreadCount();
+                            crawlerContext.decrementAndGetActiveThreadCount();
                             crawlerContext.incrementAndGetAccessCount();
                             crawlerContext.setStatus(CrawlerStatus.RUNNING);
                             crawlerContext.setNumOfThread(threadId);
@@ -601,7 +629,11 @@ public class CrawlerContextTest extends PlainTestCase {
 
         // Start crawling
         crawlerContext.setStatus(CrawlerStatus.RUNNING);
-        crawlerContext.setActiveThreadCount(5);
+        // Simulate 5 threads starting
+        for (int i = 0; i < 5; i++) {
+            crawlerContext.incrementAndGetActiveThreadCount();
+        }
+        assertEquals(5, crawlerContext.getActiveThreadCount());
 
         // Simulate crawling progress
         for (int i = 0; i < 100; i++) {
@@ -612,14 +644,16 @@ public class CrawlerContextTest extends PlainTestCase {
         // Add sitemaps
         crawlerContext.addSitemaps(new String[] { "http://example.com/sitemap.xml" });
 
-        // Complete crawling
-        crawlerContext.setActiveThreadCount(0);
+        // Complete crawling - all threads finish
+        for (int i = 0; i < 5; i++) {
+            crawlerContext.decrementAndGetActiveThreadCount();
+        }
         crawlerContext.setStatus(CrawlerStatus.DONE);
 
         // Verify final state
         assertEquals("workflow-session", crawlerContext.getSessionId());
         assertEquals(CrawlerStatus.DONE, crawlerContext.getStatus());
-        assertEquals(0, crawlerContext.getActiveThreadCount().intValue());
+        assertEquals(0, crawlerContext.getActiveThreadCount());
         assertEquals(100L, crawlerContext.getAccessCount());
         assertEquals(100, crawlerContext.getRobotsTxtUrlSet().size());
         assertNotNull(crawlerContext.removeSitemaps());
@@ -630,9 +664,6 @@ public class CrawlerContextTest extends PlainTestCase {
      */
     public void test_boundaryValues() {
         // Test with maximum values
-        crawlerContext.setActiveThreadCount(Integer.MAX_VALUE);
-        assertEquals(Integer.MAX_VALUE, crawlerContext.getActiveThreadCount().intValue());
-
         crawlerContext.setNumOfThread(Integer.MAX_VALUE);
         assertEquals(Integer.MAX_VALUE, crawlerContext.getNumOfThread());
 
@@ -646,9 +677,6 @@ public class CrawlerContextTest extends PlainTestCase {
         assertEquals(Long.MAX_VALUE, crawlerContext.getMaxAccessCount());
 
         // Test with minimum values
-        crawlerContext.setActiveThreadCount(Integer.MIN_VALUE);
-        assertEquals(Integer.MIN_VALUE, crawlerContext.getActiveThreadCount().intValue());
-
         crawlerContext.setNumOfThread(Integer.MIN_VALUE);
         assertEquals(Integer.MIN_VALUE, crawlerContext.getNumOfThread());
 

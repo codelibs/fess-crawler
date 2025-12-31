@@ -130,7 +130,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                                 .map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (final Exception e) {
-                        logger.warn("Failed to parse passwords for url={}", sanitizeUrlForLogging(url), e);
+                        logger.warn("Failed to parse passwords for url={}", url, e);
                         list = Collections.emptyList();
                     }
                     configPasswordMap.put(value, list);
@@ -144,22 +144,6 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
         }
 
         return null;
-    }
-
-    /**
-     * Sanitizes a URL for safe logging by removing query parameters that may contain sensitive data.
-     * @param url the URL to sanitize
-     * @return the sanitized URL with query parameters removed
-     */
-    protected String sanitizeUrlForLogging(final String url) {
-        if (url == null) {
-            return null;
-        }
-        final int queryIndex = url.indexOf('?');
-        if (queryIndex > 0) {
-            return url.substring(0, queryIndex) + "?[REDACTED]";
-        }
-        return url;
     }
 
 }

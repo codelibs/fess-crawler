@@ -71,7 +71,7 @@ import jakarta.annotation.Resource;
  * </ol>
  *
  * <p>
- * The thread also manages the active thread count using {@code crawlerContext.activeThreadCountLock}
+ * The thread also manages the active thread count using atomic operations
  * and provides methods for logging messages using {@link LogHelper}.
  * </p>
  *
@@ -129,21 +129,17 @@ public class CrawlerThread implements Runnable {
     protected boolean noWaitOnFolder = false;
 
     /**
-     * Increments the active thread count.
+     * Increments the active thread count using atomic operation.
      */
     protected void startCrawling() {
-        synchronized (crawlerContext.activeThreadCountLock) {
-            crawlerContext.activeThreadCount++;
-        }
+        crawlerContext.incrementAndGetActiveThreadCount();
     }
 
     /**
-     * Decrements the active thread count.
+     * Decrements the active thread count using atomic operation.
      */
     protected void finishCrawling() {
-        synchronized (crawlerContext.activeThreadCountLock) {
-            crawlerContext.activeThreadCount--;
-        }
+        crawlerContext.decrementAndGetActiveThreadCount();
     }
 
     /**
@@ -166,7 +162,7 @@ public class CrawlerThread implements Runnable {
             isContinue = true;
         }
 
-        if (!isContinue && crawlerContext.activeThreadCount > 0) {
+        if (!isContinue && crawlerContext.getActiveThreadCount() > 0) {
             // still running..
             return true;
         }

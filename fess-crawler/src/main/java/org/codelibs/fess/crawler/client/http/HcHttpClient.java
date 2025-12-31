@@ -26,13 +26,10 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -1058,17 +1055,13 @@ public class HcHttpClient extends AbstractCrawlerClient {
 
     /**
      * Parses the last modified date from a string value.
+     * Uses Apache DateUtils to avoid creating SimpleDateFormat instances.
      *
      * @param value The date string to parse
      * @return The parsed date, or null if parsing fails
      */
     protected Date parseLastModifiedDate(final String value) {
-        final SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
-        try {
-            return sdf.parse(value);
-        } catch (final ParseException e) {
-            return null;
-        }
+        return DateUtils.parseDate(value);
     }
 
     /**

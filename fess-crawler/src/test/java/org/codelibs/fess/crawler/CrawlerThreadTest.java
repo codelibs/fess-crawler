@@ -240,28 +240,28 @@ public class CrawlerThreadTest extends PlainTestCase {
      * Test startCrawling increments active thread count.
      */
     public void test_startCrawling() throws Exception {
-        assertEquals(Integer.valueOf(0), crawlerContext.getActiveThreadCount());
+        assertEquals(0, crawlerContext.getActiveThreadCount());
 
         // Use reflection to access protected method
         final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("startCrawling");
         method.setAccessible(true);
         method.invoke(crawlerThread);
 
-        assertEquals(Integer.valueOf(1), crawlerContext.getActiveThreadCount());
+        assertEquals(1, crawlerContext.getActiveThreadCount());
     }
 
     /**
      * Test finishCrawling decrements active thread count.
      */
     public void test_finishCrawling() throws Exception {
-        crawlerContext.setActiveThreadCount(1);
+        crawlerContext.incrementAndGetActiveThreadCount();
 
         // Use reflection to access protected method
         final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("finishCrawling");
         method.setAccessible(true);
         method.invoke(crawlerThread);
 
-        assertEquals(Integer.valueOf(0), crawlerContext.getActiveThreadCount());
+        assertEquals(0, crawlerContext.getActiveThreadCount());
     }
 
     /**
@@ -467,7 +467,8 @@ public class CrawlerThreadTest extends PlainTestCase {
      * Test isContinue with active threads still running.
      */
     public void test_isContinue_withActiveThreads() throws Exception {
-        crawlerContext.setActiveThreadCount(2);
+        crawlerContext.incrementAndGetActiveThreadCount();
+        crawlerContext.incrementAndGetActiveThreadCount();
 
         // Use reflection to access protected method
         final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("isContinue", int.class);

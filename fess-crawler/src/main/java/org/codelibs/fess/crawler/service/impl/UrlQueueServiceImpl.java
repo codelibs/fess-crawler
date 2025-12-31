@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +28,6 @@ import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
-import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.UrlQueueService;
@@ -108,6 +108,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
     @Override
     public void add(final String sessionId, final String url) {
         final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+        final Set<String> urlInQueueSet = dataHelper.getUrlInQueueSet(sessionId);
         synchronized (urlQueueList) {
             final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
             urlQueue.setSessionId(sessionId);
@@ -116,6 +117,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
             urlQueue.setDepth(0);
             urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
             urlQueueList.add(urlQueue);
+            urlInQueueSet.add(url);
         }
     }
 
@@ -129,8 +131,10 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
     @Override
     public void insert(final UrlQueueImpl<Long> urlQueue) {
         final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(urlQueue.getSessionId());
+        final Set<String> urlInQueueSet = dataHelper.getUrlInQueueSet(urlQueue.getSessionId());
         synchronized (urlQueueList) {
             urlQueueList.add(urlQueue);
+            urlInQueueSet.add(urlQueue.getUrl());
         }
     }
 
@@ -163,11 +167,13 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
     @Override
     public void offerAll(final String sessionId, final List<UrlQueueImpl<Long>> newUrlQueueList) {
         final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+        final Set<String> urlInQueueSet = dataHelper.getUrlInQueueSet(sessionId);
         synchronized (urlQueueList) {
             final List<UrlQueueImpl<Long>> targetList = new ArrayList<>();
             for (final UrlQueueImpl<Long> urlQueue : newUrlQueueList) {
-                if (isNewUrl(urlQueue, urlQueueList)) {
+                if (isNewUrl(urlQueue, urlInQueueSet)) {
                     targetList.add(urlQueue);
+                    urlInQueueSet.add(urlQueue.getUrl());
                 }
             }
             urlQueueList.addAll(targetList);
@@ -176,13 +182,13 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
     }
 
     /**
-     * Checks if a URL is new.
+     * Checks if a URL is new using O(1) Set lookup.
      *
      * @param urlQueue The URL queue.
-     * @param urlQueueList The list of URL queues.
+     * @param urlInQueueSet The set of URLs currently in queue.
      * @return true if the URL is new, otherwise false.
      */
-    protected boolean isNewUrl(final UrlQueueImpl<Long> urlQueue, final Queue<UrlQueueImpl<Long>> urlQueueList) {
+    protected boolean isNewUrl(final UrlQueueImpl<Long> urlQueue, final Set<String> urlInQueueSet) {
 
         final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
@@ -192,14 +198,12 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
             return false;
         }
 
-        // check it in queue
-        for (final UrlQueue<Long> urlInQueue : urlQueueList) {
-            if (url.equals(urlInQueue.getUrl())) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("URL exists in a queue: {}", url);
-                }
-                return false;
+        // check it in queue using O(1) Set lookup
+        if (urlInQueueSet.contains(url)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("URL exists in a queue: {}", url);
             }
+            return false;
         }
 
         // check it in result
@@ -223,8 +227,13 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
     @Override
     public UrlQueueImpl<Long> poll(final String sessionId) {
         final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+        final Set<String> urlInQueueSet = dataHelper.getUrlInQueueSet(sessionId);
         synchronized (urlQueueList) {
-            return urlQueueList.poll();
+            final UrlQueueImpl<Long> urlQueue = urlQueueList.poll();
+            if (urlQueue != null) {
+                urlInQueueSet.remove(urlQueue.getUrl());
+            }
+            return urlQueue;
         }
     }
 
@@ -247,8 +256,9 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
     @Override
     public boolean visited(final UrlQueueImpl<Long> urlQueue) {
         final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(urlQueue.getSessionId());
+        final Set<String> urlInQueueSet = dataHelper.getUrlInQueueSet(urlQueue.getSessionId());
         synchronized (urlQueueList) {
-            return !isNewUrl(urlQueue, urlQueueList);
+            return !isNewUrl(urlQueue, urlInQueueSet);
         }
     }
 
@@ -260,6 +270,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
     @Override
     public void generateUrlQueues(final String previousSessionId, final String sessionId) {
         final Queue<UrlQueueImpl<Long>> urlQueueList = dataHelper.getUrlQueueList(sessionId);
+        final Set<String> urlInQueueSet = dataHelper.getUrlInQueueSet(sessionId);
         final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(previousSessionId);
         for (final Map.Entry<String, AccessResultImpl<Long>> entry : arMap.entrySet()) {
             synchronized (urlQueueList) {
@@ -273,6 +284,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
                 urlQueue.setLastModified(value.getLastModified());
                 urlQueue.setCreateTime(SystemUtil.currentTimeMillis());
                 urlQueueList.add(urlQueue);
+                urlInQueueSet.add(urlQueue.getUrl());
             }
         }
     }

@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.service.impl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultData;
@@ -35,9 +36,8 @@ import jakarta.annotation.Resource;
  * as well as to iterate over them. It uses a {@link MemoryDataHelper} to store the data in memory.
  *
  * <p>
- * The class uses a static {@code idCount} to generate unique IDs for each access result.
- * The {@code idCountLock} object is used to synchronize access to the {@code idCount} variable,
- * ensuring that IDs are generated in a thread-safe manner.
+ * The class uses a static {@link AtomicLong} {@code idCount} to generate unique IDs for each access result
+ * in a thread-safe manner without lock contention.
  * </p>
  *
  * <p>
@@ -52,11 +52,8 @@ import jakarta.annotation.Resource;
  */
 public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
 
-    /** Counter for generating unique IDs */
-    protected static volatile long idCount = 0L;
-
-    /** Lock object for synchronizing access to idCount */
-    private static Object idCountLock = new Object();
+    /** Atomic counter for generating unique IDs without lock contention */
+    protected static final AtomicLong idCount = new AtomicLong(0L);
 
     /** Helper for managing access result data in memory */
     @Resource
@@ -81,23 +78,21 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
             throw new CrawlerSystemException("AccessResult is null. Cannot store null access result.");
         }
 
-        synchronized (idCountLock) {
-            idCount++;
-            accessResult.setId(idCount);
-            AccessResultData<Long> accessResultData = accessResult.getAccessResultData();
-            if (accessResultData == null) {
-                accessResultData = new AccessResultDataImpl<>();
-                accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
-                accessResult.setAccessResultData(accessResultData);
-            }
-            accessResultData.setId(accessResult.getId());
+        final long newId = idCount.incrementAndGet();
+        accessResult.setId(newId);
+        AccessResultData<Long> accessResultData = accessResult.getAccessResultData();
+        if (accessResultData == null) {
+            accessResultData = new AccessResultDataImpl<>();
+            accessResultData.setTransformerName(Constants.NO_TRANSFORMER);
+            accessResult.setAccessResultData(accessResultData);
+        }
+        accessResultData.setId(accessResult.getId());
 
-            final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(accessResult.getSessionId());
-            if (arMap.containsKey(accessResult.getUrl())) {
-                throw new CrawlerSystemException(
-                        "AccessResult for URL '" + accessResult.getUrl() + "' already exists. Duplicate URLs are not allowed.");
-            }
-            arMap.put(accessResult.getUrl(), accessResult);
+        final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(accessResult.getSessionId());
+        final AccessResultImpl<Long> existing = arMap.putIfAbsent(accessResult.getUrl(), accessResult);
+        if (existing != null) {
+            throw new CrawlerSystemException(
+                    "AccessResult for URL '" + accessResult.getUrl() + "' already exists. Duplicate URLs are not allowed.");
         }
 
     }

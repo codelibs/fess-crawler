@@ -15,6 +15,16 @@
  */
 package org.codelibs.fess.crawler.service.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
@@ -68,5 +78,59 @@ public class DataServiceImplTest extends PlainTestCase {
 
         final AccessResult accessResult4 = dataService.getAccessResult("id1", "http://www.id1.com/");
         assertNull(accessResult4);
+    }
+
+    public void test_concurrentStore() throws Exception {
+        // Test that AtomicLong generates unique IDs under concurrent access
+        final int threadCount = 10;
+        final int operationsPerThread = 100;
+        final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch doneLatch = new CountDownLatch(threadCount);
+        final Set<Long> ids = Collections.synchronizedSet(new HashSet<>());
+        final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
+
+        for (int t = 0; t < threadCount; t++) {
+            final int threadIndex = t;
+            executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    for (int i = 0; i < operationsPerThread; i++) {
+                        final AccessResult accessResult = new AccessResultImpl();
+                        accessResult.setContentLength(Long.valueOf(10));
+                        accessResult.setCreateTime(System.currentTimeMillis());
+                        accessResult.setExecutionTime(10);
+                        accessResult.setHttpStatusCode(200);
+                        accessResult.setLastModified(System.currentTimeMillis());
+                        accessResult.setMethod("GET");
+                        accessResult.setMimeType("text/plain");
+                        accessResult.setSessionId("concurrent-" + threadIndex);
+                        accessResult.setStatus(200);
+                        accessResult.setUrl("http://example.com/" + threadIndex + "/" + i);
+                        dataService.store(accessResult);
+                        ids.add((Long) accessResult.getId());
+                    }
+                } catch (final Throwable e) {
+                    errors.add(e);
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+        }
+
+        startLatch.countDown();
+        assertTrue(doneLatch.await(30, TimeUnit.SECONDS));
+        executor.shutdown();
+
+        // Verify no errors occurred
+        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+
+        // Verify all IDs are unique (no duplicates)
+        assertEquals("IDs should be unique", threadCount * operationsPerThread, ids.size());
+
+        // Cleanup
+        for (int t = 0; t < threadCount; t++) {
+            dataService.delete("concurrent-" + t);
+        }
     }
 }

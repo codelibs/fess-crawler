@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.codelibs.core.collection.LruHashSet;
@@ -53,14 +54,9 @@ public class CrawlerContext {
     protected String sessionId;
 
     /**
-     * Current number of active crawler threads.
+     * Atomic counter for tracking active crawler threads without lock contention.
      */
-    protected Integer activeThreadCount = 0;
-
-    /**
-     * Lock object for synchronizing access to active thread count.
-     */
-    protected Object activeThreadCountLock = new Object();
+    protected final AtomicInteger activeThreadCount = new AtomicInteger(0);
 
     /**
      * Atomic counter for tracking the number of accesses made.
@@ -126,19 +122,27 @@ public class CrawlerContext {
     }
 
     /**
-     * Returns the active thread count.
+     * Returns the current active thread count.
      * @return The active thread count.
      */
-    public Integer getActiveThreadCount() {
-        return activeThreadCount;
+    public int getActiveThreadCount() {
+        return activeThreadCount.get();
     }
 
     /**
-     * Sets the active thread count.
-     * @param activeThreadCount The active thread count.
+     * Increments the active thread count and returns the new value.
+     * @return The incremented active thread count.
      */
-    public void setActiveThreadCount(final Integer activeThreadCount) {
-        this.activeThreadCount = activeThreadCount;
+    public int incrementAndGetActiveThreadCount() {
+        return activeThreadCount.incrementAndGet();
+    }
+
+    /**
+     * Decrements the active thread count and returns the new value.
+     * @return The decremented active thread count.
+     */
+    public int decrementAndGetActiveThreadCount() {
+        return activeThreadCount.decrementAndGet();
     }
 
     /**
@@ -243,14 +247,6 @@ public class CrawlerContext {
      */
     public void setRobotsTxtUrlSet(final Set<String> robotsTxtUrlSet) {
         this.robotsTxtUrlSet = robotsTxtUrlSet;
-    }
-
-    /**
-     * Returns the lock object for active thread count.
-     * @return The lock object.
-     */
-    public Object getActiveThreadCountLock() {
-        return activeThreadCountLock;
     }
 
     /**

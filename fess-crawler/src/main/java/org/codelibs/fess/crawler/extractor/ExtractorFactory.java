@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,6 +64,9 @@ public class ExtractorFactory {
     /** Map of keys to arrays of extractors */
     protected Map<String, Extractor[]> extractorMap = new HashMap<>();
 
+    /** Cache for composite extractors to avoid creating anonymous classes on each call */
+    protected final Map<String, Extractor> compositeExtractorCache = new ConcurrentHashMap<>();
+
     /**
      * Constructs a new ExtractorFactory.
      */
@@ -100,6 +104,9 @@ public class ExtractorFactory {
             extractorMap.put(key, new Extractor[] { extractor });
         }
 
+        // Clear cache to rebuild composite extractor with new configuration
+        compositeExtractorCache.remove(key);
+
         if (logger.isDebugEnabled()) {
             logger.debug("Loaded {} : {}", key, extractor.getClass().getName());
         }
@@ -121,7 +128,7 @@ public class ExtractorFactory {
 
     /**
      * Retrieves an extractor for the specified key.
-     * If multiple extractors are associated with the key, returns a composite extractor
+     * If multiple extractors are associated with the key, returns a cached composite extractor
      * that tries each extractor in order until one succeeds.
      *
      * @param key the key to look up
@@ -135,26 +142,39 @@ public class ExtractorFactory {
         if (extractors.length == 1) {
             return extractors[0];
         }
-        return new Extractor() {
-            @Override
-            public ExtractData getText(final InputStream in, final Map<String, String> params) {
-                for (final Extractor extractor : extractors) {
-                    try {
-                        return extractor.getText(in, params);
-                    } catch (final UnsupportedExtractException e) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("{} does not support this data. {}", extractor.getClass().getName(), e.getMessage());
-                        }
+        // Use cached composite extractor to avoid creating new objects on each call
+        return compositeExtractorCache.computeIfAbsent(key, k -> new CompositeExtractor(extractors));
+    }
+
+    /**
+     * A composite extractor that tries multiple extractors in order until one succeeds.
+     * This class is cached to avoid creating anonymous classes on each extraction.
+     */
+    private static class CompositeExtractor implements Extractor {
+        private final Extractor[] extractors;
+
+        CompositeExtractor(final Extractor[] extractors) {
+            this.extractors = extractors;
+        }
+
+        @Override
+        public ExtractData getText(final InputStream in, final Map<String, String> params) {
+            for (final Extractor extractor : extractors) {
+                try {
+                    return extractor.getText(in, params);
+                } catch (final UnsupportedExtractException e) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("{} does not support this data. {}", extractor.getClass().getName(), e.getMessage());
                     }
                 }
-                throw new ExtractException("Failed to extract the content using available extractors.");
             }
+            throw new ExtractException("Failed to extract the content using available extractors.");
+        }
 
-            @Override
-            public int getWeight() {
-                return extractors[0].getWeight();
-            }
-        };
+        @Override
+        public int getWeight() {
+            return extractors[0].getWeight();
+        }
     }
 
     /**

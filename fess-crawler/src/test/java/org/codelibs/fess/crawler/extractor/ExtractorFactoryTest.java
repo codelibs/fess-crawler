@@ -165,4 +165,98 @@ public class ExtractorFactoryTest extends PlainTestCase {
         assertEquals(1, extractorFactory.getExtractors(key)[2].getWeight());
         assertEquals(3, extractorFactory.getExtractors(key).length);
     }
+
+    public void test_compositeExtractorCache() {
+        // Test that CompositeExtractor is cached and reused
+        final String key = "application/cached";
+        final ExtractorFactory factory = new ExtractorFactory();
+
+        // Add multiple extractors to trigger CompositeExtractor creation
+        factory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return new ExtractData("first");
+            }
+
+            @Override
+            public int getWeight() {
+                return 1;
+            }
+        });
+        factory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return new ExtractData("second");
+            }
+
+            @Override
+            public int getWeight() {
+                return 10;
+            }
+        });
+
+        // Get extractor multiple times - should return the same cached instance
+        final Extractor extractor1 = factory.getExtractor(key);
+        final Extractor extractor2 = factory.getExtractor(key);
+        final Extractor extractor3 = factory.getExtractor(key);
+
+        // Verify same instance is returned (cached)
+        assertSame("Composite extractor should be cached", extractor1, extractor2);
+        assertSame("Composite extractor should be cached", extractor2, extractor3);
+
+        // Verify it works correctly
+        assertEquals("second", extractor1.getText(new ByteArrayInputStream(new byte[0]), null).getContent());
+    }
+
+    public void test_compositeExtractorCacheInvalidation() {
+        // Test that cache is invalidated when a new extractor is added
+        final String key = "application/invalidate";
+        final ExtractorFactory factory = new ExtractorFactory();
+
+        // Add two extractors
+        factory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return new ExtractData("first");
+            }
+
+            @Override
+            public int getWeight() {
+                return 1;
+            }
+        });
+        factory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return new ExtractData("second");
+            }
+
+            @Override
+            public int getWeight() {
+                return 5;
+            }
+        });
+
+        // Get extractor (triggers caching)
+        final Extractor extractor1 = factory.getExtractor(key);
+        assertEquals(5, extractor1.getWeight());
+
+        // Add another extractor with higher weight - cache should be invalidated
+        factory.addExtractor(key, new Extractor() {
+            @Override
+            public ExtractData getText(InputStream in, Map<String, String> params) {
+                return new ExtractData("third");
+            }
+
+            @Override
+            public int getWeight() {
+                return 20;
+            }
+        });
+
+        // Get extractor again - should be a new instance with updated weight
+        final Extractor extractor2 = factory.getExtractor(key);
+        assertEquals(20, extractor2.getWeight());
+        assertNotSame("Cache should be invalidated after adding new extractor", extractor1, extractor2);
+    }
 }

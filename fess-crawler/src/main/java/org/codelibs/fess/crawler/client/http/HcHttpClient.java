@@ -1056,16 +1056,27 @@ public class HcHttpClient extends AbstractCrawlerClient {
         return httpClient.execute(httpRequest, new BasicHttpContext(httpClientContext));
     }
 
+    /** Thread-local SimpleDateFormat for parsing non-standard date formats */
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT_HOLDER = ThreadLocal
+            .withInitial(() -> new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH));
+
     /**
      * Parses the last modified date from a string value.
+     * First attempts to parse using Apache DateUtils (which supports RFC 1123, RFC 1036, and ANSI C formats).
+     * Falls back to a custom pattern for non-standard formats.
      *
      * @param value The date string to parse
      * @return The parsed date, or null if parsing fails
      */
     protected Date parseLastModifiedDate(final String value) {
-        final SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+        // Try Apache DateUtils first (handles standard HTTP date formats)
+        final Date date = DateUtils.parseDate(value);
+        if (date != null) {
+            return date;
+        }
+        // Fallback to custom pattern for non-standard formats (e.g., single-digit day)
         try {
-            return sdf.parse(value);
+            return DATE_FORMAT_HOLDER.get().parse(value);
         } catch (final ParseException e) {
             return null;
         }

@@ -45,6 +45,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <p>Passwords are matched against URLs or resource names using regular expression patterns.
  * The extractor first tries to match against the URL, then falls back to the resource name if available.
  *
+ * <p><b>Security Note:</b> This class stores passwords in memory. For security best practices:
+ * <ul>
+ *   <li>Call {@link #clearPasswords()} when passwords are no longer needed to clear sensitive data from memory</li>
+ *   <li>Avoid logging password-related data</li>
+ *   <li>Consider using external secret management systems for password storage in production</li>
+ * </ul>
+ *
  * @author shinsuke
  */
 public abstract class PasswordBasedExtractor extends AbstractExtractor {
@@ -72,6 +79,15 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
      */
     public void addPassword(final String regex, final String password) {
         passwordMap.put(Pattern.compile(regex), password);
+    }
+
+    /**
+     * Clears all stored passwords from memory for security purposes.
+     * This method should be called when the extractor is no longer needed.
+     */
+    public void clearPasswords() {
+        passwordMap.clear();
+        configPasswordMap.clear();
     }
 
     /**
@@ -114,7 +130,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                                 .map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (final Exception e) {
-                        logger.warn("Failed to parse passwords for " + url, e);
+                        logger.warn("Failed to parse passwords for url={}", sanitizeUrlForLogging(url), e);
                         list = Collections.emptyList();
                     }
                     configPasswordMap.put(value, list);
@@ -128,6 +144,22 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
         }
 
         return null;
+    }
+
+    /**
+     * Sanitizes a URL for safe logging by removing query parameters that may contain sensitive data.
+     * @param url the URL to sanitize
+     * @return the sanitized URL with query parameters removed
+     */
+    protected String sanitizeUrlForLogging(final String url) {
+        if (url == null) {
+            return null;
+        }
+        final int queryIndex = url.indexOf('?');
+        if (queryIndex > 0) {
+            return url.substring(0, queryIndex) + "?[REDACTED]";
+        }
+        return url;
     }
 
 }

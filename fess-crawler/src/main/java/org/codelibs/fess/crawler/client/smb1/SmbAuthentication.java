@@ -40,7 +40,6 @@ import org.codelibs.jcifs.smb1.NtlmPasswordAuthentication;
  *   <li>Avoid logging instances of this class as it may expose credentials</li>
  *   <li>Consider using external secret management systems for credential storage in production</li>
  * </ul>
- * </p>
  */
 public class SmbAuthentication {
     private String server;

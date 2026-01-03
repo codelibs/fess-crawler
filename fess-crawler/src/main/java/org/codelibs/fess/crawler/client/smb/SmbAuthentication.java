@@ -38,7 +38,6 @@ package org.codelibs.fess.crawler.client.smb;
  *   <li>Avoid logging instances of this class as it may expose credentials</li>
  *   <li>Consider using external secret management systems for credential storage in production</li>
  * </ul>
- * </p>
  */
 public class SmbAuthentication {
     private String server;

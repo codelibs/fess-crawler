@@ -32,7 +32,6 @@ import org.codelibs.core.lang.StringUtil;
  *   <li>Avoid logging instances of this class as it may expose credentials</li>
  *   <li>Consider using external secret management systems for credential storage in production</li>
  * </ul>
- * </p>
  *
  * @author shinsuke
  */

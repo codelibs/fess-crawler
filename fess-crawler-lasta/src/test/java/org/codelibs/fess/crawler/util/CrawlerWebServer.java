@@ -22,6 +22,7 @@ import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.slf4j.Logger;
@@ -57,7 +58,10 @@ public class CrawlerWebServer {
         resourceHandler.setWelcomeFiles("index.html");
         resourceHandler.setBaseResource(ResourceFactory.of(resourceHandler).newResource(Path.of(docRoot.getAbsolutePath())));
         logger.info("serving {}", docRoot.getAbsolutePath());
-        server.setHandler(new DefaultHandler(true, true, resourceHandler));
+        final HandlerList handlers = new HandlerList();
+        handlers.addHandler(resourceHandler);
+        handlers.addHandler(new DefaultHandler());
+        server.setHandler(handlers);
     }
 
     public void start() {

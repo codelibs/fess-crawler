@@ -32,7 +32,6 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.util.Callback;
 
 /**
@@ -86,10 +85,7 @@ public class ApiExtractorTest extends PlainTestCase {
             server = new Server(port);
 
             final RequestHandlerImpl requestHandler = new RequestHandlerImpl();
-            final HandlerList handlers = new HandlerList();
-            handlers.addHandler(requestHandler);
-            handlers.addHandler(new DefaultHandler());
-            server.setHandler(handlers);
+            server.setHandler(new Handler.Sequence(requestHandler, new DefaultHandler()));
         }
 
         public void start() {

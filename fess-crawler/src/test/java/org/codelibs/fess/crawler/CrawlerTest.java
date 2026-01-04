@@ -18,12 +18,12 @@ package org.codelibs.fess.crawler;
 import java.io.File;
 import java.util.Map;
 
-import org.apache.http.client.config.CookieSpecs;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.client.CrawlerClientFactory;
 import org.codelibs.fess.crawler.client.FaultTolerantClient;
 import org.codelibs.fess.crawler.client.fs.FileSystemClient;
-import org.codelibs.fess.crawler.client.http.HcHttpClient;
+import org.codelibs.fess.crawler.client.http.Hc5HttpClient;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.entity.UrlQueue;
@@ -83,8 +83,8 @@ public class CrawlerTest extends PlainTestCase {
         childUrlRuleMap.put("//SCRIPT", "src");
 
         container = new StandardCrawlerContainer();
-        container.<HcHttpClient> prototype("internalHttpClient", HcHttpClient.class, client -> {
-            client.setCookieSpec(CookieSpecs.BEST_MATCH);
+        container.<Hc5HttpClient> prototype("internalHttpClient", Hc5HttpClient.class, client -> {
+            client.setCookieSpec(StandardCookieSpec.RELAXED);
         }).prototype("httpClient", FaultTolerantClient.class, client -> {
             client.setCrawlerClient(container.getComponent("internalHttpClient"));
             client.setMaxRetryCount(5);
@@ -126,7 +126,7 @@ public class CrawlerTest extends PlainTestCase {
                     factory.addExtractor("text/plain", tikaExtractor);
                     factory.addExtractor("text/html", tikaExtractor);
                 })//
-                .singleton("httpClient", HcHttpClient.class)//
+                .singleton("hc5HttpClient", Hc5HttpClient.class)//
                 .singleton("sitemapsResponseProcessor", SitemapsResponseProcessor.class)//
                 .<SitemapsRule> singleton("sitemapsRule", SitemapsRule.class, rule -> {
                     rule.setResponseProcessor(container.getComponent("sitemapsResponseProcessor"));

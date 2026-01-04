@@ -31,6 +31,13 @@ package org.codelibs.fess.crawler.client.smb;
  * included only if it's greater than 0. If the server is not set, the path
  * prefix will be "smb://".
  * </p>
+ *
+ * <p><b>Security Note:</b> This class stores credentials in memory. For security best practices:
+ * <ul>
+ *   <li>Call {@link #clearCredentials()} after authentication is complete to clear sensitive data from memory</li>
+ *   <li>Avoid logging instances of this class as it may expose credentials</li>
+ *   <li>Consider using external secret management systems for credential storage in production</li>
+ * </ul>
  */
 public class SmbAuthentication {
     private String server;
@@ -149,11 +156,21 @@ public class SmbAuthentication {
     }
 
     /**
+     * Clears the credentials from memory for security purposes.
+     * This method should be called after the authentication is no longer needed.
+     */
+    public void clearCredentials() {
+        this.password = null;
+        this.username = null;
+    }
+
+    /**
      * Returns a string representation of this object.
-     * @return A string representation.
+     * Note: Password is intentionally excluded from the output for security reasons.
+     * @return A string representation without sensitive data.
      */
     @Override
     public String toString() {
-        return "[" + domain + "] " + username + "@" + server + ":" + port;
+        return "SmbAuthentication[domain=" + domain + ", username=" + username + ", server=" + server + ", port=" + port + "]";
     }
 }

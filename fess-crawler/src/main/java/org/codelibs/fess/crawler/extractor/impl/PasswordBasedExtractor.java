@@ -45,6 +45,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <p>Passwords are matched against URLs or resource names using regular expression patterns.
  * The extractor first tries to match against the URL, then falls back to the resource name if available.
  *
+ * <p><b>Security Note:</b> This class stores passwords in memory. For security best practices:
+ * <ul>
+ *   <li>Call {@link #clearPasswords()} when passwords are no longer needed to clear sensitive data from memory</li>
+ *   <li>Avoid logging password-related data</li>
+ *   <li>Consider using external secret management systems for password storage in production</li>
+ * </ul>
+ *
  * @author shinsuke
  */
 public abstract class PasswordBasedExtractor extends AbstractExtractor {
@@ -72,6 +79,15 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
      */
     public void addPassword(final String regex, final String password) {
         passwordMap.put(Pattern.compile(regex), password);
+    }
+
+    /**
+     * Clears all stored passwords from memory for security purposes.
+     * This method should be called when the extractor is no longer needed.
+     */
+    public void clearPasswords() {
+        passwordMap.clear();
+        configPasswordMap.clear();
     }
 
     /**
@@ -114,7 +130,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                                 .map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (final Exception e) {
-                        logger.warn("Failed to parse passwords for " + url, e);
+                        logger.warn("Failed to parse passwords for url={}", url, e);
                         list = Collections.emptyList();
                     }
                     configPasswordMap.put(value, list);

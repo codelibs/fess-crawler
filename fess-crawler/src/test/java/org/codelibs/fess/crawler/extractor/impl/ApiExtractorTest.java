@@ -16,28 +16,23 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.HttpConnection;
-import org.mortbay.jetty.HttpMethods;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.AbstractHandler;
-import org.mortbay.jetty.handler.DefaultHandler;
-import org.mortbay.jetty.handler.HandlerList;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.util.Callback;
 
 /**
  * @author shinsuke
@@ -89,10 +84,8 @@ public class ApiExtractorTest extends PlainTestCase {
         public TestApiExtractorServer(final int port) {
             server = new Server(port);
 
-            final RequestHandlerImpl request_handler = new RequestHandlerImpl();
-            final HandlerList handlers = new HandlerList();
-            handlers.setHandlers(new Handler[] { request_handler, new DefaultHandler() });
-            server.setHandler(handlers);
+            final RequestHandlerImpl requestHandler = new RequestHandlerImpl();
+            server.setHandler(new DefaultHandler(true, true, requestHandler));
         }
 
         public void start() {
@@ -112,38 +105,92 @@ public class ApiExtractorTest extends PlainTestCase {
             }
         }
 
-        private static class RequestHandlerImpl extends AbstractHandler {
+        private static class RequestHandlerImpl extends Handler.Abstract {
             public static final String MULTIPART_FORMDATA_TYPE = "multipart/form-data";
 
-            public static boolean isMultipartRequest(HttpServletRequest request) {
-                return request.getContentType() != null && request.getContentType().startsWith(MULTIPART_FORMDATA_TYPE);
+            public static boolean isMultipartRequest(Request request) {
+                String contentType = request.getHeaders().get(HttpHeader.CONTENT_TYPE);
+                return contentType != null && contentType.startsWith(MULTIPART_FORMDATA_TYPE);
             }
 
             @Override
-            public void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch)
-                    throws java.io.IOException, ServletException {
-
-                if (!isMultipartRequest(request) || !request.getMethod().equals(HttpMethods.POST)) {
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().println(HttpServletResponse.SC_BAD_REQUEST);
-                    HttpConnection.getCurrentConnection().getRequest().setHandled(true);
-                    return;
+            public boolean handle(Request request, Response response, Callback callback) throws Exception {
+                if (!isMultipartRequest(request) || !HttpMethod.POST.is(request.getMethod())) {
+                    response.setStatus(400);
+                    response.write(true, ByteBuffer.wrap("400".getBytes(StandardCharsets.UTF_8)), callback);
+                    return true;
                 }
+
                 try {
-                    List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
-                    for (FileItem item : multiparts) {
-                        if (!item.isFormField()) {
-                            // item is not form field.
-                        } else {
-                            String name = item.getFieldName();
-                            String value = item.getString();
-                            response.getWriter().write(name + "," + value);
+                    // Read the content from the request
+                    String contentType = request.getHeaders().get(HttpHeader.CONTENT_TYPE);
+                    String body = Content.Source.asString(request);
+
+                    // Parse multipart form data manually
+                    // Look for the boundary in content type
+                    String boundary = null;
+                    if (contentType != null && contentType.contains("boundary=")) {
+                        boundary = contentType.substring(contentType.indexOf("boundary=") + 9);
+                        if (boundary.startsWith("\"") && boundary.endsWith("\"")) {
+                            boundary = boundary.substring(1, boundary.length() - 1);
                         }
                     }
-                } catch (FileUploadException e) {
+
+                    if (boundary != null && body != null) {
+                        // Parse the multipart body
+                        String[] parts = body.split("--" + boundary);
+                        for (String part : parts) {
+                            if (part.contains("Content-Disposition: form-data")) {
+                                // Extract name
+                                String name = null;
+                                int nameStart = part.indexOf("name=\"");
+                                if (nameStart >= 0) {
+                                    nameStart += 6;
+                                    int nameEnd = part.indexOf("\"", nameStart);
+                                    if (nameEnd >= 0) {
+                                        name = part.substring(nameStart, nameEnd);
+                                    }
+                                }
+
+                                // Extract value (after the double newline)
+                                int valueStart = part.indexOf("\r\n\r\n");
+                                if (valueStart < 0) {
+                                    valueStart = part.indexOf("\n\n");
+                                    if (valueStart >= 0) {
+                                        valueStart += 2;
+                                    }
+                                } else {
+                                    valueStart += 4;
+                                }
+
+                                if (valueStart >= 0 && name != null) {
+                                    String value = part.substring(valueStart).trim();
+                                    // Remove trailing boundary markers
+                                    if (value.endsWith("--")) {
+                                        value = value.substring(0, value.length() - 2).trim();
+                                    }
+                                    if (value.endsWith("\r\n")) {
+                                        value = value.substring(0, value.length() - 2);
+                                    }
+                                    if (value.endsWith("\n")) {
+                                        value = value.substring(0, value.length() - 1);
+                                    }
+
+                                    response.write(true, ByteBuffer.wrap((name + "," + value).getBytes(StandardCharsets.UTF_8)), callback);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+
+                    response.setStatus(400);
+                    response.write(true, ByteBuffer.wrap("400".getBytes(StandardCharsets.UTF_8)), callback);
+                } catch (Exception e) {
                     e.printStackTrace();
+                    response.setStatus(500);
+                    response.write(true, ByteBuffer.wrap("500".getBytes(StandardCharsets.UTF_8)), callback);
                 }
-                HttpConnection.getCurrentConnection().getRequest().setHandled(true);
+                return true;
             }
         }
     }

@@ -16,21 +16,24 @@
 package org.codelibs.fess.crawler.util;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.DefaultHandler;
-import org.mortbay.jetty.handler.HandlerList;
-import org.mortbay.jetty.handler.ResourceHandler;
-import org.mortbay.log.Log;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.util.resource.ResourceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author shinsuke
  *
  */
 public class CrawlerWebServer {
+    private static final Logger logger = LoggerFactory.getLogger(CrawlerWebServer.class);
+
     private int port = 8080;
 
     private File docRoot;
@@ -50,13 +53,11 @@ public class CrawlerWebServer {
 
         server = new Server(port);
 
-        final ResourceHandler resource_handler = new ResourceHandler();
-        resource_handler.setWelcomeFiles(new String[] { "index.html" });
-        resource_handler.setResourceBase(docRoot.getAbsolutePath());
-        Log.info("serving " + resource_handler.getBaseResource());
-        final HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[] { resource_handler, new DefaultHandler() });
-        server.setHandler(handlers);
+        final ResourceHandler resourceHandler = new ResourceHandler();
+        resourceHandler.setWelcomeFiles("index.html");
+        resourceHandler.setBaseResource(ResourceFactory.of(resourceHandler).newResource(Path.of(docRoot.getAbsolutePath())));
+        logger.info("serving {}", docRoot.getAbsolutePath());
+        server.setHandler(new DefaultHandler(true, true, resourceHandler));
     }
 
     public void start() {

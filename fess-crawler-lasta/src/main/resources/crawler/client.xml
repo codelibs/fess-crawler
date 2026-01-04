@@ -21,10 +21,12 @@
 		<property name="soTimeout">30000</property>
 	</component>
 	<component name="httpClient"
-		class="org.codelibs.fess.crawler.client.FaultTolerantClient" instance="prototype">
-		<property name="crawlerClient">internalHttpClient</property>
+		class="org.codelibs.fess.crawler.client.http.HcHttpClient" instance="prototype">
+		<property name="hc5Client">internalHttpClient</property>
+		<property name="hc4Client">internalHc4HttpClient</property>
 		<property name="maxRetryCount">5</property>
 		<property name="retryInterval">500</property>
+		<postConstruct name="init" />
 	</component>
 
 	<component name="fsClient"

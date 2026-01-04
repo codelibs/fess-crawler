@@ -1,0 +1,148 @@
+/*
+ * Copyright 2012-2025 CodeLibs Project and the Others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+package org.codelibs.fess.crawler.client.http;
+
+import static org.mockito.Mockito.mock;
+
+import org.codelibs.fess.crawler.client.CrawlerClient;
+import org.dbflute.utflute.core.PlainTestCase;
+
+public class HcHttpClientTest extends PlainTestCase {
+
+    private String originalPropertyValue;
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        // Save original property value
+        originalPropertyValue = System.getProperty(HcHttpClient.HTTP_CLIENT_PROPERTY);
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        // Restore original property value
+        if (originalPropertyValue != null) {
+            System.setProperty(HcHttpClient.HTTP_CLIENT_PROPERTY, originalPropertyValue);
+        } else {
+            System.clearProperty(HcHttpClient.HTTP_CLIENT_PROPERTY);
+        }
+        super.tearDown();
+    }
+
+    public void test_constructor_defaultUsesHc5() {
+        System.clearProperty(HcHttpClient.HTTP_CLIENT_PROPERTY);
+
+        HcHttpClient client = new HcHttpClient();
+
+        assertTrue(client.isUseHc5());
+    }
+
+    public void test_selectClient_hc4Property() {
+        System.setProperty(HcHttpClient.HTTP_CLIENT_PROPERTY, "hc4");
+
+        HcHttpClient client = new HcHttpClient();
+
+        assertFalse(client.isUseHc5());
+    }
+
+    public void test_selectClient_hc5Property() {
+        System.setProperty(HcHttpClient.HTTP_CLIENT_PROPERTY, "hc5");
+
+        HcHttpClient client = new HcHttpClient();
+
+        assertTrue(client.isUseHc5());
+    }
+
+    public void test_selectClient_hc4PropertyCaseInsensitive() {
+        System.setProperty(HcHttpClient.HTTP_CLIENT_PROPERTY, "HC4");
+
+        HcHttpClient client = new HcHttpClient();
+
+        assertFalse(client.isUseHc5());
+    }
+
+    public void test_init_withHc5Client() {
+        System.clearProperty(HcHttpClient.HTTP_CLIENT_PROPERTY);
+        CrawlerClient mockHc5Client = mock(CrawlerClient.class);
+
+        HcHttpClient client = new HcHttpClient();
+        client.setHc5Client(mockHc5Client);
+        client.init();
+
+        assertTrue(client.isUseHc5());
+    }
+
+    public void test_init_withHc4Client() {
+        System.setProperty(HcHttpClient.HTTP_CLIENT_PROPERTY, "hc4");
+        CrawlerClient mockHc4Client = mock(CrawlerClient.class);
+
+        HcHttpClient client = new HcHttpClient();
+        client.setHc4Client(mockHc4Client);
+        client.init();
+
+        assertFalse(client.isUseHc5());
+    }
+
+    public void test_init_hc5Null_fallbackToHc4() {
+        System.clearProperty(HcHttpClient.HTTP_CLIENT_PROPERTY);
+        CrawlerClient mockHc4Client = mock(CrawlerClient.class);
+
+        HcHttpClient client = new HcHttpClient();
+        client.setHc5Client(null);
+        client.setHc4Client(mockHc4Client);
+        client.init();
+
+        // Should still report useHc5 as true (original selection)
+        // but internally uses hc4 as fallback
+        assertTrue(client.isUseHc5());
+    }
+
+    public void test_init_hc4Null_fallbackToHc5() {
+        System.setProperty(HcHttpClient.HTTP_CLIENT_PROPERTY, "hc4");
+        CrawlerClient mockHc5Client = mock(CrawlerClient.class);
+
+        HcHttpClient client = new HcHttpClient();
+        client.setHc4Client(null);
+        client.setHc5Client(mockHc5Client);
+        client.init();
+
+        // Should still report useHc5 as false (original selection)
+        // but internally uses hc5 as fallback
+        assertFalse(client.isUseHc5());
+    }
+
+    public void test_settersAndGetters() {
+        CrawlerClient mockHc4Client = mock(CrawlerClient.class);
+        CrawlerClient mockHc5Client = mock(CrawlerClient.class);
+
+        HcHttpClient client = new HcHttpClient();
+        client.setHc4Client(mockHc4Client);
+        client.setHc5Client(mockHc5Client);
+
+        assertSame(mockHc4Client, client.getHc4Client());
+        assertSame(mockHc5Client, client.getHc5Client());
+    }
+
+    public void test_isUseHc5() {
+        System.clearProperty(HcHttpClient.HTTP_CLIENT_PROPERTY);
+        HcHttpClient hc5Client = new HcHttpClient();
+        assertTrue(hc5Client.isUseHc5());
+
+        System.setProperty(HcHttpClient.HTTP_CLIENT_PROPERTY, "hc4");
+        HcHttpClient hc4Client = new HcHttpClient();
+        assertFalse(hc4Client.isUseHc5());
+    }
+}

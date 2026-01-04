@@ -7,7 +7,15 @@
 	<include path="crawler/contentlength.xml" />
 	<include path="crawler/mimetype.xml" />
 
-	<component name="internalHttpClient" class="org.codelibs.fess.crawler.client.http.HcHttpClient"
+	<!-- HC5 (Default) -->
+	<component name="internalHttpClient" class="org.codelibs.fess.crawler.client.http.Hc5HttpClient"
+		instance="prototype">
+		<property name="connectionTimeout">15000</property>
+		<property name="soTimeout">30000</property>
+	</component>
+
+	<!-- HC4 (Alternative - for backward compatibility) -->
+	<component name="internalHc4HttpClient" class="org.codelibs.fess.crawler.client.http.Hc4HttpClient"
 		instance="prototype">
 		<property name="connectionTimeout">15000</property>
 		<property name="soTimeout">30000</property>

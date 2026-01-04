@@ -15,16 +15,16 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
-import java.util.concurrent.TimeUnit;
-
-import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.timer.TimeoutTarget;
 
 /**
- * HcConnectionMonitorTarget is responsible for monitoring and managing HTTP client connections.
- * It implements the TimeoutTarget interface to handle connection expiration events.
+ * Hc5ConnectionMonitorTarget is responsible for monitoring and managing HTTP client connections
+ * for Apache HttpComponents 5.x. It implements the TimeoutTarget interface to handle connection
+ * expiration events.
  *
  * <p>This class uses an instance of HttpClientConnectionManager to manage the connections.
  * It closes expired connections and idle connections that have exceeded a specified timeout.
@@ -45,10 +45,10 @@ import org.codelibs.core.timer.TimeoutTarget;
  * </ul>
  *
  */
-public class HcConnectionMonitorTarget implements TimeoutTarget {
-    private static final Logger logger = LogManager.getLogger(HcConnectionMonitorTarget.class);
+public class Hc5ConnectionMonitorTarget implements TimeoutTarget {
+    private static final Logger logger = LogManager.getLogger(Hc5ConnectionMonitorTarget.class);
 
-    private final HttpClientConnectionManager clientConnectionManager;
+    private final PoolingHttpClientConnectionManager clientConnectionManager;
 
     /**
      * The timeout duration (in milliseconds) for idle connections.
@@ -56,11 +56,11 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
     private final long idleConnectionTimeout;
 
     /**
-     * Constructs a new HcConnectionMonitorTarget.
-     * @param clientConnectionManager The HttpClientConnectionManager to monitor.
+     * Constructs a new Hc5ConnectionMonitorTarget.
+     * @param clientConnectionManager The PoolingHttpClientConnectionManager to monitor.
      * @param idleConnectionTimeout The idle connection timeout in milliseconds.
      */
-    public HcConnectionMonitorTarget(final HttpClientConnectionManager clientConnectionManager, final long idleConnectionTimeout) {
+    public Hc5ConnectionMonitorTarget(final PoolingHttpClientConnectionManager clientConnectionManager, final long idleConnectionTimeout) {
         this.clientConnectionManager = clientConnectionManager;
         this.idleConnectionTimeout = idleConnectionTimeout;
     }
@@ -79,9 +79,9 @@ public class HcConnectionMonitorTarget implements TimeoutTarget {
 
         try {
             // Close expired connections
-            clientConnectionManager.closeExpiredConnections();
+            clientConnectionManager.closeExpired();
             // Close idle connections
-            clientConnectionManager.closeIdleConnections(idleConnectionTimeout, TimeUnit.MILLISECONDS);
+            clientConnectionManager.closeIdle(TimeValue.ofMilliseconds(idleConnectionTimeout));
         } catch (final Exception e) {
             logger.warn("A connection monitoring exception occurs.", e);
         }

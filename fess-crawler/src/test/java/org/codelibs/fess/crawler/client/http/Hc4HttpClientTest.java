@@ -36,8 +36,8 @@ import org.dbflute.utflute.core.PlainTestCase;
  * @author shinsuke
  *
  */
-public class HcHttpClientTest extends PlainTestCase {
-    public HcHttpClient httpClient;
+public class Hc4HttpClientTest extends PlainTestCase {
+    public Hc4HttpClient httpClient;
 
     public UrlFilter urlFilter;
 
@@ -49,7 +49,7 @@ public class HcHttpClientTest extends PlainTestCase {
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//
                 .singleton("urlFilter", UrlFilterImpl.class)//
                 .singleton("robotsTxtHelper", RobotsTxtHelper.class)//
-                .singleton("httpClient", HcHttpClient.class);
+                .singleton("httpClient", Hc4HttpClient.class);
         httpClient = container.getComponent("httpClient");
         urlFilter = container.getComponent("urlFilter");
     }
@@ -128,7 +128,7 @@ public class HcHttpClientTest extends PlainTestCase {
     }
 
     public void test_doGet_accessTimeoutTarget() {
-        HcHttpClient client = new HcHttpClient() {
+        Hc4HttpClient client = new Hc4HttpClient() {
             @Override
             protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
                 try {
@@ -149,7 +149,7 @@ public class HcHttpClientTest extends PlainTestCase {
     }
 
     public void test_doHead_accessTimeoutTarget() {
-        HcHttpClient client = new HcHttpClient() {
+        Hc4HttpClient client = new Hc4HttpClient() {
             @Override
             protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
                 try {
@@ -170,33 +170,33 @@ public class HcHttpClientTest extends PlainTestCase {
     }
 
     public void test_constructRedirectLocation() throws Exception {
-        assertEquals("http://localhost/login.html", HcHttpClient.constructRedirectLocation("http://localhost/", "/login.html"));
-        assertEquals("http://localhost/path/login.html", HcHttpClient.constructRedirectLocation("http://localhost/path/", "login.html"));
-        assertEquals("http://localhost/login.html", HcHttpClient.constructRedirectLocation("http://localhost/path/", "/login.html"));
+        assertEquals("http://localhost/login.html", Hc4HttpClient.constructRedirectLocation("http://localhost/", "/login.html"));
+        assertEquals("http://localhost/path/login.html", Hc4HttpClient.constructRedirectLocation("http://localhost/path/", "login.html"));
+        assertEquals("http://localhost/login.html", Hc4HttpClient.constructRedirectLocation("http://localhost/path/", "/login.html"));
         assertEquals("https://example.com/newpage",
-                HcHttpClient.constructRedirectLocation("http://localhost/", "https://example.com/newpage"));
-        assertEquals("http://localhost/search?q=java", HcHttpClient.constructRedirectLocation("http://localhost/", "/search?q=java"));
-        assertEquals("http://localhost/home#section1", HcHttpClient.constructRedirectLocation("http://localhost/", "/home#section1"));
-        assertEquals("http://localhost/newpage", HcHttpClient.constructRedirectLocation("http://localhost", "newpage"));
-        assertEquals("http://localhost/newpage", HcHttpClient.constructRedirectLocation("http://localhost/path/", "../newpage"));
-        assertEquals("http://localhost/path/newpage", HcHttpClient.constructRedirectLocation("http://localhost/path/", "./newpage"));
-        assertEquals("http://localhost/", HcHttpClient.constructRedirectLocation("http://localhost/", null));
-        assertEquals("http://localhost/", HcHttpClient.constructRedirectLocation("http://localhost/", ""));
-        assertEquals("http://localhost/?query=value", HcHttpClient.constructRedirectLocation("http://localhost/", "?query=value"));
-        assertEquals("http://localhost/#section1", HcHttpClient.constructRedirectLocation("http://localhost/", "#section1"));
-        assertEquals("http://example.com/path", HcHttpClient.constructRedirectLocation("http://localhost/", "//example.com/path"));
-        assertEquals("mailto:user@example.com", HcHttpClient.constructRedirectLocation("http://localhost/", "mailto:user@example.com"));
+                Hc4HttpClient.constructRedirectLocation("http://localhost/", "https://example.com/newpage"));
+        assertEquals("http://localhost/search?q=java", Hc4HttpClient.constructRedirectLocation("http://localhost/", "/search?q=java"));
+        assertEquals("http://localhost/home#section1", Hc4HttpClient.constructRedirectLocation("http://localhost/", "/home#section1"));
+        assertEquals("http://localhost/newpage", Hc4HttpClient.constructRedirectLocation("http://localhost", "newpage"));
+        assertEquals("http://localhost/newpage", Hc4HttpClient.constructRedirectLocation("http://localhost/path/", "../newpage"));
+        assertEquals("http://localhost/path/newpage", Hc4HttpClient.constructRedirectLocation("http://localhost/path/", "./newpage"));
+        assertEquals("http://localhost/", Hc4HttpClient.constructRedirectLocation("http://localhost/", null));
+        assertEquals("http://localhost/", Hc4HttpClient.constructRedirectLocation("http://localhost/", ""));
+        assertEquals("http://localhost/?query=value", Hc4HttpClient.constructRedirectLocation("http://localhost/", "?query=value"));
+        assertEquals("http://localhost/#section1", Hc4HttpClient.constructRedirectLocation("http://localhost/", "#section1"));
+        assertEquals("http://example.com/path", Hc4HttpClient.constructRedirectLocation("http://localhost/", "//example.com/path"));
+        assertEquals("mailto:user@example.com", Hc4HttpClient.constructRedirectLocation("http://localhost/", "mailto:user@example.com"));
         assertEquals("data:text/plain;base64,SGVsbG8gd29ybGQ=",
-                HcHttpClient.constructRedirectLocation("http://localhost/", "data:text/plain;base64,SGVsbG8gd29ybGQ="));
-        assertEquals("http://192.168.1.1/path/file", HcHttpClient.constructRedirectLocation("http://192.168.1.1/path/", "file"));
-        assertEquals("http://[2001:db8::1]/path/file", HcHttpClient.constructRedirectLocation("http://[2001:db8::1]/path/", "file"));
-        assertEquals("http://example.com:8080/path/file", HcHttpClient.constructRedirectLocation("http://example.com:8080/path/", "file"));
+                Hc4HttpClient.constructRedirectLocation("http://localhost/", "data:text/plain;base64,SGVsbG8gd29ybGQ="));
+        assertEquals("http://192.168.1.1/path/file", Hc4HttpClient.constructRedirectLocation("http://192.168.1.1/path/", "file"));
+        assertEquals("http://[2001:db8::1]/path/file", Hc4HttpClient.constructRedirectLocation("http://[2001:db8::1]/path/", "file"));
+        assertEquals("http://example.com:8080/path/file", Hc4HttpClient.constructRedirectLocation("http://example.com:8080/path/", "file"));
         assertEquals("http://example.com/%E3%83%86%E3%82%B9%E3%83%88",
-                HcHttpClient.constructRedirectLocation("http://example.com/", "テスト"));
-        assertEquals("http://example.com/hello%20world", HcHttpClient.constructRedirectLocation("http://example.com/", "hello world"));
+                Hc4HttpClient.constructRedirectLocation("http://example.com/", "テスト"));
+        assertEquals("http://example.com/hello%20world", Hc4HttpClient.constructRedirectLocation("http://example.com/", "hello world"));
         assertEquals("http://user:pass@example.com/path/file",
-                HcHttpClient.constructRedirectLocation("http://user:pass@example.com/path/", "file"));
-        assertEquals("http://example.com/", HcHttpClient.constructRedirectLocation("http://example.com/path/", "../"));
+                Hc4HttpClient.constructRedirectLocation("http://user:pass@example.com/path/", "file"));
+        assertEquals("http://example.com/", Hc4HttpClient.constructRedirectLocation("http://example.com/path/", "../"));
     }
 
     // public void test_doGet_mt() throws Exception {

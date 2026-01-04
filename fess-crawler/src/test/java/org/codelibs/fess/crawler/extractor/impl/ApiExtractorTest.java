@@ -164,16 +164,20 @@ public class ApiExtractorTest extends PlainTestCase {
                                 }
 
                                 if (valueStart >= 0 && name != null) {
-                                    String value = part.substring(valueStart).trim();
-                                    // Remove trailing boundary markers
-                                    if (value.endsWith("--")) {
-                                        value = value.substring(0, value.length() - 2).trim();
+                                    String value = part.substring(valueStart);
+                                    // Find the end of the actual content (before trailing newlines and boundary markers)
+                                    int valueEnd = value.indexOf("\r\n--");
+                                    if (valueEnd < 0) {
+                                        valueEnd = value.indexOf("\n--");
                                     }
-                                    if (value.endsWith("\r\n")) {
-                                        value = value.substring(0, value.length() - 2);
-                                    }
-                                    if (value.endsWith("\n")) {
-                                        value = value.substring(0, value.length() - 1);
+                                    if (valueEnd >= 0) {
+                                        value = value.substring(0, valueEnd);
+                                    } else {
+                                        value = value.trim();
+                                        // Remove trailing boundary markers
+                                        if (value.endsWith("--")) {
+                                            value = value.substring(0, value.length() - 2).trim();
+                                        }
                                     }
 
                                     response.write(true, ByteBuffer.wrap((name + "," + value).getBytes(StandardCharsets.UTF_8)), callback);

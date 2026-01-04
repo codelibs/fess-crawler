@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.codelibs.fess.crawler.client.fs.FileSystemClient;
 import org.codelibs.fess.crawler.client.ftp.FtpClient;
-import org.codelibs.fess.crawler.client.http.HcHttpClient;
+import org.codelibs.fess.crawler.client.http.Hc5HttpClient;
 import org.codelibs.fess.crawler.client.smb.SmbClient;
 import org.codelibs.fess.crawler.client.storage.StorageClient;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
@@ -49,7 +49,7 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
                 .singleton("clientFactory", CrawlerClientFactory.class);
         clientFactory = container.getComponent("clientFactory");
         FaultTolerantClient httpClient = container.getComponent("httpClient");
-        httpClient.setCrawlerClient(new HcHttpClient());
+        httpClient.setCrawlerClient(new Hc5HttpClient());
         clientFactory.addClient("http:.*", httpClient);
         clientFactory.addClient("https:.*", httpClient);
         clientFactory.addClient("file:.*", container.getComponent("fsClient"));
@@ -67,13 +67,13 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
         client = clientFactory.getClient(url);
         assertNotNull(client);
         assertTrue(client instanceof FaultTolerantClient);
-        assertTrue(((FaultTolerantClient) client).getCrawlerClient() instanceof HcHttpClient);
+        assertTrue(((FaultTolerantClient) client).getCrawlerClient() instanceof Hc5HttpClient);
 
         url = "https://hoge.com/";
         client = clientFactory.getClient(url);
         assertNotNull(client);
         assertTrue(client instanceof FaultTolerantClient);
-        assertTrue(((FaultTolerantClient) client).getCrawlerClient() instanceof HcHttpClient);
+        assertTrue(((FaultTolerantClient) client).getCrawlerClient() instanceof Hc5HttpClient);
 
         url = "file:/home/hoge";
         client = clientFactory.getClient(url);

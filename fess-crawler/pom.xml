@@ -119,6 +119,12 @@
 			<artifactId>httpclient-cache</artifactId>
 			<version>${httpcomponents.version}</version>
 		</dependency>
+		<!-- Apache HttpComponents 5.x -->
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+			<version>5.6</version>
+		</dependency>
 		<dependency>
 			<groupId>jakarta.annotation</groupId>
 			<artifactId>jakarta.annotation-api</artifactId>

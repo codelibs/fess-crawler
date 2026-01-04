@@ -16,8 +16,10 @@
 package org.codelibs.fess.crawler.client.http.form;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,19 +28,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.auth.AuthChallenge;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.exception.IORuntimeException;
@@ -49,8 +54,8 @@ import org.codelibs.core.stream.StreamUtil;
 import org.codelibs.fess.crawler.Constants;
 
 /**
- * The FormScheme class implements the AuthScheme interface to provide
- * form-based authentication for HTTP clients. It handles the process of
+ * The Hc5FormScheme class implements the AuthScheme interface for Apache HttpComponents 5.x
+ * to provide form-based authentication for HTTP clients. It handles the process of
  * obtaining a token and logging in using the provided credentials.
  *
  * <p>This class supports both GET and POST methods for token and login
@@ -63,7 +68,7 @@ import org.codelibs.fess.crawler.Constants;
  * Map<String, String> params = new HashMap<>();
  * params.put("token_url", "http://example.com/token");
  * params.put("login_url", "http://example.com/login");
- * FormScheme formScheme = new FormScheme(params);
+ * Hc5FormScheme formScheme = new Hc5FormScheme(params);
  * formScheme.authenticate(credentials, executor);
  * }
  * </pre>
@@ -82,9 +87,9 @@ import org.codelibs.fess.crawler.Constants;
  * </ul>
  *
  */
-public class FormScheme implements AuthScheme {
+public class Hc5FormScheme implements AuthScheme {
 
-    private static final Logger logger = LogManager.getLogger(FormScheme.class);
+    private static final Logger logger = LogManager.getLogger(Hc5FormScheme.class);
 
     private static final String ENCODING = "encoding";
 
@@ -111,24 +116,28 @@ public class FormScheme implements AuthScheme {
     private final Map<String, String> parameterMap;
 
     /**
-     * Constructs a FormScheme with the given parameter map.
+     * Constructs a Hc5FormScheme with the given parameter map.
      * @param parameterMap The map of parameters.
      */
-    public FormScheme(final Map<String, String> parameterMap) {
+    public Hc5FormScheme(final Map<String, String> parameterMap) {
         this.parameterMap = parameterMap;
     }
 
     @Override
-    public void processChallenge(final Header header) throws MalformedChallengeException {
+    public void processChallenge(final AuthChallenge authChallenge, final HttpContext context) throws MalformedChallengeException {
         // no-op
     }
 
     @Override
-    public String getSchemeName() {
+    public String getName() {
         return "form";
     }
 
-    @Override
+    /**
+     * Gets the parameter value for the specified name.
+     * @param name The parameter name.
+     * @return The parameter value, or null if not found.
+     */
     public String getParameter(final String name) {
         return parameterMap.get(name);
     }
@@ -144,12 +153,24 @@ public class FormScheme implements AuthScheme {
     }
 
     @Override
-    public boolean isComplete() {
+    public boolean isChallengeComplete() {
         return false;
     }
 
     @Override
-    public Header authenticate(final Credentials credentials, final HttpRequest request) throws AuthenticationException {
+    public boolean isResponseReady(final HttpHost host, final CredentialsProvider credentialsProvider, final HttpContext context)
+            throws AuthenticationException {
+        return false;
+    }
+
+    @Override
+    public Principal getPrincipal() {
+        return null;
+    }
+
+    @Override
+    public String generateAuthResponse(final HttpHost host, final HttpRequest request, final HttpContext context)
+            throws AuthenticationException {
         return null;
     }
 
@@ -159,7 +180,7 @@ public class FormScheme implements AuthScheme {
      * @param executor The executor for HTTP requests.
      */
     public void authenticate(final Credentials credentials,
-            final BiConsumer<HttpUriRequest, BiConsumer<HttpResponse, HttpEntity>> executor) {
+            final BiConsumer<ClassicHttpRequest, BiConsumer<ClassicHttpResponse, HttpEntity>> executor) {
         final String tokenUrl = getParameter(TOKEN_URL);
         final String tokenPattern = getParameter(TOKEN_PATTERN);
         final List<Pair<String, String>> responseParams = new ArrayList<>();
@@ -168,7 +189,7 @@ public class FormScheme implements AuthScheme {
             final String tokenHttpMethod = getParameter(TOKEN_METHOD);
             final String tokenReqParams = getParameter(TOKEN_PARAMETERS);
 
-            final HttpUriRequest httpRequest;
+            final ClassicHttpRequest httpRequest;
             if (Constants.POST_METHOD.equalsIgnoreCase(tokenHttpMethod)) {
                 final HttpPost httpPost = new HttpPost(tokenUrl);
                 if (StringUtil.isNotBlank(tokenReqParams)) {
@@ -191,7 +212,7 @@ public class FormScheme implements AuthScheme {
             }
 
             executor.accept(httpRequest, (response, entity) -> {
-                final int httpStatusCode = response.getStatusLine().getStatusCode();
+                final int httpStatusCode = response.getCode();
                 if (httpStatusCode < 400 || httpStatusCode == 401) {
                     parseTokenPage(tokenPattern, responseParams, entity);
                 } else {
@@ -218,7 +239,7 @@ public class FormScheme implements AuthScheme {
             return;
         }
 
-        final HttpUriRequest httpRequest;
+        final ClassicHttpRequest httpRequest;
         if (Constants.POST_METHOD.equalsIgnoreCase(loginHttpMethod)) {
             final HttpPost httpPost = new HttpPost(loginUrl);
             if (loginReqParams.length() > 0) {
@@ -237,14 +258,11 @@ public class FormScheme implements AuthScheme {
                 buf.append(loginReqParams);
                 if (!responseParams.isEmpty()) {
                     buf.append('&');
+                    final Charset charset = encoding != null ? Charset.forName(encoding) : StandardCharsets.UTF_8;
                     responseParams.stream().forEach(p -> {
-                        try {
-                            buf.append(URLEncoder.encode(p.getFirst(), encoding));
-                            buf.append('=');
-                            buf.append(URLEncoder.encode(p.getSecond(), encoding));
-                        } catch (final UnsupportedEncodingException e) {
-                            throw new IORuntimeException(e);
-                        }
+                        buf.append(URLEncoder.encode(p.getFirst(), charset));
+                        buf.append('=');
+                        buf.append(URLEncoder.encode(p.getSecond(), charset));
                     });
                 }
             }
@@ -252,7 +270,7 @@ public class FormScheme implements AuthScheme {
         }
 
         executor.accept(httpRequest, (response, entity) -> {
-            final int httpStatusCode = response.getStatusLine().getStatusCode();
+            final int httpStatusCode = response.getCode();
             if (httpStatusCode >= 400) {
                 String content;
                 try {
@@ -300,29 +318,26 @@ public class FormScheme implements AuthScheme {
      * @return The HttpEntity containing the parsed parameters.
      */
     protected HttpEntity parseRequestParameters(final String params, final List<Pair<String, String>> paramList, final String encoding) {
-        try {
-            final List<BasicNameValuePair> parameters =
-                    StreamUtil.split(params, "&").get(stream -> stream.filter(StringUtil::isNotBlank).map(s -> {
-                        final String name;
-                        final String value;
-                        final int pos = s.indexOf('=');
-                        if (pos == -1 || pos == s.length() - 1) {
-                            name = s;
-                            value = StringUtil.EMPTY;
-                        } else {
-                            name = s.substring(0, pos);
-                            value = s.substring(pos + 1);
-                        }
-                        return new BasicNameValuePair(name, value);
-                    }).collect(Collectors.toList()));
-            if (paramList != null) {
-                parameters.addAll(
-                        paramList.stream().map(p -> new BasicNameValuePair(p.getFirst(), p.getSecond())).collect(Collectors.toList()));
-            }
-            return new UrlEncodedFormEntity(parameters, encoding);
-        } catch (final UnsupportedEncodingException e) {
-            throw new IORuntimeException(e);
+        final List<BasicNameValuePair> parameters =
+                StreamUtil.split(params, "&").get(stream -> stream.filter(StringUtil::isNotBlank).map(s -> {
+                    final String name;
+                    final String value;
+                    final int pos = s.indexOf('=');
+                    if (pos == -1 || pos == s.length() - 1) {
+                        name = s;
+                        value = StringUtil.EMPTY;
+                    } else {
+                        name = s.substring(0, pos);
+                        value = s.substring(pos + 1);
+                    }
+                    return new BasicNameValuePair(name, value);
+                }).collect(Collectors.toList()));
+        if (paramList != null) {
+            parameters
+                    .addAll(paramList.stream().map(p -> new BasicNameValuePair(p.getFirst(), p.getSecond())).collect(Collectors.toList()));
         }
+        final Charset charset = encoding != null ? Charset.forName(encoding) : StandardCharsets.UTF_8;
+        return new UrlEncodedFormEntity(parameters, charset);
     }
 
     /**
@@ -352,7 +367,8 @@ public class FormScheme implements AuthScheme {
      */
     protected String replaceCredentials(final Credentials credentials, final String value) {
         if (StringUtil.isNotBlank(value)) {
-            return value.replace(USERNAME, credentials.getUserPrincipal().getName()).replace(PASSWORD, credentials.getPassword());
+            final String password = credentials.getPassword() != null ? new String(credentials.getPassword()) : "";
+            return value.replace(USERNAME, credentials.getUserPrincipal().getName()).replace(PASSWORD, password);
         }
         return StringUtil.EMPTY;
     }
@@ -363,6 +379,6 @@ public class FormScheme implements AuthScheme {
      */
     @Override
     public String toString() {
-        return "FormScheme [parameterMap=" + parameterMap + "]";
+        return "Hc5FormScheme [parameterMap=" + parameterMap + "]";
     }
 }

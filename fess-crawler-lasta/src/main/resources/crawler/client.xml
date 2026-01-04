@@ -7,16 +7,26 @@
 	<include path="crawler/contentlength.xml" />
 	<include path="crawler/mimetype.xml" />
 
-	<component name="internalHttpClient" class="org.codelibs.fess.crawler.client.http.HcHttpClient"
+	<!-- HC5 (Default) -->
+	<component name="internalHttpClient" class="org.codelibs.fess.crawler.client.http.Hc5HttpClient"
+		instance="prototype">
+		<property name="connectionTimeout">15000</property>
+		<property name="soTimeout">30000</property>
+	</component>
+
+	<!-- HC4 (Alternative - for backward compatibility) -->
+	<component name="internalHc4HttpClient" class="org.codelibs.fess.crawler.client.http.Hc4HttpClient"
 		instance="prototype">
 		<property name="connectionTimeout">15000</property>
 		<property name="soTimeout">30000</property>
 	</component>
 	<component name="httpClient"
-		class="org.codelibs.fess.crawler.client.FaultTolerantClient" instance="prototype">
-		<property name="crawlerClient">internalHttpClient</property>
+		class="org.codelibs.fess.crawler.client.http.HcHttpClient" instance="prototype">
+		<property name="hc5Client">internalHttpClient</property>
+		<property name="hc4Client">internalHc4HttpClient</property>
 		<property name="maxRetryCount">5</property>
 		<property name="retryInterval">500</property>
+		<postConstruct name="init" />
 	</component>
 
 	<component name="fsClient"

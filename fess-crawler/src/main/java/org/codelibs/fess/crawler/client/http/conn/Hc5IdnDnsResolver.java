@@ -15,11 +15,11 @@
  */
 package org.codelibs.fess.crawler.client.http.conn;
 
+import java.io.UnsupportedEncodingException;
 import java.net.IDN;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.net.UnknownHostException;
 
 import org.apache.hc.client5.http.DnsResolver;
 
@@ -50,7 +50,7 @@ public class Hc5IdnDnsResolver implements DnsResolver {
     protected int flag = 0;
 
     /** Encoding for URL decoding. */
-    protected String encoding = StandardCharsets.UTF_8.name();
+    protected String encoding = "UTF-8";
 
     /**
      * Creates a new Hc5IdnDnsResolver instance with default settings.
@@ -107,7 +107,11 @@ public class Hc5IdnDnsResolver implements DnsResolver {
         if (host.indexOf('%') == -1) {
             return host;
         }
-        return URLDecoder.decode(host, StandardCharsets.UTF_8);
+        try {
+            return URLDecoder.decode(host, encoding);
+        } catch (final UnsupportedEncodingException e) {
+            return host;
+        }
     }
 
     /**

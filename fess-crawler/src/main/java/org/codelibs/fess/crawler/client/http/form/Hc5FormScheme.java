@@ -80,7 +80,7 @@ import org.codelibs.fess.crawler.Constants;
  * <li>TOKEN_PATTERN - The regex pattern to extract the token from the response.</li>
  * <li>TOKEN_NAME - The name of the token parameter.</li>
  * <li>TOKEN_METHOD - The HTTP method to use for the token request (GET or POST).</li>
- * <li>TOKEN_PARAMTERS - The parameters to include in the token request.</li>
+ * <li>TOKEN_PARAMETERS - The parameters to include in the token request.</li>
  * <li>LOGIN_METHOD - The HTTP method to use for the login request (GET or POST).</li>
  * <li>LOGIN_URL - The URL to send the login request to.</li>
  * <li>LOGIN_PARAMETERS - The parameters to include in the login request.</li>
@@ -101,7 +101,7 @@ public class Hc5FormScheme implements AuthScheme {
 
     private static final String TOKEN_METHOD = "token_method";
 
-    private static final String TOKEN_PARAMTERS = "token_paramters";
+    private static final String TOKEN_PARAMETERS = "token_parameters";
 
     private static final String LOGIN_METHOD = "login_method";
 
@@ -187,7 +187,7 @@ public class Hc5FormScheme implements AuthScheme {
         final String encoding = getParameter(ENCODING);
         if (StringUtil.isNotBlank(tokenUrl) && StringUtil.isNotBlank(tokenPattern)) {
             final String tokenHttpMethod = getParameter(TOKEN_METHOD);
-            final String tokenReqParams = getParameter(TOKEN_PARAMTERS);
+            final String tokenReqParams = getParameter(TOKEN_PARAMETERS);
 
             final ClassicHttpRequest httpRequest;
             if (Constants.POST_METHOD.equalsIgnoreCase(tokenHttpMethod)) {

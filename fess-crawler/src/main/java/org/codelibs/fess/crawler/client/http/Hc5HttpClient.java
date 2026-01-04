@@ -48,6 +48,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
@@ -57,11 +58,17 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
+import org.apache.hc.client5.http.impl.cookie.BasicExpiresHandler;
+import org.apache.hc.client5.http.impl.cookie.IgnoreCookieSpecFactory;
+import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecFactory;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -78,6 +85,9 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.LogManager;
@@ -198,6 +208,9 @@ public class Hc5HttpClient extends AbstractCrawlerClient {
     /** Property name for time to live setting */
     public static final String TIME_TO_LIVE_PROPERTY = "timeToLive";
 
+    /** Property name for authentication scheme providers setting */
+    public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
+
     /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(Hc5HttpClient.class);
 
@@ -300,6 +313,15 @@ public class Hc5HttpClient extends AbstractCrawlerClient {
     /** Whether to ignore SSL certificate validation */
     protected boolean ignoreSslCertificate = false;
 
+    /** Map of authentication scheme factories */
+    protected Map<String, AuthSchemeFactory> authSchemeFactoryMap;
+
+    /** Cookie specification registry */
+    protected Lookup<CookieSpecFactory> cookieSpecRegistry;
+
+    /** Cookie date patterns for parsing */
+    protected String[] cookieDatePatterns;
+
     /**
     * Initializes the HTTP client with the necessary configurations and settings.
     * This method sets up the request configurations, authentication schemes,
@@ -345,6 +367,17 @@ public class Hc5HttpClient extends AbstractCrawlerClient {
         final HttpRoutePlanner planner = buildRoutePlanner();
         if (planner != null) {
             httpClientBuilder.setRoutePlanner(planner);
+        }
+
+        // AuthSchemeFactory
+        @SuppressWarnings("unchecked")
+        final Map<String, AuthSchemeFactory> factoryMap = getInitParameter(AUTH_SCHEME_PROVIDERS_PROPERTY, authSchemeFactoryMap, Map.class);
+        if (factoryMap != null && !factoryMap.isEmpty()) {
+            final RegistryBuilder<AuthSchemeFactory> authSchemeRegistryBuilder = RegistryBuilder.create();
+            for (final Map.Entry<String, AuthSchemeFactory> entry : factoryMap.entrySet()) {
+                authSchemeRegistryBuilder.register(entry.getKey(), entry.getValue());
+            }
+            httpClientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistryBuilder.build());
         }
 
         // Authentication
@@ -394,6 +427,10 @@ public class Hc5HttpClient extends AbstractCrawlerClient {
                 cookieStore.addCookie(cookie);
             }
         }
+
+        // cookie registry
+        final Lookup<CookieSpecFactory> cookieSpecRegistryLookup = buildCookieSpecRegistry();
+        httpClientBuilder.setDefaultCookieSpecRegistry(cookieSpecRegistryLookup);
 
         clientConnectionManager = buildConnectionManager(connectionTimeoutParam, soTimeoutParam);
 
@@ -499,6 +536,32 @@ public class Hc5HttpClient extends AbstractCrawlerClient {
         }
 
         return builder.build();
+    }
+
+    /**
+     * Builds the cookie specification registry.
+     *
+     * @return The configured cookie specification registry
+     */
+    protected Lookup<CookieSpecFactory> buildCookieSpecRegistry() {
+        if (cookieSpecRegistry != null) {
+            return cookieSpecRegistry;
+        }
+
+        final PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
+        final RFC6265CookieSpecFactory laxStandardProvider =
+                new RFC6265CookieSpecFactory(RFC6265CookieSpecFactory.CompatibilityLevel.RELAXED, publicSuffixMatcher);
+        final RFC6265CookieSpecFactory strictStandardProvider =
+                new RFC6265CookieSpecFactory(RFC6265CookieSpecFactory.CompatibilityLevel.STRICT, publicSuffixMatcher);
+        final IgnoreCookieSpecFactory ignoreCookieSpecFactory = new IgnoreCookieSpecFactory();
+        return RegistryBuilder.<CookieSpecFactory> create()//
+                .register(StandardCookieSpec.RELAXED, laxStandardProvider)//
+                .register(StandardCookieSpec.STRICT, strictStandardProvider)//
+                .register("standard", laxStandardProvider)//
+                .register("standard-strict", strictStandardProvider)//
+                .register(StandardCookieSpec.IGNORE, ignoreCookieSpecFactory)//
+                .register("ignoreCookies", ignoreCookieSpecFactory)//
+                .build();
     }
 
     @Override
@@ -1117,6 +1180,33 @@ public class Hc5HttpClient extends AbstractCrawlerClient {
      */
     public void setCookieSpec(final String cookieSpec) {
         this.cookieSpec = cookieSpec;
+    }
+
+    /**
+     * Sets the cookie specification registry.
+     *
+     * @param cookieSpecRegistry The cookie specification registry
+     */
+    public void setCookieSpecRegistry(final Lookup<CookieSpecFactory> cookieSpecRegistry) {
+        this.cookieSpecRegistry = cookieSpecRegistry;
+    }
+
+    /**
+     * Sets the cookie date patterns for parsing.
+     *
+     * @param cookieDatePatterns The cookie date patterns
+     */
+    public void setCookieDatePatterns(final String[] cookieDatePatterns) {
+        this.cookieDatePatterns = cookieDatePatterns;
+    }
+
+    /**
+     * Sets the authentication scheme factory map.
+     *
+     * @param authSchemeFactoryMap The authentication scheme factory map
+     */
+    public void setAuthSchemeFactoryMap(final Map<String, AuthSchemeFactory> authSchemeFactoryMap) {
+        this.authSchemeFactoryMap = authSchemeFactoryMap;
     }
 
     /**

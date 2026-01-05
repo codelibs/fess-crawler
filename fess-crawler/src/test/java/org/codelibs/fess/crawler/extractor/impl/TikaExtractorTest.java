@@ -124,6 +124,17 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    public void test_getTika_html_fragment() {
+        final String htmlFragment = "<p>これはテストです</p><div>追加テキスト</div>";
+        final InputStream in = new ByteArrayInputStream(htmlFragment.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("これはテストです"));
+        assertTrue(content.contains("追加テキスト"));
+    }
+
     public void test_getTika_msword() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         final ExtractData extractData = tikaExtractor.getText(in, null);

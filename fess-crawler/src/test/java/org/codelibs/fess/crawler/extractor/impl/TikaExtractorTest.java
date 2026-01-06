@@ -135,6 +135,41 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("追加テキスト"));
     }
 
+    public void test_getTika_html_fragment_strip_tags() {
+        final String htmlFragment =
+                "<p style=\"text-align: right;\"><button class=\"aui-button\">Create</button></p><h2>Title</h2><table><tr><td>Cell</td></tr></table>";
+        final InputStream in = new ByteArrayInputStream(htmlFragment.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        final Map<String, String> params = new HashMap<>();
+        params.put(TikaExtractor.STRIP_HTML_TAGS, "true");
+        final ExtractData extractData = tikaExtractor.getText(in, params);
+        final String content = extractData.getContent();
+        CloseableUtil.closeQuietly(in);
+        // Log detected content type for debugging
+        final String contentType =
+                extractData.getValues(ExtractData.CONTENT_TYPE) != null ? String.join(",", extractData.getValues(ExtractData.CONTENT_TYPE))
+                        : "null";
+        logger.info("Detected content type: {}", contentType);
+        logger.info("Stripped content: {}", content);
+        assertFalse("Content should not contain HTML tags. Content type=" + contentType + ", content=" + content, content.contains("<"));
+        assertFalse("Content should not contain HTML tags", content.contains(">"));
+        assertTrue("Content should contain 'Create'", content.contains("Create"));
+        assertTrue("Content should contain 'Title'", content.contains("Title"));
+        assertTrue("Content should contain 'Cell'", content.contains("Cell"));
+    }
+
+    public void test_getTika_html_fragment_strip_tags_disabled() {
+        final String htmlFragment = "<p style=\"text-align: right;\"><button class=\"aui-button\">Create</button></p><h2>Title</h2>";
+        final InputStream in = new ByteArrayInputStream(htmlFragment.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        // No STRIP_HTML_TAGS param - default behavior
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info("Content without stripping: {}", content);
+        // Content may or may not contain tags depending on Tika's behavior
+        assertTrue("Content should contain 'Create'", content.contains("Create"));
+        assertTrue("Content should contain 'Title'", content.contains("Title"));
+    }
+
     public void test_getTika_msword() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         final ExtractData extractData = tikaExtractor.getText(in, null);

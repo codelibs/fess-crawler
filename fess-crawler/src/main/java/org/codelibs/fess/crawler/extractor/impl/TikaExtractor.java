@@ -148,6 +148,11 @@ public class TikaExtractor extends PasswordBasedExtractor {
      */
     public static final String NORMALIZE_TEXT = "normalize_text";
 
+    /**
+     * A parameter key to strip HTML tags from content when detected as HTML.
+     */
+    public static final String STRIP_HTML_TAGS = "tika.stripHtmlTags";
+
     private static final String FILE_PASSWORD = "fess.file.password";
 
     /**
@@ -279,6 +284,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 final String contentType = params == null ? null : params.get(ExtractData.CONTENT_TYPE);
                 String contentEncoding = params == null ? null : params.get(ExtractData.CONTENT_ENCODING);
                 final boolean normalizeText = params == null ? true : !Constants.FALSE.equalsIgnoreCase(params.get(NORMALIZE_TEXT));
+                final boolean stripHtmlTags = params != null && "true".equalsIgnoreCase(params.get(STRIP_HTML_TAGS));
                 final String password = getPassword(params);
 
                 final Metadata metadata = createMetadata(resourceName, contentType, contentEncoding, password);
@@ -388,6 +394,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             }
                         }, contentEncoding, normalizeText);
                     }
+                }
+                // Strip HTML tags if explicitly requested via params
+                // Note: Content type check is intentionally omitted because Tika may detect
+                // HTML fragments (without proper <html><body> structure) as text/plain
+                if (stripHtmlTags && StringUtil.isNotBlank(content)) {
+                    content = stripHtmlTags(content);
                 }
                 final ExtractData extractData = new ExtractData(content);
                 final long contentLength;
@@ -797,5 +809,40 @@ public class TikaExtractor extends PasswordBasedExtractor {
      */
     public void setTikaConfig(final TikaConfig tikaConfig) {
         this.tikaConfig = tikaConfig;
+    }
+
+    /**
+     * Strips HTML tags from the given content using regex.
+     *
+     * @param content The content to strip HTML tags from.
+     * @return The content with HTML tags removed, or the original content if stripping fails.
+     */
+    protected String stripHtmlTags(final String content) {
+        if (StringUtil.isBlank(content)) {
+            return content;
+        }
+        try {
+            // Use regex to strip HTML tags
+            // First, handle common HTML entities
+            String result = content;
+            result = result.replaceAll("<script[^>]*>.*?</script>", " ");
+            result = result.replaceAll("<style[^>]*>.*?</style>", " ");
+            result = result.replaceAll("<[^>]+>", " ");
+            // Decode common HTML entities
+            result = result.replace("&nbsp;", " ");
+            result = result.replace("&amp;", "&");
+            result = result.replace("&lt;", "<");
+            result = result.replace("&gt;", ">");
+            result = result.replace("&quot;", "\"");
+            result = result.replace("&#39;", "'");
+            // Normalize whitespace
+            result = result.replaceAll("\\s+", " ").trim();
+            return result;
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to strip HTML tags, returning original content", e);
+            }
+            return content;
+        }
     }
 }

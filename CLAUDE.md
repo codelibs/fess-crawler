@@ -13,25 +13,29 @@ Quick reference for AI assistants working on the Fess Crawler project.
 - **License**: Apache 2.0
 - **DI**: LastaFlute DI
 - **Repo**: https://github.com/codelibs/fess-crawler
+- **Version**: 15.5.0-SNAPSHOT
 
 ### Tech Stack
 
-- **HTTP**: Apache HttpComponents 4.5+
+- **HTTP**: Apache HttpComponents 4.5+ and 5.x (switchable)
 - **Extraction**: Apache Tika 3.0+, POI 5.3+, PDFBox 3.0+
-- **Testing**: JUnit 4, UTFlute, Mockito 5.7.0
+- **Testing**: JUnit 4, UTFlute, Mockito 5.7.0, Testcontainers 2.0.2
 - **Storage**: In-memory (default), OpenSearch (optional)
+- **Cloud**: AWS SDK v2 (S3), Google Cloud Storage
 
 ### Protocols
 
 - **HTTP/HTTPS**: Full crawling, cookies, auth, robots.txt
 - **File**: Local/network file systems
-- **FTP**: With authentication
+- **FTP/FTPS**: With authentication
 - **SMB/CIFS**: Windows shares (SMB1/SMB2+)
-- **Storage**: MinIO/S3-compatible
+- **Storage**: MinIO/S3-compatible (via storage://)
+- **S3**: Amazon S3 and compatible (via s3://)
+- **GCS**: Google Cloud Storage (via gcs://)
 
 ### Content Formats
 
-Office (Word, Excel, PowerPoint), PDF, Archives (ZIP, TAR, GZ), HTML, XML, JSON, Media (audio/video metadata), Images (EXIF/IPTC/XMP)
+Office (Word, Excel, PowerPoint), PDF, Archives (ZIP, TAR, GZ, LHA), HTML, XML, JSON, Markdown, Media (audio/video metadata), Images (EXIF/IPTC/XMP), Email (EML)
 
 ---
 
@@ -70,6 +74,7 @@ fess-crawler-parent/
 
 **Fault Tolerance**:
 - `FaultTolerantClient` wrapper (retry, circuit breaker)
+- `SwitchableHttpClient` for HTTP client fallback
 - Graceful degradation (e.g., robots.txt parsing continues on errors)
 
 ---
@@ -110,18 +115,68 @@ Worker thread for crawling.
 
 **Flow**: Poll URL → Validate → Get client → Delay → Check last-modified → Execute → Process → Extract children → Queue children → Delay
 
+### HTTP Client Architecture
+
+The HTTP client system supports both Apache HttpComponents 4.x and 5.x with a switchable architecture:
+
+```
+SwitchableHttpClient (extends FaultTolerantClient)
+    ├── Hc5HttpClient (default) - Apache HttpComponents 5.x
+    └── Hc4HttpClient (fallback) - Apache HttpComponents 4.x
+
+HcHttpClient (abstract base class)
+    ├── Hc4HttpClient
+    └── Hc5HttpClient
+```
+
+**Switching HTTP Clients**:
+```bash
+# Use HC5 (default)
+java -Dfess.crawler.http.client=hc5 ...
+
+# Use HC4 (legacy)
+java -Dfess.crawler.http.client=hc4 ...
+```
+
+**Key HTTP Client Properties** (defined in `HcHttpClient`):
+- `connectionTimeout`, `soTimeout` - Connection/socket timeouts
+- `proxyHost`, `proxyPort` - Proxy settings
+- `userAgent` - User agent string
+- `robotsTxtEnabled` - Enable/disable robots.txt
+- `ignoreSslCertificate` - Skip SSL validation
+- `maxTotalConnection`, `defaultMaxConnectionPerRoute` - Connection pool limits
+
 ### CrawlerClientFactory
 
 Pattern-based client selection using `LinkedHashMap<Pattern, CrawlerClient>`.
 
-**Standard Patterns**:
+**Standard Patterns** (from `crawler/client.xml`):
 ```java
-"^https?://.*"     → httpClient
-"^file:.*"         → fileSystemClient
-"^ftp://.*"        → ftpClient
-"^smb://.*"        → smbClient
-"^storage://.*"    → storageClient
+"http:.*", "https:.*" → httpClient (SwitchableHttpClient)
+"file:.*"             → fsClient (FileSystemClient)
+"smb:.*"              → smbClient (SmbClient - SMB2+)
+"smb1:.*"             → smb1Client (SmbClient - SMB1)
+"ftp:.*", "ftps:.*"   → ftpClient (FtpClient)
+"storage:.*"          → storageClient (StorageClient - MinIO)
+"s3:.*"               → s3Client (S3Client - AWS S3)
+"gcs:.*"              → gcsClient (GcsClient - Google Cloud Storage)
 ```
+
+### Cloud Storage Clients
+
+**S3Client** (`client/s3/S3Client.java`):
+- Uses AWS SDK v2 (`software.amazon.awssdk:s3`)
+- URL format: `s3://bucket-name/object-path`
+- Properties: `endpoint`, `accessKey`, `secretKey`, `region`
+
+**GcsClient** (`client/gcs/GcsClient.java`):
+- Uses Google Cloud Storage SDK
+- URL format: `gcs://bucket-name/object-path`
+- Properties: `projectId`, `credentialsFile`, `endpoint` (for testing)
+
+**StorageClient** (`client/storage/StorageClient.java`):
+- Uses MinIO SDK for S3-compatible storage
+- URL format: `storage://bucket-name/object-path`
 
 ### Services
 
@@ -148,7 +203,7 @@ CrawlerThread → Client → ResponseProcessor → Transformer → Extractor →
 
 ### Key Extractors
 
-`TikaExtractor` (1000+ formats), `PdfExtractor`, `MsWordExtractor`, `MsExcelExtractor`, `MsPowerPointExtractor`, `ZipExtractor`, `HtmlExtractor`, etc.
+`TikaExtractor` (1000+ formats), `PdfExtractor`, `MsWordExtractor`, `MsExcelExtractor`, `MsPowerPointExtractor`, `ZipExtractor`, `HtmlExtractor`, `MarkdownExtractor`, `EmlExtractor`, etc.
 
 **Registration**:
 ```java
@@ -163,6 +218,7 @@ extractorFactory.addExtractor("text/html", tikaExtractor, 1);  // Fallback
 **MimeTypeHelper**: MIME detection via Tika
 **EncodingHelper**: Charset detection with BOM
 **UrlConvertHelper**: URL normalization
+**ContentLengthHelper**: Content length limits per MIME type
 
 ---
 
@@ -184,27 +240,48 @@ mvn license:format             # Update license headers
 - Opening brace on same line
 - Max line length: 120
 - JavaDoc required for public APIs
-- License headers required
+- License headers required (Apache 2.0, 2012-2025)
 
 ### Testing
 
 **Structure**: `src/test/java/org/codelibs/fess/crawler/`
-**Frameworks**: JUnit 4, UTFlute, Mockito, Testcontainers
+**Frameworks**: JUnit 4, UTFlute, Mockito 5.7.0, Testcontainers 2.0.2
 **Test Resources**: `src/test/resources/`
+**Test Server**: Jetty 12.0.16 for HTTP tests
 
-**Pattern**:
+**Pattern** (using PlainTestCase):
 ```java
-public class MyTest extends UTFlute {
+public class MyTest extends PlainTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         // Setup
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        // Cleanup
+        super.tearDown();
+    }
+
     public void test_method_scenario() throws Exception {
         // Given
         // When
         // Then
+    }
+}
+```
+
+**Pattern** (using Mockito):
+```java
+import static org.mockito.Mockito.*;
+
+public class MyTest extends PlainTestCase {
+    public void test_with_mock() {
+        CrawlerClient mockClient = mock(CrawlerClient.class);
+        when(mockClient.execute(any())).thenReturn(responseData);
+        // Test
+        verify(mockClient).execute(any());
     }
 }
 ```
@@ -238,17 +315,22 @@ public class MyClient extends AbstractCrawlerClient {
 }
 ```
 
-2. **Register in DI config** (`crawler.xml`):
+2. **Register in DI config** (`crawler/client.xml`):
 ```xml
-<component name="myClient" class="...MyClient" instance="singleton"/>
+<component name="myClient" class="...MyClient" instance="prototype">
+    <property name="charset">"UTF-8"</property>
+</component>
 ```
 
 3. **Add to factory**:
-```java
-clientFactory.addClient("^myprotocol://.*", myClient);
+```xml
+<postConstruct name="addClient">
+    <arg>"myprotocol:.*"</arg>
+    <arg>myClient</arg>
+</postConstruct>
 ```
 
-4. **Add tests**: Unit + integration
+4. **Add tests**: Unit + integration with Testcontainers if needed
 
 ### Adding a Content Extractor
 
@@ -265,7 +347,7 @@ public class MyExtractor extends AbstractExtractor {
 }
 ```
 
-2. **Register**:
+2. **Register** in `crawler/extractor.xml`:
 ```xml
 <component name="myExtractor" class="...MyExtractor" instance="singleton"/>
 ```
@@ -324,6 +406,24 @@ try (ResponseData responseData = client.execute(requestData)) {
 }  // Temp files auto-deleted
 ```
 
+### Configuring Cloud Storage Clients
+
+**S3 Client**:
+```java
+S3Client s3Client = container.getComponent("s3Client");
+s3Client.setEndpoint("https://s3.amazonaws.com");
+s3Client.setAccessKey("your-access-key");
+s3Client.setSecretKey("your-secret-key");
+s3Client.setRegion("us-east-1");
+```
+
+**GCS Client**:
+```java
+GcsClient gcsClient = container.getComponent("gcsClient");
+gcsClient.setProjectId("your-project-id");
+gcsClient.setCredentialsFile("/path/to/credentials.json");
+```
+
 ---
 
 ## Best Practices for AI Assistants
@@ -373,9 +473,19 @@ try (ResponseData responseData = client.execute(requestData)) {
 - `Crawler.java`, `CrawlerContext.java`, `CrawlerThread.java`
 
 **Clients**: `fess-crawler/src/main/java/org/codelibs/fess/crawler/client/`
-- `http/HcHttpClient.java`, `fs/FileSystemClient.java`, `storage/StorageClient.java`
+- `http/` - `HcHttpClient.java` (abstract), `Hc4HttpClient.java`, `Hc5HttpClient.java`, `SwitchableHttpClient.java`
+- `fs/FileSystemClient.java`
+- `ftp/FtpClient.java`
+- `smb/SmbClient.java`, `smb1/SmbClient.java`
+- `storage/StorageClient.java`
+- `s3/S3Client.java`
+- `gcs/GcsClient.java`
 
-**DI Config**: `fess-crawler-lasta/src/main/resources/crawler.xml`
+**DI Config**: `fess-crawler-lasta/src/main/resources/`
+- `crawler.xml` - Main configuration
+- `crawler/client.xml` - Client definitions
+- `crawler/extractor.xml` - Extractor definitions
+- `crawler/rule.xml` - Rule definitions
 
 ### Exception Hierarchy
 
@@ -401,6 +511,22 @@ CrawlerContext ctx = CrawlingParameterUtil.getCrawlerContext();
 // Clear (ALWAYS in finally)
 CrawlingParameterUtil.clearAll();
 ```
+
+### Key Dependencies
+
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| Apache HttpComponents 5.x | 5.6 | HTTP client (default) |
+| Apache HttpComponents 4.x | 4.5.x | HTTP client (legacy) |
+| Apache Tika | 3.0+ | Content extraction |
+| Apache POI | 5.3+ | Office documents |
+| PDFBox | 3.0+ | PDF extraction |
+| AWS SDK v2 | 2.x | S3 support |
+| Google Cloud Storage | latest | GCS support |
+| MinIO | 8.x | S3-compatible storage |
+| Jetty | 12.0.16 | Test server |
+| Mockito | 5.7.0 | Unit testing |
+| Testcontainers | 2.0.2 | Integration testing |
 
 ## Log Message Guidelines
 

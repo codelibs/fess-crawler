@@ -82,9 +82,9 @@ import org.codelibs.fess.crawler.Constants;
  * </ul>
  *
  */
-public class FormScheme implements AuthScheme {
+public class Hc4FormScheme implements AuthScheme {
 
-    private static final Logger logger = LogManager.getLogger(FormScheme.class);
+    private static final Logger logger = LogManager.getLogger(Hc4FormScheme.class);
 
     private static final String ENCODING = "encoding";
 
@@ -114,7 +114,7 @@ public class FormScheme implements AuthScheme {
      * Constructs a FormScheme with the given parameter map.
      * @param parameterMap The map of parameters.
      */
-    public FormScheme(final Map<String, String> parameterMap) {
+    public Hc4FormScheme(final Map<String, String> parameterMap) {
         this.parameterMap = parameterMap;
     }
 

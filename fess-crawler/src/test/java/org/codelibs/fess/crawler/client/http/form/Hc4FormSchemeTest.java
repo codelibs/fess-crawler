@@ -22,10 +22,10 @@ import java.util.Map;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.dbflute.utflute.core.PlainTestCase;
 
-public class FormSchemeTest extends PlainTestCase {
+public class Hc4FormSchemeTest extends PlainTestCase {
 
     public void test_getTokenValue() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
 
         String tokenPattern = "name=\"authenticity_token\" +value=\"([^\"]+)\"";
         String content = "<input name=\"authenticity_token\" value=\"abcdefg\">";
@@ -41,7 +41,7 @@ public class FormSchemeTest extends PlainTestCase {
     }
 
     public void test_getSchemeName() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertEquals("form", formScheme.getSchemeName());
     }
 
@@ -50,7 +50,7 @@ public class FormSchemeTest extends PlainTestCase {
         params.put("token_url", "http://example.com/token");
         params.put("login_url", "http://example.com/login");
 
-        FormScheme formScheme = new FormScheme(params);
+        Hc4FormScheme formScheme = new Hc4FormScheme(params);
 
         assertEquals("http://example.com/token", formScheme.getParameter("token_url"));
         assertEquals("http://example.com/login", formScheme.getParameter("login_url"));
@@ -58,7 +58,7 @@ public class FormSchemeTest extends PlainTestCase {
     }
 
     public void test_replaceCredentials_username() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("testuser", "testpass");
 
         String result = formScheme.replaceCredentials(credentials, "user=${username}");
@@ -66,7 +66,7 @@ public class FormSchemeTest extends PlainTestCase {
     }
 
     public void test_replaceCredentials_password() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("testuser", "testpass");
 
         String result = formScheme.replaceCredentials(credentials, "pass=${password}");
@@ -74,7 +74,7 @@ public class FormSchemeTest extends PlainTestCase {
     }
 
     public void test_replaceCredentials_both() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("admin", "secret123");
 
         String result = formScheme.replaceCredentials(credentials, "username=${username}&password=${password}");
@@ -82,7 +82,7 @@ public class FormSchemeTest extends PlainTestCase {
     }
 
     public void test_replaceCredentials_blankValue() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("testuser", "testpass");
 
         String result = formScheme.replaceCredentials(credentials, "");
@@ -93,24 +93,24 @@ public class FormSchemeTest extends PlainTestCase {
     }
 
     public void test_getRealm() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertNull(formScheme.getRealm());
     }
 
     public void test_isConnectionBased() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertFalse(formScheme.isConnectionBased());
     }
 
     public void test_isComplete() {
-        FormScheme formScheme = new FormScheme(Collections.emptyMap());
+        Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertFalse(formScheme.isComplete());
     }
 
     public void test_toString() {
         Map<String, String> params = new HashMap<>();
         params.put("key", "value");
-        FormScheme formScheme = new FormScheme(params);
+        Hc4FormScheme formScheme = new Hc4FormScheme(params);
 
         String result = formScheme.toString();
         assertTrue(result.contains("FormScheme"));

@@ -54,7 +54,7 @@ import org.codelibs.core.timer.TimeoutManager;
 import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
-import org.codelibs.fess.crawler.client.http.Authentication;
+import org.codelibs.fess.crawler.client.http.Hc4Authentication;
 import org.codelibs.fess.crawler.client.http.RequestHeader;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -155,8 +155,8 @@ public class ApiExtractor extends AbstractExtractor {
         }
 
         // Authentication
-        final Authentication[] siteCredentialList = {};
-        for (final Authentication authentication : siteCredentialList) {
+        final Hc4Authentication[] siteCredentialList = {};
+        for (final Hc4Authentication authentication : siteCredentialList) {
             final AuthScope authScope = authentication.getAuthScope();
             credentialsProvider.setCredentials(authScope, authentication.getCredentials());
             final AuthScheme authScheme = authentication.getAuthScheme();

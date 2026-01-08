@@ -13,15 +13,14 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.fess.crawler.client.http.impl;
+package org.codelibs.fess.crawler.client.http;
 
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
-import org.codelibs.fess.crawler.client.http.Authentication;
 
 /**
- * Implementation of the {@link Authentication} interface.
+ * Authentication class for Apache HttpComponents 4.x (HC4).
  * This class provides methods to handle authentication details such as
  * authentication scope, credentials, and authentication scheme.
  *
@@ -37,13 +36,11 @@ import org.codelibs.fess.crawler.client.http.Authentication;
  * {@code
  * AuthScope authScope = new AuthScope("example.com", 80);
  * Credentials credentials = new UsernamePasswordCredentials("user", "password");
- * AuthenticationImpl auth = new AuthenticationImpl(authScope, credentials);
+ * Hc4Authentication auth = new Hc4Authentication(authScope, credentials);
  * }
  * </pre>
- *
- * @see org.codelibs.fess.crawler.client.http.Authentication
  */
-public class AuthenticationImpl implements Authentication {
+public class Hc4Authentication {
     private AuthScope authScope;
 
     private Credentials credentials;
@@ -51,45 +48,34 @@ public class AuthenticationImpl implements Authentication {
     private AuthScheme authScheme;
 
     /**
-     * Initializes the AuthenticationImpl with the provided AuthScope and Credentials,
+     * Initializes the Hc4Authentication with the provided AuthScope and Credentials,
      * and sets the AuthScheme to null.
      * @param authScope The authentication scope.
      * @param credentials The credentials.
      */
-    public AuthenticationImpl(final AuthScope authScope, final Credentials credentials) {
+    public Hc4Authentication(final AuthScope authScope, final Credentials credentials) {
         this(authScope, credentials, null);
     }
 
     /**
-     * Initializes the AuthenticationImpl with the provided AuthScope, Credentials, and AuthScheme.
+     * Initializes the Hc4Authentication with the provided AuthScope, Credentials, and AuthScheme.
      * @param authScope The authentication scope.
      * @param credentials The credentials.
      * @param authScheme The authentication scheme.
      */
-    public AuthenticationImpl(final AuthScope authScope, final Credentials credentials, final AuthScheme authScheme) {
+    public Hc4Authentication(final AuthScope authScope, final Credentials credentials, final AuthScheme authScheme) {
         this.authScope = authScope;
         this.credentials = credentials;
         this.authScheme = authScheme;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the authentication scope associated with this authentication.
      *
-     * @see org.codelibs.fess.crawler.client.http.Authentication#getAuthScope()
+     * @return the {@link AuthScope} object representing the authentication scope.
      */
-    @Override
     public AuthScope getAuthScope() {
         return authScope;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.codelibs.fess.crawler.client.http.Authentication#getCredentials()
-     */
-    @Override
-    public Credentials getCredentials() {
-        return credentials;
     }
 
     /**
@@ -102,6 +88,15 @@ public class AuthenticationImpl implements Authentication {
     }
 
     /**
+     * Retrieves the credentials associated with the current authentication.
+     *
+     * @return the credentials object containing authentication details.
+     */
+    public Credentials getCredentials() {
+        return credentials;
+    }
+
+    /**
      * Sets the credentials.
      * @param credentials The credentials to set.
      */
@@ -109,12 +104,11 @@ public class AuthenticationImpl implements Authentication {
         this.credentials = credentials;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the authentication scheme to be used for HTTP requests.
      *
-     * @see org.codelibs.fess.crawler.client.http.Authentication#getAuthScheme()
+     * @return the authentication scheme
      */
-    @Override
     public AuthScheme getAuthScheme() {
         return authScheme;
     }

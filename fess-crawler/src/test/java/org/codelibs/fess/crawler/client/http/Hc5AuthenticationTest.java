@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.codelibs.fess.crawler.client.http.impl;
+package org.codelibs.fess.crawler.client.http;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -21,13 +21,13 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.dbflute.utflute.core.PlainTestCase;
 
-public class Hc5AuthenticationImplTest extends PlainTestCase {
+public class Hc5AuthenticationTest extends PlainTestCase {
 
     public void test_constructor_twoArgs() {
         AuthScope authScope = new AuthScope("example.com", 80);
         Credentials credentials = new UsernamePasswordCredentials("user", "password".toCharArray());
 
-        Hc5AuthenticationImpl auth = new Hc5AuthenticationImpl(authScope, credentials);
+        Hc5Authentication auth = new Hc5Authentication(authScope, credentials);
 
         assertEquals(authScope, auth.getAuthScope());
         assertEquals(credentials, auth.getCredentials());
@@ -39,7 +39,7 @@ public class Hc5AuthenticationImplTest extends PlainTestCase {
         Credentials credentials = new UsernamePasswordCredentials("admin", "secret".toCharArray());
         BasicScheme authScheme = new BasicScheme();
 
-        Hc5AuthenticationImpl auth = new Hc5AuthenticationImpl(authScope, credentials, authScheme);
+        Hc5Authentication auth = new Hc5Authentication(authScope, credentials, authScheme);
 
         assertEquals(authScope, auth.getAuthScope());
         assertEquals(credentials, auth.getCredentials());
@@ -51,7 +51,7 @@ public class Hc5AuthenticationImplTest extends PlainTestCase {
         Credentials credentials = new UsernamePasswordCredentials("testuser", "testpass".toCharArray());
         BasicScheme authScheme = new BasicScheme();
 
-        Hc5AuthenticationImpl auth = new Hc5AuthenticationImpl(authScope, credentials, authScheme);
+        Hc5Authentication auth = new Hc5Authentication(authScope, credentials, authScheme);
 
         assertSame(authScope, auth.getAuthScope());
         assertSame(credentials, auth.getCredentials());
@@ -62,7 +62,7 @@ public class Hc5AuthenticationImplTest extends PlainTestCase {
         AuthScope initialScope = new AuthScope("initial.com", 80);
         Credentials initialCreds = new UsernamePasswordCredentials("initial", "init".toCharArray());
 
-        Hc5AuthenticationImpl auth = new Hc5AuthenticationImpl(initialScope, initialCreds);
+        Hc5Authentication auth = new Hc5Authentication(initialScope, initialCreds);
 
         // Update values using setters
         AuthScope newScope = new AuthScope("updated.com", 443);
@@ -82,14 +82,14 @@ public class Hc5AuthenticationImplTest extends PlainTestCase {
         AuthScope authScope = new AuthScope("example.com", 80);
         Credentials credentials = new UsernamePasswordCredentials("user", "password".toCharArray());
 
-        Hc5AuthenticationImpl auth = new Hc5AuthenticationImpl(authScope, credentials);
+        Hc5Authentication auth = new Hc5Authentication(authScope, credentials);
 
         assertNull(auth.getAuthScheme());
     }
 
     public void test_constructor_withNullValues() {
         // Constructor accepts null values
-        Hc5AuthenticationImpl auth = new Hc5AuthenticationImpl(null, null, null);
+        Hc5Authentication auth = new Hc5Authentication(null, null, null);
 
         assertNull(auth.getAuthScope());
         assertNull(auth.getCredentials());

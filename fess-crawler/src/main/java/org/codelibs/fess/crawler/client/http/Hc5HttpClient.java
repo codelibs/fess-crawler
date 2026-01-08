@@ -52,6 +52,8 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
+import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -102,7 +104,11 @@ import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
+import org.codelibs.fess.crawler.client.http.config.CredentialsConfig;
+import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.conn.Hc5IdnDnsResolver;
+import org.codelibs.fess.crawler.client.http.Hc4Authentication;
+import org.codelibs.fess.crawler.client.http.form.Hc4FormScheme;
 import org.codelibs.fess.crawler.client.http.form.Hc5FormScheme;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
@@ -304,8 +310,7 @@ public class Hc5HttpClient extends HcHttpClient {
         }
 
         // Authentication
-        final Hc5Authentication[] siteCredentialList =
-                getInitParameter(AUTHENTICATIONS_PROPERTY, new Hc5Authentication[0], Hc5Authentication[].class);
+        final Hc5Authentication[] siteCredentialList = getAuthenticationArray();
         final List<Pair<Hc5FormScheme, Credentials>> formSchemeList = new ArrayList<>();
         for (final Hc5Authentication authentication : siteCredentialList) {
             final AuthScheme authScheme = authentication.getAuthScheme();
@@ -411,6 +416,149 @@ public class Hc5HttpClient extends HcHttpClient {
             logger.info("HTTP client initialized successfully: userAgent={}, maxTotal={}, defaultMaxPerRoute={}", userAgent,
                     maxTotalConnections, maxConnectionsPerRoute);
         }
+    }
+
+    /**
+     * Converts POJO authentication configs to HC5 Hc5Authentication objects.
+     * This method supports:
+     * - Direct Hc5Authentication[] (returns as-is)
+     * - WebAuthenticationConfig[] (converts to Hc5Authentication[])
+     * - Hc4Authentication[] (converts for backward compatibility)
+     *
+     * @return the authentication array
+     */
+    protected Hc5Authentication[] getAuthenticationArray() {
+        if (initParamMap == null) {
+            return new Hc5Authentication[0];
+        }
+        final Object value = initParamMap.get(AUTHENTICATIONS_PROPERTY);
+        if (value == null) {
+            return new Hc5Authentication[0];
+        }
+
+        // If already HC5 Hc5Authentication[], return directly
+        if (value instanceof Hc5Authentication[]) {
+            return (Hc5Authentication[]) value;
+        }
+
+        // If common POJO config, convert to HC5
+        if (value instanceof WebAuthenticationConfig[]) {
+            return convertFromConfig((WebAuthenticationConfig[]) value);
+        }
+
+        // Backward compatibility: If HC4 Hc4Authentication[], convert to HC5
+        if (value instanceof Hc4Authentication[]) {
+            return convertFromHc4Authentication((Hc4Authentication[]) value);
+        }
+
+        logger.warn("Unknown authentication type: type={}", value.getClass().getName());
+        return new Hc5Authentication[0];
+    }
+
+    /**
+     * Converts WebAuthenticationConfig array to Hc5Authentication array.
+     *
+     * @param configs the POJO configurations
+     * @return the HC5 authentication array
+     */
+    protected Hc5Authentication[] convertFromConfig(final WebAuthenticationConfig[] configs) {
+        final List<Hc5Authentication> result = new ArrayList<>();
+        for (final WebAuthenticationConfig config : configs) {
+            try {
+                final AuthScope authScope = new AuthScope(config.getScheme(), config.getHost(), config.getPort(), config.getRealm(), null // schemeName
+                );
+
+                final Credentials credentials = convertCredentials(config.getCredentials());
+
+                AuthScheme authScheme = null;
+                if (config.getAuthSchemeType() == WebAuthenticationConfig.AuthSchemeType.FORM) {
+                    authScheme = new Hc5FormScheme(config.getFormParameters());
+                }
+
+                result.add(new Hc5Authentication(authScope, credentials, authScheme));
+            } catch (final Exception e) {
+                logger.warn("Failed to convert authentication config: config={}", config, e);
+            }
+        }
+        return result.toArray(new Hc5Authentication[0]);
+    }
+
+    /**
+     * Converts CredentialsConfig to HC5 Credentials.
+     *
+     * @param config the credentials configuration
+     * @return the HC5 credentials
+     */
+    protected Credentials convertCredentials(final CredentialsConfig config) {
+        if (config == null) {
+            return null;
+        }
+        if (config.getType() == CredentialsConfig.CredentialsType.NTLM) {
+            return new NTCredentials(config.getUsername(), config.getPassword() != null ? config.getPassword().toCharArray() : null,
+                    config.getWorkstation(), config.getDomain());
+        }
+        return new UsernamePasswordCredentials(config.getUsername(),
+                config.getPassword() != null ? config.getPassword().toCharArray() : null);
+    }
+
+    /**
+     * Converts HC4 Hc4Authentication array to HC5 Hc5Authentication array.
+     * This provides backward compatibility for existing configurations.
+     *
+     * @param hc4Auths the HC4 authentication array
+     * @return the HC5 authentication array
+     */
+    protected Hc5Authentication[] convertFromHc4Authentication(final Hc4Authentication[] hc4Auths) {
+        final List<Hc5Authentication> result = new ArrayList<>();
+        for (final Hc4Authentication hc4Auth : hc4Auths) {
+            try {
+                final org.apache.http.auth.AuthScope hc4Scope = hc4Auth.getAuthScope();
+                final AuthScope hc5Scope =
+                        new AuthScope(hc4Scope.getScheme(), hc4Scope.getHost(), hc4Scope.getPort(), hc4Scope.getRealm(), null);
+
+                final org.apache.http.auth.Credentials hc4Creds = hc4Auth.getCredentials();
+                Credentials hc5Creds = null;
+                if (hc4Creds instanceof org.apache.http.auth.UsernamePasswordCredentials) {
+                    final org.apache.http.auth.UsernamePasswordCredentials up = (org.apache.http.auth.UsernamePasswordCredentials) hc4Creds;
+                    hc5Creds = new UsernamePasswordCredentials(up.getUserName(),
+                            up.getPassword() != null ? up.getPassword().toCharArray() : null);
+                } else if (hc4Creds instanceof org.apache.http.auth.NTCredentials) {
+                    final org.apache.http.auth.NTCredentials nt = (org.apache.http.auth.NTCredentials) hc4Creds;
+                    hc5Creds = new NTCredentials(nt.getUserName(), nt.getPassword() != null ? nt.getPassword().toCharArray() : null,
+                            nt.getWorkstation(), nt.getDomain());
+                }
+
+                AuthScheme hc5AuthScheme = null;
+                final org.apache.http.auth.AuthScheme hc4AuthScheme = hc4Auth.getAuthScheme();
+                if (hc4AuthScheme instanceof Hc4FormScheme) {
+                    hc5AuthScheme = convertFormScheme((Hc4FormScheme) hc4AuthScheme);
+                }
+
+                result.add(new Hc5Authentication(hc5Scope, hc5Creds, hc5AuthScheme));
+            } catch (final Exception e) {
+                logger.warn("Failed to convert HC4 authentication: auth={}", hc4Auth, e);
+            }
+        }
+        return result.toArray(new Hc5Authentication[0]);
+    }
+
+    /**
+     * Converts Hc4FormScheme to Hc5FormScheme.
+     *
+     * @param hc4Form the HC4 form scheme
+     * @return the HC5 form scheme
+     */
+    protected Hc5FormScheme convertFormScheme(final Hc4FormScheme hc4Form) {
+        final Map<String, String> params = new HashMap<>();
+        final String[] keys = { "encoding", "token_url", "token_pattern", "token_name", "token_method", "token_parameters", "login_method",
+                "login_url", "login_parameters" };
+        for (final String key : keys) {
+            final String value = hc4Form.getParameter(key);
+            if (value != null) {
+                params.put(key, value);
+            }
+        }
+        return new Hc5FormScheme(params);
     }
 
     /**

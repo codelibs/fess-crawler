@@ -104,7 +104,6 @@ import org.codelibs.core.timer.TimeoutManager;
 import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
-import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
 import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
 import org.codelibs.fess.crawler.client.http.conn.IdnDnsResolver;
 import org.codelibs.fess.crawler.client.http.form.FormScheme;
@@ -122,35 +121,17 @@ import jakarta.annotation.Resource;
 
 /**
  * Hc4HttpClient is an HTTP client implementation using Apache HttpComponents 4.x.
- * It extends AbstractCrawlerClient and provides various configurations and settings
+ * It extends {@link HcHttpClient} and provides various configurations and settings
  * for making HTTP requests, including connection timeouts, proxy settings, user agent,
  * request headers, cookie management, and SSL configurations. The client also supports
  * robots.txt parsing and form-based authentication schemes.
  *
- * <p>Key properties and configurations:</p>
- * <ul>
- *   <li>CONNECTION_TIMEOUT_PROPERTY: Connection timeout setting.</li>
- *   <li>SO_TIMEOUT_PROPERTY: Socket timeout setting.</li>
- *   <li>PROXY_HOST_PROPERTY: Proxy host setting.</li>
- *   <li>PROXY_PORT_PROPERTY: Proxy port setting.</li>
- *   <li>PROXY_AUTH_SCHEME_PROPERTY: Proxy authentication scheme.</li>
- *   <li>PROXY_CREDENTIALS_PROPERTY: Proxy credentials.</li>
- *   <li>USER_AGENT_PROPERTY: User agent string.</li>
- *   <li>ROBOTS_TXT_ENABLED_PROPERTY: Enable or disable robots.txt parsing.</li>
- *   <li>AUTHENTICATIONS_PROPERTY: Web authentications.</li>
- *   <li>REQUEST_HEADERS_PROPERTY: Custom request headers.</li>
- *   <li>REDIRECTS_ENABLED: Enable or disable HTTP redirects.</li>
- *   <li>COOKIES_PROPERTY: Cookie settings.</li>
- *   <li>AUTH_SCHEME_PROVIDERS_PROPERTY: Authentication scheme providers.</li>
- *   <li>IGNORE_SSL_CERTIFICATE_PROPERTY: Ignore SSL certificate validation.</li>
- *   <li>DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY: Default maximum connections per route.</li>
- *   <li>MAX_TOTAL_CONNECTION_PROPERTY: Maximum total connections.</li>
- *   <li>TIME_TO_LIVE_TIME_UNIT_PROPERTY: Time to live unit for connections.</li>
- *   <li>TIME_TO_LIVE_PROPERTY: Time to live for connections.</li>
- * </ul>
- *
+ * @see HcHttpClient
  */
-public class Hc4HttpClient extends AbstractCrawlerClient {
+public class Hc4HttpClient extends HcHttpClient {
+
+    /** Logger instance for this class */
+    private static final Logger logger = LogManager.getLogger(Hc4HttpClient.class);
 
     /**
      * Constructs a new Hc4HttpClient.
@@ -158,63 +139,6 @@ public class Hc4HttpClient extends AbstractCrawlerClient {
     public Hc4HttpClient() {
         // Default constructor
     }
-
-    /** Property name for connection timeout setting */
-    public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
-
-    /** Property name for socket timeout setting */
-    public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
-
-    /** Property name for proxy host setting */
-    public static final String PROXY_HOST_PROPERTY = "proxyHost";
-
-    /** Property name for proxy port setting */
-    public static final String PROXY_PORT_PROPERTY = "proxyPort";
-
-    /** Property name for proxy authentication scheme setting */
-    public static final String PROXY_AUTH_SCHEME_PROPERTY = "proxyAuthScheme";
-
-    /** Property name for proxy credentials setting */
-    public static final String PROXY_CREDENTIALS_PROPERTY = "proxyCredentials";
-
-    /** Property name for user agent setting */
-    public static final String USER_AGENT_PROPERTY = "userAgent";
-
-    /** Property name for robots.txt enabled setting */
-    public static final String ROBOTS_TXT_ENABLED_PROPERTY = "robotsTxtEnabled";
-
-    /** Property name for web authentications setting */
-    public static final String AUTHENTICATIONS_PROPERTY = "webAuthentications";
-
-    /** Property name for request headers setting */
-    public static final String REQUEST_HEADERS_PROPERTY = "requestHeaders";
-
-    /** Property name for redirects enabled setting */
-    public static final String REDIRECTS_ENABLED = "redirectsEnabled";
-
-    /** Property name for cookies setting */
-    public static final String COOKIES_PROPERTY = "cookies";
-
-    /** Property name for authentication scheme providers setting */
-    public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
-
-    /** Property name for ignore SSL certificate setting */
-    public static final String IGNORE_SSL_CERTIFICATE_PROPERTY = "ignoreSslCertificate";
-
-    /** Property name for default maximum connections per route setting */
-    public static final String DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY = "defaultMaxConnectionPerRoute";
-
-    /** Property name for maximum total connections setting */
-    public static final String MAX_TOTAL_CONNECTION_PROPERTY = "maxTotalConnection";
-
-    /** Property name for time to live time unit setting */
-    public static final String TIME_TO_LIVE_TIME_UNIT_PROPERTY = "timeToLiveTimeUnit";
-
-    /** Property name for time to live setting */
-    public static final String TIME_TO_LIVE_PROPERTY = "timeToLive";
-
-    /** Logger instance for this class */
-    private static final Logger logger = LogManager.getLogger(Hc4HttpClient.class);
 
     /** Helper for processing robots.txt files */
     @Resource

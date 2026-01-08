@@ -15,152 +15,97 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.codelibs.fess.crawler.client.CrawlerClient;
-import org.codelibs.fess.crawler.client.FaultTolerantClient;
+import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
 
 /**
- * HcHttpClient is a switchable HTTP client that can use either Apache HttpComponents 4.x or 5.x.
- * The client implementation is selected based on the system property {@code fess.crawler.http.client}.
+ * HcHttpClient is the abstract base class for HTTP client implementations
+ * using Apache HttpComponents. This class provides common constants and
+ * configurations shared between HC4 and HC5 implementations.
  *
- * <p>Supported values:</p>
+ * <p>Key properties and configurations:</p>
  * <ul>
- *   <li>{@code hc4} - Use Apache HttpComponents 4.x ({@link Hc4HttpClient})</li>
- *   <li>{@code hc5} or not set - Use Apache HttpComponents 5.x ({@link Hc5HttpClient}) - default</li>
+ *   <li>CONNECTION_TIMEOUT_PROPERTY: Connection timeout setting.</li>
+ *   <li>SO_TIMEOUT_PROPERTY: Socket timeout setting.</li>
+ *   <li>PROXY_HOST_PROPERTY: Proxy host setting.</li>
+ *   <li>PROXY_PORT_PROPERTY: Proxy port setting.</li>
+ *   <li>PROXY_AUTH_SCHEME_PROPERTY: Proxy authentication scheme.</li>
+ *   <li>PROXY_CREDENTIALS_PROPERTY: Proxy credentials.</li>
+ *   <li>USER_AGENT_PROPERTY: User agent string.</li>
+ *   <li>ROBOTS_TXT_ENABLED_PROPERTY: Enable or disable robots.txt parsing.</li>
+ *   <li>AUTHENTICATIONS_PROPERTY: Web authentications.</li>
+ *   <li>REQUEST_HEADERS_PROPERTY: Custom request headers.</li>
+ *   <li>REDIRECTS_ENABLED: Enable or disable HTTP redirects.</li>
+ *   <li>COOKIES_PROPERTY: Cookie settings.</li>
+ *   <li>AUTH_SCHEME_PROVIDERS_PROPERTY: Authentication scheme providers.</li>
+ *   <li>IGNORE_SSL_CERTIFICATE_PROPERTY: Ignore SSL certificate validation.</li>
+ *   <li>DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY: Default maximum connections per route.</li>
+ *   <li>MAX_TOTAL_CONNECTION_PROPERTY: Maximum total connections.</li>
+ *   <li>TIME_TO_LIVE_TIME_UNIT_PROPERTY: Time to live unit for connections.</li>
+ *   <li>TIME_TO_LIVE_PROPERTY: Time to live for connections.</li>
  * </ul>
- *
- * <p>This class extends {@link FaultTolerantClient} to provide automatic retry functionality
- * with the selected HTTP client implementation.</p>
- *
- * <p>Usage example:</p>
- * <pre>
- * {@code
- * // Use HC4 client
- * java -Dfess.crawler.http.client=hc4 ...
- *
- * // Use HC5 client (default)
- * java -Dfess.crawler.http.client=hc5 ...
- * // or simply
- * java ...
- * }
- * </pre>
  *
  * @author shinsuke
  */
-public class HcHttpClient extends FaultTolerantClient {
+public abstract class HcHttpClient extends AbstractCrawlerClient {
 
-    private static final Logger logger = LogManager.getLogger(HcHttpClient.class);
+    /** Property name for connection timeout setting */
+    public static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
 
-    /** System property name to select HTTP client implementation. */
-    public static final String HTTP_CLIENT_PROPERTY = "fess.crawler.http.client";
+    /** Property name for socket timeout setting */
+    public static final String SO_TIMEOUT_PROPERTY = "soTimeout";
 
-    /** Value for HC4 client selection. */
-    public static final String HC4_CLIENT = "hc4";
+    /** Property name for proxy host setting */
+    public static final String PROXY_HOST_PROPERTY = "proxyHost";
 
-    /** Value for HC5 client selection. */
-    public static final String HC5_CLIENT = "hc5";
+    /** Property name for proxy port setting */
+    public static final String PROXY_PORT_PROPERTY = "proxyPort";
 
-    /** The HC4 HTTP client instance. */
-    protected CrawlerClient hc4Client;
+    /** Property name for proxy authentication scheme setting */
+    public static final String PROXY_AUTH_SCHEME_PROPERTY = "proxyAuthScheme";
 
-    /** The HC5 HTTP client instance. */
-    protected CrawlerClient hc5Client;
+    /** Property name for proxy credentials setting */
+    public static final String PROXY_CREDENTIALS_PROPERTY = "proxyCredentials";
 
-    /** Flag indicating which client is selected (true = hc5, false = hc4). */
-    private boolean useHc5 = true;
+    /** Property name for user agent setting */
+    public static final String USER_AGENT_PROPERTY = "userAgent";
+
+    /** Property name for robots.txt enabled setting */
+    public static final String ROBOTS_TXT_ENABLED_PROPERTY = "robotsTxtEnabled";
+
+    /** Property name for web authentications setting */
+    public static final String AUTHENTICATIONS_PROPERTY = "webAuthentications";
+
+    /** Property name for request headers setting */
+    public static final String REQUEST_HEADERS_PROPERTY = "requestHeaders";
+
+    /** Property name for redirects enabled setting */
+    public static final String REDIRECTS_ENABLED = "redirectsEnabled";
+
+    /** Property name for cookies setting */
+    public static final String COOKIES_PROPERTY = "cookies";
+
+    /** Property name for authentication scheme providers setting */
+    public static final String AUTH_SCHEME_PROVIDERS_PROPERTY = "authSchemeProviders";
+
+    /** Property name for ignore SSL certificate setting */
+    public static final String IGNORE_SSL_CERTIFICATE_PROPERTY = "ignoreSslCertificate";
+
+    /** Property name for default maximum connections per route setting */
+    public static final String DEFAULT_MAX_CONNECTION_PER_ROUTE_PROPERTY = "defaultMaxConnectionPerRoute";
+
+    /** Property name for maximum total connections setting */
+    public static final String MAX_TOTAL_CONNECTION_PROPERTY = "maxTotalConnection";
+
+    /** Property name for time to live time unit setting */
+    public static final String TIME_TO_LIVE_TIME_UNIT_PROPERTY = "timeToLiveTimeUnit";
+
+    /** Property name for time to live setting */
+    public static final String TIME_TO_LIVE_PROPERTY = "timeToLive";
 
     /**
      * Constructs a new HcHttpClient.
-     * The client implementation is determined by the system property.
      */
-    public HcHttpClient() {
-        super();
-        selectClient();
-    }
-
-    /**
-     * Selects the appropriate HTTP client based on system property.
-     */
-    protected void selectClient() {
-        final String clientType = System.getProperty(HTTP_CLIENT_PROPERTY);
-        if (HC4_CLIENT.equalsIgnoreCase(clientType)) {
-            useHc5 = false;
-            if (logger.isInfoEnabled()) {
-                logger.info("Using HC4 HTTP client (Apache HttpComponents 4.x)");
-            }
-        } else {
-            useHc5 = true;
-            if (logger.isInfoEnabled()) {
-                logger.info("Using HC5 HTTP client (Apache HttpComponents 5.x)");
-            }
-        }
-    }
-
-    /**
-     * Initializes the selected HTTP client.
-     * This method should be called after the DI container has injected both clients.
-     */
-    public void init() {
-        if (useHc5) {
-            if (hc5Client != null) {
-                setCrawlerClient(hc5Client);
-            } else {
-                logger.warn("HC5 client is null, falling back to HC4 client");
-                setCrawlerClient(hc4Client);
-            }
-        } else {
-            if (hc4Client != null) {
-                setCrawlerClient(hc4Client);
-            } else {
-                logger.warn("HC4 client is null, falling back to HC5 client");
-                setCrawlerClient(hc5Client);
-            }
-        }
-    }
-
-    /**
-     * Sets the HC4 HTTP client instance.
-     *
-     * @param hc4Client the HC4 HTTP client
-     */
-    public void setHc4Client(final CrawlerClient hc4Client) {
-        this.hc4Client = hc4Client;
-    }
-
-    /**
-     * Gets the HC4 HTTP client instance.
-     *
-     * @return the HC4 HTTP client
-     */
-    public CrawlerClient getHc4Client() {
-        return hc4Client;
-    }
-
-    /**
-     * Sets the HC5 HTTP client instance.
-     *
-     * @param hc5Client the HC5 HTTP client
-     */
-    public void setHc5Client(final CrawlerClient hc5Client) {
-        this.hc5Client = hc5Client;
-    }
-
-    /**
-     * Gets the HC5 HTTP client instance.
-     *
-     * @return the HC5 HTTP client
-     */
-    public CrawlerClient getHc5Client() {
-        return hc5Client;
-    }
-
-    /**
-     * Returns whether the HC5 client is being used.
-     *
-     * @return true if HC5 client is used, false if HC4 client is used
-     */
-    public boolean isUseHc5() {
-        return useHc5;
+    protected HcHttpClient() {
+        // Default constructor
     }
 }

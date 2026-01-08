@@ -16,7 +16,6 @@
 package org.codelibs.fess.crawler.client.http.impl;
 
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.BasicUserPrincipal;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.auth.BasicScheme;

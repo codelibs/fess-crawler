@@ -105,8 +105,12 @@ import org.codelibs.core.timer.TimeoutTask;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.client.AccessTimeoutTarget;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.codelibs.fess.crawler.client.http.config.CredentialsConfig;
+import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.conn.IdnDnsResolver;
-import org.codelibs.fess.crawler.client.http.form.FormScheme;
+import org.codelibs.fess.crawler.client.http.form.Hc4FormScheme;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -314,13 +318,12 @@ public class Hc4HttpClient extends HcHttpClient {
         }
 
         // Authentication
-        final Authentication[] siteCredentialList =
-                getInitParameter(AUTHENTICATIONS_PROPERTY, new Authentication[0], Authentication[].class);
-        final List<Pair<FormScheme, Credentials>> formSchemeList = new ArrayList<>();
-        for (final Authentication authentication : siteCredentialList) {
+        final Hc4Authentication[] siteCredentialList = getAuthenticationArray();
+        final List<Pair<Hc4FormScheme, Credentials>> formSchemeList = new ArrayList<>();
+        for (final Hc4Authentication authentication : siteCredentialList) {
             final AuthScheme authScheme = authentication.getAuthScheme();
-            if (authScheme instanceof FormScheme) {
-                formSchemeList.add(new Pair<>((FormScheme) authScheme, authentication.getCredentials()));
+            if (authScheme instanceof Hc4FormScheme) {
+                formSchemeList.add(new Pair<>((Hc4FormScheme) authScheme, authentication.getCredentials()));
             } else {
                 final AuthScope authScope = authentication.getAuthScope();
                 credentialsProvider.setCredentials(authScope, authentication.getCredentials());
@@ -390,7 +393,7 @@ public class Hc4HttpClient extends HcHttpClient {
         }
 
         formSchemeList.forEach(p -> {
-            final FormScheme scheme = p.getFirst();
+            final Hc4FormScheme scheme = p.getFirst();
             final Credentials credentials = p.getSecond();
             scheme.authenticate(credentials, (request, consumer) -> {
 
@@ -1295,5 +1298,77 @@ public class Hc4HttpClient extends HcHttpClient {
      */
     public void setSslSocketFactory(final LayeredConnectionSocketFactory sslSocketFactory) {
         this.sslSocketFactory = sslSocketFactory;
+    }
+
+    /**
+     * Retrieves authentication configuration, supporting both native Hc4Authentication[]
+     * and common WebAuthenticationConfig[] POJO types.
+     *
+     * @return array of Hc4Authentication objects
+     */
+    protected Hc4Authentication[] getAuthenticationArray() {
+        if (initParamMap == null) {
+            return new Hc4Authentication[0];
+        }
+        final Object value = initParamMap.get(AUTHENTICATIONS_PROPERTY);
+        if (value == null) {
+            return new Hc4Authentication[0];
+        }
+
+        // If already HC4 Hc4Authentication[], return directly
+        if (value instanceof Hc4Authentication[]) {
+            return (Hc4Authentication[]) value;
+        }
+
+        // If common POJO config, convert to HC4
+        if (value instanceof WebAuthenticationConfig[]) {
+            return convertFromConfig((WebAuthenticationConfig[]) value);
+        }
+
+        logger.warn("Unknown authentication type: type={}", value.getClass().getName());
+        return new Hc4Authentication[0];
+    }
+
+    /**
+     * Converts WebAuthenticationConfig POJO array to Hc4Authentication array.
+     *
+     * @param configs array of WebAuthenticationConfig
+     * @return array of Hc4Authentication objects
+     */
+    protected Hc4Authentication[] convertFromConfig(final WebAuthenticationConfig[] configs) {
+        final List<Hc4Authentication> result = new ArrayList<>();
+        for (final WebAuthenticationConfig config : configs) {
+            try {
+                final AuthScope authScope = new AuthScope(config.getHost(), config.getPort(), config.getRealm(), config.getScheme());
+
+                final Credentials credentials = convertCredentials(config.getCredentials());
+
+                AuthScheme authScheme = null;
+                if (config.getAuthSchemeType() == WebAuthenticationConfig.AuthSchemeType.FORM && config.getFormParameters() != null) {
+                    authScheme = new Hc4FormScheme(config.getFormParameters());
+                }
+
+                result.add(new Hc4Authentication(authScope, credentials, authScheme));
+            } catch (final Exception e) {
+                logger.warn("Failed to convert authentication config: config={}", config, e);
+            }
+        }
+        return result.toArray(new Hc4Authentication[0]);
+    }
+
+    /**
+     * Converts CredentialsConfig POJO to HC4 Credentials.
+     *
+     * @param config the credentials configuration
+     * @return HC4 Credentials object, or null if config is null
+     */
+    protected Credentials convertCredentials(final CredentialsConfig config) {
+        if (config == null) {
+            return null;
+        }
+        if (config.getType() == CredentialsConfig.CredentialsType.NTLM) {
+            return new NTCredentials(config.getUsername(), config.getPassword(), config.getWorkstation(), config.getDomain());
+        }
+        return new UsernamePasswordCredentials(config.getUsername(), config.getPassword());
     }
 }

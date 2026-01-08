@@ -20,35 +20,105 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 
 /**
- * The Hc5Authentication interface provides methods to retrieve authentication details
- * required for HTTP client authentication using Apache HttpComponents 5.x.
+ * Authentication class for Apache HttpComponents 5.x (HC5).
+ * This class provides methods to handle authentication details such as
+ * authentication scope, credentials, and authentication scheme.
  *
- * <p>This interface is the HC5 equivalent of {@link Authentication}, using HC5 types
- * from the {@code org.apache.hc.client5.http.auth} package instead of HC4 types.</p>
+ * <p>
+ * It includes constructors to initialize these details and getter and setter
+ * methods to access and modify them.
+ * </p>
  *
- * @see org.codelibs.fess.crawler.client.http.impl.Hc5AuthenticationImpl
+ * <p>
+ * Example usage:
+ * </p>
+ * <pre>
+ * {@code
+ * AuthScope authScope = new AuthScope("example.com", 80);
+ * Credentials credentials = new UsernamePasswordCredentials("user", "password".toCharArray());
+ * Hc5Authentication auth = new Hc5Authentication(authScope, credentials);
+ * }
+ * </pre>
  */
-public interface Hc5Authentication {
+public class Hc5Authentication {
+    private AuthScope authScope;
+
+    private Credentials credentials;
+
+    private AuthScheme authScheme;
+
+    /**
+     * Initializes the Hc5Authentication with the provided AuthScope and Credentials,
+     * and sets the AuthScheme to null.
+     * @param authScope The authentication scope.
+     * @param credentials The credentials.
+     */
+    public Hc5Authentication(final AuthScope authScope, final Credentials credentials) {
+        this(authScope, credentials, null);
+    }
+
+    /**
+     * Initializes the Hc5Authentication with the provided AuthScope, Credentials, and AuthScheme.
+     * @param authScope The authentication scope.
+     * @param credentials The credentials.
+     * @param authScheme The authentication scheme.
+     */
+    public Hc5Authentication(final AuthScope authScope, final Credentials credentials, final AuthScheme authScheme) {
+        this.authScope = authScope;
+        this.credentials = credentials;
+        this.authScheme = authScheme;
+    }
 
     /**
      * Retrieves the authentication scope associated with this authentication.
      *
      * @return the {@link AuthScope} object representing the authentication scope.
      */
-    AuthScope getAuthScope();
+    public AuthScope getAuthScope() {
+        return authScope;
+    }
+
+    /**
+     * Sets the authentication scope.
+     *
+     * @param authScope the authentication scope to set
+     */
+    public void setAuthScope(final AuthScope authScope) {
+        this.authScope = authScope;
+    }
 
     /**
      * Retrieves the credentials associated with the current authentication.
      *
      * @return the credentials object containing authentication details.
      */
-    Credentials getCredentials();
+    public Credentials getCredentials() {
+        return credentials;
+    }
+
+    /**
+     * Sets the credentials.
+     * @param credentials The credentials to set.
+     */
+    public void setCredentials(final Credentials credentials) {
+        this.credentials = credentials;
+    }
 
     /**
      * Retrieves the authentication scheme to be used for HTTP requests.
      *
      * @return the authentication scheme
      */
-    AuthScheme getAuthScheme();
+    public AuthScheme getAuthScheme() {
+        return authScheme;
+    }
+
+    /**
+     * Sets the authentication scheme.
+     * @param authScheme The authentication scheme to set.
+     */
+    public void setAuthScheme(final AuthScheme authScheme) {
+        this.authScheme = authScheme;
+    }
 
 }

@@ -225,6 +225,39 @@ public class WebAuthenticationConfig {
         this.formParameters = formParameters;
     }
 
+    /**
+     * NTLM-specific parameters (e.g., jcifs.* properties).
+     * Used when authSchemeType is NTLM to configure the JCIFS engine.
+     *
+     * <p>Supported parameters include:</p>
+     * <ul>
+     * <li>jcifs.smb.client.SO_SNDBUF - TCP send buffer size</li>
+     * <li>jcifs.smb.client.SO_RCVBUF - TCP receive buffer size</li>
+     * <li>jcifs.smb.client.domain - Default domain</li>
+     * <li>And other jcifs.* properties</li>
+     * </ul>
+     */
+    private Map<String, String> ntlmParameters;
+
+    /**
+     * Gets the NTLM-specific parameters.
+     * Used when authSchemeType is NTLM.
+     *
+     * @return the NTLM parameters
+     */
+    public Map<String, String> getNtlmParameters() {
+        return ntlmParameters;
+    }
+
+    /**
+     * Sets the NTLM-specific parameters.
+     *
+     * @param ntlmParameters the NTLM parameters
+     */
+    public void setNtlmParameters(final Map<String, String> ntlmParameters) {
+        this.ntlmParameters = ntlmParameters;
+    }
+
     @Override
     public String toString() {
         return "WebAuthenticationConfig [scheme=" + scheme + ", host=" + host + ", port=" + port + ", realm=" + realm + ", authSchemeType="

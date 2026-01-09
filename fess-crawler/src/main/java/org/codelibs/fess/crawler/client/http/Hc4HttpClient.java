@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -75,6 +76,8 @@ import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.auth.NTLMScheme;
+import org.codelibs.fess.crawler.client.http.ntlm.JcifsEngine;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -1346,6 +1349,13 @@ public class Hc4HttpClient extends HcHttpClient {
                 AuthScheme authScheme = null;
                 if (config.getAuthSchemeType() == WebAuthenticationConfig.AuthSchemeType.FORM && config.getFormParameters() != null) {
                     authScheme = new Hc4FormScheme(config.getFormParameters());
+                } else if (config.getAuthSchemeType() == WebAuthenticationConfig.AuthSchemeType.NTLM) {
+                    final Properties props = new Properties();
+                    final Map<String, String> ntlmParams = config.getNtlmParameters();
+                    if (ntlmParams != null) {
+                        ntlmParams.forEach(props::setProperty);
+                    }
+                    authScheme = new NTLMScheme(new JcifsEngine(props));
                 }
 
                 result.add(new Hc4Authentication(authScope, credentials, authScheme));

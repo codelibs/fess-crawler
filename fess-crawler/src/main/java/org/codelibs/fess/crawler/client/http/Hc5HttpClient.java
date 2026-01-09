@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -65,6 +66,8 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.NTLMScheme;
+import org.codelibs.fess.crawler.client.http.ntlm.Hc5JcifsEngine;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -473,6 +476,13 @@ public class Hc5HttpClient extends HcHttpClient {
                 AuthScheme authScheme = null;
                 if (config.getAuthSchemeType() == WebAuthenticationConfig.AuthSchemeType.FORM) {
                     authScheme = new Hc5FormScheme(config.getFormParameters());
+                } else if (config.getAuthSchemeType() == WebAuthenticationConfig.AuthSchemeType.NTLM) {
+                    final Properties props = new Properties();
+                    final Map<String, String> ntlmParams = config.getNtlmParameters();
+                    if (ntlmParams != null) {
+                        ntlmParams.forEach(props::setProperty);
+                    }
+                    authScheme = new NTLMScheme(new Hc5JcifsEngine(props));
                 }
 
                 result.add(new Hc5Authentication(authScope, credentials, authScheme));

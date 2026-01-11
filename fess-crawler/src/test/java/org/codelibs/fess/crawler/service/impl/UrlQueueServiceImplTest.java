@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -50,8 +51,8 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         MockitoAnnotations.openMocks(this);
     }
 

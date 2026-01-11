@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -44,8 +45,8 @@ public class Hc4HttpClientTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//

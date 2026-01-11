@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig.AuthSchemeType;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 public class Hc4HttpClientAuthConfigTest extends PlainTestCase {
 
@@ -32,8 +33,8 @@ public class Hc4HttpClientAuthConfigTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         httpClient = new Hc4HttpClient();
     }
 

@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class to verify proper resource management in Extractor implementations.
@@ -41,8 +42,8 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         container = new StandardCrawlerContainer().singleton("msWordExtractor", MsWordExtractor.class)
                 .singleton("msExcelExtractor", MsExcelExtractor.class)
                 .singleton("msPowerPointExtractor", MsPowerPointExtractor.class)

@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.util.TemporaryFileInputStream;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -37,8 +38,8 @@ public class SitemapsRuleTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("sitemapsHelper", SitemapsHelper.class)//
                 .singleton("sitemapsRule", SitemapsRule.class);
         sitemapsRule = container.getComponent("sitemapsRule");

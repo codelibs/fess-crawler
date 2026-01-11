@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Enhanced test class for FilenameExtractor covering edge cases and new functionality.
@@ -35,8 +36,8 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("filenameExtractor", FilenameExtractor.class);
         filenameExtractor = container.getComponent("filenameExtractor");
     }

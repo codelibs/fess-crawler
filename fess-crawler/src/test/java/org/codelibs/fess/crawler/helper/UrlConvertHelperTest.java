@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.helper;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -29,8 +30,8 @@ public class UrlConvertHelperTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("urlConvertHelper", UrlConvertHelper.class);
         urlConvertHelper = container.getComponent("urlConvertHelper");
     }

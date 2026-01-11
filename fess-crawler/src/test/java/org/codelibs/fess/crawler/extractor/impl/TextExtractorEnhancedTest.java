@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Enhanced test class for TextExtractor covering improved error messages and edge cases.
@@ -36,8 +37,8 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("textExtractor", TextExtractor.class);
         textExtractor = container.getComponent("textExtractor");
     }

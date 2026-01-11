@@ -34,6 +34,8 @@ import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 import jakarta.annotation.Resource;
 
@@ -70,7 +72,8 @@ public class CrawlerTest extends LastaDiTestCase {
     }
 
     @Override
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp(final TestInfo testInfo) throws Exception {
         // create runner instance
         runner = new OpenSearchRunner();
         // create ES nodes
@@ -86,7 +89,7 @@ public class CrawlerTest extends LastaDiTestCase {
 
         System.setProperty(FesenClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
 
-        super.setUp();
+        super.setUp(testInfo);
 
         // logging
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %2$s %5$s%6$s%n");

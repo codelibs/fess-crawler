@@ -37,6 +37,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for archive extractor error handling improvements.
@@ -51,8 +52,8 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         container = new StandardCrawlerContainer();
         container.singleton("archiveStreamFactory", ArchiveStreamFactory.class)
                 .singleton("compressorStreamFactory", CompressorStreamFactory.class)

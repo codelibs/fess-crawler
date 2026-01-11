@@ -21,6 +21,7 @@ import org.codelibs.fess.crawler.client.CrawlerClient;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 public class SwitchableHttpClientTest extends PlainTestCase {
 
@@ -28,8 +29,8 @@ public class SwitchableHttpClientTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         // Save original property value
         originalPropertyValue = System.getProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY);
     }

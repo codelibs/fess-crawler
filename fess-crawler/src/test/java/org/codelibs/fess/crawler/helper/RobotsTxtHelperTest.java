@@ -22,14 +22,15 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 public class RobotsTxtHelperTest extends PlainTestCase {
     public RobotsTxtHelper robotsTxtHelper;
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("robotsTxtHelper", RobotsTxtHelper.class);
         robotsTxtHelper = container.getComponent("robotsTxtHelper");
     }

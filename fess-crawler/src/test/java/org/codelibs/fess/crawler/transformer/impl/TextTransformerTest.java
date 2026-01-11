@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -35,8 +36,8 @@ public class TextTransformerTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("extractorFactory", ExtractorFactory.class)
                 .singleton("textTransformer", TextTransformer.class)
                 .singleton("tikaExtractor", TikaExtractor.class);

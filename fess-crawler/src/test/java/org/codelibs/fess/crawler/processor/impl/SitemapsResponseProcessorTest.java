@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -53,8 +54,8 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
     @Override
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         MockitoAnnotations.openMocks(this);
     }
 

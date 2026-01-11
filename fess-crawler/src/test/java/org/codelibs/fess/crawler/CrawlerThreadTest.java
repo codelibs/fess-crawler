@@ -43,6 +43,7 @@ import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test case for CrawlerThread class.
@@ -62,8 +63,8 @@ public class CrawlerThreadTest extends PlainTestCase {
     @Override
     @BeforeEach
     @SuppressWarnings("unchecked")
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
 
         crawlerThread = new CrawlerThread();
         crawlerContext = new CrawlerContext();

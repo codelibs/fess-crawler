@@ -121,8 +121,7 @@ public class FesenClientTest {
     @Test
     public void testConcurrentListenerInvocation() throws Exception {
         // This test verifies CopyOnWriteArrayList allows safe iteration
-        assertTrue("OnConnectListener list should be thread-safe",
-                fesenClient.onConnectListenerList instanceof java.util.concurrent.CopyOnWriteArrayList);
+        assertTrue(fesenClient.onConnectListenerList instanceof java.util.concurrent.CopyOnWriteArrayList);
     }
 
     /**

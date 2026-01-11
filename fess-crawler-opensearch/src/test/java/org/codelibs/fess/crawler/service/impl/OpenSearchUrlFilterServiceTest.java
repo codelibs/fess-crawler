@@ -197,7 +197,7 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
         try {
             urlFilterService.addIncludeUrlFilter(sessionId, emptyList);
         } catch (final Exception e) {
-            fail("Should not throw exception for empty list: " + e.getMessage());
+            fail();
         }
 
         // Since no items were added, the pattern list should be empty
@@ -214,7 +214,7 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
         try {
             urlFilterService.addExcludeUrlFilter(sessionId, emptyList);
         } catch (final Exception e) {
-            fail("Should not throw exception for empty list: " + e.getMessage());
+            fail();
         }
 
         // Since no items were added, the pattern list should be empty

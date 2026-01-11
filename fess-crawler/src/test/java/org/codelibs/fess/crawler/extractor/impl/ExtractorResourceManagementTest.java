@@ -28,6 +28,8 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class to verify proper resource management in Extractor implementations.
@@ -39,8 +41,9 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         container = new StandardCrawlerContainer().singleton("msWordExtractor", MsWordExtractor.class)
                 .singleton("msExcelExtractor", MsExcelExtractor.class)
                 .singleton("msPowerPointExtractor", MsPowerPointExtractor.class)
@@ -106,7 +109,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
 
         try {
             extractor.getText(null, null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }
@@ -123,15 +126,14 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
 
         try {
             extractor.getText(invalidStream, null);
-            fail("Expected exception for invalid Word document");
+            fail();
         } catch (final ExtractException e) {
             // ExtractException with improved message
-            assertTrue("Error message should contain context about Word document or extraction",
-                    e.getMessage().contains("Word") || e.getMessage().contains("extract"));
+            assertTrue(e.getMessage().contains("Word") || e.getMessage().contains("extract"));
         } catch (final RuntimeException e) {
             // POI may throw IllegalArgumentException or other RuntimeExceptions
             // for invalid data, which is also acceptable
-            assertNotNull("Exception message should not be null", e.getMessage());
+            assertNotNull(e.getMessage());
         }
     }
 
@@ -145,14 +147,13 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
 
         try {
             extractor.getText(invalidStream, null);
-            fail("Expected exception for invalid Excel document");
+            fail();
         } catch (final ExtractException e) {
             // ExtractException with improved message
-            assertTrue("Error message should contain context about Excel document or extraction",
-                    e.getMessage().contains("Excel") || e.getMessage().contains("extract"));
+            assertTrue(e.getMessage().contains("Excel") || e.getMessage().contains("extract"));
         } catch (final RuntimeException e) {
             // POI may throw various RuntimeExceptions for invalid data
-            assertNotNull("Exception message should not be null", e.getMessage());
+            assertNotNull(e.getMessage());
         }
     }
 
@@ -166,14 +167,13 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
 
         try {
             extractor.getText(invalidStream, null);
-            fail("Expected exception for invalid PowerPoint document");
+            fail();
         } catch (final ExtractException e) {
             // ExtractException with improved message
-            assertTrue("Error message should contain context about PowerPoint document or extraction",
-                    e.getMessage().contains("PowerPoint") || e.getMessage().contains("extract"));
+            assertTrue(e.getMessage().contains("PowerPoint") || e.getMessage().contains("extract"));
         } catch (final RuntimeException e) {
             // POI may throw various RuntimeExceptions for invalid data
-            assertNotNull("Exception message should not be null", e.getMessage());
+            assertNotNull(e.getMessage());
         }
     }
 
@@ -192,9 +192,9 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
 
         try {
             extractor.getText(errorStream, null);
-            fail("Expected ExtractException");
+            fail();
         } catch (final ExtractException e) {
-            assertTrue("Error message should contain encoding information", e.getMessage().contains("encoding"));
+            assertTrue(e.getMessage().contains("encoding"));
         }
     }
 

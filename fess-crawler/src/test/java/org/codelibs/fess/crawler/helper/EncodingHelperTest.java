@@ -17,6 +17,8 @@ package org.codelibs.fess.crawler.helper;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -26,8 +28,9 @@ public class EncodingHelperTest extends PlainTestCase {
     public EncodingHelper encodingHelper;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("encodingHelper", EncodingHelper.class);
         encodingHelper = container.getComponent("encodingHelper");
     }

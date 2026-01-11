@@ -183,7 +183,7 @@ public class RuleTest extends PlainTestCase {
         assertEquals("rule1", rule.getRuleId());
 
         // Test getResponseProcessor
-        assertSame(processor, rule.getResponseProcessor());
+        assertTrue(processor == rule.getResponseProcessor());
 
         // Test match
         ResponseData responseData = new ResponseData();
@@ -404,9 +404,9 @@ public class RuleTest extends PlainTestCase {
         TestRule rule3 = new TestRule("rule3", sharedProcessor, true);
 
         // Same processor instance
-        assertSame(sharedProcessor, rule1.getResponseProcessor());
-        assertSame(sharedProcessor, rule2.getResponseProcessor());
-        assertSame(sharedProcessor, rule3.getResponseProcessor());
+        assertTrue(sharedProcessor == rule1.getResponseProcessor());
+        assertTrue(sharedProcessor == rule2.getResponseProcessor());
+        assertTrue(sharedProcessor == rule3.getResponseProcessor());
 
         // Different rule IDs
         assertEquals("rule1", rule1.getRuleId());
@@ -592,7 +592,7 @@ public class RuleTest extends PlainTestCase {
         // Verify all IDs are unique
         for (int i = 0; i < rules.size(); i++) {
             for (int j = i + 1; j < rules.size(); j++) {
-                assertNotSame(rules.get(i).getRuleId(), rules.get(j).getRuleId());
+                assertFalse(rules.get(i).getRuleId() == rules.get(j).getRuleId());
             }
         }
     }
@@ -671,7 +671,7 @@ public class RuleTest extends PlainTestCase {
         ResponseProcessor proc2 = rule.getResponseProcessor();
         ResponseProcessor proc3 = rule.getResponseProcessor();
 
-        assertSame(proc1, proc2);
-        assertSame(proc2, proc3);
+        assertTrue(proc1 == proc2);
+        assertTrue(proc2 == proc3);
     }
 }

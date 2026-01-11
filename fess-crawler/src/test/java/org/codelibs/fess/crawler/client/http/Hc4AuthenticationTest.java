@@ -53,9 +53,9 @@ public class Hc4AuthenticationTest extends PlainTestCase {
 
         Hc4Authentication auth = new Hc4Authentication(authScope, credentials, authScheme);
 
-        assertSame(authScope, auth.getAuthScope());
-        assertSame(credentials, auth.getCredentials());
-        assertSame(authScheme, auth.getAuthScheme());
+        assertTrue(authScope == auth.getAuthScope());
+        assertTrue(credentials == auth.getCredentials());
+        assertTrue(authScheme == auth.getAuthScheme());
     }
 
     public void test_setters() {

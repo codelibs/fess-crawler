@@ -91,7 +91,7 @@ public class MultipleCrawlingAccessExceptionTest extends PlainTestCase {
         Throwable[] causes = new Throwable[] { new IOException("Test") };
         MultipleCrawlingAccessException exception = new MultipleCrawlingAccessException("Test", causes);
 
-        assertSame(causes, exception.getCauses());
+        assertTrue(causes == exception.getCauses());
     }
 
     /**

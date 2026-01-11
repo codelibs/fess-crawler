@@ -36,6 +36,8 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for Transformer interface.
@@ -365,8 +367,9 @@ public class TransformerTest extends PlainTestCase {
     private TestTransformer testTransformer;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         testTransformer = new TestTransformer("testTransformer");
     }
 
@@ -385,7 +388,7 @@ public class TransformerTest extends PlainTestCase {
         assertNotNull(resultData.getData());
         assertEquals("test data", new String(resultData.getData()));
         assertEquals(1, testTransformer.getTransformCallCount());
-        assertSame(responseData, testTransformer.getLastResponseData());
+        assertTrue(responseData == testTransformer.getLastResponseData());
     }
 
     /**
@@ -437,7 +440,7 @@ public class TransformerTest extends PlainTestCase {
 
         assertEquals("test data", data);
         assertEquals(1, testTransformer.getGetDataCallCount());
-        assertSame(accessResultData, testTransformer.getLastAccessResultData());
+        assertTrue(accessResultData == testTransformer.getLastAccessResultData());
     }
 
     /**
@@ -530,7 +533,7 @@ public class TransformerTest extends PlainTestCase {
 
         try {
             transformer.transform(responseData);
-            fail("Should throw CrawlerSystemException");
+            fail();
         } catch (CrawlerSystemException e) {
             assertEquals("Transform exception", e.getMessage());
         }
@@ -547,7 +550,7 @@ public class TransformerTest extends PlainTestCase {
 
         try {
             transformer.getData(accessData);
-            fail("Should throw CrawlerSystemException");
+            fail();
         } catch (CrawlerSystemException e) {
             assertEquals("GetData exception", e.getMessage());
         }
@@ -656,7 +659,7 @@ public class TransformerTest extends PlainTestCase {
 
         startLatch.countDown();
         boolean completed = endLatch.await(30, TimeUnit.SECONDS);
-        assertTrue("Test should complete within timeout", completed);
+        assertTrue(completed);
         executor.shutdown();
 
         assertEquals(threadCount * operationsPerThread * 2, successCount.get());

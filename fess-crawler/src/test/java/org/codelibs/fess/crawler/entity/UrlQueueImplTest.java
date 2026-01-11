@@ -36,7 +36,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getDepth());
         assertNull(queue.getLastModified());
         assertNull(queue.getCreateTime());
-        assertEquals(1.0f, queue.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.0f), Float.valueOf(queue.getWeight()));
     }
 
     public void test_idGetterSetter() {
@@ -177,16 +177,16 @@ public class UrlQueueImplTest extends PlainTestCase {
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
 
         // Default weight should be 1.0
-        assertEquals(1.0f, queue.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.0f), Float.valueOf(queue.getWeight()));
 
         queue.setWeight(0.5f);
-        assertEquals(0.5f, queue.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(0.5f), Float.valueOf(queue.getWeight()));
 
         queue.setWeight(2.5f);
-        assertEquals(2.5f, queue.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(2.5f), Float.valueOf(queue.getWeight()));
 
         queue.setWeight(0.0f);
-        assertEquals(0.0f, queue.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(0.0f), Float.valueOf(queue.getWeight()));
     }
 
     public void test_toString() {
@@ -258,7 +258,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertEquals(depth, queue.getDepth());
         assertEquals(lastModified, queue.getLastModified());
         assertEquals(createTime, queue.getCreateTime());
-        assertEquals(weight, queue.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(weight), Float.valueOf(queue.getWeight()));
     }
 
     public void test_interfaceImplementation() {

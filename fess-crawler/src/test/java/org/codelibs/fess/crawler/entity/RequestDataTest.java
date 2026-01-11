@@ -30,7 +30,7 @@ public class RequestDataTest extends PlainTestCase {
         assertNotNull(data);
         assertNull(data.getMethod());
         assertNull(data.getUrl());
-        assertEquals(1.0f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.0f), Float.valueOf(data.getWeight()));
     }
 
     public void test_methodGetterSetter() {
@@ -102,16 +102,16 @@ public class RequestDataTest extends PlainTestCase {
         RequestData data = new RequestData();
 
         // Default weight should be 1.0
-        assertEquals(1.0f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.0f), Float.valueOf(data.getWeight()));
 
         data.setWeight(0.5f);
-        assertEquals(0.5f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(0.5f), Float.valueOf(data.getWeight()));
 
         data.setWeight(2.5f);
-        assertEquals(2.5f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(2.5f), Float.valueOf(data.getWeight()));
 
         data.setWeight(0.0f);
-        assertEquals(0.0f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(0.0f), Float.valueOf(data.getWeight()));
     }
 
     public void test_equalsAndHashCode() {
@@ -246,7 +246,7 @@ public class RequestDataTest extends PlainTestCase {
         // Verify all values
         assertEquals(Method.POST, data.getMethod());
         assertEquals("https://api.example.com/endpoint", data.getUrl());
-        assertEquals(0.8f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(0.8f), Float.valueOf(data.getWeight()));
 
         // Change method
         data.setMethod(Method.HEAD);

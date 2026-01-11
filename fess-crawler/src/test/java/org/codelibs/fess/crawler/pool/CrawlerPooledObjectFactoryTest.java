@@ -25,6 +25,8 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.pool.CrawlerPooledObjectFactory.OnDestroyListener;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for CrawlerPooledObjectFactory.
@@ -37,8 +39,9 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
 
         // Reset counters before each test
         TestComponent.resetCounter();
@@ -177,7 +180,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         assertEquals(2, component2.getId());
 
         // Different instances for prototype
-        assertNotSame(component, component2);
+        assertFalse(component == component2);
     }
 
     /**
@@ -190,11 +193,11 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             nullContainerFactory.create();
-            fail("Should throw IllegalStateException for null container");
+            fail();
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("crawlerContainer"));
         } catch (Exception e) {
-            fail("Expected IllegalStateException but got: " + e.getClass().getName());
+            fail();
         }
     }
 
@@ -208,11 +211,11 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             nullNameFactory.create();
-            fail("Should throw IllegalStateException for null component name");
+            fail();
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("componentName"));
         } catch (Exception e) {
-            fail("Expected IllegalStateException but got: " + e.getClass().getName());
+            fail();
         }
     }
 
@@ -226,11 +229,11 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             invalidFactory.create();
-            fail("Should throw IllegalStateException for invalid component name");
+            fail();
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("nonExistentComponent"));
         } catch (Exception e) {
-            fail("Expected IllegalStateException but got: " + e.getClass().getName());
+            fail();
         }
     }
 
@@ -247,9 +250,9 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         assertNotNull(component2);
 
         // Should be same instance for singleton
-        assertSame(component1, component2);
+        assertTrue(component1 == component2);
         // The first creation should increment the counter
-        assertTrue("Instance count should be at least 1", SingletonTestComponent.getInstanceCount() >= 1);
+        assertTrue(SingletonTestComponent.getInstanceCount() >= 1);
     }
 
     /**
@@ -262,7 +265,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         assertNotNull(pooledObject);
         assertTrue(pooledObject instanceof DefaultPooledObject);
-        assertSame(component, pooledObject.getObject());
+        assertTrue(component == pooledObject.getObject());
     }
 
     /**
@@ -316,7 +319,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         factoryWithListener.destroyObject(pooledObject);
 
         assertTrue(listenerCalled.get());
-        assertSame(pooledObject, capturedObject[0]);
+        assertTrue(pooledObject == capturedObject[0]);
         assertTrue(component.isDestroyed());
     }
 
@@ -342,7 +345,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         factoryWithListener.destroyObject(pooledObject);
 
         // Resource should still be closed despite listener exception
-        assertTrue("Component should be closed even if listener throws", component.isClosed());
+        assertTrue(component.isClosed());
     }
 
     /**
@@ -376,7 +379,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             @Override
             public void onDestroy(PooledObject<CloseableTestComponent> p) {
                 listenerCalled.set(true);
-                assertFalse("Component should not be closed yet when listener is called", p.getObject().isClosed());
+                assertFalse(p.getObject().isClosed());
             }
         };
 
@@ -387,8 +390,8 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         factoryWithListener.destroyObject(pooledObject);
 
-        assertTrue("Listener should be called", listenerCalled.get());
-        assertTrue("Component should be closed after listener", component.isClosed());
+        assertTrue(listenerCalled.get());
+        assertTrue(component.isClosed());
         assertEquals(1, CloseableTestComponent.getCloseCount());
     }
 
@@ -397,7 +400,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      */
     public void test_getters() {
         assertEquals("testComponent", factory.getComponentName());
-        assertSame(container, factory.getCrawlerContainer());
+        assertTrue(container == factory.getCrawlerContainer());
         assertNull(factory.getOnDestroyListener());
 
         OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
@@ -412,8 +415,8 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         factoryWithListener.setComponentName("testComponent");
         factoryWithListener.setOnDestroyListener(listener);
         assertEquals("testComponent", factoryWithListener.getComponentName());
-        assertSame(container, factoryWithListener.getCrawlerContainer());
-        assertSame(listener, factoryWithListener.getOnDestroyListener());
+        assertTrue(container == factoryWithListener.getCrawlerContainer());
+        assertTrue(listener == factoryWithListener.getOnDestroyListener());
     }
 
     /**
@@ -446,13 +449,13 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Wrap
         PooledObject<TestComponent> pooledObject = factoryWithListener.wrap(component);
         assertNotNull(pooledObject);
-        assertSame(component, pooledObject.getObject());
+        assertTrue(component == pooledObject.getObject());
 
         // Destroy
         factoryWithListener.destroyObject(pooledObject);
         assertTrue(component.isDestroyed());
         assertEquals(1, destroyedComponents.size());
-        assertSame(component, destroyedComponents.get(0));
+        assertTrue(component == destroyedComponents.get(0));
     }
 
     /**
@@ -504,7 +507,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Check all components are unique (for prototype)
         for (int i = 0; i < createdComponents.size(); i++) {
             for (int j = i + 1; j < createdComponents.size(); j++) {
-                assertNotSame(createdComponents.get(i), createdComponents.get(j));
+                assertFalse(createdComponents.get(i) == createdComponents.get(j));
             }
         }
     }
@@ -596,8 +599,8 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Test wrapping same object multiple times
         PooledObject<TestComponent> pooled2 = factory.wrap(component);
         assertNotNull(pooled2);
-        assertNotSame(pooled1, pooled2); // Different PooledObject instances
-        assertSame(pooled1.getObject(), pooled2.getObject()); // Same wrapped object
+        assertFalse(pooled1 == pooled2); // Different PooledObject instances
+        assertTrue(pooled1.getObject() == pooled2.getObject()); // Same wrapped object
     }
 
     /**
@@ -606,7 +609,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_factoryConfigurationIndependence() {
         // Each factory instance has independent configuration
         assertEquals("testComponent", factory.getComponentName());
-        assertSame(container, factory.getCrawlerContainer());
+        assertTrue(container == factory.getCrawlerContainer());
 
         // Create another factory with different settings
         OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
@@ -623,7 +626,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         assertNull(factory.getOnDestroyListener());
 
         assertEquals("singletonComponent", factory2.getComponentName());
-        assertSame(listener, factory2.getOnDestroyListener());
+        assertTrue(listener == factory2.getOnDestroyListener());
     }
 
     /**
@@ -656,10 +659,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         };
 
         testFactory.setOnDestroyListener(listener1);
-        assertSame(listener1, testFactory.getOnDestroyListener());
+        assertTrue(listener1 == testFactory.getOnDestroyListener());
 
         testFactory.setOnDestroyListener(listener2);
-        assertSame(listener2, testFactory.getOnDestroyListener());
+        assertTrue(listener2 == testFactory.getOnDestroyListener());
     }
 
     /**
@@ -694,7 +697,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             failingFactory.destroyObject(pooledObject);
-            fail("Should throw exception from close()");
+            fail();
         } catch (Exception e) {
             // Expected - exception should propagate from close()
             assertTrue(e.getMessage().contains("Intentional close failure"));
@@ -725,13 +728,13 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             failingFactory.destroyObject(pooledObject);
-            fail("Should throw exception from close()");
+            fail();
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("Intentional close failure"));
         }
 
         // Listener should have been called before the exception
-        assertTrue("Listener should be called before close()", listenerCalled.get());
+        assertTrue(listenerCalled.get());
         assertTrue(component.isCloseCalled());
     }
 
@@ -863,7 +866,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         testFactory.setCrawlerContainer(container);
         testFactory.setComponentName("testComponent");
 
-        assertSame(container, testFactory.getCrawlerContainer());
+        assertTrue(container == testFactory.getCrawlerContainer());
         assertEquals("testComponent", testFactory.getComponentName());
 
         OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
@@ -874,7 +877,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         };
 
         testFactory.setOnDestroyListener(listener);
-        assertSame(listener, testFactory.getOnDestroyListener());
+        assertTrue(listener == testFactory.getOnDestroyListener());
     }
 
     /**

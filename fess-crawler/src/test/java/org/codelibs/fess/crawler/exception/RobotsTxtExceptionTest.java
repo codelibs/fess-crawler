@@ -57,7 +57,7 @@ public class RobotsTxtExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertEquals(message, exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -69,7 +69,7 @@ public class RobotsTxtExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertNull(exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -138,7 +138,7 @@ public class RobotsTxtExceptionTest extends PlainTestCase {
         RobotsTxtException top = new RobotsTxtException("robots.txt error", middle);
 
         assertEquals("robots.txt error", top.getMessage());
-        assertSame(middle, top.getCause());
-        assertSame(root, top.getCause().getCause());
+        assertTrue(middle == top.getCause());
+        assertTrue(root == top.getCause().getCause());
     }
 }

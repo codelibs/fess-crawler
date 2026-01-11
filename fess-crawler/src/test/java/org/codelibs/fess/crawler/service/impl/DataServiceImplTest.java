@@ -31,6 +31,8 @@ import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.DataService;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -40,8 +42,9 @@ public class DataServiceImplTest extends PlainTestCase {
     public DataService dataService;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("dataService", DataServiceImpl.class);
         dataService = container.getComponent("dataService");
@@ -123,10 +126,10 @@ public class DataServiceImplTest extends PlainTestCase {
         executor.shutdown();
 
         // Verify no errors occurred
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
 
         // Verify all IDs are unique (no duplicates)
-        assertEquals("IDs should be unique", threadCount * operationsPerThread, ids.size());
+        assertEquals(threadCount * operationsPerThread, ids.size());
 
         // Cleanup
         for (int t = 0; t < threadCount; t++) {

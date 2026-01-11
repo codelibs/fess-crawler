@@ -116,7 +116,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayAfterProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("No delay expected", elapsed < 50); // Should be nearly instant
+        assertTrue(elapsed < 50); // Should be nearly instant
     }
 
     /**
@@ -130,7 +130,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayAfterProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("Expected at least 100ms delay", elapsed >= 90); // Allow some tolerance
+        assertTrue(elapsed >= 90); // Allow some tolerance
     }
 
     /**
@@ -144,7 +144,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayBeforeProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("No delay expected", elapsed < 50);
+        assertTrue(elapsed < 50);
     }
 
     /**
@@ -158,7 +158,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayBeforeProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("Expected at least 100ms delay", elapsed >= 90);
+        assertTrue(elapsed >= 90);
     }
 
     /**
@@ -171,7 +171,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayAtNoUrlInQueue();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("Expected at least 500ms delay", elapsed >= 450); // default is 500ms
+        assertTrue(elapsed >= 450); // default is 500ms
     }
 
     /**
@@ -184,7 +184,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayForWaitingNewUrl();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("Expected at least 1000ms delay", elapsed >= 950); // default is 1000ms
+        assertTrue(elapsed >= 950); // default is 1000ms
     }
 
     /**
@@ -198,7 +198,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayForWaitingNewUrl();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("Expected at least 200ms delay", elapsed >= 180);
+        assertTrue(elapsed >= 180);
     }
 
     /**
@@ -212,6 +212,6 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
         controller.delayAfterProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("Negative delay should be treated as no delay", elapsed < 50);
+        assertTrue(elapsed < 50);
     }
 }

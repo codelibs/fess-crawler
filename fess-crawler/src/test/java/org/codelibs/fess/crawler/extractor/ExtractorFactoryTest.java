@@ -30,6 +30,8 @@ import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -39,8 +41,9 @@ public class ExtractorFactoryTest extends PlainTestCase {
     public ExtractorFactory extractorFactory;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("tikaExtractor", TikaExtractor.class)//
                 .singleton("pdfExtractor", PdfExtractor.class)//
                 .singleton("lhaExtractor", LhaExtractor.class)//
@@ -201,8 +204,8 @@ public class ExtractorFactoryTest extends PlainTestCase {
         final Extractor extractor3 = factory.getExtractor(key);
 
         // Verify same instance is returned (cached)
-        assertSame("Composite extractor should be cached", extractor1, extractor2);
-        assertSame("Composite extractor should be cached", extractor2, extractor3);
+        assertTrue(extractor1 == extractor2);
+        assertTrue(extractor2 == extractor3);
 
         // Verify it works correctly
         assertEquals("second", extractor1.getText(new ByteArrayInputStream(new byte[0]), null).getContent());
@@ -257,6 +260,6 @@ public class ExtractorFactoryTest extends PlainTestCase {
         // Get extractor again - should be a new instance with updated weight
         final Extractor extractor2 = factory.getExtractor(key);
         assertEquals(20, extractor2.getWeight());
-        assertNotSame("Cache should be invalidated after adding new extractor", extractor1, extractor2);
+        assertFalse(extractor1 == extractor2);
     }
 }

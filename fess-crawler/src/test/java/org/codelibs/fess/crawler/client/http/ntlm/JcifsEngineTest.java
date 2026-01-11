@@ -59,7 +59,7 @@ public class JcifsEngineTest extends PlainTestCase {
             // Valid base64 but invalid NTLM message should throw exception
             // Using "AAAA" which is valid base64 but not a valid NTLM Type2 message
             engine.generateType3Msg("user", "password", "DOMAIN", "WORKSTATION", "AAAA");
-            fail("Should throw NTLMEngineException for invalid challenge");
+            fail();
         } catch (NTLMEngineException e) {
             // Expected
             assertTrue(e.getMessage().contains("Invalid NTLM type 2 message"));

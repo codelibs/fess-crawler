@@ -168,7 +168,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
         // Should throw CrawlerSystemException
         try {
             controller.delay(IntervalController.PRE_PROCESSING);
-            fail("Expected CrawlerSystemException to be thrown");
+            fail();
         } catch (final CrawlerSystemException e) {
             // Expected
             assertTrue(e.getMessage().contains("Could not stop a process"));
@@ -201,7 +201,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
 
         try {
             controller.delay(IntervalController.PRE_PROCESSING);
-            fail("Expected CrawlerSystemException to be thrown");
+            fail();
         } catch (final CrawlerSystemException e) {
             // Expected
             assertEquals("Test CrawlerSystemException", e.getMessage());

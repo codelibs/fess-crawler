@@ -15,12 +15,12 @@
  */
 package org.codelibs.fess.crawler.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -45,8 +45,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.client.FesenClient.OnConnectListener;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.opensearch.action.admin.cluster.health.ClusterHealthResponse;
@@ -78,7 +78,7 @@ public class FesenClientTest {
     private FesenClient fesenClient;
     private Client mockClient;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         fesenClient = new FesenClient();
         mockClient = mock(Client.class);
@@ -121,8 +121,7 @@ public class FesenClientTest {
     @Test
     public void testConcurrentListenerInvocation() throws Exception {
         // This test verifies CopyOnWriteArrayList allows safe iteration
-        assertTrue("OnConnectListener list should be thread-safe",
-                fesenClient.onConnectListenerList instanceof java.util.concurrent.CopyOnWriteArrayList);
+        assertTrue(fesenClient.onConnectListenerList instanceof java.util.concurrent.CopyOnWriteArrayList);
     }
 
     /**
@@ -171,7 +170,7 @@ public class FesenClientTest {
 
         try {
             fesenClient.get(c -> mockFuture);
-            fail("Expected exception after max retries");
+            fail();
         } catch (RuntimeException e) {
             assertEquals("Persistent failure", e.getMessage());
         }
@@ -244,8 +243,8 @@ public class FesenClientTest {
 
         final Client result = fesenClient.filterWithHeader(headers);
 
-        assertSame(fesenClient, result); // Should return this
-        assertSame(mockNewClient, fesenClient.client); // Internal client should be updated
+        assertTrue(fesenClient == result); // Should return this
+        assertTrue(mockNewClient == fesenClient.client); // Internal client should be updated
         verify(mockClient).filterWithHeader(headers);
     }
 
@@ -378,7 +377,7 @@ public class FesenClientTest {
             }
         });
 
-        assertTrue("Listener should have been called", listenerCalled.get());
+        assertTrue(listenerCalled.get());
     }
 
     /**
@@ -386,10 +385,10 @@ public class FesenClientTest {
      */
     @Test
     public void testConnectedFlag() {
-        assertFalse("Initially not connected", fesenClient.connected());
+        assertFalse(fesenClient.connected());
 
         // After destroy, should be disconnected
         fesenClient.destroy();
-        assertFalse("Should be disconnected after destroy", fesenClient.connected());
+        assertFalse(fesenClient.connected());
     }
 }

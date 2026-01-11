@@ -24,6 +24,8 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Enhanced test class for FilenameExtractor covering edge cases and new functionality.
@@ -33,8 +35,9 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     private FilenameExtractor filenameExtractor;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("filenameExtractor", FilenameExtractor.class);
         filenameExtractor = container.getComponent("filenameExtractor");
     }
@@ -101,7 +104,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
 
         try {
             filenameExtractor.getText(null, params);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }

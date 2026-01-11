@@ -26,6 +26,9 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.jodconverter.local.office.LocalOfficeManager;
 
 /**
@@ -38,14 +41,16 @@ public class JodExtractorTest extends PlainTestCase {
     public JodExtractor jodExtractor;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         jodExtractor = new JodExtractor();
         jodExtractor.officeManager = LocalOfficeManager.builder().portNumbers(12002).build();
         jodExtractor.init();
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         jodExtractor.destroy();
         super.tearDown();

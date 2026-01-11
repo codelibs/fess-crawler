@@ -215,7 +215,7 @@ public class ResponseDataTest extends PlainTestCase {
             assertEquals(content.length, bytesRead);
             assertTrue(Arrays.equals(content, buffer));
         } catch (IOException e) {
-            fail("IOException should not occur: " + e.getMessage());
+            fail();
         }
     }
 

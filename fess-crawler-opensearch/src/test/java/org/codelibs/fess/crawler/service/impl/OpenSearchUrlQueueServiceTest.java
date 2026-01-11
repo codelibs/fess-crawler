@@ -27,6 +27,8 @@ import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.OpenSearchUrlQueue;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.opensearch.index.query.QueryBuilders;
 
 import jakarta.annotation.Resource;
@@ -55,7 +57,8 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
     }
 
     @Override
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp(final TestInfo testInfo) throws Exception {
         // create runner instance
         runner = new OpenSearchRunner();
         // create ES nodes
@@ -70,7 +73,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
 
         System.setProperty(FesenClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
 
-        super.setUp();
+        super.setUp(testInfo);
     }
 
     @Override

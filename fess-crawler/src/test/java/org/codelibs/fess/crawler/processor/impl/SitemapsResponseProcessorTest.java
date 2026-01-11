@@ -32,6 +32,8 @@ import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -51,8 +53,9 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
     private SitemapsHelper sitemapsHelper;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         MockitoAnnotations.openMocks(this);
     }
 
@@ -83,13 +86,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
         } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+            fail();
         }
 
         // Execute and verify ChildUrlsException is thrown
         try {
             processor.process(responseData);
-            fail("Should throw ChildUrlsException");
+            fail();
         } catch (ChildUrlsException e) {
             // Expected exception
             Set<RequestData> childUrls = e.getChildUrlList();
@@ -125,13 +128,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
         } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+            fail();
         }
 
         // Execute and verify
         try {
             processor.process(responseData);
-            fail("Should throw ChildUrlsException");
+            fail();
         } catch (ChildUrlsException e) {
             Set<RequestData> childUrls = e.getChildUrlList();
             assertNotNull(childUrls);
@@ -160,13 +163,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
         } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+            fail();
         }
 
         // Execute and verify
         try {
             processor.process(responseData);
-            fail("Should throw ChildUrlsException even with empty set");
+            fail();
         } catch (ChildUrlsException e) {
             Set<RequestData> childUrls = e.getChildUrlList();
             assertNotNull(childUrls);
@@ -192,13 +195,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
         } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+            fail();
         }
 
         // Execute and verify
         try {
             processor.process(responseData);
-            fail("Should throw ChildUrlsException");
+            fail();
         } catch (ChildUrlsException e) {
             Set<RequestData> childUrls = e.getChildUrlList();
             assertNotNull(childUrls);
@@ -219,7 +222,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         // Execute and verify RuntimeException is thrown
         try {
             processor.process(responseData);
-            fail("Should throw RuntimeException");
+            fail();
         } catch (RuntimeException e) {
             // Expected exception
             assertEquals("Parse error", e.getMessage());
@@ -242,13 +245,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
         } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+            fail();
         }
 
         // Execute and verify exception message
         try {
             processor.process(responseData);
-            fail("Should throw ChildUrlsException");
+            fail();
         } catch (ChildUrlsException e) {
             String message = e.getMessage();
             assertNotNull(message);
@@ -273,13 +276,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
         } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+            fail();
         }
 
         // Execute and verify
         try {
             processor.process(responseData);
-            fail("Should throw ChildUrlsException");
+            fail();
         } catch (ChildUrlsException e) {
             Set<RequestData> childUrls = e.getChildUrlList();
             RequestData requestData = childUrls.iterator().next();
@@ -313,13 +316,13 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         try {
             when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
         } catch (Exception e) {
-            fail("Should not throw exception in test setup");
+            fail();
         }
 
         // Execute and verify
         try {
             processor.process(responseData);
-            fail("Should throw ChildUrlsException");
+            fail();
         } catch (ChildUrlsException e) {
             Set<RequestData> childUrls = e.getChildUrlList();
             // Set should handle duplicates

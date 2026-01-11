@@ -27,6 +27,8 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.entity.TestEntity;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -40,8 +42,9 @@ public class XpathTransformerTest extends PlainTestCase {
     public XpathTransformer xpathEntityTransformer;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         {
             xpathTransformer = new XpathTransformer();
             xpathTransformer.setName("xpathTransformer");

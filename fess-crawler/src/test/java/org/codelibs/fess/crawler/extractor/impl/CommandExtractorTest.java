@@ -160,7 +160,7 @@ public class CommandExtractorTest extends PlainTestCase {
         final Map<String, String> params = new HashMap<String, String>();
         try {
             final ExtractData data = extractor.getText(new FileInputStream(contentFile), params);
-            fail(data.toString());
+            fail();
         } catch (final ExecutionTimeoutException e) {}
     }
 

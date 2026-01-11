@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for MarkdownExtractor.
@@ -35,6 +36,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
     public MarkdownExtractor markdownExtractor;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("markdownExtractor", MarkdownExtractor.class);

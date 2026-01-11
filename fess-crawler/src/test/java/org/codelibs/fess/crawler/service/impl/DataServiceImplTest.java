@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.DataService;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -40,6 +41,7 @@ public class DataServiceImplTest extends PlainTestCase {
     public DataService dataService;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//

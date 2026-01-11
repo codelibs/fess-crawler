@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for MemoryDataHelper.
@@ -40,12 +42,14 @@ public class MemoryDataHelperTest extends PlainTestCase {
     private MemoryDataHelper helper;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         helper = new MemoryDataHelper();
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         helper.clear();
         super.tearDown();

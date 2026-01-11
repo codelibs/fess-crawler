@@ -42,6 +42,7 @@ import org.codelibs.fess.crawler.rule.RuleManager;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test case for CrawlerThread class.
@@ -59,6 +60,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     private RuleManager ruleManager;
 
     @Override
+    @BeforeEach
     @SuppressWarnings("unchecked")
     protected void setUp() throws Exception {
         super.setUp();

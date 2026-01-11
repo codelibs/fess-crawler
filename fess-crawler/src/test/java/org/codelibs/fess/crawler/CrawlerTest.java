@@ -53,6 +53,7 @@ import org.codelibs.fess.crawler.service.impl.UrlQueueServiceImpl;
 import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 public class CrawlerTest extends PlainTestCase {
 
@@ -67,6 +68,7 @@ public class CrawlerTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
 

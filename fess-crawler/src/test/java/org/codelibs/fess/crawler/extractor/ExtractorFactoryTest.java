@@ -30,6 +30,7 @@ import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -39,6 +40,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
     public ExtractorFactory extractorFactory;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("tikaExtractor", TikaExtractor.class)//

@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for RuleManager interface.
@@ -218,6 +219,7 @@ public class RuleManagerTest extends PlainTestCase {
     private TestRuleManager ruleManager;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         ruleManager = new TestRuleManager();

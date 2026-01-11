@@ -20,6 +20,7 @@ import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.impl.DataServiceImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -31,6 +32,7 @@ public class UrlFilterImplTest extends PlainTestCase {
     public MemoryDataHelper dataHelper;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//

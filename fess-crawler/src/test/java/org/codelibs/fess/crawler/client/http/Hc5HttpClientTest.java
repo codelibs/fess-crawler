@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -42,6 +43,7 @@ public class Hc5HttpClientTest extends PlainTestCase {
     public UrlFilter urlFilter;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//

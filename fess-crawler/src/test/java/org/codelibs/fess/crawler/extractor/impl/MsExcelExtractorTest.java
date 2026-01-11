@@ -24,6 +24,7 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -35,6 +36,7 @@ public class MsExcelExtractorTest extends PlainTestCase {
     public MsExcelExtractor msExcelExtractor;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msExcelExtractor", MsExcelExtractor.class);

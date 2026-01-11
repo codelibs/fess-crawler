@@ -36,6 +36,7 @@ import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for archive extractor error handling improvements.
@@ -49,6 +50,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     private TarExtractor tarExtractor;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         container = new StandardCrawlerContainer();

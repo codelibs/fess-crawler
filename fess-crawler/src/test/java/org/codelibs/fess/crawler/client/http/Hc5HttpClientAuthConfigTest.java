@@ -24,12 +24,14 @@ import org.codelibs.fess.crawler.client.http.config.CredentialsConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig.AuthSchemeType;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
 
     private Hc5HttpClient httpClient;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         httpClient = new Hc5HttpClient();

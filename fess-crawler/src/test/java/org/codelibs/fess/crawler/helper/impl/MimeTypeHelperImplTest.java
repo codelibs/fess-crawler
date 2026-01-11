@@ -23,6 +23,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.MimeTypeException;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -33,6 +34,7 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class);

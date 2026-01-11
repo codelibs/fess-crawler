@@ -21,6 +21,7 @@ import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.impl.DataServiceImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for UrlFilter interface.
@@ -32,6 +33,7 @@ public class UrlFilterTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         // Initialize container with necessary components

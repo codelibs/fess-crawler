@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.entity.TestEntity;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -42,6 +43,7 @@ public class XmlTransformerTest extends PlainTestCase {
     public XmlTransformer xmlEntityTransformer;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
 

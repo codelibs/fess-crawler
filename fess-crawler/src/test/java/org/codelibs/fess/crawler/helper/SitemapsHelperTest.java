@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.entity.SitemapUrl;
 import org.codelibs.fess.crawler.entity.SitemapVideo;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -38,6 +39,7 @@ public class SitemapsHelperTest extends PlainTestCase {
     public SitemapsHelper sitemapsHelper;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("sitemapsHelper", SitemapsHelper.class);

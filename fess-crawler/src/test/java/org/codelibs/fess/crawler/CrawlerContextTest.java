@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for CrawlerContext.
@@ -42,6 +43,7 @@ public class CrawlerContextTest extends PlainTestCase {
     private CrawlerContext crawlerContext;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         crawlerContext = new CrawlerContext();

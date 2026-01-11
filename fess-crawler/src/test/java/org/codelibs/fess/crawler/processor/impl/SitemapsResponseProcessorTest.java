@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -51,6 +52,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
     private SitemapsHelper sitemapsHelper;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         MockitoAnnotations.openMocks(this);

@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -35,6 +36,7 @@ public class FileTransformerTest extends PlainTestCase {
     public FileTransformer fileTransformer;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         fileTransformer = new FileTransformer();

@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -41,6 +42,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
     private MemoryDataHelper dataHelper;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         MockitoAnnotations.openMocks(this);

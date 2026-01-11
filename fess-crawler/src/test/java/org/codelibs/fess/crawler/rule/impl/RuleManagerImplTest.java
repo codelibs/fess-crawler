@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -34,6 +35,7 @@ public class RuleManagerImplTest extends PlainTestCase {
     public RuleManager ruleManager;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
 

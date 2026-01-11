@@ -25,6 +25,7 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.pool.CrawlerPooledObjectFactory.OnDestroyListener;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for CrawlerPooledObjectFactory.
@@ -37,6 +38,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
 

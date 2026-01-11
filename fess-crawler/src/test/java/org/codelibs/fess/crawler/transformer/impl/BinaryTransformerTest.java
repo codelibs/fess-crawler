@@ -23,6 +23,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -32,6 +33,7 @@ public class BinaryTransformerTest extends PlainTestCase {
     public BinaryTransformer binaryTransformer;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         binaryTransformer = new BinaryTransformer();

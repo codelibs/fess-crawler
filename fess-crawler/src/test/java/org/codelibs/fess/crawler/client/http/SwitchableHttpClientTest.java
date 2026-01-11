@@ -19,12 +19,15 @@ import static org.mockito.Mockito.mock;
 
 import org.codelibs.fess.crawler.client.CrawlerClient;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public class SwitchableHttpClientTest extends PlainTestCase {
 
     private String originalPropertyValue;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         // Save original property value
@@ -32,6 +35,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         // Restore original property value
         if (originalPropertyValue != null) {

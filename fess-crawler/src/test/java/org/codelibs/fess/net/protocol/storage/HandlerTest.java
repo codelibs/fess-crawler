@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for {@link Handler} and its inner class {@link Handler.StorageURLConnection}.
@@ -33,6 +34,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class HandlerTest extends PlainTestCase {
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         new StandardCrawlerContainer();

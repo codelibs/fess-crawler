@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.helper;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author shinsuke
@@ -28,6 +29,7 @@ public class ContentLengthHelperTest extends PlainTestCase {
     public ContentLengthHelper contentLengthHelper;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("contentLengthHelper", ContentLengthHelper.class);

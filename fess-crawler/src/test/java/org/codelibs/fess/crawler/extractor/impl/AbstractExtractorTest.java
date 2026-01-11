@@ -22,6 +22,7 @@ import java.util.Map;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for AbstractExtractor base functionality.
@@ -66,6 +67,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     private TestExtractor extractor;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         extractor = new TestExtractor();

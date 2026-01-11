@@ -28,6 +28,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for AbstractTransformer.
@@ -123,6 +124,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     private TestTransformer testTransformer;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
         testTransformer = new TestTransformer();

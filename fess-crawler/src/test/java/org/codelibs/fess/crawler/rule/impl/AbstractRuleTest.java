@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test class for AbstractRule.
@@ -192,6 +193,7 @@ public class AbstractRuleTest extends PlainTestCase {
     private TestAbstractRule testRule;
 
     @Override
+    @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
 

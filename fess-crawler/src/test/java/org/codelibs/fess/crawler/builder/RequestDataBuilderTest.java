@@ -39,7 +39,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
         assertNotNull(data);
         assertNull(data.getMethod());
         assertNull(data.getUrl());
-        assertEquals(1.0f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.0f), Float.valueOf(data.getWeight()));
     }
 
     public void test_methodWithStringGet() {
@@ -130,7 +130,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
         // Test weight() method
         RequestData data = RequestDataBuilder.newRequestData().weight(2.5f).build();
 
-        assertEquals(2.5f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(2.5f), Float.valueOf(data.getWeight()));
     }
 
     public void test_fluentApiChaining() {
@@ -140,7 +140,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
         assertEquals(Method.GET, data.getMethod());
         assertEquals("https://example.com/page", data.getUrl());
-        assertEquals(1.5f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.5f), Float.valueOf(data.getWeight()));
     }
 
     public void test_fluentApiWithConvenienceMethods() {
@@ -195,7 +195,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
         assertEquals(Method.GET, data.getMethod());
         assertEquals("https://api.example.com/users/123", data.getUrl());
-        assertEquals(0.8f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(0.8f), Float.valueOf(data.getWeight()));
     }
 
     public void test_complexScenarioWithPost() {
@@ -204,7 +204,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
         assertEquals(Method.POST, data.getMethod());
         assertEquals("https://api.example.com/users", data.getUrl());
-        assertEquals(1.2f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.2f), Float.valueOf(data.getWeight()));
     }
 
     public void test_orderIndependence() {
@@ -217,11 +217,11 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
         assertEquals(data1.getMethod(), data2.getMethod());
         assertEquals(data1.getUrl(), data2.getUrl());
-        assertEquals(data1.getWeight(), data2.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(data1.getWeight()), Float.valueOf(data2.getWeight()));
 
         assertEquals(data2.getMethod(), data3.getMethod());
         assertEquals(data2.getUrl(), data3.getUrl());
-        assertEquals(data2.getWeight(), data3.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(data2.getWeight()), Float.valueOf(data3.getWeight()));
     }
 
     public void test_overwritingValues() {
@@ -237,7 +237,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
         assertEquals(Method.POST, data.getMethod());
         assertEquals("https://second.com", data.getUrl());
-        assertEquals(2.0f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(2.0f), Float.valueOf(data.getWeight()));
     }
 
     public void test_minimalUsage() {
@@ -246,7 +246,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
 
         assertNull(data.getMethod());
         assertEquals("https://example.com", data.getUrl());
-        assertEquals(1.0f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(1.0f), Float.valueOf(data.getWeight()));
     }
 
     public void test_buildWithNullValues() {
@@ -272,7 +272,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
         assertNotNull(data);
         assertEquals(Method.POST, data.getMethod());
         assertEquals("https://api.example.com/data", data.getUrl());
-        assertEquals(2.0f, data.getWeight(), 0.001f);
+        assertEquals(Float.valueOf(2.0f), Float.valueOf(data.getWeight()));
     }
 
     public void test_realWorldUsageExample3() {

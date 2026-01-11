@@ -388,7 +388,7 @@ public class TransformerTest extends PlainTestCase {
         assertNotNull(resultData.getData());
         assertEquals("test data", new String(resultData.getData()));
         assertEquals(1, testTransformer.getTransformCallCount());
-        assertSame(responseData, testTransformer.getLastResponseData());
+        assertTrue(responseData == testTransformer.getLastResponseData());
     }
 
     /**
@@ -440,7 +440,7 @@ public class TransformerTest extends PlainTestCase {
 
         assertEquals("test data", data);
         assertEquals(1, testTransformer.getGetDataCallCount());
-        assertSame(accessResultData, testTransformer.getLastAccessResultData());
+        assertTrue(accessResultData == testTransformer.getLastAccessResultData());
     }
 
     /**

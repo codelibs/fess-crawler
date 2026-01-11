@@ -137,8 +137,8 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         client.setHc4Client(mockHc4Client);
         client.setHc5Client(mockHc5Client);
 
-        assertSame(mockHc4Client, client.getHc4Client());
-        assertSame(mockHc5Client, client.getHc5Client());
+        assertTrue(mockHc4Client == client.getHc4Client());
+        assertTrue(mockHc5Client == client.getHc5Client());
     }
 
     public void test_isUseHc5() {

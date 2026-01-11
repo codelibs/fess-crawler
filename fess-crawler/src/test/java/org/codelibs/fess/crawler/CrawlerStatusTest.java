@@ -220,7 +220,7 @@ public class CrawlerStatusTest extends PlainTestCase {
             ois.close();
 
             // Verify - enum instances are singletons
-            assertSame(original, deserialized);
+            assertTrue(original == deserialized);
             assertEquals(original.name(), deserialized.name());
             assertEquals(original.ordinal(), deserialized.ordinal());
         }
@@ -407,17 +407,17 @@ public class CrawlerStatusTest extends PlainTestCase {
         CrawlerStatus status2 = CrawlerStatus.INITIALIZING;
 
         // Should be the same instance
-        assertSame(status1, status2);
+        assertTrue(status1 == status2);
         assertTrue(status1 == status2);
 
         // valueOf should return the same instance
         CrawlerStatus status3 = CrawlerStatus.valueOf("INITIALIZING");
-        assertSame(status1, status3);
+        assertTrue(status1 == status3);
         assertTrue(status1 == status3);
 
         // values() array contains the same instances
         CrawlerStatus status4 = CrawlerStatus.values()[0];
-        assertSame(status1, status4);
+        assertTrue(status1 == status4);
         assertTrue(status1 == status4);
     }
 

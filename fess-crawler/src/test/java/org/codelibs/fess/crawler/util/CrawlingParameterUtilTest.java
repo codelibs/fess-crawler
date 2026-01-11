@@ -262,7 +262,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Verify it can be retrieved
         UrlQueueService<UrlQueue<?>> retrieved = CrawlingParameterUtil.getUrlQueueService();
         assertNotNull(retrieved);
-        assertSame(service, retrieved);
+        assertTrue(service == retrieved);
     }
 
     public void test_urlQueueService_setNull() {
@@ -373,7 +373,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Verify it can be retrieved
         DataService<AccessResult<?>> retrieved = CrawlingParameterUtil.getDataService();
         assertNotNull(retrieved);
-        assertSame(service, retrieved);
+        assertTrue(service == retrieved);
     }
 
     public void test_dataService_setNull() {

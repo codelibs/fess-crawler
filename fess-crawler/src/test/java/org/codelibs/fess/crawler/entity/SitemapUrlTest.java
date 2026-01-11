@@ -127,7 +127,7 @@ public class SitemapUrlTest extends PlainTestCase {
         url.addImage(image1);
 
         assertEquals(1, url.getImages().size());
-        assertSame(image1, url.getImages().get(0));
+        assertTrue(image1 == url.getImages().get(0));
 
         SitemapImage image2 = new SitemapImage();
         image2.setLoc("http://example.com/image2.jpg");
@@ -149,7 +149,7 @@ public class SitemapUrlTest extends PlainTestCase {
         url.addVideo(video1);
 
         assertEquals(1, url.getVideos().size());
-        assertSame(video1, url.getVideos().get(0));
+        assertTrue(video1 == url.getVideos().get(0));
     }
 
     /**
@@ -164,7 +164,7 @@ public class SitemapUrlTest extends PlainTestCase {
         news.setTitle("Breaking News");
         url.setNews(news);
 
-        assertSame(news, url.getNews());
+        assertTrue(news == url.getNews());
         assertEquals("Breaking News", url.getNews().getTitle());
 
         url.setNews(null);
@@ -185,7 +185,7 @@ public class SitemapUrlTest extends PlainTestCase {
         url.addAlternateLink(link1);
 
         assertEquals(1, url.getAlternateLinks().size());
-        assertSame(link1, url.getAlternateLinks().get(0));
+        assertTrue(link1 == url.getAlternateLinks().get(0));
     }
 
     /**

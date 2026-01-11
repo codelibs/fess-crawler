@@ -59,7 +59,7 @@ public class SitemapSetTest extends PlainTestCase {
         set.addSitemap(url1);
 
         assertEquals(1, set.getSitemaps().length);
-        assertSame(url1, set.getSitemaps()[0]);
+        assertTrue(url1 == set.getSitemaps()[0]);
 
         SitemapUrl url2 = new SitemapUrl();
         url2.setLoc("http://example.com/page2");
@@ -85,7 +85,7 @@ public class SitemapSetTest extends PlainTestCase {
 
         set.removeSitemap(url1);
         assertEquals(1, set.getSitemaps().length);
-        assertSame(url2, set.getSitemaps()[0]);
+        assertTrue(url2 == set.getSitemaps()[0]);
 
         set.removeSitemap(url2);
         assertEquals(0, set.getSitemaps().length);

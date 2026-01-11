@@ -315,7 +315,7 @@ public class CrawlerContextTest extends PlainTestCase {
 
         TestUrlFilter filter = new TestUrlFilter();
         crawlerContext.setUrlFilter(filter);
-        assertSame(filter, crawlerContext.getUrlFilter());
+        assertTrue(filter == crawlerContext.getUrlFilter());
 
         crawlerContext.setUrlFilter(null);
         assertNull(crawlerContext.getUrlFilter());
@@ -329,7 +329,7 @@ public class CrawlerContextTest extends PlainTestCase {
 
         TestRuleManager manager = new TestRuleManager();
         crawlerContext.setRuleManager(manager);
-        assertSame(manager, crawlerContext.getRuleManager());
+        assertTrue(manager == crawlerContext.getRuleManager());
 
         crawlerContext.setRuleManager(null);
         assertNull(crawlerContext.getRuleManager());
@@ -343,7 +343,7 @@ public class CrawlerContextTest extends PlainTestCase {
 
         TestIntervalController controller = new TestIntervalController();
         crawlerContext.setIntervalController(controller);
-        assertSame(controller, crawlerContext.getIntervalController());
+        assertTrue(controller == crawlerContext.getIntervalController());
 
         crawlerContext.setIntervalController(null);
         assertNull(crawlerContext.getIntervalController());
@@ -367,7 +367,7 @@ public class CrawlerContextTest extends PlainTestCase {
         Set<String> newSet = new HashSet<>();
         newSet.add("http://new.com/robots.txt");
         crawlerContext.setRobotsTxtUrlSet(newSet);
-        assertSame(newSet, crawlerContext.getRobotsTxtUrlSet());
+        assertTrue(newSet == crawlerContext.getRobotsTxtUrlSet());
         assertEquals(1, crawlerContext.getRobotsTxtUrlSet().size());
 
         // Set null

@@ -64,7 +64,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     public void test_getComponent_crawlerContainer() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         Object result = container.getComponent("crawlerContainer");
-        assertSame(container, result);
+        assertTrue(container == result);
     }
 
     /**
@@ -78,7 +78,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
         SimpleService service2 = container.getComponent("testService");
 
         assertNotNull(service1);
-        assertSame(service1, service2); // Same instance
+        assertTrue(service1 == service2); // Same instance
     }
 
     /**
@@ -92,7 +92,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
         container.singleton("testService", instance);
 
         SimpleService retrieved = container.getComponent("testService");
-        assertSame(instance, retrieved);
+        assertTrue(instance == retrieved);
         assertEquals("preset", retrieved.getValue());
     }
 
@@ -139,7 +139,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
 
         assertNotNull(service1);
         assertNotNull(service2);
-        assertNotSame(service1, service2); // Different instances
+        assertFalse(service1 == service2); // Different instances
     }
 
     /**
@@ -237,7 +237,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
 
         assertTrue(service1.isInitialized());
         assertTrue(service2.isInitialized());
-        assertNotSame(service1, service2);
+        assertFalse(service1 == service2);
     }
 
     /**
@@ -288,7 +288,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
         container.singleton("service", instance, s -> s.setValue("modified"));
 
         SimpleService retrieved = container.getComponent("service");
-        assertSame(instance, retrieved);
+        assertTrue(instance == retrieved);
         assertEquals("modified", retrieved.getValue());
     }
 
@@ -314,8 +314,8 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
         SimpleService p1 = container.getComponent("prototype");
         SimpleService p2 = container.getComponent("prototype");
 
-        assertSame(s1, s2);
-        assertNotSame(p1, p2);
+        assertTrue(s1 == s2);
+        assertFalse(p1 == p2);
         assertEquals("singleton", s1.getValue());
         assertEquals("prototype", p1.getValue());
         assertEquals("prototype", p2.getValue());

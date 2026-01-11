@@ -104,7 +104,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
 
         ChildUrlsException exception = new ChildUrlsException(childUrls, "Test");
 
-        assertSame(childUrls, exception.getChildUrlList());
+        assertTrue(childUrls == exception.getChildUrlList());
     }
 
     /**

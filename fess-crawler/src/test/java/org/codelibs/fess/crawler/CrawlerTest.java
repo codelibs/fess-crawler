@@ -389,8 +389,8 @@ public class CrawlerTest extends PlainTestCase {
             final String sessionId1 = crawler1.execute();
             final String sessionId2 = crawler2.execute();
 
-            assertNotSame(sessionId1, sessionId2);
-            assertNotSame(crawler1.crawlerContext, crawler2.crawlerContext);
+            assertFalse(sessionId1 == sessionId2);
+            assertFalse(crawler1.crawlerContext == crawler2.crawlerContext);
 
             // Wait for both crawlers to start with polling
             long startTime = System.currentTimeMillis();

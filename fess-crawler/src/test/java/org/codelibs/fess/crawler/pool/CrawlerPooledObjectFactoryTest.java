@@ -180,7 +180,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         assertEquals(2, component2.getId());
 
         // Different instances for prototype
-        assertNotSame(component, component2);
+        assertFalse(component == component2);
     }
 
     /**
@@ -250,7 +250,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         assertNotNull(component2);
 
         // Should be same instance for singleton
-        assertSame(component1, component2);
+        assertTrue(component1 == component2);
         // The first creation should increment the counter
         assertTrue(SingletonTestComponent.getInstanceCount() >= 1);
     }
@@ -265,7 +265,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         assertNotNull(pooledObject);
         assertTrue(pooledObject instanceof DefaultPooledObject);
-        assertSame(component, pooledObject.getObject());
+        assertTrue(component == pooledObject.getObject());
     }
 
     /**
@@ -319,7 +319,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         factoryWithListener.destroyObject(pooledObject);
 
         assertTrue(listenerCalled.get());
-        assertSame(pooledObject, capturedObject[0]);
+        assertTrue(pooledObject == capturedObject[0]);
         assertTrue(component.isDestroyed());
     }
 
@@ -400,7 +400,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
      */
     public void test_getters() {
         assertEquals("testComponent", factory.getComponentName());
-        assertSame(container, factory.getCrawlerContainer());
+        assertTrue(container == factory.getCrawlerContainer());
         assertNull(factory.getOnDestroyListener());
 
         OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
@@ -415,8 +415,8 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         factoryWithListener.setComponentName("testComponent");
         factoryWithListener.setOnDestroyListener(listener);
         assertEquals("testComponent", factoryWithListener.getComponentName());
-        assertSame(container, factoryWithListener.getCrawlerContainer());
-        assertSame(listener, factoryWithListener.getOnDestroyListener());
+        assertTrue(container == factoryWithListener.getCrawlerContainer());
+        assertTrue(listener == factoryWithListener.getOnDestroyListener());
     }
 
     /**
@@ -449,13 +449,13 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Wrap
         PooledObject<TestComponent> pooledObject = factoryWithListener.wrap(component);
         assertNotNull(pooledObject);
-        assertSame(component, pooledObject.getObject());
+        assertTrue(component == pooledObject.getObject());
 
         // Destroy
         factoryWithListener.destroyObject(pooledObject);
         assertTrue(component.isDestroyed());
         assertEquals(1, destroyedComponents.size());
-        assertSame(component, destroyedComponents.get(0));
+        assertTrue(component == destroyedComponents.get(0));
     }
 
     /**
@@ -507,7 +507,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Check all components are unique (for prototype)
         for (int i = 0; i < createdComponents.size(); i++) {
             for (int j = i + 1; j < createdComponents.size(); j++) {
-                assertNotSame(createdComponents.get(i), createdComponents.get(j));
+                assertFalse(createdComponents.get(i) == createdComponents.get(j));
             }
         }
     }
@@ -599,8 +599,8 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Test wrapping same object multiple times
         PooledObject<TestComponent> pooled2 = factory.wrap(component);
         assertNotNull(pooled2);
-        assertNotSame(pooled1, pooled2); // Different PooledObject instances
-        assertSame(pooled1.getObject(), pooled2.getObject()); // Same wrapped object
+        assertFalse(pooled1 == pooled2); // Different PooledObject instances
+        assertTrue(pooled1.getObject() == pooled2.getObject()); // Same wrapped object
     }
 
     /**
@@ -609,7 +609,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     public void test_factoryConfigurationIndependence() {
         // Each factory instance has independent configuration
         assertEquals("testComponent", factory.getComponentName());
-        assertSame(container, factory.getCrawlerContainer());
+        assertTrue(container == factory.getCrawlerContainer());
 
         // Create another factory with different settings
         OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
@@ -626,7 +626,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         assertNull(factory.getOnDestroyListener());
 
         assertEquals("singletonComponent", factory2.getComponentName());
-        assertSame(listener, factory2.getOnDestroyListener());
+        assertTrue(listener == factory2.getOnDestroyListener());
     }
 
     /**
@@ -659,10 +659,10 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         };
 
         testFactory.setOnDestroyListener(listener1);
-        assertSame(listener1, testFactory.getOnDestroyListener());
+        assertTrue(listener1 == testFactory.getOnDestroyListener());
 
         testFactory.setOnDestroyListener(listener2);
-        assertSame(listener2, testFactory.getOnDestroyListener());
+        assertTrue(listener2 == testFactory.getOnDestroyListener());
     }
 
     /**
@@ -866,7 +866,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         testFactory.setCrawlerContainer(container);
         testFactory.setComponentName("testComponent");
 
-        assertSame(container, testFactory.getCrawlerContainer());
+        assertTrue(container == testFactory.getCrawlerContainer());
         assertEquals("testComponent", testFactory.getComponentName());
 
         OnDestroyListener<TestComponent> listener = new OnDestroyListener<TestComponent>() {
@@ -877,7 +877,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         };
 
         testFactory.setOnDestroyListener(listener);
-        assertSame(listener, testFactory.getOnDestroyListener());
+        assertTrue(listener == testFactory.getOnDestroyListener());
     }
 
     /**

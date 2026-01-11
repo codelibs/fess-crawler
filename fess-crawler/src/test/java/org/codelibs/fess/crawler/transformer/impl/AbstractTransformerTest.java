@@ -258,7 +258,7 @@ public class AbstractTransformerTest extends PlainTestCase {
         assertNotNull(resultData);
         assertEquals("myTransformer", resultData.getTransformerName());
         assertEquals(1, testTransformer.getTransformCallCount());
-        assertSame(responseData, testTransformer.getLastResponseData());
+        assertTrue(responseData == testTransformer.getLastResponseData());
     }
 
     /**

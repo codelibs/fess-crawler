@@ -56,7 +56,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
         ExecutionTimeoutException exception = new ExecutionTimeoutException(cause);
 
         assertNotNull(exception);
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
         assertTrue(exception.getMessage().contains("TimeoutException"));
     }
 
@@ -80,7 +80,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertEquals(message, exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -147,7 +147,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
         ExecutionTimeoutException top = new ExecutionTimeoutException("Execution timeout", middle);
 
         assertEquals("Execution timeout", top.getMessage());
-        assertSame(middle, top.getCause());
-        assertSame(root, top.getCause().getCause());
+        assertTrue(middle == top.getCause());
+        assertTrue(root == top.getCause().getCause());
     }
 }

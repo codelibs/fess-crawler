@@ -55,7 +55,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
         MimeTypeException exception = new MimeTypeException(cause);
 
         assertNotNull(exception);
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
         assertTrue(exception.getMessage().contains("IOException"));
     }
 
@@ -79,7 +79,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertEquals(message, exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -151,7 +151,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
         MimeTypeException top = new MimeTypeException("MIME type error", middle);
 
         assertEquals("MIME type error", top.getMessage());
-        assertSame(middle, top.getCause());
-        assertSame(root, top.getCause().getCause());
+        assertTrue(middle == top.getCause());
+        assertTrue(root == top.getCause().getCause());
     }
 }

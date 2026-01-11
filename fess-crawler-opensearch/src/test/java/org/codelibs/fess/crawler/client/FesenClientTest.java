@@ -244,8 +244,8 @@ public class FesenClientTest {
 
         final Client result = fesenClient.filterWithHeader(headers);
 
-        assertSame(fesenClient, result); // Should return this
-        assertSame(mockNewClient, fesenClient.client); // Internal client should be updated
+        assertTrue(fesenClient == result); // Should return this
+        assertTrue(mockNewClient == fesenClient.client); // Internal client should be updated
         verify(mockClient).filterWithHeader(headers);
     }
 

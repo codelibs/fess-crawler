@@ -105,7 +105,7 @@ public class AbstractExtractorTest extends PlainTestCase {
         extractor.getText(in, null);
 
         assertTrue(extractor.isValidateCalled());
-        assertSame(in, extractor.getLastValidatedStream());
+        assertTrue(in == extractor.getLastValidatedStream());
     }
 
     /**

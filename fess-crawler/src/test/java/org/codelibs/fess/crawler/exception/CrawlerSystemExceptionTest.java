@@ -104,7 +104,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
         CrawlerSystemException exception = new CrawlerSystemException(cause);
 
         assertNotNull(exception);
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
         // When constructed with cause only, message should be cause's toString()
         assertEquals("java.lang.IllegalArgumentException: Root cause", exception.getMessage());
     }
@@ -127,22 +127,22 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
         // With Exception cause
         Exception exceptionCause = new Exception("Exception cause");
         CrawlerSystemException exception1 = new CrawlerSystemException(exceptionCause);
-        assertSame(exceptionCause, exception1.getCause());
+        assertTrue(exceptionCause == exception1.getCause());
 
         // With Error cause
         Error errorCause = new Error("Error cause");
         CrawlerSystemException exception2 = new CrawlerSystemException(errorCause);
-        assertSame(errorCause, exception2.getCause());
+        assertTrue(errorCause == exception2.getCause());
 
         // With RuntimeException cause
         RuntimeException runtimeCause = new RuntimeException("Runtime cause");
         CrawlerSystemException exception3 = new CrawlerSystemException(runtimeCause);
-        assertSame(runtimeCause, exception3.getCause());
+        assertTrue(runtimeCause == exception3.getCause());
 
         // With another CrawlerSystemException cause
         CrawlerSystemException crawlerCause = new CrawlerSystemException("Crawler cause");
         CrawlerSystemException exception4 = new CrawlerSystemException(crawlerCause);
-        assertSame(crawlerCause, exception4.getCause());
+        assertTrue(crawlerCause == exception4.getCause());
     }
 
     /**
@@ -155,7 +155,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertEquals(message, exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -167,7 +167,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertNull(exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -274,7 +274,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
         assertTrue(causeStackTrace.length > 0);
 
         // Stack traces should be different
-        assertNotSame(mainStackTrace, causeStackTrace);
+        assertFalse(mainStackTrace == causeStackTrace);
     }
 
     /**
@@ -324,9 +324,9 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
         CrawlerSystemException topLevel = new CrawlerSystemException("Top level", level1);
 
         // Verify chain
-        assertSame(level1, topLevel.getCause());
-        assertSame(level2, topLevel.getCause().getCause());
-        assertSame(level3, topLevel.getCause().getCause().getCause());
+        assertTrue(level1 == topLevel.getCause());
+        assertTrue(level2 == topLevel.getCause().getCause());
+        assertTrue(level3 == topLevel.getCause().getCause().getCause());
         assertNull(topLevel.getCause().getCause().getCause().getCause());
 
         // Verify messages
@@ -444,8 +444,8 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
 
         Throwable[] suppressedExceptions = mainException.getSuppressed();
         assertEquals(2, suppressedExceptions.length);
-        assertSame(suppressed1, suppressedExceptions[0]);
-        assertSame(suppressed2, suppressedExceptions[1]);
+        assertTrue(suppressed1 == suppressedExceptions[0]);
+        assertTrue(suppressed2 == suppressedExceptions[1]);
     }
 
     /**
@@ -480,7 +480,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
 
         // Fill in stack trace again
         Throwable filled = exception.fillInStackTrace();
-        assertSame(exception, filled);
+        assertTrue(exception == filled);
 
         StackTraceElement[] newStackTrace = exception.getStackTrace();
         assertNotNull(newStackTrace);

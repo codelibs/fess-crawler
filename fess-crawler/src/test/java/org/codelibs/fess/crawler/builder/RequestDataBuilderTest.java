@@ -169,7 +169,7 @@ public class RequestDataBuilderTest extends PlainTestCase {
         RequestData data2 = context.build();
 
         // Should return the same underlying object
-        assertSame(data1, data2);
+        assertTrue(data1 == data2);
     }
 
     public void test_modifyAfterBuild() {

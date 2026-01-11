@@ -285,7 +285,7 @@ public class AbstractTransformerTest extends PlainTestCase {
 
         try {
             testTransformer.transform(responseData);
-            fail("Should throw CrawlerSystemException");
+            fail();
         } catch (CrawlerSystemException e) {
             assertEquals("Test exception", e.getMessage());
         }

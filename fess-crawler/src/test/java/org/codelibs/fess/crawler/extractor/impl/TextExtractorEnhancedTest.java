@@ -77,7 +77,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     public void test_getText_nullInputStream_throwsWithMessage() {
         try {
             textExtractor.getText(null, null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }
@@ -100,11 +100,11 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
 
         try {
             textExtractor.getText(errorStream, null);
-            fail("Expected ExtractException");
+            fail();
         } catch (final ExtractException e) {
-            assertTrue("Error message should contain encoding information", e.getMessage().contains("encoding"));
-            assertTrue("Error message should contain the specific encoding", e.getMessage().contains(customEncoding));
-            assertTrue("Error message should indicate extraction failure", e.getMessage().contains("Failed to extract"));
+            assertTrue(e.getMessage().contains("encoding"));
+            assertTrue(e.getMessage().contains(customEncoding));
+            assertTrue(e.getMessage().contains("Failed to extract"));
         } finally {
             // Reset to default encoding
             textExtractor.setEncoding("UTF-8");
@@ -121,7 +121,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Empty input should produce empty content", result.getContent().isEmpty());
+        assertTrue(result.getContent().isEmpty());
     }
 
     /**
@@ -138,8 +138,8 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Should contain line 0", result.getContent().contains("Line 0"));
-        assertTrue("Should contain line 9999", result.getContent().contains("Line 9999"));
+        assertTrue(result.getContent().contains("Line 0"));
+        assertTrue(result.getContent().contains("Line 9999"));
     }
 
     /**
@@ -153,7 +153,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Should preserve Unicode characters", result.getContent().contains("世界"));
+        assertTrue(result.getContent().contains("世界"));
     }
 
     /**
@@ -181,7 +181,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Should contain test content", result.getContent().contains("テスト"));
+        assertTrue(result.getContent().contains("テスト"));
     }
 
     /**
@@ -197,13 +197,13 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
 
         try {
             textExtractor.getText(errorStream, null);
-            fail("Expected ExtractException");
+            fail();
         } catch (final ExtractException e) {
             final String message = e.getMessage();
-            assertNotNull("Error message should not be null", message);
-            assertFalse("Error message should not be empty", message.trim().isEmpty());
-            assertTrue("Error message should start with action verb", message.startsWith("Failed to extract"));
-            assertTrue("Error message should contain 'text content'", message.contains("text content"));
+            assertNotNull(message);
+            assertFalse(message.trim().isEmpty());
+            assertTrue(message.startsWith("Failed to extract"));
+            assertTrue(message.contains("text content"));
         }
     }
 

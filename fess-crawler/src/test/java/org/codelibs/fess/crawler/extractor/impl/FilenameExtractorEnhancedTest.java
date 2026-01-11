@@ -104,7 +104,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
 
         try {
             filenameExtractor.getText(null, params);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }

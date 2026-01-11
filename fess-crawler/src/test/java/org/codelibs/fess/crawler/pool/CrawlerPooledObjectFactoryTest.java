@@ -193,7 +193,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             nullContainerFactory.create();
-            fail("Should throw IllegalStateException for null container");
+            fail();
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("crawlerContainer"));
         } catch (Exception e) {
@@ -211,7 +211,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             nullNameFactory.create();
-            fail("Should throw IllegalStateException for null component name");
+            fail();
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("componentName"));
         } catch (Exception e) {
@@ -229,7 +229,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             invalidFactory.create();
-            fail("Should throw IllegalStateException for invalid component name");
+            fail();
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("nonExistentComponent"));
         } catch (Exception e) {
@@ -252,7 +252,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         // Should be same instance for singleton
         assertSame(component1, component2);
         // The first creation should increment the counter
-        assertTrue("Instance count should be at least 1", SingletonTestComponent.getInstanceCount() >= 1);
+        assertTrue(SingletonTestComponent.getInstanceCount() >= 1);
     }
 
     /**
@@ -345,7 +345,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         factoryWithListener.destroyObject(pooledObject);
 
         // Resource should still be closed despite listener exception
-        assertTrue("Component should be closed even if listener throws", component.isClosed());
+        assertTrue(component.isClosed());
     }
 
     /**
@@ -379,7 +379,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
             @Override
             public void onDestroy(PooledObject<CloseableTestComponent> p) {
                 listenerCalled.set(true);
-                assertFalse("Component should not be closed yet when listener is called", p.getObject().isClosed());
+                assertFalse(p.getObject().isClosed());
             }
         };
 
@@ -390,8 +390,8 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         factoryWithListener.destroyObject(pooledObject);
 
-        assertTrue("Listener should be called", listenerCalled.get());
-        assertTrue("Component should be closed after listener", component.isClosed());
+        assertTrue(listenerCalled.get());
+        assertTrue(component.isClosed());
         assertEquals(1, CloseableTestComponent.getCloseCount());
     }
 
@@ -697,7 +697,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             failingFactory.destroyObject(pooledObject);
-            fail("Should throw exception from close()");
+            fail();
         } catch (Exception e) {
             // Expected - exception should propagate from close()
             assertTrue(e.getMessage().contains("Intentional close failure"));
@@ -728,13 +728,13 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
 
         try {
             failingFactory.destroyObject(pooledObject);
-            fail("Should throw exception from close()");
+            fail();
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("Intentional close failure"));
         }
 
         // Listener should have been called before the exception
-        assertTrue("Listener should be called before close()", listenerCalled.get());
+        assertTrue(listenerCalled.get());
         assertTrue(component.isCloseCalled());
     }
 

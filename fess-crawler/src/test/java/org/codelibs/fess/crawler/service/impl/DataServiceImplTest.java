@@ -126,10 +126,10 @@ public class DataServiceImplTest extends PlainTestCase {
         executor.shutdown();
 
         // Verify no errors occurred
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
 
         // Verify all IDs are unique (no duplicates)
-        assertEquals("IDs should be unique", threadCount * operationsPerThread, ids.size());
+        assertEquals(threadCount * operationsPerThread, ids.size());
 
         // Cleanup
         for (int t = 0; t < threadCount; t++) {

@@ -417,7 +417,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             client.doGet(baseUrl + "file1.txt");
-            fail("Should throw CrawlingAccessException");
+            fail();
         } catch (CrawlingAccessException e) {
             // Expected
         }
@@ -440,7 +440,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             smbClient.doGet(baseUrl + "file1.txt");
-            fail("Should throw MaxLengthExceededException");
+            fail();
         } catch (MaxLengthExceededException e) {
             assertTrue(e.getMessage().contains("over 3 byte"));
         }

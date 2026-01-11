@@ -328,14 +328,14 @@ public class RuleManagerTest extends PlainTestCase {
 
         try {
             ruleManager.addRule(-1, rule2);
-            fail("Should throw IndexOutOfBoundsException for negative index");
+            fail();
         } catch (IndexOutOfBoundsException e) {
             // Expected
         }
 
         try {
             ruleManager.addRule(5, rule2);
-            fail("Should throw IndexOutOfBoundsException for index > size");
+            fail();
         } catch (IndexOutOfBoundsException e) {
             // Expected
         }

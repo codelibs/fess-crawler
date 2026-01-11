@@ -431,7 +431,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             client.doGet(baseUrl + "file1.txt");
-            fail("Should throw CrawlingAccessException");
+            fail();
         } catch (CrawlingAccessException e) {
             // Expected
         }
@@ -454,7 +454,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             smbClient.doGet(baseUrl + "file1.txt");
-            fail("Should throw MaxLengthExceededException");
+            fail();
         } catch (MaxLengthExceededException e) {
             assertTrue(e.getMessage().contains("over 3 byte"));
         }
@@ -537,7 +537,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             client.doGet(emptyUrl);
-            fail("Should throw ChildUrlsException for empty directory");
+            fail();
         } catch (final ChildUrlsException e) {
             assertEquals(0, e.getChildUrlList().size());
         }

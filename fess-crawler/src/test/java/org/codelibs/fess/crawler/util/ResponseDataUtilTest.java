@@ -174,7 +174,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
 
         try {
             ResponseDataUtil.createResponseBodyFile(responseData);
-            fail("Should throw CrawlingAccessException");
+            fail();
         } catch (CrawlingAccessException e) {
             // Expected
             assertTrue(e.getMessage().contains("Could not read a response body"));

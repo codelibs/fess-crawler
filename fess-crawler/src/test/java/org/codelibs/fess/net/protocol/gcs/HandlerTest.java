@@ -174,7 +174,7 @@ public class HandlerTest extends PlainTestCase {
         // In this test, we expect IOException when project ID is blank
         try {
             conn.connect();
-            fail("Should throw IOException when project ID is not set");
+            fail();
         } catch (IOException e) {
             assertTrue(e.getMessage().contains("GCS_PROJECT_ID is blank"));
         }
@@ -218,7 +218,7 @@ public class HandlerTest extends PlainTestCase {
         startLatch.countDown();
 
         // Wait for all threads to complete
-        assertTrue("Threads did not complete in time", doneLatch.await(5, TimeUnit.SECONDS));
+        assertTrue(doneLatch.await(5, TimeUnit.SECONDS));
 
         // All threads should fail with the same IOException (project ID is blank)
         // But importantly, there should be no race condition errors
@@ -243,7 +243,7 @@ public class HandlerTest extends PlainTestCase {
         // First call should fail (no project ID set)
         try {
             conn.connect();
-            fail("Should throw IOException");
+            fail();
         } catch (IOException e) {
             assertTrue(e.getMessage().contains("GCS_PROJECT_ID is blank"));
         }
@@ -251,7 +251,7 @@ public class HandlerTest extends PlainTestCase {
         // Second call should also fail with the same error
         try {
             conn.connect();
-            fail("Should throw IOException");
+            fail();
         } catch (IOException e) {
             assertTrue(e.getMessage().contains("GCS_PROJECT_ID is blank"));
         }
@@ -295,7 +295,7 @@ public class HandlerTest extends PlainTestCase {
         // getInputStream should try to auto-connect (and fail due to missing project ID)
         try {
             conn.getInputStream();
-            fail("Should throw IOException");
+            fail();
         } catch (IOException e) {
             // Expected - either "GCS_PROJECT_ID is blank" or connection failure
             assertNotNull(e.getMessage());

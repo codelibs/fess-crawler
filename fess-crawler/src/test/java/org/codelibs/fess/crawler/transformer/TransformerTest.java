@@ -533,7 +533,7 @@ public class TransformerTest extends PlainTestCase {
 
         try {
             transformer.transform(responseData);
-            fail("Should throw CrawlerSystemException");
+            fail();
         } catch (CrawlerSystemException e) {
             assertEquals("Transform exception", e.getMessage());
         }
@@ -550,7 +550,7 @@ public class TransformerTest extends PlainTestCase {
 
         try {
             transformer.getData(accessData);
-            fail("Should throw CrawlerSystemException");
+            fail();
         } catch (CrawlerSystemException e) {
             assertEquals("GetData exception", e.getMessage());
         }
@@ -659,7 +659,7 @@ public class TransformerTest extends PlainTestCase {
 
         startLatch.countDown();
         boolean completed = endLatch.await(30, TimeUnit.SECONDS);
-        assertTrue("Test should complete within timeout", completed);
+        assertTrue(completed);
         executor.shutdown();
 
         assertEquals(threadCount * operationsPerThread * 2, successCount.get());

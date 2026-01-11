@@ -390,7 +390,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     public void test_exceptionInMethod() {
         try {
             methodThatThrowsException();
-            fail("Should have thrown CrawlerSystemException");
+            fail();
         } catch (CrawlerSystemException e) {
             assertEquals("Method exception", e.getMessage());
         }

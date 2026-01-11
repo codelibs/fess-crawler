@@ -239,7 +239,7 @@ public class FileSystemClientTest extends PlainTestCase {
 
         // All threads should see the initialized state
         for (boolean result : initResults) {
-            assertTrue("Client should be initialized after concurrent access", result);
+            assertTrue(result);
         }
     }
 
@@ -259,7 +259,7 @@ public class FileSystemClientTest extends PlainTestCase {
         client.setAccessTimeout(10);
         try {
             ResponseData result = client.doGet("file://test.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
             fail("Should not throw exception: " + e.getMessage());
@@ -269,7 +269,7 @@ public class FileSystemClientTest extends PlainTestCase {
         client.setAccessTimeout(null);
         try {
             ResponseData result = client.doGet("file://test.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
             fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
@@ -284,11 +284,11 @@ public class FileSystemClientTest extends PlainTestCase {
         if (client.isInit.compareAndSet(false, true)) {
             client.init();
         }
-        assertTrue("Client should be initialized", client.isInit.get());
+        assertTrue(client.isInit.get());
 
         // Second initialization attempt should be no-op
         boolean secondInit = client.isInit.compareAndSet(false, true);
-        assertFalse("Second initialization should not occur", secondInit);
-        assertTrue("Client should still be initialized", client.isInit.get());
+        assertFalse(secondInit);
+        assertTrue(client.isInit.get());
     }
 }

@@ -153,11 +153,11 @@ public class TikaExtractorTest extends PlainTestCase {
                         : "null";
         logger.info("Detected content type: {}", contentType);
         logger.info("Stripped content: {}", content);
-        assertFalse("Content should not contain HTML tags. Content type=" + contentType + ", content=" + content, content.contains("<"));
-        assertFalse("Content should not contain HTML tags", content.contains(">"));
-        assertTrue("Content should contain 'Create'", content.contains("Create"));
-        assertTrue("Content should contain 'Title'", content.contains("Title"));
-        assertTrue("Content should contain 'Cell'", content.contains("Cell"));
+        assertFalse(content.contains("<"));
+        assertFalse(content.contains(">"));
+        assertTrue(content.contains("Create"));
+        assertTrue(content.contains("Title"));
+        assertTrue(content.contains("Cell"));
     }
 
     public void test_getTika_html_fragment_strip_tags_disabled() {
@@ -169,8 +169,8 @@ public class TikaExtractorTest extends PlainTestCase {
         CloseableUtil.closeQuietly(in);
         logger.info("Content without stripping: {}", content);
         // Content may or may not contain tags depending on Tika's behavior
-        assertTrue("Content should contain 'Create'", content.contains("Create"));
-        assertTrue("Content should contain 'Title'", content.contains("Title"));
+        assertTrue(content.contains("Create"));
+        assertTrue(content.contains("Title"));
     }
 
     public void test_getTika_msword() {

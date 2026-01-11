@@ -171,7 +171,7 @@ public class FesenClientTest {
 
         try {
             fesenClient.get(c -> mockFuture);
-            fail("Expected exception after max retries");
+            fail();
         } catch (RuntimeException e) {
             assertEquals("Persistent failure", e.getMessage());
         }
@@ -378,7 +378,7 @@ public class FesenClientTest {
             }
         });
 
-        assertTrue("Listener should have been called", listenerCalled.get());
+        assertTrue(listenerCalled.get());
     }
 
     /**
@@ -386,10 +386,10 @@ public class FesenClientTest {
      */
     @Test
     public void testConnectedFlag() {
-        assertFalse("Initially not connected", fesenClient.connected());
+        assertFalse(fesenClient.connected());
 
         // After destroy, should be disconnected
         fesenClient.destroy();
-        assertFalse("Should be disconnected after destroy", fesenClient.connected());
+        assertFalse(fesenClient.connected());
     }
 }

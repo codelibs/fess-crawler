@@ -61,7 +61,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     public void test_valueOf_invalid() {
         try {
             CrawlerStatus.valueOf("INVALID");
-            fail("Should throw IllegalArgumentException for invalid value");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
             assertTrue(e.getMessage().contains("INVALID"));
@@ -69,7 +69,7 @@ public class CrawlerStatusTest extends PlainTestCase {
 
         try {
             CrawlerStatus.valueOf("initializing"); // lowercase
-            fail("Should throw IllegalArgumentException for lowercase value");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
             assertTrue(e.getMessage().contains("initializing"));
@@ -77,14 +77,14 @@ public class CrawlerStatusTest extends PlainTestCase {
 
         try {
             CrawlerStatus.valueOf("");
-            fail("Should throw IllegalArgumentException for empty string");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
         }
 
         try {
             CrawlerStatus.valueOf(" RUNNING "); // with spaces
-            fail("Should throw IllegalArgumentException for value with spaces");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
         }
@@ -96,7 +96,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     public void test_valueOf_null() {
         try {
             CrawlerStatus.valueOf(null);
-            fail("Should throw NullPointerException for null value");
+            fail();
         } catch (NullPointerException e) {
             // Expected
         }
@@ -313,12 +313,12 @@ public class CrawlerStatusTest extends PlainTestCase {
 
         // Test with if-else
         if (status == CrawlerStatus.INITIALIZING) {
-            fail("Should not be INITIALIZING");
+            fail();
         } else if (status == CrawlerStatus.RUNNING) {
             // Expected
             assertTrue(true);
         } else if (status == CrawlerStatus.DONE) {
-            fail("Should not be DONE");
+            fail();
         }
 
         // Test with ternary operator

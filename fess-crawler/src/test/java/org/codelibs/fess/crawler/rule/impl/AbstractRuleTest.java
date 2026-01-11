@@ -465,7 +465,7 @@ public class AbstractRuleTest extends PlainTestCase {
         // Register should fail with null container
         try {
             ruleWithoutContainer.register(0);
-            fail("Should throw exception with null container");
+            fail();
         } catch (NullPointerException e) {
             // Expected
         }

@@ -83,7 +83,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     public void test_ZipExtractor_nullInputStream_throwsWithMessage() {
         try {
             zipExtractor.getText(null, null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }
@@ -95,7 +95,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     public void test_TarExtractor_nullInputStream_throwsWithMessage() {
         try {
             tarExtractor.getText(null, null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }
@@ -109,11 +109,10 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
 
         try {
             zipExtractor.getText(invalidStream, null);
-            fail("Expected ExtractException");
+            fail();
         } catch (final ExtractException e) {
-            assertTrue("Error message should mention ZIP archive", e.getMessage().contains("ZIP archive"));
-            assertTrue("Error message should indicate failure",
-                    e.getMessage().contains("Failed to extract") || e.getMessage().contains("No entries could be processed"));
+            assertTrue(e.getMessage().contains("ZIP archive"));
+            assertTrue(e.getMessage().contains("Failed to extract") || e.getMessage().contains("No entries could be processed"));
         }
     }
 
@@ -127,13 +126,12 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
         try {
             final ExtractData result = tarExtractor.getText(invalidStream, null);
             // If no exception is thrown, result should be empty or minimal
-            assertNotNull("Result should not be null", result);
-            assertNotNull("Content should not be null", result.getContent());
+            assertNotNull(result);
+            assertNotNull(result.getContent());
             // Empty or minimal content is acceptable for invalid archives
         } catch (final ExtractException e) {
             // Exception is also acceptable - verify it has a descriptive message
-            assertTrue("Error message should mention TAR archive or extraction failure",
-                    e.getMessage().contains("TAR") || e.getMessage().contains("extract"));
+            assertTrue(e.getMessage().contains("TAR") || e.getMessage().contains("extract"));
         }
     }
 
@@ -176,7 +174,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Should extract valid content", result.getContent().contains("Valid content"));
+        assertTrue(result.getContent().contains("Valid content"));
     }
 
     /**
@@ -209,7 +207,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Should extract valid content", result.getContent().contains("Valid tar content"));
+        assertTrue(result.getContent().contains("Valid tar content"));
     }
 
     /**
@@ -270,7 +268,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Empty archive should produce empty content", result.getContent().trim().isEmpty());
+        assertTrue(result.getContent().trim().isEmpty());
     }
 
     /**
@@ -288,6 +286,6 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
 
         assertNotNull(result);
         assertNotNull(result.getContent());
-        assertTrue("Empty archive should produce empty content", result.getContent().trim().isEmpty());
+        assertTrue(result.getContent().trim().isEmpty());
     }
 }

@@ -341,7 +341,7 @@ public class S3ClientTest extends PlainTestCase {
         client.setAccessTimeout(10);
         try {
             ResponseData result = client.doGet("s3://test/file.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
             fail("Should not throw exception: " + e.getMessage());
@@ -351,7 +351,7 @@ public class S3ClientTest extends PlainTestCase {
         client.setAccessTimeout(null);
         try {
             ResponseData result = client.doGet("s3://test/file.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
             fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
@@ -453,8 +453,8 @@ public class S3ClientTest extends PlainTestCase {
             protected java.io.File createTempFile(String prefix, String suffix, java.io.File directory) {
                 // Verify the prefix is correct
                 assertEquals("crawler-S3Client-", prefix);
-                assertEquals("Temp file suffix should be '.out'", ".out", suffix);
-                assertNull("Directory should be null", directory);
+                assertEquals(".out", suffix);
+                assertNull(directory);
                 return super.createTempFile(prefix, suffix, directory);
             }
         };

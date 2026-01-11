@@ -197,7 +197,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("crawlerContainer"));
         } catch (Exception e) {
-            fail("Expected IllegalStateException but got: " + e.getClass().getName());
+            fail();
         }
     }
 
@@ -215,7 +215,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("componentName"));
         } catch (Exception e) {
-            fail("Expected IllegalStateException but got: " + e.getClass().getName());
+            fail();
         }
     }
 
@@ -233,7 +233,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("nonExistentComponent"));
         } catch (Exception e) {
-            fail("Expected IllegalStateException but got: " + e.getClass().getName());
+            fail();
         }
     }
 

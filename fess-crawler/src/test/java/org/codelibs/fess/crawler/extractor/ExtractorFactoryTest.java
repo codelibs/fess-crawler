@@ -204,8 +204,8 @@ public class ExtractorFactoryTest extends PlainTestCase {
         final Extractor extractor3 = factory.getExtractor(key);
 
         // Verify same instance is returned (cached)
-        assertTrue("Composite extractor should be cached" == extractor1, extractor2);
-        assertTrue("Composite extractor should be cached" == extractor2, extractor3);
+        assertTrue(extractor1 == extractor2);
+        assertTrue(extractor2 == extractor3);
 
         // Verify it works correctly
         assertEquals("second", extractor1.getText(new ByteArrayInputStream(new byte[0]), null).getContent());
@@ -260,6 +260,6 @@ public class ExtractorFactoryTest extends PlainTestCase {
         // Get extractor again - should be a new instance with updated weight
         final Extractor extractor2 = factory.getExtractor(key);
         assertEquals(20, extractor2.getWeight());
-        assertFalse("Cache should be invalidated after adding new extractor" == extractor1, extractor2);
+        assertFalse(extractor1 == extractor2);
     }
 }

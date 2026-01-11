@@ -118,7 +118,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
             int bytesRead = fis.read(buffer);
             assertEquals(10000, bytesRead);
             for (int i = 0; i < largeData.length; i++) {
-                assertEquals("Mismatch at position " + i, largeData[i], buffer[i]);
+                assertEquals(largeData[i], buffer[i]);
             }
         } finally {
             // Clean up

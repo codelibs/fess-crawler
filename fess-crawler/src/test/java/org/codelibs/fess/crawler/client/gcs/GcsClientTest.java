@@ -330,7 +330,7 @@ public class GcsClientTest extends PlainTestCase {
             assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception: " + e.getMessage());
+            fail();
         }
 
         // Test without timeout (null accessTimeout)
@@ -340,7 +340,7 @@ public class GcsClientTest extends PlainTestCase {
             assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
+            fail();
         }
     }
 

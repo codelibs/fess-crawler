@@ -176,7 +176,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
 
             assertEquals(1024, bytesRead);
             for (int i = 0; i < data.length; i++) {
-                assertEquals("Mismatch at position " + i, data[i], readBuffer[i]);
+                assertEquals(data[i], readBuffer[i]);
             }
         }
     }

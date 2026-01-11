@@ -279,7 +279,7 @@ public class CrawlerStatusTest extends PlainTestCase {
         case DONE:
             return "Crawler has completed";
         default:
-            fail("Unexpected status: " + status);
+            fail();
             return null;
         }
     }

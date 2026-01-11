@@ -199,7 +199,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
         assertTrue(endLatch.await(10, TimeUnit.SECONDS));
         executor.shutdown();
 
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
         assertEquals(threadCount, queues.size());
 
         // All threads should get the same queue instance
@@ -243,7 +243,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
         assertTrue(endLatch.await(10, TimeUnit.SECONDS));
         executor.shutdown();
 
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
         assertEquals(threadCount, maps.size());
 
         // All threads should get the same map instance
@@ -290,7 +290,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
         assertTrue(endLatch.await(30, TimeUnit.SECONDS));
         executor.shutdown();
 
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
         assertEquals(threadCount * operationsPerThread, map.size());
     }
 

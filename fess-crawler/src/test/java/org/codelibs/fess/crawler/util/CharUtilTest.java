@@ -122,7 +122,7 @@ public class CharUtilTest extends PlainTestCase {
         // Test all valid URL characters in a comprehensive way
         String validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-*_:/+%=&?#[]@~!$'(),;";
         for (char c : validChars.toCharArray()) {
-            assertTrue("Character '" + c + "' should be a valid URL character", CharUtil.isUrlChar(c));
+            assertTrue(CharUtil.isUrlChar(c));
         }
     }
 

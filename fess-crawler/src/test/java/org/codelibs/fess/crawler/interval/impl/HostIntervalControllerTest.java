@@ -98,7 +98,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
 
         long elapsed = (System.nanoTime() - time) / 1000000;
         long wait = waittime * (numTasks - 1);
-        assertTrue(elapsed + " >= " + wait, elapsed + 1L >= wait);
+        assertTrue(elapsed + 1L >= wait);
     }
 
     /**
@@ -155,7 +155,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
 
         long elapsed = (System.nanoTime() - time) / 1000000;
         // Different hosts should NOT wait for each other
-        assertTrue(elapsed + " should be much less than " + (waittime * numTasks), elapsed < waittime * numTasks / 2);
+        assertTrue(elapsed < waittime * numTasks / 2);
     }
 
     /**
@@ -302,7 +302,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
         } catch (final InterruptedException e) {
             fail();
         } catch (final ExecutionException e) {
-            fail("Execution failed: " + e.getMessage());
+            fail();
         } finally {
             executor.shutdown();
             try {

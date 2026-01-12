@@ -30,6 +30,9 @@ import java.util.regex.Pattern;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for MemoryDataHelper.
@@ -40,12 +43,14 @@ public class MemoryDataHelperTest extends PlainTestCase {
     private MemoryDataHelper helper;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         helper = new MemoryDataHelper();
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         helper.clear();
         super.tearDown();
@@ -64,11 +69,11 @@ public class MemoryDataHelperTest extends PlainTestCase {
 
         // Second call should return the same queue
         Queue<UrlQueueImpl<Long>> queue2 = helper.getUrlQueueList(sessionId);
-        assertSame(queue1, queue2);
+        assertTrue(queue1 == queue2);
 
         // Different session should get a different queue
         Queue<UrlQueueImpl<Long>> queue3 = helper.getUrlQueueList("session2");
-        assertNotSame(queue1, queue3);
+        assertFalse(queue1 == queue3);
     }
 
     /**
@@ -84,11 +89,11 @@ public class MemoryDataHelperTest extends PlainTestCase {
 
         // Second call should return the same set
         Set<String> set2 = helper.getUrlInQueueSet(sessionId);
-        assertSame(set1, set2);
+        assertTrue(set1 == set2);
 
         // Different session should get a different set
         Set<String> set3 = helper.getUrlInQueueSet("session2");
-        assertNotSame(set1, set3);
+        assertFalse(set1 == set3);
     }
 
     /**
@@ -154,7 +159,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
 
         // Second call should return the same map
         Map<String, AccessResultImpl<Long>> map2 = helper.getAccessResultMap(sessionId);
-        assertSame(map1, map2);
+        assertTrue(map1 == map2);
 
         // Verify it's a ConcurrentHashMap
         assertTrue(map1 instanceof java.util.concurrent.ConcurrentHashMap);
@@ -194,13 +199,13 @@ public class MemoryDataHelperTest extends PlainTestCase {
         assertTrue(endLatch.await(10, TimeUnit.SECONDS));
         executor.shutdown();
 
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
         assertEquals(threadCount, queues.size());
 
         // All threads should get the same queue instance
         Queue<UrlQueueImpl<Long>> firstQueue = queues.get(0);
         for (Queue<UrlQueueImpl<Long>> queue : queues) {
-            assertSame(firstQueue, queue);
+            assertTrue(firstQueue == queue);
         }
     }
 
@@ -238,13 +243,13 @@ public class MemoryDataHelperTest extends PlainTestCase {
         assertTrue(endLatch.await(10, TimeUnit.SECONDS));
         executor.shutdown();
 
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
         assertEquals(threadCount, maps.size());
 
         // All threads should get the same map instance
         Map<String, AccessResultImpl<Long>> firstMap = maps.get(0);
         for (Map<String, AccessResultImpl<Long>> map : maps) {
-            assertSame(firstMap, map);
+            assertTrue(firstMap == map);
         }
     }
 
@@ -285,7 +290,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
         assertTrue(endLatch.await(30, TimeUnit.SECONDS));
         executor.shutdown();
 
-        assertTrue("Errors occurred: " + errors, errors.isEmpty());
+        assertTrue(errors.isEmpty());
         assertEquals(threadCount * operationsPerThread, map.size());
     }
 

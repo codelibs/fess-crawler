@@ -31,6 +31,8 @@ import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for AbstractRule.
@@ -192,8 +194,9 @@ public class AbstractRuleTest extends PlainTestCase {
     private TestAbstractRule testRule;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
 
         ruleManager = new TestRuleManager();
         container = new StandardCrawlerContainer().singleton("ruleManager", ruleManager);
@@ -236,13 +239,13 @@ public class AbstractRuleTest extends PlainTestCase {
         // Set response processor
         TestResponseProcessor processor = new TestResponseProcessor();
         testRule.setResponseProcessor(processor);
-        assertSame(processor, testRule.getResponseProcessor());
+        assertTrue(processor == testRule.getResponseProcessor());
 
         // Change response processor
         TestResponseProcessor newProcessor = new TestResponseProcessor();
         testRule.setResponseProcessor(newProcessor);
-        assertSame(newProcessor, testRule.getResponseProcessor());
-        assertNotSame(processor, testRule.getResponseProcessor());
+        assertTrue(newProcessor == testRule.getResponseProcessor());
+        assertFalse(processor == testRule.getResponseProcessor());
 
         // Set null processor
         testRule.setResponseProcessor(null);
@@ -341,7 +344,7 @@ public class AbstractRuleTest extends PlainTestCase {
         testRule.setResponseProcessor(processor);
 
         assertEquals("multiRule", testRule.getRuleId());
-        assertSame(processor, testRule.getResponseProcessor());
+        assertTrue(processor == testRule.getResponseProcessor());
 
         // Register and verify
         testRule.register(0);
@@ -350,7 +353,7 @@ public class AbstractRuleTest extends PlainTestCase {
         // Verify registered rule maintains properties
         Rule registeredRule = ruleManager.getRules().get(0);
         assertEquals("multiRule", registeredRule.getRuleId());
-        assertSame(processor, registeredRule.getResponseProcessor());
+        assertTrue(processor == registeredRule.getResponseProcessor());
     }
 
     /**
@@ -363,7 +366,7 @@ public class AbstractRuleTest extends PlainTestCase {
         // Test default match (true)
         assertTrue(testRule.match(responseData));
         assertEquals(1, testRule.getMatchCallCount());
-        assertSame(responseData, testRule.getLastResponseData());
+        assertTrue(responseData == testRule.getLastResponseData());
 
         // Change match result
         testRule.setMatchResult(false);
@@ -453,7 +456,7 @@ public class AbstractRuleTest extends PlainTestCase {
 
         TestResponseProcessor processor = new TestResponseProcessor();
         ruleWithoutContainer.setResponseProcessor(processor);
-        assertSame(processor, ruleWithoutContainer.getResponseProcessor());
+        assertTrue(processor == ruleWithoutContainer.getResponseProcessor());
 
         // Match should work
         ResponseData responseData = new ResponseData();
@@ -462,7 +465,7 @@ public class AbstractRuleTest extends PlainTestCase {
         // Register should fail with null container
         try {
             ruleWithoutContainer.register(0);
-            fail("Should throw exception with null container");
+            fail();
         } catch (NullPointerException e) {
             // Expected
         }
@@ -523,7 +526,7 @@ public class AbstractRuleTest extends PlainTestCase {
 
         assertEquals(0, errorCount.get());
         assertEquals("concurrentRule", testRule.getRuleId());
-        assertSame(processor, testRule.getResponseProcessor());
+        assertTrue(processor == testRule.getResponseProcessor());
     }
 
     /**
@@ -599,9 +602,9 @@ public class AbstractRuleTest extends PlainTestCase {
         assertEquals(3, rules.size());
 
         // All should be the same instance
-        assertSame(testRule, rules.get(0));
-        assertSame(testRule, rules.get(1));
-        assertSame(testRule, rules.get(2));
+        assertTrue(testRule == rules.get(0));
+        assertTrue(testRule == rules.get(1));
+        assertTrue(testRule == rules.get(2));
     }
 
     /**
@@ -618,7 +621,7 @@ public class AbstractRuleTest extends PlainTestCase {
         // Verify initial state
         Rule registeredRule = ruleManager.getRules().get(0);
         assertEquals("originalId", registeredRule.getRuleId());
-        assertSame(processor1, registeredRule.getResponseProcessor());
+        assertTrue(processor1 == registeredRule.getResponseProcessor());
 
         // Change properties after registration
         TestResponseProcessor processor2 = new TestResponseProcessor();
@@ -627,7 +630,7 @@ public class AbstractRuleTest extends PlainTestCase {
 
         // Verify changes are reflected (same object reference)
         assertEquals("changedId", registeredRule.getRuleId());
-        assertSame(processor2, registeredRule.getResponseProcessor());
+        assertTrue(processor2 == registeredRule.getResponseProcessor());
     }
 
     /**
@@ -671,8 +674,8 @@ public class AbstractRuleTest extends PlainTestCase {
 
         // Verify through getters
         assertEquals("directFieldAccess", rule.getRuleId());
-        assertSame(processor, rule.getResponseProcessor());
-        assertSame(container, rule.crawlerContainer);
+        assertTrue(processor == rule.getResponseProcessor());
+        assertTrue(container == rule.crawlerContainer);
 
         // Register should work with direct field access
         rule.register(0);

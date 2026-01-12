@@ -19,6 +19,8 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -32,8 +34,9 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
     public UrlFilterImpl domainFilter;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
                 .singleton("urlFilterService", UrlFilterServiceImpl.class)//
                 .singleton("includeFilter", UrlFilterImpl.class)//

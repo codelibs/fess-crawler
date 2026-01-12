@@ -53,6 +53,8 @@ import org.codelibs.fess.crawler.service.impl.UrlQueueServiceImpl;
 import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 public class CrawlerTest extends PlainTestCase {
 
@@ -67,8 +69,9 @@ public class CrawlerTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
 
         final Map<String, String> featureMap = newHashMap();
         featureMap.put("http://xml.org/sax/features/namespaces", "false");
@@ -386,8 +389,8 @@ public class CrawlerTest extends PlainTestCase {
             final String sessionId1 = crawler1.execute();
             final String sessionId2 = crawler2.execute();
 
-            assertNotSame(sessionId1, sessionId2);
-            assertNotSame(crawler1.crawlerContext, crawler2.crawlerContext);
+            assertFalse(sessionId1 == sessionId2);
+            assertFalse(crawler1.crawlerContext == crawler2.crawlerContext);
 
             // Wait for both crawlers to start with polling
             long startTime = System.currentTimeMillis();

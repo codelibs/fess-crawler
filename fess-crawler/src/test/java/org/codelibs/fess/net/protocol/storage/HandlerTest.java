@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for {@link Handler} and its inner class {@link Handler.StorageURLConnection}.
@@ -33,8 +35,9 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class HandlerTest extends PlainTestCase {
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         new StandardCrawlerContainer();
     }
 
@@ -171,7 +174,7 @@ public class HandlerTest extends PlainTestCase {
         // In this test, we expect IOException when endpoint is blank
         try {
             conn.connect();
-            fail("Should throw IOException when endpoint is not set");
+            fail();
         } catch (IOException e) {
             assertTrue(e.getMessage().contains("endpoint is blank"));
         }
@@ -215,7 +218,7 @@ public class HandlerTest extends PlainTestCase {
         startLatch.countDown();
 
         // Wait for all threads to complete
-        assertTrue("Threads did not complete in time", doneLatch.await(5, TimeUnit.SECONDS));
+        assertTrue(doneLatch.await(5, TimeUnit.SECONDS));
 
         // All threads should fail with the same IOException (endpoint is blank)
         // But importantly, there should be no race condition errors
@@ -240,7 +243,7 @@ public class HandlerTest extends PlainTestCase {
         // First call should fail (no endpoint set)
         try {
             conn.connect();
-            fail("Should throw IOException");
+            fail();
         } catch (IOException e) {
             assertTrue(e.getMessage().contains("endpoint is blank"));
         }
@@ -248,7 +251,7 @@ public class HandlerTest extends PlainTestCase {
         // Second call should also fail with the same error
         try {
             conn.connect();
-            fail("Should throw IOException");
+            fail();
         } catch (IOException e) {
             assertTrue(e.getMessage().contains("endpoint is blank"));
         }
@@ -292,7 +295,7 @@ public class HandlerTest extends PlainTestCase {
         // getInputStream should try to auto-connect (and fail due to missing endpoint)
         try {
             conn.getInputStream();
-            fail("Should throw IOException");
+            fail();
         } catch (IOException e) {
             // Expected - either "endpoint is blank" or connection failure
             assertNotNull(e.getMessage());

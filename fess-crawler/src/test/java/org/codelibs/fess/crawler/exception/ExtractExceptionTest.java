@@ -56,7 +56,7 @@ public class ExtractExceptionTest extends PlainTestCase {
         ExtractException exception = new ExtractException(cause);
 
         assertNotNull(exception);
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
         assertEquals("java.io.IOException: IO error", exception.getMessage());
     }
 
@@ -81,7 +81,7 @@ public class ExtractExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertEquals(message, exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -93,7 +93,7 @@ public class ExtractExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertNull(exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -164,8 +164,8 @@ public class ExtractExceptionTest extends PlainTestCase {
         ExtractException top = new ExtractException("Extract failed", middle);
 
         assertEquals("Extract failed", top.getMessage());
-        assertSame(middle, top.getCause());
-        assertSame(root, top.getCause().getCause());
+        assertTrue(middle == top.getCause());
+        assertTrue(root == top.getCause().getCause());
     }
 
     /**

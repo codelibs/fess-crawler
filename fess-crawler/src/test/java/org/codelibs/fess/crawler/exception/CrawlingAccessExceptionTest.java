@@ -56,7 +56,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
         CrawlingAccessException exception = new CrawlingAccessException(cause);
 
         assertNotNull(exception);
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
         assertEquals("java.io.IOException: IO error", exception.getMessage());
     }
 
@@ -80,7 +80,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
 
         assertNotNull(exception);
         assertEquals(message, exception.getMessage());
-        assertSame(cause, exception.getCause());
+        assertTrue(cause == exception.getCause());
     }
 
     /**
@@ -216,7 +216,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
         CrawlingAccessException top = new CrawlingAccessException("Top level", middle);
 
         assertEquals("Top level", top.getMessage());
-        assertSame(middle, top.getCause());
-        assertSame(root, top.getCause().getCause());
+        assertTrue(middle == top.getCause());
+        assertTrue(root == top.getCause().getCause());
     }
 }

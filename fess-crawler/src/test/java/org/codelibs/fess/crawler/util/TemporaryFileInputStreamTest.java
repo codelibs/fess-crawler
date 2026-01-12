@@ -107,7 +107,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
             // Reset will throw IOException because mark is not supported
             try {
                 stream.reset();
-                fail("reset() should throw IOException when mark is not supported");
+                fail();
             } catch (IOException e) {
                 // Expected - FileInputStream does not support mark/reset
             }
@@ -136,7 +136,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         }
 
         String filePath = tempFile.getAbsolutePath();
-        assertTrue("Temp file should exist before opening stream", tempFile.exists());
+        assertTrue(tempFile.exists());
 
         TemporaryFileInputStream stream = new TemporaryFileInputStream(tempFile);
         stream.read(); // Read some data
@@ -176,7 +176,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
 
             assertEquals(1024, bytesRead);
             for (int i = 0; i < data.length; i++) {
-                assertEquals("Mismatch at position " + i, data[i], readBuffer[i]);
+                assertEquals(data[i], readBuffer[i]);
             }
         }
     }
@@ -187,7 +187,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
 
         try {
             new TemporaryFileInputStream(nonExistentFile);
-            fail("Should throw FileNotFoundException");
+            fail();
         } catch (IOException e) {
             // Expected
             assertTrue(e.getMessage().contains("non-existent-file"));

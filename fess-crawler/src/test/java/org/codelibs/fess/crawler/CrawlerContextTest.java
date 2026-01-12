@@ -32,6 +32,8 @@ import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for CrawlerContext.
@@ -42,8 +44,9 @@ public class CrawlerContextTest extends PlainTestCase {
     private CrawlerContext crawlerContext;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         crawlerContext = new CrawlerContext();
     }
 
@@ -312,7 +315,7 @@ public class CrawlerContextTest extends PlainTestCase {
 
         TestUrlFilter filter = new TestUrlFilter();
         crawlerContext.setUrlFilter(filter);
-        assertSame(filter, crawlerContext.getUrlFilter());
+        assertTrue(filter == crawlerContext.getUrlFilter());
 
         crawlerContext.setUrlFilter(null);
         assertNull(crawlerContext.getUrlFilter());
@@ -326,7 +329,7 @@ public class CrawlerContextTest extends PlainTestCase {
 
         TestRuleManager manager = new TestRuleManager();
         crawlerContext.setRuleManager(manager);
-        assertSame(manager, crawlerContext.getRuleManager());
+        assertTrue(manager == crawlerContext.getRuleManager());
 
         crawlerContext.setRuleManager(null);
         assertNull(crawlerContext.getRuleManager());
@@ -340,7 +343,7 @@ public class CrawlerContextTest extends PlainTestCase {
 
         TestIntervalController controller = new TestIntervalController();
         crawlerContext.setIntervalController(controller);
-        assertSame(controller, crawlerContext.getIntervalController());
+        assertTrue(controller == crawlerContext.getIntervalController());
 
         crawlerContext.setIntervalController(null);
         assertNull(crawlerContext.getIntervalController());
@@ -364,7 +367,7 @@ public class CrawlerContextTest extends PlainTestCase {
         Set<String> newSet = new HashSet<>();
         newSet.add("http://new.com/robots.txt");
         crawlerContext.setRobotsTxtUrlSet(newSet);
-        assertSame(newSet, crawlerContext.getRobotsTxtUrlSet());
+        assertTrue(newSet == crawlerContext.getRobotsTxtUrlSet());
         assertEquals(1, crawlerContext.getRobotsTxtUrlSet().size());
 
         // Set null

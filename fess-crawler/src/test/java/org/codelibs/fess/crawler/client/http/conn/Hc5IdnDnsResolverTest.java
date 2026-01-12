@@ -94,7 +94,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         // Test empty brackets - should be treated as invalid hostname
         try {
             resolver.resolve("[]");
-            fail("Should throw UnknownHostException for empty brackets");
+            fail();
         } catch (UnknownHostException e) {
             // Expected behavior
         }

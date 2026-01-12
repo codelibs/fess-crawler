@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
 
 /**
  * Test class for CrawlingParameterUtil.
@@ -34,6 +35,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 public class CrawlingParameterUtilTest extends PlainTestCase {
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         // Clean up ThreadLocal variables after each test
         CrawlingParameterUtil.setUrlQueue(null);
@@ -260,7 +262,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Verify it can be retrieved
         UrlQueueService<UrlQueue<?>> retrieved = CrawlingParameterUtil.getUrlQueueService();
         assertNotNull(retrieved);
-        assertSame(service, retrieved);
+        assertTrue(service == retrieved);
     }
 
     public void test_urlQueueService_setNull() {
@@ -371,7 +373,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         // Verify it can be retrieved
         DataService<AccessResult<?>> retrieved = CrawlingParameterUtil.getDataService();
         assertNotNull(retrieved);
-        assertSame(service, retrieved);
+        assertTrue(service == retrieved);
     }
 
     public void test_dataService_setNull() {

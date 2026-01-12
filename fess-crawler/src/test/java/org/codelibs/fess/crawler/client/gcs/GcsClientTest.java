@@ -31,6 +31,9 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -58,8 +61,9 @@ public class GcsClientTest extends PlainTestCase {
     private GenericContainer<?> gcsServer;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
 
         final int port = 4443;
         logger.info("Creating {}", IMAGE_NAME);
@@ -129,6 +133,7 @@ public class GcsClientTest extends PlainTestCase {
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         gcsServer.stop();
         super.tearDown();
@@ -322,20 +327,20 @@ public class GcsClientTest extends PlainTestCase {
         client.setAccessTimeout(10);
         try {
             ResponseData result = client.doGet("gcs://test/file.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception: " + e.getMessage());
+            fail();
         }
 
         // Test without timeout (null accessTimeout)
         client.setAccessTimeout(null);
         try {
             ResponseData result = client.doGet("gcs://test/file.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
+            fail();
         }
     }
 
@@ -433,9 +438,9 @@ public class GcsClientTest extends PlainTestCase {
             @Override
             protected java.io.File createTempFile(String prefix, String suffix, java.io.File directory) {
                 // Verify the prefix is correct
-                assertTrue("Temp file prefix should be 'crawler-GcsClient-'", prefix.equals("crawler-GcsClient-"));
-                assertEquals("Temp file suffix should be '.out'", ".out", suffix);
-                assertNull("Directory should be null", directory);
+                assertTrue(prefix.equals("crawler-GcsClient-"));
+                assertEquals(".out", suffix);
+                assertNull(directory);
                 return super.createTempFile(prefix, suffix, directory);
             }
         };

@@ -148,7 +148,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
         credentials.setPassword("pass");
 
         config.setCredentials(credentials);
-        assertSame(credentials, config.getCredentials());
+        assertTrue(credentials == config.getCredentials());
         assertEquals("user", config.getCredentials().getUsername());
 
         config.setCredentials(null);

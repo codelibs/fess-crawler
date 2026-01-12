@@ -32,6 +32,9 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -59,8 +62,9 @@ public class S3ClientTest extends PlainTestCase {
     private GenericContainer minioServer;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
 
         final int port = 9000;
         logger.info("Creating {}", IMAGE_NAME);
@@ -143,6 +147,7 @@ public class S3ClientTest extends PlainTestCase {
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         minioServer.stop();
         super.tearDown();
@@ -336,20 +341,20 @@ public class S3ClientTest extends PlainTestCase {
         client.setAccessTimeout(10);
         try {
             ResponseData result = client.doGet("s3://test/file.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception: " + e.getMessage());
+            fail();
         }
 
         // Test without timeout (null accessTimeout)
         client.setAccessTimeout(null);
         try {
             ResponseData result = client.doGet("s3://test/file.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
+            fail();
         }
     }
 
@@ -448,8 +453,8 @@ public class S3ClientTest extends PlainTestCase {
             protected java.io.File createTempFile(String prefix, String suffix, java.io.File directory) {
                 // Verify the prefix is correct
                 assertEquals("crawler-S3Client-", prefix);
-                assertEquals("Temp file suffix should be '.out'", ".out", suffix);
-                assertNull("Directory should be null", directory);
+                assertEquals(".out", suffix);
+                assertNull(directory);
                 return super.createTempFile(prefix, suffix, directory);
             }
         };

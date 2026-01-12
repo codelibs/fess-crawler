@@ -39,6 +39,8 @@ import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -50,8 +52,9 @@ public class FtpClientTest extends PlainTestCase {
     public FtpClient ftpClient;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
                 .singleton("ftpClient", FtpClient.class);
         ftpClient = container.getComponent("ftpClient");
@@ -441,13 +444,13 @@ public class FtpClientTest extends PlainTestCase {
 
             try {
                 ftpClient.doGet("ftp://localhost:" + FTP_PORT + "/dir1");
-                fail("Should throw ChildUrlsException");
+                fail();
             } catch (final ChildUrlsException e) {
                 final Set<RequestData> urlSet = e.getChildUrlList();
                 assertEquals(1, urlSet.size());
                 String childUrl = urlSet.iterator().next().getUrl();
-                assertTrue("Child URL should be properly formed", childUrl.contains("dir1/test3.txt"));
-                assertTrue("Child URL should contain 'child' not 'chile'", childUrl.matches(".*dir1/test3\\.txt"));
+                assertTrue(childUrl.contains("dir1/test3.txt"));
+                assertTrue(childUrl.matches(".*dir1/test3\\.txt"));
             }
         } finally {
             if (server != null) {
@@ -472,20 +475,20 @@ public class FtpClientTest extends PlainTestCase {
         client.setAccessTimeout(10);
         try {
             ResponseData result = client.doGet("ftp://localhost/test.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception: " + e.getMessage());
+            fail();
         }
 
         // Test without timeout (null accessTimeout)
         client.setAccessTimeout(null);
         try {
             ResponseData result = client.doGet("ftp://localhost/test.txt");
-            assertNotNull("Response should not be null", result);
+            assertNotNull(result);
             assertEquals(200, result.getHttpStatusCode());
         } catch (Exception e) {
-            fail("Should not throw exception when accessTimeout is null: " + e.getMessage());
+            fail();
         }
     }
 

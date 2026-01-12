@@ -61,7 +61,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     public void test_valueOf_invalid() {
         try {
             CrawlerStatus.valueOf("INVALID");
-            fail("Should throw IllegalArgumentException for invalid value");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
             assertTrue(e.getMessage().contains("INVALID"));
@@ -69,7 +69,7 @@ public class CrawlerStatusTest extends PlainTestCase {
 
         try {
             CrawlerStatus.valueOf("initializing"); // lowercase
-            fail("Should throw IllegalArgumentException for lowercase value");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
             assertTrue(e.getMessage().contains("initializing"));
@@ -77,14 +77,14 @@ public class CrawlerStatusTest extends PlainTestCase {
 
         try {
             CrawlerStatus.valueOf("");
-            fail("Should throw IllegalArgumentException for empty string");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
         }
 
         try {
             CrawlerStatus.valueOf(" RUNNING "); // with spaces
-            fail("Should throw IllegalArgumentException for value with spaces");
+            fail();
         } catch (IllegalArgumentException e) {
             // Expected
         }
@@ -96,7 +96,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     public void test_valueOf_null() {
         try {
             CrawlerStatus.valueOf(null);
-            fail("Should throw NullPointerException for null value");
+            fail();
         } catch (NullPointerException e) {
             // Expected
         }
@@ -220,7 +220,7 @@ public class CrawlerStatusTest extends PlainTestCase {
             ois.close();
 
             // Verify - enum instances are singletons
-            assertSame(original, deserialized);
+            assertTrue(original == deserialized);
             assertEquals(original.name(), deserialized.name());
             assertEquals(original.ordinal(), deserialized.ordinal());
         }
@@ -279,7 +279,7 @@ public class CrawlerStatusTest extends PlainTestCase {
         case DONE:
             return "Crawler has completed";
         default:
-            fail("Unexpected status: " + status);
+            fail();
             return null;
         }
     }
@@ -313,12 +313,12 @@ public class CrawlerStatusTest extends PlainTestCase {
 
         // Test with if-else
         if (status == CrawlerStatus.INITIALIZING) {
-            fail("Should not be INITIALIZING");
+            fail();
         } else if (status == CrawlerStatus.RUNNING) {
             // Expected
             assertTrue(true);
         } else if (status == CrawlerStatus.DONE) {
-            fail("Should not be DONE");
+            fail();
         }
 
         // Test with ternary operator
@@ -407,17 +407,17 @@ public class CrawlerStatusTest extends PlainTestCase {
         CrawlerStatus status2 = CrawlerStatus.INITIALIZING;
 
         // Should be the same instance
-        assertSame(status1, status2);
+        assertTrue(status1 == status2);
         assertTrue(status1 == status2);
 
         // valueOf should return the same instance
         CrawlerStatus status3 = CrawlerStatus.valueOf("INITIALIZING");
-        assertSame(status1, status3);
+        assertTrue(status1 == status3);
         assertTrue(status1 == status3);
 
         // values() array contains the same instances
         CrawlerStatus status4 = CrawlerStatus.values()[0];
-        assertSame(status1, status4);
+        assertTrue(status1 == status4);
         assertTrue(status1 == status4);
     }
 

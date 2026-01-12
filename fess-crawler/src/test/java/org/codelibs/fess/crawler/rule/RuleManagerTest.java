@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for RuleManager interface.
@@ -218,8 +220,9 @@ public class RuleManagerTest extends PlainTestCase {
     private TestRuleManager ruleManager;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         ruleManager = new TestRuleManager();
     }
 
@@ -325,14 +328,14 @@ public class RuleManagerTest extends PlainTestCase {
 
         try {
             ruleManager.addRule(-1, rule2);
-            fail("Should throw IndexOutOfBoundsException for negative index");
+            fail();
         } catch (IndexOutOfBoundsException e) {
             // Expected
         }
 
         try {
             ruleManager.addRule(5, rule2);
-            fail("Should throw IndexOutOfBoundsException for index > size");
+            fail();
         } catch (IndexOutOfBoundsException e) {
             // Expected
         }

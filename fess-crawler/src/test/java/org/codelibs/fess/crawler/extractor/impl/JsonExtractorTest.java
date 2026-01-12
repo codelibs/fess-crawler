@@ -25,6 +25,8 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for JsonExtractor.
@@ -35,8 +37,9 @@ public class JsonExtractorTest extends PlainTestCase {
     public JsonExtractor jsonExtractor;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("jsonExtractor", JsonExtractor.class);
         jsonExtractor = container.getComponent("jsonExtractor");
     }

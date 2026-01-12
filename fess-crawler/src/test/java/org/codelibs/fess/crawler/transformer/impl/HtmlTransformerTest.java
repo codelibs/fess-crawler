@@ -24,6 +24,8 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author shinsuke
@@ -33,8 +35,9 @@ public class HtmlTransformerTest extends PlainTestCase {
     public HtmlTransformer htmlTransformer;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         htmlTransformer = new HtmlTransformer();
         htmlTransformer.setName("htmlTransformer");
         Map<String, String> featureMap = newHashMap();

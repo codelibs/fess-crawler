@@ -33,6 +33,9 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.MountableFile;
 
@@ -55,8 +58,9 @@ public class SmbClientTest extends PlainTestCase {
     private String specialUrl;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
 
         Path tempDir = Files.createTempDirectory("smb1data");
         Path publicDir = tempDir.resolve("public");
@@ -186,6 +190,7 @@ public class SmbClientTest extends PlainTestCase {
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         if (sambaServer != null) {
             sambaServer.stop();
@@ -426,7 +431,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             client.doGet(baseUrl + "file1.txt");
-            fail("Should throw CrawlingAccessException");
+            fail();
         } catch (CrawlingAccessException e) {
             // Expected
         }
@@ -449,7 +454,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             smbClient.doGet(baseUrl + "file1.txt");
-            fail("Should throw MaxLengthExceededException");
+            fail();
         } catch (MaxLengthExceededException e) {
             assertTrue(e.getMessage().contains("over 3 byte"));
         }
@@ -532,7 +537,7 @@ public class SmbClientTest extends PlainTestCase {
 
         try {
             client.doGet(emptyUrl);
-            fail("Should throw ChildUrlsException for empty directory");
+            fail();
         } catch (final ChildUrlsException e) {
             assertEquals(0, e.getChildUrlList().size());
         }

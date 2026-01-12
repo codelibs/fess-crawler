@@ -118,7 +118,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
             int bytesRead = fis.read(buffer);
             assertEquals(10000, bytesRead);
             for (int i = 0; i < largeData.length; i++) {
-                assertEquals("Mismatch at position " + i, largeData[i], buffer[i]);
+                assertEquals(largeData[i], buffer[i]);
             }
         } finally {
             // Clean up
@@ -174,7 +174,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
 
         try {
             ResponseDataUtil.createResponseBodyFile(responseData);
-            fail("Should throw CrawlingAccessException");
+            fail();
         } catch (CrawlingAccessException e) {
             // Expected
             assertTrue(e.getMessage().contains("Could not read a response body"));

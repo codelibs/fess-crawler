@@ -22,6 +22,8 @@ import java.util.Map;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for AbstractExtractor base functionality.
@@ -66,8 +68,9 @@ public class AbstractExtractorTest extends PlainTestCase {
     private TestExtractor extractor;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         extractor = new TestExtractor();
     }
 
@@ -87,7 +90,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     public void test_validateInputStream_throwsExceptionForNull() {
         try {
             extractor.testValidateInputStream(null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }
@@ -101,8 +104,8 @@ public class AbstractExtractorTest extends PlainTestCase {
 
         extractor.getText(in, null);
 
-        assertTrue("validateInputStream should be called", extractor.isValidateCalled());
-        assertSame("Should validate the same stream instance", in, extractor.getLastValidatedStream());
+        assertTrue(extractor.isValidateCalled());
+        assertTrue(in == extractor.getLastValidatedStream());
     }
 
     /**
@@ -113,12 +116,12 @@ public class AbstractExtractorTest extends PlainTestCase {
     public void test_getText_throwsExceptionForNullStream() {
         try {
             extractor.getText(null, null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
             // Note: validateCalled will be false because exception is thrown
             // before the flag can be set, which is the expected behavior
-            assertFalse("validateCalled should be false as exception thrown before flag set", extractor.isValidateCalled());
+            assertFalse(extractor.isValidateCalled());
         }
     }
 
@@ -138,7 +141,7 @@ public class AbstractExtractorTest extends PlainTestCase {
         // Third call with null should still throw
         try {
             extractor.testValidateInputStream(null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertEquals("The inputstream is null.", e.getMessage());
         }
@@ -167,13 +170,13 @@ public class AbstractExtractorTest extends PlainTestCase {
     public void test_validateInputStream_exceptionMessageFormat() {
         try {
             extractor.testValidateInputStream(null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             final String message = e.getMessage();
-            assertNotNull("Exception message should not be null", message);
-            assertFalse("Exception message should not be empty", message.trim().isEmpty());
-            assertTrue("Exception message should mention 'inputstream'", message.toLowerCase().contains("inputstream"));
-            assertTrue("Exception message should mention 'null'", message.toLowerCase().contains("null"));
+            assertNotNull(message);
+            assertFalse(message.trim().isEmpty());
+            assertTrue(message.toLowerCase().contains("inputstream"));
+            assertTrue(message.toLowerCase().contains("null"));
         }
     }
 
@@ -188,7 +191,7 @@ public class AbstractExtractorTest extends PlainTestCase {
         extractor.testValidateInputStream(in);
 
         final int availableAfter = in.available();
-        assertEquals("Stream should not be consumed by validation", availableBefore, availableAfter);
+        assertEquals(availableBefore, availableAfter);
     }
 
     /**
@@ -198,11 +201,11 @@ public class AbstractExtractorTest extends PlainTestCase {
         final InputStream in = new ByteArrayInputStream("test".getBytes());
 
         extractor.resetTestState();
-        assertFalse("Should start with validate not called", extractor.isValidateCalled());
+        assertFalse(extractor.isValidateCalled());
 
         extractor.getText(in, null);
 
-        assertTrue("Should be called after getText", extractor.isValidateCalled());
+        assertTrue(extractor.isValidateCalled());
     }
 
     /**
@@ -221,12 +224,12 @@ public class AbstractExtractorTest extends PlainTestCase {
     public void test_validateInputStream_throwsCorrectExceptionType() {
         try {
             extractor.testValidateInputStream(null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             // Verify it's exactly CrawlerSystemException, not a subclass
-            assertEquals("Should throw CrawlerSystemException", CrawlerSystemException.class, e.getClass());
+            assertEquals(CrawlerSystemException.class, e.getClass());
         } catch (final Exception e) {
-            fail("Should throw CrawlerSystemException, not " + e.getClass().getName());
+            fail();
         }
     }
 }

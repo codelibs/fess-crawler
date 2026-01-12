@@ -98,7 +98,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
 
         long elapsed = (System.nanoTime() - time) / 1000000;
         long wait = waittime * (numTasks - 1);
-        assertTrue(elapsed + " >= " + wait, elapsed + 1L >= wait);
+        assertTrue(elapsed + 1L >= wait);
     }
 
     /**
@@ -155,7 +155,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
 
         long elapsed = (System.nanoTime() - time) / 1000000;
         // Different hosts should NOT wait for each other
-        assertTrue(elapsed + " should be much less than " + (waittime * numTasks), elapsed < waittime * numTasks / 2);
+        assertTrue(elapsed < waittime * numTasks / 2);
     }
 
     /**
@@ -173,7 +173,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
         controller.delayBeforeProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("file:// URLs should not be delayed", elapsed < 50);
+        assertTrue(elapsed < 50);
     }
 
     /**
@@ -189,7 +189,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
         controller.delayBeforeProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("null URL queue should not cause delay", elapsed < 50);
+        assertTrue(elapsed < 50);
     }
 
     /**
@@ -207,7 +207,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
         controller.delayBeforeProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("blank URL should not cause delay", elapsed < 50);
+        assertTrue(elapsed < 50);
     }
 
     /**
@@ -225,7 +225,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
         controller.delayBeforeProcessing();
         final long elapsed = (System.nanoTime() - start) / 1000000;
 
-        assertTrue("URL without host should not cause delay", elapsed < 50);
+        assertTrue(elapsed < 50);
     }
 
     /**
@@ -255,14 +255,14 @@ public class HostIntervalControllerTest extends PlainTestCase {
         final long start1 = System.nanoTime();
         controller.delayBeforeProcessing();
         final long elapsed1 = (System.nanoTime() - start1) / 1000000;
-        assertTrue("First access should not delay", elapsed1 < 50);
+        assertTrue(elapsed1 < 50);
 
         // Second access to same host - should delay
         q.setUrl("http://example.com/page2");
         final long start2 = System.nanoTime();
         controller.delayBeforeProcessing();
         final long elapsed2 = (System.nanoTime() - start2) / 1000000;
-        assertTrue("Second access should delay at least 100ms", elapsed2 >= 90);
+        assertTrue(elapsed2 >= 90);
     }
 
     /**
@@ -300,9 +300,9 @@ public class HostIntervalControllerTest extends PlainTestCase {
             // If we reach here without exceptions, thread-safety is maintained
             assertTrue(true);
         } catch (final InterruptedException e) {
-            fail("Interrupted during execution");
+            fail();
         } catch (final ExecutionException e) {
-            fail("Execution failed: " + e.getMessage());
+            fail();
         } finally {
             executor.shutdown();
             try {

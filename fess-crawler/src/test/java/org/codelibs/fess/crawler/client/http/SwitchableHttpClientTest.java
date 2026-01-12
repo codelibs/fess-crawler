@@ -19,19 +19,24 @@ import static org.mockito.Mockito.mock;
 
 import org.codelibs.fess.crawler.client.CrawlerClient;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 public class SwitchableHttpClientTest extends PlainTestCase {
 
     private String originalPropertyValue;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         // Save original property value
         originalPropertyValue = System.getProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY);
     }
 
     @Override
+    @AfterEach
     protected void tearDown() throws Exception {
         // Restore original property value
         if (originalPropertyValue != null) {
@@ -132,8 +137,8 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         client.setHc4Client(mockHc4Client);
         client.setHc5Client(mockHc5Client);
 
-        assertSame(mockHc4Client, client.getHc4Client());
-        assertSame(mockHc5Client, client.getHc5Client());
+        assertTrue(mockHc4Client == client.getHc4Client());
+        assertTrue(mockHc5Client == client.getHc5Client());
     }
 
     public void test_isUseHc5() {

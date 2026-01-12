@@ -25,6 +25,8 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test class for CsvExtractor.
@@ -35,8 +37,9 @@ public class CsvExtractorTest extends PlainTestCase {
     public CsvExtractor csvExtractor;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    protected void setUp(final TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("csvExtractor", CsvExtractor.class);
         csvExtractor = container.getComponent("csvExtractor");
     }

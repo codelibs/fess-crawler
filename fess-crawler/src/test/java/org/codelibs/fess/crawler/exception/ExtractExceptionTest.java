@@ -111,8 +111,8 @@ public class ExtractExceptionTest extends PlainTestCase {
      * Test protected constructor via reflection
      */
     public void test_protectedConstructor() throws Exception {
-        Constructor<ExtractException> constructor = ExtractException.class.getDeclaredConstructor(
-                String.class, boolean.class, boolean.class);
+        Constructor<ExtractException> constructor =
+                ExtractException.class.getDeclaredConstructor(String.class, boolean.class, boolean.class);
         constructor.setAccessible(true);
 
         // Test with suppression and stack trace enabled

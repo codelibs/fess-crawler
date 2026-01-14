@@ -34,7 +34,6 @@ import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
 import jakarta.annotation.Resource;
@@ -72,7 +71,6 @@ public class CrawlerTest extends LastaDiTestCase {
     }
 
     @Override
-    @BeforeEach
     public void setUp(final TestInfo testInfo) throws Exception {
         // create runner instance
         runner = new OpenSearchRunner();
@@ -102,8 +100,8 @@ public class CrawlerTest extends LastaDiTestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDown(final TestInfo testInfo) throws Exception {
+        super.tearDown(testInfo);
         // close runner
         runner.close();
         // delete all files

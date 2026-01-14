@@ -69,11 +69,8 @@ public class MultipleCrawlingAccessExceptionTest extends PlainTestCase {
      * Test constructor with multiple causes
      */
     public void test_constructor_multipleCauses() {
-        Throwable[] causes = new Throwable[] {
-                new IOException("IO error 1"),
-                new IllegalArgumentException("Illegal arg"),
-                new RuntimeException("Runtime error")
-        };
+        Throwable[] causes = new Throwable[] { new IOException("IO error 1"), new IllegalArgumentException("Illegal arg"),
+                new RuntimeException("Runtime error") };
         MultipleCrawlingAccessException exception = new MultipleCrawlingAccessException("Multiple causes", causes);
 
         assertNotNull(exception);
@@ -98,10 +95,7 @@ public class MultipleCrawlingAccessExceptionTest extends PlainTestCase {
      * Test printStackTrace with PrintWriter
      */
     public void test_printStackTrace_printWriter() {
-        Throwable[] causes = new Throwable[] {
-                new IOException("IO error"),
-                new IllegalArgumentException("Arg error")
-        };
+        Throwable[] causes = new Throwable[] { new IOException("IO error"), new IllegalArgumentException("Arg error") };
         MultipleCrawlingAccessException exception = new MultipleCrawlingAccessException("Multiple errors", causes);
 
         StringWriter sw = new StringWriter();
@@ -122,10 +116,7 @@ public class MultipleCrawlingAccessExceptionTest extends PlainTestCase {
      * Test printStackTrace with PrintStream
      */
     public void test_printStackTrace_printStream() {
-        Throwable[] causes = new Throwable[] {
-                new IOException("IO error"),
-                new IllegalArgumentException("Arg error")
-        };
+        Throwable[] causes = new Throwable[] { new IOException("IO error"), new IllegalArgumentException("Arg error") };
         MultipleCrawlingAccessException exception = new MultipleCrawlingAccessException("Multiple errors", causes);
 
         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
@@ -190,10 +181,7 @@ public class MultipleCrawlingAccessExceptionTest extends PlainTestCase {
      * Test throwing and catching
      */
     public void test_throwAndCatch() {
-        Throwable[] causes = new Throwable[] {
-                new IOException("Cause 1"),
-                new IOException("Cause 2")
-        };
+        Throwable[] causes = new Throwable[] { new IOException("Cause 1"), new IOException("Cause 2") };
 
         try {
             throw new MultipleCrawlingAccessException("Test throw", causes);
@@ -221,11 +209,7 @@ public class MultipleCrawlingAccessExceptionTest extends PlainTestCase {
      * Test causes array contains null elements
      */
     public void test_causesWithNullElements() {
-        Throwable[] causes = new Throwable[] {
-                new IOException("Error 1"),
-                null,
-                new IOException("Error 3")
-        };
+        Throwable[] causes = new Throwable[] { new IOException("Error 1"), null, new IOException("Error 3") };
 
         MultipleCrawlingAccessException exception = new MultipleCrawlingAccessException("Null element", causes);
 

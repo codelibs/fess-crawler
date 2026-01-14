@@ -85,7 +85,7 @@ public class SitemapUrlTest extends PlainTestCase {
     public void test_changefreq() {
         SitemapUrl url = new SitemapUrl();
 
-        String[] validValues = {"always", "hourly", "daily", "weekly", "monthly", "yearly", "never"};
+        String[] validValues = { "always", "hourly", "daily", "weekly", "monthly", "yearly", "never" };
         for (String value : validValues) {
             url.setChangefreq(value);
             assertEquals(value, url.getChangefreq());

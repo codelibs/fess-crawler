@@ -101,7 +101,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
      */
     public void test_singleton_withInitializer() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("testService", SimpleService.class, service -> {
+        container.<SimpleService> singleton("testService", SimpleService.class, service -> {
             service.setValue("initialized");
         });
 
@@ -115,8 +115,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     public void test_singleton_withInitializerAndDestroyer() {
         AtomicBoolean destroyed = new AtomicBoolean(false);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("testService", SimpleService.class,
-                service -> service.setValue("init"),
+        container.<SimpleService> singleton("testService", SimpleService.class, service -> service.setValue("init"),
                 service -> destroyed.set(true));
 
         SimpleService service = container.getComponent("testService");
@@ -148,7 +147,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     public void test_prototype_withInitializer() {
         AtomicInteger counter = new AtomicInteger(0);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>prototype("testService", SimpleService.class, service -> {
+        container.<SimpleService> prototype("testService", SimpleService.class, service -> {
             service.setValue("instance-" + counter.incrementAndGet());
         });
 
@@ -163,8 +162,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
      * Test method chaining
      */
     public void test_methodChaining() {
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("service1", SimpleService.class)
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("service1", SimpleService.class)
                 .singleton("service2", SimpleService.class)
                 .prototype("service3", SimpleService.class);
 
@@ -178,7 +176,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
      */
     public void test_resourceInjection() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("dependency", SimpleService.class, s -> s.setValue("injected"));
+        container.<SimpleService> singleton("dependency", SimpleService.class, s -> s.setValue("injected"));
         container.singleton("consumer", ServiceWithDependency.class);
 
         ServiceWithDependency consumer = container.getComponent("consumer");
@@ -306,8 +304,8 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
      */
     public void test_prototypeVsSingleton() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("singleton", SimpleService.class, s -> s.setValue("singleton"));
-        container.<SimpleService>prototype("prototype", SimpleService.class, s -> s.setValue("prototype"));
+        container.<SimpleService> singleton("singleton", SimpleService.class, s -> s.setValue("singleton"));
+        container.<SimpleService> prototype("prototype", SimpleService.class, s -> s.setValue("prototype"));
 
         SimpleService s1 = container.getComponent("singleton");
         SimpleService s2 = container.getComponent("singleton");

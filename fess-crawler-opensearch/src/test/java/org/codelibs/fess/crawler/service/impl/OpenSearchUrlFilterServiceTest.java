@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.opensearch.index.query.QueryBuilders;
 
@@ -57,7 +56,6 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
     }
 
     @Override
-    @BeforeEach
     public void setUp(final TestInfo testInfo) throws Exception {
         // create runner instance
         runner = new OpenSearchRunner();
@@ -77,8 +75,8 @@ public class OpenSearchUrlFilterServiceTest extends LastaDiTestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDown(final TestInfo testInfo) throws Exception {
+        super.tearDown(testInfo);
         // close runner
         runner.close();
         // delete all files

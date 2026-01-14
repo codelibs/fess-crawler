@@ -33,8 +33,6 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.MountableFile;
@@ -58,7 +56,6 @@ public class SmbClientTest extends PlainTestCase {
     private String specialUrl;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -190,12 +187,11 @@ public class SmbClientTest extends PlainTestCase {
     }
 
     @Override
-    @AfterEach
-    protected void tearDown() throws Exception {
+    protected void tearDown(final TestInfo testInfo) throws Exception {
         if (sambaServer != null) {
             sambaServer.stop();
         }
-        super.tearDown();
+        super.tearDown(testInfo);
     }
 
     public void test_doGet() throws Exception {

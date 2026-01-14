@@ -20,15 +20,18 @@ import static org.mockito.Mockito.mock;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.impl.auth.NTLMEngine;
 import org.apache.hc.client5.http.impl.auth.NTLMScheme;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class Hc5NTLMSchemeFactoryTest extends PlainTestCase {
 
+    @Test
     public void test_constructor_default() {
         Hc5NTLMSchemeFactory factory = new Hc5NTLMSchemeFactory();
         assertNotNull(factory);
     }
 
+    @Test
     public void test_constructor_withNtlmEngine() {
         NTLMEngine mockEngine = mock(NTLMEngine.class);
 
@@ -37,6 +40,7 @@ public class Hc5NTLMSchemeFactoryTest extends PlainTestCase {
         assertNotNull(factory);
     }
 
+    @Test
     public void test_create_withoutNtlmEngine() {
         Hc5NTLMSchemeFactory factory = new Hc5NTLMSchemeFactory();
 
@@ -46,6 +50,7 @@ public class Hc5NTLMSchemeFactoryTest extends PlainTestCase {
         assertTrue(authScheme instanceof NTLMScheme);
     }
 
+    @Test
     public void test_create_withNtlmEngine() {
         NTLMEngine mockEngine = mock(NTLMEngine.class);
         Hc5NTLMSchemeFactory factory = new Hc5NTLMSchemeFactory(mockEngine);
@@ -56,6 +61,7 @@ public class Hc5NTLMSchemeFactoryTest extends PlainTestCase {
         assertTrue(authScheme instanceof NTLMScheme);
     }
 
+    @Test
     public void test_create_withNullContext() {
         Hc5NTLMSchemeFactory factory = new Hc5NTLMSchemeFactory();
 

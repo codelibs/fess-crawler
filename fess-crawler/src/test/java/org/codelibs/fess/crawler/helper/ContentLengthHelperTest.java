@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.helper;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -30,13 +31,13 @@ public class ContentLengthHelperTest extends PlainTestCase {
     public ContentLengthHelper contentLengthHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("contentLengthHelper", ContentLengthHelper.class);
         contentLengthHelper = container.getComponent("contentLengthHelper");
     }
 
+    @Test
     public void test_getMaxLength() {
         final String mimeType = "text/plain";
 
@@ -45,6 +46,7 @@ public class ContentLengthHelperTest extends PlainTestCase {
         assertEquals(1000L, contentLengthHelper.getMaxLength(mimeType));
     }
 
+    @Test
     public void test_getMaxLength_blank() {
         String mimeType;
 

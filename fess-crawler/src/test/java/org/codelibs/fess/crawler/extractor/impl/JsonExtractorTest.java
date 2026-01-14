@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -37,13 +38,13 @@ public class JsonExtractorTest extends PlainTestCase {
     public JsonExtractor jsonExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("jsonExtractor", JsonExtractor.class);
         jsonExtractor = container.getComponent("jsonExtractor");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
         final ExtractData extractData = jsonExtractor.getText(in, null);
@@ -65,6 +66,7 @@ public class JsonExtractorTest extends PlainTestCase {
         assertEquals("John Doe", extractData.getValues("author")[0]);
     }
 
+    @Test
     public void test_getText_nested() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
         final ExtractData extractData = jsonExtractor.getText(in, null);
@@ -77,6 +79,7 @@ public class JsonExtractorTest extends PlainTestCase {
         assertTrue(content.contains("This is a sample JSON document for testing"));
     }
 
+    @Test
     public void test_getText_array() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
         final ExtractData extractData = jsonExtractor.getText(in, null);
@@ -89,6 +92,7 @@ public class JsonExtractorTest extends PlainTestCase {
         assertTrue(content.contains("crawler"));
     }
 
+    @Test
     public void test_getText_null() {
         try {
             jsonExtractor.getText(null, null);
@@ -98,6 +102,7 @@ public class JsonExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getText_withoutMetadata() {
         jsonExtractor.setExtractMetadata(false);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
@@ -113,6 +118,7 @@ public class JsonExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Sample Document"));
     }
 
+    @Test
     public void test_maxDepth() {
         jsonExtractor.setMaxDepth(1);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");

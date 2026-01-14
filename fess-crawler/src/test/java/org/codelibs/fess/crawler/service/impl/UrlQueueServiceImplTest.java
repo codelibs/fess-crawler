@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -50,12 +51,12 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
     private MemoryDataHelper dataHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         MockitoAnnotations.openMocks(this);
     }
 
+    @Test
     public void test_add() {
         // Setup
         String sessionId = "session123";
@@ -81,6 +82,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertNotNull(added.getCreateTime());
     }
 
+    @Test
     public void test_insert() {
         // Setup
         String sessionId = "session123";
@@ -103,6 +105,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertTrue(mockUrlSet.contains(url));
     }
 
+    @Test
     public void test_delete() {
         // Setup
         String sessionId = "session123";
@@ -114,6 +117,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         verify(dataHelper).removeUrlQueueList(sessionId);
     }
 
+    @Test
     public void test_deleteAll() {
         // Execute
         service.deleteAll();
@@ -122,6 +126,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         verify(dataHelper).clearUrlQueueList();
     }
 
+    @Test
     public void test_updateSessionId() {
         // Setup
         String oldSessionId = "oldSession";
@@ -139,6 +144,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         verify(dataHelper).removeUrlQueueList(oldSessionId);
     }
 
+    @Test
     public void test_poll() {
         // Setup
         String sessionId = "session123";
@@ -164,6 +170,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertFalse(mockUrlSet.contains(url));
     }
 
+    @Test
     public void test_pollEmptyQueue() {
         // Setup
         String sessionId = "session123";
@@ -180,6 +187,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertNull(result);
     }
 
+    @Test
     public void test_offerAllNewUrls() {
         // Setup
         String sessionId = "session123";
@@ -212,6 +220,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertTrue(urlInQueueSet.contains("https://example.com/new2"));
     }
 
+    @Test
     public void test_offerAllWithDuplicatesInQueue() {
         // Setup
         String sessionId = "session123";
@@ -249,6 +258,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertTrue(urlInQueueSet.contains("https://example.com/new"));
     }
 
+    @Test
     public void test_offerAllWithDuplicatesInAccessResult() {
         // Setup
         String sessionId = "session123";
@@ -284,6 +294,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertTrue(urlInQueueSet.contains("https://example.com/new"));
     }
 
+    @Test
     public void test_offerAllWithBlankUrl() {
         // Setup
         String sessionId = "session123";
@@ -320,6 +331,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertTrue(urlInQueueSet.contains("https://example.com"));
     }
 
+    @Test
     public void test_visited() {
         // Setup
         String sessionId = "session123";
@@ -348,6 +360,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertTrue(result);
     }
 
+    @Test
     public void test_visitedNewUrl() {
         // Setup
         String sessionId = "session123";
@@ -370,6 +383,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertFalse(result);
     }
 
+    @Test
     public void test_saveSession() {
         // Execute - should be a no-op
         service.saveSession("session123");
@@ -377,6 +391,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         // No verification needed as it's a no-op method
     }
 
+    @Test
     public void test_generateUrlQueues() {
         // Setup
         String previousSessionId = "prevSession";
@@ -438,6 +453,7 @@ public class UrlQueueServiceImplTest extends PlainTestCase {
         assertTrue(foundPage2);
     }
 
+    @Test
     public void test_generateUrlQueuesEmpty() {
         // Setup
         String previousSessionId = "prevSession";

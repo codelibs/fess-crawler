@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -43,7 +44,6 @@ public class ZipExtractorTest extends PlainTestCase {
     public ZipExtractor zipExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
@@ -65,6 +65,7 @@ public class ZipExtractorTest extends PlainTestCase {
         zipExtractor = container.getComponent("zipExtractor");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/zip/test.zip");
         final String content = zipExtractor.getText(in, null).getContent();
@@ -74,6 +75,7 @@ public class ZipExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テキスト"));
     }
 
+    @Test
     public void test_getText_maxSize() throws IOException {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/zip/test.zip")) {
             zipExtractor.setMaxContentSize(100);
@@ -85,6 +87,7 @@ public class ZipExtractorTest extends PlainTestCase {
         zipExtractor.setMaxContentSize(-1);
     }
 
+    @Test
     public void test_getText_null() {
         try {
             zipExtractor.getText(null, null);

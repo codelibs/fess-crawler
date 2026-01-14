@@ -24,6 +24,7 @@ import org.codelibs.fess.crawler.exception.MimeTypeException;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -35,12 +36,12 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
     }
 
+    @Test
     public void test_getContentType_filenameFirst() throws IOException {
         final MimeTypeHelperImpl mimeTypeHelper = container.getComponent("mimeTypeHelper");
         mimeTypeHelper.useFilename = true;
@@ -109,6 +110,7 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         assertContentType("text/javascript", "extractor/program/test.js", "test.js");
     }
 
+    @Test
     public void test_getContentType_content() throws IOException {
         assertContentType("text/plain", "test/text1.txt", "hoge.txt");
         assertContentType("text/plain", null, "hoge.txt");
@@ -186,6 +188,7 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getContentType_null() {
         final MimeTypeHelper mimeTypeHelper = container.getComponent("mimeTypeHelper");
         final InputStream is = ResourceUtil.getResourceAsStream("test/text1.txt");

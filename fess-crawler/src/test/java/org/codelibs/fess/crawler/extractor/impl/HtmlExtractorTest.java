@@ -28,6 +28,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -40,7 +41,6 @@ public class HtmlExtractorTest extends PlainTestCase {
     public HtmlExtractor htmlExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("htmlExtractor", HtmlExtractor.class);
@@ -48,6 +48,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         htmlExtractor.addMetadata("title", "//TITLE");
     }
 
+    @Test
     public void test_getHtml_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         final ExtractData data = htmlExtractor.getText(in, null);
@@ -58,6 +59,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         assertEquals("タイトル", data.getValues("title")[0]);
     }
 
+    @Test
     public void test_getHtml_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         final ExtractData data = htmlExtractor.getText(in, null);
@@ -68,6 +70,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         assertEquals("タイトル", data.getValues("title")[0]);
     }
 
+    @Test
     public void test_getHtml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());
         final String content = htmlExtractor.getText(in, null).getContent();
@@ -76,6 +79,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         assertEquals("", content);
     }
 
+    @Test
     public void test_getEncoding_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -84,6 +88,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         assertEquals("UTF-8", encoding);
     }
 
+    @Test
     public void test_getEncoding_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -92,6 +97,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         assertEquals("Shift_JIS", encoding);
     }
 
+    @Test
     public void test_getHtml_null() {
         try {
             htmlExtractor.getText(null, null);

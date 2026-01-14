@@ -54,6 +54,7 @@ import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 public class CrawlerTest extends PlainTestCase {
@@ -69,7 +70,6 @@ public class CrawlerTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -154,6 +154,7 @@ public class CrawlerTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_execute_web() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -180,6 +181,7 @@ public class CrawlerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_execute_xmlSitemaps() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -206,6 +208,7 @@ public class CrawlerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_execute_textSitemaps() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -232,6 +235,7 @@ public class CrawlerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_execute_file_maxCount() throws Exception {
         final File targetFile = ResourceUtil.getResourceAsFile("test");
         String path = targetFile.getAbsolutePath();
@@ -258,6 +262,7 @@ public class CrawlerTest extends PlainTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_execute_file_depth() throws Exception {
         final File targetFile = ResourceUtil.getResourceAsFile("test");
         String path = targetFile.getAbsolutePath();
@@ -285,6 +290,7 @@ public class CrawlerTest extends PlainTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_execute_file_filtered() throws Exception {
         final File targetFile = ResourceUtil.getResourceAsFile("test");
         String path = targetFile.getAbsolutePath();
@@ -312,6 +318,7 @@ public class CrawlerTest extends PlainTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_execute_bg() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -352,6 +359,7 @@ public class CrawlerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_execute_2instance() throws Exception {
         final CrawlerWebServer server1 = new CrawlerWebServer(7070);
         server1.start();
@@ -441,6 +449,7 @@ public class CrawlerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_cleanup() throws Exception {
         final String sessionId = crawler.getSessionId();
 
@@ -451,6 +460,7 @@ public class CrawlerTest extends PlainTestCase {
         crawler.cleanup(sessionId);
     }
 
+    @Test
     public void test_stop() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -499,6 +509,7 @@ public class CrawlerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_close() throws Exception {
         final Crawler testCrawler = container.getComponent("crawler");
 
@@ -506,6 +517,7 @@ public class CrawlerTest extends PlainTestCase {
         testCrawler.close();
     }
 
+    @Test
     public void test_setSessionId() throws Exception {
         final String originalSessionId = crawler.getSessionId();
         assertNotNull(originalSessionId);
@@ -516,6 +528,7 @@ public class CrawlerTest extends PlainTestCase {
         assertEquals(newSessionId, crawler.getSessionId());
     }
 
+    @Test
     public void test_setSessionId_blank() throws Exception {
         final String originalSessionId = crawler.getSessionId();
 
@@ -525,6 +538,7 @@ public class CrawlerTest extends PlainTestCase {
         assertEquals(originalSessionId, crawler.getSessionId());
     }
 
+    @Test
     public void test_setSessionId_null() throws Exception {
         final String originalSessionId = crawler.getSessionId();
 
@@ -534,6 +548,7 @@ public class CrawlerTest extends PlainTestCase {
         assertEquals(originalSessionId, crawler.getSessionId());
     }
 
+    @Test
     public void test_setSessionId_same() throws Exception {
         final String originalSessionId = crawler.getSessionId();
 
@@ -543,6 +558,7 @@ public class CrawlerTest extends PlainTestCase {
         assertEquals(originalSessionId, crawler.getSessionId());
     }
 
+    @Test
     public void test_addIncludeFilter() throws Exception {
         crawler.addIncludeFilter("http://example\\.com/.*");
 
@@ -555,6 +571,7 @@ public class CrawlerTest extends PlainTestCase {
         assertTrue(crawler.urlFilter.match("http://example.com/page"));
     }
 
+    @Test
     public void test_addExcludeFilter() throws Exception {
         crawler.addIncludeFilter("http://example\\.com/.*");
         crawler.addExcludeFilter("http://example\\.com/exclude/.*");
@@ -566,6 +583,7 @@ public class CrawlerTest extends PlainTestCase {
         assertFalse(crawler.urlFilter.match("http://example.com/exclude/page"));
     }
 
+    @Test
     public void test_daemon_mode() throws Exception {
         final Crawler testCrawler = container.getComponent("crawler");
 
@@ -578,6 +596,7 @@ public class CrawlerTest extends PlainTestCase {
         assertFalse(testCrawler.isDaemon());
     }
 
+    @Test
     public void test_threadPriority() throws Exception {
         final Crawler testCrawler = container.getComponent("crawler");
 
@@ -585,6 +604,7 @@ public class CrawlerTest extends PlainTestCase {
         // Cannot directly verify thread priority, but ensure no exception
     }
 
+    @Test
     public void test_setters() throws Exception {
         final Crawler testCrawler = container.getComponent("crawler");
 
@@ -598,9 +618,10 @@ public class CrawlerTest extends PlainTestCase {
         assertEquals(10, testCrawler.getCrawlerContext().getMaxDepth());
 
         testCrawler.setMaxAccessCount(100);
-        assertEquals(100, testCrawler.getCrawlerContext().getMaxAccessCount());
+        assertEquals(100L, testCrawler.getCrawlerContext().getMaxAccessCount());
     }
 
+    @Test
     public void test_getters() throws Exception {
         assertNotNull(crawler.getUrlFilter());
         assertNotNull(crawler.getRuleManager());
@@ -609,6 +630,7 @@ public class CrawlerTest extends PlainTestCase {
         assertNotNull(crawler.getCrawlerContext());
     }
 
+    @Test
     public void test_awaitTermination_withTimeout() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();

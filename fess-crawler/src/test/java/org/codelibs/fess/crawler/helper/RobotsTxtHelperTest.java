@@ -28,7 +28,6 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     public RobotsTxtHelper robotsTxtHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("robotsTxtHelper", RobotsTxtHelper.class);

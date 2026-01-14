@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.client.smb;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -23,6 +24,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class SmbAuthenticationHolderTest extends PlainTestCase {
 
+    @Test
     public void test_get() {
         final SmbAuthenticationHolder smbAuthenticationHolder = new SmbAuthenticationHolder();
         final SmbAuthentication hogeAuth = new SmbAuthentication();

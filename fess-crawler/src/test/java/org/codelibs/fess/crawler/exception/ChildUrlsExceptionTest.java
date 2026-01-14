@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.codelibs.fess.crawler.entity.RequestData;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -30,6 +31,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with empty set
      */
+    @Test
     public void test_constructor_emptySet() {
         Set<RequestData> childUrls = new HashSet<>();
         ChildUrlsException exception = new ChildUrlsException(childUrls, "No URLs found");
@@ -43,6 +45,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with single URL
      */
+    @Test
     public void test_constructor_singleUrl() {
         Set<RequestData> childUrls = new HashSet<>();
         RequestData requestData = new RequestData();
@@ -60,6 +63,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with multiple URLs
      */
+    @Test
     public void test_constructor_multipleUrls() {
         Set<RequestData> childUrls = new HashSet<>();
         for (int i = 1; i <= 5; i++) {
@@ -79,6 +83,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test message format
      */
+    @Test
     public void test_messageFormat() {
         Set<RequestData> childUrls = new HashSet<>();
         RequestData requestData = new RequestData();
@@ -96,6 +101,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test getChildUrlList returns same reference
      */
+    @Test
     public void test_getChildUrlList_returnsSameReference() {
         Set<RequestData> childUrls = new HashSet<>();
         RequestData requestData = new RequestData();
@@ -110,6 +116,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test inheritance
      */
+    @Test
     public void test_inheritance() {
         Set<RequestData> childUrls = new HashSet<>();
         ChildUrlsException exception = new ChildUrlsException(childUrls, "Test");
@@ -121,6 +128,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test with empty description
      */
+    @Test
     public void test_emptyDescription() {
         Set<RequestData> childUrls = new HashSet<>();
         ChildUrlsException exception = new ChildUrlsException(childUrls, "");
@@ -133,6 +141,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test with null description
      */
+    @Test
     public void test_nullDescription() {
         Set<RequestData> childUrls = new HashSet<>();
         ChildUrlsException exception = new ChildUrlsException(childUrls, null);
@@ -144,6 +153,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test stack trace is disabled (performance optimization)
      */
+    @Test
     public void test_stackTraceDisabled() {
         Set<RequestData> childUrls = new HashSet<>();
         ChildUrlsException exception = new ChildUrlsException(childUrls, "Test");
@@ -156,6 +166,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test suppression is disabled (performance optimization)
      */
+    @Test
     public void test_suppressionDisabled() {
         Set<RequestData> childUrls = new HashSet<>();
         ChildUrlsException exception = new ChildUrlsException(childUrls, "Test");
@@ -171,6 +182,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         Set<RequestData> childUrls = new HashSet<>();
         RequestData requestData = new RequestData();
@@ -188,6 +200,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test with large number of URLs
      */
+    @Test
     public void test_largeNumberOfUrls() {
         Set<RequestData> childUrls = new HashSet<>();
         for (int i = 1; i <= 1000; i++) {
@@ -205,6 +218,7 @@ public class ChildUrlsExceptionTest extends PlainTestCase {
     /**
      * Test with RequestData containing different methods
      */
+    @Test
     public void test_withDifferentMethods() {
         Set<RequestData> childUrls = new HashSet<>();
 

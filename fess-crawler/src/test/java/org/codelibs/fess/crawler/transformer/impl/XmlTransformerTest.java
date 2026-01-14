@@ -28,6 +28,7 @@ import org.codelibs.fess.crawler.entity.TestEntity;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -44,7 +45,6 @@ public class XmlTransformerTest extends PlainTestCase {
     public XmlTransformer xmlEntityTransformer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -105,6 +105,7 @@ public class XmlTransformerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_transform() throws Exception {
         final String result = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -123,6 +124,7 @@ public class XmlTransformerTest extends PlainTestCase {
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
     }
 
+    @Test
     public void test_transformNs() throws Exception {
         final String result = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -141,6 +143,7 @@ public class XmlTransformerTest extends PlainTestCase {
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
     }
 
+    @Test
     public void test_getData() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -158,6 +161,7 @@ public class XmlTransformerTest extends PlainTestCase {
         assertEquals(value, obj);
     }
 
+    @Test
     public void test_getData_wrongName() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -176,6 +180,7 @@ public class XmlTransformerTest extends PlainTestCase {
         } catch (final CrawlerSystemException e) {}
     }
 
+    @Test
     public void test_getData_nullData() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -192,11 +197,13 @@ public class XmlTransformerTest extends PlainTestCase {
         assertNull(obj);
     }
 
+    @Test
     public void test_dataClass() {
         assertNull(xmlTransformer.dataClass);
         assertEquals(Map.class, xmlMapTransformer.dataClass);
     }
 
+    @Test
     public void test_getData_dataMap() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -222,6 +229,7 @@ public class XmlTransformerTest extends PlainTestCase {
         assertEquals(list, map.get("list"));
     }
 
+    @Test
     public void test_getData_dataMap_entity() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -247,6 +255,7 @@ public class XmlTransformerTest extends PlainTestCase {
         assertEquals(list, entity.getList());
     }
 
+    @Test
     public void test_getData_dataMap_entity_emptyList() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//

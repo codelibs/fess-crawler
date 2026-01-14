@@ -26,7 +26,7 @@ import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.opensearch.index.query.QueryBuilders;
 
@@ -56,7 +56,6 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
     }
 
     @Override
-    @BeforeEach
     public void setUp(final TestInfo testInfo) throws Exception {
         // create runner instance
         runner = new OpenSearchRunner();
@@ -76,14 +75,15 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDown(final TestInfo testInfo) throws Exception {
+        super.tearDown(testInfo);
         // close runner
         runner.close();
         // delete all files
         runner.clean();
     }
 
+    @Test
     public void test_insert_deleteTx() {
         final OpenSearchAccessResult accessResult1 = new OpenSearchAccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
@@ -117,6 +117,7 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         assertNull(accessResult4);
     }
 
+    @Test
     public void test_insert_delete_multiTx() {
         final OpenSearchAccessResult accessResult1 = new OpenSearchAccessResult();
         accessResult1.setContentLength(Long.valueOf(10));
@@ -183,6 +184,7 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         assertNull(dataService.getAccessResult("id2", "http://www.id2.com/"));
     }
 
+    @Test
     public void test_getAccessResultList_withCallbackTx() {
         final String sessionId = "callback_session1";
 
@@ -228,6 +230,7 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_getAccessResultList_emptyResultTx() {
         final String sessionId = "callback_session2";
 
@@ -241,6 +244,7 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         assertEquals(0, results.size());
     }
 
+    @Test
     public void test_getAccessResultList_withFilterTx() {
         final String sessionId = "callback_session3";
 
@@ -290,6 +294,7 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_getAccessResultList_withPaginationTx() {
         final String sessionId = "callback_session4";
 
@@ -333,6 +338,7 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_iterate_withCallbackTx() {
         final String sessionId = "iterate_session1";
 
@@ -369,6 +375,7 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_getCount_Tx() {
         final String sessionId = "count_session1";
 

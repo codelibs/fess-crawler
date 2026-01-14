@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -37,13 +38,13 @@ public class CsvExtractorTest extends PlainTestCase {
     public CsvExtractor csvExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("csvExtractor", CsvExtractor.class);
         csvExtractor = container.getComponent("csvExtractor");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/csv/test.csv");
         final ExtractData extractData = csvExtractor.getText(in, null);
@@ -64,6 +65,7 @@ public class CsvExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Engineering"));
     }
 
+    @Test
     public void test_columnMetadata() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/csv/test.csv");
         final ExtractData extractData = csvExtractor.getText(in, null);
@@ -83,6 +85,7 @@ public class CsvExtractorTest extends PlainTestCase {
         assertEquals("4", rowCount);
     }
 
+    @Test
     public void test_getText_null() {
         try {
             csvExtractor.getText(null, null);
@@ -92,6 +95,7 @@ public class CsvExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getText_withoutHeader() {
         csvExtractor.setHasHeader(false);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/csv/test.csv");
@@ -106,6 +110,7 @@ public class CsvExtractorTest extends PlainTestCase {
         assertTrue(content.contains("John Doe"));
     }
 
+    @Test
     public void test_getText_withoutColumnMetadata() {
         csvExtractor.setExtractColumnMetadata(false);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/csv/test.csv");
@@ -120,6 +125,7 @@ public class CsvExtractorTest extends PlainTestCase {
         assertTrue(content.contains("John Doe"));
     }
 
+    @Test
     public void test_delimiterDetection() {
         // The test.csv uses comma delimiter
         csvExtractor.setAutoDetectDelimiter(true);
@@ -132,6 +138,7 @@ public class CsvExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Engineering"));
     }
 
+    @Test
     public void test_maxRows() {
         csvExtractor.setMaxRows(2);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/csv/test.csv");

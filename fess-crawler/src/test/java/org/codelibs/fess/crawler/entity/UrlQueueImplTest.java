@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -22,6 +23,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class UrlQueueImplTest extends PlainTestCase {
 
+    @Test
     public void test_defaultConstructor() {
         // Test default constructor
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -39,6 +41,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertEquals(Float.valueOf(1.0f), Float.valueOf(queue.getWeight()));
     }
 
+    @Test
     public void test_idGetterSetter() {
         // Test ID getter/setter with Long
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -50,6 +53,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getId());
     }
 
+    @Test
     public void test_idWithStringType() {
         // Test ID getter/setter with String
         UrlQueueImpl<String> queue = new UrlQueueImpl<>();
@@ -58,6 +62,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertEquals("id123", queue.getId());
     }
 
+    @Test
     public void test_sessionIdGetterSetter() {
         // Test session ID getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -70,6 +75,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getSessionId());
     }
 
+    @Test
     public void test_methodGetterSetter() {
         // Test method getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -84,6 +90,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getMethod());
     }
 
+    @Test
     public void test_urlGetterSetter() {
         // Test URL getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -96,6 +103,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getUrl());
     }
 
+    @Test
     public void test_metaDataGetterSetter() {
         // Test metadata getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -108,6 +116,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getMetaData());
     }
 
+    @Test
     public void test_encodingGetterSetter() {
         // Test encoding getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -122,6 +131,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getEncoding());
     }
 
+    @Test
     public void test_parentUrlGetterSetter() {
         // Test parent URL getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -134,6 +144,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getParentUrl());
     }
 
+    @Test
     public void test_depthGetterSetter() {
         // Test depth getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -148,6 +159,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getDepth());
     }
 
+    @Test
     public void test_lastModifiedGetterSetter() {
         // Test lastModified getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -160,6 +172,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getLastModified());
     }
 
+    @Test
     public void test_createTimeGetterSetter() {
         // Test createTime getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -172,6 +185,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertNull(queue.getCreateTime());
     }
 
+    @Test
     public void test_weightGetterSetter() {
         // Test weight getter/setter
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -189,6 +203,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertEquals(Float.valueOf(0.0f), Float.valueOf(queue.getWeight()));
     }
 
+    @Test
     public void test_toString() {
         // Test toString method
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -210,6 +225,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertTrue(result.contains("UTF-8"));
     }
 
+    @Test
     public void test_toStringWithNullValues() {
         // Test toString with null values
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -219,6 +235,7 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertTrue(result.contains("UrlQueueImpl"));
     }
 
+    @Test
     public void test_complexScenario() {
         // Test complex scenario with all fields
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
@@ -261,12 +278,14 @@ public class UrlQueueImplTest extends PlainTestCase {
         assertEquals(Float.valueOf(weight), Float.valueOf(queue.getWeight()));
     }
 
+    @Test
     public void test_interfaceImplementation() {
         // Test that UrlQueueImpl implements UrlQueue
         UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
         assertTrue(queue instanceof UrlQueue);
     }
 
+    @Test
     public void test_genericTypeFlexibility() {
         // Test with different generic types
         UrlQueueImpl<Integer> intQueue = new UrlQueueImpl<>();

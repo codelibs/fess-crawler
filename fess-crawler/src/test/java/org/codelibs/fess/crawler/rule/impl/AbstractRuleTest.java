@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -194,7 +195,6 @@ public class AbstractRuleTest extends PlainTestCase {
     private TestAbstractRule testRule;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -208,6 +208,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test getRuleId and setRuleId
      */
+    @Test
     public void test_ruleId_getterSetter() {
         // Initial state
         assertNull(testRule.getRuleId());
@@ -232,6 +233,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test getResponseProcessor and setResponseProcessor
      */
+    @Test
     public void test_responseProcessor_getterSetter() {
         // Initial state
         assertNull(testRule.getResponseProcessor());
@@ -255,6 +257,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test register method with index 0
      */
+    @Test
     public void test_register_indexZero() {
         testRule.setRuleId("rule1");
 
@@ -275,6 +278,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test register method with middle index
      */
+    @Test
     public void test_register_middleIndex() {
         // Pre-add some rules
         TestAbstractRule rule1 = new TestAbstractRule();
@@ -299,6 +303,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test register method with last index
      */
+    @Test
     public void test_register_lastIndex() {
         testRule.setRuleId("lastRule");
 
@@ -322,6 +327,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test register method on empty RuleManager
      */
+    @Test
     public void test_register_emptyRuleManager() {
         testRule.setRuleId("firstRule");
 
@@ -337,6 +343,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test multiple properties configuration
      */
+    @Test
     public void test_multiplePropertiesConfiguration() {
         TestResponseProcessor processor = new TestResponseProcessor();
 
@@ -359,6 +366,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test match method implementation
      */
+    @Test
     public void test_match_implementation() {
         ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com");
@@ -383,6 +391,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test ConditionalAbstractRule implementation
      */
+    @Test
     public void test_conditionalRule_implementation() {
         ConditionalAbstractRule conditionalRule = new ConditionalAbstractRule();
         conditionalRule.crawlerContainer = container;
@@ -417,6 +426,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test serialization of AbstractRule
      */
+    @Test
     public void test_serialization() throws Exception {
         TestResponseProcessor processor = new TestResponseProcessor();
         testRule.setRuleId("serializeRule");
@@ -447,6 +457,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test with null CrawlerContainer
      */
+    @Test
     public void test_nullCrawlerContainer() {
         TestAbstractRule ruleWithoutContainer = new TestAbstractRule();
         ruleWithoutContainer.setRuleId("noContainer");
@@ -474,6 +485,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test concurrent property access
      */
+    @Test
     public void test_concurrentPropertyAccess() throws Exception {
         final int threadCount = 10;
         final int iterationsPerThread = 100;
@@ -532,6 +544,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test rule chain with AbstractRule
      */
+    @Test
     public void test_ruleChain() {
         // Create chain of rules
         TestAbstractRule rule1 = new TestAbstractRule();
@@ -565,6 +578,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test edge cases for rule ID
      */
+    @Test
     public void test_ruleId_edgeCases() {
         // Very long rule ID
         StringBuilder longId = new StringBuilder();
@@ -590,6 +604,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test multiple registrations of same rule
      */
+    @Test
     public void test_multipleRegistrations() {
         testRule.setRuleId("multiRegRule");
 
@@ -610,6 +625,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test property changes after registration
      */
+    @Test
     public void test_propertyChangesAfterRegistration() {
         TestResponseProcessor processor1 = new TestResponseProcessor();
         testRule.setRuleId("originalId");
@@ -636,6 +652,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test inheritance behavior
      */
+    @Test
     public void test_inheritanceBehavior() {
         // Test that subclass can override match method
         ConditionalAbstractRule conditionalRule = new ConditionalAbstractRule();
@@ -662,6 +679,7 @@ public class AbstractRuleTest extends PlainTestCase {
     /**
      * Test protected field access
      */
+    @Test
     public void test_protectedFieldAccess() {
         // Test direct field access (protected fields)
         TestAbstractRule rule = new TestAbstractRule();

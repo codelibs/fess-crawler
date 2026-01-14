@@ -20,6 +20,7 @@ import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -34,7 +35,6 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
     public UrlFilterImpl domainFilter;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
@@ -52,6 +52,7 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
         domainFilter.setExcludeFilteringPattern("http://$2/.*");
     }
 
+    @Test
     public void test_include_processUrl() {
         assertEquals(0, includeFilter.cachedIncludeSet.size());
         assertEquals(0, includeFilter.cachedExcludeSet.size());
@@ -69,6 +70,7 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
         assertEquals("https://test.com.*", includeFilter.cachedIncludeSet.toArray()[1]);
     }
 
+    @Test
     public void test_exclude_processUrl() {
         assertEquals(0, excludeFilter.cachedIncludeSet.size());
         assertEquals(0, excludeFilter.cachedExcludeSet.size());
@@ -86,6 +88,7 @@ public class CustomUrlFilterImplTest extends PlainTestCase {
         assertEquals("https://test.com.*", excludeFilter.cachedExcludeSet.toArray()[1]);
     }
 
+    @Test
     public void test_domain_processUrl() {
         assertEquals(0, domainFilter.cachedIncludeSet.size());
         assertEquals(0, domainFilter.cachedExcludeSet.size());

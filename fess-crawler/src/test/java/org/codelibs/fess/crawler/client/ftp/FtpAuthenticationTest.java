@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.client.ftp;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -23,6 +24,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class FtpAuthenticationTest extends PlainTestCase {
 
+    @Test
     public void test_matches() throws Exception {
         FtpAuthentication auth = new FtpAuthentication();
         auth.setServer("hostname");

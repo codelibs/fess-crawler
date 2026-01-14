@@ -21,6 +21,7 @@ import org.codelibs.fess.crawler.service.impl.DataServiceImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -33,7 +34,6 @@ public class UrlFilterImplTest extends PlainTestCase {
     public MemoryDataHelper dataHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
@@ -44,6 +44,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         dataHelper = container.getComponent("dataHelper");
     }
 
+    @Test
     public void test_addInclude1() {
         assertEquals(0, urlFilter.cachedIncludeSet.size());
         assertEquals(0, urlFilter.cachedExcludeSet.size());
@@ -61,6 +62,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         assertEquals(0, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
 
+    @Test
     public void test_addInclude2() {
         assertEquals(0, urlFilter.cachedIncludeSet.size());
         assertEquals(0, urlFilter.cachedExcludeSet.size());
@@ -78,6 +80,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         assertEquals(0, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
 
+    @Test
     public void test_addExclude1() {
         assertEquals(0, urlFilter.cachedIncludeSet.size());
         assertEquals(0, urlFilter.cachedExcludeSet.size());
@@ -95,6 +98,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         assertEquals(1, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
 
+    @Test
     public void test_addExclude2() {
         assertEquals(0, urlFilter.cachedIncludeSet.size());
         assertEquals(0, urlFilter.cachedExcludeSet.size());
@@ -112,6 +116,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         assertEquals(0, dataHelper.getExcludeUrlPatternList(sessionId).size());
     }
 
+    @Test
     public void test_match_include_case1() {
         urlFilter.addInclude("http://example.com/.*");
 
@@ -125,6 +130,7 @@ public class UrlFilterImplTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_match_include_case2() {
         urlFilter.addInclude("http://example.com/.*");
         urlFilter.addInclude("http://test.com/.*");
@@ -138,6 +144,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         assertTrue(urlFilter.match("http://test.com/a"));
     }
 
+    @Test
     public void test_match_exclude_case1() {
         urlFilter.addExclude("http://example.com/.*");
 
@@ -151,6 +158,7 @@ public class UrlFilterImplTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_match_exclude_case2() {
         urlFilter.addExclude("http://example.com/.*");
         urlFilter.addExclude("http://test.com/.*");
@@ -164,6 +172,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         assertFalse(urlFilter.match("http://test.com/a"));
     }
 
+    @Test
     public void test_match_both() {
         urlFilter.addInclude("http://example.com/.*");
         urlFilter.addExclude("http://example.com/a.*");
@@ -177,6 +186,7 @@ public class UrlFilterImplTest extends PlainTestCase {
         assertFalse(urlFilter.match("http://test.com/a"));
     }
 
+    @Test
     public void test_processUrl() {
         assertEquals(0, urlFilter.cachedIncludeSet.size());
         assertEquals(0, urlFilter.cachedExcludeSet.size());

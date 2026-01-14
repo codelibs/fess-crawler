@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -28,6 +29,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class TemporaryFileInputStreamTest extends PlainTestCase {
 
+    @Test
     public void test_read_fromTempFile() throws Exception {
         // Create a temporary file with test data
         File tempFile = File.createTempFile("test-", ".tmp");
@@ -37,15 +39,15 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
 
         // Read from TemporaryFileInputStream
         try (TemporaryFileInputStream stream = new TemporaryFileInputStream(tempFile)) {
-            assertEquals('T', stream.read());
-            assertEquals('e', stream.read());
-            assertEquals('s', stream.read());
-            assertEquals('t', stream.read());
-            assertEquals(' ', stream.read());
-            assertEquals('d', stream.read());
-            assertEquals('a', stream.read());
-            assertEquals('t', stream.read());
-            assertEquals('a', stream.read());
+            assertEquals((int) 'T', stream.read());
+            assertEquals((int) 'e', stream.read());
+            assertEquals((int) 's', stream.read());
+            assertEquals((int) 't', stream.read());
+            assertEquals((int) ' ', stream.read());
+            assertEquals((int) 'd', stream.read());
+            assertEquals((int) 'a', stream.read());
+            assertEquals((int) 't', stream.read());
+            assertEquals((int) 'a', stream.read());
             assertEquals(-1, stream.read()); // EOF
         }
 
@@ -53,6 +55,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         // Note: FileUtil.deleteInBackground() is async, so we can't reliably test this
     }
 
+    @Test
     public void test_available() throws Exception {
         // Create a temporary file with test data
         File tempFile = File.createTempFile("test-", ".tmp");
@@ -69,6 +72,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_skip() throws Exception {
         // Create a temporary file with test data
         File tempFile = File.createTempFile("test-", ".tmp");
@@ -78,12 +82,13 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
 
         try (TemporaryFileInputStream stream = new TemporaryFileInputStream(tempFile)) {
             long skipped = stream.skip(5);
-            assertEquals(5, skipped);
-            assertEquals('5', stream.read());
-            assertEquals('6', stream.read());
+            assertEquals(5L, skipped);
+            assertEquals((int) '5', stream.read());
+            assertEquals((int) '6', stream.read());
         }
     }
 
+    @Test
     public void test_markAndReset() throws Exception {
         // Create a temporary file with test data
         File tempFile = File.createTempFile("test-", ".tmp");
@@ -95,14 +100,14 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
             // FileInputStream does not support mark/reset
             assertFalse(stream.markSupported());
 
-            assertEquals('A', stream.read());
-            assertEquals('B', stream.read());
+            assertEquals((int) 'A', stream.read());
+            assertEquals((int) 'B', stream.read());
 
             // Mark is not supported, so calling mark has no effect
             stream.mark(10);
 
-            assertEquals('C', stream.read());
-            assertEquals('D', stream.read());
+            assertEquals((int) 'C', stream.read());
+            assertEquals((int) 'D', stream.read());
 
             // Reset will throw IOException because mark is not supported
             try {
@@ -114,6 +119,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getTemporaryFile() throws Exception {
         // Create a temporary file
         File tempFile = File.createTempFile("test-", ".tmp");
@@ -128,6 +134,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_closeDeletesTempFile() throws Exception {
         // Create a temporary file
         File tempFile = File.createTempFile("test-", ".tmp");
@@ -147,6 +154,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         // This test just verifies that close() completes without error
     }
 
+    @Test
     public void test_emptyFile() throws Exception {
         // Create an empty temporary file
         File tempFile = File.createTempFile("test-empty-", ".tmp");
@@ -157,6 +165,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_largeFile() throws Exception {
         // Create a temporary file with larger data
         File tempFile = File.createTempFile("test-large-", ".tmp");
@@ -181,6 +190,7 @@ public class TemporaryFileInputStreamTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_fileNotFoundException() {
         // Test with non-existent file
         File nonExistentFile = new File("/tmp/non-existent-file-" + System.currentTimeMillis() + ".tmp");

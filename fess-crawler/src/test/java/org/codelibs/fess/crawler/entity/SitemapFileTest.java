@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -31,6 +32,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test default values
      */
+    @Test
     public void test_defaultValues() {
         SitemapFile file = new SitemapFile();
 
@@ -41,6 +43,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test loc getter and setter
      */
+    @Test
     public void test_loc() {
         SitemapFile file = new SitemapFile();
 
@@ -57,6 +60,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test lastmod getter and setter
      */
+    @Test
     public void test_lastmod() {
         SitemapFile file = new SitemapFile();
 
@@ -73,6 +77,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test equals - same object
      */
+    @Test
     public void test_equals_sameObject() {
         SitemapFile file = new SitemapFile();
         file.setLoc("http://example.com/sitemap.xml");
@@ -83,6 +88,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test equals - equal objects
      */
+    @Test
     public void test_equals_equalObjects() {
         SitemapFile file1 = new SitemapFile();
         file1.setLoc("http://example.com/sitemap.xml");
@@ -99,6 +105,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test equals - different loc
      */
+    @Test
     public void test_equals_differentLoc() {
         SitemapFile file1 = new SitemapFile();
         file1.setLoc("http://example.com/sitemap1.xml");
@@ -112,6 +119,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test equals - different lastmod
      */
+    @Test
     public void test_equals_differentLastmod() {
         SitemapFile file1 = new SitemapFile();
         file1.setLoc("http://example.com/sitemap.xml");
@@ -127,6 +135,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test equals - null comparison
      */
+    @Test
     public void test_equals_null() {
         SitemapFile file = new SitemapFile();
         assertFalse(file.equals(null));
@@ -135,6 +144,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test equals - different type
      */
+    @Test
     public void test_equals_differentType() {
         SitemapFile file = new SitemapFile();
         file.setLoc("http://example.com/sitemap.xml");
@@ -146,6 +156,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test hashCode consistency
      */
+    @Test
     public void test_hashCode() {
         SitemapFile file1 = new SitemapFile();
         file1.setLoc("http://example.com/sitemap.xml");
@@ -161,6 +172,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test hashCode with null values
      */
+    @Test
     public void test_hashCode_nullValues() {
         SitemapFile file = new SitemapFile();
         // Should not throw
@@ -171,6 +183,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test toString
      */
+    @Test
     public void test_toString() {
         SitemapFile file = new SitemapFile();
         file.setLoc("http://example.com/sitemap.xml");
@@ -186,6 +199,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test implements Sitemap interface
      */
+    @Test
     public void test_implementsSitemap() {
         SitemapFile file = new SitemapFile();
         assertTrue(file instanceof Sitemap);
@@ -194,6 +208,7 @@ public class SitemapFileTest extends PlainTestCase {
     /**
      * Test serialization
      */
+    @Test
     public void test_serialization() throws Exception {
         SitemapFile original = new SitemapFile();
         original.setLoc("http://example.com/sitemap.xml");

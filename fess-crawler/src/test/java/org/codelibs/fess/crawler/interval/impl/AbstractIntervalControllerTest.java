@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.interval.impl;
 
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.interval.IntervalController;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -80,6 +81,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test PRE_PROCESSING delay type
      */
+    @Test
     public void test_delay_preProcessing() {
         final TestIntervalController controller = new TestIntervalController();
         controller.delay(IntervalController.PRE_PROCESSING);
@@ -93,6 +95,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test POST_PROCESSING delay type
      */
+    @Test
     public void test_delay_postProcessing() {
         final TestIntervalController controller = new TestIntervalController();
         controller.delay(IntervalController.POST_PROCESSING);
@@ -106,6 +109,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test NO_URL_IN_QUEUE delay type
      */
+    @Test
     public void test_delay_noUrlInQueue() {
         final TestIntervalController controller = new TestIntervalController();
         controller.delay(IntervalController.NO_URL_IN_QUEUE);
@@ -119,6 +123,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test WAIT_NEW_URL delay type
      */
+    @Test
     public void test_delay_waitNewUrl() {
         final TestIntervalController controller = new TestIntervalController();
         controller.delay(IntervalController.WAIT_NEW_URL);
@@ -132,6 +137,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test unknown delay type (should not throw exception, just log)
      */
+    @Test
     public void test_delay_unknownType() {
         final TestIntervalController controller = new TestIntervalController();
         controller.delay(999); // Unknown type
@@ -146,6 +152,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test exception handling with ignoreException = true (default)
      */
+    @Test
     public void test_exceptionHandling_ignoreTrue() {
         final TestIntervalController controller = new TestIntervalController();
         controller.shouldThrowException = true;
@@ -159,6 +166,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test exception handling with ignoreException = false
      */
+    @Test
     public void test_exceptionHandling_ignoreFalse() {
         final TestIntervalController controller = new TestIntervalController();
         controller.shouldThrowException = true;
@@ -178,6 +186,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test CrawlerSystemException is re-thrown when ignoreException = false
      */
+    @Test
     public void test_crawlerSystemExceptionRethrown() {
         final AbstractIntervalController controller = new AbstractIntervalController() {
             @Override
@@ -211,6 +220,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test CrawlerSystemException is ignored when ignoreException = true
      */
+    @Test
     public void test_crawlerSystemExceptionIgnored() {
         final AbstractIntervalController controller = new AbstractIntervalController() {
             @Override
@@ -241,6 +251,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test setter for ignoreException
      */
+    @Test
     public void test_setIgnoreException() {
         final TestIntervalController controller = new TestIntervalController();
 
@@ -256,6 +267,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test multiple delay calls
      */
+    @Test
     public void test_multipleDelayCalls() {
         final TestIntervalController controller = new TestIntervalController();
 
@@ -273,6 +285,7 @@ public class AbstractIntervalControllerTest extends PlainTestCase {
     /**
      * Test all delay types in sequence
      */
+    @Test
     public void test_allDelayTypesInSequence() {
         final TestIntervalController controller = new TestIntervalController();
 

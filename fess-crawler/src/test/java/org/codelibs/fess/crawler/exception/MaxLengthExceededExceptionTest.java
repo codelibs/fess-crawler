@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.exception;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -26,6 +27,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Content length exceeds maximum: 1000000 > 500000";
         MaxLengthExceededException exception = new MaxLengthExceededException(message);
@@ -38,6 +40,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         MaxLengthExceededException exception = new MaxLengthExceededException(null);
 
@@ -48,6 +51,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test constructor with empty message
      */
+    @Test
     public void test_constructor_withEmptyMessage() {
         MaxLengthExceededException exception = new MaxLengthExceededException("");
 
@@ -58,6 +62,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test inheritance chain
      */
+    @Test
     public void test_inheritance() {
         MaxLengthExceededException exception = new MaxLengthExceededException("Test");
 
@@ -71,6 +76,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test log level functionality from parent
      */
+    @Test
     public void test_logLevelFromParent() {
         MaxLengthExceededException exception = new MaxLengthExceededException("Test");
 
@@ -85,6 +91,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new MaxLengthExceededException("File too large: 10MB > 5MB");
@@ -96,6 +103,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test catching as parent type
      */
+    @Test
     public void test_catchAsParentType() {
         try {
             throw new MaxLengthExceededException("Content too large");
@@ -108,6 +116,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test message with size details
      */
+    @Test
     public void test_messageWithSizeDetails() {
         long actualSize = 10_000_000L;
         long maxSize = 5_000_000L;
@@ -122,6 +131,7 @@ public class MaxLengthExceededExceptionTest extends PlainTestCase {
     /**
      * Test message with URL
      */
+    @Test
     public void test_messageWithUrl() {
         String message = "http://example.com/large-file.pdf: Content length exceeds limit";
         MaxLengthExceededException exception = new MaxLengthExceededException(message);

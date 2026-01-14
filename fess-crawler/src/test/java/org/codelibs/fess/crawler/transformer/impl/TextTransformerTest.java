@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -35,7 +36,6 @@ public class TextTransformerTest extends PlainTestCase {
     public TextTransformer textTransformer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("extractorFactory", ExtractorFactory.class)
@@ -49,10 +49,12 @@ public class TextTransformerTest extends PlainTestCase {
         extractorFactory.addExtractor("text/html", tikaExtractor);
     }
 
+    @Test
     public void test_name() {
         assertEquals("textTransformer", textTransformer.getName());
     }
 
+    @Test
     public void test_transform_text() throws Exception {
         final byte[] data = new String("xyz").getBytes();
         final ResponseData responseData = new ResponseData();
@@ -64,6 +66,7 @@ public class TextTransformerTest extends PlainTestCase {
         assertEquals("xyz", new String(resultData.getData(), resultData.getEncoding()));
     }
 
+    @Test
     public void test_transform_html() throws Exception {
         final byte[] data = new String("<html><body>xyz</body></html>").getBytes();
         final ResponseData responseData = new ResponseData();
@@ -75,6 +78,7 @@ public class TextTransformerTest extends PlainTestCase {
         assertEquals("xyz", new String(resultData.getData(), resultData.getEncoding()));
     }
 
+    @Test
     public void test_transform_null() {
         try {
             textTransformer.transform(null);
@@ -84,6 +88,7 @@ public class TextTransformerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getData() throws Exception {
         final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");
@@ -95,6 +100,7 @@ public class TextTransformerTest extends PlainTestCase {
         assertEquals("xyz", obj.toString());
     }
 
+    @Test
     public void test_getData_wrongName() throws Exception {
         final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("transformer");
@@ -106,6 +112,7 @@ public class TextTransformerTest extends PlainTestCase {
         } catch (final CrawlerSystemException e) {}
     }
 
+    @Test
     public void test_getData_nullData() throws Exception {
         final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("textTransformer");

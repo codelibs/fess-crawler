@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.processor.impl;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -25,18 +26,21 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class NullResponseProcessorTest extends PlainTestCase {
 
+    @Test
     public void test_constructor() {
         // Test constructor
         NullResponseProcessor processor = new NullResponseProcessor();
         assertNotNull(processor);
     }
 
+    @Test
     public void test_implementsResponseProcessor() {
         // Test that NullResponseProcessor implements ResponseProcessor
         NullResponseProcessor processor = new NullResponseProcessor();
         assertTrue(processor instanceof ResponseProcessor);
     }
 
+    @Test
     public void test_processWithValidResponseData() {
         // Test process method with valid ResponseData
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -52,6 +56,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertEquals(200, responseData.getHttpStatusCode());
     }
 
+    @Test
     public void test_processWithNullResponseData() {
         // Test process method with null ResponseData
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -60,6 +65,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         processor.process(null);
     }
 
+    @Test
     public void test_processWithEmptyResponseData() {
         // Test process method with empty ResponseData
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -73,6 +79,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertEquals(0, responseData.getHttpStatusCode());
     }
 
+    @Test
     public void test_processMultipleTimes() {
         // Test calling process multiple times
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -96,6 +103,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertEquals("https://example.com/page3", responseData3.getUrl());
     }
 
+    @Test
     public void test_processDoesNotModifyResponseData() {
         // Test that process does not modify ResponseData
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -123,6 +131,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertFalse(responseData.isNoFollow());
     }
 
+    @Test
     public void test_processWithResponseDataContainingBody() {
         // Test process with ResponseData containing body
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -140,6 +149,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertNotNull(responseData.getResponseBody());
     }
 
+    @Test
     public void test_processWithResponseDataContainingMetadata() {
         // Test process with ResponseData containing metadata
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -157,6 +167,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertEquals(123, responseData.getMetaDataMap().get("key2"));
     }
 
+    @Test
     public void test_processWithResponseDataContainingChildUrls() {
         // Test process with ResponseData containing child URLs
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -177,6 +188,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertEquals(2, responseData.getChildUrlSet().size());
     }
 
+    @Test
     public void test_noOpBehavior() {
         // Verify that NullResponseProcessor truly does nothing
         NullResponseProcessor processor = new NullResponseProcessor();
@@ -198,6 +210,7 @@ public class NullResponseProcessorTest extends PlainTestCase {
         assertEquals(404, data3.getHttpStatusCode());
     }
 
+    @Test
     public void test_threadSafety() {
         // Test that NullResponseProcessor can be used concurrently
         // Since it does nothing, it should be inherently thread-safe

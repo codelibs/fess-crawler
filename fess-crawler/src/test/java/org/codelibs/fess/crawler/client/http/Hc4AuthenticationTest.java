@@ -19,10 +19,12 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.auth.BasicScheme;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class Hc4AuthenticationTest extends PlainTestCase {
 
+    @Test
     public void test_constructor_twoArgs() {
         AuthScope authScope = new AuthScope("example.com", 80);
         Credentials credentials = new UsernamePasswordCredentials("user", "password");
@@ -34,6 +36,7 @@ public class Hc4AuthenticationTest extends PlainTestCase {
         assertNull(auth.getAuthScheme());
     }
 
+    @Test
     public void test_constructor_threeArgs() {
         AuthScope authScope = new AuthScope("example.com", 443);
         Credentials credentials = new UsernamePasswordCredentials("admin", "secret");
@@ -46,6 +49,7 @@ public class Hc4AuthenticationTest extends PlainTestCase {
         assertEquals(authScheme, auth.getAuthScheme());
     }
 
+    @Test
     public void test_getters() {
         AuthScope authScope = new AuthScope("test.example.com", 8080);
         Credentials credentials = new UsernamePasswordCredentials("testuser", "testpass");
@@ -58,6 +62,7 @@ public class Hc4AuthenticationTest extends PlainTestCase {
         assertTrue(authScheme == auth.getAuthScheme());
     }
 
+    @Test
     public void test_setters() {
         AuthScope initialScope = new AuthScope("initial.com", 80);
         Credentials initialCreds = new UsernamePasswordCredentials("initial", "init");
@@ -78,6 +83,7 @@ public class Hc4AuthenticationTest extends PlainTestCase {
         assertEquals(newScheme, auth.getAuthScheme());
     }
 
+    @Test
     public void test_getAuthScheme_null() {
         AuthScope authScope = new AuthScope("example.com", 80);
         Credentials credentials = new UsernamePasswordCredentials("user", "password");
@@ -87,6 +93,7 @@ public class Hc4AuthenticationTest extends PlainTestCase {
         assertNull(auth.getAuthScheme());
     }
 
+    @Test
     public void test_constructor_withNullValues() {
         // Constructor accepts null values
         Hc4Authentication auth = new Hc4Authentication(null, null, null);

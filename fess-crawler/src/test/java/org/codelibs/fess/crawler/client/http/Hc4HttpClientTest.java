@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -44,7 +45,6 @@ public class Hc4HttpClientTest extends PlainTestCase {
     public UrlFilter urlFilter;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
@@ -57,6 +57,7 @@ public class Hc4HttpClientTest extends PlainTestCase {
         urlFilter = container.getComponent("urlFilter");
     }
 
+    @Test
     public void test_doGet() {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -70,12 +71,14 @@ public class Hc4HttpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_parseLastModified() {
         final String value = "Mon, 01 Jun 2009 21:02:45 GMT";
         final Date date = httpClient.parseLastModifiedDate(value);
         assertNotNull(date);
     }
 
+    @Test
     public void test_processRobotsTxt() {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -98,6 +101,7 @@ public class Hc4HttpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_processRobotsTxt_disabled() {
         final String url = "http://localhost:7070/hoge.html";
         httpClient.robotsTxtHelper.setEnabled(false);
@@ -105,6 +109,7 @@ public class Hc4HttpClientTest extends PlainTestCase {
         assertTrue(true);
     }
 
+    @Test
     public void test_convertRobotsTxtPathPattern() {
         assertEquals("/.*\\?.*", httpClient.convertRobotsTxtPatternToRegex("/*?*"));
         assertEquals("/.*", httpClient.convertRobotsTxtPatternToRegex("/"));
@@ -116,6 +121,7 @@ public class Hc4HttpClientTest extends PlainTestCase {
         assertEquals(".*", httpClient.convertRobotsTxtPatternToRegex("*"));
     }
 
+    @Test
     public void test_doHead() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -130,6 +136,7 @@ public class Hc4HttpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_accessTimeoutTarget() {
         Hc4HttpClient client = new Hc4HttpClient() {
             @Override
@@ -151,6 +158,7 @@ public class Hc4HttpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_accessTimeoutTarget() {
         Hc4HttpClient client = new Hc4HttpClient() {
             @Override
@@ -172,6 +180,7 @@ public class Hc4HttpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_constructRedirectLocation() throws Exception {
         assertEquals("http://localhost/login.html", Hc4HttpClient.constructRedirectLocation("http://localhost/", "/login.html"));
         assertEquals("http://localhost/path/login.html", Hc4HttpClient.constructRedirectLocation("http://localhost/path/", "login.html"));

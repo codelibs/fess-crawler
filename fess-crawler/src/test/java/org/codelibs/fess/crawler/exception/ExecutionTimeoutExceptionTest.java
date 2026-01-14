@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.exception;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -29,6 +30,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message only
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Execution timed out after 30 seconds";
         ExecutionTimeoutException exception = new ExecutionTimeoutException(message);
@@ -41,6 +43,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         ExecutionTimeoutException exception = new ExecutionTimeoutException((String) null);
 
@@ -51,6 +54,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test constructor with cause only
      */
+    @Test
     public void test_constructor_withCause() {
         TimeoutException cause = new TimeoutException("Timed out");
         ExecutionTimeoutException exception = new ExecutionTimeoutException(cause);
@@ -63,6 +67,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null cause
      */
+    @Test
     public void test_constructor_withNullCause() {
         ExecutionTimeoutException exception = new ExecutionTimeoutException((Throwable) null);
 
@@ -73,6 +78,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message and cause
      */
+    @Test
     public void test_constructor_withMessageAndCause() {
         String message = "Command execution timeout";
         IOException cause = new IOException("Process killed");
@@ -86,6 +92,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test inheritance
      */
+    @Test
     public void test_inheritance() {
         ExecutionTimeoutException exception = new ExecutionTimeoutException("Test");
 
@@ -97,6 +104,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new ExecutionTimeoutException("Timeout exceeded");
@@ -108,6 +116,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test catching as parent type
      */
+    @Test
     public void test_catchAsParentType() {
         try {
             throw new ExecutionTimeoutException("Timeout");
@@ -119,6 +128,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test timeout messages with duration
      */
+    @Test
     public void test_timeoutMessageWithDuration() {
         ExecutionTimeoutException e1 = new ExecutionTimeoutException("Timeout after 5000ms");
         assertTrue(e1.getMessage().contains("5000"));
@@ -130,6 +140,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test with InterruptedException cause
      */
+    @Test
     public void test_withInterruptedException() {
         InterruptedException cause = new InterruptedException("Thread interrupted");
         ExecutionTimeoutException exception = new ExecutionTimeoutException("Interrupted during execution", cause);
@@ -141,6 +152,7 @@ public class ExecutionTimeoutExceptionTest extends PlainTestCase {
     /**
      * Test exception chaining
      */
+    @Test
     public void test_exceptionChaining() {
         Exception root = new IllegalStateException("Process hung");
         IOException middle = new IOException("Cannot kill process", root);

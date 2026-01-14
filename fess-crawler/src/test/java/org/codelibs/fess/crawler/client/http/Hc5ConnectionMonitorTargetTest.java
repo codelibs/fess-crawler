@@ -22,10 +22,12 @@ import static org.mockito.Mockito.verify;
 
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class Hc5ConnectionMonitorTargetTest extends PlainTestCase {
 
+    @Test
     public void test_expired_closesExpiredConnections() {
         PoolingHttpClientConnectionManager mockManager = mock(PoolingHttpClientConnectionManager.class);
         long idleTimeout = 60000L;
@@ -36,6 +38,7 @@ public class Hc5ConnectionMonitorTargetTest extends PlainTestCase {
         verify(mockManager).closeExpired();
     }
 
+    @Test
     public void test_expired_closesIdleConnections() {
         PoolingHttpClientConnectionManager mockManager = mock(PoolingHttpClientConnectionManager.class);
         long idleTimeout = 30000L;
@@ -46,12 +49,14 @@ public class Hc5ConnectionMonitorTargetTest extends PlainTestCase {
         verify(mockManager).closeIdle(any(TimeValue.class));
     }
 
+    @Test
     public void test_expired_nullConnectionManager() {
         // Should not throw exception when clientConnectionManager is null
         Hc5ConnectionMonitorTarget target = new Hc5ConnectionMonitorTarget(null, 60000L);
         target.expired(); // Just verify it doesn't throw
     }
 
+    @Test
     public void test_expired_exceptionHandling() {
         PoolingHttpClientConnectionManager mockManager = mock(PoolingHttpClientConnectionManager.class);
         doThrow(new RuntimeException("Test exception")).when(mockManager).closeExpired();
@@ -61,6 +66,7 @@ public class Hc5ConnectionMonitorTargetTest extends PlainTestCase {
         target.expired();
     }
 
+    @Test
     public void test_constructor() {
         PoolingHttpClientConnectionManager mockManager = mock(PoolingHttpClientConnectionManager.class);
         long idleTimeout = 120000L;

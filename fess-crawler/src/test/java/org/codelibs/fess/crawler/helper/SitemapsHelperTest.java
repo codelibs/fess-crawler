@@ -30,6 +30,7 @@ import org.codelibs.fess.crawler.entity.SitemapVideo;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -40,13 +41,13 @@ public class SitemapsHelperTest extends PlainTestCase {
     public SitemapsHelper sitemapsHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("sitemapsHelper", SitemapsHelper.class);
         sitemapsHelper = container.getComponent("sitemapsHelper");
     }
 
+    @Test
     public void test_parseXmlSitemaps() {
         final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
@@ -81,6 +82,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertNull(((SitemapUrl) sitemaps[4]).getPriority());
     }
 
+    @Test
     public void test_parseXmlSitemapsGz() {
         final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap1.xml.gz");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
@@ -115,6 +117,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertNull(((SitemapUrl) sitemaps[4]).getPriority());
     }
 
+    @Test
     public void test_parseTextSitemaps() {
         final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap1.txt");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
@@ -149,6 +152,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertNull(((SitemapUrl) sitemaps[4]).getPriority());
     }
 
+    @Test
     public void test_parseXmlSitemapsIndex() {
         final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap2.xml");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
@@ -165,6 +169,7 @@ public class SitemapsHelperTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_parseXmlSitemapsIndexGz() {
         final InputStream in = ResourceUtil.getResourceAsStream("sitemaps/sitemap2.xml.gz");
         final SitemapSet sitemapSet = sitemapsHelper.parse(in);
@@ -181,6 +186,7 @@ public class SitemapsHelperTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_parseXmlSitemaps_invalid1() {
         final byte[] bytes = "".getBytes();
         final InputStream in = new ByteArrayInputStream(bytes);
@@ -193,6 +199,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_parseXmlSitemaps_invalid2() {
         final byte[] bytes = "test".getBytes();
         final InputStream in = new ByteArrayInputStream(bytes);
@@ -205,6 +212,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_parseXmlSitemaps_invalid3() {
         final byte[] bytes = "<urlset".getBytes();
         final InputStream in = new ByteArrayInputStream(bytes);
@@ -217,6 +225,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_parseXmlSitemaps_invalid4() {
         final byte[] bytes = "<sitemap".getBytes();
         final InputStream in = new ByteArrayInputStream(bytes);
@@ -229,6 +238,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_parseXmlSitemapsWithImages() {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
@@ -256,6 +266,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/license.txt", image.getLicense());
     }
 
+    @Test
     public void test_parseXmlSitemapsWithVideos() {
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
@@ -283,6 +294,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("600", video.getDuration());
     }
 
+    @Test
     public void test_parseXmlSitemapsWithNews() {
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
@@ -309,6 +321,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("sample, news, test", news.getKeywords());
     }
 
+    @Test
     public void test_parseXmlSitemapsWithAlternateLinks() {
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n"
@@ -340,6 +353,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/page.html", link3.getHref());
     }
 
+    @Test
     public void test_validation() {
         sitemapsHelper.setEnableValidation(true);
 
@@ -394,6 +408,7 @@ public class SitemapsHelperTest extends PlainTestCase {
 
     // ========== Error Tolerance Tests ==========
 
+    @Test
     public void test_parseXmlSitemaps_missingLocElement() {
         // URL entry without loc element should be skipped, but others should be parsed
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -409,6 +424,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/valid.html", sitemaps[sitemaps.length - 1].getLoc());
     }
 
+    @Test
     public void test_parseXmlSitemaps_emptyLocElement() {
         // URL entry with empty loc element should be skipped
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -425,6 +441,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/valid.html", sitemaps[sitemaps.length - 1].getLoc());
     }
 
+    @Test
     public void test_parseXmlSitemaps_mixedValidInvalid() {
         // Mix of valid and invalid entries should parse valid ones
         final String xml =
@@ -457,6 +474,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertTrue(foundPage3);
     }
 
+    @Test
     public void test_parseXmlSitemaps_withInvalidPriority() {
         // Invalid priority values should be preserved (not validated unless validation is enabled)
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -475,6 +493,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("abc", ((SitemapUrl) sitemaps[2]).getPriority());
     }
 
+    @Test
     public void test_parseXmlSitemaps_withInvalidChangefreq() {
         // Invalid changefreq values should be preserved
         final String xml =
@@ -492,6 +511,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("rarely", ((SitemapUrl) sitemaps[1]).getChangefreq());
     }
 
+    @Test
     public void test_parseXmlSitemaps_withInvalidDate() {
         // Invalid date formats should be preserved
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -511,6 +531,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("invalid-date", sitemaps[2].getLastmod());
     }
 
+    @Test
     public void test_parseXmlSitemaps_withoutNamespace() {
         // Sitemap without namespace declaration should still be parsed
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset>\n" + "  <url>\n"
@@ -526,6 +547,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
     }
 
+    @Test
     public void test_parseXmlSitemaps_withUnknownElements() {
         // Sitemap with unknown/custom elements should ignore them and parse known elements
         final String xml =
@@ -543,6 +565,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("2025-01-01", sitemaps[0].getLastmod());
     }
 
+    @Test
     public void test_parseXmlSitemaps_withExtraWhitespace() {
         // Sitemap with extra whitespace should be trimmed
         final String xml =
@@ -561,6 +584,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("0.8", ((SitemapUrl) sitemaps[0]).getPriority());
     }
 
+    @Test
     public void test_parseXmlSitemaps_withBOM() {
         // Sitemap with UTF-8 BOM should be parsed correctly
         final byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
@@ -581,6 +605,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
     }
 
+    @Test
     public void test_parseXmlSitemaps_partiallyBrokenImage() {
         // Image extension with missing required fields should still be added
         final String xml =
@@ -603,6 +628,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertTrue(sitemapUrl.getImages().size() >= 2);
     }
 
+    @Test
     public void test_parseXmlSitemaps_partiallyBrokenVideo() {
         // Video extension with missing fields should still be added
         final String xml =
@@ -624,6 +650,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertTrue(sitemapUrl.getVideos().size() >= 1);
     }
 
+    @Test
     public void test_parseTextSitemaps_withInvalidLines() {
         // Text sitemap with invalid lines should skip them and parse valid ones
         final String text = "http://www.example.com/page1.html\n" + "not-a-url\n" + "ftp://invalid-protocol.com\n"
@@ -641,6 +668,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("https://www.example.com/page4.html", sitemaps[3].getLoc());
     }
 
+    @Test
     public void test_parseXmlSitemapsIndex_missingLoc() {
         // Sitemap index with missing loc should skip that entry
         final String xml =
@@ -657,6 +685,7 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertTrue(sitemapSet.isIndex());
     }
 
+    @Test
     public void test_parseXmlSitemaps_withCDATA() {
         // Sitemap with CDATA sections should be parsed correctly
         final String xml =

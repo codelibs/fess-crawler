@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.entity;
 
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.RequestData.Method;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -24,6 +25,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class RequestDataTest extends PlainTestCase {
 
+    @Test
     public void test_defaultConstructor() {
         // Test default constructor
         RequestData data = new RequestData();
@@ -33,6 +35,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Float.valueOf(1.0f), Float.valueOf(data.getWeight()));
     }
 
+    @Test
     public void test_methodGetterSetter() {
         // Test Method enum getter/setter
         RequestData data = new RequestData();
@@ -47,6 +50,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Method.HEAD, data.getMethod());
     }
 
+    @Test
     public void test_methodStringSetterGet() {
         // Test String-based method setter with GET
         RequestData data = new RequestData();
@@ -54,6 +58,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Method.GET, data.getMethod());
     }
 
+    @Test
     public void test_methodStringSetterPost() {
         // Test String-based method setter with POST
         RequestData data = new RequestData();
@@ -61,6 +66,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Method.POST, data.getMethod());
     }
 
+    @Test
     public void test_methodStringSetterHead() {
         // Test String-based method setter with HEAD
         RequestData data = new RequestData();
@@ -68,6 +74,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Method.HEAD, data.getMethod());
     }
 
+    @Test
     public void test_methodStringSetterUnknown() {
         // Test String-based method setter with unknown method defaults to GET
         RequestData data = new RequestData();
@@ -81,6 +88,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Method.GET, data.getMethod());
     }
 
+    @Test
     public void test_urlGetterSetter() {
         // Test URL getter/setter
         RequestData data = new RequestData();
@@ -97,6 +105,7 @@ public class RequestDataTest extends PlainTestCase {
         assertNull(data.getUrl());
     }
 
+    @Test
     public void test_weightGetterSetter() {
         // Test weight getter/setter
         RequestData data = new RequestData();
@@ -114,6 +123,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Float.valueOf(0.0f), Float.valueOf(data.getWeight()));
     }
 
+    @Test
     public void test_equalsAndHashCode() {
         // Test equals and hashCode methods
         RequestData data1 = new RequestData();
@@ -141,6 +151,7 @@ public class RequestDataTest extends PlainTestCase {
         assertFalse(data1.equals("string"));
     }
 
+    @Test
     public void test_equalsWithDifferentMethod() {
         // Test equals with different methods
         RequestData data1 = new RequestData();
@@ -156,6 +167,7 @@ public class RequestDataTest extends PlainTestCase {
         assertFalse(data1.equals(data2));
     }
 
+    @Test
     public void test_equalsWithDifferentUrl() {
         // Test equals with different URLs
         RequestData data1 = new RequestData();
@@ -171,6 +183,7 @@ public class RequestDataTest extends PlainTestCase {
         assertFalse(data1.equals(data2));
     }
 
+    @Test
     public void test_equalsWithDifferentWeight() {
         // Test equals with different weights
         RequestData data1 = new RequestData();
@@ -186,6 +199,7 @@ public class RequestDataTest extends PlainTestCase {
         assertFalse(data1.equals(data2));
     }
 
+    @Test
     public void test_equalsWithNullFields() {
         // Test equals with null fields
         RequestData data1 = new RequestData();
@@ -200,6 +214,7 @@ public class RequestDataTest extends PlainTestCase {
         assertFalse(data1.equals(data2));
     }
 
+    @Test
     public void test_toString() {
         // Test toString method
         RequestData data = new RequestData();
@@ -215,6 +230,7 @@ public class RequestDataTest extends PlainTestCase {
         assertTrue(result.contains("1.5"));
     }
 
+    @Test
     public void test_toStringWithNullValues() {
         // Test toString with null values
         RequestData data = new RequestData();
@@ -224,6 +240,7 @@ public class RequestDataTest extends PlainTestCase {
         assertTrue(result.contains("RequestData"));
     }
 
+    @Test
     public void test_methodEnumValues() {
         // Test Method enum values
         Method[] methods = Method.values();
@@ -234,6 +251,7 @@ public class RequestDataTest extends PlainTestCase {
         assertEquals(Method.HEAD, Method.valueOf("HEAD"));
     }
 
+    @Test
     public void test_complexScenario() {
         // Test a complex scenario with multiple operations
         RequestData data = new RequestData();

@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -35,7 +36,6 @@ public class HtmlTransformerTest extends PlainTestCase {
     public HtmlTransformer htmlTransformer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         htmlTransformer = new HtmlTransformer();
@@ -56,10 +56,12 @@ public class HtmlTransformerTest extends PlainTestCase {
         htmlTransformer.setChildUrlRuleMap(childUrlRuleMap);
     }
 
+    @Test
     public void test_name() {
         assertEquals("htmlTransformer", htmlTransformer.getName());
     }
 
+    @Test
     public void test_transform() {
         final byte[] data = new String("xyz").getBytes();
         final ResponseData responseData = new ResponseData();
@@ -70,6 +72,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals("xyz", new String(resultData.getData()));
     }
 
+    @Test
     public void test_transform_filelink() {
         String content = "<a href=\"test2.html\">test</a>";
         final byte[] data = new String(content).getBytes();
@@ -84,6 +87,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals("http://hoge/test2.html", resultData.getChildUrlSet().iterator().next().getUrl());
     }
 
+    @Test
     public void test_transform_urllink() {
         String content = "<a href=\"http://fuga/test.html\">test</a>";
         final byte[] data = new String(content).getBytes();
@@ -98,6 +102,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals("http://fuga/test.html", resultData.getChildUrlSet().iterator().next().getUrl());
     }
 
+    @Test
     public void test_transform_queryparam() {
         String content = "<a href=\"?q=hoge\">test</a>";
         final byte[] data = new String(content).getBytes();
@@ -112,6 +117,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals("http://hoge/test.html?q=hoge", resultData.getChildUrlSet().iterator().next().getUrl());
     }
 
+    @Test
     public void test_transform_null() {
         try {
             htmlTransformer.transform(null);
@@ -119,6 +125,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         } catch (final CrawlerSystemException e) {}
     }
 
+    @Test
     public void test_parseCharset() {
         String content;
 
@@ -145,6 +152,7 @@ public class HtmlTransformerTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_getDuplicateUrl() {
         String url;
 
@@ -158,6 +166,7 @@ public class HtmlTransformerTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_normalizeUrl() {
         String url;
 
@@ -241,6 +250,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals("/../index.html", htmlTransformer.normalizeUrl(url));
     }
 
+    @Test
     public void test_getData() throws Exception {
         final String value = "<html><body>hoge</body></html>";
         final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
@@ -252,6 +262,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals(value, obj);
     }
 
+    @Test
     public void test_getData_wrongName() throws Exception {
         final String value = "<html><body>hoge</body></html>";
         final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
@@ -267,6 +278,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getData_nullData() throws Exception {
         final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);
@@ -277,6 +289,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertNull(obj);
     }
 
+    @Test
     public void test_isValidPath_valid() {
         String value;
 
@@ -297,6 +310,7 @@ public class HtmlTransformerTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_isValidPath_invalid() {
         String value;
 
@@ -328,6 +342,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertFalse(htmlTransformer.isValidPath(value));
     }
 
+    @Test
     public void test_isValidPath_blank() {
         String value;
 
@@ -341,6 +356,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertFalse(htmlTransformer.isValidPath(value));
     }
 
+    @Test
     public void test_encodeUrl_valid() {
         String url = "http://TEST.com/hoge/;jsessionid?p=id&test=テスト&u=18718&v=123%3d#test";
         String result = "http://TEST.com/hoge/;jsessionid?p=id&test=%E3%83%86%E3%82%B9%E3%83%88&u=18718&v=123%3d#test";
@@ -351,12 +367,14 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals(result, htmlTransformer.encodeUrl(url, "UTF-8"));
     }
 
+    @Test
     public void test_isSupportedCharset_valid() {
         assertTrue(htmlTransformer.isSupportedCharset("UTF-8"));
         assertTrue(htmlTransformer.isSupportedCharset("EUC-JP"));
         assertTrue(htmlTransformer.isSupportedCharset("Shift_JIS"));
     }
 
+    @Test
     public void test_isSupportedCharset_invalid() {
         assertFalse(htmlTransformer.isSupportedCharset("aaa"));
         assertFalse(htmlTransformer.isSupportedCharset(" "));

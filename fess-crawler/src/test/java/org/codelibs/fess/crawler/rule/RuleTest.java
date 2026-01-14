@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -175,6 +176,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test basic Rule implementation
      */
+    @Test
     public void test_basicRuleImplementation() {
         TestResponseProcessor processor = new TestResponseProcessor("testProcessor");
         TestRule rule = new TestRule("rule1", processor, true);
@@ -194,6 +196,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test Rule with always true match
      */
+    @Test
     public void test_ruleAlwaysMatch() {
         TestResponseProcessor processor = new TestResponseProcessor("alwaysMatch");
         TestRule rule = new TestRule("alwaysRule", processor, true);
@@ -210,6 +213,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test Rule with always false match
      */
+    @Test
     public void test_ruleNeverMatch() {
         TestResponseProcessor processor = new TestResponseProcessor("neverMatch");
         TestRule rule = new TestRule("neverRule", processor, false);
@@ -226,6 +230,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test Rule with null ResponseData
      */
+    @Test
     public void test_matchWithNullResponseData() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("nullTest");
@@ -238,6 +243,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test Rule with null rule ID
      */
+    @Test
     public void test_nullRuleId() {
         TestRule rule = new TestRule(null, new TestResponseProcessor("test"), true);
 
@@ -250,6 +256,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test Rule with null ResponseProcessor
      */
+    @Test
     public void test_nullResponseProcessor() {
         TestRule rule = new TestRule("rule1", null, true);
 
@@ -263,6 +270,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test ConfigurableRule with URL condition
      */
+    @Test
     public void test_configurableRule_urlCondition() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("urlRule");
@@ -285,6 +293,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test ConfigurableRule with MIME type condition
      */
+    @Test
     public void test_configurableRule_mimeTypeCondition() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("mimeRule");
@@ -307,6 +316,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test ConfigurableRule with status code condition
      */
+    @Test
     public void test_configurableRule_statusCodeCondition() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("statusRule");
@@ -329,6 +339,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test ConfigurableRule with multiple conditions (AND logic)
      */
+    @Test
     public void test_configurableRule_multipleConditions() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("multiRule");
@@ -369,6 +380,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test Rule serialization
      */
+    @Test
     public void test_serialization() throws Exception {
         TestResponseProcessor processor = new TestResponseProcessor("serializeProcessor");
         TestRule originalRule = new TestRule("serializeRule", processor, true);
@@ -396,6 +408,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test multiple rules with same ResponseProcessor
      */
+    @Test
     public void test_multipleRulesWithSameProcessor() {
         TestResponseProcessor sharedProcessor = new TestResponseProcessor("shared");
 
@@ -423,6 +436,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test rule with empty string ID
      */
+    @Test
     public void test_emptyStringRuleId() {
         TestRule rule = new TestRule("", new TestResponseProcessor("empty"), true);
 
@@ -436,6 +450,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test ConfigurableRule condition clearing
      */
+    @Test
     public void test_configurableRule_clearConditions() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("clearRule");
@@ -462,6 +477,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test rule matching with various ResponseData states
      */
+    @Test
     public void test_matchWithVariousResponseDataStates() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("stateRule");
@@ -499,6 +515,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test concurrent rule matching
      */
+    @Test
     public void test_concurrentRuleMatching() throws Exception {
         final ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("concurrentRule");
@@ -560,6 +577,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test rule with special characters in conditions
      */
+    @Test
     public void test_specialCharactersInConditions() {
         ConfigurableRule rule = new ConfigurableRule();
         rule.setRuleId("specialRule");
@@ -580,6 +598,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test rule ID uniqueness
      */
+    @Test
     public void test_ruleIdUniqueness() {
         List<Rule> rules = new ArrayList<>();
 
@@ -600,6 +619,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test rule processor chain behavior
      */
+    @Test
     public void test_ruleProcessorChain() {
         final List<String> executionOrder = new ArrayList<>();
 
@@ -627,6 +647,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test rule with very long rule ID
      */
+    @Test
     public void test_veryLongRuleId() {
         StringBuilder longId = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
@@ -644,6 +665,7 @@ public class RuleTest extends PlainTestCase {
     /**
      * Test rule behavior consistency
      */
+    @Test
     public void test_ruleBehaviorConsistency() {
         TestRule rule = new TestRule("consistentRule", new TestResponseProcessor("consistentProcessor"), true);
 

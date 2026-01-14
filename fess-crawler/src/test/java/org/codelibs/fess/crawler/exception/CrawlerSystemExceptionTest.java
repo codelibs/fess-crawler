@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -35,6 +36,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message only
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Test error message";
         CrawlerSystemException exception = new CrawlerSystemException(message);
@@ -49,6 +51,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         CrawlerSystemException exception = new CrawlerSystemException((String) null);
 
@@ -60,6 +63,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with empty message
      */
+    @Test
     public void test_constructor_withEmptyMessage() {
         CrawlerSystemException exception = new CrawlerSystemException("");
 
@@ -71,6 +75,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with very long message
      */
+    @Test
     public void test_constructor_withVeryLongMessage() {
         StringBuilder longMessage = new StringBuilder();
         for (int i = 0; i < 10000; i++) {
@@ -88,6 +93,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with special characters in message
      */
+    @Test
     public void test_constructor_withSpecialCharactersInMessage() {
         String message = "Error: \n\t\r\0\b\f with special chars #@!$%^&*()[]{}";
         CrawlerSystemException exception = new CrawlerSystemException(message);
@@ -99,6 +105,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with cause only
      */
+    @Test
     public void test_constructor_withCause() {
         Exception cause = new IllegalArgumentException("Root cause");
         CrawlerSystemException exception = new CrawlerSystemException(cause);
@@ -112,6 +119,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null cause
      */
+    @Test
     public void test_constructor_withNullCause() {
         CrawlerSystemException exception = new CrawlerSystemException((Throwable) null);
 
@@ -123,6 +131,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with various cause types
      */
+    @Test
     public void test_constructor_withVariousCauseTypes() {
         // With Exception cause
         Exception exceptionCause = new Exception("Exception cause");
@@ -148,6 +157,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message and cause
      */
+    @Test
     public void test_constructor_withMessageAndCause() {
         String message = "Custom error message";
         Exception cause = new IOException("IO error occurred");
@@ -161,6 +171,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message and valid cause
      */
+    @Test
     public void test_constructor_withNullMessageAndValidCause() {
         Exception cause = new IllegalStateException("State error");
         CrawlerSystemException exception = new CrawlerSystemException(null, cause);
@@ -173,6 +184,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with valid message and null cause
      */
+    @Test
     public void test_constructor_withValidMessageAndNullCause() {
         String message = "Error without cause";
         CrawlerSystemException exception = new CrawlerSystemException(message, null);
@@ -185,6 +197,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test constructor with both null message and null cause
      */
+    @Test
     public void test_constructor_withNullMessageAndNullCause() {
         CrawlerSystemException exception = new CrawlerSystemException(null, null);
 
@@ -196,6 +209,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test protected constructor with suppression and stack trace control
      */
+    @Test
     public void test_protectedConstructor_withSuppressionAndStackTrace() throws Exception {
         // Access protected constructor via reflection
         Constructor<CrawlerSystemException> constructor =
@@ -231,6 +245,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test protected constructor with null message
      */
+    @Test
     public void test_protectedConstructor_withNullMessage() throws Exception {
         Constructor<CrawlerSystemException> constructor =
                 CrawlerSystemException.class.getDeclaredConstructor(String.class, boolean.class, boolean.class);
@@ -245,6 +260,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test stack trace functionality
      */
+    @Test
     public void test_stackTrace() {
         CrawlerSystemException exception = new CrawlerSystemException("Stack trace test");
 
@@ -261,6 +277,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test stack trace with cause
      */
+    @Test
     public void test_stackTraceWithCause() {
         Exception cause = new IllegalArgumentException("Cause exception");
         CrawlerSystemException exception = new CrawlerSystemException("Main exception", cause);
@@ -280,6 +297,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test printStackTrace functionality
      */
+    @Test
     public void test_printStackTrace() {
         CrawlerSystemException exception = new CrawlerSystemException("Print stack trace test");
 
@@ -297,6 +315,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test printStackTrace with cause
      */
+    @Test
     public void test_printStackTraceWithCause() {
         Exception cause = new IOException("IO error");
         CrawlerSystemException exception = new CrawlerSystemException("Wrapper exception", cause);
@@ -317,6 +336,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test exception chaining
      */
+    @Test
     public void test_exceptionChaining() {
         Exception level3 = new IllegalArgumentException("Level 3 - Root cause");
         Exception level2 = new IllegalStateException("Level 2", level3);
@@ -339,6 +359,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test serialization
      */
+    @Test
     public void test_serialization() throws Exception {
         String message = "Serialization test";
         Exception cause = new IOException("IO cause");
@@ -367,6 +388,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching the exception
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new CrawlerSystemException("Test throw");
@@ -387,6 +409,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test exception in method that declares throws
      */
+    @Test
     public void test_exceptionInMethod() {
         try {
             methodThatThrowsException();
@@ -403,6 +426,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test exception inheritance
      */
+    @Test
     public void test_inheritance() {
         CrawlerSystemException exception = new CrawlerSystemException("Test");
 
@@ -428,6 +452,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test suppressed exceptions
      */
+    @Test
     public void test_suppressedExceptions() throws Exception {
         // Create exception with suppression enabled
         Constructor<CrawlerSystemException> constructor =
@@ -451,6 +476,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test suppressed exceptions with suppression disabled
      */
+    @Test
     public void test_suppressedExceptions_disabled() throws Exception {
         Constructor<CrawlerSystemException> constructor =
                 CrawlerSystemException.class.getDeclaredConstructor(String.class, boolean.class, boolean.class);
@@ -471,6 +497,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test fillInStackTrace
      */
+    @Test
     public void test_fillInStackTrace() {
         CrawlerSystemException exception = new CrawlerSystemException("Fill stack trace test");
 
@@ -490,6 +517,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test with non-writable stack trace
      */
+    @Test
     public void test_nonWritableStackTrace() throws Exception {
         Constructor<CrawlerSystemException> constructor =
                 CrawlerSystemException.class.getDeclaredConstructor(String.class, boolean.class, boolean.class);
@@ -505,6 +533,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test toString method
      */
+    @Test
     public void test_toString() {
         CrawlerSystemException exception1 = new CrawlerSystemException("Test message");
         String toString1 = exception1.toString();
@@ -521,6 +550,7 @@ public class CrawlerSystemExceptionTest extends PlainTestCase {
     /**
      * Test getLocalizedMessage
      */
+    @Test
     public void test_getLocalizedMessage() {
         String message = "Localized message test";
         CrawlerSystemException exception = new CrawlerSystemException(message);

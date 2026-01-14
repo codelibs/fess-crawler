@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -41,7 +42,6 @@ public class LhaExtractorTest extends PlainTestCase {
     public LhaExtractor lhaExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
@@ -62,6 +62,7 @@ public class LhaExtractorTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/lha/test.lzh");
         final String content = lhaExtractor.getText(in, null).getContent();
@@ -71,6 +72,7 @@ public class LhaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テキスト"));
     }
 
+    @Test
     public void test_getText_maxSize() throws IOException {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/lha/test.lzh")) {
             lhaExtractor.setMaxContentSize(100);
@@ -82,6 +84,7 @@ public class LhaExtractorTest extends PlainTestCase {
         lhaExtractor.setMaxContentSize(-1);
     }
 
+    @Test
     public void test_getText_null() {
         try {
             lhaExtractor.getText(null, null);

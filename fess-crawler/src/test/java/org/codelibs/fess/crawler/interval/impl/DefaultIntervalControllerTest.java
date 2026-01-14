@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.interval.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -30,6 +31,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test default constructor initializes with default values
      */
+    @Test
     public void test_defaultConstructor() {
         final DefaultIntervalController controller = new DefaultIntervalController();
 
@@ -42,6 +44,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test constructor with parameters
      */
+    @Test
     public void test_constructorWithParams() {
         final Map<String, Long> params = new HashMap<>();
         params.put("delayMillisAfterProcessing", 100L);
@@ -60,6 +63,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test constructor with partial parameters uses defaults for missing values
      */
+    @Test
     public void test_constructorWithPartialParams() {
         final Map<String, Long> params = new HashMap<>();
         params.put("delayMillisAfterProcessing", 150L);
@@ -77,6 +81,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test constructor with empty parameters uses all defaults
      */
+    @Test
     public void test_constructorWithEmptyParams() {
         final Map<String, Long> params = new HashMap<>();
 
@@ -91,6 +96,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test setters
      */
+    @Test
     public void test_setters() {
         final DefaultIntervalController controller = new DefaultIntervalController();
 
@@ -108,6 +114,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test delayAfterProcessing with zero delay
      */
+    @Test
     public void test_delayAfterProcessing_zeroDelay() {
         final DefaultIntervalController controller = new DefaultIntervalController();
         controller.setDelayMillisAfterProcessing(0L);
@@ -122,6 +129,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test delayAfterProcessing with actual delay
      */
+    @Test
     public void test_delayAfterProcessing_withDelay() {
         final DefaultIntervalController controller = new DefaultIntervalController();
         controller.setDelayMillisAfterProcessing(100L);
@@ -136,6 +144,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test delayBeforeProcessing with zero delay
      */
+    @Test
     public void test_delayBeforeProcessing_zeroDelay() {
         final DefaultIntervalController controller = new DefaultIntervalController();
         controller.setDelayMillisBeforeProcessing(0L);
@@ -150,6 +159,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test delayBeforeProcessing with actual delay
      */
+    @Test
     public void test_delayBeforeProcessing_withDelay() {
         final DefaultIntervalController controller = new DefaultIntervalController();
         controller.setDelayMillisBeforeProcessing(100L);
@@ -164,6 +174,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test delayAtNoUrlInQueue with default delay
      */
+    @Test
     public void test_delayAtNoUrlInQueue_defaultDelay() {
         final DefaultIntervalController controller = new DefaultIntervalController();
 
@@ -177,6 +188,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test delayForWaitingNewUrl with default delay
      */
+    @Test
     public void test_delayForWaitingNewUrl_defaultDelay() {
         final DefaultIntervalController controller = new DefaultIntervalController();
 
@@ -190,6 +202,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test delayForWaitingNewUrl with custom delay
      */
+    @Test
     public void test_delayForWaitingNewUrl_customDelay() {
         final DefaultIntervalController controller = new DefaultIntervalController();
         controller.setDelayMillisForWaitingNewUrl(200L);
@@ -204,6 +217,7 @@ public class DefaultIntervalControllerTest extends PlainTestCase {
     /**
      * Test that negative delay values are handled (treated as zero)
      */
+    @Test
     public void test_negativeDelayValues() {
         final DefaultIntervalController controller = new DefaultIntervalController();
         controller.setDelayMillisAfterProcessing(-100L);

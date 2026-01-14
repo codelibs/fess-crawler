@@ -24,8 +24,7 @@ import java.util.Map;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
@@ -51,7 +50,6 @@ public class ApiExtractorTest extends PlainTestCase {
     private ApiExtractor extractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -64,14 +62,14 @@ public class ApiExtractorTest extends PlainTestCase {
     }
 
     @Override
-    @AfterEach
-    protected void tearDown() throws Exception {
+    protected void tearDown(final TestInfo testInfo) throws Exception {
         server.stop();
         extractor.destroy();
 
-        super.tearDown();
+        super.tearDown(testInfo);
     }
 
+    @Test
     public void test_getText() throws Exception {
         final String testStr = "testdata";
         final String content = ATTR_NAME + "," + testStr;

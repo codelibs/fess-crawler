@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig.AuthSchemeType;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
@@ -32,12 +33,12 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
     private Hc5HttpClient httpClient;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         httpClient = new Hc5HttpClient();
     }
 
+    @Test
     public void test_convertFromConfig_ntlm_withParameters() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setScheme("http");
@@ -71,6 +72,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertTrue(result[0].getAuthScheme() instanceof NTLMScheme);
     }
 
+    @Test
     public void test_convertFromConfig_ntlm_withoutParameters() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setScheme("http");
@@ -96,6 +98,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertTrue(result[0].getAuthScheme() instanceof NTLMScheme);
     }
 
+    @Test
     public void test_convertFromConfig_ntlm_emptyParameters() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setScheme("http");
@@ -120,6 +123,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertTrue(result[0].getAuthScheme() instanceof NTLMScheme);
     }
 
+    @Test
     public void test_convertFromConfig_ntlm_credentials() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setScheme("http");
@@ -148,6 +152,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertNotNull(ntCreds);
     }
 
+    @Test
     public void test_convertFromConfig_multipleConfigs_withNtlm() {
         // Basic auth config
         WebAuthenticationConfig basicConfig = new WebAuthenticationConfig();
@@ -194,6 +199,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertTrue(result[1].getAuthScheme() instanceof NTLMScheme);
     }
 
+    @Test
     public void test_convertFromConfig_autoScheme_noNtlmScheme() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setScheme("http");
@@ -213,6 +219,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertNull(result[0].getAuthScheme());
     }
 
+    @Test
     public void test_convertCredentials_ntlm() {
         CredentialsConfig config = new CredentialsConfig();
         config.setType(CredentialsConfig.CredentialsType.NTLM);
@@ -233,6 +240,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertNotNull(ntCreds);
     }
 
+    @Test
     public void test_convertCredentials_usernamePassword() {
         CredentialsConfig config = new CredentialsConfig();
         config.setType(CredentialsConfig.CredentialsType.USERNAME_PASSWORD);
@@ -248,12 +256,14 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertEquals("user", upCreds.getUserName());
     }
 
+    @Test
     public void test_convertCredentials_null() {
         org.apache.hc.client5.http.auth.Credentials result = httpClient.convertCredentials(null);
 
         assertNull(result);
     }
 
+    @Test
     public void test_convertCredentials_nullPassword() {
         CredentialsConfig config = new CredentialsConfig();
         config.setType(CredentialsConfig.CredentialsType.USERNAME_PASSWORD);
@@ -266,6 +276,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         assertTrue(result instanceof org.apache.hc.client5.http.auth.UsernamePasswordCredentials);
     }
 
+    @Test
     public void test_convertCredentials_ntlm_nullPassword() {
         CredentialsConfig config = new CredentialsConfig();
         config.setType(CredentialsConfig.CredentialsType.NTLM);

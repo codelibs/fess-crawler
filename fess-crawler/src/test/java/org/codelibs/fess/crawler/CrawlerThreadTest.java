@@ -43,6 +43,7 @@ import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -61,7 +62,6 @@ public class CrawlerThreadTest extends PlainTestCase {
     private RuleManager ruleManager;
 
     @Override
-    @BeforeEach
     @SuppressWarnings("unchecked")
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
@@ -98,6 +98,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isValid method with a valid URL queue.
      */
+    @Test
     public void test_isValid_validUrlQueue() throws Exception {
         final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
         urlQueue.setUrl("http://example.com/");
@@ -116,6 +117,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isValid method with a null URL queue.
      */
+    @Test
     public void test_isValid_nullUrlQueue() throws Exception {
         // Use reflection to access protected method
         final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("isValid", UrlQueue.class);
@@ -128,6 +130,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isValid method with a blank URL.
      */
+    @Test
     public void test_isValid_blankUrl() throws Exception {
         final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
         urlQueue.setUrl("");
@@ -144,6 +147,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isValid method with depth exceeding maxDepth.
      */
+    @Test
     public void test_isValid_exceedsMaxDepth() throws Exception {
         final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
         urlQueue.setUrl("http://example.com/");
@@ -162,6 +166,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isValid method with URL not matching filter.
      */
+    @Test
     public void test_isValid_urlNotMatchingFilter() throws Exception {
         final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
         urlQueue.setUrl("http://example.com/");
@@ -180,6 +185,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isContinue method when thread check count is below max.
      */
+    @Test
     public void test_isContinue_belowMaxThreadCheckCount() throws Exception {
         // Use reflection to access protected method
         final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("isContinue", int.class);
@@ -192,6 +198,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isContinue method when thread check count exceeds max.
      */
+    @Test
     public void test_isContinue_exceedsMaxThreadCheckCount() throws Exception {
         // Use reflection to access protected method
         final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("isContinue", int.class);
@@ -204,6 +211,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isContinue method when max access count is reached.
      */
+    @Test
     public void test_isContinue_maxAccessCountReached() throws Exception {
         crawlerContext.maxAccessCount = 10;
         crawlerContext.incrementAndGetAccessCount();
@@ -228,6 +236,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isContinue when container is not available.
      */
+    @Test
     public void test_isContinue_containerNotAvailable() throws Exception {
         when(crawlerContainer.available()).thenReturn(false);
 
@@ -242,6 +251,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test startCrawling increments active thread count.
      */
+    @Test
     public void test_startCrawling() throws Exception {
         assertEquals(0, crawlerContext.getActiveThreadCount());
 
@@ -256,6 +266,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test finishCrawling decrements active thread count.
      */
+    @Test
     public void test_finishCrawling() throws Exception {
         crawlerContext.incrementAndGetActiveThreadCount();
 
@@ -271,6 +282,7 @@ public class CrawlerThreadTest extends PlainTestCase {
      * Test storeChildUrl with a valid URL.
      */
     @SuppressWarnings("unchecked")
+    @Test
     public void test_storeChildUrl_validUrl() throws Exception {
         when(urlFilter.match("http://example.com/child")).thenReturn(true);
         when(crawlerContainer.getComponent("urlQueue")).thenReturn(new UrlQueueImpl<>());
@@ -287,6 +299,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test storeChildUrl with depth exceeding maxDepth.
      */
+    @Test
     public void test_storeChildUrl_exceedsMaxDepth() throws Exception {
         when(urlFilter.match("http://example.com/child")).thenReturn(true);
 
@@ -302,6 +315,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test storeChildUrl with blank URL.
      */
+    @Test
     public void test_storeChildUrl_blankUrl() throws Exception {
         // Use reflection to access protected method
         final java.lang.reflect.Method method =
@@ -316,6 +330,7 @@ public class CrawlerThreadTest extends PlainTestCase {
      * Test storeChildUrls with valid URLs.
      */
     @SuppressWarnings("unchecked")
+    @Test
     public void test_storeChildUrls_validUrls() throws Exception {
         final Set<RequestData> childUrlList = new HashSet<>();
         childUrlList.add(RequestDataBuilder.newRequestData().url("http://example.com/child1").build());
@@ -335,6 +350,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test storeChildUrls with depth exceeding maxDepth.
      */
+    @Test
     public void test_storeChildUrls_exceedsMaxDepth() throws Exception {
         final Set<RequestData> childUrlList = new HashSet<>();
         childUrlList.add(RequestDataBuilder.newRequestData().url("http://example.com/child1").build());
@@ -352,6 +368,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test getClient method.
      */
+    @Test
     public void test_getClient() throws Exception {
         final CrawlerClient client = mock(CrawlerClient.class);
         when(clientFactory.getClient("http://example.com/")).thenReturn(client);
@@ -368,6 +385,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test processResponse method.
      */
+    @Test
     public void test_processResponse() throws Exception {
         final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
         urlQueue.setUrl("http://example.com/");
@@ -395,6 +413,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test processResponse when no rule is found.
      */
+    @Test
     public void test_processResponse_noRule() throws Exception {
         final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
         urlQueue.setUrl("http://example.com/");
@@ -416,6 +435,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test run method with no URLs in queue.
      */
+    @Test
     public void test_run_noUrlsInQueue() throws Exception {
         when(urlQueueService.poll(anyString())).thenReturn(null);
         crawlerContext.setStatus(CrawlerStatus.RUNNING);
@@ -429,6 +449,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test run method with crawler status DONE.
      */
+    @Test
     public void test_run_statusDone() throws Exception {
         crawlerContext.setStatus(CrawlerStatus.DONE);
 
@@ -440,6 +461,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test setNoWaitOnFolder.
      */
+    @Test
     public void test_setNoWaitOnFolder() {
         assertFalse(crawlerThread.isNoWaitOnFolder());
 
@@ -453,6 +475,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test run with interval controller.
      */
+    @Test
     public void test_run_withIntervalController() throws Exception {
         final IntervalController intervalController = mock(IntervalController.class);
         crawlerContext.intervalController = intervalController;
@@ -469,6 +492,7 @@ public class CrawlerThreadTest extends PlainTestCase {
     /**
      * Test isContinue with active threads still running.
      */
+    @Test
     public void test_isContinue_withActiveThreads() throws Exception {
         crawlerContext.incrementAndGetActiveThreadCount();
         crawlerContext.incrementAndGetActiveThreadCount();

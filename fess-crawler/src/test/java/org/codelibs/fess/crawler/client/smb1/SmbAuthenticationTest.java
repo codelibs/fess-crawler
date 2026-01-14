@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.client.smb1;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -22,6 +23,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  *
  */
 public class SmbAuthenticationTest extends PlainTestCase {
+    @Test
     public void test_getPathPrefix() {
         SmbAuthentication smbAuthentication;
 

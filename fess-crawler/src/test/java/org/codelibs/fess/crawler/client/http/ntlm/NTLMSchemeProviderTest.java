@@ -17,15 +17,18 @@ package org.codelibs.fess.crawler.client.http.ntlm;
 
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.impl.auth.NTLMScheme;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class NTLMSchemeProviderTest extends PlainTestCase {
 
+    @Test
     public void test_constructor() {
         NTLMSchemeProvider provider = new NTLMSchemeProvider();
         assertNotNull(provider);
     }
 
+    @Test
     public void test_create() {
         NTLMSchemeProvider provider = new NTLMSchemeProvider();
 
@@ -35,6 +38,7 @@ public class NTLMSchemeProviderTest extends PlainTestCase {
         assertTrue(authScheme instanceof NTLMScheme);
     }
 
+    @Test
     public void test_create_withNullContext() {
         NTLMSchemeProvider provider = new NTLMSchemeProvider();
 

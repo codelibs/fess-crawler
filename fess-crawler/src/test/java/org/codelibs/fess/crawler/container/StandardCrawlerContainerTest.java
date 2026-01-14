@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.container;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 import jakarta.annotation.PostConstruct;
@@ -33,6 +34,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test that new container is available
      */
+    @Test
     public void test_available_newContainer() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         assertTrue(container.available());
@@ -41,6 +43,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test that destroyed container is not available
      */
+    @Test
     public void test_available_afterDestroy() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         assertTrue(container.available());
@@ -52,6 +55,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test getComponent returns null for unknown component
      */
+    @Test
     public void test_getComponent_unknown() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         Object result = container.getComponent("unknownComponent");
@@ -61,6 +65,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test getComponent("crawlerContainer") returns self
      */
+    @Test
     public void test_getComponent_crawlerContainer() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         Object result = container.getComponent("crawlerContainer");
@@ -70,6 +75,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test singleton registration and retrieval
      */
+    @Test
     public void test_singleton_basic() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.singleton("testService", SimpleService.class);
@@ -84,6 +90,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test singleton with existing instance
      */
+    @Test
     public void test_singleton_withInstance() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         SimpleService instance = new SimpleService();
@@ -99,9 +106,10 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test singleton with initializer
      */
+    @Test
     public void test_singleton_withInitializer() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("testService", SimpleService.class, service -> {
+        container.<SimpleService> singleton("testService", SimpleService.class, service -> {
             service.setValue("initialized");
         });
 
@@ -112,11 +120,11 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test singleton with initializer and destroyer
      */
+    @Test
     public void test_singleton_withInitializerAndDestroyer() {
         AtomicBoolean destroyed = new AtomicBoolean(false);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("testService", SimpleService.class,
-                service -> service.setValue("init"),
+        container.<SimpleService> singleton("testService", SimpleService.class, service -> service.setValue("init"),
                 service -> destroyed.set(true));
 
         SimpleService service = container.getComponent("testService");
@@ -130,6 +138,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test prototype registration and retrieval
      */
+    @Test
     public void test_prototype_basic() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.prototype("testService", SimpleService.class);
@@ -145,10 +154,11 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test prototype with initializer
      */
+    @Test
     public void test_prototype_withInitializer() {
         AtomicInteger counter = new AtomicInteger(0);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>prototype("testService", SimpleService.class, service -> {
+        container.<SimpleService> prototype("testService", SimpleService.class, service -> {
             service.setValue("instance-" + counter.incrementAndGet());
         });
 
@@ -162,9 +172,9 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test method chaining
      */
+    @Test
     public void test_methodChaining() {
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("service1", SimpleService.class)
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("service1", SimpleService.class)
                 .singleton("service2", SimpleService.class)
                 .prototype("service3", SimpleService.class);
 
@@ -176,9 +186,10 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test @Resource dependency injection
      */
+    @Test
     public void test_resourceInjection() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("dependency", SimpleService.class, s -> s.setValue("injected"));
+        container.<SimpleService> singleton("dependency", SimpleService.class, s -> s.setValue("injected"));
         container.singleton("consumer", ServiceWithDependency.class);
 
         ServiceWithDependency consumer = container.getComponent("consumer");
@@ -190,6 +201,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test @Resource injection with missing dependency returns null field
      */
+    @Test
     public void test_resourceInjection_missingDependency() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.singleton("consumer", ServiceWithDependency.class);
@@ -202,6 +214,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test @PostConstruct is called
      */
+    @Test
     public void test_postConstruct() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.singleton("service", ServiceWithLifecycle.class);
@@ -214,6 +227,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test @PreDestroy is called on destroy
      */
+    @Test
     public void test_preDestroy() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.singleton("service", ServiceWithLifecycle.class);
@@ -228,6 +242,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test prototype with @PostConstruct
      */
+    @Test
     public void test_prototype_postConstruct() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.prototype("service", ServiceWithLifecycle.class);
@@ -243,6 +258,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test multiple singletons are all destroyed
      */
+    @Test
     public void test_destroy_multipleSingletons() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.singleton("service1", ServiceWithLifecycle.class);
@@ -263,6 +279,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test implements CrawlerContainer interface
      */
+    @Test
     public void test_implementsInterface() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         assertTrue(container instanceof CrawlerContainer);
@@ -271,6 +288,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test protocol handler initialization
      */
+    @Test
     public void test_initialize_setsProtocolHandler() {
         new StandardCrawlerContainer(); // Constructor calls initialize()
 
@@ -282,6 +300,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test singleton with instance and initializer
      */
+    @Test
     public void test_singleton_instanceWithInitializer() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         SimpleService instance = new SimpleService();
@@ -295,6 +314,7 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test destroying container doesn't throw on empty container
      */
+    @Test
     public void test_destroy_emptyContainer() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
         container.destroy(); // Should not throw
@@ -304,10 +324,11 @@ public class StandardCrawlerContainerTest extends PlainTestCase {
     /**
      * Test prototype vs singleton independence
      */
+    @Test
     public void test_prototypeVsSingleton() {
         StandardCrawlerContainer container = new StandardCrawlerContainer();
-        container.<SimpleService>singleton("singleton", SimpleService.class, s -> s.setValue("singleton"));
-        container.<SimpleService>prototype("prototype", SimpleService.class, s -> s.setValue("prototype"));
+        container.<SimpleService> singleton("singleton", SimpleService.class, s -> s.setValue("singleton"));
+        container.<SimpleService> prototype("prototype", SimpleService.class, s -> s.setValue("prototype"));
 
         SimpleService s1 = container.getComponent("singleton");
         SimpleService s2 = container.getComponent("singleton");

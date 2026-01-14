@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -53,23 +54,25 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
     private SitemapsHelper sitemapsHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         MockitoAnnotations.openMocks(this);
     }
 
+    @Test
     public void test_constructor() {
         // Test constructor
         SitemapsResponseProcessor proc = new SitemapsResponseProcessor();
         assertNotNull(proc);
     }
 
+    @Test
     public void test_implementsResponseProcessor() {
         // Test that SitemapsResponseProcessor implements ResponseProcessor
         assertTrue(processor instanceof ResponseProcessor);
     }
 
+    @Test
     public void test_processSingleSitemap() {
         // Setup
         ResponseData responseData = new ResponseData();
@@ -104,6 +107,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_processMultipleSitemaps() {
         // Setup
         ResponseData responseData = new ResponseData();
@@ -151,6 +155,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_processEmptySitemapSet() {
         // Setup
         ResponseData responseData = new ResponseData();
@@ -177,6 +182,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_processSitemapWithNullEntry() {
         // Setup - test handling of null sitemap in list
         ResponseData responseData = new ResponseData();
@@ -210,6 +216,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_processException() {
         // Setup - test exception handling during parsing
         ResponseData responseData = new ResponseData();
@@ -229,6 +236,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_childUrlsExceptionMessage() {
         // Test that ChildUrlsException contains correct message
         ResponseData responseData = new ResponseData();
@@ -260,6 +268,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_requestDataHasGetMethod() {
         // Test that generated RequestData objects have GET method
         ResponseData responseData = new ResponseData();
@@ -292,6 +301,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_duplicateUrlsInSitemap() {
         // Test handling of duplicate URLs in sitemap
         ResponseData responseData = new ResponseData();

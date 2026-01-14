@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.exception;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -29,6 +30,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message only
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Failed to extract content";
         ExtractException exception = new ExtractException(message);
@@ -41,6 +43,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         ExtractException exception = new ExtractException((String) null);
 
@@ -51,6 +54,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with cause only
      */
+    @Test
     public void test_constructor_withCause() {
         IOException cause = new IOException("IO error");
         ExtractException exception = new ExtractException(cause);
@@ -63,6 +67,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null cause
      */
+    @Test
     public void test_constructor_withNullCause() {
         ExtractException exception = new ExtractException((Throwable) null);
 
@@ -74,6 +79,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message and cause
      */
+    @Test
     public void test_constructor_withMessageAndCause() {
         String message = "PDF extraction failed";
         IOException cause = new IOException("Cannot read file");
@@ -87,6 +93,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message and valid cause
      */
+    @Test
     public void test_constructor_withNullMessageAndValidCause() {
         IOException cause = new IOException("IO error");
         ExtractException exception = new ExtractException(null, cause);
@@ -99,6 +106,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with valid message and null cause
      */
+    @Test
     public void test_constructor_withValidMessageAndNullCause() {
         ExtractException exception = new ExtractException("Error without cause", null);
 
@@ -110,9 +118,10 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test protected constructor via reflection
      */
+    @Test
     public void test_protectedConstructor() throws Exception {
-        Constructor<ExtractException> constructor = ExtractException.class.getDeclaredConstructor(
-                String.class, boolean.class, boolean.class);
+        Constructor<ExtractException> constructor =
+                ExtractException.class.getDeclaredConstructor(String.class, boolean.class, boolean.class);
         constructor.setAccessible(true);
 
         // Test with suppression and stack trace enabled
@@ -135,6 +144,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test inheritance
      */
+    @Test
     public void test_inheritance() {
         ExtractException exception = new ExtractException("Test");
 
@@ -147,6 +157,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new ExtractException("Extraction failed");
@@ -158,6 +169,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test exception chaining
      */
+    @Test
     public void test_exceptionChaining() {
         Exception root = new IllegalStateException("Corrupted data");
         IOException middle = new IOException("File error", root);
@@ -171,6 +183,7 @@ public class ExtractExceptionTest extends PlainTestCase {
     /**
      * Test with various extraction error messages
      */
+    @Test
     public void test_extractionErrorMessages() {
         ExtractException pdfError = new ExtractException("Failed to extract PDF content");
         assertTrue(pdfError.getMessage().contains("PDF"));

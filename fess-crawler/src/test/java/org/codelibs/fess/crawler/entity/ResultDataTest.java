@@ -18,10 +18,12 @@ package org.codelibs.fess.crawler.entity;
 import java.util.function.Function;
 
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class ResultDataTest extends PlainTestCase {
 
+    @Test
     public void test_setRawData() {
         // ## Arrange ##
         final ResultData resultData = new ResultData();
@@ -42,6 +44,7 @@ public class ResultDataTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_setSerializer() {
         // ## Arrange ##
         final ResultData resultData = new ResultData();

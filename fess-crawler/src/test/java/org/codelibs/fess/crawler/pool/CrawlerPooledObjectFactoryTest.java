@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.pool.CrawlerPooledObjectFactory.OnDestroyListener;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -39,7 +40,6 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -170,6 +170,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test basic object creation
      */
+    @Test
     public void test_create_basic() throws Exception {
         TestComponent component = factory.create();
         assertNotNull(component);
@@ -186,6 +187,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test creation with null container
      */
+    @Test
     public void test_create_nullContainer() {
         CrawlerPooledObjectFactory<TestComponent> nullContainerFactory = new CrawlerPooledObjectFactory<>();
         nullContainerFactory.setComponentName("testComponent");
@@ -204,6 +206,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test creation with null component name
      */
+    @Test
     public void test_create_nullComponentName() {
         CrawlerPooledObjectFactory<TestComponent> nullNameFactory = new CrawlerPooledObjectFactory<>();
         nullNameFactory.setCrawlerContainer(container);
@@ -222,6 +225,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test creation with invalid component name throws exception
      */
+    @Test
     public void test_create_invalidComponentName() {
         CrawlerPooledObjectFactory<Object> invalidFactory = new CrawlerPooledObjectFactory<>();
         invalidFactory.setCrawlerContainer(container);
@@ -240,6 +244,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test creation with singleton component
      */
+    @Test
     public void test_create_singletonComponent() throws Exception {
         CrawlerPooledObjectFactory<SingletonTestComponent> singletonFactory = createFactory("singletonComponent");
 
@@ -258,6 +263,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test wrap method
      */
+    @Test
     public void test_wrap_basic() {
         TestComponent component = new TestComponent();
 
@@ -271,6 +277,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test wrap with null object
      */
+    @Test
     public void test_wrap_nullObject() {
         PooledObject<TestComponent> pooledObject = factory.wrap(null);
 
@@ -281,6 +288,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject without listener
      */
+    @Test
     public void test_destroyObject_noListener() throws Exception {
         TestComponent component = new TestComponent();
         PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -295,6 +303,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with listener
      */
+    @Test
     public void test_destroyObject_withListener() throws Exception {
         AtomicBoolean listenerCalled = new AtomicBoolean(false);
         final PooledObject<TestComponent>[] capturedObject = new PooledObject[1];
@@ -326,6 +335,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with listener exception - should not prevent resource cleanup
      */
+    @Test
     public void test_destroyObject_listenerException() throws Exception {
         CloseableTestComponent.resetCounters();
 
@@ -351,6 +361,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with AutoCloseable component
      */
+    @Test
     public void test_destroyObject_autoCloseable() throws Exception {
         CloseableTestComponent.resetCounters();
 
@@ -371,6 +382,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with AutoCloseable and listener
      */
+    @Test
     public void test_destroyObject_autoCloseableWithListener() throws Exception {
         CloseableTestComponent.resetCounters();
         AtomicBoolean listenerCalled = new AtomicBoolean(false);
@@ -398,6 +410,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test getters
      */
+    @Test
     public void test_getters() {
         assertEquals("testComponent", factory.getComponentName());
         assertTrue(container == factory.getCrawlerContainer());
@@ -422,6 +435,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test lifecycle: create, wrap, destroy
      */
+    @Test
     public void test_fullLifecycle() throws Exception {
         TestComponent.resetCounter();
 
@@ -461,6 +475,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test concurrent object creation
      */
+    @Test
     public void test_concurrentCreation() throws Exception {
         TestComponent.resetCounter();
 
@@ -515,6 +530,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test concurrent destroy operations
      */
+    @Test
     public void test_concurrentDestroy() throws Exception {
         final AtomicInteger destroyCount = new AtomicInteger(0);
 
@@ -572,6 +588,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test with different component types
      */
+    @Test
     public void test_differentComponentTypes() throws Exception {
         // Test with String component
         container.singleton("stringComponent", "TestString");
@@ -590,6 +607,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test edge cases for wrap method
      */
+    @Test
     public void test_wrap_edgeCases() {
         // Test with various object types
         TestComponent component = new TestComponent();
@@ -606,6 +624,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test factory configuration independence
      */
+    @Test
     public void test_factoryConfigurationIndependence() {
         // Each factory instance has independent configuration
         assertEquals("testComponent", factory.getComponentName());
@@ -632,6 +651,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test that factory configuration can be changed via setters
      */
+    @Test
     public void test_factoryReconfiguration() {
         CrawlerPooledObjectFactory<TestComponent> testFactory = new CrawlerPooledObjectFactory<>();
         testFactory.setCrawlerContainer(container);
@@ -685,6 +705,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with AutoCloseable that throws exception on close
      */
+    @Test
     public void test_destroyObject_autoCloseableThrowsException() {
         container.prototype("failingCloseableComponent", FailingCloseableComponent.class);
 
@@ -710,6 +731,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with AutoCloseable that throws exception and has listener
      */
+    @Test
     public void test_destroyObject_autoCloseableThrowsExceptionWithListener() {
         container.prototype("failingCloseableComponent", FailingCloseableComponent.class);
 
@@ -741,6 +763,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with null PooledObject
      */
+    @Test
     public void test_destroyObject_nullPooledObject() {
         try {
             factory.destroyObject(null);
@@ -757,6 +780,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject with PooledObject containing null object
      */
+    @Test
     public void test_destroyObject_nullObject() throws Exception {
         PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(null);
 
@@ -769,6 +793,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test destroyObject called multiple times on same object
      */
+    @Test
     public void test_destroyObject_multipleCalls() throws Exception {
         CloseableTestComponent.resetCounters();
 
@@ -790,6 +815,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test wrap with null object
      */
+    @Test
     public void test_wrap_null() {
         PooledObject<TestComponent> pooledObject = factory.wrap(null);
         assertNotNull(pooledObject);
@@ -799,6 +825,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test create and destroy with large number of objects
      */
+    @Test
     public void test_largeNumberOfObjects() throws Exception {
         TestComponent.resetCounter();
 
@@ -827,6 +854,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test listener receives correct PooledObject
      */
+    @Test
     public void test_listener_receivesCorrectPooledObject() throws Exception {
         final List<PooledObject<TestComponent>> receivedObjects = new ArrayList<>();
 
@@ -856,6 +884,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test setter methods
      */
+    @Test
     public void test_setters() {
         CrawlerPooledObjectFactory<TestComponent> testFactory = new CrawlerPooledObjectFactory<>();
 
@@ -883,6 +912,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test factory with non-AutoCloseable component type
      */
+    @Test
     public void test_destroyObject_nonAutoCloseable() throws Exception {
         TestComponent component = new TestComponent();
         PooledObject<TestComponent> pooledObject = new DefaultPooledObject<>(component);
@@ -897,6 +927,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test concurrent creation and destruction
      */
+    @Test
     public void test_concurrentCreateAndDestroy() throws Exception {
         TestComponent.resetCounter();
 
@@ -952,6 +983,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test AutoCloseable component with close that does nothing
      */
+    @Test
     public void test_destroyObject_noOpClose() throws Exception {
         CloseableTestComponent.resetCounters();
 
@@ -972,6 +1004,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test that factory can be used with different generic types
      */
+    @Test
     public void test_genericTypeFlexibility() throws Exception {
         // String type
         container.singleton("integerComponent", 42);
@@ -994,6 +1027,7 @@ public class CrawlerPooledObjectFactoryTest extends PlainTestCase {
     /**
      * Test listener that modifies object state
      */
+    @Test
     public void test_listener_modifiesObjectState() throws Exception {
         final AtomicInteger modificationCount = new AtomicInteger(0);
 

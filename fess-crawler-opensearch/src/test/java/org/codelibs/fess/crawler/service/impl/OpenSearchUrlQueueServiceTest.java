@@ -27,7 +27,7 @@ import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.OpenSearchUrlQueue;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.opensearch.index.query.QueryBuilders;
 
@@ -57,7 +57,6 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
     }
 
     @Override
-    @BeforeEach
     public void setUp(final TestInfo testInfo) throws Exception {
         // create runner instance
         runner = new OpenSearchRunner();
@@ -77,14 +76,15 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDown(final TestInfo testInfo) throws Exception {
+        super.tearDown(testInfo);
         // close runner
         runner.close();
         // delete all files
         runner.clean();
     }
 
+    @Test
     public void test_insert_update_deleteTx() {
         final OpenSearchUrlQueue urlQueue = new OpenSearchUrlQueue();
         urlQueue.setCreateTime(System.currentTimeMillis());
@@ -115,6 +115,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
 
     }
 
+    @Test
     public void test_insert_update_delete_multiTx() {
         final OpenSearchUrlQueue urlQueue = new OpenSearchUrlQueue();
         urlQueue.setCreateTime(System.currentTimeMillis());
@@ -181,6 +182,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
                 .value() > 0);
     }
 
+    @Test
     public void test_poll_emptyQueueTx() {
         final String sessionId = "poll_session1";
 
@@ -189,6 +191,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         assertNull(result);
     }
 
+    @Test
     public void test_poll_singleItemTx() {
         final String sessionId = "poll_session2";
         final OpenSearchUrlQueue urlQueue = new OpenSearchUrlQueue();
@@ -213,6 +216,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         urlQueueService.delete(sessionId);
     }
 
+    @Test
     public void test_poll_multipleItemsTx() {
         final String sessionId = "poll_session3";
         final List<OpenSearchUrlQueue> urlQueueList = new ArrayList<>();
@@ -244,6 +248,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         urlQueueService.delete(sessionId);
     }
 
+    @Test
     public void test_poll_concurrentAccessTx() throws Exception {
         final String sessionId = "poll_session4";
         final int numThreads = 5;
@@ -302,6 +307,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         urlQueueService.delete(sessionId);
     }
 
+    @Test
     public void test_poll_maxCrawlingQueueSizeTx() {
         final String sessionId = "poll_session5";
         final int maxSize = 5;
@@ -335,6 +341,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         urlQueueService.delete(sessionId);
     }
 
+    @Test
     public void test_poll_withWeightTx() {
         final String sessionId = "poll_session6";
         final List<OpenSearchUrlQueue> urlQueueList = new ArrayList<>();
@@ -362,6 +369,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         urlQueueService.delete(sessionId);
     }
 
+    @Test
     public void test_offerAll_emptyListTx() {
         final String sessionId = "offer_session1";
         final List<OpenSearchUrlQueue> emptyList = new ArrayList<>();
@@ -374,6 +382,7 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         assertNull(polled);
     }
 
+    @Test
     public void test_offerAll_duplicateUrlsTx() {
         final String sessionId = "offer_session2";
         final List<OpenSearchUrlQueue> urlQueueList = new ArrayList<>();

@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -35,7 +36,6 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     private FilenameExtractor filenameExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("filenameExtractor", FilenameExtractor.class);
@@ -45,6 +45,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with valid filename in parameters.
      */
+    @Test
     public void test_getText_withValidFilename() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final Map<String, String> params = new HashMap<>();
@@ -59,6 +60,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with null parameters map.
      */
+    @Test
     public void test_getText_withNullParams() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
 
@@ -71,6 +73,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with empty parameters map.
      */
+    @Test
     public void test_getText_withEmptyParams() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final Map<String, String> params = new HashMap<>();
@@ -84,6 +87,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with missing RESOURCE_NAME_KEY in parameters.
      */
+    @Test
     public void test_getText_withMissingResourceName() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final Map<String, String> params = new HashMap<>();
@@ -98,6 +102,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with null input stream throws CrawlerSystemException.
      */
+    @Test
     public void test_getText_withNullInputStream() {
         final Map<String, String> params = new HashMap<>();
         params.put(ExtractData.RESOURCE_NAME_KEY, "test.txt");
@@ -113,6 +118,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with filename containing special characters.
      */
+    @Test
     public void test_getText_withSpecialCharactersInFilename() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final Map<String, String> params = new HashMap<>();
@@ -127,6 +133,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with very long filename.
      */
+    @Test
     public void test_getText_withLongFilename() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final StringBuilder longName = new StringBuilder();
@@ -147,6 +154,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with filename containing path separators.
      */
+    @Test
     public void test_getText_withPathInFilename() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final Map<String, String> params = new HashMap<>();
@@ -161,6 +169,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test that input stream content is not read (only validated).
      */
+    @Test
     public void test_getText_doesNotReadInputStream() throws Exception {
         final byte[] testData = "This data should not be read".getBytes();
         final InputStream in = new ByteArrayInputStream(testData);
@@ -178,6 +187,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with empty string filename.
      */
+    @Test
     public void test_getText_withEmptyFilename() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final Map<String, String> params = new HashMap<>();
@@ -192,6 +202,7 @@ public class FilenameExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with whitespace-only filename.
      */
+    @Test
     public void test_getText_withWhitespaceFilename() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         final Map<String, String> params = new HashMap<>();

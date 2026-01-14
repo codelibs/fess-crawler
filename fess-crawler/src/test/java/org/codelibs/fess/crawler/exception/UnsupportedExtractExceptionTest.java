@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.exception;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -26,6 +27,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Unsupported MIME type: application/octet-stream";
         UnsupportedExtractException exception = new UnsupportedExtractException(message);
@@ -38,6 +40,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         UnsupportedExtractException exception = new UnsupportedExtractException(null);
 
@@ -48,6 +51,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test constructor with empty message
      */
+    @Test
     public void test_constructor_withEmptyMessage() {
         UnsupportedExtractException exception = new UnsupportedExtractException("");
 
@@ -58,6 +62,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test stack trace is disabled (performance optimization)
      */
+    @Test
     public void test_stackTraceDisabled() {
         UnsupportedExtractException exception = new UnsupportedExtractException("Test");
 
@@ -69,6 +74,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test suppression is disabled (performance optimization)
      */
+    @Test
     public void test_suppressionDisabled() {
         UnsupportedExtractException exception = new UnsupportedExtractException("Test");
 
@@ -83,6 +89,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test inheritance
      */
+    @Test
     public void test_inheritance() {
         UnsupportedExtractException exception = new UnsupportedExtractException("Test");
 
@@ -94,6 +101,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new UnsupportedExtractException("Cannot extract: unknown format");
@@ -105,6 +113,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test catching as parent types
      */
+    @Test
     public void test_catchAsParentTypes() {
         try {
             throw new UnsupportedExtractException("Unsupported");
@@ -122,6 +131,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test with MIME type messages
      */
+    @Test
     public void test_mimeTypeMessages() {
         UnsupportedExtractException e1 = new UnsupportedExtractException("Unsupported MIME type: video/mp4");
         assertTrue(e1.getMessage().contains("video/mp4"));
@@ -136,6 +146,7 @@ public class UnsupportedExtractExceptionTest extends PlainTestCase {
     /**
      * Test performance - creation should be fast without stack trace
      */
+    @Test
     public void test_creationPerformance() {
         long start = System.nanoTime();
         for (int i = 0; i < 10000; i++) {

@@ -30,8 +30,7 @@ import java.util.regex.Pattern;
 import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -43,22 +42,21 @@ public class MemoryDataHelperTest extends PlainTestCase {
     private MemoryDataHelper helper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         helper = new MemoryDataHelper();
     }
 
     @Override
-    @AfterEach
-    protected void tearDown() throws Exception {
+    protected void tearDown(final TestInfo testInfo) throws Exception {
         helper.clear();
-        super.tearDown();
+        super.tearDown(testInfo);
     }
 
     /**
      * Test getUrlQueueList creates queue lazily
      */
+    @Test
     public void test_getUrlQueueList() {
         String sessionId = "session1";
 
@@ -79,6 +77,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test getUrlInQueueSet creates set lazily
      */
+    @Test
     public void test_getUrlInQueueSet() {
         String sessionId = "session1";
 
@@ -99,6 +98,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test addUrlQueueList adds to queue and urlInQueueSet
      */
+    @Test
     public void test_addUrlQueueList() {
         String sessionId = "session1";
         Queue<UrlQueueImpl<Long>> urlQueueList = new LinkedList<>();
@@ -125,6 +125,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test removeUrlQueueList removes both queue and urlInQueueSet
      */
+    @Test
     public void test_removeUrlQueueList() {
         String sessionId = "session1";
 
@@ -149,6 +150,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test getAccessResultMap creates map lazily and returns ConcurrentHashMap
      */
+    @Test
     public void test_getAccessResultMap() {
         String sessionId = "session1";
 
@@ -168,6 +170,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test concurrent access to getUrlQueueList
      */
+    @Test
     public void test_concurrentGetUrlQueueList() throws Exception {
         final int threadCount = 20;
         final CountDownLatch startLatch = new CountDownLatch(1);
@@ -212,6 +215,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test concurrent access to getAccessResultMap
      */
+    @Test
     public void test_concurrentGetAccessResultMap() throws Exception {
         final int threadCount = 20;
         final CountDownLatch startLatch = new CountDownLatch(1);
@@ -256,6 +260,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test concurrent writes to access result map
      */
+    @Test
     public void test_concurrentWriteToAccessResultMap() throws Exception {
         final int threadCount = 10;
         final int operationsPerThread = 100;
@@ -297,6 +302,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test clear method clears all data
      */
+    @Test
     public void test_clear() {
         // Add data
         helper.getUrlQueueList("session1").add(new UrlQueueImpl<>());
@@ -315,6 +321,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test URL pattern methods
      */
+    @Test
     public void test_urlPatterns() {
         String sessionId = "session1";
 
@@ -339,6 +346,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test getAccessResultList across sessions
      */
+    @Test
     public void test_getAccessResultList() {
         String url = "https://example.com/shared";
 
@@ -362,6 +370,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test deleteAccessResultMap
      */
+    @Test
     public void test_deleteAccessResultMap() {
         String sessionId = "session1";
 
@@ -378,6 +387,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test deleteAllAccessResultMap
      */
+    @Test
     public void test_deleteAllAccessResultMap() {
         // Add data to multiple sessions
         helper.getAccessResultMap("session1").put("url1", new AccessResultImpl<>());
@@ -394,6 +404,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test clearUrlQueueList
      */
+    @Test
     public void test_clearUrlQueueList() {
         // Add data
         helper.getUrlQueueList("session1").add(new UrlQueueImpl<>());
@@ -414,6 +425,7 @@ public class MemoryDataHelperTest extends PlainTestCase {
     /**
      * Test clearUrlPattern for all sessions
      */
+    @Test
     public void test_clearUrlPatternAll() {
         // Add patterns to multiple sessions
         helper.addIncludeUrlPattern("session1", "pattern1");

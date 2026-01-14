@@ -32,8 +32,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
@@ -62,7 +61,6 @@ public class S3ClientTest extends PlainTestCase {
     private GenericContainer minioServer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -147,39 +145,39 @@ public class S3ClientTest extends PlainTestCase {
     }
 
     @Override
-    @AfterEach
-    protected void tearDown() throws Exception {
+    protected void tearDown(final TestInfo testInfo) throws Exception {
         minioServer.stop();
-        super.tearDown();
+        super.tearDown(testInfo);
     }
 
+    @Test
     public void test_doGet() throws Exception {
         try (final ResponseData responseData = s3Client.doGet("s3://fess/file1.txt")) {
             assertEquals("s3://fess/file1.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file1", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label1", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = s3Client.doGet("s3://fess/dir1/file2.txt")) {
             assertEquals("s3://fess/dir1/file2.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file2", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label2", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = s3Client.doGet("s3://fess/dir1/dir2/file3.txt")) {
             assertEquals("s3://fess/dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file3", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label3", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = s3Client.doGet("s3://fess/dir3/file4.txt")) {
             assertEquals("s3://fess/dir3/file4.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file4", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label4", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = s3Client.doGet("s3://fess/")) {
@@ -226,6 +224,7 @@ public class S3ClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead() throws Exception {
         try (final ResponseData responseData = s3Client.doHead("s3://fess/file1.txt")) {
             assertEquals("s3://fess/file1.txt", responseData.getUrl());
@@ -273,6 +272,7 @@ public class S3ClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_parsePath() {
         String[] values;
 
@@ -302,6 +302,7 @@ public class S3ClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_accessTimeout_null_safety() {
         // Test that accessTimeoutTask null check prevents NPE
         S3Client client = new S3Client() {
@@ -358,6 +359,7 @@ public class S3ClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_accessTimeoutTarget() {
         S3Client client = new S3Client() {
             @Override
@@ -402,6 +404,7 @@ public class S3ClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_accessTimeoutTarget() {
         S3Client client = new S3Client() {
             @Override
@@ -446,6 +449,7 @@ public class S3ClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_temp_file_creation() {
         // Test that temp file uses correct prefix "S3Client" not "StorageClient"
         S3Client client = new S3Client() {

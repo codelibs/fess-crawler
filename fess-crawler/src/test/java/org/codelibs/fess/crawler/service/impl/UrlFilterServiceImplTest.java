@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -43,12 +44,12 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
     private MemoryDataHelper dataHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         MockitoAnnotations.openMocks(this);
     }
 
+    @Test
     public void test_addIncludeUrlFilterSingle() {
         // Setup
         String sessionId = "session123";
@@ -61,6 +62,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).addIncludeUrlPattern(sessionId, url);
     }
 
+    @Test
     public void test_addIncludeUrlFilterList() {
         // Setup
         String sessionId = "session123";
@@ -78,6 +80,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).addIncludeUrlPattern(sessionId, "https://sample.org/.*");
     }
 
+    @Test
     public void test_addIncludeUrlFilterEmptyList() {
         // Setup
         String sessionId = "session123";
@@ -90,6 +93,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper, times(0)).addIncludeUrlPattern(sessionId, null);
     }
 
+    @Test
     public void test_addExcludeUrlFilterSingle() {
         // Setup
         String sessionId = "session123";
@@ -102,6 +106,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).addExcludeUrlPattern(sessionId, url);
     }
 
+    @Test
     public void test_addExcludeUrlFilterList() {
         // Setup
         String sessionId = "session123";
@@ -119,6 +124,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).addExcludeUrlPattern(sessionId, "https://example.com/secret/.*");
     }
 
+    @Test
     public void test_addExcludeUrlFilterEmptyList() {
         // Setup
         String sessionId = "session123";
@@ -131,6 +137,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper, times(0)).addExcludeUrlPattern(sessionId, null);
     }
 
+    @Test
     public void test_delete() {
         // Setup
         String sessionId = "session123";
@@ -142,6 +149,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).clearUrlPattern(sessionId);
     }
 
+    @Test
     public void test_deleteAll() {
         // Execute
         service.deleteAll();
@@ -150,6 +158,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).clearUrlPattern();
     }
 
+    @Test
     public void test_getIncludeUrlPatternList() {
         // Setup
         String sessionId = "session123";
@@ -169,6 +178,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).getIncludeUrlPatternList(sessionId);
     }
 
+    @Test
     public void test_getIncludeUrlPatternListEmpty() {
         // Setup
         String sessionId = "session123";
@@ -185,6 +195,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).getIncludeUrlPatternList(sessionId);
     }
 
+    @Test
     public void test_getExcludeUrlPatternList() {
         // Setup
         String sessionId = "session123";
@@ -204,6 +215,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).getExcludeUrlPatternList(sessionId);
     }
 
+    @Test
     public void test_getExcludeUrlPatternListEmpty() {
         // Setup
         String sessionId = "session123";
@@ -220,6 +232,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).getExcludeUrlPatternList(sessionId);
     }
 
+    @Test
     public void test_complexScenario() {
         // Setup
         String sessionId = "crawl-session-456";
@@ -271,6 +284,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).addExcludeUrlPattern(sessionId, "https://example.com/secret/.*");
     }
 
+    @Test
     public void test_multipleSessionsIndependence() {
         // Setup
         String session1 = "session1";
@@ -290,6 +304,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper).addExcludeUrlPattern(session2, "https://session2.com/private/.*");
     }
 
+    @Test
     public void test_deleteSpecificSession() {
         // Setup
         String session1 = "session1";
@@ -307,6 +322,7 @@ public class UrlFilterServiceImplTest extends PlainTestCase {
         verify(dataHelper, times(0)).clearUrlPattern(session2);
     }
 
+    @Test
     public void test_deleteAllSessions() {
         // Setup
         service.addIncludeUrlFilter("session1", "https://example.com/.*");

@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -28,6 +29,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class IgnoreCloseInputStreamTest extends PlainTestCase {
 
+    @Test
     public void test_close_isIgnored() throws IOException {
         // Test that close() is ignored
         byte[] data = "Test data".getBytes();
@@ -35,29 +37,31 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         IgnoreCloseInputStream stream = new IgnoreCloseInputStream(underlyingStream);
 
         // Read some data
-        assertEquals('T', stream.read());
+        assertEquals((int) 'T', stream.read());
 
         // Close should be ignored
         stream.close();
 
         // Should still be able to read
-        assertEquals('e', stream.read());
-        assertEquals('s', stream.read());
-        assertEquals('t', stream.read());
+        assertEquals((int) 'e', stream.read());
+        assertEquals((int) 's', stream.read());
+        assertEquals((int) 't', stream.read());
     }
 
+    @Test
     public void test_read_delegatesToUnderlying() throws IOException {
         // Test that read() delegates to underlying stream
         byte[] data = "ABC".getBytes();
         InputStream underlyingStream = new ByteArrayInputStream(data);
         IgnoreCloseInputStream stream = new IgnoreCloseInputStream(underlyingStream);
 
-        assertEquals('A', stream.read());
-        assertEquals('B', stream.read());
-        assertEquals('C', stream.read());
+        assertEquals((int) 'A', stream.read());
+        assertEquals((int) 'B', stream.read());
+        assertEquals((int) 'C', stream.read());
         assertEquals(-1, stream.read()); // EOF
     }
 
+    @Test
     public void test_readBytes_delegatesToUnderlying() throws IOException {
         // Test that read(byte[]) delegates to underlying stream
         byte[] data = "Hello World".getBytes();
@@ -71,6 +75,7 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         assertEquals("Hello", new String(buffer));
     }
 
+    @Test
     public void test_readBytesWithOffset_delegatesToUnderlying() throws IOException {
         // Test that read(byte[], int, int) delegates to underlying stream
         byte[] data = "0123456789".getBytes();
@@ -84,6 +89,7 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         assertEquals("01234", new String(buffer, 2, 5));
     }
 
+    @Test
     public void test_available_delegatesToUnderlying() throws IOException {
         // Test that available() delegates to underlying stream
         byte[] data = "Test data".getBytes();
@@ -96,6 +102,7 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         assertEquals(8, stream.available());
     }
 
+    @Test
     public void test_skip_delegatesToUnderlying() throws IOException {
         // Test that skip() delegates to underlying stream
         byte[] data = "0123456789".getBytes();
@@ -103,10 +110,11 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         IgnoreCloseInputStream stream = new IgnoreCloseInputStream(underlyingStream);
 
         long skipped = stream.skip(5);
-        assertEquals(5, skipped);
-        assertEquals('5', stream.read());
+        assertEquals(5L, skipped);
+        assertEquals((int) '5', stream.read());
     }
 
+    @Test
     public void test_markSupported_delegatesToUnderlying() {
         // Test that markSupported() delegates to underlying stream
         byte[] data = "Test".getBytes();
@@ -117,29 +125,31 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         assertTrue(stream.markSupported());
     }
 
+    @Test
     public void test_markAndReset_delegatesToUnderlying() throws IOException {
         // Test that mark() and reset() delegate to underlying stream
         byte[] data = "ABCDEFGH".getBytes();
         InputStream underlyingStream = new ByteArrayInputStream(data);
         IgnoreCloseInputStream stream = new IgnoreCloseInputStream(underlyingStream);
 
-        assertEquals('A', stream.read());
-        assertEquals('B', stream.read());
+        assertEquals((int) 'A', stream.read());
+        assertEquals((int) 'B', stream.read());
 
         // Mark current position
         stream.mark(10);
 
-        assertEquals('C', stream.read());
-        assertEquals('D', stream.read());
+        assertEquals((int) 'C', stream.read());
+        assertEquals((int) 'D', stream.read());
 
         // Reset to marked position
         stream.reset();
 
         // Should read from marked position again
-        assertEquals('C', stream.read());
-        assertEquals('D', stream.read());
+        assertEquals((int) 'C', stream.read());
+        assertEquals((int) 'D', stream.read());
     }
 
+    @Test
     public void test_toString_delegatesToUnderlying() {
         // Test that toString() delegates to underlying stream
         byte[] data = "Test".getBytes();
@@ -151,6 +161,7 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         assertTrue(result.contains("ByteArrayInputStream"));
     }
 
+    @Test
     public void test_multipleCloseCallsDoNothing() throws IOException {
         // Test that multiple close() calls are all ignored
         byte[] data = "Test data".getBytes();
@@ -163,10 +174,11 @@ public class IgnoreCloseInputStreamTest extends PlainTestCase {
         stream.close();
 
         // Should still be able to read
-        assertEquals('T', stream.read());
-        assertEquals('e', stream.read());
+        assertEquals((int) 'T', stream.read());
+        assertEquals((int) 'e', stream.read());
     }
 
+    @Test
     public void test_emptyStream() throws IOException {
         // Test with empty stream
         byte[] data = new byte[0];

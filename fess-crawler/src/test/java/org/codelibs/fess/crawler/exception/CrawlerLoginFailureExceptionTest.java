@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.exception;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -26,6 +27,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Login failed for user admin";
         CrawlerLoginFailureException exception = new CrawlerLoginFailureException(message);
@@ -38,6 +40,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         CrawlerLoginFailureException exception = new CrawlerLoginFailureException(null);
 
@@ -48,6 +51,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test constructor with empty message
      */
+    @Test
     public void test_constructor_withEmptyMessage() {
         CrawlerLoginFailureException exception = new CrawlerLoginFailureException("");
 
@@ -58,6 +62,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test inheritance
      */
+    @Test
     public void test_inheritance() {
         CrawlerLoginFailureException exception = new CrawlerLoginFailureException("Test");
 
@@ -70,6 +75,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new CrawlerLoginFailureException("Authentication failed");
@@ -81,6 +87,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test catching as parent type
      */
+    @Test
     public void test_catchAsParentType() {
         try {
             throw new CrawlerLoginFailureException("Login error");
@@ -93,6 +100,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test various login failure messages
      */
+    @Test
     public void test_loginFailureMessages() {
         CrawlerLoginFailureException e1 = new CrawlerLoginFailureException("Invalid credentials");
         assertEquals("Invalid credentials", e1.getMessage());
@@ -110,6 +118,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test message with URL
      */
+    @Test
     public void test_messageWithUrl() {
         String message = "Failed to login to http://example.com/admin: Invalid password";
         CrawlerLoginFailureException exception = new CrawlerLoginFailureException(message);
@@ -121,6 +130,7 @@ public class CrawlerLoginFailureExceptionTest extends PlainTestCase {
     /**
      * Test message with username (should not include password)
      */
+    @Test
     public void test_messageWithUsername() {
         String message = "Login failed for user=testuser at http://example.com";
         CrawlerLoginFailureException exception = new CrawlerLoginFailureException(message);

@@ -37,6 +37,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -51,7 +52,6 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     private TarExtractor tarExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         container = new StandardCrawlerContainer();
@@ -80,6 +80,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that ZipExtractor handles null input stream with appropriate error message.
      */
+    @Test
     public void test_ZipExtractor_nullInputStream_throwsWithMessage() {
         try {
             zipExtractor.getText(null, null);
@@ -92,6 +93,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that TarExtractor handles null input stream with appropriate error message.
      */
+    @Test
     public void test_TarExtractor_nullInputStream_throwsWithMessage() {
         try {
             tarExtractor.getText(null, null);
@@ -104,6 +106,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that ZipExtractor provides descriptive error message for invalid archive.
      */
+    @Test
     public void test_ZipExtractor_invalidArchive_throwsWithDescriptiveMessage() {
         final InputStream invalidStream = new ByteArrayInputStream("not a valid zip file".getBytes());
 
@@ -120,6 +123,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
      * Test that TarExtractor handles invalid archive gracefully.
      * Invalid archives may either throw an exception or return empty content.
      */
+    @Test
     public void test_TarExtractor_invalidArchive_handlesGracefully() {
         final InputStream invalidStream = new ByteArrayInputStream("not a valid tar file".getBytes());
 
@@ -138,6 +142,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that ZipExtractor successfully extracts from valid archive.
      */
+    @Test
     public void test_ZipExtractor_validArchive_extractsSuccessfully() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/zip/test.zip");
 
@@ -152,6 +157,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
      * Test that ZipExtractor handles mixed valid and invalid entries gracefully.
      * Should continue processing valid entries even when some fail.
      */
+    @Test
     public void test_ZipExtractor_mixedEntries_continuesProcessing() throws IOException {
         // Create a ZIP with one valid text file
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -181,6 +187,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
      * Test that TarExtractor handles mixed valid and invalid entries gracefully.
      * Should continue processing valid entries even when some fail.
      */
+    @Test
     public void test_TarExtractor_mixedEntries_continuesProcessing() throws IOException {
         // Create a TAR with one valid text file
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -213,6 +220,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that ZipExtractor returns empty content for archive with no extractable files.
      */
+    @Test
     public void test_ZipExtractor_noExtractableEntries_returnsEmptyContent() throws IOException {
         // Create a ZIP with an unsupported file type
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -234,6 +242,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that TarExtractor returns empty content for archive with no extractable files.
      */
+    @Test
     public void test_TarExtractor_noExtractableEntries_returnsEmptyContent() throws IOException {
         // Create a TAR with an unsupported file type
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -257,6 +266,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that empty ZIP archive is handled gracefully.
      */
+    @Test
     public void test_ZipExtractor_emptyArchive_handlesGracefully() throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (final ZipOutputStream zos = new ZipOutputStream(baos)) {
@@ -274,6 +284,7 @@ public class ArchiveExtractorErrorHandlingTest extends PlainTestCase {
     /**
      * Test that empty TAR archive is handled gracefully.
      */
+    @Test
     public void test_TarExtractor_emptyArchive_handlesGracefully() throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (final TarArchiveOutputStream tos = new TarArchiveOutputStream(baos)) {

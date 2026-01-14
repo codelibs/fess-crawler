@@ -24,6 +24,7 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -34,17 +35,18 @@ public class BinaryTransformerTest extends PlainTestCase {
     public BinaryTransformer binaryTransformer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         binaryTransformer = new BinaryTransformer();
         binaryTransformer.setName("binaryTransformer");
     }
 
+    @Test
     public void test_name() {
         assertEquals("binaryTransformer", binaryTransformer.getName());
     }
 
+    @Test
     public void test_transform() {
         final byte[] data = new String("xyz").getBytes();
         final ResponseData responseData = new ResponseData();
@@ -53,6 +55,7 @@ public class BinaryTransformerTest extends PlainTestCase {
         assertEquals("xyz", new String(resultData.getData()));
     }
 
+    @Test
     public void test_transform_null() {
         try {
             binaryTransformer.transform(null);
@@ -62,6 +65,7 @@ public class BinaryTransformerTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getData() throws Exception {
         final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("binaryTransformer");
@@ -73,6 +77,7 @@ public class BinaryTransformerTest extends PlainTestCase {
         assertEquals("xyz", new String(IOUtils.toByteArray((InputStream) obj)));
     }
 
+    @Test
     public void test_getData_wrongName() throws Exception {
         final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("transformer");
@@ -84,6 +89,7 @@ public class BinaryTransformerTest extends PlainTestCase {
         } catch (final CrawlerSystemException e) {}
     }
 
+    @Test
     public void test_getData_nullData() throws Exception {
         final AccessResultDataImpl accessResultData = new AccessResultDataImpl();
         accessResultData.setTransformerName("binaryTransformer");

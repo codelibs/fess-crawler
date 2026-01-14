@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.client.http.config;
 
 import java.util.Date;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -28,6 +29,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test default values on new instance
      */
+    @Test
     public void test_defaultValues() {
         CookieConfig config = new CookieConfig();
 
@@ -43,6 +45,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test name getter and setter
      */
+    @Test
     public void test_name() {
         CookieConfig config = new CookieConfig();
 
@@ -62,6 +65,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test value getter and setter
      */
+    @Test
     public void test_value() {
         CookieConfig config = new CookieConfig();
 
@@ -81,6 +85,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test domain getter and setter
      */
+    @Test
     public void test_domain() {
         CookieConfig config = new CookieConfig();
 
@@ -100,6 +105,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test path getter and setter
      */
+    @Test
     public void test_path() {
         CookieConfig config = new CookieConfig();
 
@@ -119,6 +125,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test expiryDate getter and setter
      */
+    @Test
     public void test_expiryDate() {
         CookieConfig config = new CookieConfig();
 
@@ -141,6 +148,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test secure flag getter and setter
      */
+    @Test
     public void test_secure() {
         CookieConfig config = new CookieConfig();
 
@@ -156,6 +164,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test httpOnly flag getter and setter
      */
+    @Test
     public void test_httpOnly() {
         CookieConfig config = new CookieConfig();
 
@@ -171,6 +180,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test full configuration with all properties set
      */
+    @Test
     public void test_fullConfiguration() {
         CookieConfig config = new CookieConfig();
         Date expiry = new Date(System.currentTimeMillis() + 3600000L);
@@ -195,6 +205,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test toString method
      */
+    @Test
     public void test_toString() {
         CookieConfig config = new CookieConfig();
         config.setName("testCookie");
@@ -217,6 +228,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test toString with null values
      */
+    @Test
     public void test_toString_withNullValues() {
         CookieConfig config = new CookieConfig();
 
@@ -232,6 +244,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test toString does not include value (security)
      */
+    @Test
     public void test_toString_excludesValue() {
         CookieConfig config = new CookieConfig();
         config.setName("session");
@@ -246,6 +259,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test special characters in cookie name
      */
+    @Test
     public void test_specialCharactersInName() {
         CookieConfig config = new CookieConfig();
 
@@ -259,6 +273,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test Unicode characters in value
      */
+    @Test
     public void test_unicodeValue() {
         CookieConfig config = new CookieConfig();
 
@@ -272,6 +287,7 @@ public class CookieConfigTest extends PlainTestCase {
     /**
      * Test multiple instances are independent
      */
+    @Test
     public void test_multipleInstances() {
         CookieConfig config1 = new CookieConfig();
         CookieConfig config2 = new CookieConfig();

@@ -19,10 +19,12 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class Hc5AuthenticationTest extends PlainTestCase {
 
+    @Test
     public void test_constructor_twoArgs() {
         AuthScope authScope = new AuthScope("example.com", 80);
         Credentials credentials = new UsernamePasswordCredentials("user", "password".toCharArray());
@@ -34,6 +36,7 @@ public class Hc5AuthenticationTest extends PlainTestCase {
         assertNull(auth.getAuthScheme());
     }
 
+    @Test
     public void test_constructor_threeArgs() {
         AuthScope authScope = new AuthScope("example.com", 443);
         Credentials credentials = new UsernamePasswordCredentials("admin", "secret".toCharArray());
@@ -46,6 +49,7 @@ public class Hc5AuthenticationTest extends PlainTestCase {
         assertEquals(authScheme, auth.getAuthScheme());
     }
 
+    @Test
     public void test_getters() {
         AuthScope authScope = new AuthScope("test.example.com", 8080);
         Credentials credentials = new UsernamePasswordCredentials("testuser", "testpass".toCharArray());
@@ -58,6 +62,7 @@ public class Hc5AuthenticationTest extends PlainTestCase {
         assertTrue(authScheme == auth.getAuthScheme());
     }
 
+    @Test
     public void test_setters() {
         AuthScope initialScope = new AuthScope("initial.com", 80);
         Credentials initialCreds = new UsernamePasswordCredentials("initial", "init".toCharArray());
@@ -78,6 +83,7 @@ public class Hc5AuthenticationTest extends PlainTestCase {
         assertEquals(newScheme, auth.getAuthScheme());
     }
 
+    @Test
     public void test_getAuthScheme_null() {
         AuthScope authScope = new AuthScope("example.com", 80);
         Credentials credentials = new UsernamePasswordCredentials("user", "password".toCharArray());
@@ -87,6 +93,7 @@ public class Hc5AuthenticationTest extends PlainTestCase {
         assertNull(auth.getAuthScheme());
     }
 
+    @Test
     public void test_constructor_withNullValues() {
         // Constructor accepts null values
         Hc5Authentication auth = new Hc5Authentication(null, null, null);

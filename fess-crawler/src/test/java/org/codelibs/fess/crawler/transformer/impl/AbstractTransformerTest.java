@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -125,7 +126,6 @@ public class AbstractTransformerTest extends PlainTestCase {
     private TestTransformer testTransformer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         testTransformer = new TestTransformer();
@@ -134,6 +134,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test default constructor
      */
+    @Test
     public void test_constructor() {
         TestTransformer transformer = new TestTransformer();
         assertNotNull(transformer);
@@ -143,6 +144,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test getName and setName with normal values
      */
+    @Test
     public void test_name_getterSetter() {
         // Initial state
         assertNull(testTransformer.getName());
@@ -167,6 +169,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test name with special characters
      */
+    @Test
     public void test_name_specialCharacters() {
         // Test with spaces
         testTransformer.setName("name with spaces");
@@ -188,6 +191,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test name with very long string
      */
+    @Test
     public void test_name_veryLongString() {
         StringBuilder longName = new StringBuilder();
         for (int i = 0; i < 10000; i++) {
@@ -203,6 +207,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test name with whitespace variations
      */
+    @Test
     public void test_name_whitespace() {
         // Leading whitespace
         testTransformer.setName("  leadingSpaces");
@@ -232,6 +237,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test multiple name changes
      */
+    @Test
     public void test_multipleNameChanges() {
         String[] names = { "first", "second", "third", "fourth", "fifth" };
 
@@ -247,6 +253,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test transform method implementation
      */
+    @Test
     public void test_transform_implementation() {
         testTransformer.setName("myTransformer");
 
@@ -264,6 +271,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test transform with null name
      */
+    @Test
     public void test_transform_withNullName() {
         // Don't set name (remains null)
         ResponseData responseData = new ResponseData();
@@ -277,6 +285,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test transform with exception
      */
+    @Test
     public void test_transform_withException() {
         testTransformer.setName("exceptionTransformer");
         testTransformer.setThrowException(true);
@@ -296,6 +305,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test getData implementation
      */
+    @Test
     public void test_getData_implementation() {
         AccessResultData<String> accessResultData = new AccessResultData<String>() {
             private byte[] data = "test data".getBytes();
@@ -364,6 +374,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test name tracking transformer
      */
+    @Test
     public void test_nameTrackingTransformer() {
         NameTrackingTransformer tracker = new NameTrackingTransformer();
         ResponseData responseData = new ResponseData();
@@ -388,6 +399,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test concurrent name access
      */
+    @Test
     public void test_concurrentNameAccess() throws Exception {
         final int threadCount = 100;
         final int operationsPerThread = 100;
@@ -438,6 +450,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test concurrent name changes
      */
+    @Test
     public void test_concurrentNameChanges() throws Exception {
         final int threadCount = 10;
         final CountDownLatch startLatch = new CountDownLatch(1);
@@ -483,6 +496,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test inheritance behavior
      */
+    @Test
     public void test_inheritanceBehavior() {
         // Test that subclasses inherit name management
         TestTransformer transformer1 = new TestTransformer();
@@ -503,6 +517,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test protected field access
      */
+    @Test
     public void test_protectedFieldAccess() {
         TestTransformer transformer = new TestTransformer();
 
@@ -522,6 +537,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test name persistence across operations
      */
+    @Test
     public void test_namePersistence() {
         testTransformer.setName("persistentName");
 
@@ -540,6 +556,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test name with control characters
      */
+    @Test
     public void test_name_controlCharacters() {
         // Test with various control characters
         testTransformer.setName("name\0with\0null");
@@ -558,6 +575,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test multiple transformer instances
      */
+    @Test
     public void test_multipleInstances() {
         TestTransformer transformer1 = new TestTransformer();
         TestTransformer transformer2 = new TestTransformer();
@@ -583,6 +601,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test name boundary cases
      */
+    @Test
     public void test_name_boundaryCases() {
         // Single character
         testTransformer.setName("a");
@@ -609,6 +628,7 @@ public class AbstractTransformerTest extends PlainTestCase {
     /**
      * Test complete workflow
      */
+    @Test
     public void test_completeWorkflow() {
         // Create transformer with name
         TestTransformer transformer = new TestTransformer();

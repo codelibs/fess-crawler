@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -44,7 +45,6 @@ public class CrawlerContextTest extends PlainTestCase {
     private CrawlerContext crawlerContext;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         crawlerContext = new CrawlerContext();
@@ -132,6 +132,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test default constructor
      */
+    @Test
     public void test_constructor() {
         CrawlerContext context = new CrawlerContext();
         assertNotNull(context);
@@ -152,6 +153,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test sessionId getter and setter
      */
+    @Test
     public void test_sessionId() {
         assertNull(crawlerContext.getSessionId());
 
@@ -172,6 +174,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test activeThreadCount getter and atomic operations
      */
+    @Test
     public void test_activeThreadCount() {
         assertEquals(0, crawlerContext.getActiveThreadCount());
 
@@ -197,6 +200,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test concurrent activeThreadCount operations
      */
+    @Test
     public void test_activeThreadCount_concurrent() throws Exception {
         final int threadCount = 100;
         final int operationsPerThread = 100;
@@ -233,6 +237,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test accessCount operations
      */
+    @Test
     public void test_accessCount() {
         assertEquals(0L, crawlerContext.getAccessCount());
 
@@ -258,6 +263,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test concurrent access count operations
      */
+    @Test
     public void test_accessCount_concurrent() throws Exception {
         final int threadCount = 100;
         final int operationsPerThread = 1000;
@@ -288,12 +294,13 @@ public class CrawlerContextTest extends PlainTestCase {
         endLatch.await(10, TimeUnit.SECONDS);
         executor.shutdown();
 
-        assertEquals(threadCount * operationsPerThread, crawlerContext.getAccessCount());
+        assertEquals((long) (threadCount * operationsPerThread), crawlerContext.getAccessCount());
     }
 
     /**
      * Test status getter and setter
      */
+    @Test
     public void test_status() {
         assertEquals(CrawlerStatus.INITIALIZING, crawlerContext.getStatus());
 
@@ -310,6 +317,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test urlFilter getter and setter
      */
+    @Test
     public void test_urlFilter() {
         assertNull(crawlerContext.getUrlFilter());
 
@@ -324,6 +332,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test ruleManager getter and setter
      */
+    @Test
     public void test_ruleManager() {
         assertNull(crawlerContext.getRuleManager());
 
@@ -338,6 +347,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test intervalController getter and setter
      */
+    @Test
     public void test_intervalController() {
         assertNull(crawlerContext.getIntervalController());
 
@@ -352,6 +362,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test robotsTxtUrlSet getter and setter
      */
+    @Test
     public void test_robotsTxtUrlSet() {
         Set<String> urlSet = crawlerContext.getRobotsTxtUrlSet();
         assertNotNull(urlSet);
@@ -378,6 +389,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test LRU behavior of robotsTxtUrlSet
      */
+    @Test
     public void test_robotsTxtUrlSet_lru() {
         Set<String> urlSet = crawlerContext.getRobotsTxtUrlSet();
 
@@ -397,6 +409,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test numOfThread getter and setter
      */
+    @Test
     public void test_numOfThread() {
         assertEquals(10, crawlerContext.getNumOfThread());
 
@@ -416,6 +429,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test maxThreadCheckCount getter and setter
      */
+    @Test
     public void test_maxThreadCheckCount() {
         assertEquals(20, crawlerContext.getMaxThreadCheckCount());
 
@@ -435,6 +449,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test maxDepth getter and setter
      */
+    @Test
     public void test_maxDepth() {
         assertEquals(-1, crawlerContext.getMaxDepth());
 
@@ -454,6 +469,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test maxAccessCount getter and setter
      */
+    @Test
     public void test_maxAccessCount() {
         assertEquals(0L, crawlerContext.getMaxAccessCount());
 
@@ -473,6 +489,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test sitemaps add and remove operations
      */
+    @Test
     public void test_sitemaps() {
         // Initial state
         assertNull(crawlerContext.removeSitemaps());
@@ -505,6 +522,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test thread-local nature of sitemaps
      */
+    @Test
     public void test_sitemaps_threadLocal() throws Exception {
         final String[] thread1Sitemaps = new String[] { "http://thread1.com/sitemap.xml" };
         final String[] thread2Sitemaps = new String[] { "http://thread2.com/sitemap.xml" };
@@ -559,6 +577,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test concurrent operations on different fields
      */
+    @Test
     public void test_concurrentOperations() throws Exception {
         final int threadCount = 10;
         final int operationsPerThread = 100;
@@ -610,12 +629,13 @@ public class CrawlerContextTest extends PlainTestCase {
         executor.shutdown();
 
         assertTrue(exceptions.isEmpty());
-        assertEquals(threadCount * operationsPerThread, crawlerContext.getAccessCount());
+        assertEquals((long) (threadCount * operationsPerThread), crawlerContext.getAccessCount());
     }
 
     /**
      * Test complete workflow scenario
      */
+    @Test
     public void test_completeWorkflow() {
         // Initialize context
         crawlerContext.setSessionId("workflow-session");
@@ -665,6 +685,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test boundary values
      */
+    @Test
     public void test_boundaryValues() {
         // Test with maximum values
         crawlerContext.setNumOfThread(Integer.MAX_VALUE);
@@ -696,6 +717,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test access count atomic operations
      */
+    @Test
     public void test_accessCountAtomicOperations() {
         // Verify atomic nature by checking return values
         assertEquals(1L, crawlerContext.incrementAndGetAccessCount());
@@ -721,6 +743,7 @@ public class CrawlerContextTest extends PlainTestCase {
     /**
      * Test volatile status field behavior
      */
+    @Test
     public void test_statusVolatile() throws Exception {
         final CountDownLatch statusSetLatch = new CountDownLatch(1);
         final CountDownLatch statusReadLatch = new CountDownLatch(1);

@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
 
 import jakarta.annotation.Resource;
@@ -51,6 +52,7 @@ public class CrawlerTest extends LastaDiTestCase {
         return "crawler.xml";
     }
 
+    @Test
     public void test_execute_web() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -77,6 +79,7 @@ public class CrawlerTest extends LastaDiTestCase {
         }
     }
 
+    @Test
     public void test_execute_xmlSitemaps() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -103,6 +106,7 @@ public class CrawlerTest extends LastaDiTestCase {
         }
     }
 
+    @Test
     public void test_execute_textSitemaps() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -129,6 +133,7 @@ public class CrawlerTest extends LastaDiTestCase {
         }
     }
 
+    @Test
     public void test_execute_file_maxCount() throws Exception {
         final File targetFile = ResourceUtil.getResourceAsFile("test");
         String path = targetFile.getAbsolutePath();
@@ -155,6 +160,7 @@ public class CrawlerTest extends LastaDiTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_execute_file_depth() throws Exception {
         final File targetFile = ResourceUtil.getResourceAsFile("test");
         String path = targetFile.getAbsolutePath();
@@ -182,6 +188,7 @@ public class CrawlerTest extends LastaDiTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_execute_file_filtered() throws Exception {
         final File targetFile = ResourceUtil.getResourceAsFile("test");
         String path = targetFile.getAbsolutePath();
@@ -209,6 +216,7 @@ public class CrawlerTest extends LastaDiTestCase {
         dataService.delete(sessionId);
     }
 
+    @Test
     public void test_execute_bg() throws Exception {
         final CrawlerWebServer server = new CrawlerWebServer(7070);
         server.start();
@@ -249,6 +257,7 @@ public class CrawlerTest extends LastaDiTestCase {
         }
     }
 
+    @Test
     public void test_execute_2instance() throws Exception {
         final CrawlerWebServer server1 = new CrawlerWebServer(7070);
         server1.start();

@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -31,6 +32,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test default values
      */
+    @Test
     public void test_defaultValues() {
         SitemapUrl url = new SitemapUrl();
 
@@ -50,6 +52,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test loc getter and setter
      */
+    @Test
     public void test_loc() {
         SitemapUrl url = new SitemapUrl();
 
@@ -66,6 +69,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test lastmod getter and setter
      */
+    @Test
     public void test_lastmod() {
         SitemapUrl url = new SitemapUrl();
 
@@ -82,10 +86,11 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test changefreq getter and setter
      */
+    @Test
     public void test_changefreq() {
         SitemapUrl url = new SitemapUrl();
 
-        String[] validValues = {"always", "hourly", "daily", "weekly", "monthly", "yearly", "never"};
+        String[] validValues = { "always", "hourly", "daily", "weekly", "monthly", "yearly", "never" };
         for (String value : validValues) {
             url.setChangefreq(value);
             assertEquals(value, url.getChangefreq());
@@ -98,6 +103,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test priority getter and setter
      */
+    @Test
     public void test_priority() {
         SitemapUrl url = new SitemapUrl();
 
@@ -117,6 +123,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test images list management
      */
+    @Test
     public void test_images() {
         SitemapUrl url = new SitemapUrl();
 
@@ -139,6 +146,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test videos list management
      */
+    @Test
     public void test_videos() {
         SitemapUrl url = new SitemapUrl();
 
@@ -155,6 +163,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test news getter and setter
      */
+    @Test
     public void test_news() {
         SitemapUrl url = new SitemapUrl();
 
@@ -174,6 +183,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test alternate links management
      */
+    @Test
     public void test_alternateLinks() {
         SitemapUrl url = new SitemapUrl();
 
@@ -191,6 +201,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test equals - same object
      */
+    @Test
     public void test_equals_sameObject() {
         SitemapUrl url = new SitemapUrl();
         url.setLoc("http://example.com");
@@ -201,6 +212,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test equals - equal objects
      */
+    @Test
     public void test_equals_equalObjects() {
         SitemapUrl url1 = new SitemapUrl();
         url1.setLoc("http://example.com");
@@ -221,6 +233,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test equals - different loc
      */
+    @Test
     public void test_equals_differentLoc() {
         SitemapUrl url1 = new SitemapUrl();
         url1.setLoc("http://example.com/page1");
@@ -234,6 +247,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test equals - null comparison
      */
+    @Test
     public void test_equals_null() {
         SitemapUrl url = new SitemapUrl();
         assertFalse(url.equals(null));
@@ -242,6 +256,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test equals - different type
      */
+    @Test
     public void test_equals_differentType() {
         SitemapUrl url = new SitemapUrl();
         url.setLoc("http://example.com");
@@ -253,6 +268,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test hashCode consistency
      */
+    @Test
     public void test_hashCode() {
         SitemapUrl url1 = new SitemapUrl();
         url1.setLoc("http://example.com");
@@ -272,6 +288,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test toString
      */
+    @Test
     public void test_toString() {
         SitemapUrl url = new SitemapUrl();
         url.setLoc("http://example.com/page");
@@ -291,6 +308,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test implements Sitemap interface
      */
+    @Test
     public void test_implementsSitemap() {
         SitemapUrl url = new SitemapUrl();
         assertTrue(url instanceof Sitemap);
@@ -299,6 +317,7 @@ public class SitemapUrlTest extends PlainTestCase {
     /**
      * Test serialization
      */
+    @Test
     public void test_serialization() throws Exception {
         SitemapUrl original = new SitemapUrl();
         original.setLoc("http://example.com/page");

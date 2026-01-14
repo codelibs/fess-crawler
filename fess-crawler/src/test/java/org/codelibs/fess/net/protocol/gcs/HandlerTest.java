@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -35,7 +36,6 @@ import org.junit.jupiter.api.TestInfo;
  */
 public class HandlerTest extends PlainTestCase {
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         new StandardCrawlerContainer();
@@ -44,6 +44,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test that the gcs protocol is correctly recognized.
      */
+    @Test
     public void test_protocol() throws Exception {
         URL url = new URL("gcs://bucket/object");
         assertEquals("gcs", url.getProtocol());
@@ -52,6 +53,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL parsing with bucket and object path.
      */
+    @Test
     public void test_urlParsing_bucketAndObject() throws Exception {
         URL url = new URL("gcs://mybucket/path/to/object.txt");
         Handler handler = new Handler();
@@ -68,6 +70,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL parsing with bucket only (no object path).
      */
+    @Test
     public void test_urlParsing_bucketOnly() throws Exception {
         URL url = new URL("gcs://mybucket");
         Handler handler = new Handler();
@@ -82,6 +85,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL parsing with bucket and root path.
      */
+    @Test
     public void test_urlParsing_bucketWithSlash() throws Exception {
         URL url = new URL("gcs://mybucket/");
         Handler handler = new Handler();
@@ -96,6 +100,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL parsing with complex object path.
      */
+    @Test
     public void test_urlParsing_complexPath() throws Exception {
         URL url = new URL("gcs://mybucket/dir1/dir2/file.pdf");
         Handler handler = new Handler();
@@ -110,6 +115,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL parsing with special characters in object name.
      */
+    @Test
     public void test_urlParsing_specialCharacters() throws Exception {
         URL url = new URL("gcs://mybucket/path/file%20with%20spaces.txt");
         Handler handler = new Handler();
@@ -125,6 +131,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL parsing with hyphenated bucket name.
      */
+    @Test
     public void test_urlParsing_hyphenatedBucket() throws Exception {
         URL url = new URL("gcs://my-bucket-name/object.txt");
         Handler handler = new Handler();
@@ -139,6 +146,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL parsing with dots in bucket name.
      */
+    @Test
     public void test_urlParsing_dotsInBucket() throws Exception {
         URL url = new URL("gcs://my.bucket.name/object.txt");
         Handler handler = new Handler();
@@ -153,6 +161,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test that GCS Storage client is initially null before connection.
      */
+    @Test
     public void test_connectionState_initiallyNotConnected() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -165,6 +174,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test that connect() method fails when GCS_PROJECT_ID is not set.
      */
+    @Test
     public void test_connect_failsWithoutProjectId() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -184,6 +194,7 @@ public class HandlerTest extends PlainTestCase {
      * Test thread-safety of connect() method.
      * Multiple threads should be able to call connect() concurrently without issues.
      */
+    @Test
     public void test_connect_threadSafety() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -235,6 +246,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test that connect() is idempotent - calling it multiple times should be safe.
      */
+    @Test
     public void test_connect_idempotent() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -260,6 +272,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test URL with empty path returns empty object name.
      */
+    @Test
     public void test_urlParsing_emptyPath() throws Exception {
         URL url = new URL("gcs://mybucket");
         Handler handler = new Handler();
@@ -273,6 +286,7 @@ public class HandlerTest extends PlainTestCase {
      * Test URL with multiple consecutive slashes.
      * Note: Java's URL class does NOT normalize multiple slashes in the path.
      */
+    @Test
     public void test_urlParsing_multipleSlashes() throws Exception {
         URL url = new URL("gcs://mybucket//path//to//object.txt");
         Handler handler = new Handler();
@@ -287,6 +301,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test that getInputStream() attempts to connect if not connected.
      */
+    @Test
     public void test_getInputStream_autoConnect() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -305,6 +320,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test that getContentLengthLong() attempts to connect if not connected.
      */
+    @Test
     public void test_getContentLengthLong_autoConnect() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -312,12 +328,13 @@ public class HandlerTest extends PlainTestCase {
 
         // Should return -1 when auto-connect fails due to missing project ID
         long length = conn.getContentLengthLong();
-        assertEquals(-1, length);
+        assertEquals(-1L, length);
     }
 
     /**
      * Test that getContentType() attempts to connect if not connected.
      */
+    @Test
     public void test_getContentType_autoConnect() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -331,6 +348,7 @@ public class HandlerTest extends PlainTestCase {
     /**
      * Test that getLastModified() attempts to connect if not connected.
      */
+    @Test
     public void test_getLastModified_autoConnect() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();
@@ -338,12 +356,13 @@ public class HandlerTest extends PlainTestCase {
 
         // Should return 0 when auto-connect fails due to missing project ID
         long lastModified = conn.getLastModified();
-        assertEquals(0, lastModified);
+        assertEquals(0L, lastModified);
     }
 
     /**
      * Test that getDate() delegates to getLastModified().
      */
+    @Test
     public void test_getDate_delegatesToGetLastModified() throws Exception {
         URL url = new URL("gcs://mybucket/object.txt");
         Handler handler = new Handler();

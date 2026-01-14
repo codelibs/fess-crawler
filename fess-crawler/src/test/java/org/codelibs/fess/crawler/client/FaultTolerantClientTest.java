@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -34,6 +35,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class FaultTolerantClientTest extends PlainTestCase {
 
+    @Test
     public void test_doGet() {
         final FaultTolerantClient client = new FaultTolerantClient();
         final TestClient testClient = new TestClient();
@@ -54,6 +56,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(Constants.GET_METHOD, response.getMethod());
     }
 
+    @Test
     public void test_doGet_with4Exception() {
         final FaultTolerantClient client = new FaultTolerantClient();
         final TestClient testClient = new TestClient();
@@ -75,6 +78,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(Constants.GET_METHOD, response.getMethod());
     }
 
+    @Test
     public void test_doGet_with5Exception() {
         final FaultTolerantClient client = new FaultTolerantClient();
         final TestClient testClient = new TestClient();
@@ -101,6 +105,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(5, testClient.count);
     }
 
+    @Test
     public void test_doGet_with4Exception_retryCount2() {
         final FaultTolerantClient client = new FaultTolerantClient();
         client.setMaxRetryCount(2);
@@ -128,6 +133,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(2, testClient.count);
     }
 
+    @Test
     public void test_doGet_with4Exception_interval100() {
         final FaultTolerantClient client = new FaultTolerantClient();
         client.setRetryInterval(100);
@@ -151,6 +157,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(Constants.GET_METHOD, response.getMethod());
     }
 
+    @Test
     public void test_doHead() {
         final FaultTolerantClient client = new FaultTolerantClient();
         final TestClient testClient = new TestClient();
@@ -171,6 +178,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(Constants.HEAD_METHOD, response.getMethod());
     }
 
+    @Test
     public void test_doHead_with4Exception() {
         final FaultTolerantClient client = new FaultTolerantClient();
         final TestClient testClient = new TestClient();
@@ -192,6 +200,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(Constants.HEAD_METHOD, response.getMethod());
     }
 
+    @Test
     public void test_doHead_with5Exception() {
         final FaultTolerantClient client = new FaultTolerantClient();
         final TestClient testClient = new TestClient();
@@ -218,6 +227,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(5, testClient.count);
     }
 
+    @Test
     public void test_doHead_with4Exception_retryCount2() {
         final FaultTolerantClient client = new FaultTolerantClient();
         client.setMaxRetryCount(2);
@@ -245,6 +255,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(2, testClient.count);
     }
 
+    @Test
     public void test_doHead_with4Exception_interval100() {
         final FaultTolerantClient client = new FaultTolerantClient();
         client.setRetryInterval(100);

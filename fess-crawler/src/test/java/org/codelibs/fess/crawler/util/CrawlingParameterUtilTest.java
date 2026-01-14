@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -148,6 +149,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         };
     }
 
+    @Test
     public void test_urlQueue_setAndGet() {
         // Initially should be null
         assertNull(CrawlingParameterUtil.getUrlQueue());
@@ -163,6 +165,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         assertEquals("http://example.com", retrieved.getUrl());
     }
 
+    @Test
     public void test_urlQueue_setNull() {
         // Set a UrlQueue first
         UrlQueue<?> urlQueue = createMockUrlQueue("test", "http://test.com");
@@ -176,6 +179,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         assertNull(CrawlingParameterUtil.getUrlQueue());
     }
 
+    @Test
     public void test_crawlerContext_setAndGet() {
         // Initially should be null
         assertNull(CrawlingParameterUtil.getCrawlerContext());
@@ -192,6 +196,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         assertEquals("test-context-session", retrieved.getSessionId());
     }
 
+    @Test
     public void test_crawlerContext_setNull() {
         // Set a CrawlerContext first
         CrawlerContext context = new CrawlerContext();
@@ -207,6 +212,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
     }
 
     @SuppressWarnings("unchecked")
+    @Test
     public void test_urlQueueService_setAndGet() {
         // Initially should be null
         assertNull(CrawlingParameterUtil.getUrlQueueService());
@@ -264,6 +270,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         assertTrue(service == retrieved);
     }
 
+    @Test
     public void test_urlQueueService_setNull() {
         // Set a service first
         @SuppressWarnings("unchecked")
@@ -321,6 +328,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
     }
 
     @SuppressWarnings("unchecked")
+    @Test
     public void test_dataService_setAndGet() {
         // Initially should be null
         assertNull(CrawlingParameterUtil.getDataService());
@@ -375,6 +383,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         assertTrue(service == retrieved);
     }
 
+    @Test
     public void test_dataService_setNull() {
         // Set a service first
         @SuppressWarnings("unchecked")
@@ -428,6 +437,7 @@ public class CrawlingParameterUtilTest extends PlainTestCase {
         assertNull(CrawlingParameterUtil.getDataService());
     }
 
+    @Test
     public void test_threadLocal_isolation() throws Exception {
         // Set values in main thread
         UrlQueue<?> mainUrlQueue = createMockUrlQueue("main-thread", "http://main.com");

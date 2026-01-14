@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.helper;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -28,13 +29,13 @@ public class EncodingHelperTest extends PlainTestCase {
     public EncodingHelper encodingHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("encodingHelper", EncodingHelper.class);
         encodingHelper = container.getComponent("encodingHelper");
     }
 
+    @Test
     public void test_normalize() {
         String enc;
 
@@ -48,6 +49,7 @@ public class EncodingHelperTest extends PlainTestCase {
         assertEquals("S-JIS", encodingHelper.normalize(enc));
     }
 
+    @Test
     public void test_normalize_map() {
         String enc;
 
@@ -63,6 +65,7 @@ public class EncodingHelperTest extends PlainTestCase {
         assertEquals("Shift_JIS", encodingHelper.normalize(enc));
     }
 
+    @Test
     public void test_normalize_null() {
         String enc;
 
@@ -76,6 +79,7 @@ public class EncodingHelperTest extends PlainTestCase {
         assertNull(encodingHelper.normalize(enc));
     }
 
+    @Test
     public void test_normalize_default() {
         String enc;
 

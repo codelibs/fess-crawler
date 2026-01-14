@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.processor.impl;
 
 import org.codelibs.fess.crawler.entity.ResponseData;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -24,6 +25,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class DefaultResponseProcessorTest extends PlainTestCase {
 
+    @Test
     public void test_isSuccessful() {
         DefaultResponseProcessor processor = new DefaultResponseProcessor();
         processor.setSuccessfulHttpCodes(new int[] { 200 });
@@ -41,6 +43,7 @@ public class DefaultResponseProcessorTest extends PlainTestCase {
         assertFalse(processor.isSuccessful(responseData));
     }
 
+    @Test
     public void test_isNotModified() {
         DefaultResponseProcessor processor = new DefaultResponseProcessor();
         processor.setSuccessfulHttpCodes(new int[] { 200 });

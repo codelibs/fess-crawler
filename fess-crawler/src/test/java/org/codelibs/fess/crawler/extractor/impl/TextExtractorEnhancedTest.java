@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -36,7 +37,6 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     private TextExtractor textExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("textExtractor", TextExtractor.class);
@@ -46,6 +46,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test successful text extraction with default encoding (UTF-8).
      */
+    @Test
     public void test_getText_withDefaultEncoding() {
         final String testContent = "Test content テスト 日本語";
         final InputStream in = new ByteArrayInputStream(testContent.getBytes());
@@ -60,6 +61,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test successful text extraction with custom encoding.
      */
+    @Test
     public void test_getText_withCustomEncoding() {
         textExtractor.setEncoding("UTF-8");
         final String testContent = "テスト内容";
@@ -74,6 +76,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test that null input stream throws CrawlerSystemException with correct message.
      */
+    @Test
     public void test_getText_nullInputStream_throwsWithMessage() {
         try {
             textExtractor.getText(null, null);
@@ -86,6 +89,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test that extraction error includes encoding information in the error message.
      */
+    @Test
     public void test_getText_extractionError_includesEncodingInMessage() {
         // Create a stream that will cause an error during reading
         final InputStream errorStream = new InputStream() {
@@ -114,6 +118,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with empty input stream.
      */
+    @Test
     public void test_getText_emptyInputStream_returnsEmptyContent() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
 
@@ -127,6 +132,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with large text content.
      */
+    @Test
     public void test_getText_largeContent_extractsSuccessfully() {
         final StringBuilder largeContent = new StringBuilder();
         for (int i = 0; i < 10000; i++) {
@@ -145,6 +151,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with various Unicode characters.
      */
+    @Test
     public void test_getText_unicodeContent_extractsCorrectly() {
         final String unicodeContent = "Hello 世界 مرحبا мир שלום";
         final InputStream in = new ByteArrayInputStream(unicodeContent.getBytes());
@@ -159,6 +166,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test that encoding can be changed and applied correctly.
      */
+    @Test
     public void test_encoding_canBeChangedAndApplied() {
         final String originalEncoding = textExtractor.getEncoding();
         assertEquals("UTF-8", originalEncoding);
@@ -174,6 +182,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with actual file resource.
      */
+    @Test
     public void test_getText_withFileResource_extractsSuccessfully() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
 
@@ -187,6 +196,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test that error message format is consistent and descriptive.
      */
+    @Test
     public void test_errorMessage_formatIsDescriptive() {
         final InputStream errorStream = new InputStream() {
             @Override
@@ -210,6 +220,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with special characters and control characters.
      */
+    @Test
     public void test_getText_withSpecialCharacters_handlesCorrectly() {
         final String specialContent = "Tab\there\nNewline\rCarriage return\0Null byte";
         final InputStream in = new ByteArrayInputStream(specialContent.getBytes());
@@ -223,6 +234,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test that parameters map is accepted but not required.
      */
+    @Test
     public void test_getText_acceptsNullParameters() {
         final InputStream in = new ByteArrayInputStream("test".getBytes());
 
@@ -235,6 +247,7 @@ public class TextExtractorEnhancedTest extends PlainTestCase {
     /**
      * Test extraction with whitespace-only content.
      */
+    @Test
     public void test_getText_whitespaceOnly_extractsAsIs() {
         final String whitespaceContent = "   \t\n\r   ";
         final InputStream in = new ByteArrayInputStream(whitespaceContent.getBytes());

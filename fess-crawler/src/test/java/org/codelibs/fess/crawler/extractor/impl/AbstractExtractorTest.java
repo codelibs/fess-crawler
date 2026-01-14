@@ -23,6 +23,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -68,7 +69,6 @@ public class AbstractExtractorTest extends PlainTestCase {
     private TestExtractor extractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         extractor = new TestExtractor();
@@ -77,6 +77,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that validateInputStream accepts non-null input streams.
      */
+    @Test
     public void test_validateInputStream_acceptsNonNullStream() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
 
@@ -87,6 +88,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that validateInputStream throws CrawlerSystemException for null input.
      */
+    @Test
     public void test_validateInputStream_throwsExceptionForNull() {
         try {
             extractor.testValidateInputStream(null);
@@ -99,6 +101,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that validateInputStream is called during getText execution.
      */
+    @Test
     public void test_validateInputStream_calledDuringGetText() {
         final InputStream in = new ByteArrayInputStream("test data".getBytes());
 
@@ -113,6 +116,7 @@ public class AbstractExtractorTest extends PlainTestCase {
      * Note: validateInputStream throws the exception, so the validateCalled flag
      * is never set to true (exception is thrown before flag assignment).
      */
+    @Test
     public void test_getText_throwsExceptionForNullStream() {
         try {
             extractor.getText(null, null);
@@ -128,6 +132,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that validateInputStream is consistent across multiple calls.
      */
+    @Test
     public void test_validateInputStream_consistentAcrossMultipleCalls() {
         final InputStream in1 = new ByteArrayInputStream("data1".getBytes());
         final InputStream in2 = new ByteArrayInputStream("data2".getBytes());
@@ -150,6 +155,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that validateInputStream works with various InputStream implementations.
      */
+    @Test
     public void test_validateInputStream_worksWithVariousStreamTypes() {
         // ByteArrayInputStream
         extractor.testValidateInputStream(new ByteArrayInputStream(new byte[10]));
@@ -167,6 +173,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test exception message format for null input stream.
      */
+    @Test
     public void test_validateInputStream_exceptionMessageFormat() {
         try {
             extractor.testValidateInputStream(null);
@@ -183,6 +190,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that validateInputStream does not modify or consume the stream.
      */
+    @Test
     public void test_validateInputStream_doesNotConsumeStream() throws Exception {
         final byte[] testData = "test data for validation".getBytes();
         final ByteArrayInputStream in = new ByteArrayInputStream(testData);
@@ -197,6 +205,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that validateInputStream is called exactly once per getText call.
      */
+    @Test
     public void test_validateInputStream_calledOncePerGetText() {
         final InputStream in = new ByteArrayInputStream("test".getBytes());
 
@@ -211,6 +220,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test validateInputStream with edge case: empty stream.
      */
+    @Test
     public void test_validateInputStream_acceptsEmptyStream() {
         final InputStream emptyStream = new ByteArrayInputStream(new byte[0]);
 
@@ -221,6 +231,7 @@ public class AbstractExtractorTest extends PlainTestCase {
     /**
      * Test that CrawlerSystemException is the correct exception type.
      */
+    @Test
     public void test_validateInputStream_throwsCorrectExceptionType() {
         try {
             extractor.testValidateInputStream(null);

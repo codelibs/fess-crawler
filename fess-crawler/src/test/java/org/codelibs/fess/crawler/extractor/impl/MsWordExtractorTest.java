@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -37,13 +38,13 @@ public class MsWordExtractorTest extends PlainTestCase {
     public MsWordExtractor msWordExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msWordExtractor", MsWordExtractor.class);
         msWordExtractor = container.getComponent("msWordExtractor");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         final String content = msWordExtractor.getText(in, null).getContent();
@@ -52,6 +53,7 @@ public class MsWordExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_null() {
         try {
             msWordExtractor.getText(null, null);

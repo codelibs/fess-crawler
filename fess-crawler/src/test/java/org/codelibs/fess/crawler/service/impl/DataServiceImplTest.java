@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.DataService;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -42,7 +43,6 @@ public class DataServiceImplTest extends PlainTestCase {
     public DataService dataService;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("dataHelper", MemoryDataHelper.class)//
@@ -50,6 +50,7 @@ public class DataServiceImplTest extends PlainTestCase {
         dataService = container.getComponent("dataService");
     }
 
+    @Test
     public void test_insert_deleteTx() {
         final AccessResult accessResult1 = new AccessResultImpl();
         accessResult1.setContentLength(Long.valueOf(10));
@@ -83,6 +84,7 @@ public class DataServiceImplTest extends PlainTestCase {
         assertNull(accessResult4);
     }
 
+    @Test
     public void test_concurrentStore() throws Exception {
         // Test that AtomicLong generates unique IDs under concurrent access
         final int threadCount = 10;

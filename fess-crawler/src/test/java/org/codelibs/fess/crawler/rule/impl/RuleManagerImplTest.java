@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -36,7 +37,6 @@ public class RuleManagerImplTest extends PlainTestCase {
     public RuleManager ruleManager;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -58,12 +58,14 @@ public class RuleManagerImplTest extends PlainTestCase {
         ruleManager.addRule(fileRule);
     }
 
+    @Test
     public void test_getRule() {
         final Rule rule = ruleManager.getRule(new ResponseData());
         assertNotNull(rule);
         assertEquals("fileRule", rule.getRuleId());
     }
 
+    @Test
     public void test_getRule_sitemaps1() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
@@ -75,6 +77,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         CloseableUtil.closeQuietly(responseData);
     }
 
+    @Test
     public void test_getRule_sitemaps2() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml.gz");
@@ -86,6 +89,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         CloseableUtil.closeQuietly(responseData);
     }
 
+    @Test
     public void test_getRule_sitemaps3() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt");
@@ -97,6 +101,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         CloseableUtil.closeQuietly(responseData);
     }
 
+    @Test
     public void test_getRule_sitemaps4() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.txt.gz");
@@ -108,6 +113,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         CloseableUtil.closeQuietly(responseData);
     }
 
+    @Test
     public void test_getRule_sitemaps5() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap/");
@@ -119,6 +125,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         CloseableUtil.closeQuietly(responseData);
     }
 
+    @Test
     public void test_getRule_sitemaps1_nocontent() {
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://www.example.com/sitemap1.xml");
@@ -129,6 +136,7 @@ public class RuleManagerImplTest extends PlainTestCase {
         CloseableUtil.closeQuietly(responseData);
     }
 
+    @Test
     public void test_checkRule() {
         final Rule rule = ruleManager.getRule(new ResponseData());
         assertNotNull(rule);

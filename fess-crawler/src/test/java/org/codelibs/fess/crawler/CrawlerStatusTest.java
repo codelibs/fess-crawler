@@ -23,6 +23,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -34,6 +35,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test that all expected enum values exist
      */
+    @Test
     public void test_enumValues() {
         CrawlerStatus[] values = CrawlerStatus.values();
 
@@ -49,6 +51,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test valueOf method with valid values
      */
+    @Test
     public void test_valueOf_valid() {
         assertEquals(CrawlerStatus.INITIALIZING, CrawlerStatus.valueOf("INITIALIZING"));
         assertEquals(CrawlerStatus.RUNNING, CrawlerStatus.valueOf("RUNNING"));
@@ -58,6 +61,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test valueOf method with invalid values
      */
+    @Test
     public void test_valueOf_invalid() {
         try {
             CrawlerStatus.valueOf("INVALID");
@@ -93,6 +97,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test valueOf method with null
      */
+    @Test
     public void test_valueOf_null() {
         try {
             CrawlerStatus.valueOf(null);
@@ -105,6 +110,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test name method
      */
+    @Test
     public void test_name() {
         assertEquals("INITIALIZING", CrawlerStatus.INITIALIZING.name());
         assertEquals("RUNNING", CrawlerStatus.RUNNING.name());
@@ -114,6 +120,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test ordinal method
      */
+    @Test
     public void test_ordinal() {
         assertEquals(0, CrawlerStatus.INITIALIZING.ordinal());
         assertEquals(1, CrawlerStatus.RUNNING.ordinal());
@@ -123,6 +130,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test toString method
      */
+    @Test
     public void test_toString() {
         assertEquals("INITIALIZING", CrawlerStatus.INITIALIZING.toString());
         assertEquals("RUNNING", CrawlerStatus.RUNNING.toString());
@@ -132,6 +140,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test equals method
      */
+    @Test
     public void test_equals() {
         // Same instance
         assertTrue(CrawlerStatus.INITIALIZING.equals(CrawlerStatus.INITIALIZING));
@@ -154,6 +163,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test hashCode method
      */
+    @Test
     public void test_hashCode() {
         // Same status should have same hashCode
         CrawlerStatus status1 = CrawlerStatus.INITIALIZING;
@@ -173,6 +183,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test compareTo method
      */
+    @Test
     public void test_compareTo() {
         // Compare with self
         assertEquals(0, CrawlerStatus.INITIALIZING.compareTo(CrawlerStatus.INITIALIZING));
@@ -193,6 +204,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test getDeclaringClass method
      */
+    @Test
     public void test_getDeclaringClass() {
         assertEquals(CrawlerStatus.class, CrawlerStatus.INITIALIZING.getDeclaringClass());
         assertEquals(CrawlerStatus.class, CrawlerStatus.RUNNING.getDeclaringClass());
@@ -202,6 +214,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test serialization and deserialization
      */
+    @Test
     public void test_serialization() throws Exception {
         // Test each enum value
         CrawlerStatus[] statuses = CrawlerStatus.values();
@@ -229,6 +242,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test EnumSet functionality
      */
+    @Test
     public void test_enumSet() {
         // Create EnumSet with all values
         EnumSet<CrawlerStatus> allStatuses = EnumSet.allOf(CrawlerStatus.class);
@@ -259,6 +273,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test switch statement usage
      */
+    @Test
     public void test_switchStatement() {
         for (CrawlerStatus status : CrawlerStatus.values()) {
             String description = getStatusDescription(status);
@@ -287,6 +302,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test state transitions (typical workflow)
      */
+    @Test
     public void test_stateTransitions() {
         // Simulate typical crawler lifecycle
         CrawlerStatus currentStatus = CrawlerStatus.INITIALIZING;
@@ -308,6 +324,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test usage in conditional statements
      */
+    @Test
     public void test_conditionalStatements() {
         CrawlerStatus status = CrawlerStatus.RUNNING;
 
@@ -333,6 +350,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test null safety in comparisons
      */
+    @Test
     public void test_nullSafety() {
         CrawlerStatus status = CrawlerStatus.INITIALIZING;
         CrawlerStatus nullStatus = null;
@@ -352,6 +370,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test thread safety of enum
      */
+    @Test
     public void test_threadSafety() throws Exception {
         final int threadCount = 100;
         final int iterationsPerThread = 1000;
@@ -401,6 +420,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test memory reference equality
      */
+    @Test
     public void test_memoryReferenceEquality() {
         // Enum instances are singletons
         CrawlerStatus status1 = CrawlerStatus.INITIALIZING;
@@ -424,6 +444,7 @@ public class CrawlerStatusTest extends PlainTestCase {
     /**
      * Test enum as map key
      */
+    @Test
     public void test_enumAsMapKey() {
         java.util.Map<CrawlerStatus, String> statusMap = new java.util.HashMap<>();
 

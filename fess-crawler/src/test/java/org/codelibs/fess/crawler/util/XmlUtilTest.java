@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.AccessResultDataImpl;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -29,21 +30,25 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class XmlUtilTest extends PlainTestCase {
 
+    @Test
     public void test_escapeXml_null() {
         // Test null input
         assertEquals(StringUtil.EMPTY, XmlUtil.escapeXml(null));
     }
 
+    @Test
     public void test_escapeXml_empty() {
         // Test empty string
         assertEquals("", XmlUtil.escapeXml(""));
     }
 
+    @Test
     public void test_escapeXml_basic() {
         // Test basic XML escaping
         assertEquals("&lt;tag&gt;value&lt;/tag&gt;", XmlUtil.escapeXml("<tag>value</tag>"));
     }
 
+    @Test
     public void test_escapeXml_allSpecialChars() {
         // Test all special characters
         String input = "Test & < > \"quote\" 'apos'";
@@ -51,22 +56,26 @@ public class XmlUtilTest extends PlainTestCase {
         assertEquals(expected, XmlUtil.escapeXml(input));
     }
 
+    @Test
     public void test_escapeXml_noSpecialChars() {
         // Test string without special characters
         String input = "Simple text without special characters";
         assertEquals(input, XmlUtil.escapeXml(input));
     }
 
+    @Test
     public void test_stripInvalidXMLCharacters_null() {
         // Test null input
         assertNull(XmlUtil.stripInvalidXMLCharacters(null));
     }
 
+    @Test
     public void test_stripInvalidXMLCharacters_empty() {
         // Test empty string
         assertEquals("", XmlUtil.stripInvalidXMLCharacters(""));
     }
 
+    @Test
     public void test_stripInvalidXMLCharacters_valid() {
         // Test valid XML characters
         String input = "Valid XML text 123\t\n\r";
@@ -75,6 +84,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertTrue(result.contains("Valid XML text 123"));
     }
 
+    @Test
     public void test_stripInvalidXMLCharacters_withInvalidChars() {
         // Test with invalid control characters (0x1-0x8, 0xB, 0xC, 0xE-0x1F)
         String input = "Test\u0001\u0002\u0008Valid\u000B\u000C\u000EText";
@@ -82,6 +92,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertEquals("TestValidText", result);
     }
 
+    @Test
     public void test_stripInvalidXMLCharacters_validRanges() {
         // Test valid character ranges
         String input = "Test" + String.valueOf((char) 0x0020) // space
@@ -93,6 +104,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertNotNull(result);
     }
 
+    @Test
     public void test_getDataMap_simpleField() throws Exception {
         // Test parsing simple field
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"title\">Test Title</field>\n" + "</doc>";
@@ -106,6 +118,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertEquals("Test Title", dataMap.get("title"));
     }
 
+    @Test
     public void test_getDataMap_multipleFields() throws Exception {
         // Test parsing multiple fields
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"title\">Test Title</field>\n"
@@ -123,6 +136,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertEquals("Test Author", dataMap.get("author"));
     }
 
+    @Test
     public void test_getDataMap_withList() throws Exception {
         // Test parsing field with list
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"tags\">\n" + "    <list>\n"
@@ -144,6 +158,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertEquals("tag3", tags.get(2));
     }
 
+    @Test
     public void test_getDataMap_emptyField() throws Exception {
         // Test parsing empty field
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"empty\"></field>\n" + "</doc>";
@@ -157,6 +172,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertEquals("", dataMap.get("empty"));
     }
 
+    @Test
     public void test_getDataMap_noNameAttribute() throws Exception {
         // Test parsing field without name attribute (should be ignored)
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field>No Name</field>\n"
@@ -173,6 +189,7 @@ public class XmlUtilTest extends PlainTestCase {
         assertFalse(dataMap.containsKey(null));
     }
 
+    @Test
     public void test_getDataMap_mixedFieldsAndLists() throws Exception {
         // Test parsing mixed fields and lists
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<doc>\n" + "  <field name=\"title\">Test Title</field>\n"

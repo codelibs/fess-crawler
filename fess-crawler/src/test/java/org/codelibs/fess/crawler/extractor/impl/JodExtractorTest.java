@@ -26,6 +26,7 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.jodconverter.local.office.LocalOfficeManager;
 
@@ -52,6 +53,7 @@ public class JodExtractorTest extends PlainTestCase {
         super.tearDown(testInfo);
     }
 
+    @Test
     public void test_getText_ooow() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/ooo/test.odt");
         Map<String, String> params = new HashMap<String, String>();
@@ -63,6 +65,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_ooow_as() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/ooo/test_as.odt");
         Map<String, String> params = new HashMap<String, String>();
@@ -74,6 +77,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_ooos() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/ooo/test.ods");
         Map<String, String> params = new HashMap<String, String>();
@@ -85,6 +89,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_ooos_as() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/ooo/test_as.ods");
         Map<String, String> params = new HashMap<String, String>();
@@ -96,6 +101,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_ooop() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/ooo/test.odp");
         Map<String, String> params = new HashMap<String, String>();
@@ -107,6 +113,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_msword() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         Map<String, String> params = new HashMap<String, String>();
@@ -118,6 +125,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_msword_as() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test_as.doc");
         Map<String, String> params = new HashMap<String, String>();
@@ -129,6 +137,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_mswordx() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.docx");
         Map<String, String> params = new HashMap<String, String>();
@@ -150,6 +159,7 @@ public class JodExtractorTest extends PlainTestCase {
      * assertTrue(content.contains("テスト")); }
      */
 
+    @Test
     public void test_getText_msexcel() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.xls");
         Map<String, String> params = new HashMap<String, String>();
@@ -161,6 +171,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_msexcel_as() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test_as.xls");
         Map<String, String> params = new HashMap<String, String>();
@@ -172,6 +183,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_msexcelx() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.xlsx");
         Map<String, String> params = new HashMap<String, String>();
@@ -183,6 +195,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_msexcelx_as() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test_as.xlsx");
         Map<String, String> params = new HashMap<String, String>();
@@ -194,6 +207,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_mspowerpoint() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.ppt");
         Map<String, String> params = new HashMap<String, String>();
@@ -205,6 +219,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_mspowerpointx() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.pptx");
         Map<String, String> params = new HashMap<String, String>();
@@ -216,6 +231,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_rtf() {
         InputStream in = ResourceUtil.getResourceAsStream("extractor/test.rtf");
         ExtractData extractData = jodExtractor.getText(in, null);
@@ -225,6 +241,7 @@ public class JodExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_null() {
         try {
             jodExtractor.getText(null, null);

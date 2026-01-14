@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.helper;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -29,13 +30,13 @@ public class UrlConvertHelperTest extends PlainTestCase {
     public UrlConvertHelper urlConvertHelper;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("urlConvertHelper", UrlConvertHelper.class);
         urlConvertHelper = container.getComponent("urlConvertHelper");
     }
 
+    @Test
     public void test_convert() {
         String url;
 
@@ -63,6 +64,7 @@ public class UrlConvertHelperTest extends PlainTestCase {
         assertEquals("http://hoge.com/peke.html", urlConvertHelper.convert(url));
     }
 
+    @Test
     public void test_convert_null() {
         String url;
 

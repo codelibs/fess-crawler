@@ -18,10 +18,12 @@ package org.codelibs.fess.crawler.client.http.ntlm;
 import java.util.Properties;
 
 import org.apache.hc.client5.http.impl.auth.NTLMEngineException;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class Hc5JcifsEngineTest extends PlainTestCase {
 
+    @Test
     public void test_constructor() {
         Properties props = new Properties();
 
@@ -31,6 +33,7 @@ public class Hc5JcifsEngineTest extends PlainTestCase {
         assertNotNull(engine.cifsContext);
     }
 
+    @Test
     public void test_generateType1Msg() throws NTLMEngineException {
         Properties props = new Properties();
         Hc5JcifsEngine engine = new Hc5JcifsEngine(props);
@@ -41,6 +44,7 @@ public class Hc5JcifsEngineTest extends PlainTestCase {
         assertTrue(type1Msg.length() > 0);
     }
 
+    @Test
     public void test_generateType1Msg_nullDomain() throws NTLMEngineException {
         Properties props = new Properties();
         Hc5JcifsEngine engine = new Hc5JcifsEngine(props);
@@ -51,6 +55,7 @@ public class Hc5JcifsEngineTest extends PlainTestCase {
         assertTrue(type1Msg.length() > 0);
     }
 
+    @Test
     public void test_generateType3Msg_invalidChallenge() {
         Properties props = new Properties();
         Hc5JcifsEngine engine = new Hc5JcifsEngine(props);
@@ -66,6 +71,7 @@ public class Hc5JcifsEngineTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_type1Flags() {
         // Verify TYPE_1_FLAGS is properly defined
         assertTrue(Hc5JcifsEngine.TYPE_1_FLAGS != 0);

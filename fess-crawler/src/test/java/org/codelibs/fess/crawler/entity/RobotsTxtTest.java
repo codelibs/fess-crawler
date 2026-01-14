@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.entity;
 
 import org.codelibs.fess.crawler.entity.RobotsTxt.Directive;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -23,12 +24,14 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class RobotsTxtTest extends PlainTestCase {
 
+    @Test
     public void test_defaultConstructor() {
         // Test default constructor
         RobotsTxt robotsTxt = new RobotsTxt();
         assertNotNull(robotsTxt);
     }
 
+    @Test
     public void test_allowsWithNoDirectives() {
         // Test allows method when no directives are set
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -38,6 +41,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertTrue(robotsTxt.allows("/admin", "GoogleBot"));
     }
 
+    @Test
     public void test_allowsWithAllowedPath() {
         // Test allows method with allowed path
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -50,6 +54,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertTrue(robotsTxt.allows("/public/", "MyBot"));
     }
 
+    @Test
     public void test_allowsWithDisallowedPath() {
         // Test allows method with disallowed path
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -63,6 +68,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertTrue(robotsTxt.allows("/public/", "MyBot")); // Not disallowed
     }
 
+    @Test
     public void test_allowsWithAllowOverridingDisallow() {
         // Test that allow takes precedence over disallow
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -77,6 +83,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/admin/secret.html", "MyBot"));
     }
 
+    @Test
     public void test_getCrawlDelayWithNoDirective() {
         // Test getCrawlDelay when no directive matches
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -84,6 +91,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(0, robotsTxt.getCrawlDelay("MyBot"));
     }
 
+    @Test
     public void test_getCrawlDelayWithDirective() {
         // Test getCrawlDelay with directive
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -95,6 +103,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(5, robotsTxt.getCrawlDelay("MyBot"));
     }
 
+    @Test
     public void test_getDirective() {
         // Test getDirective method
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -107,6 +116,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("MyBot", retrieved.getUserAgent());
     }
 
+    @Test
     public void test_getDirectiveNotFound() {
         // Test getDirective when directive doesn't exist
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -118,6 +128,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertNull(retrieved);
     }
 
+    @Test
     public void test_getDirectiveWithNull() {
         // Test getDirective with null user agent
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -126,6 +137,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertNull(retrieved);
     }
 
+    @Test
     public void test_getMatchedDirectiveWithExactMatch() {
         // Test getMatchedDirective with exact match
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -139,6 +151,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("MyBot", matched.getUserAgent());
     }
 
+    @Test
     public void test_getMatchedDirectiveWithWildcard() {
         // Test getMatchedDirective with wildcard
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -152,6 +165,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("*", matched.getUserAgent());
     }
 
+    @Test
     public void test_getMatchedDirectiveMostSpecific() {
         // Test that getMatchedDirective returns most specific match
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -170,6 +184,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("GoogleBot", matched.getUserAgent());
     }
 
+    @Test
     public void test_getMatchedDirectiveWithPartialMatch() {
         // Test getMatchedDirective with partial pattern match
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -183,6 +198,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("Google*", matched.getUserAgent());
     }
 
+    @Test
     public void test_getMatchedDirectiveWithNullUserAgent() {
         // Test getMatchedDirective with null user agent
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -194,6 +210,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertNotNull(matched);
     }
 
+    @Test
     public void test_addSitemap() {
         // Test addSitemap method
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -207,6 +224,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("https://example.com/sitemap2.xml", sitemaps[1]);
     }
 
+    @Test
     public void test_addSitemapNoDuplicates() {
         // Test that addSitemap doesn't add duplicates
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -218,6 +236,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(1, sitemaps.length);
     }
 
+    @Test
     public void test_getSitemapsEmpty() {
         // Test getSitemaps when no sitemaps are added
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -227,6 +246,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(0, sitemaps.length);
     }
 
+    @Test
     public void test_toString() {
         // Test toString method
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -241,6 +261,7 @@ public class RobotsTxtTest extends PlainTestCase {
     }
 
     // Directive tests
+    @Test
     public void test_directiveConstructor() {
         // Test Directive constructor
         Directive directive = new Directive("MyBot");
@@ -250,6 +271,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(0, directive.getCrawlDelay());
     }
 
+    @Test
     public void test_directiveCrawlDelay() {
         // Test Directive crawl delay
         Directive directive = new Directive("MyBot");
@@ -261,6 +283,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(0, directive.getCrawlDelay());
     }
 
+    @Test
     public void test_directiveAddAllow() {
         // Test Directive addAllow
         Directive directive = new Directive("MyBot");
@@ -274,6 +297,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("/images/", allows[1]);
     }
 
+    @Test
     public void test_directiveAddAllowNoDuplicates() {
         // Test that addAllow doesn't add duplicates
         Directive directive = new Directive("MyBot");
@@ -285,6 +309,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(1, allows.length);
     }
 
+    @Test
     public void test_directiveAddDisallow() {
         // Test Directive addDisallow
         Directive directive = new Directive("MyBot");
@@ -298,6 +323,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("/private/", disallows[1]);
     }
 
+    @Test
     public void test_directiveAddDisallowNoDuplicates() {
         // Test that addDisallow doesn't add duplicates
         Directive directive = new Directive("MyBot");
@@ -309,6 +335,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(1, disallows.length);
     }
 
+    @Test
     public void test_directiveAllowsAllowedPath() {
         // Test Directive allows with allowed path
         Directive directive = new Directive("MyBot");
@@ -318,6 +345,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertTrue(directive.allows("/public/"));
     }
 
+    @Test
     public void test_directiveAllowsDisallowedPath() {
         // Test Directive allows with disallowed path
         Directive directive = new Directive("MyBot");
@@ -327,6 +355,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertFalse(directive.allows("/admin/"));
     }
 
+    @Test
     public void test_directiveAllowsDefaultAllow() {
         // Test that paths are allowed by default
         Directive directive = new Directive("MyBot");
@@ -336,6 +365,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertTrue(directive.allows("/admin/"));
     }
 
+    @Test
     public void test_directiveAllowsPrecedence() {
         // Test that allow takes precedence over disallow
         Directive directive = new Directive("MyBot");
@@ -346,6 +376,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertFalse(directive.allows("/admin/secret.html"));
     }
 
+    @Test
     public void test_complexScenario() {
         // Test complex robots.txt scenario
         RobotsTxt robotsTxt = new RobotsTxt();
@@ -398,6 +429,7 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals("https://example.com/sitemap.xml", sitemaps[0]);
     }
 
+    @Test
     public void test_caseInsensitiveUserAgent() {
         // Test case-insensitive user agent matching
         RobotsTxt robotsTxt = new RobotsTxt();

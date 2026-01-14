@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.entity;
 
 import org.codelibs.fess.crawler.Constants;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -23,6 +24,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class AccessResultImplTest extends PlainTestCase {
 
+    @Test
     public void test_defaultConstructor() {
         // Test default constructor
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -43,6 +45,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertNull(result.getAccessResultData());
     }
 
+    @Test
     public void test_idGetterSetter() {
         // Test ID getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -54,6 +57,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertNull(result.getId());
     }
 
+    @Test
     public void test_sessionIdGetterSetter() {
         // Test session ID getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -63,6 +67,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(sessionId, result.getSessionId());
     }
 
+    @Test
     public void test_ruleIdGetterSetter() {
         // Test rule ID getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -72,6 +77,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(ruleId, result.getRuleId());
     }
 
+    @Test
     public void test_urlGetterSetter() {
         // Test URL getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -81,6 +87,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(url, result.getUrl());
     }
 
+    @Test
     public void test_parentUrlGetterSetter() {
         // Test parent URL getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -90,6 +97,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(parentUrl, result.getParentUrl());
     }
 
+    @Test
     public void test_statusGetterSetter() {
         // Test status getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -101,6 +109,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(Integer.valueOf(Constants.NOT_MODIFIED_STATUS), result.getStatus());
     }
 
+    @Test
     public void test_httpStatusCodeGetterSetter() {
         // Test HTTP status code getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -115,6 +124,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(Integer.valueOf(500), result.getHttpStatusCode());
     }
 
+    @Test
     public void test_methodGetterSetter() {
         // Test method getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -126,6 +136,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals("POST", result.getMethod());
     }
 
+    @Test
     public void test_mimeTypeGetterSetter() {
         // Test MIME type getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -137,6 +148,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals("application/json", result.getMimeType());
     }
 
+    @Test
     public void test_createTimeGetterSetter() {
         // Test create time getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -146,6 +158,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(createTime, result.getCreateTime());
     }
 
+    @Test
     public void test_executionTimeGetterSetter() {
         // Test execution time getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -157,6 +170,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(Integer.valueOf(0), result.getExecutionTime());
     }
 
+    @Test
     public void test_contentLengthGetterSetter() {
         // Test content length getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -168,6 +182,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(Long.valueOf(0L), result.getContentLength());
     }
 
+    @Test
     public void test_lastModifiedGetterSetter() {
         // Test last modified getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -177,6 +192,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(lastModified, result.getLastModified());
     }
 
+    @Test
     public void test_accessResultDataGetterSetter() {
         // Test access result data getter/setter
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -186,6 +202,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertEquals(data, result.getAccessResultData());
     }
 
+    @Test
     public void test_initWithResponseDataOnly() {
         // Test init method with ResponseData only
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -221,6 +238,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertNotNull(result.getAccessResultData());
     }
 
+    @Test
     public void test_initWithResultDataOnly() {
         // Test init method with ResultData only
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -238,6 +256,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertNotNull(result.getAccessResultData());
     }
 
+    @Test
     public void test_initWithBothResponseAndResultData() {
         // Test init method with both ResponseData and ResultData
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -265,6 +284,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertNotNull(result.getAccessResultData());
     }
 
+    @Test
     public void test_initWithNullValues() {
         // Test init method with null values
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -278,6 +298,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertNotNull(result.getAccessResultData());
     }
 
+    @Test
     public void test_toString() {
         // Test toString method
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -299,6 +320,7 @@ public class AccessResultImplTest extends PlainTestCase {
         assertTrue(resultString.contains("https://example.com/test"));
     }
 
+    @Test
     public void test_complexScenario() {
         // Test complex scenario with full initialization
         AccessResultImpl<Long> result = new AccessResultImpl<>();
@@ -341,12 +363,14 @@ public class AccessResultImplTest extends PlainTestCase {
         assertNotNull(result.getAccessResultData());
     }
 
+    @Test
     public void test_interfaceImplementation() {
         // Test that AccessResultImpl implements AccessResult
         AccessResultImpl<Long> result = new AccessResultImpl<>();
         assertTrue(result instanceof AccessResult);
     }
 
+    @Test
     public void test_genericTypeFlexibility() {
         // Test with different generic types
         AccessResultImpl<Integer> intResult = new AccessResultImpl<>();

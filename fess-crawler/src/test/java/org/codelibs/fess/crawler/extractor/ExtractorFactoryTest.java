@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -41,7 +42,6 @@ public class ExtractorFactoryTest extends PlainTestCase {
     public ExtractorFactory extractorFactory;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("tikaExtractor", TikaExtractor.class)//
@@ -64,6 +64,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_addExtractor() {
         final ExtractorFactory extractorFactory = new ExtractorFactory();
         final Extractor extractor = new Extractor() {
@@ -77,6 +78,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
         assertEquals(extractor, extractorFactory.getExtractor("test"));
     }
 
+    @Test
     public void test_addExtractor_list() {
         final ExtractorFactory extractorFactory = new ExtractorFactory();
         final Extractor extractor = new Extractor() {
@@ -92,6 +94,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
         assertEquals(extractor, extractorFactory.getExtractor("test"));
     }
 
+    @Test
     public void test_getExtractor() {
         String key;
 
@@ -121,12 +124,14 @@ public class ExtractorFactoryTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_builder() {
         assertEquals("test", extractorFactory.builder(new ByteArrayInputStream("test".getBytes()), null).extract().getContent());
         assertEquals("test",
                 extractorFactory.builder(new ByteArrayInputStream("test".getBytes()), null).filename("test.txt").extract().getContent());
     }
 
+    @Test
     public void test_addExtractor_weight() {
         final String key = "application/test";
         assertNull(extractorFactory.getExtractor(key));
@@ -169,6 +174,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
         assertEquals(3, extractorFactory.getExtractors(key).length);
     }
 
+    @Test
     public void test_compositeExtractorCache() {
         // Test that CompositeExtractor is cached and reused
         final String key = "application/cached";
@@ -211,6 +217,7 @@ public class ExtractorFactoryTest extends PlainTestCase {
         assertEquals("second", extractor1.getText(new ByteArrayInputStream(new byte[0]), null).getContent());
     }
 
+    @Test
     public void test_compositeExtractorCacheInvalidation() {
         // Test that cache is invalidated when a new extractor is added
         final String key = "application/invalidate";

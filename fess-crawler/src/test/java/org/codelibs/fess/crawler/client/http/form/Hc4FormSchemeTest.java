@@ -20,10 +20,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class Hc4FormSchemeTest extends PlainTestCase {
 
+    @Test
     public void test_getTokenValue() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
 
@@ -40,11 +42,13 @@ public class Hc4FormSchemeTest extends PlainTestCase {
         assertNull(formScheme.getTokenValue(tokenPattern, content));
     }
 
+    @Test
     public void test_getSchemeName() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertEquals("form", formScheme.getSchemeName());
     }
 
+    @Test
     public void test_getParameter() {
         Map<String, String> params = new HashMap<>();
         params.put("token_url", "http://example.com/token");
@@ -57,6 +61,7 @@ public class Hc4FormSchemeTest extends PlainTestCase {
         assertNull(formScheme.getParameter("nonexistent"));
     }
 
+    @Test
     public void test_replaceCredentials_username() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("testuser", "testpass");
@@ -65,6 +70,7 @@ public class Hc4FormSchemeTest extends PlainTestCase {
         assertEquals("user=testuser", result);
     }
 
+    @Test
     public void test_replaceCredentials_password() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("testuser", "testpass");
@@ -73,6 +79,7 @@ public class Hc4FormSchemeTest extends PlainTestCase {
         assertEquals("pass=testpass", result);
     }
 
+    @Test
     public void test_replaceCredentials_both() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("admin", "secret123");
@@ -81,6 +88,7 @@ public class Hc4FormSchemeTest extends PlainTestCase {
         assertEquals("username=admin&password=secret123", result);
     }
 
+    @Test
     public void test_replaceCredentials_blankValue() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("testuser", "testpass");
@@ -92,21 +100,25 @@ public class Hc4FormSchemeTest extends PlainTestCase {
         assertEquals("", result);
     }
 
+    @Test
     public void test_getRealm() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertNull(formScheme.getRealm());
     }
 
+    @Test
     public void test_isConnectionBased() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertFalse(formScheme.isConnectionBased());
     }
 
+    @Test
     public void test_isComplete() {
         Hc4FormScheme formScheme = new Hc4FormScheme(Collections.emptyMap());
         assertFalse(formScheme.isComplete());
     }
 
+    @Test
     public void test_toString() {
         Map<String, String> params = new HashMap<>();
         params.put("key", "value");

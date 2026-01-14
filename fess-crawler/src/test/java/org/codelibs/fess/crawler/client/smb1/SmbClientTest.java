@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.MountableFile;
@@ -194,34 +195,35 @@ public class SmbClientTest extends PlainTestCase {
         super.tearDown(testInfo);
     }
 
+    @Test
     public void test_doGet() throws Exception {
         try (final ResponseData responseData = smbClient.doGet(baseUrl + "file1.txt")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
             assertEquals(baseUrl + "file1.txt", responseData.getUrl());
             assertEquals("file1", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
         }
         try (final ResponseData responseData = smbClient.doGet(baseUrl + "dir1/file2.txt")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
             assertEquals(baseUrl + "dir1/file2.txt", responseData.getUrl());
             assertEquals("file2", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
         }
         try (final ResponseData responseData = smbClient.doGet(baseUrl + "dir1/dir2/file3.txt")) {
             assertEquals(baseUrl + "dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
             assertEquals("file3", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
         }
         try (final ResponseData responseData = smbClient.doGet(baseUrl + "dir3/file4.txt")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
             assertEquals(baseUrl + "dir3/file4.txt", responseData.getUrl());
             assertEquals("file4", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
         }
 
         try {
@@ -263,7 +265,7 @@ public class SmbClientTest extends PlainTestCase {
         try (final ResponseData responseData = smbClient.doGet(baseUrl + "none")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(404, responseData.getHttpStatusCode());
-            assertEquals(0, responseData.getContentLength());
+            assertEquals(0L, responseData.getContentLength());
             assertNull(responseData.getResponseBody());
             assertEquals(baseUrl + "none", responseData.getUrl());
         }
@@ -276,11 +278,12 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead() throws Exception {
         try (final ResponseData responseData = smbClient.doHead(baseUrl + "file1.txt")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals(baseUrl + "file1.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
@@ -288,7 +291,7 @@ public class SmbClientTest extends PlainTestCase {
         try (final ResponseData responseData = smbClient.doHead(baseUrl + "dir1/file2.txt")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals(baseUrl + "dir1/file2.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
@@ -296,7 +299,7 @@ public class SmbClientTest extends PlainTestCase {
         try (final ResponseData responseData = smbClient.doHead(baseUrl + "dir1/dir2/file3.txt")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals(baseUrl + "dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
@@ -304,7 +307,7 @@ public class SmbClientTest extends PlainTestCase {
         try (final ResponseData responseData = smbClient.doHead(baseUrl + "dir3/file4.txt")) {
             assertEquals(0, responseData.getStatus());
             assertEquals(200, responseData.getHttpStatusCode());
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals(baseUrl + "dir3/file4.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertNull(responseData.getResponseBody());
@@ -333,6 +336,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_accessTimeoutTarget() {
         SmbClient client = new SmbClient() {
             @Override
@@ -354,6 +358,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_accessTimeoutTarget() {
         SmbClient client = new SmbClient() {
             @Override
@@ -375,6 +380,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_authenticationWithDomain() throws Exception {
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
@@ -412,6 +418,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_wrongCredentials() throws Exception {
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
@@ -433,6 +440,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_malformedUrl() throws Exception {
         ResponseData responseData = smbClient.doGet("not-a-valid-smb1-url");
         assertEquals(0, responseData.getStatus());
@@ -443,6 +451,7 @@ public class SmbClientTest extends PlainTestCase {
         assertEquals(404, responseData.getHttpStatusCode());
     }
 
+    @Test
     public void test_maxContentLengthExceeded() throws Exception {
         ContentLengthHelper helper = new ContentLengthHelper();
         helper.setDefaultMaxLength(3L);
@@ -456,6 +465,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_largeFile() throws Exception {
         String largeFileUrl = publicUrl + "largefile.bin";
 
@@ -475,13 +485,14 @@ public class SmbClientTest extends PlainTestCase {
 
         try (ResponseData responseData = client.doGet(largeFileUrl)) {
             assertEquals(200, responseData.getHttpStatusCode());
-            assertEquals(10 * 1024 * 1024, responseData.getContentLength());
+            assertEquals(10L * 1024L * 1024L, responseData.getContentLength());
             assertNotNull(responseData.getResponseBody());
             byte[] result = InputStreamUtil.getBytes(responseData.getResponseBody());
             assertEquals(10 * 1024 * 1024, result.length);
         }
     }
 
+    @Test
     public void test_specialCharactersInFileName() throws Exception {
         SmbClient client = new SmbClient();
         client.setResolveSids(false);
@@ -517,6 +528,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_emptyDirectory() throws Exception {
         SmbClient client = new SmbClient();
         client.setResolveSids(false);
@@ -539,6 +551,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_deeplyNestedDirectories() throws Exception {
         String deepFileUrl = deepUrl + "level1/level2/level3/level4/level5/deepfile.txt";
 
@@ -561,6 +574,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_zeroByteFile() throws Exception {
         String emptyFileUrl = publicUrl + "empty.txt";
 
@@ -579,17 +593,18 @@ public class SmbClientTest extends PlainTestCase {
 
         try (ResponseData responseData = client.doGet(emptyFileUrl)) {
             assertEquals(200, responseData.getHttpStatusCode());
-            assertEquals(0, responseData.getContentLength());
+            assertEquals(0L, responseData.getContentLength());
             assertEquals("", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
         }
 
         try (ResponseData responseData = client.doHead(emptyFileUrl)) {
             assertEquals(200, responseData.getHttpStatusCode());
-            assertEquals(0, responseData.getContentLength());
+            assertEquals(0L, responseData.getContentLength());
             assertNull(responseData.getResponseBody());
         }
     }
 
+    @Test
     public void test_resolveSidsDisabled() throws Exception {
         SmbClient client = new SmbClient();
         client.setResolveSids(false);
@@ -627,6 +642,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_customCharset() throws Exception {
         SmbClient client = new SmbClient();
         client.setCharset("ISO-8859-1");
@@ -665,6 +681,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_fileMetadata() throws Exception {
         try (ResponseData responseData = smbClient.doGet(baseUrl + "file1.txt")) {
             assertEquals(200, responseData.getHttpStatusCode());
@@ -674,6 +691,7 @@ public class SmbClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_closeResources() throws Exception {
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
                 .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);

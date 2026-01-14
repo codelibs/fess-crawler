@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.exception;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -28,6 +29,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message only
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Failed to parse sitemap";
         SitemapsException exception = new SitemapsException(message);
@@ -40,6 +42,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         SitemapsException exception = new SitemapsException((String) null);
 
@@ -50,6 +53,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with cause only
      */
+    @Test
     public void test_constructor_withCause() {
         IOException cause = new IOException("XML parse error");
         SitemapsException exception = new SitemapsException(cause);
@@ -62,6 +66,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null cause
      */
+    @Test
     public void test_constructor_withNullCause() {
         SitemapsException exception = new SitemapsException((Throwable) null);
 
@@ -72,6 +77,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message and cause
      */
+    @Test
     public void test_constructor_withMessageAndCause() {
         String message = "Sitemap XML invalid";
         IOException cause = new IOException("Malformed XML");
@@ -85,6 +91,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test inheritance
      */
+    @Test
     public void test_inheritance() {
         SitemapsException exception = new SitemapsException("Test");
 
@@ -95,6 +102,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new SitemapsException("Sitemap not found");
@@ -106,6 +114,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test catching as parent type
      */
+    @Test
     public void test_catchAsParentType() {
         try {
             throw new SitemapsException("Parse error");
@@ -117,6 +126,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test various sitemap error messages
      */
+    @Test
     public void test_sitemapErrorMessages() {
         SitemapsException e1 = new SitemapsException("Invalid sitemap index");
         assertTrue(e1.getMessage().contains("sitemap index"));
@@ -131,6 +141,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test message with URL
      */
+    @Test
     public void test_messageWithUrl() {
         String message = "Failed to parse http://example.com/sitemap.xml";
         SitemapsException exception = new SitemapsException(message);
@@ -142,6 +153,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test exception chaining
      */
+    @Test
     public void test_exceptionChaining() {
         Exception root = new org.xml.sax.SAXException("XML error");
         IOException middle = new IOException("Parse failed", root);
@@ -155,6 +167,7 @@ public class SitemapsExceptionTest extends PlainTestCase {
     /**
      * Test with gzip sitemap error
      */
+    @Test
     public void test_gzipSitemapError() {
         IOException cause = new IOException("Not in GZIP format");
         SitemapsException exception = new SitemapsException("Failed to decompress sitemap.xml.gz", cause);

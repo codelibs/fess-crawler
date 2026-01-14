@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.client;
 
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -25,6 +26,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class AbstractCrawlerClientTest extends PlainTestCase {
 
+    @Test
     public void test_checkMaxContentLength() {
         AbstractCrawlerClient client = new AbstractCrawlerClient() {
         };
@@ -49,6 +51,7 @@ public class AbstractCrawlerClientTest extends PlainTestCase {
         client.checkMaxContentLength(responseData);
     }
 
+    @Test
     public void test_checkMaxContentLength_1m() {
         AbstractCrawlerClient client = new AbstractCrawlerClient() {
         };

@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.rule.impl;
 import java.util.regex.Pattern;
 
 import org.codelibs.fess.crawler.entity.ResponseData;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -26,6 +27,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class RegexRuleTest extends PlainTestCase {
 
+    @Test
     public void test_match_default() {
         final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = true;
@@ -39,6 +41,7 @@ public class RegexRuleTest extends PlainTestCase {
         assertTrue(regexRule.match(getTestData4()));
     }
 
+    @Test
     public void test_match_url() {
         final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
@@ -51,6 +54,7 @@ public class RegexRuleTest extends PlainTestCase {
         assertFalse(regexRule.match(getTestData4()));
     }
 
+    @Test
     public void test_match_mimeType() {
         final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
@@ -63,6 +67,7 @@ public class RegexRuleTest extends PlainTestCase {
         assertTrue(regexRule.match(getTestData4()));
     }
 
+    @Test
     public void test_match_and() {
         final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
@@ -76,6 +81,7 @@ public class RegexRuleTest extends PlainTestCase {
         assertFalse(regexRule.match(getTestData4()));
     }
 
+    @Test
     public void test_match_or() {
         final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;
@@ -89,6 +95,7 @@ public class RegexRuleTest extends PlainTestCase {
         assertFalse(regexRule.match(getTestData4()));
     }
 
+    @Test
     public void test_match_httpStatus() {
         final RegexRule regexRule = new RegexRule();
         regexRule.defaultRule = false;

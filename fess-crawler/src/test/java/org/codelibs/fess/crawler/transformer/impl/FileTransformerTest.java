@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -37,7 +38,6 @@ public class FileTransformerTest extends PlainTestCase {
     public FileTransformer fileTransformer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         fileTransformer = new FileTransformer();
@@ -65,10 +65,12 @@ public class FileTransformerTest extends PlainTestCase {
         fileTransformer.baseDir.deleteOnExit();
     }
 
+    @Test
     public void test_name() {
         assertEquals("fileTransformer", fileTransformer.getName());
     }
 
+    @Test
     public void test_getFilePath() {
         String url;
 
@@ -82,6 +84,7 @@ public class FileTransformerTest extends PlainTestCase {
         assertEquals("http_CLN_/www.example.com/action_QUEST_a=1_AMP_b=2", fileTransformer.getFilePath(url));
     }
 
+    @Test
     public void test_transform() throws Exception {
         final byte[] data = new String("xyz").getBytes();
         final ResponseData responseData = new ResponseData();
@@ -95,6 +98,7 @@ public class FileTransformerTest extends PlainTestCase {
         assertEquals("xyz", new String(FileUtil.readBytes(file)));
     }
 
+    @Test
     public void test_createFile() throws Exception {
         fileTransformer.baseDir = File.createTempFile("crawler-", "");
         fileTransformer.baseDir.delete();
@@ -154,6 +158,7 @@ public class FileTransformerTest extends PlainTestCase {
         FileUtil.writeBytes(file.getAbsolutePath(), "abc".getBytes());
     }
 
+    @Test
     public void test_getData() throws Exception {
         final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData("hoge.txt".getBytes());
@@ -167,6 +172,7 @@ public class FileTransformerTest extends PlainTestCase {
         assertEquals(new File(fileTransformer.baseDir, "hoge.txt"), obj);
     }
 
+    @Test
     public void test_getData_wrongName() throws Exception {
         final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData("hoge.txt".getBytes());
@@ -181,6 +187,7 @@ public class FileTransformerTest extends PlainTestCase {
         } catch (final CrawlerSystemException e) {}
     }
 
+    @Test
     public void test_getData_nullData() throws Exception {
         final AccessResultDataImpl accessResultDataImpl = new AccessResultDataImpl();
         accessResultDataImpl.setData(null);

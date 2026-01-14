@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -220,7 +221,6 @@ public class RuleManagerTest extends PlainTestCase {
     private TestRuleManager ruleManager;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         ruleManager = new TestRuleManager();
@@ -229,6 +229,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding a single rule
      */
+    @Test
     public void test_addRule_single() {
         TestRule rule = new TestRule("rule1", true);
 
@@ -241,6 +242,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding multiple rules
      */
+    @Test
     public void test_addRule_multiple() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -259,6 +261,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding null rule
      */
+    @Test
     public void test_addRule_null() {
         ruleManager.addRule(null);
 
@@ -268,6 +271,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding rule at specific index
      */
+    @Test
     public void test_addRule_atIndex() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -287,6 +291,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding rule at index 0
      */
+    @Test
     public void test_addRule_atIndexZero() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -303,6 +308,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding rule at last index
      */
+    @Test
     public void test_addRule_atLastIndex() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -320,6 +326,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding rule at invalid index
      */
+    @Test
     public void test_addRule_atInvalidIndex() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -344,6 +351,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding null rule at index
      */
+    @Test
     public void test_addRule_nullAtIndex() {
         TestRule rule1 = new TestRule("rule1", true);
 
@@ -357,6 +365,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test removing existing rule
      */
+    @Test
     public void test_removeRule_existing() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -374,6 +383,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test removing non-existing rule
      */
+    @Test
     public void test_removeRule_nonExisting() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -389,6 +399,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test removing null rule
      */
+    @Test
     public void test_removeRule_null() {
         TestRule rule = new TestRule("rule1", true);
 
@@ -403,6 +414,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test removing all rules
      */
+    @Test
     public void test_removeRule_all() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -422,6 +434,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test hasRule with existing rule
      */
+    @Test
     public void test_hasRule_existing() {
         TestRule rule = new TestRule("rule1", true);
 
@@ -433,6 +446,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test hasRule with non-existing rule
      */
+    @Test
     public void test_hasRule_nonExisting() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -445,6 +459,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test hasRule with null
      */
+    @Test
     public void test_hasRule_null() {
         TestRule rule = new TestRule("rule1", true);
 
@@ -456,6 +471,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test getRule with matching rule
      */
+    @Test
     public void test_getRule_matching() {
         TestRule rule1 = new TestRule("rule1", false);
         TestRule rule2 = new TestRule("rule2", true);
@@ -475,6 +491,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test getRule with no matching rule
      */
+    @Test
     public void test_getRule_noMatch() {
         TestRule rule1 = new TestRule("rule1", false);
         TestRule rule2 = new TestRule("rule2", false);
@@ -491,6 +508,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test getRule with null ResponseData
      */
+    @Test
     public void test_getRule_nullResponseData() {
         TestRule rule = new TestRule("rule1", true);
 
@@ -504,6 +522,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test getRule with first matching rule (priority)
      */
+    @Test
     public void test_getRule_firstMatchPriority() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", true);
@@ -523,6 +542,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test getRule with URL pattern rules
      */
+    @Test
     public void test_getRule_urlPattern() {
         UrlPatternRule rule1 = new UrlPatternRule("httpRule", "https?://.*");
         UrlPatternRule rule2 = new UrlPatternRule("exampleRule", ".*example\\.com.*");
@@ -551,6 +571,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test rule order preservation
      */
+    @Test
     public void test_ruleOrderPreservation() {
         TestRule rule1 = new TestRule("rule1", false);
         TestRule rule2 = new TestRule("rule2", true);
@@ -573,6 +594,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test adding duplicate rules
      */
+    @Test
     public void test_addRule_duplicates() {
         TestRule rule = new TestRule("rule1", true);
 
@@ -596,6 +618,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test empty RuleManager
      */
+    @Test
     public void test_emptyRuleManager() {
         assertEquals(0, ruleManager.getRuleCount());
 
@@ -610,6 +633,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test clearing all rules
      */
+    @Test
     public void test_clearRules() {
         TestRule rule1 = new TestRule("rule1", true);
         TestRule rule2 = new TestRule("rule2", false);
@@ -632,6 +656,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test getRule call count
      */
+    @Test
     public void test_getRuleCallCount() {
         TestRule rule = new TestRule("rule1", true);
         ruleManager.addRule(rule);
@@ -653,6 +678,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test concurrent rule additions
      */
+    @Test
     public void test_concurrentAddRule() throws Exception {
         final ThreadSafeRuleManager threadSafeManager = new ThreadSafeRuleManager();
         final int threadCount = 10;
@@ -691,6 +717,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test concurrent rule removals
      */
+    @Test
     public void test_concurrentRemoveRule() throws Exception {
         final ThreadSafeRuleManager threadSafeManager = new ThreadSafeRuleManager();
         final List<TestRule> rules = new ArrayList<>();
@@ -738,6 +765,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test mixed operations
      */
+    @Test
     public void test_mixedOperations() {
         TestRule rule1 = new TestRule("rule1", false);
         TestRule rule2 = new TestRule("rule2", true);
@@ -780,6 +808,7 @@ public class RuleManagerTest extends PlainTestCase {
     /**
      * Test rule replacement scenario
      */
+    @Test
     public void test_ruleReplacement() {
         TestRule oldRule = new TestRule("rule1", false);
         TestRule newRule = new TestRule("rule1", true); // Same ID, different behavior

@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -39,7 +40,6 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
     public HtmlXpathExtractor htmlXpathExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("htmlXpathExtractor", HtmlXpathExtractor.class);
@@ -47,6 +47,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         htmlXpathExtractor.init();
     }
 
+    @Test
     public void test_getHtml_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         final String content = htmlXpathExtractor.getText(in, null).getContent();
@@ -55,6 +56,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getHtml_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         final String content = htmlXpathExtractor.getText(in, null).getContent();
@@ -63,6 +65,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getHtml_attr() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_attr.html");
         final String content = htmlXpathExtractor.getText(in, null).getContent();
@@ -77,6 +80,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         assertTrue(content.contains("リンク1"));
     }
 
+    @Test
     public void test_getHtml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());
         final String content = htmlXpathExtractor.getText(in, null).getContent();
@@ -85,6 +89,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         assertEquals("", content);
     }
 
+    @Test
     public void test_getEncoding_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -93,6 +98,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         assertEquals("UTF-8", encoding);
     }
 
+    @Test
     public void test_getEncoding_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -101,6 +107,7 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         assertEquals("Shift_JIS", encoding);
     }
 
+    @Test
     public void test_getHtml_null() {
         try {
             htmlXpathExtractor.getText(null, null);

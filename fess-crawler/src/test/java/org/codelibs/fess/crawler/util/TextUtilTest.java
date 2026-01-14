@@ -21,6 +21,7 @@ import java.io.StringReader;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.util.TextUtil.TextNormalizeContext;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -29,6 +30,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class TextUtilTest extends PlainTestCase {
 
+    @Test
     public void test_getContent() {
         assertEquals("", normalizeText((String) null, 100, -1, -1, false));
         assertEquals("", normalizeText("", 100, -1, -1, false));
@@ -44,6 +46,7 @@ public class TextUtilTest extends PlainTestCase {
         assertEquals("1234567890 1234567890", normalizeText("1234567890 1234567890", 100, -1, -1, false));
     }
 
+    @Test
     public void test_getContent_maxAlphanum() {
         assertEquals("", normalizeText((String) null, 100, 2, -1, false));
         assertEquals("", normalizeText("", 100, 2, -1, false));
@@ -58,6 +61,7 @@ public class TextUtilTest extends PlainTestCase {
         assertEquals("12", normalizeText(" 123abc ", 100, 2, -1, false));
     }
 
+    @Test
     public void test_getContent_maxSymbol() {
         assertEquals("", normalizeText((String) null, 100, -1, 2, false));
         assertEquals("", normalizeText("", 100, -1, 2, false));
@@ -82,6 +86,7 @@ public class TextUtilTest extends PlainTestCase {
         assertEquals("!\"", normalizeText("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~", 100, -1, 2, false));
     }
 
+    @Test
     public void test_getContent_removeDuplication() {
         assertEquals("", normalizeText((String) null, 100, -1, -1, true));
         assertEquals("", normalizeText("", 100, -1, -1, true));

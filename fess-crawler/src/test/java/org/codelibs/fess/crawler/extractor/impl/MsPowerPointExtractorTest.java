@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -37,13 +38,13 @@ public class MsPowerPointExtractorTest extends PlainTestCase {
     public MsPowerPointExtractor msPowerPointExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msPowerPointExtractor", MsPowerPointExtractor.class);
         msPowerPointExtractor = container.getComponent("msPowerPointExtractor");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.ppt");
         final String content = msPowerPointExtractor.getText(in, null).getContent();
@@ -52,6 +53,7 @@ public class MsPowerPointExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_null() {
         try {
             msPowerPointExtractor.getText(null, null);

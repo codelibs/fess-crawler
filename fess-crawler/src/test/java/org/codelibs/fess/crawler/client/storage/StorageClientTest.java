@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
@@ -149,33 +150,34 @@ public class StorageClientTest extends PlainTestCase {
         super.tearDown(testInfo);
     }
 
+    @Test
     public void test_doGet() throws Exception {
         try (final ResponseData responseData = storageClient.doGet("storage://fess/file1.txt")) {
             assertEquals("storage://fess/file1.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file1", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label1", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/file2.txt")) {
             assertEquals("storage://fess/dir1/file2.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file2", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label2", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/dir1/dir2/file3.txt")) {
             assertEquals("storage://fess/dir1/dir2/file3.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file3", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label3", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/dir3/file4.txt")) {
             assertEquals("storage://fess/dir3/file4.txt", responseData.getUrl());
             assertEquals("text/plain", responseData.getMimeType());
             assertEquals("file4", new String(InputStreamUtil.getBytes(responseData.getResponseBody())));
-            assertEquals(5, responseData.getContentLength());
+            assertEquals(5L, responseData.getContentLength());
             assertEquals("label4", responseData.getMetaDataMap().get("label"));
         }
         try (final ResponseData responseData = storageClient.doGet("storage://fess/")) {
@@ -222,6 +224,7 @@ public class StorageClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead() throws Exception {
         try (final ResponseData responseData = storageClient.doHead("storage://fess/file1.txt")) {
             assertEquals("storage://fess/file1.txt", responseData.getUrl());
@@ -269,6 +272,7 @@ public class StorageClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_parsePath() {
         String[] values;
 
@@ -298,6 +302,7 @@ public class StorageClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_accessTimeout_null_safety() {
         // Test that accessTimeoutTask null check prevents NPE
         StorageClient client = new StorageClient() {
@@ -354,6 +359,7 @@ public class StorageClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_accessTimeoutTarget() {
         StorageClient client = new StorageClient() {
             @Override
@@ -398,6 +404,7 @@ public class StorageClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_accessTimeoutTarget() {
         StorageClient client = new StorageClient() {
             @Override
@@ -442,6 +449,7 @@ public class StorageClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_temp_file_creation() {
         // Test that temp file uses correct prefix "StorageClient" not "SmbClient"
         StorageClient client = new StorageClient() {

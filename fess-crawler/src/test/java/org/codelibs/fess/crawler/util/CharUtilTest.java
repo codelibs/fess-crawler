@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.util;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -24,6 +25,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class CharUtilTest extends PlainTestCase {
 
+    @Test
     public void test_isUrlChar_lowercase() {
         // Test lowercase letters
         assertTrue(CharUtil.isUrlChar('a'));
@@ -31,6 +33,7 @@ public class CharUtilTest extends PlainTestCase {
         assertTrue(CharUtil.isUrlChar('z'));
     }
 
+    @Test
     public void test_isUrlChar_uppercase() {
         // Test uppercase letters
         assertTrue(CharUtil.isUrlChar('A'));
@@ -38,6 +41,7 @@ public class CharUtilTest extends PlainTestCase {
         assertTrue(CharUtil.isUrlChar('Z'));
     }
 
+    @Test
     public void test_isUrlChar_digits() {
         // Test digits
         assertTrue(CharUtil.isUrlChar('0'));
@@ -45,6 +49,7 @@ public class CharUtilTest extends PlainTestCase {
         assertTrue(CharUtil.isUrlChar('9'));
     }
 
+    @Test
     public void test_isUrlChar_commonSpecialChars() {
         // Test common special characters
         assertTrue(CharUtil.isUrlChar('.'));
@@ -53,6 +58,7 @@ public class CharUtilTest extends PlainTestCase {
         assertTrue(CharUtil.isUrlChar('_'));
     }
 
+    @Test
     public void test_isUrlChar_urlSpecialChars() {
         // Test URL-specific special characters
         assertTrue(CharUtil.isUrlChar(':'));
@@ -65,12 +71,14 @@ public class CharUtilTest extends PlainTestCase {
         assertTrue(CharUtil.isUrlChar('#'));
     }
 
+    @Test
     public void test_isUrlChar_brackets() {
         // Test brackets
         assertTrue(CharUtil.isUrlChar('['));
         assertTrue(CharUtil.isUrlChar(']'));
     }
 
+    @Test
     public void test_isUrlChar_otherAllowedChars() {
         // Test other allowed characters
         assertTrue(CharUtil.isUrlChar('@'));
@@ -84,6 +92,7 @@ public class CharUtilTest extends PlainTestCase {
         assertTrue(CharUtil.isUrlChar(';'));
     }
 
+    @Test
     public void test_isUrlChar_notAllowed() {
         // Test characters that are not allowed
         assertFalse(CharUtil.isUrlChar(' ')); // space
@@ -97,6 +106,7 @@ public class CharUtilTest extends PlainTestCase {
         assertFalse(CharUtil.isUrlChar('`')); // backtick
     }
 
+    @Test
     public void test_isUrlChar_controlCharacters() {
         // Test control characters
         assertFalse(CharUtil.isUrlChar('\u0000')); // null
@@ -105,12 +115,14 @@ public class CharUtilTest extends PlainTestCase {
         assertFalse(CharUtil.isUrlChar('\u007F')); // DEL
     }
 
+    @Test
     public void test_isUrlChar_extendedAscii() {
         // Test extended ASCII characters (not valid URL chars without encoding)
         assertFalse(CharUtil.isUrlChar('\u00A0')); // non-breaking space
         assertFalse(CharUtil.isUrlChar('\u00FF')); // ÿ
     }
 
+    @Test
     public void test_isUrlChar_unicode() {
         // Test Unicode characters (not valid URL chars without encoding)
         assertFalse(CharUtil.isUrlChar('\u3042')); // あ (Hiragana)
@@ -118,6 +130,7 @@ public class CharUtilTest extends PlainTestCase {
         assertFalse(CharUtil.isUrlChar('\u0410')); // А (Cyrillic)
     }
 
+    @Test
     public void test_isUrlChar_allValidChars() {
         // Test all valid URL characters in a comprehensive way
         String validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-*_:/+%=&?#[]@~!$'(),;";
@@ -126,6 +139,7 @@ public class CharUtilTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_isUrlChar_boundaryChars() {
         // Test boundary characters for ranges
         assertTrue(CharUtil.isUrlChar('a')); // first lowercase

@@ -21,6 +21,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -32,6 +33,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test default values
      */
+    @Test
     public void test_defaultValues() {
         SitemapSet set = new SitemapSet();
 
@@ -43,6 +45,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test type constants
      */
+    @Test
     public void test_typeConstants() {
         assertEquals("UrlSet", SitemapSet.URLSET);
         assertEquals("Index", SitemapSet.INDEX);
@@ -51,6 +54,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test addSitemap
      */
+    @Test
     public void test_addSitemap() {
         SitemapSet set = new SitemapSet();
 
@@ -71,6 +75,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test removeSitemap
      */
+    @Test
     public void test_removeSitemap() {
         SitemapSet set = new SitemapSet();
 
@@ -94,6 +99,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test removeSitemap with non-existent element
      */
+    @Test
     public void test_removeSitemap_nonExistent() {
         SitemapSet set = new SitemapSet();
 
@@ -112,6 +118,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test setType to INDEX
      */
+    @Test
     public void test_setType_index() {
         SitemapSet set = new SitemapSet();
 
@@ -127,6 +134,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test setType to URLSET
      */
+    @Test
     public void test_setType_urlset() {
         SitemapSet set = new SitemapSet();
         set.setType(SitemapSet.INDEX);
@@ -142,6 +150,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test setType with custom value
      */
+    @Test
     public void test_setType_customValue() {
         SitemapSet set = new SitemapSet();
         set.setType("Custom");
@@ -153,6 +162,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test getSitemaps returns array copy
      */
+    @Test
     public void test_getSitemaps_returnsArray() {
         SitemapSet set = new SitemapSet();
 
@@ -168,6 +178,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test with mixed sitemap types (SitemapUrl and SitemapFile)
      */
+    @Test
     public void test_mixedSitemapTypes() {
         SitemapSet set = new SitemapSet();
 
@@ -187,6 +198,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test toString
      */
+    @Test
     public void test_toString() {
         SitemapSet set = new SitemapSet();
         set.setType(SitemapSet.INDEX);
@@ -204,6 +216,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test implements Serializable
      */
+    @Test
     public void test_implementsSerializable() {
         SitemapSet set = new SitemapSet();
         assertTrue(set instanceof Serializable);
@@ -212,6 +225,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test serialization
      */
+    @Test
     public void test_serialization() throws Exception {
         SitemapSet original = new SitemapSet();
         original.setType(SitemapSet.INDEX);
@@ -238,6 +252,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test large number of sitemaps
      */
+    @Test
     public void test_largeSitemapSet() {
         SitemapSet set = new SitemapSet();
 
@@ -253,6 +268,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test typical sitemap index use case
      */
+    @Test
     public void test_sitemapIndexUseCase() {
         SitemapSet indexSet = new SitemapSet();
         indexSet.setType(SitemapSet.INDEX);
@@ -272,6 +288,7 @@ public class SitemapSetTest extends PlainTestCase {
     /**
      * Test typical URL set use case
      */
+    @Test
     public void test_urlSetUseCase() {
         SitemapSet urlSet = new SitemapSet();
         // Default is URLSET

@@ -37,6 +37,7 @@ import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -367,7 +368,6 @@ public class TransformerTest extends PlainTestCase {
     private TestTransformer testTransformer;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         testTransformer = new TestTransformer("testTransformer");
@@ -376,6 +376,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test basic transform implementation
      */
+    @Test
     public void test_transform_basic() {
         ResponseData responseData = new ResponseData();
         responseData.setUrl("http://example.com");
@@ -394,6 +395,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test transform with null ResponseData
      */
+    @Test
     public void test_transform_nullResponseData() {
         ResultData resultData = testTransformer.transform(null);
 
@@ -405,6 +407,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test transform with various ResponseData states
      */
+    @Test
     public void test_transform_variousResponseDataStates() {
         // Empty ResponseData - should return a valid ResultData with empty/null data
         ResponseData emptyData = new ResponseData();
@@ -431,6 +434,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test getData basic implementation
      */
+    @Test
     public void test_getData_basic() {
         TestAccessResultData<String> accessResultData = new TestAccessResultData<>();
         accessResultData.setData("test data".getBytes());
@@ -446,6 +450,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test getData with null AccessResultData
      */
+    @Test
     public void test_getData_nullAccessResultData() {
         Object data = testTransformer.getData(null);
 
@@ -457,6 +462,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test getData with different data types
      */
+    @Test
     public void test_getData_differentDataTypes() {
         // String data
         TestAccessResultData<String> stringData = new TestAccessResultData<>("string value".getBytes());
@@ -482,6 +488,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test getName implementation
      */
+    @Test
     public void test_getName() {
         assertEquals("testTransformer", testTransformer.getName());
 
@@ -501,6 +508,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test ContentTransformer implementation
      */
+    @Test
     public void test_contentTransformer() {
         ContentTransformer transformer = new ContentTransformer("contentTransformer");
         transformer.addTransformationRule("old", "new");
@@ -525,6 +533,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test exception handling in transform
      */
+    @Test
     public void test_exceptionHandling_transform() {
         ExceptionThrowingTransformer transformer = new ExceptionThrowingTransformer("exceptionTransformer");
         transformer.setThrowInTransform(true);
@@ -542,6 +551,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test exception handling in getData
      */
+    @Test
     public void test_exceptionHandling_getData() {
         ExceptionThrowingTransformer transformer = new ExceptionThrowingTransformer("exceptionTransformer");
         transformer.setThrowInGetData(true);
@@ -559,6 +569,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test stateful transformer
      */
+    @Test
     public void test_statefulTransformer() {
         StatefulTransformer transformer = new StatefulTransformer("statefulTransformer");
 
@@ -590,6 +601,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test multiple transformer instances
      */
+    @Test
     public void test_multipleTransformerInstances() {
         TestTransformer transformer1 = new TestTransformer("transformer1");
         TestTransformer transformer2 = new TestTransformer("transformer2");
@@ -614,6 +626,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test concurrent transformer operations
      */
+    @Test
     public void test_concurrentOperations() throws Exception {
         final TestTransformer transformer = new TestTransformer("concurrentTransformer");
         final int threadCount = 5;
@@ -670,6 +683,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test transformer chain
      */
+    @Test
     public void test_transformerChain() {
         // Create chain of transformers
         List<Transformer> transformerChain = new ArrayList<>();
@@ -694,6 +708,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test null name handling
      */
+    @Test
     public void test_nullNameHandling() {
         TestTransformer transformer = new TestTransformer(null);
         assertNull(transformer.getName());
@@ -708,6 +723,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test serialization of AccessResultData
      */
+    @Test
     public void test_accessResultDataSerialization() throws Exception {
         TestAccessResultData<String> original = new TestAccessResultData<>("test data".getBytes());
         original.setUrl("http://example.com");
@@ -733,6 +749,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test transformer with large data
      */
+    @Test
     public void test_transformerWithLargeData() {
         TestTransformer transformer = new TestTransformer("largeDataTransformer");
 
@@ -767,6 +784,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test transformer reusability
      */
+    @Test
     public void test_transformerReusability() {
         TestTransformer transformer = new TestTransformer("reusableTransformer");
 
@@ -792,6 +810,7 @@ public class TransformerTest extends PlainTestCase {
     /**
      * Test complete workflow
      */
+    @Test
     public void test_completeWorkflow() {
         // Create transformer
         ContentTransformer transformer = new ContentTransformer("workflowTransformer");

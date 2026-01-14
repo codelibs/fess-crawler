@@ -26,6 +26,7 @@ import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExecutionTimeoutException;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -111,6 +112,7 @@ public class CommandExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getText() throws IOException {
         final File scriptFile = createScriptTempFile(3);
         final String content = "TEST";
@@ -123,6 +125,7 @@ public class CommandExtractorTest extends PlainTestCase {
         assertEquals(content, text.getContent());
     }
 
+    @Test
     public void test_getText_withUrl() throws IOException {
         final File scriptFile = createScriptTempFile(3);
         final String content = "TEST";
@@ -136,6 +139,7 @@ public class CommandExtractorTest extends PlainTestCase {
         assertEquals(content, text.getContent());
     }
 
+    @Test
     public void test_getText_withUrlContainingSpace() throws IOException {
         final File scriptFile = createScriptTempFile(3);
         final String content = "TEST";
@@ -149,6 +153,7 @@ public class CommandExtractorTest extends PlainTestCase {
         assertEquals(content, text.getContent());
     }
 
+    @Test
     public void test_getText_timeout() throws IOException {
         final File scriptFile = createScriptTempFile(3);
         final String content = "TEST";
@@ -164,6 +169,7 @@ public class CommandExtractorTest extends PlainTestCase {
         } catch (final ExecutionTimeoutException e) {}
     }
 
+    @Test
     public void test_getText_fromStdin() throws IOException {
         final File scriptFile = createScriptTempFileStdout(3);
         final String content = "TEST";
@@ -177,6 +183,7 @@ public class CommandExtractorTest extends PlainTestCase {
         assertEquals(content, text.getContent());
     }
 
+    @Test
     public void test_parseCommand() {
         final CommandExtractor extractor = new CommandExtractor();
 
@@ -239,6 +246,7 @@ public class CommandExtractorTest extends PlainTestCase {
         assertEquals("B", list.get(2));
     }
 
+    @Test
     public void test_getFileName() {
         final CommandExtractor extractor = new CommandExtractor();
         String expected;

@@ -40,6 +40,7 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -52,7 +53,6 @@ public class FtpClientTest extends PlainTestCase {
     public FtpClient ftpClient;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
@@ -83,6 +83,7 @@ public class FtpClientTest extends PlainTestCase {
         return server;
     }
 
+    @Test
     public void test_doGet_root_dir() throws FtpException {
         FtpServer server = null;
         try {
@@ -114,6 +115,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_dir1() throws FtpException {
         FtpServer server = null;
         try {
@@ -143,6 +145,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_file() throws Exception {
         FtpServer server = null;
         try {
@@ -172,6 +175,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_file_with_space() throws Exception {
         FtpServer server = null;
         try {
@@ -187,7 +191,7 @@ public class FtpClientTest extends PlainTestCase {
             final ResponseData responseData = ftpClient.doGet("ftp://localhost:" + FTP_PORT + "/text 3.txt");
             assertEquals(200, responseData.getHttpStatusCode());
             assertEquals("UTF-8", responseData.getCharSet());
-            assertEquals(6, responseData.getContentLength());
+            assertEquals(6L, responseData.getContentLength());
             assertNotNull(responseData.getLastModified());
             assertEquals(Constants.GET_METHOD, responseData.getMethod());
             assertEquals("text/plain", responseData.getMimeType());
@@ -201,6 +205,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_ftpInfo() {
         String value;
         FtpInfo ftpInfo;
@@ -321,6 +326,7 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals("file.txt", ftpInfo.getName());
     }
 
+    @Test
     public void test_doHead_file() throws Exception {
         FtpServer server = null;
         try {
@@ -344,6 +350,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_root_dir() throws Exception {
         FtpServer server = null;
         try {
@@ -365,6 +372,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_dir1() throws Exception {
         FtpServer server = null;
         try {
@@ -386,6 +394,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doGet_accessTimeoutTarget() {
         FtpClient client = new FtpClient() {
             @Override
@@ -407,6 +416,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_accessTimeoutTarget() {
         FtpClient client = new FtpClient() {
             @Override
@@ -428,6 +438,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_directory_child_urls() throws Exception {
         // Test that childUri (not typo chileUri) is correctly used in directory listing
         FtpServer server = null;
@@ -459,6 +470,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_accessTimeout_null_safety() {
         // Test that accessTimeoutTask null check prevents NPE
         FtpClient client = new FtpClient() {
@@ -492,6 +504,7 @@ public class FtpClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_ftpInfo_toChildUrl() {
         // Test that toChildUrl method works correctly (used with childUri variable)
         FtpInfo ftpInfo = new FtpClient.FtpInfo("ftp://example.com/parent/", Constants.UTF_8);

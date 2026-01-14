@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -41,7 +42,6 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         container = new StandardCrawlerContainer().singleton("msWordExtractor", MsWordExtractor.class)
@@ -53,6 +53,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     /**
      * Test that MsWordExtractor properly closes resources on successful extraction.
      */
+    @Test
     public void test_MsWordExtractor_closesResourcesOnSuccess() throws IOException {
         final MsWordExtractor extractor = container.getComponent("msWordExtractor");
         final AtomicBoolean streamClosed = new AtomicBoolean(false);
@@ -70,6 +71,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     /**
      * Test that MsExcelExtractor properly closes resources on successful extraction.
      */
+    @Test
     public void test_MsExcelExtractor_closesResourcesOnSuccess() throws IOException {
         final MsExcelExtractor extractor = container.getComponent("msExcelExtractor");
         final AtomicBoolean streamClosed = new AtomicBoolean(false);
@@ -87,6 +89,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     /**
      * Test that MsPowerPointExtractor properly closes resources on successful extraction.
      */
+    @Test
     public void test_MsPowerPointExtractor_closesResourcesOnSuccess() throws IOException {
         final MsPowerPointExtractor extractor = container.getComponent("msPowerPointExtractor");
         final AtomicBoolean streamClosed = new AtomicBoolean(false);
@@ -104,6 +107,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     /**
      * Test that validateInputStream throws appropriate exception for null input.
      */
+    @Test
     public void test_validateInputStream_throwsExceptionForNull() {
         final TextExtractor extractor = container.getComponent("textExtractor");
 
@@ -120,6 +124,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
      * POI may throw various exceptions (IOException, IllegalArgumentException, etc.)
      * depending on the type of invalid data.
      */
+    @Test
     public void test_MsWordExtractor_throwsExceptionWithImprovedMessage() {
         final MsWordExtractor extractor = container.getComponent("msWordExtractor");
         final InputStream invalidStream = new ByteArrayInputStream("invalid data".getBytes());
@@ -141,6 +146,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
      * Test that MsExcelExtractor throws appropriate exception for invalid data.
      * POI may throw various exceptions depending on the type of invalid data.
      */
+    @Test
     public void test_MsExcelExtractor_throwsExceptionWithImprovedMessage() {
         final MsExcelExtractor extractor = container.getComponent("msExcelExtractor");
         final InputStream invalidStream = new ByteArrayInputStream("invalid data".getBytes());
@@ -161,6 +167,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
      * Test that MsPowerPointExtractor throws appropriate exception for invalid data.
      * POI may throw various exceptions depending on the type of invalid data.
      */
+    @Test
     public void test_MsPowerPointExtractor_throwsExceptionWithImprovedMessage() {
         final MsPowerPointExtractor extractor = container.getComponent("msPowerPointExtractor");
         final InputStream invalidStream = new ByteArrayInputStream("invalid data".getBytes());
@@ -180,6 +187,7 @@ public class ExtractorResourceManagementTest extends PlainTestCase {
     /**
      * Test that TextExtractor throws exception with encoding information.
      */
+    @Test
     public void test_TextExtractor_includesEncodingInErrorMessage() {
         final TextExtractor extractor = container.getComponent("textExtractor");
         // Create a stream that will cause an encoding error

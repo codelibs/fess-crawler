@@ -30,6 +30,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -44,7 +45,6 @@ public class PdfExtractorTest extends PlainTestCase {
     private PdfExtractor pdfExtractorForPdfPassword;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
@@ -64,6 +64,7 @@ public class PdfExtractorTest extends PlainTestCase {
         pdfExtractorForPdfPassword.addPassword(".*test_.*.pdf", "word");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
         final ExtractData extractData = pdfExtractor.getText(in, null);
@@ -76,6 +77,7 @@ public class PdfExtractorTest extends PlainTestCase {
         assertEquals("D:20090627222631+09'00'", extractData.getValues("CreationDate")[0]);
     }
 
+    @Test
     public void test_getText_pass() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
         final Map<String, String> params = new HashMap<String, String>();
@@ -86,6 +88,7 @@ public class PdfExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getText_null() {
         try {
             pdfExtractor.getText(null, null);
@@ -95,6 +98,7 @@ public class PdfExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getPassword_null() {
         String url;
         String resourceName;
@@ -125,6 +129,7 @@ public class PdfExtractorTest extends PlainTestCase {
         assertNull(pdfExtractor.getPassword(params));
     }
 
+    @Test
     public void test_getPassword() {
         String url;
         String resourceName;
@@ -175,6 +180,7 @@ public class PdfExtractorTest extends PlainTestCase {
         assertEquals("PASSWORD", pdfExtractor.getPassword(params));
     }
 
+    @Test
     public void test_getPassword_json() {
         String url;
         Map<String, String> params = new HashMap<>();

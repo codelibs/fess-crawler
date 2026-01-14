@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -43,7 +44,6 @@ public class TarExtractorTest extends PlainTestCase {
     public TarExtractor tarExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer();
@@ -64,6 +64,7 @@ public class TarExtractorTest extends PlainTestCase {
         tarExtractor = container.getComponent("tarExtractor");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/tar/test.tar");
         final String content = tarExtractor.getText(in, null).getContent();
@@ -73,6 +74,7 @@ public class TarExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テキスト"));
     }
 
+    @Test
     public void test_getText_maxSize() throws IOException {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/tar/test.tar")) {
             tarExtractor.setMaxContentSize(100);
@@ -84,6 +86,7 @@ public class TarExtractorTest extends PlainTestCase {
         tarExtractor.setMaxContentSize(-1);
     }
 
+    @Test
     public void test_getText_null() {
         try {
             tarExtractor.getText(null, null);

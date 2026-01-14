@@ -18,10 +18,12 @@ package org.codelibs.fess.crawler.client.http.conn;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class IdnDnsResolverTest extends PlainTestCase {
 
+    @Test
     public void test_toAscii() {
         IdnDnsResolver resolver = new IdnDnsResolver();
 
@@ -43,6 +45,7 @@ public class IdnDnsResolverTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_resolve_ipv6() throws UnknownHostException {
         IdnDnsResolver resolver = new IdnDnsResolver();
 
@@ -67,6 +70,7 @@ public class IdnDnsResolverTest extends PlainTestCase {
         assertTrue(hostAddress.contains("2001") || hostAddress.toLowerCase().contains("2001"));
     }
 
+    @Test
     public void test_resolve_ipv4() throws UnknownHostException {
         IdnDnsResolver resolver = new IdnDnsResolver();
 
@@ -78,6 +82,7 @@ public class IdnDnsResolverTest extends PlainTestCase {
         assertEquals("127.0.0.1", addresses[0].getHostAddress());
     }
 
+    @Test
     public void test_resolve_hostname() throws UnknownHostException {
         IdnDnsResolver resolver = new IdnDnsResolver();
 
@@ -88,6 +93,7 @@ public class IdnDnsResolverTest extends PlainTestCase {
         assertTrue(addresses.length > 0);
     }
 
+    @Test
     public void test_resolve_invalid_brackets() {
         IdnDnsResolver resolver = new IdnDnsResolver();
 

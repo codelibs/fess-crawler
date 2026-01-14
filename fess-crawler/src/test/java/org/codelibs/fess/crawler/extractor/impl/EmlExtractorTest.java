@@ -28,6 +28,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -40,7 +41,6 @@ public class EmlExtractorTest extends PlainTestCase {
     public EmlExtractor emlExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("emlExtractor", EmlExtractor.class);
@@ -54,6 +54,7 @@ public class EmlExtractorTest extends PlainTestCase {
         emlExtractor = container.getComponent("emlExtractor");
     }
 
+    @Test
     public void test_getText() throws IOException {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/eml/sample1.eml")) {
             ExtractData data = emlExtractor.getText(in, null);
@@ -64,6 +65,7 @@ public class EmlExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getMultipartText() throws IOException {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/eml/sample2.eml")) {
             ExtractData data = emlExtractor.getText(in, null);
@@ -74,6 +76,7 @@ public class EmlExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getReceivedDate() throws IOException {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/eml/sample1.eml")) {
             ExtractData data = emlExtractor.getText(in, null);
@@ -83,6 +86,7 @@ public class EmlExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getDecodeText() throws Exception {
         assertEquals("", emlExtractor.getDecodeText(null));
         assertEquals("", emlExtractor.getDecodeText(""));
@@ -90,6 +94,7 @@ public class EmlExtractorTest extends PlainTestCase {
         assertEquals("テスト", emlExtractor.getDecodeText("=?UTF-8?B?44OG44K544OI?="));
     }
 
+    @Test
     public void test_getTextWithAttachment() throws IOException {
         try (final InputStream in = ResourceUtil.getResourceAsStream("extractor/eml/sample4.eml")) {
             ExtractData data = emlExtractor.getText(in, null);
@@ -101,6 +106,7 @@ public class EmlExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getText_null() {
         try {
             emlExtractor.getText(null, null);

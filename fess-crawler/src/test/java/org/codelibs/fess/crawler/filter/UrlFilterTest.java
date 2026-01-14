@@ -22,6 +22,7 @@ import org.codelibs.fess.crawler.service.impl.DataServiceImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -34,7 +35,6 @@ public class UrlFilterTest extends PlainTestCase {
     private StandardCrawlerContainer container;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         // Initialize container with necessary components
@@ -48,6 +48,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test basic initialization with session ID
      */
+    @Test
     public void test_init_withSessionId() {
         String sessionId = "test-session-001";
         urlFilter.init(sessionId);
@@ -58,6 +59,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test initialization with null session ID
      */
+    @Test
     public void test_init_withNullSessionId() {
         urlFilter.init(null);
         // Should handle null session ID gracefully
@@ -67,6 +69,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test initialization with empty session ID
      */
+    @Test
     public void test_init_withEmptySessionId() {
         urlFilter.init("");
         // Should handle empty session ID gracefully
@@ -76,6 +79,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test adding a single include pattern
      */
+    @Test
     public void test_addInclude_singlePattern() {
         String sessionId = "test-session-002";
         urlFilter.init(sessionId);
@@ -91,6 +95,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test adding multiple include patterns
      */
+    @Test
     public void test_addInclude_multiplePatterns() {
         String sessionId = "test-session-003";
         urlFilter.init(sessionId);
@@ -108,6 +113,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test adding invalid regex include pattern
      */
+    @Test
     public void test_addInclude_invalidRegex() {
         String sessionId = "test-session-004";
         urlFilter.init(sessionId);
@@ -123,6 +129,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test adding a single exclude pattern
      */
+    @Test
     public void test_addExclude_singlePattern() {
         String sessionId = "test-session-005";
         urlFilter.init(sessionId);
@@ -139,6 +146,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test adding multiple exclude patterns
      */
+    @Test
     public void test_addExclude_multiplePatterns() {
         String sessionId = "test-session-006";
         urlFilter.init(sessionId);
@@ -157,6 +165,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test adding invalid regex exclude pattern
      */
+    @Test
     public void test_addExclude_invalidRegex() {
         String sessionId = "test-session-007";
         urlFilter.init(sessionId);
@@ -173,6 +182,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test combination of include and exclude patterns
      */
+    @Test
     public void test_match_includeAndExclude() {
         String sessionId = "test-session-008";
         urlFilter.init(sessionId);
@@ -193,6 +203,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test match with no patterns configured
      */
+    @Test
     public void test_match_noPatterns() {
         String sessionId = "test-session-009";
         urlFilter.init(sessionId);
@@ -207,6 +218,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test match with complex URL patterns
      */
+    @Test
     public void test_match_complexUrls() {
         String sessionId = "test-session-010";
         urlFilter.init(sessionId);
@@ -223,6 +235,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test match with query parameters and fragments
      */
+    @Test
     public void test_match_urlWithQueryAndFragment() {
         String sessionId = "test-session-011";
         urlFilter.init(sessionId);
@@ -240,6 +253,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test processUrl method with various URL patterns
      */
+    @Test
     public void test_processUrl_basic() {
         String sessionId = "test-session-012";
         urlFilter.init(sessionId);
@@ -257,6 +271,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test processUrl with null URL
      */
+    @Test
     public void test_processUrl_nullUrl() {
         String sessionId = "test-session-013";
         urlFilter.init(sessionId);
@@ -273,6 +288,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test processUrl with empty URL
      */
+    @Test
     public void test_processUrl_emptyUrl() {
         String sessionId = "test-session-014";
         urlFilter.init(sessionId);
@@ -285,6 +301,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test clear method
      */
+    @Test
     public void test_clear() {
         String sessionId = "test-session-015";
         urlFilter.init(sessionId);
@@ -309,6 +326,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test clear method without initialization
      */
+    @Test
     public void test_clear_withoutInit() {
         // Create new filter without initialization
         UrlFilter newFilter = container.getComponent("urlFilter");
@@ -321,6 +339,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test adding patterns before initialization
      */
+    @Test
     public void test_addPatterns_beforeInit() {
         // Create new filter
         UrlFilter newFilter = container.getComponent("urlFilter");
@@ -342,6 +361,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test multiple initializations with same session ID
      */
+    @Test
     public void test_multipleInit_sameSessionId() {
         String sessionId = "test-session-017";
 
@@ -361,6 +381,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test multiple initializations with different session IDs
      */
+    @Test
     public void test_multipleInit_differentSessionIds() {
         // First session
         urlFilter.init("session-001");
@@ -378,6 +399,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test special characters in URL patterns
      */
+    @Test
     public void test_specialCharactersInPatterns() {
         String sessionId = "test-session-018";
         urlFilter.init(sessionId);
@@ -395,6 +417,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test case sensitivity in patterns
      */
+    @Test
     public void test_caseSensitivity() {
         String sessionId = "test-session-019";
         urlFilter.init(sessionId);
@@ -409,6 +432,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test very long URL handling
      */
+    @Test
     public void test_veryLongUrl() {
         String sessionId = "test-session-020";
         urlFilter.init(sessionId);
@@ -429,6 +453,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test internationalized domain names (IDN)
      */
+    @Test
     public void test_internationalizedDomainNames() {
         String sessionId = "test-session-021";
         urlFilter.init(sessionId);
@@ -443,6 +468,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test URL with special protocols
      */
+    @Test
     public void test_specialProtocols() {
         String sessionId = "test-session-022";
         urlFilter.init(sessionId);
@@ -462,6 +488,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test concurrent pattern additions
      */
+    @Test
     public void test_concurrentPatternAdditions() throws InterruptedException {
         String sessionId = "test-session-023";
         urlFilter.init(sessionId);
@@ -492,6 +519,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test boundary conditions
      */
+    @Test
     public void test_boundaryConditions() {
         String sessionId = "test-session-024";
         urlFilter.init(sessionId);
@@ -515,6 +543,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test pattern priority (include vs exclude)
      */
+    @Test
     public void test_patternPriority() {
         String sessionId = "test-session-025";
         urlFilter.init(sessionId);
@@ -530,6 +559,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test URL normalization scenarios
      */
+    @Test
     public void test_urlNormalization() {
         String sessionId = "test-session-026";
         urlFilter.init(sessionId);
@@ -546,6 +576,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test wildcard patterns
      */
+    @Test
     public void test_wildcardPatterns() {
         String sessionId = "test-session-027";
         urlFilter.init(sessionId);
@@ -565,6 +596,7 @@ public class UrlFilterTest extends PlainTestCase {
     /**
      * Test memory efficiency with large number of patterns
      */
+    @Test
     public void test_largeNumberOfPatterns() {
         String sessionId = "test-session-028";
         urlFilter.init(sessionId);

@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -39,7 +40,6 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
     public CrawlerClientFactory clientFactory;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
@@ -62,6 +62,7 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
         clientFactory.addClient("storage:.*", container.getComponent("storageClient"));
     }
 
+    @Test
     public void test_getClient() {
         String url;
         CrawlerClient client;
@@ -105,6 +106,7 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_setInitParameterMap() {
         final Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("hoge", "test");
@@ -128,6 +130,7 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
         assertEquals("value=test", buf.toString());
     }
 
+    @Test
     public void test_getClient_null() {
         String url;
         CrawlerClient client;

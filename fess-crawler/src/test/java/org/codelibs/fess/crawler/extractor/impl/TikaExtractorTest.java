@@ -34,6 +34,7 @@ import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -46,7 +47,6 @@ public class TikaExtractorTest extends PlainTestCase {
     public TikaExtractor tikaExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
@@ -63,6 +63,7 @@ public class TikaExtractorTest extends PlainTestCase {
         tikaExtractor = container.getComponent("tikaExtractor");
     }
 
+    @Test
     public void test_getTika_text() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -72,6 +73,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_text_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.txt");
         Map<String, String> params = new HashMap<>();
@@ -109,6 +111,7 @@ public class TikaExtractorTest extends PlainTestCase {
     // assertTrue(content.contains("テスト"));
     // }
 
+    @Test
     public void test_getTika_html() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -118,6 +121,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_html_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.html");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -127,6 +131,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_html_fragment() {
         final String htmlFragment = "<p>これはテストです</p><div>追加テキスト</div>";
         final InputStream in = new ByteArrayInputStream(htmlFragment.getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -138,6 +143,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("追加テキスト"));
     }
 
+    @Test
     public void test_getTika_html_fragment_strip_tags() {
         final String htmlFragment =
                 "<p style=\"text-align: right;\"><button class=\"aui-button\">Create</button></p><h2>Title</h2><table><tr><td>Cell</td></tr></table>";
@@ -160,6 +166,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Cell"));
     }
 
+    @Test
     public void test_getTika_html_fragment_strip_tags_disabled() {
         final String htmlFragment = "<p style=\"text-align: right;\"><button class=\"aui-button\">Create</button></p><h2>Title</h2>";
         final InputStream in = new ByteArrayInputStream(htmlFragment.getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -173,6 +180,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Title"));
     }
 
+    @Test
     public void test_getTika_msword() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.doc");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -204,6 +212,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertEquals("application/msword", extractData.getValues("Content-Type")[0]);
     }
 
+    @Test
     public void test_getTika_mswordx() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.docx");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -242,6 +251,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertEquals("かいしゃ", extractData.getValues("dc:publisher")[0]);
     }
 
+    @Test
     public void test_getTika_msexcel() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.xls");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -269,6 +279,7 @@ public class TikaExtractorTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_getTika_msexcelx() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.xlsx");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -299,6 +310,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertEquals("かいしゃ", extractData.getValues("dc:publisher")[0]);
     }
 
+    @Test
     public void test_getTika_mspowerpoint() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.ppt");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -329,6 +341,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertEquals("application/vnd.ms-powerpoint", extractData.getValues("Content-Type")[0]);
     }
 
+    @Test
     public void test_getTika_mspowerpointx() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/msoffice/test.pptx");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -364,6 +377,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertEquals("かいしゃ", extractData.getValues("dc:publisher")[0]);
     }
 
+    @Test
     public void test_getTika_zip() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/zip/test.zip");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -374,6 +388,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テキスト"));
     }
 
+    @Test
     public void test_getTika_zip_bom() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/zip/test_size.zip");
         tikaExtractor.maxCompressionRatio = 1;
@@ -386,6 +401,7 @@ public class TikaExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getTika_tar() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/tar/test.tar");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -396,6 +412,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テキスト"));
     }
 
+    @Test
     public void test_getTika_targz() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/gz/test.tar.gz");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -406,6 +423,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テキスト"));
     }
 
+    @Test
     public void test_getTika_xml() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -416,6 +434,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_xml_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.xml");
         final Map<String, String> params = new HashMap<String, String>();
@@ -427,6 +446,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_xml_entity() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_entity.xml");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -436,6 +456,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_xml_broken() throws UnsupportedEncodingException {
         final InputStream in = new ByteArrayInputStream("<?xml encoding=\"UTF-8\"/><hoge>テスト<br></hoge>".getBytes(Constants.UTF_8));
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -445,6 +466,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_java() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.java");
         final Map<String, String> params = new HashMap<String, String>();
@@ -457,6 +479,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_java_1() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.java");
         final Map<String, String> params = new HashMap<String, String>();
@@ -468,6 +491,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_java_2() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.java");
         final Map<String, String> params = new HashMap<String, String>();
@@ -479,6 +503,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_java_3() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.java");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -488,6 +513,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_java_4() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.java");
         final Map<String, String> params = new HashMap<String, String>();
@@ -499,6 +525,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_js() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.js");
         final Map<String, String> params = new HashMap<String, String>();
@@ -511,6 +538,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_c() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.c");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -520,6 +548,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_cpp() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.cpp");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -529,6 +558,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_h() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.h");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -538,6 +568,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_hpp() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/program/test.hpp");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -547,6 +578,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_sh() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.sh");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -556,6 +588,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_rtf() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.rtf");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -565,6 +598,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getTika_gif() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/image/test.gif");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -574,6 +608,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Test"));
     }
 
+    @Test
     public void test_getTika_jpg() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/image/test.jpg");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -583,6 +618,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Test"));
     }
 
+    @Test
     public void test_getTika_png() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/image/test.png");
         final ExtractData extractData = tikaExtractor.getText(in, null);
@@ -592,6 +628,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Test"));
     }
 
+    @Test
     public void test_getTika_null() {
         try {
             tikaExtractor.getText(null, null);
@@ -608,6 +645,7 @@ public class TikaExtractorTest extends PlainTestCase {
         return params;
     }
 
+    @Test
     public void test_getPdfPassword_null() {
         String url;
         String resourceName;
@@ -629,6 +667,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertNull(tikaExtractor.getPassword(createParams(url, resourceName)));
     }
 
+    @Test
     public void test_getPdfPassword() {
         String url;
         String resourceName;

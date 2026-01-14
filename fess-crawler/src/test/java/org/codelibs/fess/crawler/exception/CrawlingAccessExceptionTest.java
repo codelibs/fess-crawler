@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.exception;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -28,6 +29,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message only
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Access error occurred";
         CrawlingAccessException exception = new CrawlingAccessException(message);
@@ -41,6 +43,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         CrawlingAccessException exception = new CrawlingAccessException((String) null);
 
@@ -51,6 +54,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test constructor with cause only
      */
+    @Test
     public void test_constructor_withCause() {
         IOException cause = new IOException("IO error");
         CrawlingAccessException exception = new CrawlingAccessException(cause);
@@ -63,6 +67,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null cause
      */
+    @Test
     public void test_constructor_withNullCause() {
         CrawlingAccessException exception = new CrawlingAccessException((Throwable) null);
 
@@ -73,6 +78,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message and cause
      */
+    @Test
     public void test_constructor_withMessageAndCause() {
         String message = "Failed to access URL";
         IOException cause = new IOException("Connection refused");
@@ -86,6 +92,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test default log level is INFO
      */
+    @Test
     public void test_defaultLogLevel() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
 
@@ -98,6 +105,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test log level constants
      */
+    @Test
     public void test_logLevelConstants() {
         assertEquals("DEBUG", CrawlingAccessException.DEBUG);
         assertEquals("INFO", CrawlingAccessException.INFO);
@@ -108,6 +116,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test setLogLevel to DEBUG
      */
+    @Test
     public void test_setLogLevel_debug() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
         exception.setLogLevel(CrawlingAccessException.DEBUG);
@@ -121,6 +130,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test setLogLevel to INFO
      */
+    @Test
     public void test_setLogLevel_info() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
         exception.setLogLevel(CrawlingAccessException.INFO);
@@ -134,6 +144,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test setLogLevel to WARN
      */
+    @Test
     public void test_setLogLevel_warn() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
         exception.setLogLevel(CrawlingAccessException.WARN);
@@ -147,6 +158,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test setLogLevel to ERROR
      */
+    @Test
     public void test_setLogLevel_error() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
         exception.setLogLevel(CrawlingAccessException.ERROR);
@@ -160,6 +172,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test setLogLevel to null
      */
+    @Test
     public void test_setLogLevel_null() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
         exception.setLogLevel(null);
@@ -173,6 +186,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test setLogLevel to invalid value
      */
+    @Test
     public void test_setLogLevel_invalid() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
         exception.setLogLevel("INVALID");
@@ -186,6 +200,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test inheritance - should be RuntimeException
      */
+    @Test
     public void test_inheritance() {
         CrawlingAccessException exception = new CrawlingAccessException("Test");
 
@@ -198,6 +213,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new CrawlingAccessException("Test throw");
@@ -210,6 +226,7 @@ public class CrawlingAccessExceptionTest extends PlainTestCase {
     /**
      * Test exception chaining
      */
+    @Test
     public void test_exceptionChaining() {
         Exception root = new IllegalArgumentException("Root cause");
         IOException middle = new IOException("Middle", root);

@@ -23,6 +23,7 @@ import java.io.InputStream;
 
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -32,6 +33,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class ResponseDataUtilTest extends PlainTestCase {
 
+    @Test
     public void test_createResponseBodyFile_basic() throws Exception {
         // Create a mock ResponseData
         ResponseData responseData = new ResponseData() {
@@ -63,6 +65,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_createResponseBodyFile_emptyBody() throws Exception {
         // Create a mock ResponseData with empty body
         ResponseData responseData = new ResponseData() {
@@ -81,12 +84,13 @@ public class ResponseDataUtilTest extends PlainTestCase {
 
         assertNotNull(tempFile);
         assertTrue(tempFile.exists());
-        assertEquals(0, tempFile.length());
+        assertEquals(0L, tempFile.length());
 
         // Clean up
         tempFile.delete();
     }
 
+    @Test
     public void test_createResponseBodyFile_largeBody() throws Exception {
         // Create a large response body
         byte[] largeData = new byte[10000];
@@ -110,7 +114,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
 
         assertNotNull(tempFile);
         assertTrue(tempFile.exists());
-        assertEquals(10000, tempFile.length());
+        assertEquals(10000L, tempFile.length());
 
         // Verify content
         try (FileInputStream fis = new FileInputStream(tempFile)) {
@@ -126,6 +130,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_createResponseBodyFile_filePermissions() throws Exception {
         // Test that file permissions are set correctly
         ResponseData responseData = new ResponseData() {
@@ -153,6 +158,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
         tempFile.delete();
     }
 
+    @Test
     public void test_createResponseBodyFile_exceptionOnRead() {
         // Create a mock ResponseData that throws exception
         ResponseData responseData = new ResponseData() {
@@ -183,6 +189,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_createResponseBodyFile_binaryContent() throws Exception {
         // Test with binary content
         byte[] binaryData = new byte[] { 0x00, 0x01, 0x02, (byte) 0xFF, (byte) 0xFE, (byte) 0xFD };
@@ -203,7 +210,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
 
         assertNotNull(tempFile);
         assertTrue(tempFile.exists());
-        assertEquals(6, tempFile.length());
+        assertEquals(6L, tempFile.length());
 
         // Verify binary content
         try (FileInputStream fis = new FileInputStream(tempFile)) {
@@ -219,6 +226,7 @@ public class ResponseDataUtilTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_createResponseBodyFile_tempFilePrefix() throws Exception {
         // Test that temp file has correct prefix
         ResponseData responseData = new ResponseData() {

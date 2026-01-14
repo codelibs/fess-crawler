@@ -26,6 +26,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -37,13 +38,13 @@ public class MarkdownExtractorTest extends PlainTestCase {
     public MarkdownExtractor markdownExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("markdownExtractor", MarkdownExtractor.class);
         markdownExtractor = container.getComponent("markdownExtractor");
     }
 
+    @Test
     public void test_getText() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/markdown/test.md");
         final ExtractData extractData = markdownExtractor.getText(in, null);
@@ -59,6 +60,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Code Examples"));
     }
 
+    @Test
     public void test_frontMatterExtraction() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/markdown/test.md");
         final ExtractData extractData = markdownExtractor.getText(in, null);
@@ -78,6 +80,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
         assertEquals("2025-01-15", dates[0]);
     }
 
+    @Test
     public void test_headingExtraction() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/markdown/test.md");
         final ExtractData extractData = markdownExtractor.getText(in, null);
@@ -102,6 +105,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
         assertTrue(foundFeatures);
     }
 
+    @Test
     public void test_linkExtraction() {
         markdownExtractor.setExtractLinks(true);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/markdown/test.md");
@@ -122,6 +126,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
         assertTrue(foundGitHubLink);
     }
 
+    @Test
     public void test_getText_null() {
         try {
             markdownExtractor.getText(null, null);
@@ -131,6 +136,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_getText_withoutFrontMatter() {
         markdownExtractor.setExtractFrontMatter(false);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/markdown/test.md");
@@ -146,6 +152,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Introduction"));
     }
 
+    @Test
     public void test_getText_withoutHeadings() {
         markdownExtractor.setExtractHeadings(false);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/markdown/test.md");
@@ -160,6 +167,7 @@ public class MarkdownExtractorTest extends PlainTestCase {
         assertTrue(content.contains("Introduction"));
     }
 
+    @Test
     public void test_codeBlockHandling() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/markdown/test.md");
         final ExtractData extractData = markdownExtractor.getText(in, null);

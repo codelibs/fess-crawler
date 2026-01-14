@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.exception;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -28,6 +29,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message only
      */
+    @Test
     public void test_constructor_withMessage() {
         String message = "Unknown MIME type: application/x-custom";
         MimeTypeException exception = new MimeTypeException(message);
@@ -40,6 +42,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null message
      */
+    @Test
     public void test_constructor_withNullMessage() {
         MimeTypeException exception = new MimeTypeException((String) null);
 
@@ -50,6 +53,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test constructor with cause only
      */
+    @Test
     public void test_constructor_withCause() {
         IOException cause = new IOException("Cannot detect MIME type");
         MimeTypeException exception = new MimeTypeException(cause);
@@ -62,6 +66,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test constructor with null cause
      */
+    @Test
     public void test_constructor_withNullCause() {
         MimeTypeException exception = new MimeTypeException((Throwable) null);
 
@@ -72,6 +77,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test constructor with message and cause
      */
+    @Test
     public void test_constructor_withMessageAndCause() {
         String message = "MIME type detection failed";
         IOException cause = new IOException("File not readable");
@@ -85,6 +91,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test inheritance
      */
+    @Test
     public void test_inheritance() {
         MimeTypeException exception = new MimeTypeException("Test");
 
@@ -95,6 +102,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test throwing and catching
      */
+    @Test
     public void test_throwAndCatch() {
         try {
             throw new MimeTypeException("Invalid MIME type");
@@ -106,6 +114,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test catching as parent type
      */
+    @Test
     public void test_catchAsParentType() {
         try {
             throw new MimeTypeException("MIME error");
@@ -117,6 +126,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test various MIME type error messages
      */
+    @Test
     public void test_mimeTypeErrorMessages() {
         MimeTypeException e1 = new MimeTypeException("Unsupported MIME type: video/x-matroska");
         assertTrue(e1.getMessage().contains("video/x-matroska"));
@@ -131,6 +141,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test with common MIME types
      */
+    @Test
     public void test_commonMimeTypes() {
         MimeTypeException e1 = new MimeTypeException("Cannot handle: application/pdf");
         assertTrue(e1.getMessage().contains("application/pdf"));
@@ -145,6 +156,7 @@ public class MimeTypeExceptionTest extends PlainTestCase {
     /**
      * Test exception chaining
      */
+    @Test
     public void test_exceptionChaining() {
         Exception root = new IllegalArgumentException("Invalid format");
         IOException middle = new IOException("Detection failed", root);

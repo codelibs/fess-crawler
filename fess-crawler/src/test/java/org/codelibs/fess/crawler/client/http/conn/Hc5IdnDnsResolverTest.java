@@ -19,10 +19,12 @@ import java.net.IDN;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class Hc5IdnDnsResolverTest extends PlainTestCase {
 
+    @Test
     public void test_toAscii() {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -43,6 +45,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         assertEquals(expected, resolver.toAscii(host));
     }
 
+    @Test
     public void test_resolve_ipv6() throws UnknownHostException {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -67,6 +70,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         assertTrue(hostAddress.contains("2001") || hostAddress.toLowerCase().contains("2001"));
     }
 
+    @Test
     public void test_resolve_ipv4() throws UnknownHostException {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -78,6 +82,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         assertEquals("127.0.0.1", addresses[0].getHostAddress());
     }
 
+    @Test
     public void test_resolve_hostname() throws UnknownHostException {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -88,6 +93,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         assertTrue(addresses.length > 0);
     }
 
+    @Test
     public void test_resolve_invalid_brackets() {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -100,6 +106,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_resolveCanonicalHostname() throws UnknownHostException {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -114,6 +121,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         assertTrue(canonicalHostname.length() > 0);
     }
 
+    @Test
     public void test_setFlag() {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -126,6 +134,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         assertEquals("xn--zckzah.org", result);
     }
 
+    @Test
     public void test_setEncoding() {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 
@@ -137,6 +146,7 @@ public class Hc5IdnDnsResolverTest extends PlainTestCase {
         assertEquals("xn--zckzah.org", result);
     }
 
+    @Test
     public void test_decode_noEncodedChars() {
         Hc5IdnDnsResolver resolver = new Hc5IdnDnsResolver();
 

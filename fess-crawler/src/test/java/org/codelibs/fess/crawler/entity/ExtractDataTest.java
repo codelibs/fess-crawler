@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.entity;
 
 import java.util.Set;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -24,6 +25,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class ExtractDataTest extends PlainTestCase {
 
+    @Test
     public void test_defaultConstructor() {
         // Test default constructor
         ExtractData data = new ExtractData();
@@ -33,6 +35,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertTrue(data.getKeySet().isEmpty());
     }
 
+    @Test
     public void test_constructorWithContent() {
         // Test constructor with content
         String content = "Test content";
@@ -44,6 +47,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertTrue(data.getKeySet().isEmpty());
     }
 
+    @Test
     public void test_contentGetterSetter() {
         // Test content getter/setter
         ExtractData data = new ExtractData();
@@ -60,6 +64,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertNull(data.getContent());
     }
 
+    @Test
     public void test_putValue() {
         // Test putValue method
         ExtractData data = new ExtractData();
@@ -78,6 +83,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals("John Doe", authorValues[0]);
     }
 
+    @Test
     public void test_putValues() {
         // Test putValues method
         ExtractData data = new ExtractData();
@@ -93,6 +99,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals("testing", retrievedKeywords[2]);
     }
 
+    @Test
     public void test_putValuesOverwrite() {
         // Test that putValues overwrites existing values
         ExtractData data = new ExtractData();
@@ -111,6 +118,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals("new_value2", retrievedValues[1]);
     }
 
+    @Test
     public void test_getValuesNonExistentKey() {
         // Test getValues with non-existent key
         ExtractData data = new ExtractData();
@@ -119,6 +127,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertNull(values);
     }
 
+    @Test
     public void test_getKeySet() {
         // Test getKeySet method
         ExtractData data = new ExtractData();
@@ -135,6 +144,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertTrue(keySet.contains("key3"));
     }
 
+    @Test
     public void test_getKeySetEmpty() {
         // Test getKeySet on empty metadata
         ExtractData data = new ExtractData();
@@ -144,6 +154,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertTrue(keySet.isEmpty());
     }
 
+    @Test
     public void test_predefinedConstants() {
         // Test predefined constants
         assertEquals("resourceName", ExtractData.RESOURCE_NAME_KEY);
@@ -151,6 +162,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals("file.passwords", ExtractData.FILE_PASSWORDS);
     }
 
+    @Test
     public void test_usingPredefinedConstants() {
         // Test using predefined constants
         ExtractData data = new ExtractData();
@@ -164,6 +176,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals(2, data.getValues(ExtractData.FILE_PASSWORDS).length);
     }
 
+    @Test
     public void test_toString() {
         // Test toString method
         ExtractData data = new ExtractData("Test content");
@@ -177,6 +190,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertTrue(result.contains("title"));
     }
 
+    @Test
     public void test_toStringEmpty() {
         // Test toString with empty data
         ExtractData data = new ExtractData();
@@ -186,6 +200,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertTrue(result.contains("ExtractData"));
     }
 
+    @Test
     public void test_complexScenario() {
         // Test complex scenario with multiple operations
         ExtractData data = new ExtractData();
@@ -235,6 +250,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertTrue(keySet.contains("keywords"));
     }
 
+    @Test
     public void test_emptyArrayValues() {
         // Test with empty array
         ExtractData data = new ExtractData();
@@ -247,6 +263,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals(0, retrieved.length);
     }
 
+    @Test
     public void test_nullValues() {
         // Test with null values
         ExtractData data = new ExtractData();
@@ -259,6 +276,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertNull(retrieved[0]);
     }
 
+    @Test
     public void test_multipleOperationsOnSameKey() {
         // Test multiple operations on the same key
         ExtractData data = new ExtractData();
@@ -279,6 +297,7 @@ public class ExtractDataTest extends PlainTestCase {
         assertEquals("value5", data.getValues("key")[2]);
     }
 
+    @Test
     public void test_serializable() {
         // Test that ExtractData is Serializable
         ExtractData data = new ExtractData("content");

@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.client.http.config;
 
 import org.codelibs.fess.crawler.client.http.config.CredentialsConfig.CredentialsType;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -27,6 +28,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test default values on new instance
      */
+    @Test
     public void test_defaultValues() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -40,6 +42,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test CredentialsType enum values
      */
+    @Test
     public void test_credentialsTypeEnum() {
         assertEquals(2, CredentialsType.values().length);
 
@@ -50,6 +53,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test type getter and setter
      */
+    @Test
     public void test_type() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -68,6 +72,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test username getter and setter
      */
+    @Test
     public void test_username() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -90,6 +95,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test password getter and setter
      */
+    @Test
     public void test_password() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -109,6 +115,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test domain getter and setter (NTLM)
      */
+    @Test
     public void test_domain() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -128,6 +135,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test workstation getter and setter (NTLM)
      */
+    @Test
     public void test_workstation() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -144,6 +152,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test basic username/password configuration
      */
+    @Test
     public void test_basicConfiguration() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -161,6 +170,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test NTLM configuration with all fields
      */
+    @Test
     public void test_ntlmConfiguration() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -180,6 +190,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test toString method
      */
+    @Test
     public void test_toString() {
         CredentialsConfig config = new CredentialsConfig();
         config.setType(CredentialsType.NTLM);
@@ -200,6 +211,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test toString excludes password (security)
      */
+    @Test
     public void test_toString_excludesPassword() {
         CredentialsConfig config = new CredentialsConfig();
         config.setUsername("user");
@@ -215,6 +227,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test toString with null values
      */
+    @Test
     public void test_toString_withNullValues() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -229,6 +242,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test special characters in credentials
      */
+    @Test
     public void test_specialCharacters() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -245,6 +259,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test Unicode characters
      */
+    @Test
     public void test_unicodeCharacters() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -258,6 +273,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test multiple instances are independent
      */
+    @Test
     public void test_multipleInstances() {
         CredentialsConfig config1 = new CredentialsConfig();
         CredentialsConfig config2 = new CredentialsConfig();
@@ -283,6 +299,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test setting NTLM fields with USERNAME_PASSWORD type
      */
+    @Test
     public void test_ntlmFieldsWithBasicType() {
         CredentialsConfig config = new CredentialsConfig();
 
@@ -302,6 +319,7 @@ public class CredentialsConfigTest extends PlainTestCase {
     /**
      * Test empty strings for all fields
      */
+    @Test
     public void test_emptyStrings() {
         CredentialsConfig config = new CredentialsConfig();
 

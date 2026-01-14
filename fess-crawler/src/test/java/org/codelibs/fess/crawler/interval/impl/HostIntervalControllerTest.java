@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -39,6 +40,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that crawling intervals for the same host work correctly.
      */
+    @Test
     public void test_delayBeforeProcessing() {
         // Number of concurrent tasks
         final int numTasks = 100;
@@ -104,6 +106,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that different hosts can be accessed concurrently without delay
      */
+    @Test
     public void test_multipleHosts_concurrent() {
         final int numTasks = 10;
         final Long waittime = 100L;
@@ -161,6 +164,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that file:// URLs are not delayed
      */
+    @Test
     public void test_fileUrl_noDelay() {
         final HostIntervalController controller = new HostIntervalController();
         controller.delayMillisBeforeProcessing = 1000L;
@@ -179,6 +183,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that null URL queue is handled gracefully
      */
+    @Test
     public void test_nullUrlQueue() {
         final HostIntervalController controller = new HostIntervalController();
         controller.delayMillisBeforeProcessing = 1000L;
@@ -195,6 +200,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that blank URL is handled gracefully
      */
+    @Test
     public void test_blankUrl() {
         final HostIntervalController controller = new HostIntervalController();
         controller.delayMillisBeforeProcessing = 1000L;
@@ -213,6 +219,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that URL without host is handled gracefully
      */
+    @Test
     public void test_urlWithoutHost() {
         final HostIntervalController controller = new HostIntervalController();
         controller.delayMillisBeforeProcessing = 1000L;
@@ -231,6 +238,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test constructor with parameters
      */
+    @Test
     public void test_constructorWithParams() {
         final Map<String, Long> params = new HashMap<>();
         params.put("delayMillisBeforeProcessing", 200L);
@@ -243,6 +251,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that second access to same host is delayed
      */
+    @Test
     public void test_sameHost_sequentialAccess() {
         final HostIntervalController controller = new HostIntervalController();
         controller.delayMillisBeforeProcessing = 100L;
@@ -268,6 +277,7 @@ public class HostIntervalControllerTest extends PlainTestCase {
     /**
      * Test that cache is thread-safe with concurrent access
      */
+    @Test
     public void test_cacheThreadSafety() {
         final int numTasks = 50;
         final Long waittime = 50L;

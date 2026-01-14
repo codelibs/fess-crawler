@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -39,13 +40,13 @@ public class XmlExtractorTest extends PlainTestCase {
     public XmlExtractor xmlExtractor;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("xmlExtractor", XmlExtractor.class);
         xmlExtractor = container.getComponent("xmlExtractor");
     }
 
+    @Test
     public void test_getXml_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
@@ -55,6 +56,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertTrue(content.contains("コメント"));
     }
 
+    @Test
     public void test_getXml_utf8_ignoreCommentTag() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         xmlExtractor.setIgnoreCommentTag(true);
@@ -66,6 +68,7 @@ public class XmlExtractorTest extends PlainTestCase {
         xmlExtractor.setIgnoreCommentTag(false);
     }
 
+    @Test
     public void test_getXml_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
@@ -74,6 +77,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getXml_entity() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_entity.xml");
         final String content = xmlExtractor.getText(in, null).getContent();
@@ -82,6 +86,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getXml_mm() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.mm");
         final String content = xmlExtractor.getText(in, null).getContent();
@@ -90,6 +95,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    @Test
     public void test_getXml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());
         final String content = xmlExtractor.getText(in, null).getContent();
@@ -98,6 +104,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("", content);
     }
 
+    @Test
     public void test_getEncoding_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -106,6 +113,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("UTF-8", encoding);
     }
 
+    @Test
     public void test_getEncoding_sjis() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_sjis.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -114,6 +122,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("Shift_JIS", encoding);
     }
 
+    @Test
     public void test_getEncoding_utf8bom() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf8bom.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -122,6 +131,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("UTF-8", encoding);
     }
 
+    @Test
     public void test_getEncoding_utf16lebom() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf16lebom.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -130,6 +140,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("UTF-16LE", encoding);
     }
 
+    @Test
     public void test_getEncoding_utf16bebom() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf16bebom.xml");
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -138,6 +149,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("UTF-16BE", encoding);
     }
 
+    @Test
     public void test_getEncoding_none() {
         final InputStream in = new ByteArrayInputStream("<hoge></hoge>".getBytes());
         final BufferedInputStream bis = new BufferedInputStream(in);
@@ -146,6 +158,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("UTF-8", encoding);
     }
 
+    @Test
     public void test_getRdf() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.rdf");
         final String content = xmlExtractor.getText(in, null).getContent();
@@ -155,6 +168,7 @@ public class XmlExtractorTest extends PlainTestCase {
         assertTrue(content.contains("コメント"));
     }
 
+    @Test
     public void test_getXml_null() {
         try {
             xmlExtractor.getText(null, null);

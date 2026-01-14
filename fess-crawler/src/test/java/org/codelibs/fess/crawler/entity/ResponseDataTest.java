@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.RequestData.Method;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -34,6 +35,7 @@ import org.dbflute.utflute.core.PlainTestCase;
  */
 public class ResponseDataTest extends PlainTestCase {
 
+    @Test
     public void test_defaultConstructor() {
         // Test default constructor
         ResponseData data = new ResponseData();
@@ -45,6 +47,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertFalse(data.hasResponseBody());
     }
 
+    @Test
     public void test_urlGetterSetter() {
         // Test URL getter/setter
         ResponseData data = new ResponseData();
@@ -57,6 +60,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertNull(data.getUrl());
     }
 
+    @Test
     public void test_httpStatusCodeGetterSetter() {
         // Test HTTP status code getter/setter
         ResponseData data = new ResponseData();
@@ -71,6 +75,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(500, data.getHttpStatusCode());
     }
 
+    @Test
     public void test_charSetGetterSetter() {
         // Test charset getter/setter
         ResponseData data = new ResponseData();
@@ -85,6 +90,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertNull(data.getCharSet());
     }
 
+    @Test
     public void test_contentLengthGetterSetter() {
         // Test content length getter/setter
         ResponseData data = new ResponseData();
@@ -96,6 +102,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(0L, data.getContentLength());
     }
 
+    @Test
     public void test_mimeTypeGetterSetter() {
         // Test MIME type getter/setter
         ResponseData data = new ResponseData();
@@ -110,6 +117,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertNull(data.getMimeType());
     }
 
+    @Test
     public void test_methodGetterSetter() {
         // Test method getter/setter
         ResponseData data = new ResponseData();
@@ -121,6 +129,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals("POST", data.getMethod());
     }
 
+    @Test
     public void test_parentUrlGetterSetter() {
         // Test parent URL getter/setter
         ResponseData data = new ResponseData();
@@ -130,6 +139,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(parentUrl, data.getParentUrl());
     }
 
+    @Test
     public void test_ruleIdGetterSetter() {
         // Test rule ID getter/setter
         ResponseData data = new ResponseData();
@@ -139,6 +149,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(ruleId, data.getRuleId());
     }
 
+    @Test
     public void test_sessionIdGetterSetter() {
         // Test session ID getter/setter
         ResponseData data = new ResponseData();
@@ -148,6 +159,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(sessionId, data.getSessionId());
     }
 
+    @Test
     public void test_executionTimeGetterSetter() {
         // Test execution time getter/setter
         ResponseData data = new ResponseData();
@@ -156,6 +168,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(1500L, data.getExecutionTime());
     }
 
+    @Test
     public void test_lastModifiedGetterSetter() {
         // Test last modified getter/setter
         ResponseData data = new ResponseData();
@@ -165,6 +178,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(date, data.getLastModified());
     }
 
+    @Test
     public void test_redirectLocationGetterSetter() {
         // Test redirect location getter/setter
         ResponseData data = new ResponseData();
@@ -174,6 +188,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(redirectUrl, data.getRedirectLocation());
     }
 
+    @Test
     public void test_statusGetterSetter() {
         // Test status getter/setter
         ResponseData data = new ResponseData();
@@ -185,6 +200,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(Constants.NOT_MODIFIED_STATUS, data.getStatus());
     }
 
+    @Test
     public void test_noFollowGetterSetter() {
         // Test noFollow getter/setter
         ResponseData data = new ResponseData();
@@ -199,6 +215,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertFalse(data.isNoFollow());
     }
 
+    @Test
     public void test_responseBodyBytes() {
         // Test response body with byte array
         ResponseData data = new ResponseData();
@@ -219,6 +236,7 @@ public class ResponseDataTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_responseBodyFile() throws IOException {
         // Test response body with file
         ResponseData data = new ResponseData();
@@ -244,6 +262,7 @@ public class ResponseDataTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_responseBodyFileTemporary() throws IOException {
         // Test response body with temporary file that gets deleted on close
         ResponseData data = new ResponseData();
@@ -260,18 +279,21 @@ public class ResponseDataTest extends PlainTestCase {
         data.close();
     }
 
+    @Test
     public void test_hasResponseBodyNoBody() {
         // Test hasResponseBody when no body is set
         ResponseData data = new ResponseData();
         assertFalse(data.hasResponseBody());
     }
 
+    @Test
     public void test_getResponseBodyNull() {
         // Test getResponseBody when no body is set
         ResponseData data = new ResponseData();
         assertNull(data.getResponseBody());
     }
 
+    @Test
     public void test_metaDataOperations() {
         // Test metadata operations
         ResponseData data = new ResponseData();
@@ -290,6 +312,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(true, metaDataMap.get("key3"));
     }
 
+    @Test
     public void test_metaDataMapModifiable() {
         // Test that metadata map is modifiable
         ResponseData data = new ResponseData();
@@ -302,6 +325,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(2, data.getMetaDataMap().size());
     }
 
+    @Test
     public void test_childUrlOperations() {
         // Test child URL operations
         ResponseData data = new ResponseData();
@@ -324,6 +348,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertTrue(childUrlSet.contains(child2));
     }
 
+    @Test
     public void test_removeChildUrl() {
         // Test removing child URL
         ResponseData data = new ResponseData();
@@ -347,6 +372,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertTrue(data.getChildUrlSet().contains(child2));
     }
 
+    @Test
     public void test_childUrlSetNoDuplicates() {
         // Test that child URL set does not allow duplicates
         ResponseData data = new ResponseData();
@@ -361,6 +387,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(1, data.getChildUrlSet().size());
     }
 
+    @Test
     public void test_getRequestData() {
         // Test getRequestData method
         ResponseData data = new ResponseData();
@@ -373,6 +400,7 @@ public class ResponseDataTest extends PlainTestCase {
         assertEquals(Method.POST, requestData.getMethod());
     }
 
+    @Test
     public void test_closeWithNonTemporaryFile() throws IOException {
         // Test close with non-temporary file
         ResponseData data = new ResponseData();
@@ -392,12 +420,14 @@ public class ResponseDataTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_closeWithoutFile() throws IOException {
         // Test close without any file
         ResponseData data = new ResponseData();
         data.close(); // Should not throw exception
     }
 
+    @Test
     public void test_complexScenario() {
         // Test complex scenario with multiple operations
         ResponseData data = new ResponseData();

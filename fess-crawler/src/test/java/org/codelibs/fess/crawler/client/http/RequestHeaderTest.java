@@ -15,21 +15,25 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 public class RequestHeaderTest extends PlainTestCase {
 
+    @Test
     public void test_constructor() {
         RequestHeader header = new RequestHeader("Content-Type", "application/json");
         assertEquals("Content-Type", header.getName());
         assertEquals("application/json", header.getValue());
     }
 
+    @Test
     public void test_isValid_validHeader() {
         RequestHeader header = new RequestHeader("Content-Type", "application/json");
         assertTrue(header.isValid());
     }
 
+    @Test
     public void test_isValid_blankName() {
         // empty string
         RequestHeader header1 = new RequestHeader("", "application/json");
@@ -40,22 +44,26 @@ public class RequestHeaderTest extends PlainTestCase {
         assertFalse(header2.isValid());
     }
 
+    @Test
     public void test_isValid_nullName() {
         RequestHeader header = new RequestHeader(null, "application/json");
         assertFalse(header.isValid());
     }
 
+    @Test
     public void test_isValid_nullValue() {
         RequestHeader header = new RequestHeader("Content-Type", null);
         assertFalse(header.isValid());
     }
 
+    @Test
     public void test_isValid_emptyValue() {
         // empty string value is valid (not null)
         RequestHeader header = new RequestHeader("X-Empty-Header", "");
         assertTrue(header.isValid());
     }
 
+    @Test
     public void test_setters() {
         RequestHeader header = new RequestHeader("Original-Name", "original-value");
 

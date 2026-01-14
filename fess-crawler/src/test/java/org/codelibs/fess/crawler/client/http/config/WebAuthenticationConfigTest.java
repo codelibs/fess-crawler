@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.codelibs.fess.crawler.client.http.config.CredentialsConfig.CredentialsType;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig.AuthSchemeType;
+import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
 /**
@@ -31,6 +32,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test default values on new instance
      */
+    @Test
     public void test_defaultValues() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -47,6 +49,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test AuthSchemeType enum values
      */
+    @Test
     public void test_authSchemeTypeEnum() {
         assertEquals(5, AuthSchemeType.values().length);
 
@@ -60,6 +63,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test scheme getter and setter
      */
+    @Test
     public void test_scheme() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -76,6 +80,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test host getter and setter
      */
+    @Test
     public void test_host() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -95,6 +100,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test port getter and setter
      */
+    @Test
     public void test_port() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -119,6 +125,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test realm getter and setter
      */
+    @Test
     public void test_realm() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -138,6 +145,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test credentials getter and setter
      */
+    @Test
     public void test_credentials() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -158,6 +166,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test authSchemeType getter and setter
      */
+    @Test
     public void test_authSchemeType() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -182,6 +191,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test formParameters getter and setter
      */
+    @Test
     public void test_formParameters() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -203,6 +213,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test ntlmParameters getter and setter
      */
+    @Test
     public void test_ntlmParameters() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -223,6 +234,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test basic authentication configuration
      */
+    @Test
     public void test_basicAuthConfiguration() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -248,6 +260,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test form authentication configuration
      */
+    @Test
     public void test_formAuthConfiguration() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -274,6 +287,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test NTLM authentication configuration
      */
+    @Test
     public void test_ntlmAuthConfiguration() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -302,6 +316,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test toString method
      */
+    @Test
     public void test_toString() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setScheme("https");
@@ -324,6 +339,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test toString with null values
      */
+    @Test
     public void test_toString_withNullValues() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -339,6 +355,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test toString excludes sensitive credentials info
      */
+    @Test
     public void test_toString_excludesCredentialsDetails() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setHost("example.com");
@@ -357,6 +374,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test multiple instances are independent
      */
+    @Test
     public void test_multipleInstances() {
         WebAuthenticationConfig config1 = new WebAuthenticationConfig();
         WebAuthenticationConfig config2 = new WebAuthenticationConfig();
@@ -381,6 +399,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test form parameters with token authentication
      */
+    @Test
     public void test_formParametersWithToken() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
         config.setAuthSchemeType(AuthSchemeType.FORM);
@@ -404,6 +423,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test empty map for parameters
      */
+    @Test
     public void test_emptyMaps() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -419,6 +439,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test IPv6 host
      */
+    @Test
     public void test_ipv6Host() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 
@@ -432,6 +453,7 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
     /**
      * Test high port numbers
      */
+    @Test
     public void test_highPortNumbers() {
         WebAuthenticationConfig config = new WebAuthenticationConfig();
 

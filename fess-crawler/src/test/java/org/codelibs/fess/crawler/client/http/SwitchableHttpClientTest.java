@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 
 import org.codelibs.fess.crawler.client.CrawlerClient;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 public class SwitchableHttpClientTest extends PlainTestCase {
@@ -43,6 +44,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         super.tearDown(testInfo);
     }
 
+    @Test
     public void test_constructor_defaultUsesHc5() {
         System.clearProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY);
 
@@ -51,6 +53,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertTrue(client.isUseHc5());
     }
 
+    @Test
     public void test_selectClient_hc4Property() {
         System.setProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY, "hc4");
 
@@ -59,6 +62,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertFalse(client.isUseHc5());
     }
 
+    @Test
     public void test_selectClient_hc5Property() {
         System.setProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY, "hc5");
 
@@ -67,6 +71,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertTrue(client.isUseHc5());
     }
 
+    @Test
     public void test_selectClient_hc4PropertyCaseInsensitive() {
         System.setProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY, "HC4");
 
@@ -75,6 +80,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertFalse(client.isUseHc5());
     }
 
+    @Test
     public void test_init_withHc5Client() {
         System.clearProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY);
         CrawlerClient mockHc5Client = mock(CrawlerClient.class);
@@ -86,6 +92,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertTrue(client.isUseHc5());
     }
 
+    @Test
     public void test_init_withHc4Client() {
         System.setProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY, "hc4");
         CrawlerClient mockHc4Client = mock(CrawlerClient.class);
@@ -97,6 +104,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertFalse(client.isUseHc5());
     }
 
+    @Test
     public void test_init_hc5Null_fallbackToHc4() {
         System.clearProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY);
         CrawlerClient mockHc4Client = mock(CrawlerClient.class);
@@ -111,6 +119,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertTrue(client.isUseHc5());
     }
 
+    @Test
     public void test_init_hc4Null_fallbackToHc5() {
         System.setProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY, "hc4");
         CrawlerClient mockHc5Client = mock(CrawlerClient.class);
@@ -125,6 +134,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertFalse(client.isUseHc5());
     }
 
+    @Test
     public void test_settersAndGetters() {
         CrawlerClient mockHc4Client = mock(CrawlerClient.class);
         CrawlerClient mockHc5Client = mock(CrawlerClient.class);
@@ -137,6 +147,7 @@ public class SwitchableHttpClientTest extends PlainTestCase {
         assertTrue(mockHc5Client == client.getHc5Client());
     }
 
+    @Test
     public void test_isUseHc5() {
         System.clearProperty(SwitchableHttpClient.HTTP_CLIENT_PROPERTY);
         SwitchableHttpClient hc5Client = new SwitchableHttpClient();

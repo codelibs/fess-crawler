@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
@@ -41,7 +42,6 @@ public class FileSystemClientTest extends PlainTestCase {
     public FileSystemClient fsClient;
 
     @Override
-    @BeforeEach
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
@@ -49,6 +49,7 @@ public class FileSystemClientTest extends PlainTestCase {
         fsClient = container.getComponent("fsClient");
     }
 
+    @Test
     public void test_doGet_dir() {
         final File file = ResourceUtil.getResourceAsFile("test");
         String path = file.getAbsolutePath();
@@ -71,6 +72,7 @@ public class FileSystemClientTest extends PlainTestCase {
 
     }
 
+    @Test
     public void test_doGet_file() throws Exception {
         final File file = ResourceUtil.getResourceAsFile("test/text1.txt");
         String path = file.getAbsolutePath();
@@ -89,6 +91,7 @@ public class FileSystemClientTest extends PlainTestCase {
         assertEquals("test1", content.trim());
     }
 
+    @Test
     public void test_doGet_file_with_space() throws Exception {
         final File file = ResourceUtil.getResourceAsFile("test/text 3.txt");
         String path = file.getAbsolutePath();
@@ -98,7 +101,7 @@ public class FileSystemClientTest extends PlainTestCase {
         final ResponseData responseData = fsClient.doGet(path);
         assertEquals(200, responseData.getHttpStatusCode());
         assertEquals("UTF-8", responseData.getCharSet());
-        assertEquals(6, responseData.getContentLength());
+        assertEquals(6L, responseData.getContentLength());
         assertNotNull(responseData.getLastModified());
         assertEquals(Constants.GET_METHOD, responseData.getMethod());
         assertEquals("text/plain", responseData.getMimeType());
@@ -107,6 +110,7 @@ public class FileSystemClientTest extends PlainTestCase {
         assertEquals("test3\n", content);
     }
 
+    @Test
     public void test_preprocessUri() {
         String value;
         String result;
@@ -132,6 +136,7 @@ public class FileSystemClientTest extends PlainTestCase {
         assertEquals(result, fsClient.preprocessUri(value));
     }
 
+    @Test
     public void test_preprocessUri_null() {
         try {
             fsClient.preprocessUri(null);
@@ -143,6 +148,7 @@ public class FileSystemClientTest extends PlainTestCase {
         } catch (final CrawlerSystemException e) {}
     }
 
+    @Test
     public void test_doHead_file() throws Exception {
         final File file = ResourceUtil.getResourceAsFile("test/text1.txt");
         String path = file.getAbsolutePath();
@@ -155,6 +161,7 @@ public class FileSystemClientTest extends PlainTestCase {
         assertNull(responseData.getResponseBody());
     }
 
+    @Test
     public void test_doHead_dir() throws Exception {
         final File file = ResourceUtil.getResourceAsFile("test");
         String path = file.getAbsolutePath();
@@ -165,6 +172,7 @@ public class FileSystemClientTest extends PlainTestCase {
         assertNull(responseData);
     }
 
+    @Test
     public void test_doGet_accessTimeoutTarget() {
         FileSystemClient client = new FileSystemClient() {
             @Override
@@ -186,6 +194,7 @@ public class FileSystemClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_doHead_accessTimeoutTarget() {
         FileSystemClient client = new FileSystemClient() {
             @Override
@@ -207,6 +216,7 @@ public class FileSystemClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_concurrent_initialization() throws Exception {
         // Test that compareAndSet prevents multiple initializations
         final FileSystemClient client = new FileSystemClient();
@@ -243,6 +253,7 @@ public class FileSystemClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_accessTimeout_null_safety() {
         // Test that accessTimeoutTask null check prevents NPE
         FileSystemClient client = new FileSystemClient() {
@@ -276,6 +287,7 @@ public class FileSystemClientTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_initialization_idempotency() {
         // Test that multiple init calls are safe
         FileSystemClient client = new FileSystemClient();

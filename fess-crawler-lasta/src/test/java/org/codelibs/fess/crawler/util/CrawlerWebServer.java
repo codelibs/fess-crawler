@@ -22,6 +22,7 @@ import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.ResourceFactory;
@@ -35,8 +36,6 @@ import org.slf4j.LoggerFactory;
 public class CrawlerWebServer {
     private static final Logger logger = LoggerFactory.getLogger(CrawlerWebServer.class);
 
-    private int port = 8080;
-
     private File docRoot;
 
     private Server server;
@@ -44,12 +43,11 @@ public class CrawlerWebServer {
     private boolean tempDocRoot = false;
 
     public CrawlerWebServer(final int port) {
-        this(port, createDocRoot(3));
+        this(port, createDocRoot(3, port));
         tempDocRoot = true;
     }
 
     public CrawlerWebServer(final int port, final File docRoot) {
-        this.port = port;
         this.docRoot = docRoot;
 
         server = new Server(port);
@@ -82,7 +80,45 @@ public class CrawlerWebServer {
         }
     }
 
-    protected static File createDocRoot(final int count) {
+    /**
+     * Get the actual port the server is listening on.
+     * This is useful when starting the server with port 0 to get a random available port.
+     *
+     * @return the actual port number
+     */
+    public int getPort() {
+        return ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+    }
+
+    /**
+     * Update the port in sitemaps files after the server has started.
+     * This is needed when using port 0 (random port) because the actual port
+     * is not known until the server starts.
+     */
+    public void updateSitemapsPort() {
+        final int actualPort = getPort();
+        try {
+            // Update sitemaps.xml
+            final File sitemapsXmlFile = new File(docRoot, "sitemaps.xml");
+            if (sitemapsXmlFile.exists()) {
+                String content = new String(java.nio.file.Files.readAllBytes(sitemapsXmlFile.toPath()), "UTF-8");
+                content = content.replaceAll("localhost:\\d+", "localhost:" + actualPort);
+                java.nio.file.Files.write(sitemapsXmlFile.toPath(), content.getBytes("UTF-8"));
+            }
+
+            // Update sitemaps.txt
+            final File sitemapsTxtFile = new File(docRoot, "sitemaps.txt");
+            if (sitemapsTxtFile.exists()) {
+                String content = new String(java.nio.file.Files.readAllBytes(sitemapsTxtFile.toPath()), "UTF-8");
+                content = content.replaceAll("localhost:\\d+", "localhost:" + actualPort);
+                java.nio.file.Files.write(sitemapsTxtFile.toPath(), content.getBytes("UTF-8"));
+            }
+        } catch (final Exception e) {
+            throw new CrawlerSystemException(e);
+        }
+    }
+
+    protected static File createDocRoot(final int count, final int port) {
         try {
             final File tempDir = File.createTempFile("crawlerDocRoot", "");
             tempDir.delete();
@@ -102,8 +138,8 @@ public class CrawlerWebServer {
             buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append('\n');
             buf.append("<urlset ").append("xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">").append('\n');
             buf.append("<url>").append('\n');
-            buf.append("<loc>http://localhost:7070/index.html</loc>").append('\n');
-            buf.append("<loc>http://localhost:7070/file").append(count).append("-1.html").append("</loc>").append('\n');
+            buf.append("<loc>http://localhost:").append(port).append("/index.html</loc>").append('\n');
+            buf.append("<loc>http://localhost:").append(port).append("/file").append(count).append("-1.html").append("</loc>").append('\n');
             buf.append("</url>").append('\n');
             buf.append("</urlset>").append('\n');
             File sitemapsFile = new File(tempDir, "sitemaps.xml");
@@ -112,8 +148,8 @@ public class CrawlerWebServer {
 
             // sitemaps.txt
             buf = new StringBuilder();
-            buf.append("http://localhost:7070/index.html").append('\n');
-            buf.append("http://localhost:7070/file").append(count).append("-1.html").append('\n');
+            buf.append("http://localhost:").append(port).append("/index.html").append('\n');
+            buf.append("http://localhost:").append(port).append("/file").append(count).append("-1.html").append('\n');
             sitemapsFile = new File(tempDir, "sitemaps.txt");
             FileUtil.writeBytes(sitemapsFile.getAbsolutePath(), buf.toString().getBytes("UTF-8"));
             robotTxtFile.deleteOnExit();

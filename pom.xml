@@ -77,6 +77,25 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<!-- Enable parallel test execution at class level -->
+						<parallel>classes</parallel>
+						<threadCount>4</threadCount>
+						<!-- One fork per CPU core for parallel execution -->
+						<forkCount>1C</forkCount>
+						<reuseForks>true</reuseForks>
+						<!-- JVM settings for test execution -->
+						<argLine>
+							--add-opens java.base/java.net=ALL-UNNAMED
+							-Xmx2048m
+							-XX:+UseG1GC
+						</argLine>
+						<useSystemClassLoader>false</useSystemClassLoader>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>

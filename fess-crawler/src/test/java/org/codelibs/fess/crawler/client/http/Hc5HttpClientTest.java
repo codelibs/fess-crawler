@@ -59,10 +59,10 @@ public class Hc5HttpClientTest extends PlainTestCase {
 
     @Test
     public void test_doGet() {
-        final CrawlerWebServer server = new CrawlerWebServer(7070);
+        final CrawlerWebServer server = new CrawlerWebServer(0);
         server.start();
 
-        final String url = "http://localhost:7070/";
+        final String url = "http://localhost:" + server.getPort() + "/";
         try {
             final ResponseData responseData = httpClient.doGet(url);
             assertEquals(200, responseData.getHttpStatusCode());
@@ -80,10 +80,10 @@ public class Hc5HttpClientTest extends PlainTestCase {
 
     @Test
     public void test_processRobotsTxt() {
-        final CrawlerWebServer server = new CrawlerWebServer(7070);
+        final CrawlerWebServer server = new CrawlerWebServer(0);
         server.start();
 
-        final String url = "http://localhost:7070/hoge.html";
+        final String url = "http://localhost:" + server.getPort() + "/hoge.html";
         try {
             final CrawlerContext crawlerContext = new CrawlerContext();
             final String sessionId = "id1";
@@ -93,9 +93,9 @@ public class Hc5HttpClientTest extends PlainTestCase {
             httpClient.init();
             httpClient.processRobotsTxt(url);
             assertEquals(1, crawlerContext.getRobotsTxtUrlSet().size());
-            assertTrue(crawlerContext.getRobotsTxtUrlSet().contains("http://localhost:7070/robots.txt"));
-            assertFalse(urlFilter.match("http://localhost:7070/admin/"));
-            assertFalse(urlFilter.match("http://localhost:7070/websvn/"));
+            assertTrue(crawlerContext.getRobotsTxtUrlSet().contains("http://localhost:" + server.getPort() + "/robots.txt"));
+            assertFalse(urlFilter.match("http://localhost:" + server.getPort() + "/admin/"));
+            assertFalse(urlFilter.match("http://localhost:" + server.getPort() + "/websvn/"));
         } finally {
             server.stop();
         }
@@ -123,10 +123,10 @@ public class Hc5HttpClientTest extends PlainTestCase {
 
     @Test
     public void test_doHead() throws Exception {
-        final CrawlerWebServer server = new CrawlerWebServer(7070);
+        final CrawlerWebServer server = new CrawlerWebServer(0);
         server.start();
 
-        final String url = "http://localhost:7070/";
+        final String url = "http://localhost:" + server.getPort() + "/";
         try {
             final ResponseData responseData = httpClient.doHead(url);
             assertNotNull(responseData.getLastModified());

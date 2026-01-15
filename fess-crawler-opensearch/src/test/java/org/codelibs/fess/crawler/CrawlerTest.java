@@ -111,10 +111,10 @@ public class CrawlerTest extends LastaDiTestCase {
 
     @Test
     public void test_executeTx() throws Exception {
-        final CrawlerWebServer server = new CrawlerWebServer(7070);
+        final CrawlerWebServer server = new CrawlerWebServer(0);
         server.start();
 
-        final String url = "http://localhost:7070/";
+        final String url = "http://localhost:" + server.getPort() + "/";
         try {
             final int maxCount = 50;
             final int numOfThread = 10;
@@ -138,13 +138,13 @@ public class CrawlerTest extends LastaDiTestCase {
 
     @Test
     public void test_execute_2instanceTx() throws Exception {
-        final CrawlerWebServer server1 = new CrawlerWebServer(7070);
+        final CrawlerWebServer server1 = new CrawlerWebServer(0);
         server1.start();
-        final CrawlerWebServer server2 = new CrawlerWebServer(7071);
+        final CrawlerWebServer server2 = new CrawlerWebServer(0);
         server2.start();
 
-        final String url1 = "http://localhost:7070/";
-        final String url2 = "http://localhost:7071/";
+        final String url1 = "http://localhost:" + server1.getPort() + "/";
+        final String url2 = "http://localhost:" + server2.getPort() + "/";
         try {
             final int maxCount = 10;
             final int numOfThread = 10;

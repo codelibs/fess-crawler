@@ -22,6 +22,7 @@ import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.ResourceFactory;
@@ -77,6 +78,16 @@ public class CrawlerWebServer {
                 docRoot.delete();
             }
         }
+    }
+
+    /**
+     * Get the actual port the server is listening on.
+     * This is useful when starting the server with port 0 to get a random available port.
+     *
+     * @return the actual port number
+     */
+    public int getPort() {
+        return ((ServerConnector) server.getConnectors()[0]).getLocalPort();
     }
 
     protected static File createDocRoot(final int count) {

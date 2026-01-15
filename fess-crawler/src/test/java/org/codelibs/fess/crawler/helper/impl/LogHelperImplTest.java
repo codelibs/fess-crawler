@@ -38,8 +38,7 @@ public class LogHelperImplTest extends PlainTestCase {
     @Override
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("logHelper", LogHelperImpl.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("logHelper", LogHelperImpl.class);
         logHelper = container.getComponent("logHelper");
     }
 

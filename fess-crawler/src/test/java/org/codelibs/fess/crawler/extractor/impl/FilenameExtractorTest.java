@@ -38,8 +38,7 @@ public class FilenameExtractorTest extends PlainTestCase {
     @Override
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("filenameExtractor", FilenameExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("filenameExtractor", FilenameExtractor.class);
         filenameExtractor = container.getComponent("filenameExtractor");
     }
 
@@ -95,7 +94,7 @@ public class FilenameExtractorTest extends PlainTestCase {
 
         try {
             filenameExtractor.getText(null, params);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             // Expected
         }

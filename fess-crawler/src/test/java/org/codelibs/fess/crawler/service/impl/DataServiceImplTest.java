@@ -146,7 +146,7 @@ public class DataServiceImplTest extends PlainTestCase {
     public void test_store_null() {
         try {
             dataService.store(null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("null"));
         }
@@ -160,7 +160,7 @@ public class DataServiceImplTest extends PlainTestCase {
         final AccessResult accessResult2 = createAccessResult("dup-session", "http://www.example.com/");
         try {
             dataService.store(accessResult2);
-            fail("Expected CrawlerSystemException for duplicate URL");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("already exists"));
         }
@@ -256,7 +256,7 @@ public class DataServiceImplTest extends PlainTestCase {
 
         try {
             dataService.update(accessResult);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("not found"));
         }

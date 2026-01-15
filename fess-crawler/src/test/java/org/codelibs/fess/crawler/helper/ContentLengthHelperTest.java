@@ -65,21 +65,21 @@ public class ContentLengthHelperTest extends PlainTestCase {
     public void test_addMaxLength_blankMimeType() {
         try {
             contentLengthHelper.addMaxLength(null, 1000L);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("blank"));
         }
 
         try {
             contentLengthHelper.addMaxLength("", 1000L);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("blank"));
         }
 
         try {
             contentLengthHelper.addMaxLength("   ", 1000L);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("blank"));
         }
@@ -89,7 +89,7 @@ public class ContentLengthHelperTest extends PlainTestCase {
     public void test_addMaxLength_negativeValue() {
         try {
             contentLengthHelper.addMaxLength("text/plain", -1L);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("invalid"));
         }
@@ -121,7 +121,7 @@ public class ContentLengthHelperTest extends PlainTestCase {
     public void test_setDefaultMaxLength_negativeValue() {
         try {
             contentLengthHelper.setDefaultMaxLength(-1L);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("invalid"));
         }

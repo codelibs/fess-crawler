@@ -35,8 +35,7 @@ public class MsVisioExtractorTest extends PlainTestCase {
     @Override
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("msVisioExtractor", MsVisioExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msVisioExtractor", MsVisioExtractor.class);
         msVisioExtractor = container.getComponent("msVisioExtractor");
     }
 
@@ -44,7 +43,7 @@ public class MsVisioExtractorTest extends PlainTestCase {
     public void test_getText_null() {
         try {
             msVisioExtractor.getText(null, null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("null"));
         }
@@ -56,7 +55,7 @@ public class MsVisioExtractorTest extends PlainTestCase {
         final InputStream in = new ByteArrayInputStream("This is not a valid Visio file".getBytes());
         try {
             msVisioExtractor.getText(in, null);
-            fail("Expected ExtractException for invalid data");
+            fail();
         } catch (final ExtractException e) {
             // Expected - invalid Visio format
         }
@@ -67,7 +66,7 @@ public class MsVisioExtractorTest extends PlainTestCase {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         try {
             msVisioExtractor.getText(in, null);
-            fail("Expected ExtractException for empty stream");
+            fail();
         } catch (final ExtractException e) {
             // Expected - empty stream is not a valid Visio file
         }

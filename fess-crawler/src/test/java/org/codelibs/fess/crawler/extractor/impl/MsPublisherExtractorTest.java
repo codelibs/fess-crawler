@@ -35,8 +35,7 @@ public class MsPublisherExtractorTest extends PlainTestCase {
     @Override
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
-        StandardCrawlerContainer container = new StandardCrawlerContainer()
-                .singleton("msPublisherExtractor", MsPublisherExtractor.class);
+        StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("msPublisherExtractor", MsPublisherExtractor.class);
         msPublisherExtractor = container.getComponent("msPublisherExtractor");
     }
 
@@ -44,7 +43,7 @@ public class MsPublisherExtractorTest extends PlainTestCase {
     public void test_getText_null() {
         try {
             msPublisherExtractor.getText(null, null);
-            fail("Expected CrawlerSystemException");
+            fail();
         } catch (final CrawlerSystemException e) {
             assertTrue(e.getMessage().contains("null"));
         }
@@ -56,7 +55,7 @@ public class MsPublisherExtractorTest extends PlainTestCase {
         final InputStream in = new ByteArrayInputStream("This is not a valid Publisher file".getBytes());
         try {
             msPublisherExtractor.getText(in, null);
-            fail("Expected ExtractException for invalid data");
+            fail();
         } catch (final ExtractException e) {
             // Expected - invalid Publisher format
         }
@@ -67,7 +66,7 @@ public class MsPublisherExtractorTest extends PlainTestCase {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         try {
             msPublisherExtractor.getText(in, null);
-            fail("Expected ExtractException for empty stream");
+            fail();
         } catch (final ExtractException e) {
             // Expected - empty stream is not a valid Publisher file
         }

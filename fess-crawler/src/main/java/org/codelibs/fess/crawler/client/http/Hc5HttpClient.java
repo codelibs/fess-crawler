@@ -66,8 +66,13 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMScheme;
 import org.codelibs.fess.crawler.client.http.ntlm.Hc5JcifsEngine;
+import org.codelibs.fess.crawler.client.http.ntlm.Hc5NTLMSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -255,6 +260,47 @@ public class Hc5HttpClient extends HcHttpClient {
     protected String[] cookieDatePatterns;
 
     /**
+     * Collects NTLM parameters from all NTLM authentication configurations.
+     *
+     * @return merged Properties if NTLM auth is found, null otherwise
+     */
+    protected Properties collectNtlmParameters() {
+        if (initParamMap == null) {
+            return null;
+        }
+        final Object value = initParamMap.get(AUTHENTICATIONS_PROPERTY);
+        if (value == null) {
+            return null;
+        }
+
+        Properties result = null;
+
+        if (value instanceof WebAuthenticationConfig[]) {
+            for (final WebAuthenticationConfig config : (WebAuthenticationConfig[]) value) {
+                if (config.getAuthSchemeType() == WebAuthenticationConfig.AuthSchemeType.NTLM) {
+                    if (result == null) {
+                        result = new Properties();
+                    }
+                    final Map<String, String> ntlmParams = config.getNtlmParameters();
+                    if (ntlmParams != null) {
+                        ntlmParams.forEach(result::setProperty);
+                    }
+                }
+            }
+        } else if (value instanceof Hc5Authentication[]) {
+            for (final Hc5Authentication auth : (Hc5Authentication[]) value) {
+                if (auth.getAuthScheme() instanceof NTLMScheme) {
+                    if (result == null) {
+                        result = new Properties();
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
     * Initializes the HTTP client with the necessary configurations and settings.
     * This method sets up the request configurations, authentication schemes,
     * user agent, proxy settings, request headers, cookie store, and connection manager.
@@ -301,16 +347,33 @@ public class Hc5HttpClient extends HcHttpClient {
             httpClientBuilder.setRoutePlanner(planner);
         }
 
-        // AuthSchemeFactory
+        // AuthSchemeFactory - build registry with defaults + NTLM if needed
+        final RegistryBuilder<AuthSchemeFactory> authSchemeRegistryBuilder = RegistryBuilder.create();
+
+        // Register default schemes
+        authSchemeRegistryBuilder.register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE);
+        authSchemeRegistryBuilder.register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE);
+        authSchemeRegistryBuilder.register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE);
+
+        // Check if NTLM authentication is configured and register factory
+        final Properties ntlmProps = collectNtlmParameters();
+        if (ntlmProps != null) {
+            authSchemeRegistryBuilder.register(StandardAuthScheme.NTLM, new Hc5NTLMSchemeFactory(ntlmProps));
+            if (logger.isDebugEnabled()) {
+                logger.debug("Registered NTLM authentication scheme factory");
+            }
+        }
+
+        // Add any explicitly configured factories (may override defaults)
         @SuppressWarnings("unchecked")
         final Map<String, AuthSchemeFactory> factoryMap = getInitParameter(AUTH_SCHEME_PROVIDERS_PROPERTY, authSchemeFactoryMap, Map.class);
         if (factoryMap != null && !factoryMap.isEmpty()) {
-            final RegistryBuilder<AuthSchemeFactory> authSchemeRegistryBuilder = RegistryBuilder.create();
             for (final Map.Entry<String, AuthSchemeFactory> entry : factoryMap.entrySet()) {
                 authSchemeRegistryBuilder.register(entry.getKey(), entry.getValue());
             }
-            httpClientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistryBuilder.build());
         }
+
+        httpClientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistryBuilder.build());
 
         // Authentication
         final Hc5Authentication[] siteCredentialList = getAuthenticationArray();

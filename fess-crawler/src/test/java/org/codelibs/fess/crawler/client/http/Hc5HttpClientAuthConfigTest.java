@@ -17,8 +17,11 @@ package org.codelibs.fess.crawler.client.http;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
+import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.auth.NTLMScheme;
 import org.codelibs.fess.crawler.client.http.config.CredentialsConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
@@ -289,5 +292,229 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
 
         assertNotNull(result);
         assertTrue(result instanceof NTCredentials);
+    }
+
+    // Tests for collectNtlmParameters()
+
+    @Test
+    public void test_collectNtlmParameters_nullInitParamMap() {
+        // httpClient has null initParamMap by default
+        Properties result = httpClient.collectNtlmParameters();
+        assertNull(result);
+    }
+
+    @Test
+    public void test_collectNtlmParameters_noAuthentications() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("someOtherProperty", "value");
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+        assertNull(result);
+    }
+
+    @Test
+    public void test_collectNtlmParameters_withWebAuthenticationConfig_ntlmWithParams() {
+        WebAuthenticationConfig config = new WebAuthenticationConfig();
+        config.setScheme("http");
+        config.setHost("ntlm.example.com");
+        config.setPort(80);
+        config.setAuthSchemeType(AuthSchemeType.NTLM);
+
+        CredentialsConfig credentials = new CredentialsConfig();
+        credentials.setType(CredentialsConfig.CredentialsType.NTLM);
+        credentials.setUsername("testuser");
+        credentials.setPassword("testpass");
+        config.setCredentials(credentials);
+
+        Map<String, String> ntlmParams = new HashMap<>();
+        ntlmParams.put("jcifs.smb.client.domain", "TESTDOMAIN");
+        ntlmParams.put("jcifs.smb.client.SO_SNDBUF", "65535");
+        config.setNtlmParameters(ntlmParams);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.AUTHENTICATIONS_PROPERTY, new WebAuthenticationConfig[] { config });
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+
+        assertNotNull(result);
+        assertEquals("TESTDOMAIN", result.getProperty("jcifs.smb.client.domain"));
+        assertEquals("65535", result.getProperty("jcifs.smb.client.SO_SNDBUF"));
+    }
+
+    @Test
+    public void test_collectNtlmParameters_withWebAuthenticationConfig_ntlmWithoutParams() {
+        WebAuthenticationConfig config = new WebAuthenticationConfig();
+        config.setScheme("http");
+        config.setHost("ntlm.example.com");
+        config.setPort(80);
+        config.setAuthSchemeType(AuthSchemeType.NTLM);
+
+        CredentialsConfig credentials = new CredentialsConfig();
+        credentials.setType(CredentialsConfig.CredentialsType.NTLM);
+        credentials.setUsername("testuser");
+        credentials.setPassword("testpass");
+        config.setCredentials(credentials);
+
+        // No NTLM parameters set (null)
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.AUTHENTICATIONS_PROPERTY, new WebAuthenticationConfig[] { config });
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+
+        // Result should be non-null but empty since NTLM auth is configured but no params
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void test_collectNtlmParameters_withWebAuthenticationConfig_nonNtlm() {
+        WebAuthenticationConfig config = new WebAuthenticationConfig();
+        config.setScheme("http");
+        config.setHost("basic.example.com");
+        config.setPort(80);
+        config.setAuthSchemeType(AuthSchemeType.BASIC);
+
+        CredentialsConfig credentials = new CredentialsConfig();
+        credentials.setUsername("testuser");
+        credentials.setPassword("testpass");
+        config.setCredentials(credentials);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.AUTHENTICATIONS_PROPERTY, new WebAuthenticationConfig[] { config });
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+
+        // No NTLM auth, so result is null
+        assertNull(result);
+    }
+
+    @Test
+    public void test_collectNtlmParameters_withHc5Authentication_ntlmScheme() {
+        Hc5Authentication auth = new Hc5Authentication(new AuthScope("ntlm.example.com", 80),
+                new UsernamePasswordCredentials("user", "pass".toCharArray()), new NTLMScheme());
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.AUTHENTICATIONS_PROPERTY, new Hc5Authentication[] { auth });
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+
+        // NTLM scheme is detected, but no parameters to collect (empty Properties)
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void test_collectNtlmParameters_withHc5Authentication_nonNtlmScheme() {
+        // No NTLMScheme, just basic auth
+        Hc5Authentication auth = new Hc5Authentication(new AuthScope("basic.example.com", 80),
+                new UsernamePasswordCredentials("user", "pass".toCharArray()), null); // null auth scheme (like BASIC)
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.AUTHENTICATIONS_PROPERTY, new Hc5Authentication[] { auth });
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+
+        // No NTLM auth, so result is null
+        assertNull(result);
+    }
+
+    @Test
+    public void test_collectNtlmParameters_multipleNtlmConfigs_mergesParams() {
+        // First NTLM config
+        WebAuthenticationConfig config1 = new WebAuthenticationConfig();
+        config1.setScheme("http");
+        config1.setHost("ntlm1.example.com");
+        config1.setPort(80);
+        config1.setAuthSchemeType(AuthSchemeType.NTLM);
+
+        CredentialsConfig credentials1 = new CredentialsConfig();
+        credentials1.setType(CredentialsConfig.CredentialsType.NTLM);
+        credentials1.setUsername("user1");
+        credentials1.setPassword("pass1");
+        config1.setCredentials(credentials1);
+
+        Map<String, String> ntlmParams1 = new HashMap<>();
+        ntlmParams1.put("jcifs.smb.client.domain", "DOMAIN1");
+        ntlmParams1.put("jcifs.smb.client.SO_SNDBUF", "65535");
+        config1.setNtlmParameters(ntlmParams1);
+
+        // Second NTLM config with different params
+        WebAuthenticationConfig config2 = new WebAuthenticationConfig();
+        config2.setScheme("http");
+        config2.setHost("ntlm2.example.com");
+        config2.setPort(8080);
+        config2.setAuthSchemeType(AuthSchemeType.NTLM);
+
+        CredentialsConfig credentials2 = new CredentialsConfig();
+        credentials2.setType(CredentialsConfig.CredentialsType.NTLM);
+        credentials2.setUsername("user2");
+        credentials2.setPassword("pass2");
+        config2.setCredentials(credentials2);
+
+        Map<String, String> ntlmParams2 = new HashMap<>();
+        ntlmParams2.put("jcifs.smb.client.domain", "DOMAIN2"); // Overrides DOMAIN1
+        ntlmParams2.put("jcifs.smb.client.SO_RCVBUF", "32768");
+        config2.setNtlmParameters(ntlmParams2);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.AUTHENTICATIONS_PROPERTY, new WebAuthenticationConfig[] { config1, config2 });
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+
+        assertNotNull(result);
+        // Later config overrides earlier
+        assertEquals("DOMAIN2", result.getProperty("jcifs.smb.client.domain"));
+        assertEquals("65535", result.getProperty("jcifs.smb.client.SO_SNDBUF"));
+        assertEquals("32768", result.getProperty("jcifs.smb.client.SO_RCVBUF"));
+    }
+
+    @Test
+    public void test_collectNtlmParameters_mixedConfigs() {
+        // Basic auth config (should be skipped)
+        WebAuthenticationConfig basicConfig = new WebAuthenticationConfig();
+        basicConfig.setScheme("http");
+        basicConfig.setHost("basic.example.com");
+        basicConfig.setPort(80);
+        basicConfig.setAuthSchemeType(AuthSchemeType.BASIC);
+
+        CredentialsConfig basicCredentials = new CredentialsConfig();
+        basicCredentials.setUsername("basicuser");
+        basicCredentials.setPassword("basicpass");
+        basicConfig.setCredentials(basicCredentials);
+
+        // NTLM auth config
+        WebAuthenticationConfig ntlmConfig = new WebAuthenticationConfig();
+        ntlmConfig.setScheme("http");
+        ntlmConfig.setHost("ntlm.example.com");
+        ntlmConfig.setPort(8080);
+        ntlmConfig.setAuthSchemeType(AuthSchemeType.NTLM);
+
+        CredentialsConfig ntlmCredentials = new CredentialsConfig();
+        ntlmCredentials.setType(CredentialsConfig.CredentialsType.NTLM);
+        ntlmCredentials.setUsername("ntlmuser");
+        ntlmCredentials.setPassword("ntlmpass");
+        ntlmConfig.setCredentials(ntlmCredentials);
+
+        Map<String, String> ntlmParams = new HashMap<>();
+        ntlmParams.put("jcifs.smb.client.domain", "NTLMDOMAIN");
+        ntlmConfig.setNtlmParameters(ntlmParams);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.AUTHENTICATIONS_PROPERTY, new WebAuthenticationConfig[] { basicConfig, ntlmConfig });
+        httpClient.setInitParameterMap(params);
+
+        Properties result = httpClient.collectNtlmParameters();
+
+        assertNotNull(result);
+        assertEquals("NTLMDOMAIN", result.getProperty("jcifs.smb.client.domain"));
+        assertEquals(1, result.size());
     }
 }

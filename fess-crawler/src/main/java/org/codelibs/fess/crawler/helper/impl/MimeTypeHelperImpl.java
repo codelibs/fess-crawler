@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.tika.metadata.Metadata;
@@ -70,6 +71,9 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
     /** Whether to use the filename for MIME type detection when the stream is detected as octet-stream. */
     protected boolean useFilenameOnOctetStream = true;
 
+    /** A map of file extensions (e.g. ".sql") to MIME types for overriding Tika detection. */
+    protected Map<String, String> extensionMimeTypeMap = new HashMap<>();
+
     /**
      * Creates a new MimeTypeHelperImpl instance.
      * Initializes the MimeTypes instance using the default configuration.
@@ -95,6 +99,17 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         final String filename = params.get(ExtractData.RESOURCE_NAME_KEY);
         if (StringUtil.isEmpty(filename) && is == null) {
             throw new MimeTypeException("Cannot detect MIME type: both filename and input stream are empty. At least one is required.");
+        }
+
+        // Check extension override map first
+        if (StringUtil.isNotBlank(filename) && !extensionMimeTypeMap.isEmpty()) {
+            final String extension = getExtension(filename);
+            if (extension != null) {
+                final String mimeType = extensionMimeTypeMap.get(extension);
+                if (mimeType != null) {
+                    return mimeType;
+                }
+            }
         }
 
         final Metadata metadata = new Metadata();
@@ -156,6 +171,24 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
     }
 
     /**
+     * Extracts the file extension (including the dot) from a filename, converted to lowercase.
+     *
+     * @param filename The filename to extract the extension from.
+     * @return The lowercase extension (e.g. ".sql"), or null if no extension is found.
+     */
+    protected String getExtension(final String filename) {
+        if (StringUtil.isBlank(filename)) {
+            return null;
+        }
+        final String name = filename.contains("/") ? filename.substring(filename.lastIndexOf('/') + 1) : filename;
+        final int dotIndex = name.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == name.length() - 1) {
+            return null;
+        }
+        return name.substring(dotIndex).toLowerCase(Locale.ROOT);
+    }
+
+    /**
      * Sets whether to use the filename for MIME type detection.
      *
      * @param useFilename true to use the filename for MIME type detection, false otherwise
@@ -171,5 +204,16 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
      */
     public void setUseFilenameOnOctetStream(final boolean useFilenameOnOctetStream) {
         this.useFilenameOnOctetStream = useFilenameOnOctetStream;
+    }
+
+    /**
+     * Sets the extension-to-MIME-type override map.
+     * When a filename's extension matches a key in this map, the corresponding MIME type is returned
+     * without performing Tika-based content detection.
+     *
+     * @param extensionMimeTypeMap a map of file extensions (e.g. ".sql") to MIME types (e.g. "text/x-sql")
+     */
+    public void setExtensionMimeTypeMap(final Map<String, String> extensionMimeTypeMap) {
+        this.extensionMimeTypeMap = extensionMimeTypeMap;
     }
 }

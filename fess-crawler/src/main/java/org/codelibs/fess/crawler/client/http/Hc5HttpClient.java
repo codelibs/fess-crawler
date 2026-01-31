@@ -33,6 +33,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +68,7 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
@@ -361,6 +364,22 @@ public class Hc5HttpClient extends HcHttpClient {
             authSchemeRegistryBuilder.register(StandardAuthScheme.NTLM, new Hc5NTLMSchemeFactory(ntlmProps));
             if (logger.isDebugEnabled()) {
                 logger.debug("Registered NTLM authentication scheme factory");
+            }
+
+            // Set custom authentication strategy with NTLM in preference list for both target and proxy
+            final DefaultAuthenticationStrategy ntlmAuthStrategy = new DefaultAuthenticationStrategy() {
+                private final List<String> schemePriority = Collections.unmodifiableList(Arrays.asList(StandardAuthScheme.BEARER,
+                        StandardAuthScheme.DIGEST, StandardAuthScheme.NTLM, StandardAuthScheme.BASIC));
+
+                @Override
+                protected List<String> getSchemePriority() {
+                    return schemePriority;
+                }
+            };
+            httpClientBuilder.setTargetAuthenticationStrategy(ntlmAuthStrategy);
+            httpClientBuilder.setProxyAuthenticationStrategy(ntlmAuthStrategy);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Set custom authentication strategy with NTLM support for target and proxy");
             }
         }
 

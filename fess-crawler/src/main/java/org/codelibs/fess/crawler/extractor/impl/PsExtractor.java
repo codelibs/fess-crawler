@@ -33,8 +33,8 @@ import org.codelibs.fess.crawler.exception.UnsupportedExtractException;
  * <p>
  * This extractor parses PostScript files and extracts text rendered by
  * show-family operators ({@code show}, {@code ashow}, {@code widthshow},
- * {@code awidthshow}, {@code kshow}, {@code xshow}, {@code yshow},
- * {@code xyshow}). It handles parenthesized string literals with escape
+ * {@code awidthshow}, {@code xshow}, {@code yshow},
+ * {@code xyshow}, {@code kshow}). It handles parenthesized string literals with escape
  * sequences and hexadecimal string literals.
  * </p>
  *
@@ -47,7 +47,7 @@ import org.codelibs.fess.crawler.exception.UnsupportedExtractException;
 public class PsExtractor extends AbstractExtractor {
 
     private static final Set<String> SHOW_OPERATORS =
-            Set.of("show", "ashow", "widthshow", "awidthshow", "kshow", "xshow", "yshow", "xyshow");
+            Set.of("show", "ashow", "widthshow", "awidthshow", "xshow", "yshow", "xyshow", "kshow");
 
     /**
      * The encoding for reading PostScript files.
@@ -312,6 +312,25 @@ public class PsExtractor extends AbstractExtractor {
         if (token.isEmpty()) {
             return false;
         }
+
+        // Radix notation: base#digits (e.g. 16#FF, 8#77, 2#1010)
+        final int hashIndex = token.indexOf('#');
+        if (hashIndex > 0 && hashIndex < token.length() - 1) {
+            for (int j = 0; j < hashIndex; j++) {
+                final char c = token.charAt(j);
+                if (c < '0' || c > '9') {
+                    return false;
+                }
+            }
+            for (int j = hashIndex + 1; j < token.length(); j++) {
+                final char c = token.charAt(j);
+                if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         int i = 0;
         if (token.charAt(0) == '-' || token.charAt(0) == '+') {
             if (token.length() == 1) {
@@ -320,13 +339,29 @@ public class PsExtractor extends AbstractExtractor {
             i = 1;
         }
         boolean hasDot = false;
+        boolean hasExponent = false;
         for (; i < token.length(); i++) {
             final char ch = token.charAt(i);
             if (ch == '.') {
-                if (hasDot) {
+                if (hasDot || hasExponent) {
                     return false;
                 }
                 hasDot = true;
+            } else if (ch == 'e' || ch == 'E') {
+                if (hasExponent || i == 0 || i == token.length() - 1) {
+                    return false;
+                }
+                hasExponent = true;
+                // Allow optional sign after exponent
+                if (i + 1 < token.length()) {
+                    final char next = token.charAt(i + 1);
+                    if (next == '+' || next == '-') {
+                        i++;
+                        if (i == token.length() - 1) {
+                            return false;
+                        }
+                    }
+                }
             } else if (ch < '0' || ch > '9') {
                 return false;
             }

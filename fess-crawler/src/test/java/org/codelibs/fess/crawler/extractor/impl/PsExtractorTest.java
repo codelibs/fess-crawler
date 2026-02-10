@@ -178,6 +178,87 @@ public class PsExtractorTest extends PlainTestCase {
     }
 
     @Test
+    public void test_getText_ashow() {
+        final String ps = "%!PS\n72 700 moveto\n0 0 (Hello ashow) ashow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello ashow"));
+    }
+
+    @Test
+    public void test_getText_widthshow() {
+        final String ps = "%!PS\n72 700 moveto\n0 0 32 (Hello widthshow) widthshow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello widthshow"));
+    }
+
+    @Test
+    public void test_getText_awidthshow() {
+        final String ps = "%!PS\n72 700 moveto\n0 0 32 0 0 (Hello awidthshow) awidthshow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello awidthshow"));
+    }
+
+    @Test
+    public void test_getText_xshow() {
+        final String ps = "%!PS\n72 700 moveto\n(Hello xshow) [10 20 30 40 50 60 70 80 90 100 110] xshow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello xshow"));
+    }
+
+    @Test
+    public void test_getText_yshow() {
+        final String ps = "%!PS\n72 700 moveto\n(Hello yshow) [0 0 0 0 0 0 0 0 0 0 0] yshow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello yshow"));
+    }
+
+    @Test
+    public void test_getText_xyshow() {
+        final String ps =
+                "%!PS\n72 700 moveto\n(Hello xyshow) [10 0 20 0 30 0 40 0 50 0 60 0 70 0 80 0 90 0 100 0 110 0] xyshow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello xyshow"));
+    }
+
+    @Test
+    public void test_getText_kshow() {
+        final String ps = "%!PS\n72 700 moveto\n{} (Hello kshow) kshow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello kshow"));
+    }
+
+    @Test
+    public void test_getText_exponentialNumbers() {
+        final String ps = "%!PS\n72 700 moveto\n(Hello exp) [1e10 1.5E-3 6.023E23 2e1 3.0e+2] xshow\nshowpage\n";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        final String content = psExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("Hello exp"));
+    }
+
+    @Test
     public void test_getText_incompleteLessThan() {
         final String ps = "%!PS\n<";
         final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));

@@ -21,6 +21,8 @@
 		class="org.codelibs.fess.crawler.extractor.impl.MsVisioExtractor" />
 	<component name="pdfExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.PdfExtractor" />
+	<component name="psExtractor"
+		class="org.codelibs.fess.crawler.extractor.impl.PsExtractor" />
 	<component name="lhaExtractor"
 		class="org.codelibs.fess.crawler.extractor.impl.LhaExtractor" />
 	<component name="textExtractor"
@@ -1580,6 +1582,10 @@
 				"text/markdown"
 				]</arg>
 			<arg>markdownExtractor</arg>
+		</postConstruct>
+		<postConstruct name="addExtractor">
+			<arg>["application/postscript"]</arg>
+			<arg>psExtractor</arg>
 		</postConstruct>
 	</component>
 

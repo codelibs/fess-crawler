@@ -52,11 +52,27 @@ public abstract class AbstractExtractor implements Extractor {
     @Resource
     protected CrawlerContainer crawlerContainer;
 
+    /** The weight of this extractor. */
+    protected int weight = 1;
+
     /**
      * Constructs a new AbstractExtractor.
      */
     public AbstractExtractor() {
         // NOP
+    }
+
+    @Override
+    public int getWeight() {
+        return weight;
+    }
+
+    /**
+     * Sets the weight of this extractor.
+     * @param weight The weight to set.
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
     }
 
     /**

@@ -1038,6 +1038,7 @@
 				"application/x-tex",
 				"application/x-tex-tfm",
 				"application/x-texinfo",
+				"application/x-js-taro",
 				"application/x-tika-msoffice",
 				"application/x-tika-msoffice-embedded",
 				"application/x-tika-msoffice-embedded;format=ole10_native",

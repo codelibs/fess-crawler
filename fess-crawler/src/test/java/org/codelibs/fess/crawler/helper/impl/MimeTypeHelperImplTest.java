@@ -110,6 +110,18 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         assertContentType("text/x-c++hdr", "extractor/program/test.hpp", "test.hpp");
         assertContentType("text/x-java-source", "extractor/program/test.java", "test.java");
         assertContentType("text/javascript", "extractor/program/test.js", "test.js");
+
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_basic.jtd", "taro2016_basic.jtd");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_temp.jtt", "taro2016_temp.jtt");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_basic_zip.jtdc", "taro2016_basic_zip.jtdc");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_temp_zip.jttc", "taro2016_temp_zip.jttc");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro7_taro2016_basic.jfw", "taro7_taro2016_basic.jfw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro7_taro2016_temp.jvw", "taro7_taro2016_temp.jvw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver4_taro2016_basic.jsw", "ver4_taro2016_basic.jsw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver5_taro2016_basic.jaw", "ver5_taro2016_basic.jaw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver5_taro2016_temp.jtw", "ver5_taro2016_temp.jtw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver6_taro2016_basic.jbw", "ver6_taro2016_basic.jbw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver6_taro2016_temp.juw", "ver6_taro2016_temp.juw");
     }
 
     @Test
@@ -177,6 +189,18 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         assertContentType("text/x-c++hdr", "extractor/program/test.hpp", "test.hpp");
         assertContentType("text/x-java-source", "extractor/program/test.java", "test.java");
         assertContentType("text/javascript", "extractor/program/test.js", "test.js");
+
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_basic.jtd", "taro2016_basic.jtd");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_temp.jtt", "taro2016_temp.jtt");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_basic_zip.jtdc", "taro2016_basic_zip.jtdc");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro2016_temp_zip.jttc", "taro2016_temp_zip.jttc");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro7_taro2016_basic.jfw", "taro7_taro2016_basic.jfw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/taro7_taro2016_temp.jvw", "taro7_taro2016_temp.jvw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver4_taro2016_basic.jsw", "ver4_taro2016_basic.jsw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver5_taro2016_basic.jaw", "ver5_taro2016_basic.jaw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver5_taro2016_temp.jtw", "ver5_taro2016_temp.jtw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver6_taro2016_basic.jbw", "ver6_taro2016_basic.jbw");
+        assertContentType("application/x-js-taro", "extractor/ichitaro/ver6_taro2016_temp.juw", "ver6_taro2016_temp.juw");
     }
 
     private void assertContentType(final String expect, final String path, final String name) throws IOException {

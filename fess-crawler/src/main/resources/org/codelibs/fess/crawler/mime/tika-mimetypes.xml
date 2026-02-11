@@ -4226,6 +4226,25 @@
     <_comment>Hangul Word Processor File v5</_comment>
     <sub-class-of type="application/x-tika-msoffice"/>
   </mime-type>
+  <!-- FESS added -->
+  <mime-type type="application/x-js-taro">
+    <_comment>JustSystems Ichitaro Document</_comment>
+    <magic priority="50">
+      <match value="DOC\x00" type="string" offset="0"/>
+    </magic>
+    <glob pattern="*.jtd"/>
+    <glob pattern="*.jtt"/>
+    <glob pattern="*.jtdc"/>
+    <glob pattern="*.jttc"/>
+    <glob pattern="*.jfw"/>
+    <glob pattern="*.jvw"/>
+    <glob pattern="*.jsw"/>
+    <glob pattern="*.jaw"/>
+    <glob pattern="*.jtw"/>
+    <glob pattern="*.jbw"/>
+    <glob pattern="*.juw"/>
+    <sub-class-of type="application/x-tika-msoffice"/>
+  </mime-type>
   <mime-type type="application/hwp+zip">
     <_comment>Hangul Word Processor File, zip based</_comment>
     <sub-class-of type="application/zip"/>

@@ -380,4 +380,88 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertFalse(htmlTransformer.isSupportedCharset(" "));
         assertFalse(htmlTransformer.isSupportedCharset(null));
     }
+
+    @Test
+    public void test_transform_relativeUrlWithSpace() {
+        String content = "<a href=\"page 2.html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/dir/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/dir/page%202.html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_absolutePathWithSpace() {
+        String content = "<a href=\"/path with space/page.html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/dir/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/path%20with%20space/page.html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_protocolRelativeWithSpace() {
+        String content = "<a href=\"//cdn.example.com/a b.js\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://cdn.example.com/a%20b.js", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_parentTraversalWithSpace() {
+        String content = "<a href=\"../page 2.html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/dir/sub/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/dir/page%202.html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_parentTraversalAboveRootWithSpace() {
+        String content = "<a href=\"/../page 2.html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/page%202.html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_parentTraversalFromRootWithSpace() {
+        String content = "<a href=\"../page 2.html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/page%202.html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
 }

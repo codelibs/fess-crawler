@@ -611,6 +611,57 @@ public class HtmlTransformer extends AbstractTransformer {
                 logger.debug("Skip Child: {}", u);
             }
         } catch (final URISyntaxException | IllegalArgumentException e) {
+            // Fallback: manually construct absolute URL for relative paths
+            final String childUrlValue = attrValue.trim();
+            final String scheme = uri.getScheme();
+            final String authority = uri.getAuthority();
+            if (scheme != null && authority != null && !childUrlValue.isEmpty()) {
+                final String fallbackUrl;
+                if (childUrlValue.startsWith("//")) {
+                    fallbackUrl = scheme + ":" + childUrlValue;
+                } else if (childUrlValue.startsWith("?") || childUrlValue.startsWith("#")) {
+                    fallbackUrl = uri.toString() + childUrlValue;
+                } else if (childUrlValue.startsWith("/")) {
+                    String absPath = childUrlValue;
+                    while (absPath.startsWith("/../")) {
+                        absPath = absPath.substring(3);
+                    }
+                    if (!absPath.startsWith("/")) {
+                        absPath = "/" + absPath;
+                    }
+                    fallbackUrl = scheme + "://" + authority + absPath;
+                } else if (childUrlValue.indexOf(':') > 0 && childUrlValue.indexOf(':') < 10) {
+                    fallbackUrl = childUrlValue;
+                } else {
+                    String basePath = uri.getRawPath();
+                    if (basePath == null) {
+                        basePath = "/";
+                    }
+                    final int lastSlash = basePath.lastIndexOf('/');
+                    final String parentPath = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : "/";
+                    String resolvedPath = parentPath + childUrlValue;
+                    while (resolvedPath.startsWith("/../")) {
+                        resolvedPath = resolvedPath.substring(3);
+                    }
+                    if (!resolvedPath.startsWith("/")) {
+                        resolvedPath = "/" + resolvedPath;
+                    }
+                    fallbackUrl = scheme + "://" + authority + resolvedPath;
+                }
+                final String u = encodeUrl(normalizeUrl(fallbackUrl), encoding);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("{} -> {}", attrValue, u);
+                }
+                if (StringUtil.isNotBlank(u)) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Add Child: {}", u);
+                    }
+                    urlList.add(u);
+                    return;
+                } else if (logger.isDebugEnabled()) {
+                    logger.debug("Skip Child: {}", u);
+                }
+            }
             if (logger.isDebugEnabled()) {
                 logger.warn("Malformed URI: " + attrValue, e);
             } else {

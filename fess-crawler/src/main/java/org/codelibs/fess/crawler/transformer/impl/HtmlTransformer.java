@@ -19,8 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -260,16 +259,20 @@ public class HtmlTransformer extends AbstractTransformer {
             final Document document = parser.getDocument();
             // base href
             final String baseHref = getBaseHref(document);
-            URI uri;
+            URL url;
             try {
-                uri = new URI(baseHref == null ? responseData.getUrl() : baseHref);
+                if (baseHref == null) {
+                    url = new URL(responseData.getUrl());
+                } else {
+                    url = new URL(new URL(responseData.getUrl()), baseHref);
+                }
             } catch (final Exception e) {
-                uri = new URI(responseData.getUrl());
+                url = new URL(responseData.getUrl());
             }
-            final URI baseUri = uri;
+            final URL baseUrl = url;
             getChildUrlRules(responseData, resultData).forEach(entry -> {
                 List<RequestData> requestDataList = new ArrayList<>();
-                for (final String childUrl : getUrlFromTagAttribute(baseUri, document, entry.getFirst(), entry.getSecond(),
+                for (final String childUrl : getUrlFromTagAttribute(baseUrl, document, entry.getFirst(), entry.getSecond(),
                         responseData.getCharSet())) {
                     requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
                 }
@@ -521,33 +524,11 @@ public class HtmlTransformer extends AbstractTransformer {
      * @param attr the attribute name to extract URLs from
      * @param encoding the character encoding to use
      * @return a list of extracted URLs
-     * @deprecated Use {@link #getUrlFromTagAttribute(URI, Document, String, String, String)} instead.
      */
-    @Deprecated
     protected List<String> getUrlFromTagAttribute(final URL url, final Document document, final String xpath, final String attr,
             final String encoding) {
-        try {
-            return getUrlFromTagAttribute(url.toURI(), document, xpath, attr, encoding);
-        } catch (final URISyntaxException e) {
-            logger.warn("Could not convert URL to URI: url={}", url, e);
-            return new ArrayList<>();
-        }
-    }
-
-    /**
-     * Extracts URLs from HTML tag attributes using XPath.
-     *
-     * @param uri the base URI for resolving relative URLs
-     * @param document the document to extract URLs from
-     * @param xpath the XPath expression to select elements
-     * @param attr the attribute name to extract URLs from
-     * @param encoding the character encoding to use
-     * @return a list of extracted URLs
-     */
-    protected List<String> getUrlFromTagAttribute(final URI uri, final Document document, final String xpath, final String attr,
-            final String encoding) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Base URI: {}", uri);
+            logger.debug("Base URL: {}", url);
         }
         final List<String> urlList = new ArrayList<>();
         try {
@@ -558,7 +539,7 @@ public class HtmlTransformer extends AbstractTransformer {
                 if (attrNode != null) {
                     final String attrValue = attrNode.getNodeValue();
                     if (isValidPath(attrValue)) {
-                        addChildUrlFromTagAttribute(urlList, uri, attrValue, encoding);
+                        addChildUrlFromTagAttribute(urlList, url, attrValue, encoding);
                     }
                 }
             }
@@ -575,30 +556,28 @@ public class HtmlTransformer extends AbstractTransformer {
      * @param url the base URL for resolving relative URLs
      * @param attrValue the attribute value containing the URL
      * @param encoding the character encoding to use
-     * @deprecated Use {@link #addChildUrlFromTagAttribute(List, URI, String, String)} instead.
      */
-    @Deprecated
     protected void addChildUrlFromTagAttribute(final List<String> urlList, final URL url, final String attrValue, final String encoding) {
         try {
-            addChildUrlFromTagAttribute(urlList, url.toURI(), attrValue, encoding);
-        } catch (final URISyntaxException e) {
-            logger.warn("Could not convert URL to URI: url={}", url, e);
-        }
-    }
-
-    /**
-     * Adds a child URL to the URL list after processing and validation.
-     *
-     * @param urlList the list to add the URL to
-     * @param uri the base URI for resolving relative URLs
-     * @param attrValue the attribute value containing the URL
-     * @param encoding the character encoding to use
-     */
-    protected void addChildUrlFromTagAttribute(final List<String> urlList, final URI uri, final String attrValue, final String encoding) {
-        try {
             final String childUrlValue = attrValue.trim();
-            final URI childUri = childUrlValue.startsWith("?") ? new URI(uri.toString() + childUrlValue) : uri.resolve(childUrlValue);
-            final String u = encodeUrl(normalizeUrl(childUri.toString()), encoding);
+            final URL childUrl =
+                    childUrlValue.startsWith("?") ? new URL(url.toExternalForm() + childUrlValue) : new URL(url, childUrlValue);
+            String childUrlStr = childUrl.toExternalForm();
+            final String path = childUrl.getPath();
+            if (path != null && path.startsWith("/../")) {
+                String normalizedPath = path;
+                while (normalizedPath.startsWith("/../")) {
+                    normalizedPath = normalizedPath.substring(3);
+                }
+                if (!normalizedPath.startsWith("/")) {
+                    normalizedPath = "/" + normalizedPath;
+                }
+                childUrlStr = childUrl.getProtocol() + "://" + childUrl.getAuthority() + normalizedPath;
+                if (childUrl.getQuery() != null) {
+                    childUrlStr += "?" + childUrl.getQuery();
+                }
+            }
+            final String u = encodeUrl(normalizeUrl(childUrlStr), encoding);
             if (logger.isDebugEnabled()) {
                 logger.debug("{} -> {}", attrValue, u);
             }
@@ -610,63 +589,8 @@ public class HtmlTransformer extends AbstractTransformer {
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Skip Child: {}", u);
             }
-        } catch (final URISyntaxException | IllegalArgumentException e) {
-            // Fallback: manually construct absolute URL for relative paths
-            final String childUrlValue = attrValue.trim();
-            final String scheme = uri.getScheme();
-            final String authority = uri.getAuthority();
-            if (scheme != null && authority != null && !childUrlValue.isEmpty()) {
-                final String fallbackUrl;
-                if (childUrlValue.startsWith("//")) {
-                    fallbackUrl = scheme + ":" + childUrlValue;
-                } else if (childUrlValue.startsWith("?") || childUrlValue.startsWith("#")) {
-                    fallbackUrl = uri.toString() + childUrlValue;
-                } else if (childUrlValue.startsWith("/")) {
-                    String absPath = childUrlValue;
-                    while (absPath.startsWith("/../")) {
-                        absPath = absPath.substring(3);
-                    }
-                    if (!absPath.startsWith("/")) {
-                        absPath = "/" + absPath;
-                    }
-                    fallbackUrl = scheme + "://" + authority + absPath;
-                } else if (childUrlValue.indexOf(':') > 0 && childUrlValue.indexOf(':') < 10) {
-                    fallbackUrl = childUrlValue;
-                } else {
-                    String basePath = uri.getRawPath();
-                    if (basePath == null) {
-                        basePath = "/";
-                    }
-                    final int lastSlash = basePath.lastIndexOf('/');
-                    final String parentPath = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : "/";
-                    String resolvedPath = parentPath + childUrlValue;
-                    while (resolvedPath.startsWith("/../")) {
-                        resolvedPath = resolvedPath.substring(3);
-                    }
-                    if (!resolvedPath.startsWith("/")) {
-                        resolvedPath = "/" + resolvedPath;
-                    }
-                    fallbackUrl = scheme + "://" + authority + resolvedPath;
-                }
-                final String u = encodeUrl(normalizeUrl(fallbackUrl), encoding);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("{} -> {}", attrValue, u);
-                }
-                if (StringUtil.isNotBlank(u)) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Add Child: {}", u);
-                    }
-                    urlList.add(u);
-                    return;
-                } else if (logger.isDebugEnabled()) {
-                    logger.debug("Skip Child: {}", u);
-                }
-            }
-            if (logger.isDebugEnabled()) {
-                logger.warn("Malformed URI: " + attrValue, e);
-            } else {
-                logger.warn("Malformed URI: " + attrValue + " - " + e.getMessage());
-            }
+        } catch (final MalformedURLException e) {
+            logger.warn("Malformed URL: {}", attrValue, e);
         }
     }
 

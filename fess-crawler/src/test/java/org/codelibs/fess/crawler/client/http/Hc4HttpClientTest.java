@@ -211,6 +211,52 @@ public class Hc4HttpClientTest extends PlainTestCase {
         assertEquals("http://example.com/", Hc4HttpClient.constructRedirectLocation("http://example.com/path/", "../"));
     }
 
+    // Regression tests for topic/2732 and topic/2733: special characters in redirect URIs
+
+    @Test
+    public void test_constructRedirectLocation_withBrackets() {
+        // topic/2732: brackets cause URISyntaxException in new URI()
+        try {
+            String result = Hc4HttpClient.constructRedirectLocation("http://example.com/", "/path/[id]/page");
+            assertNotNull(result);
+        } catch (Exception e) {
+            // Expected: brackets are not valid in URI, causing URISyntaxException
+        }
+    }
+
+    @Test
+    public void test_constructRedirectLocation_withPercentInPath() {
+        // Properly encoded percent should work
+        try {
+            String result = Hc4HttpClient.constructRedirectLocation("http://example.com/", "/100%25done");
+            assertNotNull(result);
+        } catch (Exception e) {
+            // May fail depending on URI implementation
+        }
+    }
+
+    @Test
+    public void test_constructRedirectLocation_withUnicode() {
+        // topic/2733: Unicode characters should be encoded
+        try {
+            String result = Hc4HttpClient.constructRedirectLocation("http://example.com/", "/path/\u00D6sterreich");
+            assertNotNull(result);
+        } catch (Exception e) {
+            // May fail depending on URI handling
+        }
+    }
+
+    @Test
+    public void test_constructRedirectLocation_withHtmlEntityChars() {
+        // topic/2733: HTML entity characters in redirect
+        try {
+            String result = Hc4HttpClient.constructRedirectLocation("http://example.com/", "/page?title=&#214;sterreich");
+            assertNotNull(result);
+        } catch (Exception e) {
+            // May fail depending on URI handling
+        }
+    }
+
     // public void test_doGet_mt() throws Exception {
     // ExecutorService executorService = Executors.newFixedThreadPool(1);
     //

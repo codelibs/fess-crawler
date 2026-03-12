@@ -464,4 +464,73 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals(1, resultData.getChildUrlSet().size());
         assertEquals("http://hoge/page%202.html", resultData.getChildUrlSet().iterator().next().getUrl());
     }
+
+    @Test
+    public void test_transform_urlWithBrackets() {
+        String content = "<a href=\"page[1].html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/dir/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/dir/page[1].html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_urlWithPercent() {
+        String content = "<a href=\"100%25/done.html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/dir/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/dir/100%25/done.html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_fragmentOnly() {
+        String content = "<a href=\"#section1\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(0, resultData.getChildUrlSet().size());
+    }
+
+    @Test
+    public void test_transform_parentTraversalAboveRoot() {
+        String content = "<a href=\"/../../../page.html\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/page.html", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    @Test
+    public void test_transform_parentTraversalWithQuery() {
+        String content = "<a href=\"/../page.html?q=test\">test</a>";
+        final byte[] data = new String(content).getBytes();
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/dir/test.html");
+        responseData.setResponseBody(data);
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/page.html?q=test", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
 }

@@ -91,4 +91,28 @@ public class FtpAuthenticationTest extends PlainTestCase {
         assertTrue(auth.matches("ftp://test.example.com/"));
         assertTrue(auth.matches("ftp://test.example.com:21/"));
     }
+
+    @Test
+    public void test_matches_withSpecialCharsInPath() {
+        FtpAuthentication auth = new FtpAuthentication();
+        auth.setServer("hostname");
+        auth.setPort(21);
+        auth.setUsername("testuser");
+        auth.setPassword("testpass");
+
+        assertTrue(auth.matches("ftp://hostname:21/path/[backup]/file.dat"));
+        assertTrue(auth.matches("ftp://hostname/path/{template}/output.txt"));
+    }
+
+    @Test
+    public void test_matches_withPercentInPath() {
+        FtpAuthentication auth = new FtpAuthentication();
+        auth.setServer("hostname");
+        auth.setPort(21);
+        auth.setUsername("testuser");
+        auth.setPassword("testpass");
+
+        assertTrue(auth.matches("ftp://hostname:21/files/100%25done.txt"));
+        assertTrue(auth.matches("ftp://hostname/data/file%20name.txt"));
+    }
 }

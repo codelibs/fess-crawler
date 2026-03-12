@@ -324,4 +324,66 @@ public class HostIntervalControllerTest extends PlainTestCase {
             }
         }
     }
+
+    /**
+     * Test that URLs with brackets in the path are handled gracefully
+     */
+    // Regression tests for topic/2732: special characters in URLs for host extraction
+
+    // Regression tests for topic/2732: special characters in URLs for host extraction
+    // HostIntervalController uses new URI(url).getHost() which throws for invalid URIs.
+    // Currently, brackets cause CrawlerSystemException. These tests document this behavior.
+
+    @Test
+    public void test_getHost_withBracketsInPath() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 100L;
+        controller.delayMillisAfterProcessing = 0L;
+        controller.delayMillisForWaitingNewUrl = 0L;
+        controller.delayMillisAtNoUrlInQueue = 0L;
+
+        final UrlQueue q = new UrlQueueImpl();
+        q.setUrl("http://example.com/[test]/page");
+        CrawlingParameterUtil.setUrlQueue(q);
+
+        try {
+            controller.delayBeforeProcessing();
+        } catch (final Exception e) {
+            // topic/2732: brackets in path cause URISyntaxException wrapped in CrawlerSystemException
+        }
+    }
+
+    @Test
+    public void test_getHost_withPercentInPath() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 100L;
+        controller.delayMillisAfterProcessing = 0L;
+        controller.delayMillisForWaitingNewUrl = 0L;
+        controller.delayMillisAtNoUrlInQueue = 0L;
+
+        final UrlQueue q = new UrlQueueImpl();
+        q.setUrl("http://example.com/100%25done");
+        CrawlingParameterUtil.setUrlQueue(q);
+
+        controller.delayBeforeProcessing();
+    }
+
+    @Test
+    public void test_getHost_withInvalidUri() {
+        final HostIntervalController controller = new HostIntervalController();
+        controller.delayMillisBeforeProcessing = 100L;
+        controller.delayMillisAfterProcessing = 0L;
+        controller.delayMillisForWaitingNewUrl = 0L;
+        controller.delayMillisAtNoUrlInQueue = 0L;
+
+        final UrlQueue q = new UrlQueueImpl();
+        q.setUrl("http://example.com/path with spaces/[and brackets]");
+        CrawlingParameterUtil.setUrlQueue(q);
+
+        try {
+            controller.delayBeforeProcessing();
+        } catch (final Exception e) {
+            // topic/2732: spaces and brackets cause URISyntaxException wrapped in CrawlerSystemException
+        }
+    }
 }

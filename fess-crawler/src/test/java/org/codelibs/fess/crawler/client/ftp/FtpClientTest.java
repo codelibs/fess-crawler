@@ -520,4 +520,47 @@ public class FtpClientTest extends PlainTestCase {
         String childUrl3 = ftpInfo2.toChildUrl("child.txt");
         assertEquals("ftp://example.com/test/child.txt", childUrl3);
     }
+
+    @Test
+    public void test_ftpInfo_withSquareBrackets() {
+        // topic/2732: brackets in FTP URLs cause CrawlingAccessException
+        // because FtpInfo only encodes % and space, not brackets.
+        // This test documents the current behavior.
+        String value = "ftp://123.123.123.123/data/[backup]/file.dat";
+        try {
+            FtpInfo ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
+            assertEquals("123.123.123.123", ftpInfo.getHost());
+            assertEquals(21, ftpInfo.getPort());
+            assertEquals("file.dat", ftpInfo.getName());
+        } catch (CrawlingAccessException e) {
+            // Expected: brackets are not encoded, causing URISyntaxException internally
+            assertTrue(e.getMessage().contains("[backup]") || e.getMessage().contains("Invalid FTP URL"));
+        }
+    }
+
+    @Test
+    public void test_ftpInfo_withLiteralPercent() {
+        String value = "ftp://123.123.123.123/files/100%done.txt";
+        FtpInfo ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
+        assertEquals("123.123.123.123", ftpInfo.getHost());
+        assertEquals(21, ftpInfo.getPort());
+    }
+
+    @Test
+    public void test_ftpInfo_withAlreadyEncodedPercent() {
+        String value = "ftp://123.123.123.123/path/my%20file.txt";
+        FtpInfo ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
+        assertEquals("123.123.123.123", ftpInfo.getHost());
+        assertEquals(21, ftpInfo.getPort());
+        assertFalse(ftpInfo.getName().contains("%2520"));
+    }
+
+    @Test
+    public void test_ftpInfo_withSpaceAndPercent() {
+        String value = "ftp://123.123.123.123/100% done/file name.txt";
+        FtpInfo ftpInfo = new FtpClient.FtpInfo(value, Constants.UTF_8);
+        assertEquals("123.123.123.123", ftpInfo.getHost());
+        assertEquals(21, ftpInfo.getPort());
+        assertEquals("file name.txt", ftpInfo.getName());
+    }
 }

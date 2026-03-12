@@ -170,36 +170,6 @@ mvn license:format             # Update license headers
 
 ---
 
-## Best Practices for AI Assistants
-
-### When Adding Features
-
-1. Read existing code first
-2. Follow existing patterns
-3. Add tests
-4. Handle resources properly (try-with-resources)
-5. Consider thread safety
-6. Update JavaDoc
-
-### When Fixing Bugs
-
-1. Write failing test first
-2. Understand root cause
-3. Minimal changes
-4. Verify no regressions
-
-### Code Quality Checklist
-
-- [ ] Java conventions followed
-- [ ] JavaDoc for public APIs
-- [ ] Tests pass (`mvn test`)
-- [ ] Proper exception handling
-- [ ] Resource cleanup (AutoCloseable)
-- [ ] Thread-safe if needed
-- [ ] Code formatted and license headers added
-
----
-
 ## Quick Reference
 
 ### Key File Locations
@@ -214,17 +184,27 @@ mvn license:format             # Update license headers
 - `storage/StorageClient.java`, `s3/S3Client.java`, `gcs/GcsClient.java`
 
 **DI Config**: `fess-crawler-lasta/src/main/resources/`
-- `crawler.xml`, `crawler/client.xml`, `crawler/extractor.xml`, `crawler/rule.xml`
+- `crawler.xml` (root), `crawler/client.xml`, `crawler/extractor.xml`, `crawler/rule.xml`, `crawler/transformer.xml`, `crawler/transformer_basic.xml`
+- `crawler/mimetype.xml`, `crawler/encoding.xml`, `crawler/robotstxt.xml`, `crawler/sitemaps.xml`
+- `crawler/filter.xml`, `crawler/interval.xml`, `crawler/contentlength.xml`, `crawler/urlconverter.xml`, `crawler/container.xml`, `crawler/log.xml`
 
 ### Exception Hierarchy
 
+All exceptions are unchecked (extend `RuntimeException` via `CrawlerSystemException`).
+
 ```
-CrawlerSystemException (unchecked)  # Setup/config errors
-CrawlingAccessException (checked)   # Runtime crawl errors
-  ├─ MaxLengthExceededException
-  └─ ChildUrlsException
-ExtractException (checked)          # Extraction failures
-  └─ UnsupportedExtractException
+CrawlerSystemException (RuntimeException)
+  ├─ CrawlingAccessException
+  │     └─ MaxLengthExceededException
+  ├─ ChildUrlsException
+  ├─ ExtractException
+  │     └─ UnsupportedExtractException
+  ├─ CrawlerLoginFailureException
+  ├─ ExecutionTimeoutException
+  ├─ MimeTypeException
+  ├─ MultipleCrawlingAccessException
+  ├─ RobotsTxtException
+  └─ SitemapsException
 ```
 
 ### Thread-Local Storage

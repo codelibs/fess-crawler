@@ -313,7 +313,7 @@
 			<version>${jodconverter.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sun.mail</groupId>
+			<groupId>org.eclipse.angus</groupId>
 			<artifactId>jakarta.mail</artifactId>
 			<version>${jakarta.mail.version}</version>
 		</dependency>

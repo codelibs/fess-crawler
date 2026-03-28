@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -155,7 +157,20 @@ public class RobotsTxt {
      * @param directive The directive to add to the robots.txt rules
      */
     public void addDirective(final Directive directive) {
-        directiveMap.put(Pattern.compile(directive.getUserAgent().replace("*", ".*"), Pattern.CASE_INSENSITIVE), directive);
+        final String userAgent = directive.getUserAgent();
+        final StringBuilder regex = new StringBuilder();
+        for (int i = 0; i < userAgent.length(); i++) {
+            final char c = userAgent.charAt(i);
+            if (c == '*') {
+                regex.append(".*");
+            } else if ("\\[]{}()+?.^|$".indexOf(c) != -1) {
+                regex.append('\\');
+                regex.append(c);
+            } else {
+                regex.append(c);
+            }
+        }
+        directiveMap.put(Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE), directive);
     }
 
     /**
@@ -189,6 +204,9 @@ public class RobotsTxt {
         /** The compiled regular expression pattern for matching. */
         private final Pattern regexPattern;
 
+        /** The compiled regular expression pattern for matching percent-decoded paths (null if same as regexPattern). */
+        private final Pattern decodedRegexPattern;
+
         /** The priority length used for sorting (patterns without wildcards are prioritized by length). */
         private final int priorityLength;
 
@@ -199,6 +217,9 @@ public class RobotsTxt {
         public PathPattern(final String pattern) {
             this.pattern = pattern;
             this.regexPattern = compilePattern(pattern);
+            // Also compile a decoded version for percent-encoded path matching per RFC 9309
+            final String decodedPattern = decodePercent(pattern);
+            this.decodedRegexPattern = decodedPattern.equals(pattern) ? null : compilePattern(decodedPattern);
             this.priorityLength = calculatePriorityLength(pattern);
         }
 
@@ -276,11 +297,45 @@ public class RobotsTxt {
 
         /**
          * Checks if the given path matches this pattern.
+         * Per RFC 9309, percent-encoded characters in the path are decoded before matching,
+         * and percent-encoding case is normalized.
          * @param path the path to check
          * @return true if the path matches, false otherwise
          */
         public boolean matches(final String path) {
-            return regexPattern.matcher(path).find();
+            if (regexPattern.matcher(path).find()) {
+                return true;
+            }
+            // Try matching with percent-decoded path per RFC 9309
+            final String decodedPath = decodePercent(path);
+            if (!decodedPath.equals(path)) {
+                if (regexPattern.matcher(decodedPath).find()) {
+                    return true;
+                }
+            }
+            // Try matching with decoded pattern against both original and decoded path
+            if (decodedRegexPattern != null) {
+                if (decodedRegexPattern.matcher(path).find()) {
+                    return true;
+                }
+                if (!decodedPath.equals(path)) {
+                    return decodedRegexPattern.matcher(decodedPath).find();
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Decodes percent-encoded characters in a path.
+         * @param path the path to decode
+         * @return the decoded path, or the original path if decoding fails
+         */
+        private static String decodePercent(final String path) {
+            try {
+                return URLDecoder.decode(path, StandardCharsets.UTF_8);
+            } catch (final Exception e) {
+                return path;
+            }
         }
 
         /**

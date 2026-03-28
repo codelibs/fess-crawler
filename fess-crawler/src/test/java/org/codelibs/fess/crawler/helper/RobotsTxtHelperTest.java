@@ -449,4 +449,58 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertNotNull(robotsTxt);
         assertFalse(robotsTxt.allows("/test/", "TestBot"));
     }
+
+    public void testParse_sitemapDoesNotBreakGroup() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_sitemap_group.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        assertNotNull(robotsTxt);
+
+        // Bot1, Bot2, Bot3 should all share the same rules because
+        // Sitemap between User-agent lines should not break the group
+        assertFalse(robotsTxt.allows("/secret/", "Bot1"));
+        assertFalse(robotsTxt.allows("/secret/", "Bot2"));
+        assertFalse(robotsTxt.allows("/secret/", "Bot3"));
+        assertTrue(robotsTxt.allows("/secret/public/", "Bot1"));
+        assertTrue(robotsTxt.allows("/secret/public/", "Bot2"));
+        assertTrue(robotsTxt.allows("/secret/public/", "Bot3"));
+
+        // Bot4, Bot5 should share the same rules - unknown directives also don't break the group
+        assertFalse(robotsTxt.allows("/admin/", "Bot4"));
+        assertFalse(robotsTxt.allows("/admin/", "Bot5"));
+
+        // Sitemap should be parsed
+        String[] sitemaps = robotsTxt.getSitemaps();
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/sitemap.xml", sitemaps[0]);
+    }
+
+    public void testParse_percentEncodedPaths() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_percent_encoding.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        assertNotNull(robotsTxt);
+
+        // Percent-encoded pattern should match decoded URL path
+        assertFalse(robotsTxt.allows("/dir/\u4E2D\u6587/", "PercentBot"));
+        assertFalse(robotsTxt.allows("/dir/%E4%B8%AD%E6%96%87/", "PercentBot"));
+        assertTrue(robotsTxt.allows("/dir/\u4E2D\u6587/public/", "PercentBot"));
+        assertTrue(robotsTxt.allows("/dir/%E4%B8%AD%E6%96%87/public/", "PercentBot"));
+
+        // Decoded pattern should match percent-encoded URL path
+        assertFalse(robotsTxt.allows("/path/file name/", "DecodedBot"));
+        assertFalse(robotsTxt.allows("/path/file%20name/", "DecodedBot"));
+        assertTrue(robotsTxt.allows("/path/file name/public/", "DecodedBot"));
+        assertTrue(robotsTxt.allows("/path/file%20name/public/", "DecodedBot"));
+    }
 }

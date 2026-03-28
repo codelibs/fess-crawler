@@ -663,6 +663,16 @@ public class Hc4HttpClient extends HcHttpClient {
                         }
                     }
                 }
+            } else if (httpStatusCode == 401 || httpStatusCode == 403) {
+                // Per RFC 9309: If robots.txt is unreachable due to authorization issues,
+                // crawlers MUST assume that all access is restricted.
+                if (useRobotsTxtDisallows) {
+                    final String urlValue = hostUrl + "/.*";
+                    crawlerContext.getUrlFilter().addExclude(urlValue);
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Excluded all URLs for {} due to robots.txt status code={}", hostUrl, httpStatusCode);
+                    }
+                }
             }
         } catch (final CrawlerSystemException e) {
             httpGet.abort();

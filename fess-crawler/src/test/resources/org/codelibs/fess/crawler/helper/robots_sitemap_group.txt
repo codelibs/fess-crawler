@@ -1,0 +1,13 @@
+# Test that Sitemap between User-agent lines does not break the group
+User-agent: Bot1
+User-agent: Bot2
+Sitemap: http://www.example.com/sitemap.xml
+User-agent: Bot3
+Disallow: /secret/
+Allow: /secret/public/
+
+# Test that unknown directives also don't break the group
+User-agent: Bot4
+User-agent: Bot5
+X-Custom-Directive: some-value
+Disallow: /admin/

@@ -443,4 +443,108 @@ public class RobotsTxtTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/private/", "GOOGLEBOT"));
         assertFalse(robotsTxt.allows("/private/", "googlebot"));
     }
+
+    @Test
+    public void test_userAgentWithSpecialRegexChars() {
+        // Test that special regex characters in user-agent are escaped properly
+        RobotsTxt robotsTxt = new RobotsTxt();
+
+        // "Bot.v2" should not match "Botxv2" (dot should be literal)
+        Directive directive = new Directive("bot.v2");
+        directive.addDisallow("/private/");
+        robotsTxt.addDirective(directive);
+
+        assertFalse(robotsTxt.allows("/private/", "Bot.v2"));
+        assertTrue(robotsTxt.allows("/private/", "Botxv2"));
+
+        // "Bot+Plus" should not match "BotPlus"
+        RobotsTxt robotsTxt2 = new RobotsTxt();
+        Directive directive2 = new Directive("bot+plus");
+        directive2.addDisallow("/admin/");
+        robotsTxt2.addDirective(directive2);
+
+        assertFalse(robotsTxt2.allows("/admin/", "Bot+Plus"));
+        assertTrue(robotsTxt2.allows("/admin/", "BotPlus"));
+    }
+
+    @Test
+    public void test_percentEncodedPathMatching() {
+        // Test RFC 9309 percent-encoded path matching
+        RobotsTxt robotsTxt = new RobotsTxt();
+
+        Directive directive = new Directive("*");
+        directive.addDisallow("/dir/%E4%B8%AD%E6%96%87/");
+        robotsTxt.addDirective(directive);
+
+        // Should match the encoded form directly
+        assertFalse(robotsTxt.allows("/dir/%E4%B8%AD%E6%96%87/", "AnyBot"));
+        // Should match case-insensitive percent encoding
+        assertFalse(robotsTxt.allows("/dir/%e4%b8%ad%e6%96%87/", "AnyBot"));
+    }
+
+    @Test
+    public void test_percentEncodedUnreservedCharacters() {
+        // RFC 9309: unreserved percent-encoded characters should be decoded for matching
+        RobotsTxt robotsTxt = new RobotsTxt();
+
+        Directive directive = new Directive("*");
+        directive.addDisallow("/path/file~name/");
+        robotsTxt.addDirective(directive);
+
+        // Unreserved character '~' encoded as %7E should match literal '~'
+        assertFalse(robotsTxt.allows("/path/file%7Ename/", "AnyBot"));
+        assertFalse(robotsTxt.allows("/path/file~name/", "AnyBot"));
+    }
+
+    @Test
+    public void test_reservedCharactersStayEncoded() {
+        // RFC 9309: reserved characters must stay encoded - %2F, %3F, %23 must not be decoded
+        RobotsTxt robotsTxt = new RobotsTxt();
+
+        // %2F is encoded '/' - should NOT match literal '/'
+        Directive directive = new Directive("*");
+        directive.addDisallow("/path%2Fhidden/");
+        robotsTxt.addDirective(directive);
+
+        assertFalse(robotsTxt.allows("/path%2Fhidden/", "AnyBot"));
+        // Should NOT match decoded form since %2F is a reserved character
+        assertTrue(robotsTxt.allows("/path/hidden/", "AnyBot"));
+    }
+
+    @Test
+    public void test_encodedMetacharactersNotReinterpreted() {
+        // %2A (encoded '*') must NOT become a wildcard
+        RobotsTxt robotsTxt = new RobotsTxt();
+
+        Directive directive = new Directive("*");
+        directive.addDisallow("/path/file%2A.html");
+        robotsTxt.addDirective(directive);
+
+        // Should match encoded form literally
+        assertFalse(robotsTxt.allows("/path/file%2A.html", "AnyBot"));
+        // Should NOT act as wildcard matching arbitrary strings
+        assertTrue(robotsTxt.allows("/path/fileXYZ.html", "AnyBot"));
+
+        // %24 (encoded '$') must NOT become end-of-path anchor
+        RobotsTxt robotsTxt2 = new RobotsTxt();
+        Directive directive2 = new Directive("*");
+        directive2.addDisallow("/path/cost%24");
+        robotsTxt2.addDirective(directive2);
+
+        assertFalse(robotsTxt2.allows("/path/cost%24", "AnyBot"));
+        assertFalse(robotsTxt2.allows("/path/cost%24extra", "AnyBot"));
+    }
+
+    @Test
+    public void test_plusSignNotDecodedAsSpace() {
+        // RFC 3986: '+' is a literal character in URI paths, not a space.
+        RobotsTxt robotsTxt = new RobotsTxt();
+
+        Directive directive = new Directive("*");
+        directive.addDisallow("/search?q=a+b");
+        robotsTxt.addDirective(directive);
+
+        assertFalse(robotsTxt.allows("/search?q=a+b", "AnyBot"));
+        assertTrue(robotsTxt.allows("/search?q=a b", "AnyBot"));
+    }
 }

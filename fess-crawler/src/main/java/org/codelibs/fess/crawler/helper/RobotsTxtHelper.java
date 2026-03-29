@@ -163,12 +163,10 @@ public class RobotsTxtHelper {
                         continue;
                     }
 
-                    // Mark that we've seen group-member records
-                    isGroupRecordStarted = true;
-
-                    // Try to parse as Disallow directive
+                    // Try to parse as Disallow directive (group-member record)
                     value = getValue(DISALLOW_RECORD, line);
                     if (value != null) {
+                        isGroupRecordStarted = true;
                         // Only process if we have a current user-agent and value is not empty
                         if (!currentDirectiveList.isEmpty() && value.length() > 0) {
                             for (final Directive directive : currentDirectiveList) {
@@ -178,9 +176,10 @@ public class RobotsTxtHelper {
                         continue;
                     }
 
-                    // Try to parse as Allow directive
+                    // Try to parse as Allow directive (group-member record)
                     value = getValue(ALLOW_RECORD, line);
                     if (value != null) {
+                        isGroupRecordStarted = true;
                         // Only process if we have a current user-agent and value is not empty
                         if (!currentDirectiveList.isEmpty() && value.length() > 0) {
                             for (final Directive directive : currentDirectiveList) {
@@ -190,9 +189,10 @@ public class RobotsTxtHelper {
                         continue;
                     }
 
-                    // Try to parse as Crawl-delay directive
+                    // Try to parse as Crawl-delay directive (group-member record)
                     value = getValue(CRAWL_DELAY_RECORD, line);
                     if (value != null) {
+                        isGroupRecordStarted = true;
                         if (!currentDirectiveList.isEmpty() && !StringUtil.isEmpty(value)) {
                             try {
                                 final int crawlDelay = Integer.parseInt(value);
@@ -207,7 +207,7 @@ public class RobotsTxtHelper {
                         continue;
                     }
 
-                    // Try to parse as Sitemap directive
+                    // Try to parse as Sitemap directive (not a group-member record per RFC 9309)
                     value = getValue(SITEMAP_RECORD, line);
                     if (value != null && value.length() > 0) {
                         robotsTxt.addSitemap(value);
@@ -216,7 +216,7 @@ public class RobotsTxtHelper {
 
                     // If we reach here, the line didn't match any known directive
                     // Silently ignore it to allow parsing to continue
-                    // This handles unknown directives, malformed lines, etc.
+                    // Unknown directives are not group-member records per RFC 9309
 
                 } catch (final Exception e) {
                     // Catch any unexpected errors during line processing

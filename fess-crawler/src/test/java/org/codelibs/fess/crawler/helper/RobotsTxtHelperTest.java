@@ -22,6 +22,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 public class RobotsTxtHelperTest extends PlainTestCase {
@@ -34,6 +35,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         robotsTxtHelper = container.getComponent("robotsTxtHelper");
     }
 
+    @Test
     public void testParse() {
         RobotsTxt robotsTxt;
         final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
@@ -115,6 +117,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
 
     }
 
+    @Test
     public void testParse_disable() {
         final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots.txt");
         robotsTxtHelper.setEnabled(false);
@@ -126,6 +129,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void testParse_wildcard() {
         RobotsTxt robotsTxt;
         final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_wildcard.txt");
@@ -213,6 +217,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/sitemap.xml", sitemaps[0]);
     }
 
+    @Test
     public void testParse_malformed() {
         RobotsTxt robotsTxt;
         final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_malformed.txt");
@@ -296,6 +301,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/default/", "UnknownRandomBot"));
     }
 
+    @Test
     public void testParse_emptyFile() {
         RobotsTxt robotsTxt;
         final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_empty.txt");
@@ -311,6 +317,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertTrue(robotsTxt.allows("/anything", "AnyBot"));
     }
 
+    @Test
     public void testParse_onlyWhitespace() {
         RobotsTxt robotsTxt;
         final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_only_whitespace.txt");
@@ -326,6 +333,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertTrue(robotsTxt.allows("/anything", "AnyBot"));
     }
 
+    @Test
     public void testParse_malformedCrawlDelay() {
         String robotsTxtContent = "User-agent: TestBot\n" + "Crawl-delay: abc\n" + "Disallow: /test/\n";
 
@@ -345,6 +353,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/test/", "TestBot"));
     }
 
+    @Test
     public void testParse_negativeCrawlDelay() {
         String robotsTxtContent = "User-agent: TestBot\n" + "Crawl-delay: -100\n" + "Disallow: /test/\n";
 
@@ -361,6 +370,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertEquals(0, robotsTxt.getCrawlDelay("TestBot"));
     }
 
+    @Test
     public void testParse_floatingPointCrawlDelay() {
         String robotsTxtContent = "User-agent: TestBot\n" + "Crawl-delay: 2.5\n" + "Disallow: /test/\n";
 
@@ -378,6 +388,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertTrue(robotsTxt.getCrawlDelay("TestBot") >= 0);
     }
 
+    @Test
     public void testParse_directivesBeforeUserAgent() {
         String robotsTxtContent = "Disallow: /before/\n" + "Allow: /also-before/\n" + "User-agent: TestBot\n" + "Disallow: /test/\n";
 
@@ -397,6 +408,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/test/", "TestBot"));
     }
 
+    @Test
     public void testParse_mixedValidAndInvalidDirectives() {
         String robotsTxtContent = "User-agent: TestBot\n" + "Disallow: /valid1/\n" + "InvalidDirective: value\n" + "Disallow: /valid2/\n"
                 + "Another-Invalid: test\n" + "Allow: /valid3/\n" + "NoColon\n" + "Disallow: /valid4/\n";
@@ -417,6 +429,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/valid4/", "TestBot"));
     }
 
+    @Test
     public void testParse_emptyValues() {
         String robotsTxtContent = "User-agent: TestBot\n" + "Disallow:\n" + "Allow:\n" + "Crawl-delay:\n";
 
@@ -433,6 +446,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertTrue(robotsTxt.allows("/anything", "TestBot"));
     }
 
+    @Test
     public void testParse_unicodeContent() {
         String robotsTxtContent =
                 "# コメント\n" + "User-agent: 日本語Bot\n" + "Disallow: /日本語/\n" + "User-agent: TestBot\n" + "Disallow: /test/\n";
@@ -448,5 +462,58 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         // Should handle unicode content
         assertNotNull(robotsTxt);
         assertFalse(robotsTxt.allows("/test/", "TestBot"));
+    }
+
+    @Test
+    public void testParse_sitemapDoesNotBreakGroup() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_sitemap_group.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        assertNotNull(robotsTxt);
+
+        // Bot1, Bot2, Bot3 should all share the same rules because
+        // Sitemap between User-agent lines should not break the group
+        assertFalse(robotsTxt.allows("/secret/", "Bot1"));
+        assertFalse(robotsTxt.allows("/secret/", "Bot2"));
+        assertFalse(robotsTxt.allows("/secret/", "Bot3"));
+        assertTrue(robotsTxt.allows("/secret/public/", "Bot1"));
+        assertTrue(robotsTxt.allows("/secret/public/", "Bot2"));
+        assertTrue(robotsTxt.allows("/secret/public/", "Bot3"));
+
+        // Bot4, Bot5 should share the same rules - unknown directives also don't break the group
+        assertFalse(robotsTxt.allows("/admin/", "Bot4"));
+        assertFalse(robotsTxt.allows("/admin/", "Bot5"));
+
+        // Sitemap should be parsed
+        String[] sitemaps = robotsTxt.getSitemaps();
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/sitemap.xml", sitemaps[0]);
+    }
+
+    @Test
+    public void testParse_percentEncodedPaths() {
+        RobotsTxt robotsTxt;
+        final InputStream in = RobotsTxtHelperTest.class.getResourceAsStream("robots_percent_encoding.txt");
+        try {
+            robotsTxt = robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        assertNotNull(robotsTxt);
+
+        // Percent-encoded pattern should match encoded URL path (case-insensitive hex)
+        assertFalse(robotsTxt.allows("/dir/%E4%B8%AD%E6%96%87/", "PercentBot"));
+        assertFalse(robotsTxt.allows("/dir/%e4%b8%ad%e6%96%87/", "PercentBot"));
+        assertTrue(robotsTxt.allows("/dir/%E4%B8%AD%E6%96%87/public/", "PercentBot"));
+
+        // Percent-encoded space (%20) should match encoded URL path
+        assertFalse(robotsTxt.allows("/path/file%20name/", "DecodedBot"));
+        assertTrue(robotsTxt.allows("/path/file%20name/public/", "DecodedBot"));
     }
 }

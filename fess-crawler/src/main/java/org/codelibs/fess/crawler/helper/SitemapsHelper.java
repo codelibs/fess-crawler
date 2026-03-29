@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.XMLConstants;
@@ -57,7 +58,7 @@ public class SitemapsHelper {
     private static final Logger logger = LogManager.getLogger(SitemapsHelper.class);
 
     /** The size of the preload buffer for checking file format. */
-    protected int preloadSize = 512;
+    protected int preloadSize = 1024;
 
     /** Enable validation of sitemap entries. */
     protected boolean enableValidation = false;
@@ -67,6 +68,13 @@ public class SitemapsHelper {
 
     /** Valid changefreq values. */
     protected static final String[] VALID_CHANGEFREQ = { "always", "hourly", "daily", "weekly", "monthly", "yearly", "never" };
+
+    /** W3C Datetime format pattern (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDThh:mmTZD, YYYY-MM-DDThh:mm:ssTZD, YYYY-MM-DDThh:mm:ss.sTZD). */
+    protected static final Pattern W3C_DATETIME_PATTERN =
+            Pattern.compile("^\\d{4}(?:-\\d{2}(?:-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:\\d{2})?)?)?)?$");
+
+    /** Maximum number of URLs per sitemap (0 for unlimited). */
+    protected int maxUrlsPerSitemap = 50000;
 
     /**
      * Creates a new SitemapsHelper instance.
@@ -100,10 +108,14 @@ public class SitemapsHelper {
                 return false;
             }
 
-            final String preloadDate = new String(bytes, Constants.UTF_8);
-            if (preloadDate.indexOf("<urlset") >= 0 || preloadDate.indexOf("<sitemapindex") >= 0 || preloadDate.startsWith("http://")
-                    || preloadDate.startsWith("https://")) {
+            final String preloadDate = stripBom(new String(bytes, Constants.UTF_8));
+            if (preloadDate.indexOf("<urlset") >= 0 || preloadDate.indexOf("<sitemapindex") >= 0) {
                 // XML Sitemaps
+                return true;
+            }
+            final String trimmed = preloadDate.trim();
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                // Text Sitemaps
                 return true;
             }
             // gz
@@ -146,7 +158,7 @@ public class SitemapsHelper {
                 throw new CrawlingAccessException("No sitemaps data.");
             }
 
-            preloadDate = new String(bytes, Constants.UTF_8);
+            preloadDate = stripBom(new String(bytes, Constants.UTF_8));
             if (preloadDate.indexOf("<urlset") >= 0) {
                 // XML Sitemaps
                 bis.reset();
@@ -157,8 +169,9 @@ public class SitemapsHelper {
                 bis.reset();
                 return parseXmlSitemapsIndex(bis);
             }
-            if (preloadDate.startsWith("http://") || preloadDate.startsWith("https://")) {
-                // Text Sitemaps Index
+            final String trimmed = preloadDate.trim();
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                // Text Sitemaps
                 bis.reset();
                 return parseTextSitemaps(bis);
             }
@@ -184,9 +197,29 @@ public class SitemapsHelper {
         try {
             final BufferedReader br = new BufferedReader(new InputStreamReader(in, Constants.UTF_8));
             String line;
+            boolean limitLogged = false;
+            boolean firstLine = true;
             while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    line = stripBom(line);
+                    firstLine = false;
+                }
                 final String url = line.trim();
                 if (StringUtil.isNotBlank(url) && (url.startsWith("http://") || url.startsWith("https://"))) {
+                    if (enableValidation && !isValidUrl(url)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping invalid URL in text sitemap: {}", url);
+                        }
+                        continue;
+                    }
+                    if (maxUrlsPerSitemap > 0 && sitemapSet.getSize() >= maxUrlsPerSitemap) {
+                        if (!limitLogged) {
+                            logger.warn("Text sitemap exceeds maximum URL count of {}. Additional URLs will be skipped.",
+                                    maxUrlsPerSitemap);
+                            limitLogged = true;
+                        }
+                        continue;
+                    }
                     final SitemapUrl sitemapUrl = new SitemapUrl();
                     sitemapUrl.setLoc(url);
                     sitemapSet.addSitemap(sitemapUrl);
@@ -241,7 +274,7 @@ public class SitemapsHelper {
     /**
      * SAX handler for parsing XML sitemaps with extension support.
      */
-    protected static class XmlSitemapsHandler extends DefaultHandler {
+    protected class XmlSitemapsHandler extends DefaultHandler {
 
         private static final String PRIORITY_ELEMENT = "priority";
 
@@ -425,12 +458,20 @@ public class SitemapsHelper {
                 if (sitemapUrl != null) {
                     // Only add sitemap URL if loc is not empty
                     final String loc = sitemapUrl.getLoc();
-                    if (loc != null && !loc.trim().isEmpty()) {
-                        sitemapSet.addSitemap(sitemapUrl);
-                    } else {
+                    if (loc == null || loc.trim().isEmpty()) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping sitemap URL entry without loc element");
                         }
+                    } else if (!validateSitemapUrl(sitemapUrl)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping invalid sitemap URL entry: loc={}", sitemapUrl.getLoc());
+                        }
+                    } else if (maxUrlsPerSitemap > 0 && sitemapSet.getSize() >= maxUrlsPerSitemap) {
+                        if (sitemapSet.getSize() == maxUrlsPerSitemap) {
+                            logger.warn("Sitemap exceeds maximum URL count of {}. Additional URLs will be skipped.", maxUrlsPerSitemap);
+                        }
+                    } else {
+                        sitemapSet.addSitemap(sitemapUrl);
                     }
                 }
                 sitemapUrl = null;
@@ -643,7 +684,7 @@ public class SitemapsHelper {
     /**
      * SAX handler for parsing XML sitemap indexes.
      */
-    protected static class XmlSitemapsIndexHandler extends DefaultHandler {
+    protected class XmlSitemapsIndexHandler extends DefaultHandler {
 
         private SitemapSet sitemapSet;
 
@@ -699,12 +740,21 @@ public class SitemapsHelper {
                 if (sitemapFile != null) {
                     // Only add sitemap file if loc is not empty
                     final String loc = sitemapFile.getLoc();
-                    if (loc != null && !loc.trim().isEmpty()) {
-                        sitemapSet.addSitemap(sitemapFile);
-                    } else {
+                    if (loc == null || loc.trim().isEmpty()) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping sitemap index entry without loc element");
                         }
+                    } else if (enableValidation && !isValidUrl(loc)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping invalid sitemap index entry: loc={}", loc);
+                        }
+                    } else if (maxUrlsPerSitemap > 0 && sitemapSet.getSize() >= maxUrlsPerSitemap) {
+                        if (sitemapSet.getSize() == maxUrlsPerSitemap) {
+                            logger.warn("Sitemap index exceeds maximum entry count of {}. Additional entries will be skipped.",
+                                    maxUrlsPerSitemap);
+                        }
+                    } else {
+                        sitemapSet.addSitemap(sitemapFile);
                     }
                 }
                 sitemapFile = null;
@@ -748,6 +798,15 @@ public class SitemapsHelper {
      */
     public void setEnableValidation(final boolean enableValidation) {
         this.enableValidation = enableValidation;
+    }
+
+    /**
+     * Sets the maximum number of URLs per sitemap.
+     * Set to 0 for unlimited.
+     * @param maxUrlsPerSitemap the maximum number of URLs per sitemap
+     */
+    public void setMaxUrlsPerSitemap(final int maxUrlsPerSitemap) {
+        this.maxUrlsPerSitemap = maxUrlsPerSitemap;
     }
 
     /**
@@ -816,6 +875,15 @@ public class SitemapsHelper {
 
     /**
      * Validates a date format (W3C Datetime format).
+     * Accepts the following formats:
+     * <ul>
+     * <li>YYYY</li>
+     * <li>YYYY-MM</li>
+     * <li>YYYY-MM-DD</li>
+     * <li>YYYY-MM-DDThh:mmTZD</li>
+     * <li>YYYY-MM-DDThh:mm:ssTZD</li>
+     * <li>YYYY-MM-DDThh:mm:ss.sTZD</li>
+     * </ul>
      * @param date the date to validate
      * @return true if valid, false otherwise
      */
@@ -823,22 +891,25 @@ public class SitemapsHelper {
         if (date == null || date.isEmpty()) {
             return true; // Date is optional
         }
-        // Basic validation for W3C Datetime format (YYYY-MM-DD or YYYY-MM-DDThh:mm:ss+00:00)
-        // This is a simplified validation
-        if (date.length() < 10) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Invalid date format (too short): {}", date);
-            }
-            return false;
-        }
-        // Check if it starts with a valid year format
-        if (!date.matches("^\\d{4}-\\d{2}-\\d{2}.*")) {
+        if (!W3C_DATETIME_PATTERN.matcher(date).matches()) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Invalid date format: {}", date);
             }
             return false;
         }
         return true;
+    }
+
+    /**
+     * Strips the UTF-8 BOM (Byte Order Mark) from the beginning of a string if present.
+     * @param s the string to strip
+     * @return the string without BOM
+     */
+    protected String stripBom(final String s) {
+        if (s != null && !s.isEmpty() && s.charAt(0) == '\uFEFF') {
+            return s.substring(1);
+        }
+        return s;
     }
 
     /**

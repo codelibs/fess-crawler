@@ -394,9 +394,16 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertFalse(sitemapsHelper.isValidChangefreq("sometimes"));
         assertFalse(sitemapsHelper.isValidChangefreq("invalid"));
 
-        // Valid date format
+        // Valid date format - W3C Datetime all forms
+        assertTrue(sitemapsHelper.isValidDateFormat("2025"));
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01"));
         assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01"));
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01T12:00+00:00"));
         assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01T12:00:00+00:00"));
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01T12:00:00.5+00:00"));
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01T12:00:00Z"));
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01T12:00:00.123Z"));
+        assertTrue(sitemapsHelper.isValidDateFormat("2025-01-01T12:00:00-05:00"));
         assertTrue(sitemapsHelper.isValidDateFormat(null));
         assertTrue(sitemapsHelper.isValidDateFormat(""));
 
@@ -404,6 +411,8 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertFalse(sitemapsHelper.isValidDateFormat("2025-1-1"));
         assertFalse(sitemapsHelper.isValidDateFormat("01-01-2025"));
         assertFalse(sitemapsHelper.isValidDateFormat("invalid"));
+        assertFalse(sitemapsHelper.isValidDateFormat("20"));
+        assertFalse(sitemapsHelper.isValidDateFormat("2025-1"));
     }
 
     // ========== Error Tolerance Tests ==========
@@ -699,5 +708,233 @@ public class SitemapsHelperTest extends PlainTestCase {
         // Should parse CDATA correctly
         assertEquals(1, sitemaps.length);
         assertEquals("http://www.example.com/page?foo=bar&baz=qux", sitemaps[0].getLoc());
+    }
+
+    // ========== Validation Integration Tests ==========
+
+    @Test
+    public void test_parseXmlSitemaps_validationEnabled_invalidPriority() {
+        sitemapsHelper.setEnableValidation(true);
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n" + "  <url>\n"
+                + "    <loc>http://www.example.com/page1.html</loc>\n" + "    <priority>1.5</priority>\n" + "  </url>\n" + "  <url>\n"
+                + "    <loc>http://www.example.com/page2.html</loc>\n" + "    <priority>0.5</priority>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // With validation enabled, invalid priority entry should be skipped
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page2.html", sitemaps[0].getLoc());
+    }
+
+    @Test
+    public void test_parseXmlSitemaps_validationEnabled_invalidChangefreq() {
+        sitemapsHelper.setEnableValidation(true);
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/page1.html</loc>\n" + "    <changefreq>sometimes</changefreq>\n"
+                        + "  </url>\n" + "  <url>\n" + "    <loc>http://www.example.com/page2.html</loc>\n"
+                        + "    <changefreq>daily</changefreq>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // With validation enabled, invalid changefreq entry should be skipped
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page2.html", sitemaps[0].getLoc());
+    }
+
+    @Test
+    public void test_parseXmlSitemaps_validationEnabled_invalidUrl() {
+        sitemapsHelper.setEnableValidation(true);
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>ftp://www.example.com/page1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page2.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // With validation enabled, ftp URL should be skipped
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page2.html", sitemaps[0].getLoc());
+    }
+
+    @Test
+    public void test_parseXmlSitemapsIndex_validationEnabled_invalidUrl() {
+        sitemapsHelper.setEnableValidation(true);
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <sitemap>\n" + "    <loc>ftp://www.example.com/sitemap1.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.example.com/sitemap2.xml</loc>\n" + "  </sitemap>\n" + "</sitemapindex>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // With validation enabled, ftp URL should be skipped
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/sitemap2.xml", sitemaps[0].getLoc());
+    }
+
+    @Test
+    public void test_parseTextSitemaps_validationEnabled_invalidUrl() {
+        sitemapsHelper.setEnableValidation(true);
+        final String text =
+                "http://www.example.com/page1.html\n" + "http://" + "a".repeat(2048) + "\n" + "http://www.example.com/page2.html\n";
+        final InputStream in = new ByteArrayInputStream(text.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // With validation enabled, URL exceeding max length should be skipped
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
+    }
+
+    // ========== URL Limit Tests ==========
+
+    @Test
+    public void test_parseXmlSitemaps_urlLimit() {
+        sitemapsHelper.setMaxUrlsPerSitemap(3);
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/page1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page2.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page3.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page4.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page5.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should only parse 3 URLs
+        assertEquals(3, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
+        assertEquals("http://www.example.com/page3.html", sitemaps[2].getLoc());
+    }
+
+    @Test
+    public void test_parseXmlSitemapsIndex_urlLimit() {
+        sitemapsHelper.setMaxUrlsPerSitemap(2);
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <sitemap>\n" + "    <loc>http://www.example.com/sitemap1.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.example.com/sitemap2.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.example.com/sitemap3.xml</loc>\n" + "  </sitemap>\n" + "</sitemapindex>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should only parse 2 entries
+        assertEquals(2, sitemaps.length);
+    }
+
+    @Test
+    public void test_parseTextSitemaps_urlLimit() {
+        sitemapsHelper.setMaxUrlsPerSitemap(2);
+        final String text = "http://www.example.com/page1.html\n" + "http://www.example.com/page2.html\n"
+                + "http://www.example.com/page3.html\n" + "http://www.example.com/page4.html\n";
+        final InputStream in = new ByteArrayInputStream(text.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should only parse 2 URLs
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
+    }
+
+    @Test
+    public void test_parseXmlSitemaps_urlLimitUnlimited() {
+        sitemapsHelper.setMaxUrlsPerSitemap(0);
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/page1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page2.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page3.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // With 0 (unlimited), all URLs should be parsed
+        assertEquals(3, sitemaps.length);
+    }
+
+    // ========== Text Sitemap BOM/Whitespace Tests ==========
+
+    @Test
+    public void test_parseTextSitemaps_withLeadingWhitespace() {
+        final String text = "  \n  http://www.example.com/page1.html\n" + "http://www.example.com/page2.html\n";
+        final InputStream in = new ByteArrayInputStream(text.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
+    }
+
+    @Test
+    public void test_parseTextSitemaps_withBOM() {
+        final byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+        final String text = "http://www.example.com/page1.html\n" + "http://www.example.com/page2.html\n";
+        final byte[] textBytes = text.getBytes();
+        final byte[] dataWithBOM = new byte[bom.length + textBytes.length];
+        System.arraycopy(bom, 0, dataWithBOM, 0, bom.length);
+        System.arraycopy(textBytes, 0, dataWithBOM, bom.length, textBytes.length);
+
+        final InputStream in = new ByteArrayInputStream(dataWithBOM);
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page2.html", sitemaps[1].getLoc());
+    }
+
+    // ========== SitemapSet.getSize() Tests ==========
+
+    @Test
+    public void test_sitemapSet_getSize() {
+        final SitemapSet sitemapSet = new SitemapSet();
+        assertEquals(0, sitemapSet.getSize());
+
+        final SitemapUrl url1 = new SitemapUrl();
+        url1.setLoc("http://www.example.com/page1.html");
+        sitemapSet.addSitemap(url1);
+        assertEquals(1, sitemapSet.getSize());
+
+        final SitemapUrl url2 = new SitemapUrl();
+        url2.setLoc("http://www.example.com/page2.html");
+        sitemapSet.addSitemap(url2);
+        assertEquals(2, sitemapSet.getSize());
+    }
+
+    // ========== Large preloadSize Tests ==========
+
+    @Test
+    public void test_parseXmlSitemaps_longPreamble() {
+        // XML with a long comment before urlset that exceeds 512 bytes
+        final StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<!-- ");
+        for (int i = 0; i < 600; i++) {
+            sb.append("x");
+        }
+        sb.append(" -->\n");
+        sb.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+        sb.append("  <url>\n");
+        sb.append("    <loc>http://www.example.com/page1.html</loc>\n");
+        sb.append("  </url>\n");
+        sb.append("</urlset>");
+        final InputStream in = new ByteArrayInputStream(sb.toString().getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Should parse correctly with the larger preloadSize
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
     }
 }

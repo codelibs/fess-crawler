@@ -941,10 +941,11 @@ public class SitemapsHelper {
     }
 
     /**
-     * Validates that a URL belongs to the same host, protocol, and port as the sitemap URL.
+     * Validates that a URL belongs to the same host, protocol, port, and path scope as the sitemap URL.
+     * Per the sitemaps.org specification, a sitemap can only reference URLs under its own directory path.
      * @param sitemapBaseUrl the base URL of the sitemap, or null to skip validation
      * @param url the URL to validate
-     * @return true if the URL is from the same host, or if no sitemap base URL is set
+     * @return true if the URL is within the same scope, or if no sitemap base URL is set
      */
     protected boolean isSameHost(final String sitemapBaseUrl, final String url) {
         if (sitemapBaseUrl == null || url == null) {
@@ -975,6 +976,19 @@ public class SitemapsHelper {
                     logger.debug("Port mismatch: sitemap={}, entry={}", sitemapPort, entryPort);
                 }
                 return false;
+            }
+            // Check path scope - entry URL must be under the sitemap's directory
+            final String sitemapPath = sitemapUri.getPath();
+            if (sitemapPath != null) {
+                final int lastSlash = sitemapPath.lastIndexOf('/');
+                final String sitemapDir = lastSlash >= 0 ? sitemapPath.substring(0, lastSlash + 1) : "/";
+                final String entryPath = entryUri.getPath();
+                if (entryPath != null && !entryPath.startsWith(sitemapDir)) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Path scope mismatch: sitemapDir={}, entryPath={}", sitemapDir, entryPath);
+                    }
+                    return false;
+                }
             }
             return true;
         } catch (final Exception e) {

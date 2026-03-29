@@ -1059,4 +1059,54 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals(1, sitemaps.length);
         assertEquals("http://www.example.com/sitemap1.xml", sitemaps[0].getLoc());
     }
+
+    // ========== Path Scope Tests ==========
+
+    @Test
+    public void test_parseXmlSitemaps_pathScopeFiltering() {
+        // Sitemap in /catalog/ should only accept URLs under /catalog/
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/catalog/item1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/catalog/sub/item2.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/images/photo.jpg</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/other/page.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/catalog/sitemap.xml");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Only URLs under /catalog/ should be included
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/catalog/item1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/catalog/sub/item2.html", sitemaps[1].getLoc());
+    }
+
+    @Test
+    public void test_parseXmlSitemaps_rootSitemapAllowsAll() {
+        // Sitemap at root should allow all paths
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/catalog/item1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/images/photo.jpg</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/sitemap.xml");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Root sitemap allows all paths
+        assertEquals(2, sitemaps.length);
+    }
+
+    @Test
+    public void test_parseTextSitemaps_pathScopeFiltering() {
+        final String text = "http://www.example.com/blog/post1.html\n" + "http://www.example.com/blog/post2.html\n"
+                + "http://www.example.com/other/page.html\n";
+        final InputStream in = new ByteArrayInputStream(text.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/blog/sitemap.txt");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Only URLs under /blog/ should be included
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/blog/post1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/blog/post2.html", sitemaps[1].getLoc());
+    }
 }

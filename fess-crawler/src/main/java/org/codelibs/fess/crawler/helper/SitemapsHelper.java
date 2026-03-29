@@ -792,7 +792,7 @@ public class SitemapsHelper {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping cross-domain sitemap index entry: loc={}", loc);
                         }
-                    } else if (sitemapBaseUrl != null && loc.equals(sitemapBaseUrl)) {
+                    } else if (sitemapBaseUrl != null && isSameUri(sitemapBaseUrl, loc)) {
                         logger.warn("Skipping self-referencing sitemap index entry: loc={}", loc);
                     } else if (maxUrlsPerSitemap > 0 && sitemapSet.getSize() >= maxUrlsPerSitemap) {
                         if (sitemapSet.getSize() == maxUrlsPerSitemap) {
@@ -1049,6 +1049,30 @@ public class SitemapsHelper {
             return 443;
         }
         return 80;
+    }
+
+    /**
+     * Checks if two URLs refer to the same resource by comparing normalized URIs
+     * (scheme, host, effective port, and normalized path).
+     * @param url1 the first URL
+     * @param url2 the second URL
+     * @return true if the URLs are equivalent
+     */
+    private boolean isSameUri(final String url1, final String url2) {
+        if (url1 == null || url2 == null) {
+            return false;
+        }
+        if (url1.equals(url2)) {
+            return true;
+        }
+        try {
+            final URI uri1 = URI.create(url1).normalize();
+            final URI uri2 = URI.create(url2).normalize();
+            return uri1.getScheme().equalsIgnoreCase(uri2.getScheme()) && uri1.getHost().equalsIgnoreCase(uri2.getHost())
+                    && getEffectivePort(uri1) == getEffectivePort(uri2) && uri1.getPath().equals(uri2.getPath());
+        } catch (final Exception e) {
+            return false;
+        }
     }
 
     /**

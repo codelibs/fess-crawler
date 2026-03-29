@@ -3,10 +3,10 @@ User-agent: PercentBot
 Disallow: /dir/%E4%B8%AD%E6%96%87/
 Allow: /dir/%E4%B8%AD%E6%96%87/public/
 
-# Test with decoded paths in rules
+# Test with percent-encoded space in rules
 User-agent: DecodedBot
-Disallow: /path/file name/
-Allow: /path/file name/public/
+Disallow: /path/file%20name/
+Allow: /path/file%20name/public/
 
 # Test mixed encoding
 User-agent: MixedBot

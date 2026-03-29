@@ -87,7 +87,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
+            when(sitemapsHelper.parse(any(InputStream.class), any())).thenReturn(sitemapSet);
         } catch (Exception e) {
             fail();
         }
@@ -130,7 +130,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
+            when(sitemapsHelper.parse(any(InputStream.class), any())).thenReturn(sitemapSet);
         } catch (Exception e) {
             fail();
         }
@@ -166,7 +166,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
+            when(sitemapsHelper.parse(any(InputStream.class), any())).thenReturn(sitemapSet);
         } catch (Exception e) {
             fail();
         }
@@ -199,7 +199,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
+            when(sitemapsHelper.parse(any(InputStream.class), any())).thenReturn(sitemapSet);
         } catch (Exception e) {
             fail();
         }
@@ -224,7 +224,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
         responseData.setResponseBody(content);
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
-        when(sitemapsHelper.parse(any(InputStream.class))).thenThrow(new RuntimeException("Parse error"));
+        when(sitemapsHelper.parse(any(InputStream.class), any())).thenThrow(new RuntimeException("Parse error"));
 
         // Execute and verify RuntimeException is thrown
         try {
@@ -251,7 +251,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
+            when(sitemapsHelper.parse(any(InputStream.class), any())).thenReturn(sitemapSet);
         } catch (Exception e) {
             fail();
         }
@@ -283,7 +283,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
+            when(sitemapsHelper.parse(any(InputStream.class), any())).thenReturn(sitemapSet);
         } catch (Exception e) {
             fail();
         }
@@ -324,7 +324,7 @@ public class SitemapsResponseProcessorTest extends PlainTestCase {
 
         when(crawlerContainer.getComponent("sitemapsHelper")).thenReturn(sitemapsHelper);
         try {
-            when(sitemapsHelper.parse(any(InputStream.class))).thenReturn(sitemapSet);
+            when(sitemapsHelper.parse(any(InputStream.class), any())).thenReturn(sitemapSet);
         } catch (Exception e) {
             fail();
         }

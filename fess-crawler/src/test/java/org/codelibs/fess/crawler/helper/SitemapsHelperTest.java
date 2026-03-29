@@ -937,4 +937,126 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals(1, sitemaps.length);
         assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
     }
+
+    // ========== File Size Limit Tests ==========
+
+    @Test
+    public void test_parseXmlSitemaps_fileSizeLimit() {
+        sitemapsHelper.setMaxSitemapSize(500);
+        // Create XML sitemap that exceeds 500 bytes
+        final StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+        for (int i = 0; i < 20; i++) {
+            sb.append("  <url>\n");
+            sb.append("    <loc>http://www.example.com/page" + i + ".html</loc>\n");
+            sb.append("  </url>\n");
+        }
+        sb.append("</urlset>");
+        final InputStream in = new ByteArrayInputStream(sb.toString().getBytes());
+
+        try {
+            sitemapsHelper.parse(in);
+            fail();
+        } catch (final CrawlingAccessException e) {
+            // Expected - sitemap exceeds size limit
+        }
+    }
+
+    @Test
+    public void test_parseXmlSitemaps_fileSizeLimitUnlimited() {
+        sitemapsHelper.setMaxSitemapSize(0);
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/page1.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+
+        // With 0 (unlimited), should parse without error
+        assertEquals(1, sitemapSet.getSitemaps().length);
+    }
+
+    // ========== Cross-Domain Validation Tests ==========
+
+    @Test
+    public void test_parseXmlSitemaps_crossDomainFiltering() {
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/page1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.other-domain.com/page2.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>https://www.example.com/page3.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com:8080/page4.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/page5.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/sitemap.xml");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Only same-host URLs should be included (page1, page5)
+        // page2 = different host, page3 = different protocol, page4 = different port
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page5.html", sitemaps[1].getLoc());
+    }
+
+    @Test
+    public void test_parseXmlSitemaps_crossDomainNotAppliedWithoutBaseUrl() {
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/page1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.other-domain.com/page2.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in);
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Without base URL, cross-domain validation is not applied
+        assertEquals(2, sitemaps.length);
+    }
+
+    @Test
+    public void test_parseXmlSitemapsIndex_crossDomainFiltering() {
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <sitemap>\n" + "    <loc>http://www.example.com/sitemap1.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.other-domain.com/sitemap2.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.example.com/sitemap3.xml</loc>\n" + "  </sitemap>\n" + "</sitemapindex>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/sitemapindex.xml");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Only same-host entries should be included
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/sitemap1.xml", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/sitemap3.xml", sitemaps[1].getLoc());
+    }
+
+    @Test
+    public void test_parseTextSitemaps_crossDomainFiltering() {
+        final String text =
+                "http://www.example.com/page1.html\n" + "http://www.other-domain.com/page2.html\n" + "http://www.example.com/page3.html\n";
+        final InputStream in = new ByteArrayInputStream(text.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/sitemap.txt");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Only same-host URLs should be included
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/page1.html", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/page3.html", sitemaps[1].getLoc());
+    }
+
+    // ========== Self-Referencing Index Tests ==========
+
+    @Test
+    public void test_parseXmlSitemapsIndex_selfReferenceFiltering() {
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <sitemap>\n" + "    <loc>http://www.example.com/sitemapindex.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.example.com/sitemap1.xml</loc>\n" + "  </sitemap>\n" + "</sitemapindex>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/sitemapindex.xml");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Self-referencing entry should be skipped
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/sitemap1.xml", sitemaps[0].getLoc());
+    }
 }

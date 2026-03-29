@@ -71,7 +71,7 @@ public class SitemapsResponseProcessor implements ResponseProcessor {
     public void process(final ResponseData responseData) {
         final SitemapsHelper sitemapsHelper = crawlerContainer.getComponent("sitemapsHelper");
         try (final InputStream responseBody = responseData.getResponseBody()) {
-            final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody);
+            final SitemapSet sitemapSet = sitemapsHelper.parse(responseBody, responseData.getUrl());
             final Set<RequestData> requestDataSet = new LinkedHashSet<>();
             for (final Sitemap sitemap : sitemapSet.getSitemaps()) {
                 if (sitemap != null) {

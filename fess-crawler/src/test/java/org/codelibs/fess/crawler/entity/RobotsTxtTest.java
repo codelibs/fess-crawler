@@ -495,4 +495,20 @@ public class RobotsTxtTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/path/file name/", "AnyBot"));
         assertFalse(robotsTxt.allows("/path/file%20name/", "AnyBot"));
     }
+
+    @Test
+    public void test_plusSignNotDecodedAsSpace() {
+        // RFC 3986: '+' is a literal character in URI paths, not a space.
+        // Unlike application/x-www-form-urlencoded, percent-decoding must NOT convert '+' to space.
+        RobotsTxt robotsTxt = new RobotsTxt();
+
+        Directive directive = new Directive("*");
+        directive.addDisallow("/search?q=a+b");
+        robotsTxt.addDirective(directive);
+
+        // '+' in the pattern should match literal '+' in the URL
+        assertFalse(robotsTxt.allows("/search?q=a+b", "AnyBot"));
+        // '+' should NOT match space
+        assertTrue(robotsTxt.allows("/search?q=a b", "AnyBot"));
+    }
 }

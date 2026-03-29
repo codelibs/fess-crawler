@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.entity;
 
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -326,13 +325,33 @@ public class RobotsTxt {
         }
 
         /**
-         * Decodes percent-encoded characters in a path.
+         * Decodes percent-encoded characters in a path per RFC 3986.
+         * Unlike URLDecoder.decode(), this method does NOT convert '+' to space,
+         * as '+' is not a special character in URI percent-encoding (only in form-encoding).
          * @param path the path to decode
          * @return the decoded path, or the original path if decoding fails
          */
         private static String decodePercent(final String path) {
+            if (path == null || path.indexOf('%') == -1) {
+                return path;
+            }
             try {
-                return URLDecoder.decode(path, StandardCharsets.UTF_8);
+                final byte[] bytes = path.getBytes(StandardCharsets.UTF_8);
+                final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream(bytes.length);
+                for (int i = 0; i < bytes.length; i++) {
+                    final byte b = bytes[i];
+                    if (b == '%' && i + 2 < bytes.length) {
+                        final int hi = Character.digit((char) bytes[i + 1], 16);
+                        final int lo = Character.digit((char) bytes[i + 2], 16);
+                        if (hi != -1 && lo != -1) {
+                            out.write((hi << 4) | lo);
+                            i += 2;
+                            continue;
+                        }
+                    }
+                    out.write(b);
+                }
+                return out.toString(StandardCharsets.UTF_8);
             } catch (final Exception e) {
                 return path;
             }

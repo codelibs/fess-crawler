@@ -1109,4 +1109,22 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/blog/post1.html", sitemaps[0].getLoc());
         assertEquals("http://www.example.com/blog/post2.html", sitemaps[1].getLoc());
     }
+
+    @Test
+    public void test_parseXmlSitemapsIndex_allowsDifferentDirectoryOnSameSite() {
+        // Index in /catalog/ should still allow sitemaps in other directories (same-site only)
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <sitemap>\n" + "    <loc>http://www.example.com/sitemap-a.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.example.com/images/sitemap-b.xml</loc>\n" + "  </sitemap>\n" + "  <sitemap>\n"
+                        + "    <loc>http://www.other-domain.com/sitemap-c.xml</loc>\n" + "  </sitemap>\n" + "</sitemapindex>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/catalog/sitemapindex.xml");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Same-site entries from different directories should be allowed, cross-domain rejected
+        assertEquals(2, sitemaps.length);
+        assertEquals("http://www.example.com/sitemap-a.xml", sitemaps[0].getLoc());
+        assertEquals("http://www.example.com/images/sitemap-b.xml", sitemaps[1].getLoc());
+    }
 }

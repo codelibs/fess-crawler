@@ -782,7 +782,7 @@ public class SitemapsHelper {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping invalid sitemap index entry: loc={}", loc);
                         }
-                    } else if (!isSameHost(sitemapBaseUrl, loc)) {
+                    } else if (!isSameSite(sitemapBaseUrl, loc)) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping cross-domain sitemap index entry: loc={}", loc);
                         }
@@ -938,6 +938,35 @@ public class SitemapsHelper {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Validates that a URL belongs to the same site (protocol, host, port) as the sitemap URL.
+     * Used for sitemap index entries which only require same-site, not path scope.
+     * @param sitemapBaseUrl the base URL of the sitemap, or null to skip validation
+     * @param url the URL to validate
+     * @return true if the URL is from the same site, or if no sitemap base URL is set
+     */
+    protected boolean isSameSite(final String sitemapBaseUrl, final String url) {
+        if (sitemapBaseUrl == null || url == null) {
+            return true;
+        }
+        try {
+            final URI sitemapUri = URI.create(sitemapBaseUrl);
+            final URI entryUri = URI.create(url);
+            if (!sitemapUri.getScheme().equalsIgnoreCase(entryUri.getScheme())) {
+                return false;
+            }
+            if (!sitemapUri.getHost().equalsIgnoreCase(entryUri.getHost())) {
+                return false;
+            }
+            return getEffectivePort(sitemapUri) == getEffectivePort(entryUri);
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to validate site for URL: {}", url, e);
+            }
+            return true;
+        }
     }
 
     /**

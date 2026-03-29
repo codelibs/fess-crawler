@@ -124,9 +124,11 @@ public class SitemapsHelper {
                 // Text Sitemaps
                 return true;
             }
-            // gz
-            bis.reset();
-            return isValid(new GZIPInputStream(bis), false);
+            // gz - only attempt decompression on first pass
+            if (recursive) {
+                bis.reset();
+                return isValid(new GZIPInputStream(bis), false);
+            }
         } catch (final Exception e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to validate a file.", e);
@@ -193,9 +195,12 @@ public class SitemapsHelper {
                 bis.reset();
                 return parseTextSitemaps(bis, sitemapBaseUrl);
             }
-            // gz - apply size limit on decompressed stream
-            bis.reset();
-            return parse(wrapWithSizeLimit(new GZIPInputStream(bis)), false, sitemapBaseUrl);
+            // gz - only attempt decompression on first pass, apply size limit on decompressed stream
+            if (recursive) {
+                bis.reset();
+                return parse(wrapWithSizeLimit(new GZIPInputStream(bis)), false, sitemapBaseUrl);
+            }
+            throw new CrawlingAccessException("Unrecognized sitemap format: " + preloadDate);
         } catch (final CrawlingAccessException e) {
             throw e;
         } catch (final Exception e) {
@@ -1007,11 +1012,11 @@ public class SitemapsHelper {
                 return false;
             }
             // Check path scope - entry URL must be under the sitemap's directory
-            final String sitemapPath = sitemapUri.getPath();
+            final String sitemapPath = sitemapUri.normalize().getPath();
             if (sitemapPath != null) {
                 final int lastSlash = sitemapPath.lastIndexOf('/');
                 final String sitemapDir = lastSlash >= 0 ? sitemapPath.substring(0, lastSlash + 1) : "/";
-                final String entryPath = entryUri.getPath();
+                final String entryPath = entryUri.normalize().getPath();
                 if (entryPath != null && !entryPath.startsWith(sitemapDir)) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Path scope mismatch: sitemapDir={}, entryPath={}", sitemapDir, entryPath);

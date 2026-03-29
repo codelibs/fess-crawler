@@ -72,6 +72,14 @@ public class SitemapSet implements Serializable {
     }
 
     /**
+     * Gets the number of sitemaps in this set.
+     * @return the number of sitemaps
+     */
+    public int getSize() {
+        return sitemapList.size();
+    }
+
+    /**
      * Sets the type of this sitemap set.
      * @param type the type to set (URLSET or INDEX)
      */

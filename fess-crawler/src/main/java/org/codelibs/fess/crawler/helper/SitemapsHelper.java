@@ -17,8 +17,13 @@ package org.codelibs.fess.crawler.helper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.XMLConstants;
@@ -57,7 +62,7 @@ public class SitemapsHelper {
     private static final Logger logger = LogManager.getLogger(SitemapsHelper.class);
 
     /** The size of the preload buffer for checking file format. */
-    protected int preloadSize = 512;
+    protected int preloadSize = 1024;
 
     /** Enable validation of sitemap entries. */
     protected boolean enableValidation = false;
@@ -67,6 +72,16 @@ public class SitemapsHelper {
 
     /** Valid changefreq values. */
     protected static final String[] VALID_CHANGEFREQ = { "always", "hourly", "daily", "weekly", "monthly", "yearly", "never" };
+
+    /** W3C Datetime format pattern (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDThh:mmTZD, YYYY-MM-DDThh:mm:ssTZD, YYYY-MM-DDThh:mm:ss.sTZD). */
+    protected static final Pattern W3C_DATETIME_PATTERN =
+            Pattern.compile("^\\d{4}(?:-\\d{2}(?:-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:\\d{2})?)?)?)?$");
+
+    /** Maximum number of URLs per sitemap (0 for unlimited). */
+    protected int maxUrlsPerSitemap = 50000;
+
+    /** Maximum sitemap file size in bytes (50MB uncompressed, 0 for unlimited). */
+    protected long maxSitemapSize = 50L * 1024L * 1024L;
 
     /**
      * Creates a new SitemapsHelper instance.
@@ -100,15 +115,21 @@ public class SitemapsHelper {
                 return false;
             }
 
-            final String preloadDate = new String(bytes, Constants.UTF_8);
-            if (preloadDate.indexOf("<urlset") >= 0 || preloadDate.indexOf("<sitemapindex") >= 0 || preloadDate.startsWith("http://")
-                    || preloadDate.startsWith("https://")) {
+            final String preloadDate = stripBom(new String(bytes, Constants.UTF_8));
+            if (preloadDate.indexOf("<urlset") >= 0 || preloadDate.indexOf("<sitemapindex") >= 0) {
                 // XML Sitemaps
                 return true;
             }
-            // gz
-            bis.reset();
-            return isValid(new GZIPInputStream(bis), false);
+            final String trimmed = preloadDate.trim();
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                // Text Sitemaps
+                return true;
+            }
+            // gz - only attempt decompression on first pass
+            if (recursive) {
+                bis.reset();
+                return isValid(new GZIPInputStream(bis), false);
+            }
         } catch (final Exception e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to validate a file.", e);
@@ -126,16 +147,28 @@ public class SitemapsHelper {
      * @return a sitemap set
      */
     public SitemapSet parse(final InputStream in) {
-        return parse(in, true);
+        return parse(wrapWithSizeLimit(in), true, null);
+    }
+
+    /**
+     * Generates SitemapSet instance with cross-domain validation.
+     *
+     * @param in Input stream for a sitemap
+     * @param sitemapUrl the URL of the sitemap itself (used for cross-domain validation)
+     * @return a sitemap set
+     */
+    public SitemapSet parse(final InputStream in, final String sitemapUrl) {
+        return parse(wrapWithSizeLimit(in), true, sitemapUrl);
     }
 
     /**
      * Parses a sitemap from the given input stream.
      * @param in the input stream to parse
      * @param recursive whether to recursively parse compressed files
+     * @param sitemapBaseUrl the URL of the sitemap itself for cross-domain validation, or null
      * @return the parsed sitemap set
      */
-    protected SitemapSet parse(final InputStream in, final boolean recursive) {
+    protected SitemapSet parse(final InputStream in, final boolean recursive, final String sitemapBaseUrl) {
         final BufferedInputStream bis = new BufferedInputStream(in);
         bis.mark(preloadSize);
 
@@ -146,25 +179,29 @@ public class SitemapsHelper {
                 throw new CrawlingAccessException("No sitemaps data.");
             }
 
-            preloadDate = new String(bytes, Constants.UTF_8);
+            preloadDate = stripBom(new String(bytes, Constants.UTF_8));
             if (preloadDate.indexOf("<urlset") >= 0) {
                 // XML Sitemaps
                 bis.reset();
-                return parseXmlSitemaps(bis);
+                return parseXmlSitemaps(bis, sitemapBaseUrl);
             }
             if (preloadDate.indexOf("<sitemapindex") >= 0) {
                 // XML Sitemaps Index
                 bis.reset();
-                return parseXmlSitemapsIndex(bis);
+                return parseXmlSitemapsIndex(bis, sitemapBaseUrl);
             }
-            if (preloadDate.startsWith("http://") || preloadDate.startsWith("https://")) {
-                // Text Sitemaps Index
+            final String trimmed = preloadDate.trim();
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                // Text Sitemaps
                 bis.reset();
-                return parseTextSitemaps(bis);
+                return parseTextSitemaps(bis, sitemapBaseUrl);
             }
-            // gz
-            bis.reset();
-            return parse(new GZIPInputStream(bis), false);
+            // gz - only attempt decompression on first pass, apply size limit on decompressed stream
+            if (recursive) {
+                bis.reset();
+                return parse(wrapWithSizeLimit(new GZIPInputStream(bis)), false, sitemapBaseUrl);
+            }
+            throw new CrawlingAccessException("Unrecognized sitemap format: " + preloadDate);
         } catch (final CrawlingAccessException e) {
             throw e;
         } catch (final Exception e) {
@@ -177,16 +214,42 @@ public class SitemapsHelper {
      * @param in the input stream to parse
      * @return the parsed sitemap set
      */
-    protected SitemapSet parseTextSitemaps(final InputStream in) {
+    protected SitemapSet parseTextSitemaps(final InputStream in, final String sitemapBaseUrl) {
         final SitemapSet sitemapSet = new SitemapSet();
         sitemapSet.setType(SitemapSet.URLSET);
 
         try {
             final BufferedReader br = new BufferedReader(new InputStreamReader(in, Constants.UTF_8));
             String line;
+            boolean limitLogged = false;
+            boolean firstLine = true;
             while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    line = stripBom(line);
+                    firstLine = false;
+                }
                 final String url = line.trim();
                 if (StringUtil.isNotBlank(url) && (url.startsWith("http://") || url.startsWith("https://"))) {
+                    if (enableValidation && !isValidUrl(url)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping invalid URL in text sitemap: {}", url);
+                        }
+                        continue;
+                    }
+                    if (!isSameHost(sitemapBaseUrl, url)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping cross-domain URL in text sitemap: {}", url);
+                        }
+                        continue;
+                    }
+                    if (maxUrlsPerSitemap > 0 && sitemapSet.getSize() >= maxUrlsPerSitemap) {
+                        if (!limitLogged) {
+                            logger.warn("Text sitemap exceeds maximum URL count of {}. Additional URLs will be skipped.",
+                                    maxUrlsPerSitemap);
+                            limitLogged = true;
+                        }
+                        continue;
+                    }
                     final SitemapUrl sitemapUrl = new SitemapUrl();
                     sitemapUrl.setLoc(url);
                     sitemapSet.addSitemap(sitemapUrl);
@@ -204,8 +267,8 @@ public class SitemapsHelper {
      * @param in the input stream to parse
      * @return the parsed sitemap set
      */
-    protected SitemapSet parseXmlSitemaps(final InputStream in) {
-        final XmlSitemapsHandler handler = new XmlSitemapsHandler();
+    protected SitemapSet parseXmlSitemaps(final InputStream in, final String sitemapBaseUrl) {
+        final XmlSitemapsHandler handler = new XmlSitemapsHandler(sitemapBaseUrl);
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setNamespaceAware(true); // Enable namespace awareness
@@ -241,7 +304,7 @@ public class SitemapsHelper {
     /**
      * SAX handler for parsing XML sitemaps with extension support.
      */
-    protected static class XmlSitemapsHandler extends DefaultHandler {
+    protected class XmlSitemapsHandler extends DefaultHandler {
 
         private static final String PRIORITY_ELEMENT = "priority";
 
@@ -319,6 +382,8 @@ public class SitemapsHelper {
         // Alternate link element (hreflang)
         private static final String XHTML_LINK_ELEMENT = "xhtml:link";
 
+        private final String sitemapBaseUrl;
+
         private SitemapSet sitemapSet;
 
         private SitemapUrl sitemapUrl;
@@ -335,9 +400,10 @@ public class SitemapsHelper {
 
         /**
          * Creates a new XmlSitemapsHandler instance.
+         * @param sitemapBaseUrl the URL of the sitemap for cross-domain validation, or null
          */
-        public XmlSitemapsHandler() {
-            // Default constructor
+        public XmlSitemapsHandler(final String sitemapBaseUrl) {
+            this.sitemapBaseUrl = sitemapBaseUrl;
         }
 
         @Override
@@ -425,12 +491,24 @@ public class SitemapsHelper {
                 if (sitemapUrl != null) {
                     // Only add sitemap URL if loc is not empty
                     final String loc = sitemapUrl.getLoc();
-                    if (loc != null && !loc.trim().isEmpty()) {
-                        sitemapSet.addSitemap(sitemapUrl);
-                    } else {
+                    if (loc == null || loc.trim().isEmpty()) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping sitemap URL entry without loc element");
                         }
+                    } else if (!validateSitemapUrl(sitemapUrl)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping invalid sitemap URL entry: loc={}", sitemapUrl.getLoc());
+                        }
+                    } else if (!isSameHost(sitemapBaseUrl, sitemapUrl.getLoc())) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping cross-domain sitemap URL entry: loc={}", sitemapUrl.getLoc());
+                        }
+                    } else if (maxUrlsPerSitemap > 0 && sitemapSet.getSize() >= maxUrlsPerSitemap) {
+                        if (sitemapSet.getSize() == maxUrlsPerSitemap) {
+                            logger.warn("Sitemap exceeds maximum URL count of {}. Additional URLs will be skipped.", maxUrlsPerSitemap);
+                        }
+                    } else {
+                        sitemapSet.addSitemap(sitemapUrl);
                     }
                 }
                 sitemapUrl = null;
@@ -623,8 +701,8 @@ public class SitemapsHelper {
      * @param in the input stream to parse
      * @return the parsed sitemap set
      */
-    protected SitemapSet parseXmlSitemapsIndex(final InputStream in) {
-        final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
+    protected SitemapSet parseXmlSitemapsIndex(final InputStream in, final String sitemapBaseUrl) {
+        final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler(sitemapBaseUrl);
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setNamespaceAware(true); // Enable namespace awareness
@@ -643,7 +721,9 @@ public class SitemapsHelper {
     /**
      * SAX handler for parsing XML sitemap indexes.
      */
-    protected static class XmlSitemapsIndexHandler extends DefaultHandler {
+    protected class XmlSitemapsIndexHandler extends DefaultHandler {
+
+        private final String sitemapBaseUrl;
 
         private SitemapSet sitemapSet;
 
@@ -653,9 +733,10 @@ public class SitemapsHelper {
 
         /**
          * Creates a new XmlSitemapsIndexHandler instance.
+         * @param sitemapBaseUrl the URL of the sitemap index for cross-domain/self-reference validation, or null
          */
-        public XmlSitemapsIndexHandler() {
-            // Default constructor
+        public XmlSitemapsIndexHandler(final String sitemapBaseUrl) {
+            this.sitemapBaseUrl = sitemapBaseUrl;
         }
 
         @Override
@@ -699,12 +780,27 @@ public class SitemapsHelper {
                 if (sitemapFile != null) {
                     // Only add sitemap file if loc is not empty
                     final String loc = sitemapFile.getLoc();
-                    if (loc != null && !loc.trim().isEmpty()) {
-                        sitemapSet.addSitemap(sitemapFile);
-                    } else {
+                    if (loc == null || loc.trim().isEmpty()) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping sitemap index entry without loc element");
                         }
+                    } else if (enableValidation && !isValidUrl(loc)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping invalid sitemap index entry: loc={}", loc);
+                        }
+                    } else if (!isSameSite(sitemapBaseUrl, loc)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping cross-domain sitemap index entry: loc={}", loc);
+                        }
+                    } else if (sitemapBaseUrl != null && isSameUri(sitemapBaseUrl, loc)) {
+                        logger.warn("Skipping self-referencing sitemap index entry: loc={}", loc);
+                    } else if (maxUrlsPerSitemap > 0 && sitemapSet.getSize() >= maxUrlsPerSitemap) {
+                        if (sitemapSet.getSize() == maxUrlsPerSitemap) {
+                            logger.warn("Sitemap index exceeds maximum entry count of {}. Additional entries will be skipped.",
+                                    maxUrlsPerSitemap);
+                        }
+                    } else {
+                        sitemapSet.addSitemap(sitemapFile);
                     }
                 }
                 sitemapFile = null;
@@ -748,6 +844,15 @@ public class SitemapsHelper {
      */
     public void setEnableValidation(final boolean enableValidation) {
         this.enableValidation = enableValidation;
+    }
+
+    /**
+     * Sets the maximum number of URLs per sitemap.
+     * Set to 0 for unlimited.
+     * @param maxUrlsPerSitemap the maximum number of URLs per sitemap
+     */
+    public void setMaxUrlsPerSitemap(final int maxUrlsPerSitemap) {
+        this.maxUrlsPerSitemap = maxUrlsPerSitemap;
     }
 
     /**
@@ -816,6 +921,15 @@ public class SitemapsHelper {
 
     /**
      * Validates a date format (W3C Datetime format).
+     * Accepts the following formats:
+     * <ul>
+     * <li>YYYY</li>
+     * <li>YYYY-MM</li>
+     * <li>YYYY-MM-DD</li>
+     * <li>YYYY-MM-DDThh:mmTZD</li>
+     * <li>YYYY-MM-DDThh:mm:ssTZD</li>
+     * <li>YYYY-MM-DDThh:mm:ss.sTZD</li>
+     * </ul>
      * @param date the date to validate
      * @return true if valid, false otherwise
      */
@@ -823,22 +937,170 @@ public class SitemapsHelper {
         if (date == null || date.isEmpty()) {
             return true; // Date is optional
         }
-        // Basic validation for W3C Datetime format (YYYY-MM-DD or YYYY-MM-DDThh:mm:ss+00:00)
-        // This is a simplified validation
-        if (date.length() < 10) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Invalid date format (too short): {}", date);
-            }
-            return false;
-        }
-        // Check if it starts with a valid year format
-        if (!date.matches("^\\d{4}-\\d{2}-\\d{2}.*")) {
+        if (!W3C_DATETIME_PATTERN.matcher(date).matches()) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Invalid date format: {}", date);
             }
             return false;
         }
         return true;
+    }
+
+    /**
+     * Validates that a URL belongs to the same site (protocol, host, port) as the sitemap URL.
+     * Used for sitemap index entries which only require same-site, not path scope.
+     * @param sitemapBaseUrl the base URL of the sitemap, or null to skip validation
+     * @param url the URL to validate
+     * @return true if the URL is from the same site, or if no sitemap base URL is set
+     */
+    protected boolean isSameSite(final String sitemapBaseUrl, final String url) {
+        if (sitemapBaseUrl == null || url == null) {
+            return true;
+        }
+        try {
+            final URI sitemapUri = URI.create(sitemapBaseUrl);
+            final URI entryUri = URI.create(url);
+            if (!sitemapUri.getScheme().equalsIgnoreCase(entryUri.getScheme())) {
+                return false;
+            }
+            if (!sitemapUri.getHost().equalsIgnoreCase(entryUri.getHost())) {
+                return false;
+            }
+            return getEffectivePort(sitemapUri) == getEffectivePort(entryUri);
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to validate site for URL: {}", url, e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Validates that a URL belongs to the same host, protocol, port, and path scope as the sitemap URL.
+     * Per the sitemaps.org specification, a sitemap can only reference URLs under its own directory path.
+     * @param sitemapBaseUrl the base URL of the sitemap, or null to skip validation
+     * @param url the URL to validate
+     * @return true if the URL is within the same scope, or if no sitemap base URL is set
+     */
+    protected boolean isSameHost(final String sitemapBaseUrl, final String url) {
+        if (sitemapBaseUrl == null || url == null) {
+            return true;
+        }
+        try {
+            final URI sitemapUri = URI.create(sitemapBaseUrl);
+            final URI entryUri = URI.create(url);
+            // Check protocol
+            if (!sitemapUri.getScheme().equalsIgnoreCase(entryUri.getScheme())) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Protocol mismatch: sitemap={}, entry={}", sitemapUri.getScheme(), entryUri.getScheme());
+                }
+                return false;
+            }
+            // Check host
+            if (!sitemapUri.getHost().equalsIgnoreCase(entryUri.getHost())) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Host mismatch: sitemap={}, entry={}", sitemapUri.getHost(), entryUri.getHost());
+                }
+                return false;
+            }
+            // Check port
+            final int sitemapPort = getEffectivePort(sitemapUri);
+            final int entryPort = getEffectivePort(entryUri);
+            if (sitemapPort != entryPort) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Port mismatch: sitemap={}, entry={}", sitemapPort, entryPort);
+                }
+                return false;
+            }
+            // Check path scope - entry URL must be under the sitemap's directory
+            // Decode percent-encoded paths to prevent traversal bypass via %2e%2e
+            final String sitemapPath = decodePath(sitemapUri.normalize().getPath());
+            if (sitemapPath != null) {
+                final int lastSlash = sitemapPath.lastIndexOf('/');
+                final String sitemapDir = lastSlash >= 0 ? sitemapPath.substring(0, lastSlash + 1) : "/";
+                final String entryPath = decodePath(entryUri.normalize().getPath());
+                if (entryPath != null && !URI.create(entryPath).normalize().getPath().startsWith(sitemapDir)) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Path scope mismatch: sitemapDir={}, entryPath={}", sitemapDir, entryPath);
+                    }
+                    return false;
+                }
+            }
+            return true;
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to validate host for URL: {}", url, e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Gets the effective port for a URI, using default ports for http (80) and https (443).
+     * @param uri the URI
+     * @return the effective port number
+     */
+    private int getEffectivePort(final URI uri) {
+        final int port = uri.getPort();
+        if (port != -1) {
+            return port;
+        }
+        if ("https".equalsIgnoreCase(uri.getScheme())) {
+            return 443;
+        }
+        return 80;
+    }
+
+    /**
+     * Checks if two URLs refer to the same resource by comparing normalized URIs
+     * (scheme, host, effective port, and normalized path).
+     * @param url1 the first URL
+     * @param url2 the second URL
+     * @return true if the URLs are equivalent
+     */
+    private boolean isSameUri(final String url1, final String url2) {
+        if (url1 == null || url2 == null) {
+            return false;
+        }
+        if (url1.equals(url2)) {
+            return true;
+        }
+        try {
+            final URI uri1 = URI.create(url1).normalize();
+            final URI uri2 = URI.create(url2).normalize();
+            return uri1.getScheme().equalsIgnoreCase(uri2.getScheme()) && uri1.getHost().equalsIgnoreCase(uri2.getHost())
+                    && getEffectivePort(uri1) == getEffectivePort(uri2) && uri1.getPath().equals(uri2.getPath());
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Decodes a percent-encoded URL path to prevent traversal bypass via %2e%2e.
+     * @param path the path to decode
+     * @return the decoded path, or the original if decoding fails
+     */
+    private String decodePath(final String path) {
+        if (path == null) {
+            return null;
+        }
+        try {
+            return URLDecoder.decode(path, Constants.UTF_8);
+        } catch (final Exception e) {
+            return path;
+        }
+    }
+
+    /**
+     * Strips the UTF-8 BOM (Byte Order Mark) from the beginning of a string if present.
+     * @param s the string to strip
+     * @return the string without BOM
+     */
+    protected String stripBom(final String s) {
+        if (s != null && !s.isEmpty() && s.charAt(0) == '\uFEFF') {
+            return s.substring(1);
+        }
+        return s;
     }
 
     /**
@@ -868,5 +1130,67 @@ public class SitemapsHelper {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Sets the maximum sitemap file size in bytes.
+     * Set to 0 for unlimited.
+     * @param maxSitemapSize the maximum file size in bytes
+     */
+    public void setMaxSitemapSize(final long maxSitemapSize) {
+        this.maxSitemapSize = maxSitemapSize;
+    }
+
+    /**
+     * Wraps an InputStream with a size limit if maxSitemapSize is configured.
+     * @param in the input stream to wrap
+     * @return the size-limited input stream, or the original if no limit is set
+     */
+    protected InputStream wrapWithSizeLimit(final InputStream in) {
+        if (maxSitemapSize > 0) {
+            return new SizeLimitedInputStream(in, maxSitemapSize);
+        }
+        return in;
+    }
+
+    /**
+     * An InputStream wrapper that throws a SitemapsException when the size limit is exceeded.
+     */
+    protected static class SizeLimitedInputStream extends FilterInputStream {
+        private final long maxSize;
+
+        private long bytesRead;
+
+        protected SizeLimitedInputStream(final InputStream in, final long maxSize) {
+            super(in);
+            this.maxSize = maxSize;
+            this.bytesRead = 0;
+        }
+
+        @Override
+        public int read() throws IOException {
+            final int b = super.read();
+            if (b != -1) {
+                bytesRead++;
+                checkLimit();
+            }
+            return b;
+        }
+
+        @Override
+        public int read(final byte[] b, final int off, final int len) throws IOException {
+            final int n = super.read(b, off, len);
+            if (n > 0) {
+                bytesRead += n;
+                checkLimit();
+            }
+            return n;
+        }
+
+        private void checkLimit() {
+            if (bytesRead > maxSize) {
+                throw new SitemapsException("Sitemap exceeds maximum size of " + maxSize + " bytes.");
+            }
+        }
     }
 }

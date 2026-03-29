@@ -664,8 +664,6 @@ public class Hc4HttpClient extends HcHttpClient {
                     }
                 }
             }
-            // Per RFC 9309 Section 2.3.1.3 and Google spec: HTTP 4xx for robots.txt
-            // means no restrictions apply (full allow). No action needed for 4xx.
         } catch (final CrawlerSystemException e) {
             httpGet.abort();
             throw e;

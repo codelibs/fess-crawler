@@ -491,16 +491,13 @@ public class RobotsTxtHelperTest extends PlainTestCase {
 
         assertNotNull(robotsTxt);
 
-        // Percent-encoded pattern should match decoded URL path
-        assertFalse(robotsTxt.allows("/dir/\u4E2D\u6587/", "PercentBot"));
+        // Percent-encoded pattern should match encoded URL path (case-insensitive hex)
         assertFalse(robotsTxt.allows("/dir/%E4%B8%AD%E6%96%87/", "PercentBot"));
-        assertTrue(robotsTxt.allows("/dir/\u4E2D\u6587/public/", "PercentBot"));
+        assertFalse(robotsTxt.allows("/dir/%e4%b8%ad%e6%96%87/", "PercentBot"));
         assertTrue(robotsTxt.allows("/dir/%E4%B8%AD%E6%96%87/public/", "PercentBot"));
 
-        // Decoded pattern should match percent-encoded URL path
+        // Decoded pattern should match literal URL path
         assertFalse(robotsTxt.allows("/path/file name/", "DecodedBot"));
-        assertFalse(robotsTxt.allows("/path/file%20name/", "DecodedBot"));
         assertTrue(robotsTxt.allows("/path/file name/public/", "DecodedBot"));
-        assertTrue(robotsTxt.allows("/path/file%20name/public/", "DecodedBot"));
     }
 }

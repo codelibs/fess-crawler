@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.entity;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -203,7 +202,7 @@ public class RobotsTxt {
         /** The compiled regular expression pattern for matching. */
         private final Pattern regexPattern;
 
-        /** The compiled regular expression pattern for matching percent-decoded paths (null if same as regexPattern). */
+        /** The compiled pattern for matching with unreserved percent-encoding decoded (null if same as regexPattern). */
         private final Pattern decodedRegexPattern;
 
         /** The priority length used for sorting (patterns without wildcards are prioritized by length). */
@@ -216,8 +215,8 @@ public class RobotsTxt {
         public PathPattern(final String pattern) {
             this.pattern = pattern;
             this.regexPattern = compilePattern(pattern);
-            // Also compile a decoded version for percent-encoded path matching per RFC 9309
-            final String decodedPattern = decodePercent(pattern);
+            // Decode only unreserved percent-encoded characters per RFC 9309
+            final String decodedPattern = decodeUnreservedPercent(pattern);
             this.decodedRegexPattern = decodedPattern.equals(pattern) ? null : compilePattern(decodedPattern);
             this.priorityLength = calculatePriorityLength(pattern);
         }
@@ -296,28 +295,30 @@ public class RobotsTxt {
 
         /**
          * Checks if the given path matches this pattern.
-         * Per RFC 9309, percent-encoded characters in the path are decoded before matching,
-         * and percent-encoding case is normalized.
+         * Per RFC 9309, unreserved percent-encoded characters are decoded before matching.
+         * Reserved characters (%2F, %3F, %23, %2A, %24, etc.) remain encoded.
          * @param path the path to check
          * @return true if the path matches, false otherwise
          */
         public boolean matches(final String path) {
-            if (regexPattern.matcher(path).find()) {
+            // Normalize percent-encoding case in path (e.g., %2f -> %2F)
+            final String normalizedPath = normalizePercentEncoding(path);
+            if (regexPattern.matcher(normalizedPath).find()) {
                 return true;
             }
-            // Try matching with percent-decoded path per RFC 9309
-            final String decodedPath = decodePercent(path);
-            if (!decodedPath.equals(path)) {
+            // Try matching with unreserved-decoded path per RFC 9309
+            final String decodedPath = decodeUnreservedPercent(normalizedPath);
+            if (!decodedPath.equals(normalizedPath)) {
                 if (regexPattern.matcher(decodedPath).find()) {
                     return true;
                 }
             }
-            // Try matching with decoded pattern against both original and decoded path
+            // Try matching with decoded pattern against both normalized and decoded path
             if (decodedRegexPattern != null) {
-                if (decodedRegexPattern.matcher(path).find()) {
+                if (decodedRegexPattern.matcher(normalizedPath).find()) {
                     return true;
                 }
-                if (!decodedPath.equals(path)) {
+                if (!decodedPath.equals(normalizedPath)) {
                     return decodedRegexPattern.matcher(decodedPath).find();
                 }
             }
@@ -325,36 +326,80 @@ public class RobotsTxt {
         }
 
         /**
-         * Decodes percent-encoded characters in a path per RFC 3986.
-         * Unlike URLDecoder.decode(), this method does NOT convert '+' to space,
-         * as '+' is not a special character in URI percent-encoding (only in form-encoding).
-         * @param path the path to decode
-         * @return the decoded path, or the original path if decoding fails
+         * Normalizes percent-encoding case to uppercase (e.g., %2f -> %2F).
+         * @param path the path to normalize
+         * @return the normalized path
          */
-        private static String decodePercent(final String path) {
+        private static String normalizePercentEncoding(final String path) {
             if (path == null || path.indexOf('%') == -1) {
                 return path;
             }
-            try {
-                final byte[] bytes = path.getBytes(StandardCharsets.UTF_8);
-                final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream(bytes.length);
-                for (int i = 0; i < bytes.length; i++) {
-                    final byte b = bytes[i];
-                    if (b == '%' && i + 2 < bytes.length) {
-                        final int hi = Character.digit((char) bytes[i + 1], 16);
-                        final int lo = Character.digit((char) bytes[i + 2], 16);
-                        if (hi != -1 && lo != -1) {
-                            out.write((hi << 4) | lo);
+            final StringBuilder sb = new StringBuilder(path.length());
+            for (int i = 0; i < path.length(); i++) {
+                final char c = path.charAt(i);
+                if (c == '%' && i + 2 < path.length()) {
+                    final char hi = path.charAt(i + 1);
+                    final char lo = path.charAt(i + 2);
+                    if (Character.digit(hi, 16) != -1 && Character.digit(lo, 16) != -1) {
+                        sb.append('%');
+                        sb.append(Character.toUpperCase(hi));
+                        sb.append(Character.toUpperCase(lo));
+                        i += 2;
+                        continue;
+                    }
+                }
+                sb.append(c);
+            }
+            return sb.toString();
+        }
+
+        /**
+         * Decodes only unreserved percent-encoded characters per RFC 3986/RFC 9309.
+         * Unreserved characters: A-Z, a-z, 0-9, '-', '.', '_', '~'
+         * Reserved characters (%2F, %3F, %23, %2A, %24, etc.) are NOT decoded
+         * to preserve their semantic meaning in URI paths and robots.txt patterns.
+         * @param path the path to decode
+         * @return the decoded path with only unreserved characters decoded
+         */
+        private static String decodeUnreservedPercent(final String path) {
+            if (path == null || path.indexOf('%') == -1) {
+                return path;
+            }
+            final StringBuilder sb = new StringBuilder(path.length());
+            for (int i = 0; i < path.length(); i++) {
+                final char c = path.charAt(i);
+                if (c == '%' && i + 2 < path.length()) {
+                    final int hi = Character.digit(path.charAt(i + 1), 16);
+                    final int lo = Character.digit(path.charAt(i + 2), 16);
+                    if (hi != -1 && lo != -1) {
+                        final int decoded = (hi << 4) | lo;
+                        if (isUnreserved((char) decoded)) {
+                            sb.append((char) decoded);
                             i += 2;
                             continue;
                         }
+                        // Keep reserved characters encoded (normalize to uppercase)
+                        sb.append('%');
+                        sb.append(Character.toUpperCase(path.charAt(i + 1)));
+                        sb.append(Character.toUpperCase(path.charAt(i + 2)));
+                        i += 2;
+                        continue;
                     }
-                    out.write(b);
                 }
-                return out.toString(StandardCharsets.UTF_8);
-            } catch (final Exception e) {
-                return path;
+                sb.append(c);
             }
+            return sb.toString();
+        }
+
+        /**
+         * Checks if a character is an unreserved character per RFC 3986.
+         * Unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+         * @param c the character to check
+         * @return true if unreserved
+         */
+        private static boolean isUnreserved(final char c) {
+            return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.' || c == '_'
+                    || c == '~';
         }
 
         /**

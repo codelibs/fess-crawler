@@ -82,9 +82,6 @@ public class SitemapsHelper {
     /** Maximum sitemap file size in bytes (50MB uncompressed, 0 for unlimited). */
     protected long maxSitemapSize = 50L * 1024L * 1024L;
 
-    /** The base URL of the sitemap being parsed (for cross-domain validation). */
-    private String sitemapBaseUrl;
-
     /**
      * Creates a new SitemapsHelper instance.
      */
@@ -147,7 +144,7 @@ public class SitemapsHelper {
      * @return a sitemap set
      */
     public SitemapSet parse(final InputStream in) {
-        return parse(wrapWithSizeLimit(in), true);
+        return parse(wrapWithSizeLimit(in), true, null);
     }
 
     /**
@@ -158,21 +155,17 @@ public class SitemapsHelper {
      * @return a sitemap set
      */
     public SitemapSet parse(final InputStream in, final String sitemapUrl) {
-        this.sitemapBaseUrl = sitemapUrl;
-        try {
-            return parse(wrapWithSizeLimit(in), true);
-        } finally {
-            this.sitemapBaseUrl = null;
-        }
+        return parse(wrapWithSizeLimit(in), true, sitemapUrl);
     }
 
     /**
      * Parses a sitemap from the given input stream.
      * @param in the input stream to parse
      * @param recursive whether to recursively parse compressed files
+     * @param sitemapBaseUrl the URL of the sitemap itself for cross-domain validation, or null
      * @return the parsed sitemap set
      */
-    protected SitemapSet parse(final InputStream in, final boolean recursive) {
+    protected SitemapSet parse(final InputStream in, final boolean recursive, final String sitemapBaseUrl) {
         final BufferedInputStream bis = new BufferedInputStream(in);
         bis.mark(preloadSize);
 
@@ -187,22 +180,22 @@ public class SitemapsHelper {
             if (preloadDate.indexOf("<urlset") >= 0) {
                 // XML Sitemaps
                 bis.reset();
-                return parseXmlSitemaps(bis);
+                return parseXmlSitemaps(bis, sitemapBaseUrl);
             }
             if (preloadDate.indexOf("<sitemapindex") >= 0) {
                 // XML Sitemaps Index
                 bis.reset();
-                return parseXmlSitemapsIndex(bis);
+                return parseXmlSitemapsIndex(bis, sitemapBaseUrl);
             }
             final String trimmed = preloadDate.trim();
             if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
                 // Text Sitemaps
                 bis.reset();
-                return parseTextSitemaps(bis);
+                return parseTextSitemaps(bis, sitemapBaseUrl);
             }
-            // gz
+            // gz - apply size limit on decompressed stream
             bis.reset();
-            return parse(new GZIPInputStream(bis), false);
+            return parse(wrapWithSizeLimit(new GZIPInputStream(bis)), false, sitemapBaseUrl);
         } catch (final CrawlingAccessException e) {
             throw e;
         } catch (final Exception e) {
@@ -215,7 +208,7 @@ public class SitemapsHelper {
      * @param in the input stream to parse
      * @return the parsed sitemap set
      */
-    protected SitemapSet parseTextSitemaps(final InputStream in) {
+    protected SitemapSet parseTextSitemaps(final InputStream in, final String sitemapBaseUrl) {
         final SitemapSet sitemapSet = new SitemapSet();
         sitemapSet.setType(SitemapSet.URLSET);
 
@@ -237,7 +230,7 @@ public class SitemapsHelper {
                         }
                         continue;
                     }
-                    if (!isSameHost(url)) {
+                    if (!isSameHost(sitemapBaseUrl, url)) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping cross-domain URL in text sitemap: {}", url);
                         }
@@ -268,8 +261,8 @@ public class SitemapsHelper {
      * @param in the input stream to parse
      * @return the parsed sitemap set
      */
-    protected SitemapSet parseXmlSitemaps(final InputStream in) {
-        final XmlSitemapsHandler handler = new XmlSitemapsHandler();
+    protected SitemapSet parseXmlSitemaps(final InputStream in, final String sitemapBaseUrl) {
+        final XmlSitemapsHandler handler = new XmlSitemapsHandler(sitemapBaseUrl);
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setNamespaceAware(true); // Enable namespace awareness
@@ -383,6 +376,8 @@ public class SitemapsHelper {
         // Alternate link element (hreflang)
         private static final String XHTML_LINK_ELEMENT = "xhtml:link";
 
+        private final String sitemapBaseUrl;
+
         private SitemapSet sitemapSet;
 
         private SitemapUrl sitemapUrl;
@@ -399,9 +394,10 @@ public class SitemapsHelper {
 
         /**
          * Creates a new XmlSitemapsHandler instance.
+         * @param sitemapBaseUrl the URL of the sitemap for cross-domain validation, or null
          */
-        public XmlSitemapsHandler() {
-            // Default constructor
+        public XmlSitemapsHandler(final String sitemapBaseUrl) {
+            this.sitemapBaseUrl = sitemapBaseUrl;
         }
 
         @Override
@@ -497,7 +493,7 @@ public class SitemapsHelper {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping invalid sitemap URL entry: loc={}", sitemapUrl.getLoc());
                         }
-                    } else if (!isSameHost(sitemapUrl.getLoc())) {
+                    } else if (!isSameHost(sitemapBaseUrl, sitemapUrl.getLoc())) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping cross-domain sitemap URL entry: loc={}", sitemapUrl.getLoc());
                         }
@@ -699,8 +695,8 @@ public class SitemapsHelper {
      * @param in the input stream to parse
      * @return the parsed sitemap set
      */
-    protected SitemapSet parseXmlSitemapsIndex(final InputStream in) {
-        final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler();
+    protected SitemapSet parseXmlSitemapsIndex(final InputStream in, final String sitemapBaseUrl) {
+        final XmlSitemapsIndexHandler handler = new XmlSitemapsIndexHandler(sitemapBaseUrl);
         try {
             final SAXParserFactory spfactory = SAXParserFactory.newInstance();
             spfactory.setNamespaceAware(true); // Enable namespace awareness
@@ -721,6 +717,8 @@ public class SitemapsHelper {
      */
     protected class XmlSitemapsIndexHandler extends DefaultHandler {
 
+        private final String sitemapBaseUrl;
+
         private SitemapSet sitemapSet;
 
         private SitemapFile sitemapFile;
@@ -729,9 +727,10 @@ public class SitemapsHelper {
 
         /**
          * Creates a new XmlSitemapsIndexHandler instance.
+         * @param sitemapBaseUrl the URL of the sitemap index for cross-domain/self-reference validation, or null
          */
-        public XmlSitemapsIndexHandler() {
-            // Default constructor
+        public XmlSitemapsIndexHandler(final String sitemapBaseUrl) {
+            this.sitemapBaseUrl = sitemapBaseUrl;
         }
 
         @Override
@@ -783,7 +782,7 @@ public class SitemapsHelper {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping invalid sitemap index entry: loc={}", loc);
                         }
-                    } else if (!isSameHost(loc)) {
+                    } else if (!isSameHost(sitemapBaseUrl, loc)) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Skipping cross-domain sitemap index entry: loc={}", loc);
                         }
@@ -943,10 +942,11 @@ public class SitemapsHelper {
 
     /**
      * Validates that a URL belongs to the same host, protocol, and port as the sitemap URL.
+     * @param sitemapBaseUrl the base URL of the sitemap, or null to skip validation
      * @param url the URL to validate
      * @return true if the URL is from the same host, or if no sitemap base URL is set
      */
-    protected boolean isSameHost(final String url) {
+    protected boolean isSameHost(final String sitemapBaseUrl, final String url) {
         if (sitemapBaseUrl == null || url == null) {
             return true;
         }
@@ -1049,14 +1049,6 @@ public class SitemapsHelper {
      */
     public void setMaxSitemapSize(final long maxSitemapSize) {
         this.maxSitemapSize = maxSitemapSize;
-    }
-
-    /**
-     * Sets the base URL of the sitemap being parsed for cross-domain validation.
-     * @param sitemapBaseUrl the sitemap URL, or null to disable cross-domain validation
-     */
-    public void setSitemapBaseUrl(final String sitemapBaseUrl) {
-        this.sitemapBaseUrl = sitemapBaseUrl;
     }
 
     /**

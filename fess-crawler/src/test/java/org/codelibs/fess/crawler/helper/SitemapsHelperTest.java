@@ -1146,4 +1146,20 @@ public class SitemapsHelperTest extends PlainTestCase {
         assertEquals("http://www.example.com/catalog/item1.html", sitemaps[0].getLoc());
         assertEquals("http://www.example.com/catalog/sub/../item2.html", sitemaps[1].getLoc());
     }
+
+    @Test
+    public void test_parseXmlSitemaps_encodedPathTraversalRejected() {
+        // URLs with percent-encoded ../ (%2e%2e) should also be rejected
+        final String xml =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                        + "  <url>\n" + "    <loc>http://www.example.com/catalog/item1.html</loc>\n" + "  </url>\n" + "  <url>\n"
+                        + "    <loc>http://www.example.com/catalog/%2e%2e/private/secret.html</loc>\n" + "  </url>\n" + "</urlset>";
+        final InputStream in = new ByteArrayInputStream(xml.getBytes());
+        final SitemapSet sitemapSet = sitemapsHelper.parse(in, "http://www.example.com/catalog/sitemap.xml");
+        final Sitemap[] sitemaps = sitemapSet.getSitemaps();
+
+        // Encoded traversal should be rejected
+        assertEquals(1, sitemaps.length);
+        assertEquals("http://www.example.com/catalog/item1.html", sitemaps[0].getLoc());
+    }
 }

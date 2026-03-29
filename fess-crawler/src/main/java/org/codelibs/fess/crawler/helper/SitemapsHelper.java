@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
@@ -970,7 +971,7 @@ public class SitemapsHelper {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to validate site for URL: {}", url, e);
             }
-            return true;
+            return false;
         }
     }
 
@@ -1012,12 +1013,13 @@ public class SitemapsHelper {
                 return false;
             }
             // Check path scope - entry URL must be under the sitemap's directory
-            final String sitemapPath = sitemapUri.normalize().getPath();
+            // Decode percent-encoded paths to prevent traversal bypass via %2e%2e
+            final String sitemapPath = decodePath(sitemapUri.normalize().getPath());
             if (sitemapPath != null) {
                 final int lastSlash = sitemapPath.lastIndexOf('/');
                 final String sitemapDir = lastSlash >= 0 ? sitemapPath.substring(0, lastSlash + 1) : "/";
-                final String entryPath = entryUri.normalize().getPath();
-                if (entryPath != null && !entryPath.startsWith(sitemapDir)) {
+                final String entryPath = decodePath(entryUri.normalize().getPath());
+                if (entryPath != null && !URI.create(entryPath).normalize().getPath().startsWith(sitemapDir)) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Path scope mismatch: sitemapDir={}, entryPath={}", sitemapDir, entryPath);
                     }
@@ -1029,7 +1031,7 @@ public class SitemapsHelper {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to validate host for URL: {}", url, e);
             }
-            return true; // Be lenient on parse errors
+            return false;
         }
     }
 
@@ -1047,6 +1049,22 @@ public class SitemapsHelper {
             return 443;
         }
         return 80;
+    }
+
+    /**
+     * Decodes a percent-encoded URL path to prevent traversal bypass via %2e%2e.
+     * @param path the path to decode
+     * @return the decoded path, or the original if decoding fails
+     */
+    private String decodePath(final String path) {
+        if (path == null) {
+            return null;
+        }
+        try {
+            return URLDecoder.decode(path, Constants.UTF_8);
+        } catch (final Exception e) {
+            return path;
+        }
     }
 
     /**

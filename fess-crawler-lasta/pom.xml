@@ -57,6 +57,12 @@
 			<groupId>org.codelibs.fess</groupId>
 			<artifactId>fess-crawler</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.poi</groupId>
+					<artifactId>poi-ooxml-lite</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.lastaflute</groupId>

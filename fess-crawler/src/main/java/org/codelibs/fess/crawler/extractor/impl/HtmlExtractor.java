@@ -18,14 +18,21 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathEvaluationResult;
 import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathNodes;
 
 import org.apache.logging.log4j.LogManager;
@@ -38,14 +45,39 @@ import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.annotation.PostConstruct;
 
 /**
  * Extracts text content from HTML documents.
+ *
+ * <p>In addition to body text, this extractor populates {@link ExtractData} with a
+ * default set of HTML metadata (title, description, OpenGraph, Twitter Card,
+ * canonical, keywords, author) and parses {@code <script type="application/ld+json">}
+ * blocks. Both subsystems can be disabled via {@link #setExtractDefaultMetadata(boolean)}
+ * and {@link #setExtractJsonLd(boolean)}.</p>
+ *
+ * <p>Compiled {@link XPathExpression} instances are cached per thread to avoid
+ * re-parsing every XPath on each extraction.</p>
  */
 public class HtmlExtractor extends AbstractXmlExtractor {
     /** Logger for this class. */
     protected static final Logger logger = LogManager.getLogger(HtmlExtractor.class);
+
+    /** Metadata key holding raw JSON-LD strings. */
+    public static final String JSONLD_RAW_KEY = "jsonld.raw";
+
+    /** Metadata key holding {@code @type} values from JSON-LD blocks. */
+    public static final String JSONLD_TYPE_KEY = "jsonld.type";
+
+    /** XPath expression matching JSON-LD script blocks. */
+    protected static final String JSONLD_XPATH = "//SCRIPT[@type='application/ld+json']";
 
     /** Pattern for extracting charset from meta tags. */
     protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
@@ -68,14 +100,54 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /** Map of metadata field names to their corresponding XPath expressions. */
     protected Map<String, String> metadataXpathMap = new HashMap<>();
 
+    /** Default metadata field rules (key -&gt; XPath expression). */
+    protected Map<String, String> defaultFieldRules;
+
+    /** Whether to extract default HTML metadata (title, description, OpenGraph, etc.). */
+    protected boolean extractDefaultMetadata = true;
+
+    /** Whether to extract JSON-LD ({@code <script type="application/ld+json">}) blocks. */
+    protected boolean extractJsonLd = true;
+
     /** Thread-local instance of XPathAPI for thread-safe XPath evaluation. */
     private final ThreadLocal<XPathAPI> xpathAPI = new ThreadLocal<>();
+
+    /** Per-thread cache of compiled XPath expressions. */
+    private final ThreadLocal<Map<String, XPathExpression>> threadLocalXPathCache = ThreadLocal.withInitial(HashMap::new);
+
+    /** Per-thread XPath used to compile cached expressions. */
+    private final ThreadLocal<XPath> threadLocalXPath = ThreadLocal.withInitial(() -> XPathFactory.newInstance().newXPath());
+
+    /** Lazily-initialised JSON parser for JSON-LD blocks. */
+    private volatile ObjectMapper objectMapper;
 
     /**
      * Creates a new HtmlExtractor instance.
      */
     public HtmlExtractor() {
         super();
+    }
+
+    /**
+     * Initialises default metadata field rules if none have been provided.
+     */
+    @PostConstruct
+    public void init() {
+        if (defaultFieldRules == null) {
+            final Map<String, String> rules = new LinkedHashMap<>();
+            rules.put("title", "//TITLE/text() | //META[@property='og:title']/@content");
+            rules.put("description", "//META[@name='description']/@content | //META[@property='og:description']/@content");
+            rules.put("og:title", "//META[@property='og:title']/@content");
+            rules.put("og:description", "//META[@property='og:description']/@content");
+            rules.put("og:image", "//META[@property='og:image']/@content");
+            rules.put("og:type", "//META[@property='og:type']/@content");
+            rules.put("og:url", "//META[@property='og:url']/@content");
+            rules.put("twitter:card", "//META[@name='twitter:card']/@content");
+            rules.put("canonical", "//LINK[@rel='canonical']/@href");
+            rules.put("keywords", "//META[@name='keywords']/@content");
+            rules.put("author", "//META[@name='author']/@content");
+            defaultFieldRules = rules;
+        }
     }
 
     @Override
@@ -95,6 +167,12 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             metadataXpathMap.entrySet().stream().forEach(e -> {
                 extractData.putValues(e.getKey(), getStringsByXPath(document, e.getValue()));
             });
+            if (extractDefaultMetadata) {
+                applyDefaultFieldRules(document, extractData);
+            }
+            if (extractJsonLd) {
+                extractJsonLd(document, extractData);
+            }
             return extractData;
         } finally {
             xpathAPI.remove();
@@ -102,13 +180,219 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     }
 
     /**
+     * Applies the configured default-field rules, populating {@code extractData}
+     * with extracted values. Existing keys (set via
+     * {@link #addMetadata(String, String)}) are preserved.
+     *
+     * @param document the parsed HTML DOM
+     * @param extractData the extract data to populate
+     */
+    protected void applyDefaultFieldRules(final Document document, final ExtractData extractData) {
+        if (defaultFieldRules == null || defaultFieldRules.isEmpty()) {
+            return;
+        }
+        defaultFieldRules.forEach((key, xpath) -> {
+            if (extractData.getValues(key) != null) {
+                // already populated by a custom rule; do not overwrite
+                return;
+            }
+            final String[] values = getStringsByXPath(document, xpath);
+            final String[] nonBlank = Arrays.stream(values).filter(StringUtil::isNotBlank).map(String::trim).toArray(String[]::new);
+            if (nonBlank.length > 0) {
+                extractData.putValues(key, nonBlank);
+            }
+        });
+    }
+
+    /**
+     * Extracts JSON-LD blocks from the document. Each block's {@code @type}
+     * value (if present) is appended to {@link #JSONLD_TYPE_KEY}, and the raw
+     * JSON content is appended to {@link #JSONLD_RAW_KEY}. Malformed JSON is
+     * logged and skipped; the rest of the extraction proceeds normally.
+     *
+     * @param document the parsed HTML DOM
+     * @param extractData the extract data to populate
+     */
+    protected void extractJsonLd(final Document document, final ExtractData extractData) {
+        try {
+            final XPathExpression expr = getXPathExpression(JSONLD_XPATH);
+            final NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+            if (nodes == null || nodes.getLength() == 0) {
+                return;
+            }
+            final List<String> rawList = new ArrayList<>();
+            final List<String> typeList = new ArrayList<>();
+            for (int i = 0; i < nodes.getLength(); i++) {
+                final String raw = nodes.item(i).getTextContent();
+                if (StringUtil.isBlank(raw)) {
+                    continue;
+                }
+                final String trimmed = raw.trim();
+                rawList.add(trimmed);
+                collectJsonLdTypes(trimmed, typeList);
+            }
+            if (!rawList.isEmpty()) {
+                extractData.putValues(JSONLD_RAW_KEY, rawList.toArray(new String[0]));
+            }
+            if (!typeList.isEmpty()) {
+                extractData.putValues(JSONLD_TYPE_KEY, typeList.toArray(new String[0]));
+            }
+        } catch (final XPathException e) {
+            logger.warn("Failed to evaluate JSON-LD XPath.", e);
+        }
+    }
+
+    /**
+     * Parses the given JSON-LD string and appends any discovered {@code @type}
+     * values into {@code typeList}. Malformed JSON is logged and skipped.
+     *
+     * @param json the raw JSON-LD content
+     * @param typeList the list to append discovered {@code @type} values to
+     */
+    protected void collectJsonLdTypes(final String json, final List<String> typeList) {
+        final ObjectMapper mapper = getObjectMapper();
+        if (mapper == null) {
+            return;
+        }
+        try {
+            final JsonNode root = mapper.readTree(json);
+            if (root == null) {
+                return;
+            }
+            collectTypeNodes(root, typeList);
+        } catch (final JsonProcessingException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Skipping malformed JSON-LD block.", e);
+            } else {
+                logger.warn("Skipping malformed JSON-LD block: {}", e.getMessage());
+            }
+        } catch (final RuntimeException e) {
+            logger.warn("Failed to parse JSON-LD block.", e);
+        }
+    }
+
+    private void collectTypeNodes(final JsonNode node, final List<String> typeList) {
+        if (node == null) {
+            return;
+        }
+        if (node.isArray()) {
+            node.forEach(child -> collectTypeNodes(child, typeList));
+            return;
+        }
+        if (!node.isObject()) {
+            return;
+        }
+        final JsonNode typeNode = node.get("@type");
+        if (typeNode != null) {
+            if (typeNode.isTextual()) {
+                final String value = typeNode.asText();
+                if (StringUtil.isNotBlank(value)) {
+                    typeList.add(value);
+                }
+            } else if (typeNode.isArray()) {
+                typeNode.forEach(t -> {
+                    if (t.isTextual()) {
+                        final String value = t.asText();
+                        if (StringUtil.isNotBlank(value)) {
+                            typeList.add(value);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    private ObjectMapper getObjectMapper() {
+        ObjectMapper mapper = objectMapper;
+        if (mapper == null) {
+            synchronized (this) {
+                mapper = objectMapper;
+                if (mapper == null) {
+                    mapper = new ObjectMapper();
+                    objectMapper = mapper;
+                }
+            }
+        }
+        return mapper;
+    }
+
+    /**
+     * Returns a compiled, cached {@link XPathExpression} for {@code expression}.
+     * Caching is per-thread, which keeps {@link XPathExpression} usage on the
+     * same thread that compiled it (the JDK does not document
+     * {@code XPathExpression} as thread-safe).
+     *
+     * @param expression the XPath expression to compile
+     * @return the compiled expression
+     * @throws CrawlerSystemException if {@code expression} fails to compile
+     */
+    protected XPathExpression getXPathExpression(final String expression) {
+        return threadLocalXPathCache.get().computeIfAbsent(expression, expr -> {
+            try {
+                return threadLocalXPath.get().compile(expr);
+            } catch (final XPathExpressionException e) {
+                throw new CrawlerSystemException("Failed to compile XPath: expression=" + expr, e);
+            }
+        });
+    }
+
+    /**
+     * Clears the per-thread XPath compilation cache for the calling thread.
+     * Use this if {@link #defaultFieldRules}, {@link #metadataXpathMap}, or
+     * {@link #contentXpath} change after the extractor has already processed
+     * documents on this thread.
+     */
+    public void clearXPathCache() {
+        threadLocalXPathCache.get().clear();
+    }
+
+    /**
      * Extracts strings from a document using the specified XPath expression.
+     * The compiled {@link XPathExpression} is cached per thread, so repeated
+     * calls with the same expression skip recompilation.
      *
      * @param document the DOM document to extract strings from
      * @param path the XPath expression to evaluate
      * @return an array of strings extracted from the document
      */
     protected String[] getStringsByXPath(final Document document, final String path) {
+        // Use the cached compiled expression to evaluate as a node-set first;
+        // node-set is the common case for both content and metadata XPaths.
+        try {
+            final XPathExpression expr = getXPathExpression(path);
+            final NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+            if (nodes == null) {
+                return StringUtil.EMPTY_STRINGS;
+            }
+            final List<String> strList = new ArrayList<>(nodes.getLength());
+            for (int i = 0; i < nodes.getLength(); i++) {
+                final Node node = nodes.item(i);
+                if (node != null) {
+                    final String text = node.getTextContent();
+                    strList.add(text == null ? "" : text);
+                }
+            }
+            return strList.toArray(new String[0]);
+        } catch (final XPathException e) {
+            // Some XPath expressions (boolean(), count(), string(), ...) cannot
+            // be evaluated as a node-set. Fall back to the original path that
+            // handles every result type via XPathAPI.eval, which preserves the
+            // public behaviour for non-node-set expressions.
+            return evaluateNonNodeSet(document, path, e);
+        }
+    }
+
+    /**
+     * Fallback path for XPath expressions whose result type is not a node-set
+     * (e.g., {@code boolean()}, {@code count()}, {@code string()}). Returns
+     * the result coerced to one or more strings.
+     *
+     * @param document the DOM document to extract strings from
+     * @param path the XPath expression to evaluate
+     * @param previousFailure the failure raised by the node-set evaluation
+     * @return an array of strings extracted from the document
+     */
+    private String[] evaluateNonNodeSet(final Document document, final String path, final XPathException previousFailure) {
         try {
             final XPathEvaluationResult<?> xObj = getXPathAPI().eval(document, path);
             switch (xObj.type()) {
@@ -140,10 +424,9 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 return new String[] { obj.toString() };
             }
         } catch (final XPathException e) {
-            logger.warn("Failed to parse the content by {}", path, e);
+            logger.warn("Failed to parse the content by {}", path, previousFailure);
             return StringUtil.EMPTY_STRINGS;
         }
-
     }
 
     /**
@@ -286,5 +569,64 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      */
     public void setPropertyMap(final Map<String, String> propertyMap) {
         this.propertyMap = propertyMap;
+    }
+
+    /**
+     * Gets the configured default-field rules (key -&gt; XPath).
+     *
+     * @return the default-field rules
+     */
+    public Map<String, String> getDefaultFieldRules() {
+        return defaultFieldRules;
+    }
+
+    /**
+     * Replaces the default-field rules used for default metadata extraction.
+     * A defensive copy is taken so subsequent mutations of the supplied map do
+     * not affect this extractor.
+     *
+     * @param defaultFieldRules the rules to use; if {@code null}, defaults are
+     *        re-initialised on the next call to {@link #init()}
+     */
+    public void setDefaultFieldRules(final Map<String, String> defaultFieldRules) {
+        this.defaultFieldRules = defaultFieldRules == null ? null : new LinkedHashMap<>(defaultFieldRules);
+    }
+
+    /**
+     * Returns whether default HTML metadata extraction is enabled.
+     *
+     * @return {@code true} if default metadata is extracted
+     */
+    public boolean isExtractDefaultMetadata() {
+        return extractDefaultMetadata;
+    }
+
+    /**
+     * Enables or disables default HTML metadata extraction (title, description,
+     * OpenGraph, Twitter Card, canonical, keywords, author).
+     *
+     * @param extractDefaultMetadata {@code true} to extract default metadata
+     */
+    public void setExtractDefaultMetadata(final boolean extractDefaultMetadata) {
+        this.extractDefaultMetadata = extractDefaultMetadata;
+    }
+
+    /**
+     * Returns whether JSON-LD extraction is enabled.
+     *
+     * @return {@code true} if JSON-LD blocks are extracted
+     */
+    public boolean isExtractJsonLd() {
+        return extractJsonLd;
+    }
+
+    /**
+     * Enables or disables JSON-LD extraction
+     * ({@code <script type="application/ld+json">}).
+     *
+     * @param extractJsonLd {@code true} to extract JSON-LD blocks
+     */
+    public void setExtractJsonLd(final boolean extractJsonLd) {
+        this.extractJsonLd = extractJsonLd;
     }
 }

@@ -19,11 +19,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +47,6 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDFileSpecification;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -54,9 +58,11 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
  * PdfExtractor extracts text content from PDF files using Apache PDFBox.
  * It supports password-protected PDFs and can extract embedded documents and annotations.
  *
- * <p>The extractor runs text extraction in a separate thread with a configurable timeout
- * to prevent hanging on problematic PDF files. It also extracts metadata from the PDF
- * document and includes it in the extraction result.
+ * <p>Text extraction is run on a background worker via an {@link ExecutorService} with a
+ * configurable timeout. When a timeout occurs, the worker is cancelled (interrupted) and
+ * a short grace period is honoured before the underlying {@link PDDocument} is closed,
+ * which avoids the {@code COSStream is closed} race that can otherwise surface as a
+ * secondary failure when PDFBox does not honour the interrupt promptly.
  *
  * <p>Features:
  * <ul>
@@ -66,6 +72,7 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
  *   <li>Metadata extraction</li>
  *   <li>Password-protected PDF support</li>
  *   <li>Configurable timeout for extraction process</li>
+ *   <li>Configurable grace period for orderly cancellation before document close</li>
  * </ul>
  *
  * @author shinsuke
@@ -74,11 +81,27 @@ public class PdfExtractor extends PasswordBasedExtractor {
     /** Logger instance for this class. */
     private static final Logger logger = LogManager.getLogger(PdfExtractor.class);
 
-    /** Timeout for PDF extraction in milliseconds (default: 30 seconds). */
-    protected long timeout = 30000; // 30sec
+    /** Counter used to give worker threads unique, descriptive names. */
+    private static final AtomicLong WORKER_COUNTER = new AtomicLong();
 
-    /** Whether the extraction thread should be a daemon thread. */
-    protected boolean isDaemonThread = false;
+    /**
+     * Daemon thread factory used by per-call executors. Daemon threads do not block JVM
+     * shutdown, so a runaway PDFBox worker cannot prevent the host process from exiting.
+     */
+    private static final ThreadFactory DAEMON_THREAD_FACTORY = r -> {
+        final Thread t = new Thread(r, "PdfExtractor-worker-" + WORKER_COUNTER.incrementAndGet());
+        t.setDaemon(true);
+        return t;
+    };
+
+    /** Timeout for PDF extraction in milliseconds (default: 30 seconds). */
+    protected long timeout = 30000L; // 30sec
+
+    /**
+     * Grace period (in milliseconds) to wait after cancellation for the worker thread to
+     * stop before the underlying {@link PDDocument} is closed. Default: 2 seconds.
+     */
+    protected long cancelGracePeriodMs = 2000L;
 
     /**
      * Creates a new PdfExtractor instance.
@@ -102,41 +125,74 @@ public class PdfExtractor extends PasswordBasedExtractor {
         final String password = getPassword(params);
         try (PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(in), password)) {
             final StringWriter writer = new StringWriter();
-            final PDFTextStripper stripper = new PDFTextStripper();
-            final AtomicBoolean done = new AtomicBoolean(false);
-            final PDDocument doc = document;
-            final Set<Exception> exceptionSet = new HashSet<>();
-            final Thread task = new Thread(() -> {
+            final PDFTextStripper stripper = createStripper();
+
+            final ExecutorService executor = Executors.newSingleThreadExecutor(DAEMON_THREAD_FACTORY);
+            try {
+                final Future<?> future = executor.submit(() -> {
+                    try {
+                        stripper.writeText(document, writer);
+                        extractEmbeddedDocuments(document, writer);
+                        extractAnnotations(document, writer);
+                    } catch (final IOException e) {
+                        throw new CrawlerSystemException("Failed to extract PDF text.", e);
+                    }
+                });
                 try {
-                    stripper.writeText(doc, writer);
-                    extractEmbeddedDocuments(doc, writer);
-                    extractAnnotations(doc, writer);
-                } catch (final Exception e) {
-                    exceptionSet.add(e);
-                } finally {
-                    done.set(true);
+                    future.get(timeout, TimeUnit.MILLISECONDS);
+                } catch (final TimeoutException e) {
+                    future.cancel(true);
+                    throw new ExtractException("PDFBox process cannot finish in " + timeout + " ms.", e);
+                } catch (final ExecutionException e) {
+                    final Throwable cause = e.getCause() != null ? e.getCause() : e;
+                    if (cause instanceof ExtractException) {
+                        throw (ExtractException) cause;
+                    }
+                    throw new ExtractException("PDF extraction failed.", cause);
+                } catch (final InterruptedException e) {
+                    future.cancel(true);
+                    Thread.currentThread().interrupt();
+                    throw new ExtractException("PDF extraction was interrupted.", e);
                 }
-            }, Thread.currentThread().getName() + "-pdf");
-            task.setDaemon(isDaemonThread);
-            task.start();
-            task.join(timeout);
-            if (!done.get()) {
-                for (int i = 0; i < 100 && !done.get(); i++) {
-                    task.interrupt();
-                    ThreadUtil.sleep(100L);
+            } finally {
+                // Stop any laggard task and wait briefly so the worker stops touching the
+                // PDDocument before try-with-resources closes it. This avoids the
+                // "COSStream is closed" secondary failure on cancellation.
+                executor.shutdownNow();
+                try {
+                    if (!executor.awaitTermination(cancelGracePeriodMs, TimeUnit.MILLISECONDS) && logger.isDebugEnabled()) {
+                        logger.debug("PdfExtractor worker did not terminate within {} ms grace period.", cancelGracePeriodMs);
+                    }
+                } catch (final InterruptedException ignore) {
+                    Thread.currentThread().interrupt();
                 }
-                throw new ExtractException("PDFBox process cannot finish in " + timeout + " sec.");
             }
-            if (!exceptionSet.isEmpty()) {
-                throw exceptionSet.iterator().next();
-            }
+
             writer.flush();
             final ExtractData extractData = new ExtractData(writer.toString());
             extractMetadata(document, extractData);
             return extractData;
+        } catch (final ExtractException e) {
+            throw e;
+        } catch (final CrawlerSystemException e) {
+            throw e;
+        } catch (final IOException e) {
+            throw new ExtractException("Failed to load PDF.", e);
         } catch (final Exception e) {
             throw new ExtractException(e);
         }
+    }
+
+    /**
+     * Creates a {@link PDFTextStripper} for the extraction. Subclasses may override this
+     * factory method to inject a custom stripper (for example, to simulate slow extraction
+     * in tests).
+     *
+     * @return a newly created text stripper
+     * @throws IOException if the stripper cannot be constructed
+     */
+    protected PDFTextStripper createStripper() throws IOException {
+        return new PDFTextStripper();
     }
 
     /**
@@ -311,10 +367,35 @@ public class PdfExtractor extends PasswordBasedExtractor {
     }
 
     /**
-     * Sets whether the extraction thread should be a daemon thread.
-     * @param isDaemonThread true to make it a daemon thread, false otherwise.
+     * Gets the grace period (in milliseconds) used after cancellation, before the
+     * underlying {@link PDDocument} is closed.
+     * @return the grace period in milliseconds
      */
+    public long getCancelGracePeriodMs() {
+        return cancelGracePeriodMs;
+    }
+
+    /**
+     * Sets the grace period (in milliseconds) used after cancellation, before the
+     * underlying {@link PDDocument} is closed. The default is 2000 ms.
+     * @param cancelGracePeriodMs the grace period in milliseconds; must be non-negative
+     */
+    public void setCancelGracePeriodMs(final long cancelGracePeriodMs) {
+        this.cancelGracePeriodMs = cancelGracePeriodMs;
+    }
+
+    /**
+     * Sets whether the extraction thread should be a daemon thread.
+     *
+     * <p>Retained for backwards compatibility. The {@link ExecutorService}-based
+     * implementation always uses daemon worker threads, so this setter is effectively a
+     * no-op.
+     *
+     * @param isDaemonThread ignored; daemon worker threads are always used
+     * @deprecated Worker threads are always daemon threads now; this setter has no effect.
+     */
+    @Deprecated
     public void setDaemonThread(final boolean isDaemonThread) {
-        this.isDaemonThread = isDaemonThread;
+        // no-op: daemon worker threads are always used
     }
 }

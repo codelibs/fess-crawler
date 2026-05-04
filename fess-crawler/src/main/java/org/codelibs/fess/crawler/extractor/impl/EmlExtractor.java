@@ -18,11 +18,14 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -33,6 +36,7 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
@@ -52,6 +56,19 @@ import jakarta.mail.internet.MimeUtility;
 /**
  * Gets a text from .eml file.
  *
+ * <p>EML content is treated as untrusted. The extractor enforces the following
+ * defensive bounds against malformed or malicious messages:</p>
+ * <ul>
+ *   <li>{@link #maxRecursionDepth} (default 10) caps how deeply nested
+ *       {@code message/rfc822} or {@code multipart/*} parts may be.</li>
+ *   <li>{@link #maxParts} (default 1000) caps the total number of MIME parts
+ *       traversed across the whole message.</li>
+ *   <li>{@link #maxBodyBytes} (default 50 MiB) caps the total UTF-8 byte size
+ *       of body text appended to the output.</li>
+ * </ul>
+ * <p>RFC 2047 encoded-word headers (e.g. {@code Subject},
+ * {@code From}, {@code To}) are decoded via {@link MimeUtility#decodeText}.</p>
+ *
  * @author shinsuke
  *
  */
@@ -64,6 +81,15 @@ public class EmlExtractor extends AbstractExtractor {
 
     /** Properties used for mail processing */
     protected Properties mailProperties = new Properties();
+
+    /** Maximum allowed nesting depth for multipart / message/rfc822 parts. */
+    protected int maxRecursionDepth = 10;
+
+    /** Maximum allowed total number of MIME parts visited per message. */
+    protected int maxParts = 1000;
+
+    /** Maximum total body bytes (UTF-8) appended to the extracted content. */
+    protected long maxBodyBytes = 50L * 1024 * 1024;
 
     /**
      * Constructs a new EmlExtractor.
@@ -86,8 +112,9 @@ public class EmlExtractor extends AbstractExtractor {
         try {
             final Session mailSession = Session.getDefaultInstance(props, null);
             final MimeMessage message = new MimeMessage(mailSession, in);
-            final String content = getBodyText(message);
-            final ExtractData data = new ExtractData(content != null ? content : StringUtil.EMPTY);
+            final BodyExtractionContext ctx = new BodyExtractionContext();
+            extractBody(message, ctx, 0);
+            final ExtractData data = new ExtractData(ctx.body.toString());
             final Enumeration<Header> headers = message.getAllHeaders();
             while (headers.hasMoreElements()) {
                 final Header header = headers.nextElement();
@@ -114,8 +141,27 @@ public class EmlExtractor extends AbstractExtractor {
             putValue(data, "To", message.getRecipients(Message.RecipientType.TO));
             putValue(data, "Cc", message.getRecipients(Message.RecipientType.CC));
             putValue(data, "Bcc", message.getRecipients(Message.RecipientType.BCC));
+
+            // normalized convenience metadata (always RFC 2047 decoded)
+            putDecodedHeaderValue(data, "subject", message.getSubject());
+            putDecodedAddressValues(data, "from", message.getFrom());
+            putDecodedAddressValues(data, "to", message.getRecipients(Message.RecipientType.TO));
+            putDecodedAddressValues(data, "cc", message.getRecipients(Message.RecipientType.CC));
+            putDecodedAddressValues(data, "bcc", message.getRecipients(Message.RecipientType.BCC));
+            putDecodedAddressValues(data, "replyTo", message.getReplyTo());
+            putDateValue(data, "sentDate", message.getSentDate());
+            putDateValue(data, "receivedDate", getReceivedDate(message));
+            if (message.getMessageID() != null) {
+                data.putValue("messageId", message.getMessageID());
+            }
+
+            if (!ctx.attachmentNames.isEmpty()) {
+                data.putValues("attachmentNames", ctx.attachmentNames.toArray(new String[0]));
+            }
             return data;
         } catch (final MessagingException e) {
+            throw new ExtractException(e);
+        } catch (final IOException e) {
             throw new ExtractException(e);
         }
     }
@@ -162,6 +208,57 @@ public class EmlExtractor extends AbstractExtractor {
     }
 
     /**
+     * Stores a decoded header value if non-null/non-blank.
+     *
+     * @param data the extract data
+     * @param key the metadata key
+     * @param raw the raw header value, may be {@code null}
+     */
+    protected void putDecodedHeaderValue(final ExtractData data, final String key, final String raw) {
+        if (raw == null) {
+            return;
+        }
+        final String decoded = getDecodeText(raw);
+        if (!StringUtil.isEmpty(decoded)) {
+            data.putValue(key, decoded);
+        }
+    }
+
+    /**
+     * Stores a decoded address array as a multivalue metadata entry.
+     *
+     * @param data the extract data
+     * @param key the metadata key
+     * @param addresses the address array, may be {@code null}
+     */
+    protected void putDecodedAddressValues(final ExtractData data, final String key, final Address[] addresses) {
+        if (addresses == null || addresses.length == 0) {
+            return;
+        }
+        final String[] values = new String[addresses.length];
+        for (int i = 0; i < addresses.length; i++) {
+            values[i] = getDecodeText(addresses[i].toString());
+        }
+        data.putValues(key, values);
+    }
+
+    /**
+     * Stores a Date as an ISO-8601 UTC string under the given key.
+     *
+     * @param data the extract data
+     * @param key the metadata key
+     * @param date the date, may be {@code null}
+     */
+    protected void putDateValue(final ExtractData data, final String key, final Date date) {
+        if (date == null) {
+            return;
+        }
+        final SimpleDateFormat sdf = new SimpleDateFormat(Constants.ISO_DATETIME_FORMAT);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        data.putValue(key, sdf.format(date));
+    }
+
+    /**
      * Decodes MIME-encoded text.
      *
      * @param value the encoded text to decode
@@ -198,51 +295,272 @@ public class EmlExtractor extends AbstractExtractor {
     }
 
     /**
+     * Returns the maximum allowed recursion depth.
+     *
+     * @return the maximum recursion depth
+     */
+    public int getMaxRecursionDepth() {
+        return maxRecursionDepth;
+    }
+
+    /**
+     * Sets the maximum allowed recursion depth for nested multipart /
+     * {@code message/rfc822} parts.
+     *
+     * @param maxRecursionDepth the maximum recursion depth
+     */
+    public void setMaxRecursionDepth(final int maxRecursionDepth) {
+        this.maxRecursionDepth = maxRecursionDepth;
+    }
+
+    /**
+     * Returns the maximum total number of MIME parts visited per message.
+     *
+     * @return the maximum number of parts
+     */
+    public int getMaxParts() {
+        return maxParts;
+    }
+
+    /**
+     * Sets the maximum total number of MIME parts visited per message.
+     *
+     * @param maxParts the maximum number of parts
+     */
+    public void setMaxParts(final int maxParts) {
+        this.maxParts = maxParts;
+    }
+
+    /**
+     * Returns the maximum total UTF-8 body bytes appended to extracted content.
+     *
+     * @return the maximum body bytes
+     */
+    public long getMaxBodyBytes() {
+        return maxBodyBytes;
+    }
+
+    /**
+     * Sets the maximum total UTF-8 body bytes appended to extracted content.
+     *
+     * @param maxBodyBytes the maximum body bytes
+     */
+    public void setMaxBodyBytes(final long maxBodyBytes) {
+        this.maxBodyBytes = maxBodyBytes;
+    }
+
+    /**
      * Extracts the body text from a MIME message.
+     *
+     * <p>Retained for backwards compatibility. Internally delegates to
+     * {@link #extractBody(Part, BodyExtractionContext, int)} with a fresh
+     * context.</p>
      *
      * @param message the MIME message to extract text from
      * @return the extracted body text
      * @throws ExtractException if extraction fails
      */
     protected String getBodyText(final MimeMessage message) {
-        final StringBuilder buf = new StringBuilder(1000);
         try {
-            final Object content = message.getContent();
-            if (content instanceof final Multipart multipart) {
-                final int count = multipart.getCount();
-                for (int i = 0; i < count; i++) {
-                    final BodyPart bodyPart = multipart.getBodyPart(i);
-                    if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
-                        appendAttachment(buf, bodyPart);
-                    } else if (bodyPart.isMimeType("text/plain") || bodyPart.isMimeType("text/html")) {
-                        buf.append(bodyPart.getContent().toString()).append(' ');
-                    } else if (bodyPart.isMimeType("multipart/alternative") && bodyPart.getContent() instanceof Multipart) {
-                        final Multipart alternativePart = (Multipart) bodyPart.getContent();
-                        for (int j = 0; j < alternativePart.getCount(); j++) {
-                            final BodyPart innerBodyPart = alternativePart.getBodyPart(j);
-                            if (innerBodyPart.isMimeType("text/plain")) {
-                                buf.append(innerBodyPart.getContent().toString()).append(' ');
-                                break;
-                            }
-                        }
-                    }
-                }
-            } else if (content instanceof String) {
-                buf.append(content.toString());
-            }
+            final BodyExtractionContext ctx = new BodyExtractionContext();
+            extractBody(message, ctx, 0);
+            return ctx.body.toString();
         } catch (MessagingException | IOException e) {
             throw new ExtractException(e);
         }
-        return buf.toString();
     }
 
     /**
-     * Appends attachment content to the buffer if it can be extracted.
+     * Recursively extracts text content from a MIME part, enforcing recursion,
+     * part-count, and body-byte bounds.
+     *
+     * @param part the current MIME part
+     * @param ctx the extraction context tracking accumulated state
+     * @param depth the current recursion depth (root = 0)
+     * @throws MessagingException if a JavaMail call fails
+     * @throws IOException if reading part content fails
+     */
+    protected void extractBody(final Part part, final BodyExtractionContext ctx, final int depth) throws MessagingException, IOException {
+        if (depth > maxRecursionDepth) {
+            throw new MaxLengthExceededException("EML recursion too deep: depth=" + depth + " max=" + maxRecursionDepth);
+        }
+        ctx.partCount++;
+        if (ctx.partCount > maxParts) {
+            throw new MaxLengthExceededException("EML part count exceeded: max=" + maxParts);
+        }
+
+        // Treat explicitly-marked attachments as attachments regardless of mime type.
+        if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+            recordAttachment(ctx, part);
+            return;
+        }
+
+        if (part.isMimeType("text/*")) {
+            final Object content;
+            try {
+                content = part.getContent();
+            } catch (final IOException e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to read text part content.", e);
+                }
+                return;
+            }
+            if (content != null) {
+                appendBody(ctx, content.toString());
+            }
+            return;
+        }
+
+        if (part.isMimeType("multipart/alternative")) {
+            final Object content = part.getContent();
+            if (content instanceof Multipart) {
+                final Multipart mp = (Multipart) content;
+                // Prefer text/plain alternative; fall back to first text/* alternative.
+                BodyPart chosen = null;
+                for (int i = 0; i < mp.getCount(); i++) {
+                    final BodyPart bp = mp.getBodyPart(i);
+                    if (bp.isMimeType("text/plain")) {
+                        chosen = bp;
+                        break;
+                    }
+                }
+                if (chosen == null) {
+                    for (int i = 0; i < mp.getCount(); i++) {
+                        final BodyPart bp = mp.getBodyPart(i);
+                        if (bp.isMimeType("text/*")) {
+                            chosen = bp;
+                            break;
+                        }
+                    }
+                }
+                if (chosen != null) {
+                    extractBody(chosen, ctx, depth + 1);
+                } else {
+                    // No text alternative; recurse into all parts (attachments, nested multipart).
+                    for (int i = 0; i < mp.getCount(); i++) {
+                        extractBody(mp.getBodyPart(i), ctx, depth + 1);
+                    }
+                }
+            }
+            return;
+        }
+
+        if (part.isMimeType("multipart/*")) {
+            final Object content = part.getContent();
+            if (content instanceof Multipart) {
+                final Multipart mp = (Multipart) content;
+                for (int i = 0; i < mp.getCount(); i++) {
+                    extractBody(mp.getBodyPart(i), ctx, depth + 1);
+                }
+            }
+            return;
+        }
+
+        if (part.isMimeType("message/rfc822")) {
+            final Object content = part.getContent();
+            if (content instanceof Part) {
+                extractBody((Part) content, ctx, depth + 1);
+            }
+            return;
+        }
+
+        // Anything else with a filename is an inline attachment-like part.
+        recordAttachment(ctx, part);
+    }
+
+    /**
+     * Records an attachment filename (decoded) and attempts in-extractor text
+     * extraction for known mime types, mirroring previous behavior.
+     *
+     * @param ctx the extraction context
+     * @param part the attachment-like part
+     */
+    protected void recordAttachment(final BodyExtractionContext ctx, final Part part) {
+        try {
+            final String rawName = part.getFileName();
+            if (!StringUtil.isEmpty(rawName)) {
+                final String decoded = getDecodeText(rawName);
+                if (!StringUtil.isEmpty(decoded)) {
+                    ctx.attachmentNames.add(decoded);
+                }
+            }
+        } catch (final MessagingException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to read attachment filename.", e);
+            }
+        }
+        if (part instanceof BodyPart) {
+            appendAttachment(ctx, (BodyPart) part);
+        }
+    }
+
+    /**
+     * Appends body text to the extraction context, enforcing
+     * {@link #maxBodyBytes}. Truncates any text that would push the total over
+     * the limit.
+     *
+     * @param ctx the extraction context
+     * @param text the text to append
+     */
+    protected void appendBody(final BodyExtractionContext ctx, final String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        if (ctx.bodyBytes >= maxBodyBytes) {
+            return;
+        }
+        final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+        final long remaining = maxBodyBytes - ctx.bodyBytes;
+        if (bytes.length <= remaining) {
+            ctx.body.append(text).append(' ');
+            ctx.bodyBytes += bytes.length + 1;
+        } else {
+            // Truncate at character boundary that fits within remaining budget.
+            int lo = 0;
+            int hi = text.length();
+            while (lo < hi) {
+                final int mid = lo + ((hi - lo + 1) >>> 1);
+                if (text.substring(0, mid).getBytes(StandardCharsets.UTF_8).length <= remaining) {
+                    lo = mid;
+                } else {
+                    hi = mid - 1;
+                }
+            }
+            if (lo > 0) {
+                final String truncated = text.substring(0, lo);
+                ctx.body.append(truncated);
+                ctx.bodyBytes += truncated.getBytes(StandardCharsets.UTF_8).length;
+            }
+            ctx.bodyBytes = maxBodyBytes;
+            if (logger.isDebugEnabled()) {
+                logger.debug("EML body truncated at {} bytes.", maxBodyBytes);
+            }
+        }
+    }
+
+    /**
+     * Backwards-compatible attachment text extraction. Kept for subclasses that
+     * may have overridden it; new code should prefer
+     * {@link #appendAttachment(BodyExtractionContext, BodyPart)}.
      *
      * @param buf the buffer to append content to
      * @param bodyPart the body part containing the attachment
      */
     protected void appendAttachment(final StringBuilder buf, final BodyPart bodyPart) {
+        final BodyExtractionContext ctx = new BodyExtractionContext();
+        ctx.body = buf;
+        appendAttachment(ctx, bodyPart);
+    }
+
+    /**
+     * Attempts to extract text from an attachment using a registered
+     * {@link Extractor} for its detected MIME type. Failures are silently
+     * swallowed.
+     *
+     * @param ctx the extraction context
+     * @param bodyPart the attachment body part
+     */
+    protected void appendAttachment(final BodyExtractionContext ctx, final BodyPart bodyPart) {
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
         try {
@@ -255,7 +573,9 @@ public class EmlExtractor extends AbstractExtractor {
                         final Map<String, String> map = new HashMap<>();
                         map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                         final String content = extractor.getText(in, map).getContent();
-                        buf.append(content).append(' ');
+                        if (content != null) {
+                            appendBody(ctx, content);
+                        }
                     } catch (final Exception e) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Exception in an internal extractor.", e);
@@ -311,5 +631,22 @@ public class EmlExtractor extends AbstractExtractor {
             }
         }
         return null;
+    }
+
+    /**
+     * Mutable state shared across recursive body extraction.
+     */
+    protected static class BodyExtractionContext {
+        /** Accumulated body text. */
+        protected StringBuilder body = new StringBuilder(1000);
+
+        /** Number of MIME parts visited so far. */
+        protected int partCount;
+
+        /** UTF-8 bytes already appended to {@link #body}. */
+        protected long bodyBytes;
+
+        /** Decoded attachment filenames. */
+        protected List<String> attachmentNames = new ArrayList<>();
     }
 }

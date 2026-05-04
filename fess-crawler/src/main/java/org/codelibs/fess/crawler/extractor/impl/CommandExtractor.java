@@ -15,26 +15,33 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.io.BufferedReader;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.exception.InterruptedRuntimeException;
-import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
-import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -73,6 +80,15 @@ public class CommandExtractor extends AbstractExtractor {
 
     /** Whether to redirect standard output to a file. */
     protected boolean standardOutput = false;
+
+    /** Maximum bytes the subprocess is allowed to write to a single drained stream (stdout/stderr). */
+    protected long maxOutputSize = 10L * 1024L * 1024L; // 10 MiB
+
+    /** Maximum bytes copied from the input stream into the temporary input file. */
+    protected long maxInputSize = 100L * 1024L * 1024L; // 100 MiB
+
+    /** Grace period (ms) given to a process after destroy() before destroyForcibly() is invoked. */
+    protected long destroyGracePeriodMillis = 2000L;
 
     /**
      * Constructs a new CommandExtractor.
@@ -132,8 +148,8 @@ public class CommandExtractor extends AbstractExtractor {
             }
             outputFile = createTempFile("cmdextout_" + filePrefix + "_", ext, tempDir);
 
-            // store to a file
-            CopyUtil.copy(in, inputFile);
+            // store to a file (bounded by maxInputSize)
+            copyToFileBounded(in, inputFile, maxInputSize);
 
             executeCommand(inputFile, outputFile);
 
@@ -148,6 +164,32 @@ public class CommandExtractor extends AbstractExtractor {
         } finally {
             FileUtil.deleteInBackground(inputFile);
             FileUtil.deleteInBackground(outputFile);
+        }
+    }
+
+    /**
+     * Copies an input stream into the destination file but stops and throws if the
+     * number of bytes read exceeds {@code limit}.
+     *
+     * @param in the input stream to read from
+     * @param dest the destination file
+     * @param limit the maximum number of bytes allowed
+     * @throws IOException if an I/O error occurs
+     * @throws ExtractException if the input stream exceeds {@code limit}
+     */
+    protected void copyToFileBounded(final InputStream in, final File dest, final long limit) throws IOException {
+        long total = 0L;
+        final byte[] buffer = new byte[8192];
+        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(dest))) {
+            int n;
+            while ((n = in.read(buffer)) != -1) {
+                total += n;
+                if (total > limit) {
+                    logger.warn("input size exceeded limit: limit={} command={}", limit, command);
+                    throw new ExtractException("input size exceeded limit: limit=" + limit);
+                }
+                out.write(buffer, 0, n);
+            }
         }
     }
 
@@ -181,27 +223,68 @@ public class CommandExtractor extends AbstractExtractor {
         }
         if (standardOutput) {
             pb.redirectOutput(outputFile);
-        } else {
-            pb.redirectErrorStream(true);
         }
+        // Note: do not redirect error stream when standardOutput=true; we want stderr drained separately.
+        // When standardOutput=false stdout is captured by us via getInputStream(); both streams must be drained.
 
         Process currentProcess = null;
-        MonitorThread mt = null;
+        ExecutorService streamPool = null;
+        Charset outCharset;
+        try {
+            outCharset = Charset.forName(commandOutputEncoding);
+        } catch (final Exception e) {
+            outCharset = StandardCharsets.UTF_8;
+        }
+
         try {
             currentProcess = pb.start();
 
-            // monitoring
-            mt = new MonitorThread(currentProcess, executionTimeout);
-            mt.start();
+            streamPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory("CommandExtractor-stream"));
 
-            final InputStreamThread it = new InputStreamThread(currentProcess.getInputStream(), commandOutputEncoding, maxOutputLine);
-            it.start();
+            // Drain stdout (only if we are not redirecting it to a file).
+            final Process processRef = currentProcess;
+            final Charset charset = outCharset;
+            final long limit = maxOutputSize;
+            final Future<String> stdoutFuture;
+            if (standardOutput) {
+                // stdout is being written directly to outputFile by the JVM redirection; nothing to drain.
+                stdoutFuture = null;
+            } else {
+                stdoutFuture =
+                        streamPool.submit(new BoundedStreamReader(processRef.getInputStream(), charset, limit, processRef, "stdout"));
+            }
+            final Future<String> stderrFuture =
+                    streamPool.submit(new BoundedStreamReader(processRef.getErrorStream(), charset, limit, processRef, "stderr"));
 
-            currentProcess.waitFor();
-            it.join(5000);
-
-            if (mt.isTeminated()) {
+            final boolean finished = currentProcess.waitFor(executionTimeout, TimeUnit.MILLISECONDS);
+            if (!finished) {
+                logger.warn("command timed out: timeout={}ms command={}", executionTimeout, cmdList);
+                destroyProcessTree(currentProcess);
                 throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
+            }
+
+            // Process exited; collect drained output. Use a short timeout to avoid waiting forever
+            // if the reader threads are stuck (they shouldn't be since the streams are now closed).
+            String stdoutText = "";
+            String stderrText = "";
+            try {
+                if (stdoutFuture != null) {
+                    stdoutText = stdoutFuture.get(5, TimeUnit.SECONDS);
+                }
+                stderrText = stderrFuture.get(5, TimeUnit.SECONDS);
+            } catch (final TimeoutException te) {
+                logger.warn("timed out collecting drained output: command={}", cmdList);
+            } catch (final ExecutionException ee) {
+                final Throwable cause = ee.getCause();
+                if (cause instanceof OutputSizeExceededException) {
+                    logger.warn("command output exceeded limit: limit={} command={}", maxOutputSize, cmdList);
+                    destroyProcessTree(currentProcess);
+                    throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize);
+                }
+                if (cause instanceof IOException) {
+                    throw new CrawlerSystemException("Failed to drain command output.", cause);
+                }
+                throw new CrawlerSystemException("Failed to drain command output.", ee);
             }
 
             final int exitValue = currentProcess.exitValue();
@@ -210,36 +293,87 @@ public class CommandExtractor extends AbstractExtractor {
                 if (standardOutput) {
                     logger.info("Exit Code: {}", exitValue);
                 } else {
-                    logger.info("Exit Code: {} - Process Output:\n{}", exitValue, it.getOutput());
+                    logger.info("Exit Code: {} - Process Output:\n{}", exitValue, truncateForLog(stdoutText));
                 }
-            }
-            if (exitValue == 143 && mt.isTeminated()) {
-                throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
+                if (StringUtil.isNotEmpty(stderrText)) {
+                    logger.info("Process Stderr:\n{}", truncateForLog(stderrText));
+                }
             }
         } catch (final CrawlerSystemException e) {
             throw e;
         } catch (final InterruptedException e) {
-            if (mt != null && mt.isTeminated()) {
-                throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList, e);
+            Thread.currentThread().interrupt();
+            if (currentProcess != null) {
+                destroyProcessTree(currentProcess);
             }
             throw new InterruptedRuntimeException(e);
         } catch (final Exception e) {
             throw new CrawlerSystemException("Process terminated.", e);
         } finally {
-            if (mt != null) {
-                mt.setFinished(true);
-                try {
-                    mt.interrupt();
-                } catch (final Exception e) {}
+            if (currentProcess != null && currentProcess.isAlive()) {
+                destroyProcessTree(currentProcess);
             }
-            if (currentProcess != null) {
-                try {
-                    currentProcess.destroy();
-                } catch (final Exception e) {}
+            if (streamPool != null) {
+                streamPool.shutdownNow();
             }
-            currentProcess = null;
-
         }
+    }
+
+    /**
+     * Sends SIGTERM, waits a grace period, then SIGKILL to the process and any descendants.
+     *
+     * @param process the process to terminate
+     */
+    protected void destroyProcessTree(final Process process) {
+        if (process == null) {
+            return;
+        }
+        try {
+            process.destroy();
+        } catch (final Exception e) {
+            // ignore
+        }
+        try {
+            if (!process.waitFor(destroyGracePeriodMillis, TimeUnit.MILLISECONDS)) {
+                try {
+                    process.descendants().forEach(ProcessHandle::destroyForcibly);
+                } catch (final Exception e) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to forcibly destroy descendants.", e);
+                    }
+                }
+                try {
+                    process.destroyForcibly();
+                } catch (final Exception e) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to forcibly destroy process.", e);
+                    }
+                }
+            }
+        } catch (final InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            try {
+                process.descendants().forEach(ProcessHandle::destroyForcibly);
+            } catch (final Exception e) {
+                // ignore
+            }
+            try {
+                process.destroyForcibly();
+            } catch (final Exception e) {
+                // ignore
+            }
+        }
+    }
+
+    private static String truncateForLog(final String s) {
+        if (s == null) {
+            return "";
+        }
+        final int max = 4000;
+        if (s.length() <= max) {
+            return s;
+        }
+        return s.substring(0, max) + "... [truncated]";
     }
 
     /**
@@ -301,119 +435,106 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     /**
-     * Thread to monitor and terminate processes that exceed the timeout.
+     * Daemon thread factory for stream-drain workers.
      */
-    protected static class MonitorThread extends Thread {
-        private final Process process;
-
-        private final long timeout;
-
-        private boolean finished = false;
-
-        private boolean teminated = false;
+    protected static class DaemonThreadFactory implements ThreadFactory {
+        private final String namePrefix;
+        private final AtomicInteger counter = new AtomicInteger();
 
         /**
-         * Constructs a new MonitorThread.
-         * @param process The process to monitor.
-         * @param timeout The timeout for the process.
+         * Constructs a new DaemonThreadFactory.
+         *
+         * @param namePrefix the prefix used to name threads created by this factory
          */
-        public MonitorThread(final Process process, final long timeout) {
-            this.process = process;
-            this.timeout = timeout;
+        public DaemonThreadFactory(final String namePrefix) {
+            this.namePrefix = namePrefix;
         }
 
         @Override
-        public void run() {
-            ThreadUtil.sleepQuietly(timeout);
-
-            if (!finished) {
-                try {
-                    process.destroy();
-                    teminated = true;
-                } catch (final Exception e) {
-                    if (logger.isInfoEnabled()) {
-                        logger.info("Could not kill the subprocess.", e);
-                    }
-                }
-            }
-        }
-
-        /**
-         * Sets the finished flag.
-         * @param finished The finished flag to set.
-         */
-        public void setFinished(final boolean finished) {
-            this.finished = finished;
-        }
-
-        /**
-         * Returns whether the process was terminated.
-         * @return true if terminated, false otherwise.
-         */
-        public boolean isTeminated() {
-            return teminated;
+        public Thread newThread(final Runnable r) {
+            final Thread t = new Thread(r, namePrefix + "-" + counter.incrementAndGet());
+            t.setDaemon(true);
+            return t;
         }
     }
 
     /**
-     * Thread to read and buffer output from an input stream.
+     * Reads a stream fully (up to {@code limit} bytes) and returns it as a String.
+     * If the stream produces more than {@code limit} bytes, the associated process is
+     * destroyed and an {@link OutputSizeExceededException} is thrown.
      */
-    protected static class InputStreamThread extends Thread {
-
-        private BufferedReader br;
-
-        private final List<String> list = new LinkedList<>();
-
-        private final int maxLineBuffer;
+    protected static class BoundedStreamReader implements Callable<String> {
+        private final InputStream stream;
+        private final Charset charset;
+        private final long limit;
+        private final Process process;
+        private final String streamName;
 
         /**
-         * Constructs a new InputStreamThread.
-         * @param is The InputStream to read from.
-         * @param charset The charset to use for reading.
-         * @param maxOutputLineBuffer The maximum number of lines to buffer.
+         * Constructs a new BoundedStreamReader.
+         *
+         * @param stream the input stream to drain
+         * @param charset the charset used to decode the bytes
+         * @param limit the maximum number of bytes accepted before the process is killed
+         * @param process the process whose stream is being drained (used to destroy on overflow)
+         * @param streamName a label used in error messages and logs
          */
-        public InputStreamThread(final InputStream is, final String charset, final int maxOutputLineBuffer) {
-            try {
-                br = new BufferedReader(new InputStreamReader(is, charset));
-            } catch (final UnsupportedEncodingException e) {
-                br = new BufferedReader(new InputStreamReader(is, Constants.UTF_8_CHARSET));
-            }
-            maxLineBuffer = maxOutputLineBuffer;
+        public BoundedStreamReader(final InputStream stream, final Charset charset, final long limit, final Process process,
+                final String streamName) {
+            this.stream = stream;
+            this.charset = charset;
+            this.limit = limit;
+            this.process = process;
+            this.streamName = streamName;
         }
 
         @Override
-        public void run() {
-            for (;;) {
-                try {
-                    final String line = br.readLine();
-                    if (line == null) {
-                        break;
+        public String call() throws IOException {
+            final byte[] buf = new byte[8192];
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            long total = 0L;
+            try (InputStream is = stream) {
+                int n;
+                while ((n = is.read(buf)) != -1) {
+                    total += n;
+                    if (total > limit) {
+                        // Kill the process so the producer stops; otherwise we may keep getting bytes.
+                        try {
+                            process.destroyForcibly();
+                        } catch (final Exception e) {
+                            // ignore
+                        }
+                        throw new OutputSizeExceededException(
+                                "command output exceeded limit on " + streamName + ": limit=" + limit + " bytes");
                     }
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(line);
-                    }
-                    list.add(line);
-                    if (list.size() > maxLineBuffer) {
-                        list.remove(0);
-                    }
-                } catch (final IOException e) {
-                    throw new CrawlerSystemException(e);
+                    baos.write(buf, 0, n);
+                }
+            } catch (final OutputSizeExceededException e) {
+                throw e;
+            } catch (final IOException ioe) {
+                // The pipe may be closed when the process is killed; treat as end-of-stream.
+                if (logger.isDebugEnabled()) {
+                    logger.debug("stream read interrupted: stream={}", streamName, ioe);
                 }
             }
+            return new String(baos.toByteArray(), charset);
         }
+    }
+
+    /**
+     * Internal signal that the subprocess produced more output than allowed.
+     */
+    protected static class OutputSizeExceededException extends IOException {
+        private static final long serialVersionUID = 1L;
 
         /**
-         * Returns the output as a String.
-         * @return The output string.
+         * Constructs a new OutputSizeExceededException.
+         *
+         * @param message the detail message
          */
-        public String getOutput() {
-            final StringBuilder buf = new StringBuilder(100);
-            for (final String value : list) {
-                buf.append(value).append("\n");
-            }
-            return buf.toString();
+        public OutputSizeExceededException(final String message) {
+            super(message);
         }
-
     }
 
     /**
@@ -486,5 +607,36 @@ public class CommandExtractor extends AbstractExtractor {
      */
     public void setStandardOutput(final boolean standardOutput) {
         this.standardOutput = standardOutput;
+    }
+
+    /**
+     * Sets the maximum number of bytes the subprocess may write to a single stream
+     * (stdout or stderr) before the process is killed.
+     *
+     * @param maxOutputSize the limit in bytes
+     */
+    public void setMaxOutputSize(final long maxOutputSize) {
+        this.maxOutputSize = maxOutputSize;
+    }
+
+    /**
+     * Sets the maximum number of bytes copied from the input stream into the
+     * temporary input file. If the input exceeds this size an {@link ExtractException}
+     * is thrown before the command is invoked.
+     *
+     * @param maxInputSize the limit in bytes
+     */
+    public void setMaxInputSize(final long maxInputSize) {
+        this.maxInputSize = maxInputSize;
+    }
+
+    /**
+     * Sets the grace period in milliseconds between {@code Process.destroy()} (SIGTERM)
+     * and the fallback {@code Process.destroyForcibly()} (SIGKILL).
+     *
+     * @param destroyGracePeriodMillis the grace period
+     */
+    public void setDestroyGracePeriodMillis(final long destroyGracePeriodMillis) {
+        this.destroyGracePeriodMillis = destroyGracePeriodMillis;
     }
 }

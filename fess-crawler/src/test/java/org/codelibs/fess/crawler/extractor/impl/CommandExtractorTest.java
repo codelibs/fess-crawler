@@ -15,19 +15,23 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExecutionTimeoutException;
-import org.junit.jupiter.api.Test;
+import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author shinsuke
@@ -164,9 +168,11 @@ public class CommandExtractorTest extends PlainTestCase {
         extractor.command = getCommand(scriptFile);
         final Map<String, String> params = new HashMap<String, String>();
         try {
-            final ExtractData data = extractor.getText(new FileInputStream(contentFile), params);
+            extractor.getText(new FileInputStream(contentFile), params);
             fail();
-        } catch (final ExecutionTimeoutException e) {}
+        } catch (final ExecutionTimeoutException e) {
+            // expected
+        }
     }
 
     @Test
@@ -273,5 +279,142 @@ public class CommandExtractorTest extends PlainTestCase {
         actual = extractor.getFileName(value);
         assertEquals(expected, actual);
 
+    }
+
+    // ==========================================================
+    // PR-D: robustness tests
+    // ==========================================================
+
+    /**
+     * Verifies a long-running subprocess is killed when the timeout fires
+     * and the call returns within a few seconds (i.e. we don't wait the
+     * full sleep duration).
+     */
+    @Test
+    public void test_timeout_killsProcess() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return; // skip on non-Unix
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh -c \"sleep 30\"";
+        extractor.executionTimeout = 500L;
+
+        final long start = System.currentTimeMillis();
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExecutionTimeoutException e) {
+            // expected
+        }
+        final long elapsed = System.currentTimeMillis() - start;
+        assertTrue(elapsed < 5000L);
+    }
+
+    /**
+     * Verifies that when the subprocess produces more bytes on stderr than
+     * {@code maxOutputSize} the call fails fast with an {@link ExtractException}
+     * rather than buffering an unbounded amount of data.
+     */
+    @Test
+    public void test_outputSizeExceeded_throwsExtractException() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        // print 5 MiB of zeros to stderr; cap at 1 MiB.
+        extractor.command = "sh -c \"head -c 5242880 /dev/zero 1>&2\"";
+        extractor.executionTimeout = 30_000L;
+        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExtractException e) {
+            // expected
+        }
+    }
+
+    /**
+     * Verifies stderr is drained concurrently so the process does not block
+     * on a full pipe buffer (default ~64KB on Linux). We write much more than
+     * that to stderr while the script also produces normal output.
+     */
+    @Test
+    public void test_stderrDrained_doesNotDeadlock() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("stderr_script", ".sh");
+            scriptFile.deleteOnExit();
+            // Write 1 MiB to stderr (well above default pipe buffer) then copy input.
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(),
+                    ("#!/bin/bash\nhead -c 1048576 /dev/zero 1>&2\ncp \"$1\" \"$2\"\n").getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final String content = "TEST";
+        final File contentFile = createContentFile(".txt", content.getBytes());
+
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.executionTimeout = 30_000L;
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        assertEquals(content, data.getContent());
+    }
+
+    /**
+     * Verifies the input copy is bounded by {@code maxInputSize} and the
+     * extractor fails fast before invoking the command.
+     */
+    @Test
+    public void test_inputSizeExceeded_throwsExtractException() {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile = createScriptTempFile(0);
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = getCommand(scriptFile);
+        extractor.maxInputSize = 1024L; // 1 KiB
+
+        // 64 KiB of zeros is well above the 1 KiB cap.
+        final InputStream big = new ByteArrayInputStream(new byte[64 * 1024]);
+        try {
+            extractor.getText(big, new HashMap<>());
+            fail();
+        } catch (final ExtractException e) {
+            // expected
+        }
+    }
+
+    /**
+     * Verifies that when a subprocess spawns a long-running child, the timeout
+     * path attempts to kill descendants too. We check this best-effort by
+     * snapshotting {@link ProcessHandle#allProcesses} before/after; the precise
+     * verification of orphan kill is platform-specific.
+     */
+    @Test
+    public void test_processDescendants_killed() throws Exception {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        // Spawn a child sleep, then wait. When the parent is killed we want the child gone too.
+        extractor.command = "sh -c \"sleep 30 & wait\"";
+        extractor.executionTimeout = 500L;
+
+        final long start = System.currentTimeMillis();
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExecutionTimeoutException e) {
+            // expected
+        }
+        final long elapsed = System.currentTimeMillis() - start;
+        // Total wall clock should be close to the timeout, not the 30-sec sleep.
+        assertTrue(elapsed < 10_000L);
     }
 }

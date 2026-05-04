@@ -16,8 +16,11 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -32,7 +35,6 @@ import org.apache.commons.text.translate.LookupTranslator;
 import org.apache.commons.text.translate.NumericEntityUnescaper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -80,6 +82,18 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
     protected boolean ignoreCommentTag = false;
 
     /**
+     * Maximum number of characters to read from the input. Defaults to
+     * {@link Long#MAX_VALUE} (effectively unlimited). Values less than or
+     * equal to zero are also interpreted as unlimited.
+     */
+    protected long maxTextLength = Long.MAX_VALUE;
+
+    /**
+     * Read buffer size in characters when streaming the XML content.
+     */
+    protected static final int READ_BUFFER_SIZE = 8192;
+
+    /**
      * Constructs a new AbstractXmlExtractor.
      */
     public AbstractXmlExtractor() {
@@ -106,10 +120,52 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
         try {
             final BufferedInputStream bis = new BufferedInputStream(in);
             final String enc = getEncoding(bis);
-            final String content = UNESCAPE_HTML4.translate(new String(InputStreamUtil.getBytes(bis), enc));
+            // Strip any BOM bytes from the actual stream (the encoding lookup above
+            // resets the underlying buffer, so the BOM is still present here).
+            @SuppressWarnings("resource")
+            final BOMInputStream bomStripped = BOMInputStream.builder()
+                    .setInputStream(bis)
+                    .setInclude(false)
+                    .setByteOrderMarks(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_32LE,
+                            ByteOrderMark.UTF_32BE, BOM_UTF_7)
+                    .get();
+            final String content = UNESCAPE_HTML4.translate(readAsString(bomStripped, enc));
             return createExtractData(content);
         } catch (final Exception e) {
             throw new ExtractException(e);
+        }
+    }
+
+    /**
+     * Streams the supplied input into a string using the given charset. The
+     * total number of characters appended is bounded by {@link #maxTextLength}.
+     *
+     * @param in the input stream
+     * @param charset the charset name
+     * @return the decoded content
+     * @throws IOException if reading fails
+     */
+    protected String readAsString(final InputStream in, final String charset) throws IOException {
+        try (Reader reader = new InputStreamReader(in, charset); BufferedReader br = new BufferedReader(reader)) {
+            final StringBuilder sb = new StringBuilder();
+            final char[] buf = new char[READ_BUFFER_SIZE];
+            long total = 0;
+            int n;
+            while ((n = br.read(buf)) >= 0) {
+                if (maxTextLength > 0 && total + n > maxTextLength) {
+                    final int remaining = (int) (maxTextLength - total);
+                    if (remaining > 0) {
+                        sb.append(buf, 0, remaining);
+                    }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Truncating XML content at maxTextLength={} characters", maxTextLength);
+                    }
+                    break;
+                }
+                sb.append(buf, 0, n);
+                total += n;
+            }
+            return sb.toString();
         }
     }
 
@@ -246,6 +302,27 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      */
     public void setIgnoreCommentTag(final boolean ignoreCommentTag) {
         this.ignoreCommentTag = ignoreCommentTag;
+    }
+
+    /**
+     * Returns the maximum number of characters that will be read from the
+     * input stream before truncation.
+     *
+     * @return the maximum text length
+     */
+    public long getMaxTextLength() {
+        return maxTextLength;
+    }
+
+    /**
+     * Sets the maximum number of characters that will be read from the input
+     * stream. Values less than or equal to zero, or {@link Long#MAX_VALUE},
+     * are interpreted as unlimited.
+     *
+     * @param maxTextLength the maximum text length
+     */
+    public void setMaxTextLength(final long maxTextLength) {
+        this.maxTextLength = maxTextLength;
     }
 
 }

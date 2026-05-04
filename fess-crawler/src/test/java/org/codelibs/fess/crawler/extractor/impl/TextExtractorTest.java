@@ -15,7 +15,10 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,5 +64,92 @@ public class TextExtractorTest extends PlainTestCase {
         } catch (final CrawlerSystemException e) {
             // NOP
         }
+    }
+
+    @Test
+    public void test_extractsUtf8() {
+        final String text = "Hello, world! こんにちは";
+        final InputStream in = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+        final String content = textExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertEquals(text, content);
+    }
+
+    @Test
+    public void test_extractsUtf8WithBom() {
+        final String text = "BOM stripped テスト";
+        final byte[] bom = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+        final InputStream in =
+                new SequenceInputStream(new ByteArrayInputStream(bom), new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)));
+        final String content = textExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertEquals(text, content);
+        assertFalse(content.startsWith("﻿"));
+    }
+
+    @Test
+    public void test_extractsUtf16LeWithBom() {
+        // Configure a non-UTF16 encoding to prove the BOM (not the configured encoding) wins.
+        textExtractor.setEncoding("UTF-8");
+        final String text = "Hello UTF-16 LE テスト";
+        final byte[] bom = { (byte) 0xFF, (byte) 0xFE };
+        final InputStream in =
+                new SequenceInputStream(new ByteArrayInputStream(bom), new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_16LE)));
+        final String content = textExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertEquals(text, content);
+    }
+
+    @Test
+    public void test_extractsUtf16BeWithBom() {
+        textExtractor.setEncoding("UTF-8");
+        final String text = "Hello UTF-16 BE テスト";
+        final byte[] bom = { (byte) 0xFE, (byte) 0xFF };
+        final InputStream in =
+                new SequenceInputStream(new ByteArrayInputStream(bom), new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_16BE)));
+        final String content = textExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertEquals(text, content);
+    }
+
+    @Test
+    public void test_extractsShiftJis() {
+        textExtractor.setEncoding("Shift_JIS");
+        final String text = "シフトジステスト hello";
+        final InputStream in = new ByteArrayInputStream(text.getBytes(java.nio.charset.Charset.forName("Shift_JIS")));
+        final String content = textExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertEquals(text, content);
+    }
+
+    @Test
+    public void test_truncatesAtMaxTextLength() {
+        textExtractor.setMaxTextLength(10);
+        final String text = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // 36 chars
+        final InputStream in = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+        final String content = textExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertEquals(10, content.length());
+        assertEquals("0123456789", content);
+    }
+
+    @Test
+    public void test_largeFile_streamsCorrectly() {
+        // 10 MiB of repeating content; verify exact length and a sample.
+        final char[] unit = "abcdefghij".toCharArray();
+        final int unitLen = unit.length;
+        final int totalChars = 10 * 1024 * 1024;
+        final StringBuilder builder = new StringBuilder(totalChars);
+        for (int i = 0; i < totalChars; i++) {
+            builder.append(unit[i % unitLen]);
+        }
+        final String expected = builder.toString();
+        final InputStream in = new ByteArrayInputStream(expected.getBytes(StandardCharsets.UTF_8));
+        final String content = textExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertEquals(totalChars, content.length());
+        // Avoid full equality string comparison (already covered by length); spot check first/last 32.
+        assertEquals(expected.substring(0, 32), content.substring(0, 32));
+        assertEquals(expected.substring(totalChars - 32), content.substring(totalChars - 32));
     }
 }

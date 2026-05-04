@@ -15,7 +15,10 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -177,5 +180,92 @@ public class MarkdownExtractorTest extends PlainTestCase {
 
         // Code blocks should be converted to plain text
         assertTrue(content.contains("public class Example") || content.contains("Example"));
+    }
+
+    @Test
+    public void test_extractsBody() {
+        final String md = "# Title\n\nHello world body.";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        final String content = extractData.getContent();
+        assertTrue(content.contains("Title"));
+        assertTrue(content.contains("Hello world body."));
+    }
+
+    @Test
+    public void test_extractsYamlFrontMatter() {
+        final String md = "---\n" + "title: My Title\n" + "author: Alice\n" + "tags: [one, two]\n" + "---\n\n" + "# Heading\n\nBody.";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        final String[] titles = extractData.getValues("frontmatter.title");
+        assertNotNull(titles);
+        assertEquals("My Title", titles[0]);
+
+        final String[] authors = extractData.getValues("frontmatter.author");
+        assertNotNull(authors);
+        assertEquals("Alice", authors[0]);
+
+        final String content = extractData.getContent();
+        assertTrue(content.contains("Heading"));
+        assertTrue(content.contains("Body."));
+    }
+
+    @Test
+    public void test_handlesNoFrontMatter() {
+        final String md = "Just some plain markdown without front matter.\n\n## Section\n\nText.";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        // No front matter values should be present.
+        assertNull(extractData.getValues("frontmatter.title"));
+
+        final String content = extractData.getContent();
+        assertTrue(content.contains("plain markdown"));
+        assertTrue(content.contains("Section"));
+    }
+
+    @Test
+    public void test_extractsUtf8WithBom() {
+        final String md = "# Heading\n\nBody with BOM.";
+        final byte[] bom = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+        final InputStream in =
+                new SequenceInputStream(new ByteArrayInputStream(bom), new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8)));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        final String content = extractData.getContent();
+        // BOM-induced replacement character at the start of the heading would block parsing as a heading.
+        // After our fix, the heading should be recognized as plain text.
+        assertTrue(content.contains("Heading"));
+        assertTrue(content.contains("Body with BOM."));
+        // Heading metadata extraction should also see the heading correctly.
+        final String[] headings = extractData.getValues("headings");
+        assertNotNull(headings);
+        boolean foundHeading = false;
+        for (final String heading : headings) {
+            if ("Heading".equals(heading)) {
+                foundHeading = true;
+                break;
+            }
+        }
+        assertTrue(foundHeading);
+    }
+
+    @Test
+    public void test_truncatesAtMaxTextLength() {
+        markdownExtractor.setMaxTextLength(20);
+        // The Markdown source itself is truncated at 20 chars before parsing.
+        final String md = "# Title\n\nThis body is much longer than twenty characters.";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        final String content = extractData.getContent();
+        // The rendered content cannot exceed the truncated source length.
+        assertTrue(content.length() <= 20);
     }
 }

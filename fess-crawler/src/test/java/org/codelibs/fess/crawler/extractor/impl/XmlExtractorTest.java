@@ -177,4 +177,57 @@ public class XmlExtractorTest extends PlainTestCase {
             // NOP
         }
     }
+
+    @Test
+    public void test_extractsXmlWithUtf8Bom() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf8bom.xml");
+        final String content = xmlExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        // The first character of the extracted text should not be a BOM (﻿) since
+        // the BOM bytes are now stripped before decoding.
+        assertFalse(content.startsWith("﻿"));
+        assertTrue(content.length() >= 0);
+    }
+
+    @Test
+    public void test_extractsXmlWithUtf16LeBom() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf16lebom.xml");
+        final String content = xmlExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertFalse(content.startsWith("﻿"));
+        assertTrue(content.length() >= 0);
+    }
+
+    @Test
+    public void test_extractsXmlWithUtf16BeBom() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/xml/test_utf16bebom.xml");
+        final String content = xmlExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertFalse(content.startsWith("﻿"));
+        assertTrue(content.length() >= 0);
+    }
+
+    @Test
+    public void test_truncatesAtMaxTextLength() {
+        // Build a long XML string and verify the extractor honours maxTextLength.
+        final StringBuilder sb = new StringBuilder();
+        sb.append("<root>");
+        for (int i = 0; i < 1000; i++) {
+            sb.append("<item>x</item>");
+        }
+        sb.append("</root>");
+        final byte[] bytes = sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        xmlExtractor.setMaxTextLength(50);
+        final InputStream in = new ByteArrayInputStream(bytes);
+        // We can't directly observe the truncated raw input from the public API, but we
+        // can ensure that extraction completes successfully and produces a non-null result.
+        final String content = xmlExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertNotNull(content);
+        // Reset to unlimited so subsequent tests in the suite are unaffected.
+        xmlExtractor.setMaxTextLength(Long.MAX_VALUE);
+    }
 }

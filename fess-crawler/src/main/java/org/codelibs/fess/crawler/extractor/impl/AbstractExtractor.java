@@ -18,10 +18,13 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
@@ -48,6 +51,14 @@ import jakarta.annotation.Resource;
  */
 public abstract class AbstractExtractor implements Extractor {
 
+    /**
+     * Parameter key used to track the recursion depth across nested archive
+     * extraction. Callers/recursive extractor invocations may set this to
+     * limit how deeply nested archives are unpacked. The value is parsed as
+     * an integer; missing or unparseable values are treated as depth 0.
+     */
+    public static final String EXTRACTOR_DEPTH_KEY = "extractorDepth";
+
     /** The crawler container. */
     @Resource
     protected CrawlerContainer crawlerContainer;
@@ -56,10 +67,86 @@ public abstract class AbstractExtractor implements Extractor {
     protected int weight = 1;
 
     /**
+     * Maximum allowed depth for recursive archive extraction. When the depth
+     * value parsed from {@link #EXTRACTOR_DEPTH_KEY} reaches this threshold,
+     * {@link #checkDepth(Map, int)} aborts further recursion to defend
+     * against recursion-bomb archives.
+     */
+    protected int maxArchiveDepth = 10;
+
+    /**
      * Constructs a new AbstractExtractor.
      */
     public AbstractExtractor() {
         // NOP
+    }
+
+    /**
+     * Sets the maximum allowed recursion depth for nested archive extraction.
+     * @param maxArchiveDepth the new maximum depth (non-negative)
+     */
+    public void setMaxArchiveDepth(final int maxArchiveDepth) {
+        this.maxArchiveDepth = maxArchiveDepth;
+    }
+
+    /**
+     * Returns the current recursion depth recorded in the extractor params.
+     * Missing, blank, or unparseable values are treated as {@code 0}.
+     *
+     * @param params the extractor parameters (may be {@code null})
+     * @return the parsed depth, or {@code 0} if not set
+     */
+    protected int getCurrentDepth(final Map<String, String> params) {
+        if (params == null) {
+            return 0;
+        }
+        final String value = params.get(EXTRACTOR_DEPTH_KEY);
+        if (value == null || value.isBlank()) {
+            return 0;
+        }
+        try {
+            final int depth = Integer.parseInt(value.trim());
+            return depth < 0 ? 0 : depth;
+        } catch (final NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Returns a NEW parameter map (the original is not mutated) with the
+     * recursion depth incremented by one. Useful when an archive extractor
+     * recursively delegates to another extractor for a nested archive entry.
+     *
+     * @param params the current extractor parameters (may be {@code null})
+     * @return a new map containing all original entries plus an incremented
+     *         depth
+     */
+    protected Map<String, String> incrementDepth(final Map<String, String> params) {
+        final Map<String, String> next = new HashMap<>();
+        if (params != null) {
+            next.putAll(params);
+        }
+        next.put(EXTRACTOR_DEPTH_KEY, Integer.toString(getCurrentDepth(params) + 1));
+        return next;
+    }
+
+    /**
+     * Validates that the recursion depth recorded in {@code params} does not
+     * meet or exceed {@code maxDepth}. Throws {@link MaxLengthExceededException}
+     * (a {@link org.codelibs.fess.crawler.exception.CrawlingAccessException
+     * CrawlingAccessException}) when the threshold is reached so that the
+     * surrounding crawler treats it as a data-driven access failure rather
+     * than a system error.
+     *
+     * @param params the extractor parameters (may be {@code null})
+     * @param maxDepth the (exclusive) maximum allowed depth
+     * @throws MaxLengthExceededException when {@code currentDepth >= maxDepth}
+     */
+    protected void checkDepth(final Map<String, String> params, final int maxDepth) {
+        final int current = getCurrentDepth(params);
+        if (current >= maxDepth) {
+            throw new MaxLengthExceededException("Archive recursion depth exceeded: depth=" + current + " max=" + maxDepth);
+        }
     }
 
     @Override

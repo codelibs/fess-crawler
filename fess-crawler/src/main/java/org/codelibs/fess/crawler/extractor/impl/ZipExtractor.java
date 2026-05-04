@@ -16,13 +16,19 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.CountingInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -31,26 +37,64 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
-
-import jakarta.annotation.Resource;
 
 /**
  * Extracts text content from ZIP archives.
+ *
+ * <p>
+ * The extractor defends against several content-driven attack vectors. The
+ * input stream itself is treated as untrusted, while the {@code params} map is
+ * assumed to be admin-configured / trusted. Protections include:
+ * </p>
+ * <ul>
+ *   <li>Total uncompressed-size cap ({@link #setMaxBytes(long)})</li>
+ *   <li>Maximum number of entries ({@link #setMaxEntries(int)})</li>
+ *   <li>Per-entry compression-ratio threshold
+ *       ({@link #setMaxCompressionRatio(long)}) to detect zip bombs</li>
+ *   <li>Recursion-depth check (via {@link AbstractExtractor#checkDepth})</li>
+ *   <li>Zip Slip path-traversal detection (entry names normalised and
+ *       rejected when they escape the conceptual extraction root)</li>
+ *   <li>Configurable filename encoding (e.g. {@code "CP932"} /
+ *       {@code "MS932"} for Japanese filenames)</li>
+ * </ul>
  */
 public class ZipExtractor extends AbstractExtractor {
     private static final Logger logger = LogManager.getLogger(ZipExtractor.class);
 
-    /**
-     * The archive stream factory.
-     */
-    @Resource
-    protected ArchiveStreamFactory archiveStreamFactory;
+    /** Threshold below which compression-ratio checks are skipped (bytes). */
+    private static final long COMPRESSION_RATIO_MIN_BYTES = 1L << 20; // 1 MiB
 
     /**
-     * The maximum content size.
+     * The maximum content size (legacy field). When set, the actual bytes
+     * read from each entry stream are summed and compared against this limit.
      */
     protected long maxContentSize = -1;
+
+    /**
+     * Maximum total uncompressed bytes that may be read from all entries
+     * combined. Defaults to 2 GiB. Set to {@code -1} to disable.
+     */
+    protected long maxBytes = 1L << 31;
+
+    /**
+     * Maximum allowed compression ratio (uncompressed / compressed). Entries
+     * exceeding this ratio AND larger than 1 MiB are rejected as suspected
+     * zip bombs. Set to {@code -1} to disable.
+     */
+    protected long maxCompressionRatio = 100L;
+
+    /**
+     * Maximum allowed number of entries to iterate. Defaults to 100,000.
+     * Set to {@code -1} to disable.
+     */
+    protected int maxEntries = 100_000;
+
+    /**
+     * Filename encoding used to decode entry names that lack the UTF-8 flag.
+     * Defaults to {@code "UTF-8"}; set to {@code "CP932"} or {@code "MS932"}
+     * for archives created on Japanese Windows systems.
+     */
+    protected String filenameEncoding = "UTF-8";
 
     /**
      * Creates a new ZipExtractor instance.
@@ -62,6 +106,7 @@ public class ZipExtractor extends AbstractExtractor {
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         validateInputStream(in);
+        checkDepth(params, maxArchiveDepth);
 
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
@@ -69,30 +114,114 @@ public class ZipExtractor extends AbstractExtractor {
         int processedEntries = 0;
         int failedEntries = 0;
 
-        try (final ArchiveInputStream ais =
-                archiveStreamFactory.createArchiveInputStream(in.markSupported() ? in : new BufferedInputStream(in))) {
-            ZipArchiveEntry entry = null;
-            long contentSize = 0;
-            while ((entry = (ZipArchiveEntry) ais.getNextEntry()) != null) {
-                contentSize += entry.getSize();
-                if (maxContentSize != -1 && contentSize > maxContentSize) {
-                    throw new MaxLengthExceededException("Extracted size is " + contentSize + " > " + maxContentSize);
+        final InputStream wrapped = in.markSupported() ? in : new BufferedInputStream(in);
+        // Early-validate the ZIP magic so a clearly non-zip blob is reported
+        // as ExtractException rather than silently returning empty text.
+        wrapped.mark(4);
+        try {
+            final byte[] sig = new byte[4];
+            int read = 0;
+            while (read < 4) {
+                final int n = wrapped.read(sig, read, 4 - read);
+                if (n < 0) {
+                    break;
+                }
+                read += n;
+            }
+            wrapped.reset();
+            if (read != 4 || sig[0] != 'P' || sig[1] != 'K' || (sig[2] != 0x03 && sig[2] != 0x05 && sig[2] != 0x07)) {
+                throw new ExtractException("Failed to extract content from ZIP archive. Not a recognised ZIP signature.");
+            }
+        } catch (final IOException ioe) {
+            throw new ExtractException("Failed to extract content from ZIP archive. No entries could be processed.", ioe);
+        }
+        // CountingInputStream lets us measure the compressed bytes consumed
+        // from the underlying stream per entry, which is the only reliable
+        // signal in streaming mode (ZipArchiveEntry#getCompressedSize() is
+        // often -1 when entries use a data descriptor).
+        final CountingInputStream counter = new CountingInputStream(wrapped);
+        try (final ZipArchiveInputStream ais = new ZipArchiveInputStream(counter, filenameEncoding, true, true)) {
+            ZipArchiveEntry entry;
+            long totalBytes = 0;
+            long lastCompressedBytes = counter.getByteCount();
+            int entryCount = 0;
+            while ((entry = ais.getNextEntry()) != null) {
+                entryCount++;
+                if (maxEntries > 0 && entryCount > maxEntries) {
+                    throw new MaxLengthExceededException("zip entry count exceeded: count=" + entryCount + " max=" + maxEntries);
                 }
                 final String filename = entry.getName();
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                if (isPathTraversal(filename)) {
+                    logger.warn("zip entry rejected: name={} reason=path-traversal", filename);
+                    continue;
+                }
+
+                // Read entry into bounded buffer while counting actual bytes.
+                final long actualBytes;
+                final byte[] entryBytes;
+                try {
+                    final long readLimit;
+                    if (maxBytes > 0) {
+                        readLimit = Math.max(0L, maxBytes - totalBytes) + 1L;
+                    } else {
+                        readLimit = Long.MAX_VALUE;
+                    }
+                    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    actualBytes = copyBounded(ais, out, readLimit);
+                    entryBytes = out.toByteArray();
+                } catch (final IOException ioe) {
+                    failedEntries++;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to read zip entry: name={}", filename, ioe);
+                    }
+                    continue;
+                }
+
+                totalBytes += actualBytes;
+                if (maxBytes > 0 && totalBytes > maxBytes) {
+                    throw new MaxLengthExceededException("zip uncompressed size exceeded: total=" + totalBytes + " max=" + maxBytes);
+                }
+                if (maxContentSize != -1 && totalBytes > maxContentSize) {
+                    throw new MaxLengthExceededException("Extracted size is " + totalBytes + " > " + maxContentSize);
+                }
+
+                // Compression-ratio check (only meaningful for non-tiny entries).
+                // Prefer the entry header's compressed size when present;
+                // otherwise fall back to the bytes actually consumed from the
+                // underlying stream during this entry's read.
+                long compressed = entry.getCompressedSize();
+                if (compressed <= 0) {
+                    final long now = counter.getByteCount();
+                    compressed = Math.max(0L, now - lastCompressedBytes);
+                    lastCompressedBytes = now;
+                } else {
+                    lastCompressedBytes = counter.getByteCount();
+                }
+                if (maxCompressionRatio > 0 && compressed > 0 && actualBytes > COMPRESSION_RATIO_MIN_BYTES
+                        && actualBytes / compressed > maxCompressionRatio) {
+                    throw new MaxLengthExceededException("zip compression ratio exceeded: name=" + filename + " ratio="
+                            + (actualBytes / compressed) + " max=" + maxCompressionRatio);
+                }
+
                 final String mimeType = mimeTypeHelper.getContentType(null, filename);
                 if (mimeType != null) {
                     final Extractor extractor = extractorFactory.getExtractor(mimeType);
                     if (extractor != null) {
                         try {
-                            final Map<String, String> map = new HashMap<>();
+                            final Map<String, String> map = incrementDepth(params);
                             map.put(ExtractData.RESOURCE_NAME_KEY, filename);
-                            buf.append(extractor.getText(new IgnoreCloseInputStream(ais), map).getContent());
+                            buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
                             buf.append('\n');
                             processedEntries++;
+                        } catch (final MaxLengthExceededException e) {
+                            throw e;
                         } catch (final Exception e) {
                             failedEntries++;
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Failed to extract content from archive entry: {}", filename, e);
+                                logger.debug("Failed to extract content from archive entry: name={}", filename, e);
                             }
                         }
                     }
@@ -105,11 +234,66 @@ public class ZipExtractor extends AbstractExtractor {
                 throw new ExtractException("Failed to extract content from ZIP archive. No entries could be processed.", e);
             }
             if (logger.isWarnEnabled()) {
-                logger.warn("Partial extraction from ZIP archive. Processed: {}, Failed: {}", processedEntries, failedEntries, e);
+                logger.warn("Partial extraction from ZIP archive. processed={} failed={}", processedEntries, failedEntries, e);
             }
         }
 
         return new ExtractData(buf.toString().trim());
+    }
+
+    /**
+     * Returns true when the supplied entry name escapes the conceptual
+     * extraction root via path-traversal segments. The check is performed on
+     * a normalised form of the path.
+     *
+     * @param name the entry name as reported by the archive
+     * @return {@code true} if the name should be rejected
+     */
+    protected boolean isPathTraversal(final String name) {
+        if (name == null || name.isEmpty()) {
+            return true;
+        }
+        // Absolute paths (Unix or Windows-style) are unsafe in the
+        // context of an archive extracted into a sandbox root.
+        if (name.startsWith("/") || name.startsWith("\\")) {
+            return true;
+        }
+        if (name.length() >= 2 && name.charAt(1) == ':') {
+            return true;
+        }
+        try {
+            final Path normalised = Paths.get(name).normalize();
+            final String normStr = normalised.toString().replace('\\', '/');
+            if (normStr.equals("..") || normStr.startsWith("../") || normStr.contains("/../")) {
+                return true;
+            }
+            for (final Path part : normalised) {
+                if ("..".equals(part.toString())) {
+                    return true;
+                }
+            }
+        } catch (final InvalidPathException ipe) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Copies up to {@code limit} bytes from {@code in} to {@code out}. Returns
+     * the actual number of bytes copied.
+     */
+    private long copyBounded(final InputStream in, final ByteArrayOutputStream out, final long limit) throws IOException {
+        if (limit <= 0) {
+            return 0;
+        }
+        final byte[] buffer = new byte[8192];
+        long total = 0;
+        int read;
+        while (total < limit && (read = in.read(buffer, 0, (int) Math.min(buffer.length, limit - total))) != IOUtils.EOF) {
+            out.write(buffer, 0, read);
+            total += read;
+        }
+        return total;
     }
 
     /**
@@ -118,5 +302,40 @@ public class ZipExtractor extends AbstractExtractor {
      */
     public void setMaxContentSize(final long maxContentSize) {
         this.maxContentSize = maxContentSize;
+    }
+
+    /**
+     * Sets the cap on total uncompressed bytes read from all entries.
+     * @param maxBytes the maximum total bytes (use {@code -1} to disable)
+     */
+    public void setMaxBytes(final long maxBytes) {
+        this.maxBytes = maxBytes;
+    }
+
+    /**
+     * Sets the maximum permitted uncompressed/compressed ratio per entry.
+     * @param maxCompressionRatio the threshold (use {@code -1} to disable)
+     */
+    public void setMaxCompressionRatio(final long maxCompressionRatio) {
+        this.maxCompressionRatio = maxCompressionRatio;
+    }
+
+    /**
+     * Sets the maximum number of entries that may be iterated.
+     * @param maxEntries the maximum entry count (use {@code -1} to disable)
+     */
+    public void setMaxEntries(final int maxEntries) {
+        this.maxEntries = maxEntries;
+    }
+
+    /**
+     * Sets the filename encoding used to decode entry names that lack the
+     * UTF-8 flag (e.g. {@code "CP932"} / {@code "MS932"} for Japanese
+     * archives).
+     *
+     * @param filenameEncoding the charset name
+     */
+    public void setFilenameEncoding(final String filenameEncoding) {
+        this.filenameEncoding = filenameEncoding;
     }
 }

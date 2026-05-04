@@ -17,10 +17,12 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,19 @@ public class AbstractExtractorTest extends PlainTestCase {
         // Expose protected method for testing
         public void testValidateInputStream(final InputStream in) {
             validateInputStream(in);
+        }
+
+        // Expose depth helpers for testing.
+        public int testGetCurrentDepth(final Map<String, String> params) {
+            return getCurrentDepth(params);
+        }
+
+        public Map<String, String> testIncrementDepth(final Map<String, String> params) {
+            return incrementDepth(params);
+        }
+
+        public void testCheckDepth(final Map<String, String> params, final int maxDepth) {
+            checkDepth(params, maxDepth);
         }
     }
 
@@ -241,6 +256,87 @@ public class AbstractExtractorTest extends PlainTestCase {
             assertEquals(CrawlerSystemException.class, e.getClass());
         } catch (final Exception e) {
             fail();
+        }
+    }
+
+    /** Recursion-depth helper: missing/null params return 0. */
+    @Test
+    public void test_getCurrentDepth_returnsZeroForMissing() {
+        assertEquals(0, extractor.testGetCurrentDepth(null));
+        assertEquals(0, extractor.testGetCurrentDepth(new HashMap<>()));
+        final Map<String, String> blank = new HashMap<>();
+        blank.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "");
+        assertEquals(0, extractor.testGetCurrentDepth(blank));
+        final Map<String, String> garbage = new HashMap<>();
+        garbage.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "not-a-number");
+        assertEquals(0, extractor.testGetCurrentDepth(garbage));
+    }
+
+    /** Recursion-depth helper: depth value is parsed and clamped to >= 0. */
+    @Test
+    public void test_getCurrentDepth_parsesValidValue() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "3");
+        assertEquals(3, extractor.testGetCurrentDepth(params));
+
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "-5");
+        assertEquals(0, extractor.testGetCurrentDepth(params));
+    }
+
+    /** incrementDepth must return a NEW map and not mutate the input. */
+    @Test
+    public void test_incrementDepth_returnsNewMap() {
+        final Map<String, String> original = new HashMap<>();
+        original.put("foo", "bar");
+        final Map<String, String> next = extractor.testIncrementDepth(original);
+
+        assertFalse(original == next);
+        // original is unchanged
+        assertFalse(original.containsKey(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+        assertEquals("bar", next.get("foo"));
+        assertEquals("1", next.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+
+        final Map<String, String> after = extractor.testIncrementDepth(next);
+        assertEquals("2", after.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+        // first map still says "1"
+        assertEquals("1", next.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+    }
+
+    /** incrementDepth on null produces depth=1. */
+    @Test
+    public void test_incrementDepth_nullInput() {
+        final Map<String, String> next = extractor.testIncrementDepth(null);
+        assertNotNull(next);
+        assertEquals("1", next.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+    }
+
+    /** checkDepth allows depths below the limit. */
+    @Test
+    public void test_checkDepth_belowLimit_passes() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "3");
+        extractor.testCheckDepth(params, 10); // no throw
+        extractor.testCheckDepth(null, 10);
+    }
+
+    /** checkDepth rejects depths at or above the limit. */
+    @Test
+    public void test_checkDepth_atOrAboveLimit_throws() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "10");
+        try {
+            extractor.testCheckDepth(params, 10);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("recursion depth"));
+        }
+
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "99");
+        try {
+            extractor.testCheckDepth(params, 10);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            // pass
         }
     }
 }

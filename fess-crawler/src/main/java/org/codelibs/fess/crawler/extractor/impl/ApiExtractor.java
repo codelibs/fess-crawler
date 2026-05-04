@@ -23,9 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
@@ -36,14 +38,15 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.beans.BeanDesc;
@@ -59,8 +62,6 @@ import org.codelibs.fess.crawler.client.http.RequestHeader;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
-import com.google.common.base.Charsets;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -71,6 +72,9 @@ public class ApiExtractor extends AbstractExtractor {
 
     private static final Logger logger = LogManager.getLogger(ApiExtractor.class);
 
+    /** Parameter key that, if present, overrides the configured URL for a single request. */
+    public static final String PARAM_EXTRACTOR_URL = "extractorUrl";
+
     /** The URL of the API endpoint. */
     protected String url;
 
@@ -78,13 +82,28 @@ public class ApiExtractor extends AbstractExtractor {
     protected Integer accessTimeout; // sec
 
     /** The HTTP client used for API calls. */
-    protected CloseableHttpClient httpClient;
+    protected volatile CloseableHttpClient httpClient;
 
     /** The connection timeout in milliseconds. */
     protected Integer connectionTimeout;
 
     /** The socket timeout in milliseconds. */
     protected Integer soTimeout;
+
+    /** Maximum total connections in the pool. */
+    protected int maxConnections = 50;
+
+    /** Maximum connections per route in the pool. */
+    protected int maxConnectionsPerRoute = 10;
+
+    /** Maximum size in bytes accepted for an API response body. Default is 100 MiB. */
+    protected long maxResponseSize = 100L * 1024L * 1024L;
+
+    /** Maximum number of retry attempts on transient failures. */
+    protected int maxRetries = 2;
+
+    /** Initial backoff in milliseconds between retries (doubled per attempt). */
+    protected long retryBackoffMs = 500L;
 
     /** The map of authentication scheme providers. */
     protected Map<String, AuthSchemeProvider> authSchemeProviderMap;
@@ -106,6 +125,9 @@ public class ApiExtractor extends AbstractExtractor {
 
     /** List of request headers */
     private final List<Header> requestHeaderList = new ArrayList<>();
+
+    /** Pooled connection manager backing the HTTP client. */
+    protected PoolingHttpClientConnectionManager connectionManager;
 
     /**
      * Constructs a new ApiExtractor.
@@ -133,10 +155,16 @@ public class ApiExtractor extends AbstractExtractor {
         if (connectionTimeoutParam != null) {
             requestConfigBuilder.setConnectTimeout(connectionTimeoutParam);
 
+        } else {
+            // sane default to avoid hanging on dead servers
+            requestConfigBuilder.setConnectTimeout(5000);
         }
         final Integer soTimeoutParam = soTimeout;
         if (soTimeoutParam != null) {
             requestConfigBuilder.setSocketTimeout(soTimeoutParam);
+        } else {
+            // sane default to mitigate slow loris servers
+            requestConfigBuilder.setSocketTimeout(30000);
         }
 
         // AuthSchemeFactory
@@ -177,6 +205,14 @@ public class ApiExtractor extends AbstractExtractor {
             }
         }
 
+        // Pooled connection manager so connections are reused across calls.
+        connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(maxConnections);
+        connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
+        httpClientBuilder.setConnectionManager(connectionManager);
+        // Disable the built-in retry handler; we implement our own classification below.
+        httpClientBuilder.disableAutomaticRetries();
+
         final CloseableHttpClient closeableHttpClient = httpClientBuilder.setDefaultRequestConfig(requestConfigBuilder.build()).build();
         if (!httpClientPropertyMap.isEmpty()) {
             final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(closeableHttpClient.getClass());
@@ -204,6 +240,17 @@ public class ApiExtractor extends AbstractExtractor {
                 httpClient.close();
             } catch (final IOException e) {
                 logger.warn("Failed to close HTTP client for API extractor", e);
+            } finally {
+                httpClient = null;
+            }
+        }
+        if (connectionManager != null) {
+            try {
+                connectionManager.close();
+            } catch (final Exception e) {
+                logger.warn("Failed to close connection manager for API extractor", e);
+            } finally {
+                connectionManager = null;
             }
         }
     }
@@ -212,14 +259,23 @@ public class ApiExtractor extends AbstractExtractor {
      * Extracts text from the input stream using the API endpoint.
      *
      * @param in the input stream to extract text from
-     * @param params additional parameters
+     * @param params additional parameters (an {@code extractorUrl} entry overrides the configured URL)
      * @return the extracted data
      * @throws ExtractException if extraction fails
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
+        // Allow per-call URL override.
+        String targetUrl = url;
+        if (params != null) {
+            final String override = params.get(PARAM_EXTRACTOR_URL);
+            if (StringUtil.isNotBlank(override)) {
+                targetUrl = override;
+            }
+        }
+
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing {}", url);
+            logger.debug("Accessing {}", targetUrl);
         }
 
         // start
@@ -230,29 +286,14 @@ public class ApiExtractor extends AbstractExtractor {
             accessTimeoutTask = TimeoutManager.getInstance().addTimeoutTarget(accessTimeoutTarget, accessTimeout, false);
         }
 
-        final ExtractData data = new ExtractData();
-        final HttpPost httpPost = new HttpPost(url);
-        final HttpEntity postEntity = MultipartEntityBuilder.create()
-                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .setCharset(Charset.forName("UTF-8"))
-                .addBinaryBody("filedata", in)
-                .build();
-        httpPost.setEntity(postEntity);
-
-        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-            if (response.getStatusLine().getStatusCode() != Constants.OK_STATUS_CODE) {
-                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}", url,
-                        response.getStatusLine().getStatusCode());
-                return null;
-            }
-
-            data.setContent(EntityUtils.toString(response.getEntity(), Charsets.UTF_8));
-            final Header[] headers = response.getAllHeaders();
-            for (final Header header : headers) {
-                data.putValue(header.getName(), header.getValue());
-            }
-        } catch (final IOException e) {
-            throw new ExtractException(e);
+        try {
+            // The request body is the supplied input stream; multipart body builders consume it,
+            // so we can only execute the post once. Retries thus only apply when the request
+            // can be re-issued — currently only on connection-establishment failures or
+            // a status-code-only retry path that doesn't consume the entity. To support retries
+            // we buffer the request stream into memory (bounded by maxResponseSize as a heuristic
+            // safeguard against runaway uploads).
+            return executeWithRetries(in, targetUrl);
         } finally {
             if (accessTimeout != null) {
                 accessTimeoutTarget.stop();
@@ -261,7 +302,235 @@ public class ApiExtractor extends AbstractExtractor {
                 }
             }
         }
-        return data;
+    }
+
+    /**
+     * Executes the API request with bounded retries on transient failures.
+     *
+     * @param in the input stream to forward to the API endpoint
+     * @param targetUrl the URL to call
+     * @return the extracted data
+     */
+    protected ExtractData executeWithRetries(final InputStream in, final String targetUrl) {
+        // Buffer the input once so we can re-send it on retry.
+        final byte[] requestBody;
+        try {
+            requestBody = in.readAllBytes();
+        } catch (final IOException e) {
+            throw new ExtractException("Failed to read input stream for API extractor", e);
+        }
+
+        IOException lastIoException = null;
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                return executeOnce(requestBody, targetUrl, attempt);
+            } catch (final RetryableStatusException e) {
+                final long sleepMs = computeBackoff(attempt, e.retryAfterMs);
+                if (attempt >= maxRetries) {
+                    throw new ExtractException("API request failed after " + (attempt + 1) + " attempts: status=" + e.statusCode);
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Retrying API request (status={}, attempt={}/{}, sleep={}ms)", e.statusCode, attempt + 1, maxRetries + 1,
+                            sleepMs);
+                }
+                sleepQuietly(sleepMs);
+            } catch (final ConnectTimeoutException e) {
+                lastIoException = e;
+                if (attempt >= maxRetries) {
+                    throw new ExtractException("API request failed", e);
+                }
+                sleepQuietly(computeBackoff(attempt, -1L));
+            } catch (final NoHttpResponseException e) {
+                lastIoException = e;
+                if (attempt >= maxRetries) {
+                    throw new ExtractException("API request failed", e);
+                }
+                sleepQuietly(computeBackoff(attempt, -1L));
+            } catch (final IOException e) {
+                lastIoException = e;
+                if (attempt >= maxRetries) {
+                    throw new ExtractException("API request failed", e);
+                }
+                sleepQuietly(computeBackoff(attempt, -1L));
+            }
+        }
+
+        // Should not reach here, but defend against it.
+        throw new ExtractException("API request failed", lastIoException != null ? lastIoException : new IOException("unknown error"));
+    }
+
+    /**
+     * Executes a single API call.
+     *
+     * @param requestBody bytes to upload as the multipart body
+     * @param targetUrl URL to POST to
+     * @param attempt current attempt number (0-based) — included for logging
+     * @return the extracted data on success
+     * @throws RetryableStatusException when the response status is retryable
+     * @throws IOException on transport-level failure
+     */
+    protected ExtractData executeOnce(final byte[] requestBody, final String targetUrl, final int attempt) throws IOException {
+        final HttpPost httpPost = new HttpPost(targetUrl);
+        final HttpEntity postEntity = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                .setCharset(Charset.forName("UTF-8"))
+                .addBinaryBody("filedata", requestBody)
+                .build();
+        httpPost.setEntity(postEntity);
+
+        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+            final int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != Constants.OK_STATUS_CODE) {
+                if (isRetryableStatus(statusCode)) {
+                    final long retryAfterMs = parseRetryAfterMs(response.getFirstHeader("Retry-After"));
+                    // Drain entity so the connection can be reused.
+                    consumeQuietly(response.getEntity());
+                    throw new RetryableStatusException(statusCode, retryAfterMs);
+                }
+                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}", targetUrl, statusCode);
+                consumeQuietly(response.getEntity());
+                return null;
+            }
+
+            final ExtractData data = new ExtractData();
+            final HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                final Charset charset = resolveCharset(entity);
+                try (InputStream entityStream = entity.getContent();
+                        BoundedInputStream bounded =
+                                BoundedInputStream.builder().setInputStream(entityStream).setMaxCount(maxResponseSize + 1L).get()) {
+                    final byte[] body = bounded.readAllBytes();
+                    if (body.length > maxResponseSize) {
+                        throw new ExtractException("ApiExtractor response exceeded limit: limit=" + maxResponseSize);
+                    }
+                    data.setContent(new String(body, charset));
+                }
+            } else {
+                data.setContent("");
+            }
+            final Header[] headers = response.getAllHeaders();
+            for (final Header header : headers) {
+                data.putValue(header.getName(), header.getValue());
+            }
+            return data;
+        }
+    }
+
+    /**
+     * Returns true if the given status code is considered retryable.
+     *
+     * @param statusCode HTTP status code
+     * @return true when the request should be retried
+     */
+    protected boolean isRetryableStatus(final int statusCode) {
+        if (statusCode >= 500 && statusCode <= 599) {
+            return true;
+        }
+        return statusCode == 408 || statusCode == 429;
+    }
+
+    /**
+     * Parses a {@code Retry-After} header into milliseconds.
+     * Only the delta-seconds form is honored; HTTP-date form is ignored as best-effort.
+     *
+     * @param header the {@code Retry-After} header (may be null)
+     * @return delay in milliseconds, or {@code -1L} if unspecified or invalid
+     */
+    protected long parseRetryAfterMs(final Header header) {
+        if (header == null) {
+            return -1L;
+        }
+        final String value = header.getValue();
+        if (StringUtil.isBlank(value)) {
+            return -1L;
+        }
+        try {
+            final long seconds = Long.parseLong(value.trim());
+            if (seconds < 0L) {
+                return -1L;
+            }
+            return seconds * 1000L;
+        } catch (final NumberFormatException e) {
+            // HTTP-date form not supported; fall through to default backoff.
+            return -1L;
+        }
+    }
+
+    /**
+     * Computes exponential backoff for a retry attempt.
+     *
+     * @param attempt 0-based attempt number
+     * @param retryAfterMs server-suggested delay; non-negative values take precedence
+     * @return sleep duration in milliseconds
+     */
+    protected long computeBackoff(final int attempt, final long retryAfterMs) {
+        if (retryAfterMs >= 0L) {
+            return retryAfterMs;
+        }
+        return retryBackoffMs * (1L << attempt);
+    }
+
+    /**
+     * Sleeps without throwing on interruption (preserves the interrupt flag).
+     *
+     * @param millis sleep duration in milliseconds
+     */
+    protected void sleepQuietly(final long millis) {
+        if (millis <= 0L) {
+            return;
+        }
+        try {
+            Thread.sleep(millis);
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Drains the response entity, ignoring errors. Safe even when the entity is null.
+     *
+     * @param entity entity to consume (may be null)
+     */
+    protected void consumeQuietly(final HttpEntity entity) {
+        if (entity == null) {
+            return;
+        }
+        try {
+            org.apache.http.util.EntityUtils.consumeQuietly(entity);
+        } catch (final Exception e) {
+            // ignore
+        }
+    }
+
+    /**
+     * Resolves the charset advertised by the response entity, falling back to UTF-8.
+     *
+     * @param entity response entity (non-null)
+     * @return charset to decode the response with
+     */
+    protected Charset resolveCharset(final HttpEntity entity) {
+        try {
+            final org.apache.http.entity.ContentType contentType = org.apache.http.entity.ContentType.get(entity);
+            if (contentType != null && contentType.getCharset() != null) {
+                return contentType.getCharset();
+            }
+        } catch (final Exception e) {
+            // ignore and fall back to UTF-8
+        }
+        return Constants.UTF_8_CHARSET;
+    }
+
+    /** Internal signal that a response was retryable; carries the status and any Retry-After hint. */
+    @SuppressWarnings("serial")
+    protected static class RetryableStatusException extends IOException {
+        final int statusCode;
+        final long retryAfterMs;
+
+        RetryableStatusException(final int statusCode, final long retryAfterMs) {
+            super("retryable status: " + statusCode);
+            this.statusCode = statusCode;
+            this.retryAfterMs = retryAfterMs;
+        }
     }
 
     /**
@@ -334,6 +603,48 @@ public class ApiExtractor extends AbstractExtractor {
      */
     public void setAccessTimeout(final Integer accessTimeout) {
         this.accessTimeout = accessTimeout;
+    }
+
+    /**
+     * Sets the maximum total connections in the pool.
+     * @param maxConnections maximum total pooled connections
+     */
+    public void setMaxConnections(final int maxConnections) {
+        this.maxConnections = maxConnections;
+    }
+
+    /**
+     * Sets the maximum connections per route in the pool.
+     * @param maxConnectionsPerRoute maximum pooled connections per route
+     */
+    public void setMaxConnectionsPerRoute(final int maxConnectionsPerRoute) {
+        this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+    }
+
+    /**
+     * Sets the maximum size in bytes accepted for an API response body.
+     * Responses larger than this trigger an {@link ExtractException}.
+     * @param maxResponseSize maximum accepted response size in bytes
+     */
+    public void setMaxResponseSize(final long maxResponseSize) {
+        this.maxResponseSize = maxResponseSize;
+    }
+
+    /**
+     * Sets the maximum number of retry attempts for transient failures.
+     * @param maxRetries number of retries (in addition to the initial attempt)
+     */
+    public void setMaxRetries(final int maxRetries) {
+        this.maxRetries = maxRetries;
+    }
+
+    /**
+     * Sets the initial backoff in milliseconds between retries.
+     * The actual delay doubles per attempt.
+     * @param retryBackoffMs initial backoff in milliseconds
+     */
+    public void setRetryBackoffMs(final long retryBackoffMs) {
+        this.retryBackoffMs = retryBackoffMs;
     }
 
 }

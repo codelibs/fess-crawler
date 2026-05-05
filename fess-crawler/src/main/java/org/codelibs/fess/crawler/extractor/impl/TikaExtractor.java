@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -30,6 +31,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,7 +45,6 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
-import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -219,12 +221,25 @@ public class TikaExtractor extends PasswordBasedExtractor {
     protected boolean muteSystemStreams = true;
 
     /**
-     * Class-wide lock guarding {@link #muteRefCount}, {@link #savedOut} and
-     * {@link #savedErr}. We never hold this lock during extraction itself, so
-     * concurrent extractions are not serialized; we only synchronize the
-     * (cheap) swap and restore of the JVM streams.
+     * Class-wide lock guarding {@link #muteRefCount}, {@link #savedOut},
+     * {@link #savedErr} and the capture buffers. We never hold this lock during
+     * extraction itself, so concurrent extractions are not serialized; we only
+     * synchronize the (cheap) swap and restore of the JVM streams plus the
+     * post-run replay of captured bytes.
      */
     private static final Object SYSTEM_STREAM_LOCK = new Object();
+
+    /**
+     * Hard cap on the number of bytes captured from each muted stream
+     * (System.out and System.err) while extractions are running. Once the cap
+     * is reached, additional writes are discarded and a single truncation
+     * marker is appended to the buffer so the operator can tell the output was
+     * cut short.
+     */
+    private static final int CAPTURE_BUFFER_SIZE = 64 * 1024;
+
+    /** Truncation marker appended once when a capture buffer fills up. */
+    private static final byte[] CAPTURE_TRUNCATION_MARKER = "\n[truncated; further output discarded]\n".getBytes(StandardCharsets.UTF_8);
 
     /** Number of extractions currently running with muted streams. */
     private static int muteRefCount = 0;
@@ -234,6 +249,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     /** Original {@link System#err}, captured by the first muting thread. */
     private static PrintStream savedErr;
+
+    /** Buffer capturing bytes written to the muted {@link System#out}. */
+    private static BoundedByteArrayOutputStream capturedOut;
+
+    /** Buffer capturing bytes written to the muted {@link System#err}. */
+    private static BoundedByteArrayOutputStream capturedErr;
 
     private final Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
 
@@ -487,17 +508,23 @@ public class TikaExtractor extends PasswordBasedExtractor {
     /**
      * Mutes {@link System#out} and {@link System#err} for the duration of the current
      * extraction. Concurrent extractions share a single muted state via a reference
-     * count — the first caller saves the original streams and swaps in null sinks;
-     * subsequent callers just bump the count. The lock is released as soon as the swap
-     * is recorded so that extractions never serialize on it.
+     * count — the first caller saves the original streams and swaps in bounded
+     * capture buffers; subsequent callers just bump the count. Captured bytes are
+     * not silently discarded: when the last outstanding mute is released the
+     * captured contents are emitted via the configured logger so operators still
+     * see Tika parser warnings (PDFBox font warnings, JBIG2 warnings, legacy POI
+     * debug, etc.). The lock is released as soon as the swap is recorded so that
+     * extractions never serialize on it.
      */
     protected void muteSystemStreams() {
         synchronized (SYSTEM_STREAM_LOCK) {
             if (muteRefCount == 0) {
                 savedOut = System.out;
                 savedErr = System.err;
-                System.setOut(new PrintStream(NullOutputStream.INSTANCE, true));
-                System.setErr(new PrintStream(NullOutputStream.INSTANCE, true));
+                capturedOut = new BoundedByteArrayOutputStream(CAPTURE_BUFFER_SIZE);
+                capturedErr = new BoundedByteArrayOutputStream(CAPTURE_BUFFER_SIZE);
+                System.setOut(new PrintStream(capturedOut, true));
+                System.setErr(new PrintStream(capturedErr, true));
             }
             muteRefCount++;
         }
@@ -505,11 +532,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     /**
      * Releases one reference acquired by {@link #muteSystemStreams()}. When the last
-     * outstanding mute is released, the original streams are restored. Calling this
-     * without a matching {@link #muteSystemStreams()} is a programming error and is
-     * tolerated only defensively (the count is clamped at zero).
+     * outstanding mute is released, the original streams are restored and any
+     * bytes captured while the streams were muted are replayed via the logger
+     * (info for stdout, warn for stderr) so they are not silently lost. Calling
+     * this without a matching {@link #muteSystemStreams()} is a programming
+     * error and is tolerated only defensively (the count is clamped at zero).
      */
     protected void unmuteSystemStreams() {
+        BoundedByteArrayOutputStream outToReplay = null;
+        BoundedByteArrayOutputStream errToReplay = null;
         synchronized (SYSTEM_STREAM_LOCK) {
             if (muteRefCount <= 0) {
                 logger.warn("unmuteSystemStreams called without a matching mute; muteRefCount={}", muteRefCount);
@@ -533,7 +564,118 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 }
                 savedOut = null;
                 savedErr = null;
+                outToReplay = capturedOut;
+                errToReplay = capturedErr;
+                capturedOut = null;
+                capturedErr = null;
             }
+        }
+        // Emit captured output outside the lock so logging back-pressure
+        // never blocks future muteSystemStreams() callers.
+        if (outToReplay != null) {
+            replayCapturedBytes(outToReplay, false);
+        }
+        if (errToReplay != null) {
+            replayCapturedBytes(errToReplay, true);
+        }
+    }
+
+    /**
+     * Decodes the bytes captured from a muted JVM stream and re-emits them via
+     * the logger. Stdout-origin bytes are logged at INFO; stderr-origin bytes at
+     * WARN, matching the severity of the original Tika diagnostic channels.
+     * Visible for testing so that subclasses can intercept the replayed text.
+     *
+     * @param buffer captured byte buffer; ignored when empty
+     * @param fromStderr whether the buffer came from {@link System#err}
+     */
+    protected void replayCapturedBytes(final BoundedByteArrayOutputStream buffer, final boolean fromStderr) {
+        if (buffer == null || buffer.size() == 0) {
+            return;
+        }
+        // Default JVM stream encoding is platform-dependent; PrintStream(true)
+        // wraps Charset.defaultCharset(), so decode with the same charset for
+        // round-trip fidelity.
+        final Charset charset = Charset.defaultCharset();
+        final String text = new String(buffer.toByteArray(), charset);
+        if (text.isEmpty()) {
+            return;
+        }
+        onReplayCaptured(text, fromStderr);
+        if (fromStderr) {
+            logger.warn("Captured System.err output during Tika extraction:\n{}", text);
+        } else {
+            logger.info("Captured System.out output during Tika extraction:\n{}", text);
+        }
+    }
+
+    /**
+     * Hook invoked just before the captured bytes from a muted JVM stream are
+     * emitted via the logger. Default implementation is a no-op; tests and
+     * subclasses can override to observe (or otherwise act on) the replayed
+     * text.
+     *
+     * @param text       captured text decoded with the JVM default charset
+     * @param fromStderr {@code true} if the bytes were captured from
+     *                   {@link System#err}, {@code false} for {@link System#out}
+     */
+    protected void onReplayCaptured(final String text, final boolean fromStderr) {
+        // hook for subclasses; intentionally empty
+    }
+
+    /**
+     * A {@link ByteArrayOutputStream} with a hard upper bound. Once the bound is
+     * reached a single truncation marker is appended and any further writes are
+     * silently dropped. This prevents a runaway parser from consuming arbitrary
+     * heap while still preserving an operator-visible record that output was
+     * truncated.
+     */
+    static final class BoundedByteArrayOutputStream extends ByteArrayOutputStream {
+        private final int capacity;
+        private boolean truncated;
+
+        BoundedByteArrayOutputStream(final int capacity) {
+            super(Math.min(1024, capacity));
+            this.capacity = capacity;
+        }
+
+        @Override
+        public synchronized void write(final int b) {
+            if (truncated) {
+                return;
+            }
+            if (size() >= capacity) {
+                appendTruncationMarker();
+                return;
+            }
+            super.write(b);
+        }
+
+        @Override
+        public synchronized void write(final byte[] b, final int off, final int len) {
+            if (truncated) {
+                return;
+            }
+            final int remaining = capacity - size();
+            if (remaining <= 0) {
+                appendTruncationMarker();
+                return;
+            }
+            if (len <= remaining) {
+                super.write(b, off, len);
+                return;
+            }
+            super.write(b, off, remaining);
+            appendTruncationMarker();
+        }
+
+        private void appendTruncationMarker() {
+            if (truncated) {
+                return;
+            }
+            truncated = true;
+            // Direct super.write to bypass our cap (the marker itself is small).
+            super.write(CAPTURE_TRUNCATION_MARKER, 0, CAPTURE_TRUNCATION_MARKER.length);
         }
     }
 

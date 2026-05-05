@@ -899,6 +899,89 @@ public class TikaExtractorTest extends PlainTestCase {
     }
 
     /**
+     * Verifies that bytes written to {@link System#out}/{@link System#err} while the
+     * streams are muted are not silently discarded. The previous fix swapped the
+     * streams to a {@code NullOutputStream}; we now buffer them and re-emit through
+     * the logger when extraction finishes so operators still see Tika parser
+     * diagnostics (PDFBox font warnings, JBIG2 warnings, legacy POI debug, ...).
+     */
+    @Test
+    public void test_systemStreamsCapturedAndReplayed() throws Exception {
+        final List<String> replayedOut = java.util.Collections.synchronizedList(new ArrayList<>());
+        final List<String> replayedErr = java.util.Collections.synchronizedList(new ArrayList<>());
+
+        // Subclass that injects writes to System.out/System.err while the muting is
+        // active and observes the replayed bytes through the test hook.
+        final TikaExtractor spy = new TikaExtractor() {
+            @Override
+            protected InputStream openMaterializedInput(final InputStream inputStream, final java.io.File tempFile,
+                    final boolean isByteStream) throws IOException {
+                System.out.println("HELLO_FROM_PARSER_OUT");
+                System.err.println("HELLO_FROM_PARSER_ERR");
+                return super.openMaterializedInput(inputStream, tempFile, isByteStream);
+            }
+
+            @Override
+            protected void onReplayCaptured(final String text, final boolean fromStderr) {
+                if (fromStderr) {
+                    replayedErr.add(text);
+                } else {
+                    replayedOut.add(text);
+                }
+            }
+        };
+        // wire up the same Tika config the regular fixture uses so detection works
+        spy.setTikaConfig(org.apache.tika.config.TikaConfig.getDefaultConfig());
+        spy.init();
+
+        final PrintStream originalOut = System.out;
+        final PrintStream originalErr = System.err;
+
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+        try {
+            final ExtractData result = spy.getText(in, null);
+            assertNotNull(result);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // streams must be restored
+        Assertions.assertSame(originalOut, System.out);
+        Assertions.assertSame(originalErr, System.err);
+
+        // captured stdout/stderr must have been replayed via the hook
+        Assertions.assertFalse(replayedOut.isEmpty(), "captured stdout was not replayed");
+        Assertions.assertFalse(replayedErr.isEmpty(), "captured stderr was not replayed");
+        Assertions.assertTrue(String.join("\n", replayedOut).contains("HELLO_FROM_PARSER_OUT"),
+                "expected captured stdout to contain the marker, got: " + replayedOut);
+        Assertions.assertTrue(String.join("\n", replayedErr).contains("HELLO_FROM_PARSER_ERR"),
+                "expected captured stderr to contain the marker, got: " + replayedErr);
+    }
+
+    /**
+     * Verifies that the bounded capture buffer caps at its configured size and
+     * appends a truncation marker once instead of growing without bound.
+     */
+    @Test
+    public void test_boundedCaptureBuffer_truncatesAtCapacity() throws Exception {
+        final TikaExtractor.BoundedByteArrayOutputStream buf = new TikaExtractor.BoundedByteArrayOutputStream(16);
+        // Write more than the cap in a single call.
+        final byte[] payload = new byte[64];
+        java.util.Arrays.fill(payload, (byte) 'x');
+        buf.write(payload, 0, payload.length);
+        // Subsequent writes are dropped.
+        buf.write("MORE".getBytes(StandardCharsets.UTF_8));
+        buf.write('!');
+
+        final String text = new String(buf.toByteArray(), StandardCharsets.UTF_8);
+        // 16 'x' bytes + the truncation marker; "MORE" / '!' must be discarded.
+        Assertions.assertTrue(text.startsWith("xxxxxxxxxxxxxxxx"), "expected 16 bytes of payload, got: " + text);
+        Assertions.assertTrue(text.contains("truncated"), "expected truncation marker, got: " + text);
+        Assertions.assertFalse(text.contains("MORE"), "post-cap writes must be dropped");
+        Assertions.assertFalse(text.contains("!"), "post-cap byte writes must be dropped");
+    }
+
+    /**
      * When muting is disabled, {@link System#out}/{@link System#err} must remain the
      * caller-visible streams throughout extraction.
      */

@@ -388,6 +388,119 @@ public class HtmlExtractorTest extends PlainTestCase {
     }
 
     @Test
+    public void test_malformedXPath_doesNotAbortExtraction() {
+        // Pre-cache behaviour was: a malformed metadataXpathMap entry logs a
+        // warning and yields no value rather than failing the whole
+        // extraction. The XPath compile cache must not regress that contract.
+        final HtmlExtractor extractor = newExtractor();
+        extractor.addMetadata("broken", "//[invalid");
+        extractor.addMetadata("ok", "//TITLE");
+        final String html = "<html><head><title>OK</title></head><body>body content</body></html>";
+
+        final ExtractData data = extractor.getText(toStream(html), null);
+        assertNotNull(data);
+        assertTrue(data.getContent().contains("body content"));
+        // Valid metadata still populated.
+        assertEquals("OK", data.getValues("ok")[0]);
+        // Malformed XPath quietly produced no values.
+        Assertions.assertTrue(data.getValues("broken") == null || data.getValues("broken").length == 0,
+                "malformed XPath must not populate metadata");
+    }
+
+    @Test
+    public void test_malformedContentXPath_doesNotAbortExtraction() {
+        // When contentXpath itself is malformed, pre-cache behaviour was to
+        // swallow the failure and return an extract with empty content. The
+        // CrawlerSystemException raised by the compile cache must therefore
+        // be caught at the same boundary instead of propagating out.
+        final HtmlExtractor extractor = newExtractor();
+        try {
+            final Field f = HtmlExtractor.class.getDeclaredField("contentXpath");
+            f.setAccessible(true);
+            f.set(extractor, "//[invalid");
+        } catch (final Exception e) {
+            throw new AssertionError("failed to override contentXpath", e);
+        }
+        final String html = "<html><head><title>T</title></head><body>body content</body></html>";
+
+        final ExtractData data = extractor.getText(toStream(html), null);
+        assertNotNull(data);
+        // Default-metadata path still ran (title present).
+        assertEquals("T", data.getValues("title")[0]);
+    }
+
+    @Test
+    public void test_customJsonLdMetadataKey_isPreserved() {
+        // If the operator has registered addMetadata("jsonld.raw"/"jsonld.type", ...),
+        // the user-supplied value must take precedence over the JSON-LD
+        // auto-extraction (mirroring the applyDefaultFieldRules precedence).
+        final HtmlExtractor extractor = newExtractor();
+        extractor.addMetadata(HtmlExtractor.JSONLD_RAW_KEY, "//META[@name='custom-raw']/@content");
+        extractor.addMetadata(HtmlExtractor.JSONLD_TYPE_KEY, "//META[@name='custom-type']/@content");
+        final String html = "<html><head>" //
+                + "<title>T</title>" //
+                + "<meta name=\"custom-raw\" content=\"USER_RAW\">" //
+                + "<meta name=\"custom-type\" content=\"USER_TYPE\">" //
+                + "<script type=\"application/ld+json\">{\"@type\":\"Article\"}</script>" //
+                + "</head><body>body</body></html>";
+
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] raw = data.getValues(HtmlExtractor.JSONLD_RAW_KEY);
+        assertNotNull(raw);
+        assertEquals(1, raw.length);
+        assertEquals("USER_RAW", raw[0]);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        assertEquals(1, types.length);
+        assertEquals("USER_TYPE", types[0]);
+    }
+
+    @Test
+    public void test_jsonLdGraphTypesAreCollected() {
+        // Schema.org markup very commonly wraps multiple typed entities in a
+        // top-level @graph array. Verify each nested @type contributes.
+        final HtmlExtractor extractor = newExtractor();
+        final String json = "{\"@context\":\"https://schema.org\"," + "\"@graph\":[{\"@type\":\"Organization\",\"name\":\"Acme\"},"
+                + "{\"@type\":[\"WebSite\",\"Thing\"],\"url\":\"https://example.com\"}," + "{\"@type\":\"Article\","
+                + "\"author\":{\"@type\":\"Person\",\"name\":\"A\"}}]}";
+        final String html = "<html><head>" //
+                + "<title>T</title>" //
+                + "<script type=\"application/ld+json\">" + json + "</script>" //
+                + "</head><body>body</body></html>";
+
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        final List<String> typeList = Arrays.asList(types);
+        Assertions.assertTrue(typeList.contains("Organization"), "@graph[0] @type missing: " + typeList);
+        Assertions.assertTrue(typeList.contains("WebSite"), "@graph[1] @type[0] missing: " + typeList);
+        Assertions.assertTrue(typeList.contains("Thing"), "@graph[1] @type[1] missing: " + typeList);
+        Assertions.assertTrue(typeList.contains("Article"), "@graph[2] @type missing: " + typeList);
+        Assertions.assertTrue(typeList.contains("Person"), "nested author @type missing: " + typeList);
+    }
+
+    @Test
+    public void test_jsonLdContextObject_typeNotLeaked() {
+        // @context can itself be an object with embedded @type term
+        // definitions (vocabulary metadata, not real data). Those must NOT
+        // appear in jsonld.type.
+        final HtmlExtractor extractor = newExtractor();
+        final String json = "{\"@context\":{\"name\":{\"@type\":\"@id\"}}," + "\"@type\":\"Article\",\"name\":\"x\"}";
+        final String html = "<html><head>" //
+                + "<title>T</title>" //
+                + "<script type=\"application/ld+json\">" + json + "</script>" //
+                + "</head><body>body</body></html>";
+
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        // Only the top-level @type (Article) — the @id inside @context must
+        // not be collected.
+        assertEquals(1, types.length);
+        assertEquals("Article", types[0]);
+    }
+
+    @Test
     public void test_destroyClearsThreadLocals() throws Exception {
         final HtmlExtractor extractor = newExtractor();
         extractor.setExtractDefaultMetadata(false);

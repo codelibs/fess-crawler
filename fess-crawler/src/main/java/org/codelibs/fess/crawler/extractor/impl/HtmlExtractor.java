@@ -316,6 +316,14 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * JSON content is appended to {@link #JSONLD_RAW_KEY}. Malformed JSON is
      * logged and skipped; the rest of the extraction proceeds normally.
      *
+     * <p>Existing values for {@link #JSONLD_RAW_KEY} or {@link #JSONLD_TYPE_KEY}
+     * (typically populated by an operator-supplied
+     * {@link #addMetadata(String, String)} rule that targets the same key) are
+     * preserved and not overwritten — matching the precedence rule used by
+     * {@link #applyDefaultFieldRules(Document, ExtractData)}. To re-enable
+     * automatic JSON-LD population in that case, drop the colliding custom
+     * rule or rename it.</p>
+     *
      * @param document the parsed HTML DOM
      * @param extractData the extract data to populate
      */
@@ -337,14 +345,19 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 rawList.add(trimmed);
                 collectJsonLdTypes(trimmed, typeList);
             }
-            if (!rawList.isEmpty()) {
+            if (!rawList.isEmpty() && extractData.getValues(JSONLD_RAW_KEY) == null) {
                 extractData.putValues(JSONLD_RAW_KEY, rawList.toArray(new String[0]));
             }
-            if (!typeList.isEmpty()) {
+            if (!typeList.isEmpty() && extractData.getValues(JSONLD_TYPE_KEY) == null) {
                 extractData.putValues(JSONLD_TYPE_KEY, typeList.toArray(new String[0]));
             }
         } catch (final XPathException e) {
             logger.warn("Failed to evaluate JSON-LD XPath.", e);
+        } catch (final CrawlerSystemException e) {
+            // JSONLD_XPATH is a constant and should always compile, but keep
+            // the recovery symmetric with getStringsByXPath so a future change
+            // to the constant cannot abort the whole extraction.
+            logger.warn("Failed to compile JSON-LD XPath.", e.getCause() != null ? e.getCause() : e);
         }
     }
 
@@ -377,6 +390,22 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         }
     }
 
+    /**
+     * Walks the JSON-LD tree and appends every {@code @type} value it finds.
+     *
+     * <p>Real-world Schema.org markup commonly nests typed entities — for
+     * example WordPress/Yoast emit a top-level {@code @graph} array and other
+     * pages embed typed entities under {@code mainEntity}, {@code author},
+     * {@code publisher}, {@code itemListElement}, etc. The walk therefore
+     * recurses into every object child except {@code @context} (which holds
+     * vocabulary term definitions, not data). {@code @type} itself is not
+     * recursed into because its value is always a string or array of strings
+     * per the JSON-LD specification.</p>
+     *
+     * <p>Recursion depth is implicitly bounded by the parser's
+     * {@link #JSONLD_MAX_NESTING_DEPTH}, so a hostile document cannot drive
+     * this walk into stack exhaustion.</p>
+     */
     private void collectTypeNodes(final JsonNode node, final List<String> typeList) {
         if (node == null) {
             return;
@@ -406,6 +435,17 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 });
             }
         }
+        // Recurse into every other child so nested typed entities (notably
+        // @graph, mainEntity, author, publisher, itemListElement, ...) also
+        // contribute their @type values. Skip @type (already handled) and
+        // @context (vocabulary term definitions, not data).
+        node.fields().forEachRemaining(field -> {
+            final String fieldName = field.getKey();
+            if ("@type".equals(fieldName) || "@context".equals(fieldName)) {
+                return;
+            }
+            collectTypeNodes(field.getValue(), typeList);
+        });
     }
 
     /**
@@ -472,6 +512,13 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * The compiled {@link XPathExpression} is cached per thread, so repeated
      * calls with the same expression skip recompilation.
      *
+     * <p>A malformed XPath expression — whether it fails to compile or fails
+     * to evaluate — is logged at {@code WARN} and an empty array is returned,
+     * matching the pre-cache behaviour. Callers like
+     * {@link #createExtractData(String)} therefore never abort the whole
+     * extraction because of a single misconfigured rule in
+     * {@link #contentXpath} or {@link #metadataXpathMap}.</p>
+     *
      * @param document the DOM document to extract strings from
      * @param path the XPath expression to evaluate
      * @return an array of strings extracted from the document
@@ -479,8 +526,18 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     protected String[] getStringsByXPath(final Document document, final String path) {
         // Use the cached compiled expression to evaluate as a node-set first;
         // node-set is the common case for both content and metadata XPaths.
+        final XPathExpression expr;
         try {
-            final XPathExpression expr = getXPathExpression(path);
+            expr = getXPathExpression(path);
+        } catch (final CrawlerSystemException e) {
+            // Compile failure of a malformed XPath. Restore the pre-cache
+            // behaviour where XPathAPI.eval would have thrown XPathException
+            // here and we logged + returned empty rather than propagating the
+            // failure out of createExtractData.
+            logger.warn("Failed to parse the content by {}", path, e.getCause() != null ? e.getCause() : e);
+            return StringUtil.EMPTY_STRINGS;
+        }
+        try {
             final NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
             if (nodes == null) {
                 return StringUtil.EMPTY_STRINGS;

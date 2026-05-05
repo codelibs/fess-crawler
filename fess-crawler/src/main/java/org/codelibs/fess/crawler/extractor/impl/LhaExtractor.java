@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,7 +27,6 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
-import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -34,7 +35,6 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
-import org.codelibs.fess.crawler.util.IgnoreCloseInputStream;
 
 import jp.gr.java_conf.dangan.util.lha.LhaFile;
 import jp.gr.java_conf.dangan.util.lha.LhaHeader;
@@ -65,12 +65,22 @@ public class LhaExtractor extends AbstractExtractor {
     protected long maxBytes = 1L << 31;
 
     /**
-     * Maximum uncompressed bytes for a SINGLE entry (as reported by the LHA
-     * header). Guards against an oversized entry being routed to a buffered
-     * downstream extractor. Defaults to 256 MiB. Set to {@code -1} to
-     * disable. Enforced independently of {@link #maxBytes}.
+     * Maximum uncompressed bytes that may be buffered for a SINGLE entry.
+     * Enforced against the actual bytes read from the entry stream (NOT the
+     * header-reported size, which is attacker-controlled). Defaults to
+     * 256 MiB. Set to {@code -1} to disable. Enforced independently of
+     * {@link #maxBytes}.
      */
     protected long maxBytesPerEntry = 256L * 1024L * 1024L;
+
+    /**
+     * Maximum bytes copied from the input stream to the local temporary file
+     * before {@link LhaFile} is opened. The LHA library requires a seekable
+     * file, so the entire archive must be staged on disk; this cap prevents a
+     * hostile producer from filling local storage. Defaults to 1 GiB. Set to
+     * {@code -1} to disable.
+     */
+    protected long maxInputBytes = 1L << 30;
 
     /**
      * Maximum allowed number of entries to iterate. Defaults to 100,000.
@@ -111,13 +121,20 @@ public class LhaExtractor extends AbstractExtractor {
         try {
             tempFile = createTempFile("crawler-", ".lzh", null);
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-                CopyUtil.copy(in, fos);
+                // Stage the (untrusted) archive bytes to disk under a hard
+                // cap so a hostile producer cannot exhaust local storage by
+                // streaming an arbitrarily large body.
+                final long inputReadLimit = maxInputBytes > 0 ? maxInputBytes + 1L : Long.MAX_VALUE;
+                final long staged = copyBounded(in, fos, inputReadLimit);
+                if (maxInputBytes > 0 && staged > maxInputBytes) {
+                    throw new MaxLengthExceededException("lha input size exceeded: bytes=" + staged + " max=" + maxInputBytes);
+                }
             }
 
             lhaFile = new LhaFile(tempFile);
             @SuppressWarnings("unchecked")
             final Enumeration<LhaHeader> entries = lhaFile.entries();
-            long contentSize = 0;
+            long totalBytes = 0;
             int entryCount = 0;
             while (entries.hasMoreElements()) {
                 final LhaHeader head = entries.nextElement();
@@ -125,33 +142,61 @@ public class LhaExtractor extends AbstractExtractor {
                 if (maxEntries > 0 && entryCount > maxEntries) {
                     throw new MaxLengthExceededException("lha entry count exceeded: count=" + entryCount + " max=" + maxEntries);
                 }
-                final long entrySize = head.getOriginalSize();
-                if (maxBytesPerEntry > 0 && entrySize > maxBytesPerEntry) {
-                    throw new MaxLengthExceededException(
-                            "lha per-entry size exceeded: name=" + head.getPath() + " size=" + entrySize + " max=" + maxBytesPerEntry);
-                }
-                contentSize += entrySize;
-                if (maxBytes > 0 && contentSize > maxBytes) {
-                    throw new MaxLengthExceededException("lha uncompressed size exceeded: total=" + contentSize + " max=" + maxBytes);
-                }
-                if (maxContentSize != -1 && contentSize > maxContentSize) {
-                    throw new MaxLengthExceededException("Extracted size is " + contentSize + " > " + maxContentSize);
-                }
                 final String filename = head.getPath();
                 if (isPathTraversal(filename)) {
                     logger.warn("lha entry rejected: name={} reason=path-traversal", filename);
                     continue;
                 }
+
+                // Read the entry payload through copyBounded so the cap is
+                // enforced against bytes actually decompressed, not the
+                // header-reported size (which is attacker-controlled).
+                final long actualBytes;
+                final byte[] entryBytes;
+                InputStream is = null;
+                try {
+                    is = lhaFile.getInputStream(head);
+                    final long totalReadLimit;
+                    if (maxBytes > 0) {
+                        totalReadLimit = Math.max(0L, maxBytes - totalBytes) + 1L;
+                    } else {
+                        totalReadLimit = Long.MAX_VALUE;
+                    }
+                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
+                    final long readLimit = Math.min(totalReadLimit, perEntryReadLimit);
+                    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    actualBytes = copyBounded(is, out, readLimit);
+                    entryBytes = out.toByteArray();
+                } catch (final IOException ioe) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to read lha entry: name={}", filename, ioe);
+                    }
+                    continue;
+                } finally {
+                    CloseableUtil.closeQuietly(is);
+                }
+
+                if (maxBytesPerEntry > 0 && actualBytes > maxBytesPerEntry) {
+                    throw new MaxLengthExceededException(
+                            "lha per-entry size exceeded: name=" + filename + " size=" + actualBytes + " max=" + maxBytesPerEntry);
+                }
+
+                totalBytes += actualBytes;
+                if (maxBytes > 0 && totalBytes > maxBytes) {
+                    throw new MaxLengthExceededException("lha uncompressed size exceeded: total=" + totalBytes + " max=" + maxBytes);
+                }
+                if (maxContentSize != -1 && totalBytes > maxContentSize) {
+                    throw new MaxLengthExceededException("Extracted size is " + totalBytes + " > " + maxContentSize);
+                }
+
                 final String mimeType = mimeTypeHelper.getContentType(null, filename);
                 if (mimeType != null) {
                     final Extractor extractor = extractorFactory.getExtractor(mimeType);
                     if (extractor != null) {
-                        InputStream is = null;
                         try {
-                            is = lhaFile.getInputStream(head);
                             final Map<String, String> map = incrementDepth(params);
                             map.put(ExtractData.RESOURCE_NAME_KEY, filename);
-                            buf.append(extractor.getText(new IgnoreCloseInputStream(is), map).getContent());
+                            buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
                             buf.append('\n');
                         } catch (final MaxLengthExceededException e) {
                             throw e;
@@ -159,8 +204,6 @@ public class LhaExtractor extends AbstractExtractor {
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Exception in an internal extractor.", e);
                             }
-                        } finally {
-                            CloseableUtil.closeQuietly(is);
                         }
                     }
                 }
@@ -201,13 +244,24 @@ public class LhaExtractor extends AbstractExtractor {
     }
 
     /**
-     * Sets the per-entry cap on the original (uncompressed) size reported by
-     * the LHA header. Set to {@code -1} to disable.
+     * Sets the per-entry cap on uncompressed bytes buffered in memory. The
+     * cap is enforced against bytes actually decompressed (not the
+     * header-reported size). Set to {@code -1} to disable.
      *
      * @param maxBytesPerEntry the per-entry maximum
      */
     public void setMaxBytesPerEntry(final long maxBytesPerEntry) {
         this.maxBytesPerEntry = maxBytesPerEntry;
+    }
+
+    /**
+     * Sets the cap on the number of input bytes staged to a temporary file
+     * before {@link LhaFile} is opened. Set to {@code -1} to disable.
+     *
+     * @param maxInputBytes the input-stage maximum
+     */
+    public void setMaxInputBytes(final long maxInputBytes) {
+        this.maxInputBytes = maxInputBytes;
     }
 
     /**

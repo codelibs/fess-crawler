@@ -445,10 +445,12 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
 
     @Test
     public void test_perEntryCapEnforced() throws Exception {
-        // Build a zip whose single entry holds 300 MiB of (highly
-        // compressible) zeroes. The extractor must trip the per-entry cap
-        // before buffering the entire 300 MiB into memory.
-        final int entrySize = 300 * 1024 * 1024;
+        // Build a zip whose single entry exceeds the configured per-entry
+        // cap. The extractor must trip the cap before buffering the whole
+        // payload. We use a small cap (1 MiB) and a slightly larger payload
+        // (2 MiB) so the test stays cheap on parallel/low-memory CI.
+        final int perEntryCap = 1024 * 1024;
+        final int entrySize = 2 * perEntryCap;
         final byte[] payload = new byte[entrySize];
 
         final java.util.zip.Deflater def = new java.util.zip.Deflater(java.util.zip.Deflater.BEST_COMPRESSION);
@@ -479,11 +481,11 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
         final byte[] data = baos.toByteArray();
 
         // Disable the total-size and ratio checks so only the per-entry cap
-        // can trigger. Default per-entry cap (256 MiB) must reject the
-        // 300 MiB entry.
+        // can trigger.
         zipExtractor.setMaxBytes(-1);
         zipExtractor.setMaxContentSize(-1);
         zipExtractor.setMaxCompressionRatio(-1);
+        zipExtractor.setMaxBytesPerEntry(perEntryCap);
         try (InputStream in = new ByteArrayInputStream(data)) {
             zipExtractor.getText(in, null);
             fail();
@@ -503,6 +505,23 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
             fail();
         } catch (final MaxLengthExceededException e) {
             assertTrue(e.getMessage().toLowerCase().contains("recursion"));
+        } catch (final IOException e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_lha_maxInputBytes_capsStaging() {
+        // Stage cap is enforced during the temp-file copy, before LhaFile
+        // is opened. Any blob larger than the cap must be rejected — we use
+        // arbitrary bytes since the failure precedes archive parsing.
+        lhaExtractor.setMaxInputBytes(1024L);
+        final byte[] payload = new byte[4 * 1024];
+        try (InputStream in = new ByteArrayInputStream(payload)) {
+            lhaExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("input size exceeded"));
         } catch (final IOException e) {
             fail();
         }

@@ -346,4 +346,82 @@ public class HtmlExtractorTest extends PlainTestCase {
         Assertions.assertNull(data.getValues("og:title"), "og:title should not be set when defaults are overridden");
         Assertions.assertNull(data.getValues("title"), "title should not be set when defaults are overridden");
     }
+
+    @Test
+    public void test_jsonLdNestingDepthExceeded_doesNotCrash() {
+        final HtmlExtractor extractor = newExtractor();
+        // Build JSON-LD with nesting depth far beyond JSONLD_MAX_NESTING_DEPTH (64).
+        final int depth = 200;
+        final StringBuilder json = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            json.append("{\"a\":");
+        }
+        json.append("\"deep\"");
+        for (int i = 0; i < depth; i++) {
+            json.append("}");
+        }
+        final String html = "<html><head>" //
+                + "<title>T</title>" //
+                + "<script type=\"application/ld+json\">" + json + "</script>" //
+                + "<script type=\"application/ld+json\">{\"@type\":\"Article\"}</script>" //
+                + "</head><body>body content</body></html>";
+
+        // Must not throw / abort extraction.
+        final ExtractData data = extractor.getText(toStream(html), null);
+        assertNotNull(data);
+        assertTrue(data.getContent().contains("body content"));
+        // Default title still extracted.
+        assertEquals("T", data.getValues("title")[0]);
+
+        // Both raw blocks captured (nesting limit only blocks @type collection,
+        // not raw capture).
+        final String[] raw = data.getValues(HtmlExtractor.JSONLD_RAW_KEY);
+        assertNotNull(raw);
+        assertEquals(2, raw.length);
+
+        // The deeply nested block must NOT contribute a @type entry; only the
+        // shallow second block should have produced one.
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        assertEquals(1, types.length);
+        assertEquals("Article", types[0]);
+    }
+
+    @Test
+    public void test_destroyClearsThreadLocals() throws Exception {
+        final HtmlExtractor extractor = newExtractor();
+        extractor.setExtractDefaultMetadata(false);
+        extractor.setExtractJsonLd(false);
+        extractor.addMetadata("custom", "//TITLE");
+
+        // Warm caches on the calling thread.
+        final String html = "<html><head><title>T</title></head><body>b</body></html>";
+        extractor.getText(toStream(html), null);
+
+        final Field cacheField = HtmlExtractor.class.getDeclaredField("threadLocalXPathCache");
+        cacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        final ThreadLocal<Map<String, XPathExpression>> tlCache = (ThreadLocal<Map<String, XPathExpression>>) cacheField.get(extractor);
+        final Map<String, XPathExpression> cacheBefore = tlCache.get();
+        Assertions.assertFalse(cacheBefore.isEmpty(), "cache must be populated before destroy");
+
+        // Capture identity of the populated cache map.
+        final int beforeIdentity = System.identityHashCode(cacheBefore);
+
+        // destroy() must clear the calling thread's ThreadLocals.
+        extractor.destroy();
+
+        // After destroy(), the ThreadLocal must initialise a fresh, empty map
+        // (different identity from before).
+        final Map<String, XPathExpression> cacheAfter = tlCache.get();
+        Assertions.assertTrue(cacheAfter.isEmpty(), "cache must be empty after destroy");
+        Assertions.assertNotEquals(beforeIdentity, System.identityHashCode(cacheAfter),
+                "ThreadLocal must hold a freshly initialised map after destroy");
+
+        // Subsequent extraction still works (lazily reinitialises ThreadLocals).
+        final ExtractData data = extractor.getText(toStream(html), null);
+        assertNotNull(data);
+        assertEquals("T", data.getValues("custom")[0]);
+        Assertions.assertFalse(tlCache.get().isEmpty(), "cache must be repopulated after subsequent extraction");
+    }
 }

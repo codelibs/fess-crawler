@@ -49,10 +49,12 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Extracts text content from HTML documents.
@@ -79,6 +81,30 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /** XPath expression matching JSON-LD script blocks. */
     protected static final String JSONLD_XPATH = "//SCRIPT[@type='application/ld+json']";
 
+    /**
+     * Single shared {@link XPathFactory}. {@code XPathFactory} itself is not
+     * documented as thread-safe, so calls to {@link XPathFactory#newXPath()}
+     * are synchronised on the factory in {@link #newXPath()}. Each thread still
+     * owns its own {@link XPath} instance via {@link #threadLocalXPath}, since
+     * {@code XPath} is also not guaranteed thread-safe.
+     */
+    private static final XPathFactory XPATH_FACTORY = XPathFactory.newInstance();
+
+    /**
+     * Maximum nesting depth for parsed JSON-LD objects. Pathological inputs
+     * with deeper nesting are rejected to avoid stack/heap exhaustion DoS.
+     */
+    protected static final int JSONLD_MAX_NESTING_DEPTH = 64;
+
+    /**
+     * Maximum total string length (in characters) the JSON-LD parser will
+     * accept for any single token / value.
+     */
+    protected static final int JSONLD_MAX_STRING_LENGTH = 10 * 1024 * 1024;
+
+    /** Maximum number length (in characters) the JSON-LD parser will accept. */
+    protected static final int JSONLD_MAX_NUMBER_LENGTH = 1000;
+
     /** Pattern for extracting charset from meta tags. */
     protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
@@ -103,7 +129,14 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /** Default metadata field rules (key -&gt; XPath expression). */
     protected Map<String, String> defaultFieldRules;
 
-    /** Whether to extract default HTML metadata (title, description, OpenGraph, etc.). */
+    /**
+     * Whether to extract default HTML metadata (title, description, OpenGraph,
+     * etc.). Defaults to {@code true}; new deployments get the default
+     * metadata set out of the box. Operators upgrading existing deployments
+     * who have configured custom metadata rules are warned at
+     * {@link #init()} when a custom rule key collides with a built-in
+     * default-rule key (see {@link #defaultFieldRules}).
+     */
     protected boolean extractDefaultMetadata = true;
 
     /** Whether to extract JSON-LD ({@code <script type="application/ld+json">}) blocks. */
@@ -112,11 +145,25 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /** Thread-local instance of XPathAPI for thread-safe XPath evaluation. */
     private final ThreadLocal<XPathAPI> xpathAPI = new ThreadLocal<>();
 
-    /** Per-thread cache of compiled XPath expressions. */
+    /**
+     * Per-thread cache of compiled XPath expressions.
+     *
+     * <p>Note: ThreadLocals can pin the classloader of the values they hold to
+     * the threads that touched them — a known issue when this extractor is
+     * deployed inside a servlet container (Tomcat, etc.) and the application
+     * is undeployed. See {@link #destroy()} for the calling-thread cleanup
+     * hook and {@link #clearXPathCache()} for the per-thread cleanup hook
+     * callers can invoke from worker threads.</p>
+     */
     private final ThreadLocal<Map<String, XPathExpression>> threadLocalXPathCache = ThreadLocal.withInitial(HashMap::new);
 
-    /** Per-thread XPath used to compile cached expressions. */
-    private final ThreadLocal<XPath> threadLocalXPath = ThreadLocal.withInitial(() -> XPathFactory.newInstance().newXPath());
+    /**
+     * Per-thread {@link XPath} used to compile cached expressions. {@code XPath}
+     * is not documented as thread-safe; the underlying {@link XPathFactory} is
+     * shared statically (see {@link #XPATH_FACTORY}) and accessed via
+     * {@link #newXPath()}.
+     */
+    private final ThreadLocal<XPath> threadLocalXPath = ThreadLocal.withInitial(HtmlExtractor::newXPath);
 
     /** Lazily-initialised JSON parser for JSON-LD blocks. */
     private volatile ObjectMapper objectMapper;
@@ -129,7 +176,10 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     }
 
     /**
-     * Initialises default metadata field rules if none have been provided.
+     * Initialises default metadata field rules if none have been provided and
+     * warns operators if any user-configured custom metadata rule key
+     * collides with a built-in default-rule key while
+     * {@link #extractDefaultMetadata} is enabled.
      */
     @PostConstruct
     public void init() {
@@ -147,6 +197,62 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             rules.put("keywords", "//META[@name='keywords']/@content");
             rules.put("author", "//META[@name='author']/@content");
             defaultFieldRules = rules;
+        }
+        warnOnMetadataKeyCollisions();
+    }
+
+    /**
+     * Logs a single WARN entry if {@link #extractDefaultMetadata} is enabled
+     * and the operator-configured {@code metadataXpathMap} declares any key
+     * that is also defined by {@link #defaultFieldRules}. Per-key custom rules
+     * still take precedence (see {@link #applyDefaultFieldRules}); the warning
+     * exists only to surface potentially surprising overlap to operators.
+     */
+    protected void warnOnMetadataKeyCollisions() {
+        if (!extractDefaultMetadata || defaultFieldRules == null || defaultFieldRules.isEmpty() || metadataXpathMap == null
+                || metadataXpathMap.isEmpty()) {
+            return;
+        }
+        final List<String> collisions =
+                metadataXpathMap.keySet().stream().filter(defaultFieldRules::containsKey).sorted().collect(Collectors.toList());
+        if (!collisions.isEmpty()) {
+            logger.warn(
+                    "HtmlExtractor: custom metadata rule key(s) {} collide with default-rule keys; "
+                            + "custom rules take precedence, but enabling extractDefaultMetadata may produce duplicates "
+                            + "or unexpected fallback behavior. Disable default metadata or rename custom keys to silence this warning.",
+                    collisions);
+        }
+    }
+
+    /**
+     * Releases ThreadLocal references held on the calling thread.
+     *
+     * <p><b>Limitation:</b> a single invocation only clears the thread that
+     * actually calls {@code destroy()}. In a typical servlet container
+     * lifecycle this is the container management thread, not the worker
+     * threads where the cache was populated; those workers must call
+     * {@link #clearXPathCache()} (or be retired) to release their entries.
+     * Container-driven destroy is still useful because it removes the
+     * references owned by the management thread itself, which is often the
+     * root cause of classloader pinning at undeploy time.</p>
+     */
+    @PreDestroy
+    public void destroy() {
+        threadLocalXPathCache.remove();
+        threadLocalXPath.remove();
+        xpathAPI.remove();
+    }
+
+    /**
+     * Returns a freshly created {@link XPath} instance, synchronising on the
+     * shared {@link XPathFactory} since {@code XPathFactory} is not documented
+     * as thread-safe.
+     *
+     * @return a new {@link XPath} instance
+     */
+    private static XPath newXPath() {
+        synchronized (XPATH_FACTORY) {
+            return XPATH_FACTORY.newXPath();
         }
     }
 
@@ -302,6 +408,15 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         }
     }
 
+    /**
+     * Returns the lazily-initialised {@link ObjectMapper} used to parse
+     * JSON-LD blocks. The mapper is configured with strict
+     * {@link StreamReadConstraints} so a hostile site cannot drive the
+     * extractor into stack/heap exhaustion via deeply nested JSON, oversized
+     * strings, or oversized numbers.
+     *
+     * @return the singleton {@link ObjectMapper}
+     */
     private ObjectMapper getObjectMapper() {
         ObjectMapper mapper = objectMapper;
         if (mapper == null) {
@@ -309,6 +424,12 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 mapper = objectMapper;
                 if (mapper == null) {
                     mapper = new ObjectMapper();
+                    final StreamReadConstraints constraints = StreamReadConstraints.builder()
+                            .maxNestingDepth(JSONLD_MAX_NESTING_DEPTH)
+                            .maxStringLength(JSONLD_MAX_STRING_LENGTH)
+                            .maxNumberLength(JSONLD_MAX_NUMBER_LENGTH)
+                            .build();
+                    mapper.getFactory().setStreamReadConstraints(constraints);
                     objectMapper = mapper;
                 }
             }

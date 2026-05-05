@@ -19,9 +19,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.http.Header;
@@ -37,6 +39,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -98,6 +101,9 @@ public class ApiExtractor extends AbstractExtractor {
 
     /** Maximum size in bytes accepted for an API response body. Default is 100 MiB. */
     protected long maxResponseSize = 100L * 1024L * 1024L;
+
+    /** Maximum size in bytes accepted for an outgoing request body. Default is 100 MiB. */
+    protected long maxRequestSize = 100L * 1024L * 1024L;
 
     /** Maximum number of retry attempts on transient failures. */
     protected int maxRetries = 2;
@@ -291,8 +297,8 @@ public class ApiExtractor extends AbstractExtractor {
             // so we can only execute the post once. Retries thus only apply when the request
             // can be re-issued — currently only on connection-establishment failures or
             // a status-code-only retry path that doesn't consume the entity. To support retries
-            // we buffer the request stream into memory (bounded by maxResponseSize as a heuristic
-            // safeguard against runaway uploads).
+            // we buffer the request stream into memory, bounded by maxRequestSize so a hostile
+            // or malformed source document cannot OOM the extractor.
             return executeWithRetries(in, targetUrl);
         } finally {
             if (accessTimeout != null) {
@@ -312,12 +318,16 @@ public class ApiExtractor extends AbstractExtractor {
      * @return the extracted data
      */
     protected ExtractData executeWithRetries(final InputStream in, final String targetUrl) {
-        // Buffer the input once so we can re-send it on retry.
+        // Buffer the input once so we can re-send it on retry. Bounded to maxRequestSize so a
+        // hostile/large source document cannot OOM the extractor.
         final byte[] requestBody;
-        try {
-            requestBody = in.readAllBytes();
+        try (BoundedInputStream bounded = BoundedInputStream.builder().setInputStream(in).setMaxCount(maxRequestSize + 1L).get()) {
+            requestBody = bounded.readAllBytes();
         } catch (final IOException e) {
             throw new ExtractException("Failed to read input stream for API extractor", e);
+        }
+        if (requestBody.length > maxRequestSize) {
+            throw new ExtractException("ApiExtractor request body exceeded limit: limit=" + maxRequestSize);
         }
 
         IOException lastIoException = null;
@@ -339,19 +349,34 @@ public class ApiExtractor extends AbstractExtractor {
                 if (attempt >= maxRetries) {
                     throw new ExtractException("API request failed", e);
                 }
-                sleepQuietly(computeBackoff(attempt, -1L));
+                final long sleepMs = computeBackoff(attempt, -1L);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Retrying API request after connect timeout (attempt={}/{}, sleep={}ms)", attempt + 1, maxRetries + 1,
+                            sleepMs, e);
+                }
+                sleepQuietly(sleepMs);
             } catch (final NoHttpResponseException e) {
                 lastIoException = e;
                 if (attempt >= maxRetries) {
                     throw new ExtractException("API request failed", e);
                 }
-                sleepQuietly(computeBackoff(attempt, -1L));
+                final long sleepMs = computeBackoff(attempt, -1L);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Retrying API request after no-response (attempt={}/{}, sleep={}ms)", attempt + 1, maxRetries + 1, sleepMs,
+                            e);
+                }
+                sleepQuietly(sleepMs);
             } catch (final IOException e) {
                 lastIoException = e;
                 if (attempt >= maxRetries) {
                     throw new ExtractException("API request failed", e);
                 }
-                sleepQuietly(computeBackoff(attempt, -1L));
+                final long sleepMs = computeBackoff(attempt, -1L);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Retrying API request after I/O error (attempt={}/{}, sleep={}ms)", attempt + 1, maxRetries + 1, sleepMs,
+                            e);
+                }
+                sleepQuietly(sleepMs);
             }
         }
 
@@ -370,6 +395,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @throws IOException on transport-level failure
      */
     protected ExtractData executeOnce(final byte[] requestBody, final String targetUrl, final int attempt) throws IOException {
+        if (attempt > 0 && logger.isDebugEnabled()) {
+            logger.debug("Executing API request (url={}, attempt={})", targetUrl, attempt);
+        }
         final HttpPost httpPost = new HttpPost(targetUrl);
         final HttpEntity postEntity = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
@@ -383,12 +411,13 @@ public class ApiExtractor extends AbstractExtractor {
             if (statusCode != Constants.OK_STATUS_CODE) {
                 if (isRetryableStatus(statusCode)) {
                     final long retryAfterMs = parseRetryAfterMs(response.getFirstHeader("Retry-After"));
-                    // Drain entity so the connection can be reused.
-                    consumeQuietly(response.getEntity());
+                    // Drain entity so the connection can be reused. Bound the drain so a hostile
+                    // server cannot stream an unbounded body just to keep us reading.
+                    drainBounded(response.getEntity());
                     throw new RetryableStatusException(statusCode, retryAfterMs);
                 }
-                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}", targetUrl, statusCode);
-                consumeQuietly(response.getEntity());
+                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}, attempt={}", targetUrl, statusCode, attempt);
+                drainBounded(response.getEntity());
                 return null;
             }
 
@@ -430,8 +459,9 @@ public class ApiExtractor extends AbstractExtractor {
     }
 
     /**
-     * Parses a {@code Retry-After} header into milliseconds.
-     * Only the delta-seconds form is honored; HTTP-date form is ignored as best-effort.
+     * Parses a {@code Retry-After} header into milliseconds. Both delta-seconds and the
+     * HTTP-date form (RFC 7231) are honored; on parse failure {@code -1L} is returned and the
+     * caller should fall back to the default backoff schedule.
      *
      * @param header the {@code Retry-After} header (may be null)
      * @return delay in milliseconds, or {@code -1L} if unspecified or invalid
@@ -444,20 +474,33 @@ public class ApiExtractor extends AbstractExtractor {
         if (StringUtil.isBlank(value)) {
             return -1L;
         }
+        final String trimmed = value.trim();
+        // Try delta-seconds first.
         try {
-            final long seconds = Long.parseLong(value.trim());
+            final long seconds = Long.parseLong(trimmed);
             if (seconds < 0L) {
                 return -1L;
             }
             return seconds * 1000L;
-        } catch (final NumberFormatException e) {
-            // HTTP-date form not supported; fall through to default backoff.
+        } catch (final NumberFormatException ignore) {
+            // Not a numeric value — try HTTP-date form below.
+        }
+        // HTTP-date form per RFC 7231.
+        final Date when = DateUtils.parseDate(trimmed);
+        if (when == null) {
             return -1L;
         }
+        final long deltaMs = when.getTime() - System.currentTimeMillis();
+        if (deltaMs <= 0L) {
+            return 0L;
+        }
+        return deltaMs;
     }
 
     /**
-     * Computes exponential backoff for a retry attempt.
+     * Computes exponential backoff for a retry attempt. A small random jitter in the range
+     * {@code [0, retryBackoffMs)} is added to the exponential base to avoid thundering-herd
+     * retry storms when many extractors hit the same upstream concurrently.
      *
      * @param attempt 0-based attempt number
      * @param retryAfterMs server-suggested delay; non-negative values take precedence
@@ -467,7 +510,9 @@ public class ApiExtractor extends AbstractExtractor {
         if (retryAfterMs >= 0L) {
             return retryAfterMs;
         }
-        return retryBackoffMs * (1L << attempt);
+        final long base = retryBackoffMs * (1L << attempt);
+        final long jitter = retryBackoffMs > 0L ? ThreadLocalRandom.current().nextLong(0L, retryBackoffMs) : 0L;
+        return base + jitter;
     }
 
     /**
@@ -499,6 +544,28 @@ public class ApiExtractor extends AbstractExtractor {
             org.apache.http.util.EntityUtils.consumeQuietly(entity);
         } catch (final Exception e) {
             // ignore
+        }
+    }
+
+    /**
+     * Drains the response entity content with a hard upper bound of {@link #maxResponseSize}
+     * bytes so a hostile server cannot trickle out an unbounded body purely to keep us reading.
+     * Errors are intentionally swallowed: the goal is just to make the connection reusable.
+     *
+     * @param entity entity to drain (may be null)
+     */
+    protected void drainBounded(final HttpEntity entity) {
+        if (entity == null) {
+            return;
+        }
+        try (InputStream content = entity.getContent();
+                BoundedInputStream bounded = BoundedInputStream.builder().setInputStream(content).setMaxCount(maxResponseSize).get()) {
+            final byte[] buf = new byte[8192];
+            while (bounded.read(buf) >= 0) {
+                // discard
+            }
+        } catch (final Exception e) {
+            // ignore — best-effort drain
         }
     }
 
@@ -628,6 +695,15 @@ public class ApiExtractor extends AbstractExtractor {
      */
     public void setMaxResponseSize(final long maxResponseSize) {
         this.maxResponseSize = maxResponseSize;
+    }
+
+    /**
+     * Sets the maximum size in bytes accepted for an outgoing request body.
+     * Inputs larger than this trigger an {@link ExtractException} before any HTTP call is made.
+     * @param maxRequestSize maximum accepted request body size in bytes
+     */
+    public void setMaxRequestSize(final long maxRequestSize) {
+        this.maxRequestSize = maxRequestSize;
     }
 
     /**

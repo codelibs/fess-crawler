@@ -24,8 +24,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -345,6 +349,140 @@ public class ApiExtractorTest extends PlainTestCase {
                 // ignore
             }
             acceptor.interrupt();
+        }
+    }
+
+    /**
+     * Upload bigger than {@code maxRequestSize} must throw {@link ExtractException} before any
+     * HTTP call is made. Asserts no request reaches the server.
+     */
+    @Test
+    public void test_uploadExceedsMaxRequestSize_throws() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        simple.setHandler(exchange -> {
+            calls.incrementAndGet();
+            drain(exchange.getRequestBody());
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        simple.start();
+        try {
+            final ApiExtractor capped = new ApiExtractor();
+            capped.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            capped.setMaxRequestSize(16L);
+            capped.setMaxRetries(0);
+            capped.init();
+            try {
+                final byte[] tooBig = new byte[64];
+                for (int i = 0; i < tooBig.length; i++) {
+                    tooBig[i] = (byte) ('a' + (i % 26));
+                }
+                capped.getText(new ByteArrayInputStream(tooBig), new HashMap<>());
+                fail();
+            } catch (final ExtractException e) {
+                org.junit.jupiter.api.Assertions.assertTrue(e.getMessage().contains("request body exceeded limit"),
+                        "message should mention request body limit: " + e.getMessage());
+                assertEquals(0, calls.get());
+            } finally {
+                capped.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    /**
+     * {@code Retry-After} header in the HTTP-date form (RFC 7231) must be parsed correctly: the
+     * extractor must wait approximately the indicated delta before retrying.
+     */
+    @Test
+    public void test_retryAfterHttpDate_parsedCorrectly() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        // Pre-compute an HTTP-date 2 seconds into the future for the first response.
+        final SimpleDateFormat httpDateFmt = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+        httpDateFmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+        simple.setHandler(exchange -> {
+            drain(exchange.getRequestBody());
+            final int n = calls.incrementAndGet();
+            if (n == 1) {
+                final String httpDate = httpDateFmt.format(new Date(System.currentTimeMillis() + 2_000L));
+                exchange.getResponseHeaders().add("Retry-After", httpDate);
+                exchange.sendResponseHeaders(429, -1);
+                exchange.close();
+            } else {
+                final byte[] body = "ok".getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+                exchange.sendResponseHeaders(200, body.length);
+                try (OutputStream out = exchange.getResponseBody()) {
+                    out.write(body);
+                }
+            }
+        });
+        simple.start();
+        try {
+            final ApiExtractor retrying = new ApiExtractor();
+            retrying.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            retrying.setMaxRetries(1);
+            retrying.setRetryBackoffMs(10L);
+            retrying.init();
+            try {
+                final long t0 = System.currentTimeMillis();
+                final ExtractData data = retrying.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                final long elapsed = System.currentTimeMillis() - t0;
+                assertNotNull(data);
+                assertEquals("ok", data.getContent());
+                assertEquals(2, calls.get());
+                // Must wait at least ~1.5s (allow some slack), well above the default ~10ms backoff.
+                org.junit.jupiter.api.Assertions.assertTrue(elapsed >= 1_500L,
+                        "retry must respect HTTP-date Retry-After (elapsed=" + elapsed + "ms)");
+                // And not block longer than is reasonable.
+                org.junit.jupiter.api.Assertions.assertTrue(elapsed < 10_000L, "retry must not stall (elapsed=" + elapsed + "ms)");
+            } finally {
+                retrying.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    /**
+     * Probabilistic check that {@link ApiExtractor#computeBackoff(int, long)} adds a jitter
+     * within {@code [base, 2*base)} for {@code attempt=0}. Runs many iterations so the bounds
+     * are exercised, and asserts at least two distinct values are observed (i.e., it isn't a
+     * constant).
+     */
+    @Test
+    public void test_jitterAppliedToBackoff() throws Exception {
+        final ApiExtractor jitterExtractor = new ApiExtractor();
+        jitterExtractor.setUrl("http://127.0.0.1:1/unused");
+        final long base = 100L;
+        jitterExtractor.setRetryBackoffMs(base);
+        jitterExtractor.init();
+        try {
+            long min = Long.MAX_VALUE;
+            long max = Long.MIN_VALUE;
+            final java.util.HashSet<Long> distinct = new java.util.HashSet<>();
+            for (int i = 0; i < 200; i++) {
+                final long v = jitterExtractor.computeBackoff(0, -1L);
+                if (v < min) {
+                    min = v;
+                }
+                if (v > max) {
+                    max = v;
+                }
+                distinct.add(v);
+            }
+            // Each value must lie within [base, 2*base) — base + jitter where jitter ∈ [0, base).
+            org.junit.jupiter.api.Assertions.assertTrue(min >= base, "min should be >= base: min=" + min + ", base=" + base);
+            org.junit.jupiter.api.Assertions.assertTrue(max < 2L * base, "max should be < 2*base: max=" + max + ", base=" + base);
+            // Probabilistic: with 200 samples and 100 buckets the chance of a single repeated
+            // value is astronomically low — at least 2 distinct values is a near-certainty.
+            org.junit.jupiter.api.Assertions.assertTrue(distinct.size() >= 2,
+                    "jitter should produce varied values, got distinct=" + distinct.size());
+        } finally {
+            jitterExtractor.destroy();
         }
     }
 

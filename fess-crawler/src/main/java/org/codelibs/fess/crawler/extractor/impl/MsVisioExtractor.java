@@ -56,7 +56,7 @@ public class MsVisioExtractor extends AbstractExtractor {
         try (VisioTextExtractor visioTextExtractor = new VisioTextExtractor(in)) {
             return new ExtractData(visioTextExtractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException("Failed to extract text from Visio document: error=" + e.getMessage(), e);
+            throw new ExtractException("Failed to extract text from Visio document.", e);
         }
     }
 

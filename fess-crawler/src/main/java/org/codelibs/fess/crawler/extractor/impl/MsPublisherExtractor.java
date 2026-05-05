@@ -56,7 +56,7 @@ public class MsPublisherExtractor extends AbstractExtractor {
         try (PublisherTextExtractor publisherTextExtractor = new PublisherTextExtractor(in)) {
             return new ExtractData(publisherTextExtractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException("Failed to extract text from Publisher document: error=" + e.getMessage(), e);
+            throw new ExtractException("Failed to extract text from Publisher document.", e);
         }
     }
 

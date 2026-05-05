@@ -54,14 +54,19 @@ public class TarExtractor extends AbstractExtractor {
     protected ArchiveStreamFactory archiveStreamFactory;
 
     /**
-     * Maximum content size (legacy field). When set, the actual bytes
-     * read from each entry stream are summed and compared against this limit.
+     * Legacy total cap on uncompressed bytes actually buffered from
+     * supported entries. The cap is also folded into the read budget so a
+     * single oversized entry cannot be buffered up to
+     * {@link #maxBytesPerEntry} when the user only asked for a much smaller
+     * total. Set to {@code -1} to disable.
      */
     protected long maxContentSize = -1;
 
     /**
      * Maximum total uncompressed bytes that may be read from all entries
-     * combined. Defaults to 2 GiB. Set to {@code -1} to disable.
+     * combined. Defaults to 2 GiB. Set to {@code -1} to disable. Only bytes
+     * from entries that have a registered {@link Extractor} contribute to
+     * this total — unsupported entries are skipped without buffering.
      */
     protected long maxBytes = 1L << 31;
 
@@ -69,7 +74,9 @@ public class TarExtractor extends AbstractExtractor {
      * Maximum uncompressed bytes that may be buffered for a SINGLE entry.
      * Guards against an oversized entry exhausting the JVM heap when
      * buffered into memory. Defaults to 256 MiB. Set to {@code -1} to
-     * disable. Enforced independently of {@link #maxBytes}.
+     * disable. Enforced independently of {@link #maxBytes}. Only applies to
+     * entries that have a registered {@link Extractor}; an unsupported
+     * entry is never buffered, so this cap is irrelevant for it.
      */
     protected long maxBytesPerEntry = 256L * 1024L * 1024L;
 
@@ -135,6 +142,17 @@ public class TarExtractor extends AbstractExtractor {
                     continue;
                 }
 
+                // Decide MIME / extractor up front. An unsupported entry
+                // (e.g. a video alongside a small .txt) is skipped without
+                // buffering, so a large irrelevant entry does not consume
+                // the per-entry / total caps that should be reserved for
+                // entries the crawler actually wants to extract.
+                final String mimeType = mimeTypeHelper.getContentType(null, filename);
+                final Extractor extractor = mimeType != null ? extractorFactory.getExtractor(mimeType) : null;
+                if (extractor == null) {
+                    continue;
+                }
+
                 final long actualBytes;
                 final byte[] entryBytes;
                 try {
@@ -144,8 +162,17 @@ public class TarExtractor extends AbstractExtractor {
                     } else {
                         totalReadLimit = Long.MAX_VALUE;
                     }
+                    // Fold maxContentSize into the read budget so a small
+                    // legacy cap is honoured before a large per-entry cap
+                    // can buffer hundreds of MiB into memory.
+                    final long contentReadLimit;
+                    if (maxContentSize >= 0) {
+                        contentReadLimit = Math.max(0L, maxContentSize - totalBytes) + 1L;
+                    } else {
+                        contentReadLimit = Long.MAX_VALUE;
+                    }
                     final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
-                    final long readLimit = Math.min(totalReadLimit, perEntryReadLimit);
+                    final long readLimit = Math.min(Math.min(totalReadLimit, contentReadLimit), perEntryReadLimit);
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     actualBytes = copyBounded(ais, out, readLimit);
                     entryBytes = out.toByteArray();
@@ -166,28 +193,22 @@ public class TarExtractor extends AbstractExtractor {
                 if (maxBytes > 0 && totalBytes > maxBytes) {
                     throw new MaxLengthExceededException("tar uncompressed size exceeded: total=" + totalBytes + " max=" + maxBytes);
                 }
-                if (maxContentSize != -1 && totalBytes > maxContentSize) {
+                if (maxContentSize >= 0 && totalBytes > maxContentSize) {
                     throw new MaxLengthExceededException("Extracted size is " + totalBytes + " > " + maxContentSize);
                 }
 
-                final String mimeType = mimeTypeHelper.getContentType(null, filename);
-                if (mimeType != null) {
-                    final Extractor extractor = extractorFactory.getExtractor(mimeType);
-                    if (extractor != null) {
-                        try {
-                            final Map<String, String> map = incrementDepth(params);
-                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
-                            buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
-                            buf.append('\n');
-                            processedEntries++;
-                        } catch (final MaxLengthExceededException e) {
-                            throw e;
-                        } catch (final Exception e) {
-                            failedEntries++;
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Failed to extract content from archive entry: name={}", filename, e);
-                            }
-                        }
+                try {
+                    final Map<String, String> map = incrementDepth(params);
+                    map.put(ExtractData.RESOURCE_NAME_KEY, filename);
+                    buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
+                    buf.append('\n');
+                    processedEntries++;
+                } catch (final MaxLengthExceededException e) {
+                    throw e;
+                } catch (final Exception e) {
+                    failedEntries++;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to extract content from archive entry: name={}", filename, e);
                     }
                 }
             }

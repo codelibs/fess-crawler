@@ -445,10 +445,13 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
 
     @Test
     public void test_perEntryCapEnforced() throws Exception {
-        // Build a zip whose single entry exceeds the configured per-entry
-        // cap. The extractor must trip the cap before buffering the whole
-        // payload. We use a small cap (1 MiB) and a slightly larger payload
-        // (2 MiB) so the test stays cheap on parallel/low-memory CI.
+        // Build a zip whose single SUPPORTED entry exceeds the configured
+        // per-entry cap. The extractor must trip the cap before buffering
+        // the whole payload. We use a small cap (1 MiB) and a slightly
+        // larger payload (2 MiB) so the test stays cheap on parallel /
+        // low-memory CI. The extension is .txt so the entry routes through
+        // the registered text/plain extractor — only supported entries are
+        // buffered (and therefore can hit the per-entry memory cap).
         final int perEntryCap = 1024 * 1024;
         final int entrySize = 2 * perEntryCap;
         final byte[] payload = new byte[entrySize];
@@ -468,7 +471,7 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(baos)) {
-            final ZipArchiveEntry entry = new ZipArchiveEntry("big.bin");
+            final ZipArchiveEntry entry = new ZipArchiveEntry("big.txt");
             entry.setMethod(ZipArchiveEntry.DEFLATED);
             entry.setSize(payload.length);
             entry.setCompressedSize(compBuf.size());
@@ -491,6 +494,73 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
             fail();
         } catch (final MaxLengthExceededException e) {
             assertTrue(e.getMessage().contains("per-entry size exceeded"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Unsupported entries must NOT consume the per-entry / total caps —
+    // they are skipped without buffering so that supported entries
+    // alongside them still extract successfully (regression for PR #161
+    // review feedback).
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_zip_unsupportedEntryDoesNotConsumeCaps() throws Exception {
+        // A "big.bin" payload that, were it to be buffered, would exceed
+        // both the per-entry cap and the total cap. The supported "ok.txt"
+        // alongside it must still extract because no extractor is
+        // registered for application/octet-stream.
+        final byte[] big = new byte[4 * 1024 * 1024];
+        final byte[] data = buildZip(new EntrySpec("big.bin", big), new EntrySpec("ok.txt", "good".getBytes(StandardCharsets.UTF_8)));
+
+        zipExtractor.setMaxBytes(64 * 1024); // smaller than big.bin
+        zipExtractor.setMaxBytesPerEntry(64 * 1024); // also smaller
+        zipExtractor.setMaxContentSize(64 * 1024);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            final String content = zipExtractor.getText(in, null).getContent();
+            assertTrue(content.contains("good"));
+        }
+    }
+
+    @Test
+    public void test_tar_unsupportedEntryDoesNotConsumeCaps() throws Exception {
+        final byte[] big = new byte[4 * 1024 * 1024];
+        final byte[] data = buildTar(new TarEntrySpec("big.bin", big), new TarEntrySpec("ok.txt", "good".getBytes(StandardCharsets.UTF_8)));
+
+        tarExtractor.setMaxBytes(64 * 1024);
+        tarExtractor.setMaxBytesPerEntry(64 * 1024);
+        tarExtractor.setMaxContentSize(64 * 1024);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            final String content = tarExtractor.getText(in, null).getContent();
+            assertTrue(content.contains("good"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // maxContentSize is folded into the read budget — a small legacy cap
+    // must trip BEFORE the buffer grows to the much larger per-entry cap
+    // (regression for PR #161 review feedback).
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_zip_maxContentSize_capsBufferBeforePerEntryCap() throws Exception {
+        // 4 MiB supported entry; per-entry cap default is large; legacy
+        // maxContentSize is small. Without the fix the buffer would grow
+        // up to maxBytesPerEntry+1 before throwing. With the fix the read
+        // budget is bounded by maxContentSize+1 so buffering stops early.
+        final int legacyCap = 64 * 1024;
+        final byte[] payload = new byte[4 * 1024 * 1024];
+        final byte[] data = buildZip(new EntrySpec("big.txt", payload));
+
+        zipExtractor.setMaxBytes(-1);
+        zipExtractor.setMaxCompressionRatio(-1);
+        zipExtractor.setMaxBytesPerEntry(8L * 1024L * 1024L); // intentionally larger than payload
+        zipExtractor.setMaxContentSize(legacyCap);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("Extracted size is"));
         }
     }
 

@@ -61,14 +61,20 @@ public class ZipExtractor extends AbstractExtractor {
     private static final long COMPRESSION_RATIO_MIN_BYTES = 1L << 20; // 1 MiB
 
     /**
-     * The maximum content size (legacy field). When set, the actual bytes
-     * read from each entry stream are summed and compared against this limit.
+     * Legacy total cap on uncompressed bytes actually buffered from
+     * supported entries. The cap is also folded into the read budget so a
+     * single oversized entry cannot be buffered up to
+     * {@link #maxBytesPerEntry} when the user only asked for a much smaller
+     * total. Set to {@code -1} to disable.
      */
     protected long maxContentSize = -1;
 
     /**
      * Maximum total uncompressed bytes that may be read from all entries
-     * combined. Defaults to 2 GiB. Set to {@code -1} to disable.
+     * combined. Defaults to 2 GiB. Set to {@code -1} to disable. Only bytes
+     * from entries that have a registered {@link Extractor} contribute to
+     * this total — unsupported entries are skipped without buffering or
+     * draining, mirroring the pre-defence behaviour.
      */
     protected long maxBytes = 1L << 31;
 
@@ -78,6 +84,8 @@ public class ZipExtractor extends AbstractExtractor {
      * 1.9 GiB file inside an otherwise small archive) exhausting the JVM
      * heap when buffered into memory. Defaults to 256 MiB. Set to
      * {@code -1} to disable. Enforced independently of {@link #maxBytes}.
+     * Only applies to entries that have a registered {@link Extractor}; an
+     * unsupported entry is never buffered, so this cap is irrelevant for it.
      */
     protected long maxBytesPerEntry = 256L * 1024L * 1024L;
 
@@ -157,10 +165,28 @@ public class ZipExtractor extends AbstractExtractor {
                 }
                 final String filename = entry.getName();
                 if (entry.isDirectory()) {
+                    lastCompressedBytes = counter.getByteCount();
                     continue;
                 }
                 if (isPathTraversal(filename)) {
                     logger.warn("zip entry rejected: name={} reason=path-traversal", filename);
+                    // Keep the compressed-bytes anchor in step with the
+                    // stream so the next supported entry's ratio is
+                    // computed against ITS own compressed bytes, not also
+                    // those of the rejected entry.
+                    lastCompressedBytes = counter.getByteCount();
+                    continue;
+                }
+
+                // Decide MIME / extractor up front. An unsupported entry
+                // (e.g. a video alongside a small .txt) is skipped without
+                // buffering, so a large irrelevant entry does not consume
+                // the per-entry / total caps that should be reserved for
+                // entries the crawler actually wants to extract.
+                final String mimeType = mimeTypeHelper.getContentType(null, filename);
+                final Extractor extractor = mimeType != null ? extractorFactory.getExtractor(mimeType) : null;
+                if (extractor == null) {
+                    lastCompressedBytes = counter.getByteCount();
                     continue;
                 }
 
@@ -174,13 +200,22 @@ public class ZipExtractor extends AbstractExtractor {
                     } else {
                         totalReadLimit = Long.MAX_VALUE;
                     }
+                    // Fold maxContentSize into the read budget so a small
+                    // legacy cap is honoured before a large per-entry cap
+                    // can buffer hundreds of MiB into memory.
+                    final long contentReadLimit;
+                    if (maxContentSize >= 0) {
+                        contentReadLimit = Math.max(0L, maxContentSize - totalBytes) + 1L;
+                    } else {
+                        contentReadLimit = Long.MAX_VALUE;
+                    }
                     // Enforce a per-entry cap independently of the total
                     // cap so that a single oversized entry cannot exhaust
                     // the JVM heap. We read one byte beyond the cap so the
                     // explicit overflow check below can distinguish
                     // "exactly at the cap" from "exceeds the cap".
                     final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
-                    final long readLimit = Math.min(totalReadLimit, perEntryReadLimit);
+                    final long readLimit = Math.min(Math.min(totalReadLimit, contentReadLimit), perEntryReadLimit);
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     actualBytes = copyBounded(ais, out, readLimit);
                     entryBytes = out.toByteArray();
@@ -189,6 +224,7 @@ public class ZipExtractor extends AbstractExtractor {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Failed to read zip entry: name={}", filename, ioe);
                     }
+                    lastCompressedBytes = counter.getByteCount();
                     continue;
                 }
 
@@ -201,7 +237,7 @@ public class ZipExtractor extends AbstractExtractor {
                 if (maxBytes > 0 && totalBytes > maxBytes) {
                     throw new MaxLengthExceededException("zip uncompressed size exceeded: total=" + totalBytes + " max=" + maxBytes);
                 }
-                if (maxContentSize != -1 && totalBytes > maxContentSize) {
+                if (maxContentSize >= 0 && totalBytes > maxContentSize) {
                     throw new MaxLengthExceededException("Extracted size is " + totalBytes + " > " + maxContentSize);
                 }
 
@@ -223,24 +259,18 @@ public class ZipExtractor extends AbstractExtractor {
                             + (actualBytes / compressed) + " max=" + maxCompressionRatio);
                 }
 
-                final String mimeType = mimeTypeHelper.getContentType(null, filename);
-                if (mimeType != null) {
-                    final Extractor extractor = extractorFactory.getExtractor(mimeType);
-                    if (extractor != null) {
-                        try {
-                            final Map<String, String> map = incrementDepth(params);
-                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
-                            buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
-                            buf.append('\n');
-                            processedEntries++;
-                        } catch (final MaxLengthExceededException e) {
-                            throw e;
-                        } catch (final Exception e) {
-                            failedEntries++;
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Failed to extract content from archive entry: name={}", filename, e);
-                            }
-                        }
+                try {
+                    final Map<String, String> map = incrementDepth(params);
+                    map.put(ExtractData.RESOURCE_NAME_KEY, filename);
+                    buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
+                    buf.append('\n');
+                    processedEntries++;
+                } catch (final MaxLengthExceededException e) {
+                    throw e;
+                } catch (final Exception e) {
+                    failedEntries++;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to extract content from archive entry: name={}", filename, e);
                     }
                 }
             }

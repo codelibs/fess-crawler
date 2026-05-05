@@ -55,12 +55,20 @@ public class LhaExtractor extends AbstractExtractor {
     /** Logger for this class. */
     private static final Logger logger = LogManager.getLogger(LhaExtractor.class);
 
-    /** Maximum content size for extraction. -1 means no limit. */
+    /**
+     * Legacy total cap on uncompressed bytes actually buffered from
+     * supported entries. The cap is also folded into the read budget so a
+     * single oversized entry cannot be buffered up to
+     * {@link #maxBytesPerEntry} when the user only asked for a much smaller
+     * total. Set to {@code -1} to disable.
+     */
     protected long maxContentSize = -1;
 
     /**
      * Maximum total uncompressed bytes that may be read from all entries
-     * combined. Defaults to 2 GiB. Set to {@code -1} to disable.
+     * combined. Defaults to 2 GiB. Set to {@code -1} to disable. Only bytes
+     * from entries that have a registered {@link Extractor} contribute to
+     * this total — unsupported entries are skipped without buffering.
      */
     protected long maxBytes = 1L << 31;
 
@@ -69,7 +77,8 @@ public class LhaExtractor extends AbstractExtractor {
      * Enforced against the actual bytes read from the entry stream (NOT the
      * header-reported size, which is attacker-controlled). Defaults to
      * 256 MiB. Set to {@code -1} to disable. Enforced independently of
-     * {@link #maxBytes}.
+     * {@link #maxBytes}. Only applies to entries that have a registered
+     * {@link Extractor}; an unsupported entry is never buffered.
      */
     protected long maxBytesPerEntry = 256L * 1024L * 1024L;
 
@@ -148,6 +157,17 @@ public class LhaExtractor extends AbstractExtractor {
                     continue;
                 }
 
+                // Decide MIME / extractor up front so an unsupported entry
+                // is skipped without opening its decompressor at all. This
+                // mirrors the legacy behaviour and keeps a large irrelevant
+                // entry from consuming the per-entry / total caps reserved
+                // for entries the crawler actually wants to extract.
+                final String mimeType = mimeTypeHelper.getContentType(null, filename);
+                final Extractor extractor = mimeType != null ? extractorFactory.getExtractor(mimeType) : null;
+                if (extractor == null) {
+                    continue;
+                }
+
                 // Read the entry payload through copyBounded so the cap is
                 // enforced against bytes actually decompressed, not the
                 // header-reported size (which is attacker-controlled).
@@ -162,8 +182,17 @@ public class LhaExtractor extends AbstractExtractor {
                     } else {
                         totalReadLimit = Long.MAX_VALUE;
                     }
+                    // Fold maxContentSize into the read budget so a small
+                    // legacy cap is honoured before a large per-entry cap
+                    // can buffer hundreds of MiB into memory.
+                    final long contentReadLimit;
+                    if (maxContentSize >= 0) {
+                        contentReadLimit = Math.max(0L, maxContentSize - totalBytes) + 1L;
+                    } else {
+                        contentReadLimit = Long.MAX_VALUE;
+                    }
                     final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
-                    final long readLimit = Math.min(totalReadLimit, perEntryReadLimit);
+                    final long readLimit = Math.min(Math.min(totalReadLimit, contentReadLimit), perEntryReadLimit);
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     actualBytes = copyBounded(is, out, readLimit);
                     entryBytes = out.toByteArray();
@@ -185,26 +214,20 @@ public class LhaExtractor extends AbstractExtractor {
                 if (maxBytes > 0 && totalBytes > maxBytes) {
                     throw new MaxLengthExceededException("lha uncompressed size exceeded: total=" + totalBytes + " max=" + maxBytes);
                 }
-                if (maxContentSize != -1 && totalBytes > maxContentSize) {
+                if (maxContentSize >= 0 && totalBytes > maxContentSize) {
                     throw new MaxLengthExceededException("Extracted size is " + totalBytes + " > " + maxContentSize);
                 }
 
-                final String mimeType = mimeTypeHelper.getContentType(null, filename);
-                if (mimeType != null) {
-                    final Extractor extractor = extractorFactory.getExtractor(mimeType);
-                    if (extractor != null) {
-                        try {
-                            final Map<String, String> map = incrementDepth(params);
-                            map.put(ExtractData.RESOURCE_NAME_KEY, filename);
-                            buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
-                            buf.append('\n');
-                        } catch (final MaxLengthExceededException e) {
-                            throw e;
-                        } catch (final Exception e) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Exception in an internal extractor.", e);
-                            }
-                        }
+                try {
+                    final Map<String, String> map = incrementDepth(params);
+                    map.put(ExtractData.RESOURCE_NAME_KEY, filename);
+                    buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
+                    buf.append('\n');
+                } catch (final MaxLengthExceededException e) {
+                    throw e;
+                } catch (final Exception e) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Exception in an internal extractor.", e);
                     }
                 }
             }

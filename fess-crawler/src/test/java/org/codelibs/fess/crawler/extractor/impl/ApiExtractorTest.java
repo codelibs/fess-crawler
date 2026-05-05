@@ -486,6 +486,89 @@ public class ApiExtractorTest extends PlainTestCase {
         }
     }
 
+    public void test_sleepQuietly_interruptedThrowsAndPreservesFlag() throws Exception {
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:1/unused");
+        extractor.init();
+        try {
+            // Pre-interrupt the thread; sleepQuietly should observe it and bail.
+            Thread.currentThread().interrupt();
+            try {
+                extractor.sleepQuietly(100L);
+                fail();
+            } catch (final ExtractException e) {
+                org.junit.jupiter.api.Assertions.assertTrue(Thread.currentThread().isInterrupted(),
+                        "interrupt flag must be preserved for upstream observers");
+            }
+        } finally {
+            // Drain the interrupt flag so it does not leak into subsequent tests.
+            Thread.interrupted();
+            extractor.destroy();
+        }
+    }
+
+    public void test_executeWithRetries_interruptStopsRetryLoop() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        final AtomicInteger attempts = new AtomicInteger();
+        try {
+            // Always reply 503 with a long Retry-After so the extractor enters sleepQuietly.
+            server.setHandler(new HttpHandler() {
+                @Override
+                public void handle(final HttpExchange exchange) throws IOException {
+                    attempts.incrementAndGet();
+                    drain(exchange.getRequestBody());
+                    exchange.getResponseHeaders().add("Retry-After", "30");
+                    exchange.sendResponseHeaders(503, 0);
+                    exchange.getResponseBody().close();
+                }
+            });
+            server.start();
+
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + server.port() + "/");
+            extractor.setMaxRetries(5);
+            extractor.setRetryBackoffMs(50L);
+            extractor.init();
+            try {
+                final Thread target = Thread.currentThread();
+                final Thread interrupter = new Thread(() -> {
+                    try {
+                        // Wait for the extractor to issue its first request and start sleeping.
+                        Thread.sleep(500L);
+                    } catch (final InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    target.interrupt();
+                });
+                interrupter.setDaemon(true);
+                interrupter.start();
+
+                final long startMs = System.currentTimeMillis();
+                try {
+                    extractor.getText(new ByteArrayInputStream("payload".getBytes(StandardCharsets.UTF_8)), new HashMap<String, String>());
+                    fail();
+                } catch (final ExtractException e) {
+                    // expected
+                }
+                final long elapsed = System.currentTimeMillis() - startMs;
+
+                // Bail out should be prompt: well under one full Retry-After (30s).
+                org.junit.jupiter.api.Assertions.assertTrue(elapsed < 5_000L,
+                        "interrupt must short-circuit the retry loop, elapsed=" + elapsed + "ms");
+                // Only one HTTP attempt should have reached the server before the interrupt fired.
+                org.junit.jupiter.api.Assertions.assertTrue(attempts.get() <= 2,
+                        "retry loop must stop on interrupt, attempts=" + attempts.get());
+
+                interrupter.join(1_000L);
+            } finally {
+                Thread.interrupted();
+                extractor.destroy();
+            }
+        } finally {
+            server.stop();
+        }
+    }
+
     private static void drain(final InputStream in) throws IOException {
         final byte[] buf = new byte[4096];
         while (in.read(buf) >= 0) {

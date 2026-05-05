@@ -516,9 +516,14 @@ public class ApiExtractor extends AbstractExtractor {
     }
 
     /**
-     * Sleeps without throwing on interruption (preserves the interrupt flag).
+     * Sleeps between retries. If the current thread is interrupted (e.g. by
+     * {@code accessTimeout} via {@code AccessTimeoutTarget}), aborts the retry
+     * loop by throwing {@link ExtractException} instead of silently continuing
+     * to the next HTTP attempt. The interrupt flag is preserved so callers
+     * further up the stack can also observe the cancellation.
      *
      * @param millis sleep duration in milliseconds
+     * @throws ExtractException if interrupted while sleeping
      */
     protected void sleepQuietly(final long millis) {
         if (millis <= 0L) {
@@ -528,6 +533,7 @@ public class ApiExtractor extends AbstractExtractor {
             Thread.sleep(millis);
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new ExtractException("API retry was interrupted", e);
         }
     }
 
